@@ -3,13 +3,13 @@ import { Globe, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const languages = [
-  { code: 'fr', label: 'Français', native: 'Français' },
-  { code: 'en', label: 'English', native: 'English' },
-  { code: 'de', label: 'Deutsch', native: 'Deutsch' },
-  { code: 'es', label: 'Español', native: 'Español' },
+  { code: 'fr', native: 'Français' },
+  { code: 'en', native: 'English' },
+  { code: 'de', native: 'Deutsch' },
+  { code: 'es', native: 'Español' },
 ];
 
-export default function LanguagePopover({ open, onClose, anchorRef, expanded }) {
+export default function LanguagePopover({ open, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [selected, setSelected] = useState('fr');
 
@@ -24,6 +24,14 @@ export default function LanguagePopover({ open, onClose, anchorRef, expanded }) 
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open, onClose, anchorRef]);
 
+  const getPosition = () => {
+    if (!anchorRef?.current) return { left: 60, bottom: 16 };
+    const rect = anchorRef.current.getBoundingClientRect();
+    return { left: rect.right + 8, bottom: window.innerHeight - rect.bottom };
+  };
+
+  const pos = open ? getPosition() : {};
+
   return (
     <AnimatePresence>
       {open && (
@@ -33,11 +41,8 @@ export default function LanguagePopover({ open, onClose, anchorRef, expanded }) 
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -8, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[100] w-52 bg-card rounded-xl shadow-xl border border-border overflow-hidden"
-          style={{
-            left: expanded ? '220px' : '60px',
-            bottom: '100px',
-          }}
+          className="fixed z-[100] w-48 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
+          style={{ left: pos.left, bottom: pos.bottom }}
         >
           <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
             <Globe className="w-4 h-4 text-primary" />

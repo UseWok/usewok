@@ -3,27 +3,12 @@ import { Bell, Megaphone, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const newsItems = [
-  {
-    icon: Sparkles,
-    title: 'Nouvelle fonctionnalité',
-    desc: 'Découvrez les agents IA améliorés',
-    time: 'Il y a 2h',
-  },
-  {
-    icon: Megaphone,
-    title: 'Mise à jour v2.5',
-    desc: 'Performance et stabilité améliorées',
-    time: 'Il y a 1j',
-  },
-  {
-    icon: Sparkles,
-    title: 'Parcours disponibles',
-    desc: 'Apprenez à créer vos premiers projets',
-    time: 'Il y a 3j',
-  },
+  { icon: Sparkles, title: 'Nouvelle fonctionnalité', desc: 'Découvrez les agents IA améliorés', time: 'Il y a 2h' },
+  { icon: Megaphone, title: 'Mise à jour v2.5', desc: 'Performance et stabilité améliorées', time: 'Il y a 1j' },
+  { icon: Sparkles, title: 'Parcours disponibles', desc: 'Apprenez à créer vos premiers projets', time: 'Il y a 3j' },
 ];
 
-export default function NotificationsPopover({ open, onClose, anchorRef, expanded }) {
+export default function NotificationsPopover({ open, onClose, anchorRef }) {
   const popoverRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +22,14 @@ export default function NotificationsPopover({ open, onClose, anchorRef, expande
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open, onClose, anchorRef]);
 
+  const getPosition = () => {
+    if (!anchorRef?.current) return { left: 60, bottom: 16 };
+    const rect = anchorRef.current.getBoundingClientRect();
+    return { left: rect.right + 8, bottom: window.innerHeight - rect.bottom };
+  };
+
+  const pos = open ? getPosition() : {};
+
   return (
     <AnimatePresence>
       {open && (
@@ -46,11 +39,8 @@ export default function NotificationsPopover({ open, onClose, anchorRef, expande
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -8, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[100] w-72 bg-card rounded-xl shadow-xl border border-border overflow-hidden"
-          style={{
-            left: expanded ? '220px' : '60px',
-            bottom: '60px',
-          }}
+          className="fixed z-[100] w-72 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
+          style={{ left: pos.left, bottom: pos.bottom }}
         >
           <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
             <Bell className="w-4 h-4 text-primary" />
@@ -58,10 +48,7 @@ export default function NotificationsPopover({ open, onClose, anchorRef, expande
           </div>
           <div className="max-h-64 overflow-y-auto">
             {newsItems.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-0"
-              >
+              <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-0">
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <item.icon className="w-3.5 h-3.5 text-primary" />
                 </div>
