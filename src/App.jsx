@@ -11,6 +11,7 @@ import Parcours from './pages/Parcours';
 import AllProjects from './pages/AllProjects';
 import ChatPage from './pages/ChatPage';
 import PricingPage from './pages/PricingPage';
+import AdminProducts from './pages/admin/AdminProducts';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
         <Route path="/projects" element={<AllProjects />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

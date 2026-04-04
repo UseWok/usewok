@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 const STORAGE_KEY = 'discussions_v1';
 
 const DEFAULTS = [
-  { id: '1', title: 'Agent Universelle - Première session', preview: 'Comment créer un agent IA ?', date: '2026-04-03', model: 'Fast' },
-  { id: '2', title: 'Coach Finance - Budget mensuel', preview: 'Analyse de mes dépenses...', date: '2026-04-02', model: 'Pro' },
-  { id: '3', title: 'Projet CRM personnalisé', preview: 'Crée un CRM pour mon équipe', date: '2026-04-01', model: 'Thinking' },
+  { id: '1', title: 'Agent Universelle - Première session', preview: 'Comment créer un agent IA ?', date: '2026-04-03', model: 'Fast', agent: 'universelle' },
+  { id: '2', title: 'Coach Finance - Budget mensuel', preview: 'Analyse de mes dépenses...', date: '2026-04-02', model: 'Pro', agent: 'coach-finance' },
+  { id: '3', title: 'Projet CRM personnalisé', preview: 'Crée un CRM pour mon équipe', date: '2026-04-01', model: 'Thinking', agent: null },
 ];
 
 function getDiscussions() {
@@ -17,7 +17,7 @@ function getDiscussions() {
 }
 function saveDiscussions(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
 
-export default function RecentApps() {
+export default function RecentApps({ agentId }) {
   const [discussions, setDiscussions] = useState(getDiscussions);
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
@@ -26,9 +26,12 @@ export default function RecentApps() {
   const contextRef = useRef(null);
   const navigate = useNavigate();
 
-  const filtered = discussions.filter(d =>
-    d.title.toLowerCase().includes(search.toLowerCase()) || d.preview.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 3);
+  // Filter by agent if one is selected
+  const filtered = discussions.filter(d => {
+    const matchSearch = d.title.toLowerCase().includes(search.toLowerCase()) || d.preview.toLowerCase().includes(search.toLowerCase());
+    const matchAgent = agentId ? (d.agent === agentId) : true;
+    return matchSearch && matchAgent;
+  }).slice(0, 3);
 
   useEffect(() => {
     const h = (e) => { if (contextRef.current && !contextRef.current.contains(e.target)) setContextMenu(null); };
@@ -36,10 +39,17 @@ export default function RecentApps() {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const openCtx = (e, id) => { e.preventDefault(); setContextMenu({ id, x: e.clientX, y: e.clientY }); };
+  const openCtx = (e, id) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ id, x: e.clientX, y: e.clientY }); };
   const deleteItem = (id) => { const u = discussions.filter(d => d.id !== id); setDiscussions(u); saveDiscussions(u); setContextMenu(null); };
   const startRename = (id) => { const d = discussions.find(d => d.id === id); setRenameValue(d?.title || ''); setRenaming(id); setContextMenu(null); };
   const confirmRename = (id) => { const u = discussions.map(d => d.id === id ? { ...d, title: renameValue } : d); setDiscussions(u); saveDiscussions(u); setRenaming(null); };
+
+  const handleOpen = (disc) => {
+    const params = new URLSearchParams({ conversationId: disc.id });
+    if (disc.agent) params.set('agent', disc.agent);
+    if (disc.model) params.set('mode', disc.model.toLowerCase());
+    navigate(`/chat?${params.toString()}`);
+  };
 
   return (
     <motion.section
@@ -50,13 +60,14 @@ export default function RecentApps() {
     >
       <div className="rounded-xl bg-card border border-border p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-foreground">Discussions récentes</p>
+          <p className="text-sm font-semibold text-foreground">
+            {agentId ? `Discussions — ${agentId}` : 'Discussions récentes'}
+          </p>
           <button onClick={() => navigate('/projects')} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
             Voir tout <ChevronRight className="w-3 h-3" />
           </button>
         </div>
 
-        {/* Search */}
         <div className="flex items-center gap-2 bg-foreground/4 rounded-lg px-3 py-1.5 mb-3">
           <Search className="w-3 h-3 text-muted-foreground flex-shrink-0" />
           <input
@@ -67,13 +78,13 @@ export default function RecentApps() {
           />
         </div>
 
-        {/* List */}
         <div className="flex flex-col gap-1.5">
-          {filtered.length === 0 && <p className="text-center text-xs text-muted-foreground py-3">Aucun résultat</p>}
+          {filtered.length === 0 && <p className="text-center text-xs text-muted-foreground py-3">Aucune discussion trouvée</p>}
           {filtered.map(disc => (
             <motion.div
               key={disc.id}
               layout
+              onClick={() => handleOpen(disc)}
               onContextMenu={(e) => openCtx(e, disc.id)}
               className="group flex items-center gap-3 p-2.5 rounded-lg hover:bg-foreground/4 transition-colors cursor-pointer"
             >
@@ -98,7 +109,7 @@ export default function RecentApps() {
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <span className="text-[9px] text-muted-foreground/50">{disc.date}</span>
                 <button
-                  onClick={(e) => { e.stopPropagation(); openCtx(e, disc.id); }}
+                  onClick={(e) => openCtx(e, disc.id)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded flex items-center justify-center hover:bg-foreground/8"
                 >
                   <MoreHorizontal className="w-3 h-3 text-muted-foreground" />

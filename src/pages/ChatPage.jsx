@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 
 const STORAGE_KEY = 'discussions_v1';
+const MESSAGES_KEY = 'discussion_messages_v1';
 const CREDITS_KEY = 'stensor_credits_used';
 const FREE_LIMIT = 25;
 const ADMIN_LIMIT = 1000000;
@@ -24,19 +25,22 @@ const MODES = [
 ];
 
 const popAnim = {
-  initial: { opacity: 0, y: 4, scale: 0.97 },
+  initial: { opacity: 0, y: -4, scale: 0.97 },
   animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: 4, scale: 0.97 },
+  exit: { opacity: 0, y: -4, scale: 0.97 },
   transition: { duration: 0.1 },
 };
 
-function getCreditsUsed() {
-  return parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10);
+function getCreditsUsed() { return parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10); }
+function addCredit() { const c = getCreditsUsed(); localStorage.setItem(CREDITS_KEY, String(c + 1)); return c + 1; }
+
+function getConversationMessages(convId) {
+  try { const all = JSON.parse(localStorage.getItem(MESSAGES_KEY) || '{}'); return all[convId] || []; }
+  catch { return []; }
 }
-function addCredit() {
-  const cur = getCreditsUsed();
-  localStorage.setItem(CREDITS_KEY, String(cur + 1));
-  return cur + 1;
+function saveConversationMessages(convId, msgs) {
+  try { const all = JSON.parse(localStorage.getItem(MESSAGES_KEY) || '{}'); all[convId] = msgs; localStorage.setItem(MESSAGES_KEY, JSON.stringify(all)); }
+  catch {}
 }
 
 export default function ChatPage() {
@@ -45,9 +49,14 @@ export default function ChatPage() {
   const initialQ = urlParams.get('q') || '';
   const modeId = urlParams.get('mode') || 'fast';
   const agentId = urlParams.get('agent') || null;
+  const conversationId = urlParams.get('conversationId') || null;
+
+  // Generate or use existing conversation id
+  const convIdRef = useRef(conversationId || `conv_${Date.now()}`);
+  const convId = convIdRef.current;
 
   const [user, setUser] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(MODES.find(m => m.id === modeId) || MODES[3]);
@@ -70,25 +79,12 @@ export default function ChatPage() {
 
   const isAdmin = user?.role === 'admin';
   const creditLimit = isAdmin ? ADMIN_LIMIT : FREE_LIMIT;
-  const isBlocked = creditsUsed >= creditLimit;
+  const isBlocked = !isAdmin && creditsUsed >= creditLimit;
+  const pct = Math.min((creditsUsed / (isAdmin ? ADMIN_LIMIT : FREE_LIMIT)) * 100, 100);
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u?.role === 'admin') {
-        // Admin: reset credits display
-      }
-    }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (initialQ) sendMessage(initialQ);
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
+  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+  useEffect(() => { if (initialQ && messages.length === 0) sendMessage(initialQ); }, []);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
     const handler = (e) => {
       if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) setShowModeMenu(false);
@@ -103,7 +99,8 @@ export default function ChatPage() {
   const sendMessage = async (text) => {
     if (!text?.trim() || isLoading || isBlocked) return;
     const userMsg = { role: 'user', content: text };
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
@@ -115,24 +112,37 @@ export default function ChatPage() {
         model: mode.model,
       });
       const content = typeof result === 'string' ? result : JSON.stringify(result);
-      setMessages(prev => [...prev, { role: 'assistant', content }]);
+      const assistantMsg = { role: 'assistant', content };
+      const finalMessages = [...newMessages, assistantMsg];
+      setMessages(finalMessages);
+      saveConversationMessages(convId, finalMessages);
+
       const newCredits = addCredit();
       setCreditsUsed(newCredits);
 
-      // Save to discussions
-      const disc = { id: Date.now().toString(), title: text.slice(0, 50), preview: text, date: new Date().toISOString().slice(0, 10), model: mode.label };
+      // Save to discussions list
+      const disc = {
+        id: convId,
+        title: text.slice(0, 50),
+        preview: text,
+        date: new Date().toISOString().slice(0, 10),
+        model: mode.label,
+        agent: currentAgent,
+      };
       try {
         const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        stored.unshift(disc);
+        const existing = stored.findIndex(d => d.id === convId);
+        if (existing >= 0) stored[existing] = { ...stored[existing], ...disc };
+        else stored.unshift(disc);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stored.slice(0, 20)));
       } catch {}
-    } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Une erreur est survenue. Veuillez réessayer.' }]);
+    } catch {
+      const errMsg = { role: 'assistant', content: 'Une erreur est survenue. Veuillez réessayer.' };
+      const finalMessages = [...newMessages, errMsg];
+      setMessages(finalMessages);
     }
     setIsLoading(false);
   };
-
-  const handleSend = () => sendMessage(input);
 
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -151,7 +161,6 @@ export default function ChatPage() {
 
   const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?';
   const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label;
-  const pct = Math.min((creditsUsed / creditLimit) * 100, 100);
 
   return (
     <div className="flex flex-col h-screen bg-background font-be">
@@ -182,9 +191,8 @@ export default function ChatPage() {
                 {...popAnim}
                 className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
               >
-                {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                  <p className="text-sm font-bold text-foreground">{user?.full_name || 'Profil'}</p>
+                  <p className="text-sm font-bold text-foreground">{user?.full_name || user?.email || 'Profil'}</p>
                   <button onClick={() => setShowProfile(false)} className="w-6 h-6 rounded-lg hover:bg-foreground/8 flex items-center justify-center">
                     <X className="w-3.5 h-3.5 text-foreground/50" />
                   </button>
@@ -196,19 +204,19 @@ export default function ChatPage() {
                     <p className="text-xs font-semibold text-foreground">Crédits utilisés</p>
                     <p className="text-xs font-bold text-foreground">{creditsUsed} / {isAdmin ? '∞' : creditLimit}</p>
                   </div>
-                  <div className="w-full h-1.5 bg-foreground/8 rounded-full overflow-hidden">
+                  <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}>
                     <motion.div
                       animate={{ width: `${pct}%` }}
-                      className={`h-full rounded-full transition-all ${isBlocked && !isAdmin ? 'bg-destructive' : 'bg-primary'}`}
+                      className="h-full rounded-full"
+                      style={{ background: isBlocked ? '#ef4444' : 'white' }}
                     />
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1.5">1 crédit = 1 réponse IA</p>
-                  {isBlocked && !isAdmin && (
+                  {isBlocked && (
                     <p className="text-[10px] text-destructive mt-1 font-medium">Limite atteinte. Mettez à niveau pour continuer.</p>
                   )}
                 </div>
 
-                {/* Menu items */}
                 <div className="p-2">
                   <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-foreground/5 transition-colors text-foreground/70">
                     <Settings className="w-4 h-4" /> Paramètres
@@ -246,9 +254,7 @@ export default function ChatPage() {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-              msg.role === 'user'
-                ? 'bg-foreground text-background'
-                : 'bg-card border border-border text-foreground'
+              msg.role === 'user' ? 'bg-foreground text-background' : 'bg-card border border-border text-foreground'
             }`}>
               {msg.role === 'assistant' ? (
                 <ReactMarkdown className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
@@ -278,7 +284,7 @@ export default function ChatPage() {
       </div>
 
       {/* Blocked banner */}
-      {isBlocked && !isAdmin && (
+      {isBlocked && (
         <div className="mx-4 mb-2 px-4 py-3 bg-destructive/5 border border-destructive/20 rounded-xl flex items-center justify-between">
           <p className="text-xs text-destructive font-medium">Limite de {FREE_LIMIT} crédits atteinte</p>
           <button onClick={() => navigate('/pricing')} className="text-xs font-bold text-primary underline">Mettre à niveau</button>
@@ -305,23 +311,23 @@ export default function ChatPage() {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder={isBlocked && !isAdmin ? 'Limite atteinte...' : 'Continuez la conversation...'}
-            disabled={isBlocked && !isAdmin}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
+            placeholder={isBlocked ? 'Limite atteinte...' : 'Continuez la conversation...'}
+            disabled={isBlocked}
             rows={2}
             className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           />
 
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-1">
-              {/* + */}
+              {/* + file */}
               <div className="relative" ref={fileMenuRef}>
                 <button onClick={() => setShowFileMenu(!showFileMenu)} className="w-7 h-7 rounded-lg bg-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-colors">
                   <Plus className="w-3.5 h-3.5 text-foreground/50" />
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[140px] z-50">
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[140px] z-50">
                       <button onClick={() => { fileInputRef.current?.click(); setShowFileMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-foreground/5 text-foreground/70">
                         <FileText className="w-3.5 h-3.5" /> Joindre fichier
                       </button>
@@ -340,9 +346,9 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showAgentMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[190px] z-50">
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[190px] z-50">
                       {AGENTS.map(a => (
-                        <button key={a.id} onClick={() => { setCurrentAgent(a.id); setShowAgentMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left ${currentAgent === a.id ? 'bg-primary/8 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                        <button key={a.id} onClick={() => { setCurrentAgent(a.id); setShowAgentMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left ${currentAgent === a.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
                           <Bot className="w-3 h-3" /> {a.label}
                         </button>
                       ))}
@@ -358,16 +364,13 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[180px] z-50">
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[180px] z-50">
                       {MODES.map(m => {
                         const Icon = m.icon;
                         return (
-                          <button key={m.id} onClick={() => { setMode(m); setShowModeMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left mb-0.5 ${mode.id === m.id ? 'bg-primary/8 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                          <button key={m.id} onClick={() => { setMode(m); setShowModeMenu(false); }} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left mb-0.5 ${mode.id === m.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
                             <Icon className="w-3 h-3" />
-                            <div>
-                              <p className="font-medium">{m.label}</p>
-                              <p className="text-[9px] text-muted-foreground">{m.desc}</p>
-                            </div>
+                            <div><p className="font-medium">{m.label}</p><p className="text-[9px] text-muted-foreground">{m.desc}</p></div>
                           </button>
                         );
                       })}
@@ -391,8 +394,8 @@ export default function ChatPage() {
                 )}
               </button>
               <button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading || (isBlocked && !isAdmin)}
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || isLoading || isBlocked}
                 className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${input.trim() && !isLoading ? 'bg-foreground text-background hover:opacity-90' : 'bg-foreground/8 text-foreground/30 cursor-not-allowed'}`}
               >
                 <Send className="w-3 h-3" />
