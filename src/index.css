@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,27 +6,27 @@
 
 @layer base {
   :root {
-    --font-inter: 'Inter', sans-serif;
+    --font-be: 'Be Vietnam Pro', sans-serif;
     --background: 0 0% 100%;
     --foreground: 0 0% 8%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 8%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 8%;
-    --primary: 24 95% 53%;
+    --primary: 234 89% 62%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 100% 96%;
+    --secondary: 234 20% 96%;
     --secondary-foreground: 0 0% 8%;
-    --muted: 30 20% 96%;
+    --muted: 234 10% 96%;
     --muted-foreground: 0 0% 45%;
-    --accent: 30 100% 96%;
+    --accent: 234 20% 96%;
     --accent-foreground: 0 0% 8%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 30 15% 90%;
-    --input: 30 15% 90%;
-    --ring: 24 95% 53%;
-    --chart-1: 24 95% 53%;
+    --border: 234 10% 90%;
+    --input: 234 10% 90%;
+    --ring: 234 89% 62%;
+    --chart-1: 234 89% 62%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
@@ -34,12 +34,12 @@
     --radius: 0.75rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 25%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary: 234 89% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 100% 96%;
+    --sidebar-accent: 234 20% 96%;
     --sidebar-accent-foreground: 0 0% 8%;
-    --sidebar-border: 30 15% 92%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-border: 234 10% 92%;
+    --sidebar-ring: 234 89% 62%;
   }
 
   .dark {
@@ -49,7 +49,7 @@
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 95%;
-    --primary: 24 95% 53%;
+    --primary: 234 89% 62%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 95%;
@@ -61,20 +61,20 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 24 95% 53%;
-    --chart-1: 220 70% 50%;
+    --ring: 234 89% 62%;
+    --chart-1: 234 89% 62%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary: 234 89% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-ring: 234 89% 62%;
   }
 }
 
@@ -83,7 +83,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-be;
   }
 }
 

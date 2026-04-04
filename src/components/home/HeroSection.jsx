@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 
 const AGENTS = [
   { id: 'universelle', label: 'Universelle' },
@@ -10,11 +10,18 @@ const AGENTS = [
 ];
 
 const MODES = [
-  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200', desc: 'Le plus puissant' },
-  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', desc: 'Gemini 3 Pro' },
-  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', desc: 'Raisonnement profond' },
-  { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', color: 'text-green-600', bg: 'bg-green-50 border-green-200', desc: 'Rapide & efficace' },
+  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant' },
+  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', desc: 'Gemini 3 Pro' },
+  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', desc: 'Raisonnement profond' },
+  { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
 ];
+
+const popAnim = {
+  initial: { opacity: 0, y: 4, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: 4, scale: 0.97 },
+  transition: { duration: 0.1 },
+};
 
 export default function HeroSection() {
   const [query, setQuery] = useState('');
@@ -22,11 +29,10 @@ export default function HeroSection() {
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showModeMenu, setShowModeMenu] = useState(false);
-  const [mode, setMode] = useState(MODES[3]); // Fast by default
+  const [mode, setMode] = useState(MODES[3]);
   const [isRecording, setIsRecording] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [response, setResponse] = useState(null);
 
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const fileMenuRef = useRef(null);
   const agentMenuRef = useRef(null);
@@ -36,9 +42,8 @@ export default function HeroSection() {
   const urlParams = new URLSearchParams(window.location.search);
   const lockedAgent = urlParams.get('agent');
   const lockedAgentLabel = AGENTS.find(a => a.id === lockedAgent)?.label;
-  const isHome = window.location.pathname === '/' && !lockedAgent;
+  const isHome = window.location.pathname === '/';
 
-  // Close menus on outside click
   useEffect(() => {
     const handler = (e) => {
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
@@ -51,11 +56,11 @@ export default function HeroSection() {
 
   const handleFileSelect = (e) => {
     const picked = Array.from(e.target.files || []);
-    setFiles((prev) => [...prev, ...picked]);
+    setFiles(prev => [...prev, ...picked]);
     setShowFileMenu(false);
   };
 
-  const removeFile = (idx) => setFiles((prev) => prev.filter((_, i) => i !== idx));
+  const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
 
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -70,8 +75,8 @@ export default function HeroSection() {
     rec.continuous = true;
     rec.interimResults = true;
     rec.onresult = (e) => {
-      const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
-      setQuery(transcript);
+      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      setQuery(t);
     };
     rec.onend = () => setIsRecording(false);
     rec.start();
@@ -79,61 +84,56 @@ export default function HeroSection() {
     setIsRecording(true);
   };
 
-  const handleCommencer = async () => {
+  const handleCommencer = () => {
     if (!query.trim()) return;
-    setIsLoading(true);
-    setResponse(null);
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: query,
-        model: mode.model,
-      });
-      setResponse(typeof result === 'string' ? result : JSON.stringify(result));
-    } catch (e) {
-      setResponse('Une erreur est survenue. Veuillez réessayer.');
-    }
-    setIsLoading(false);
+    const params = new URLSearchParams({
+      q: query,
+      mode: mode.id,
+      model: mode.model,
+    });
+    if (lockedAgent) params.set('agent', lockedAgent);
+    navigate(`/chat?${params.toString()}`);
   };
 
   return (
-    <section className="max-w-3xl mx-auto text-center px-4">
+    <section className="max-w-2xl mx-auto text-center px-4 mt-32 md:mt-40">
       <motion.h1
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-bold text-foreground tracking-tight"
       >
-        {lockedAgentLabel ? `Agent : ${lockedAgentLabel}` : 'Que construirez-vous ensuite ?'}
+        {lockedAgentLabel ? `${lockedAgentLabel}` : 'Que construirez-vous ensuite ?'}
       </motion.h1>
       <motion.p
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-3 text-sm text-muted-foreground"
+        transition={{ duration: 0.3, delay: 0.05 }}
+        className="mt-2 text-sm text-muted-foreground"
       >
         {lockedAgentLabel
-          ? <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full"><Bot className="w-3 h-3" /> Agent verrouillé : {lockedAgentLabel}</span>
+          ? 'Agent actif · changez le via les boutons ci-dessous'
           : <>Décrivez votre idée ou inspirez-vous de nos <span className="underline cursor-pointer text-foreground font-medium">modèles</span></>
         }
       </motion.p>
 
       {/* Input card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-8 bg-card border border-border rounded-2xl p-4 shadow-sm"
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="mt-6 bg-card border border-border rounded-xl p-4 shadow-sm"
       >
         {/* File previews */}
         {files.length > 0 && (
           <div className="flex gap-2 flex-wrap mb-3">
             {files.map((file, idx) => (
-              <div key={idx} className="relative w-20 h-20 rounded-xl border border-border bg-muted flex flex-col items-center justify-center overflow-hidden group">
-                <FileText className="w-6 h-6 text-muted-foreground mb-1" />
-                <span className="text-[9px] text-muted-foreground text-center px-1 leading-tight line-clamp-2">{file.name}</span>
+              <div key={idx} className="relative w-18 h-18 rounded-lg border border-border bg-muted flex flex-col items-center justify-center overflow-hidden group p-2">
+                <FileText className="w-5 h-5 text-muted-foreground mb-1" />
+                <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2">{file.name}</span>
                 <button
                   onClick={() => removeFile(idx)}
-                  className="absolute top-1 right-1 w-4 h-4 bg-background/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-0.5 right-0.5 w-4 h-4 bg-background/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
@@ -145,34 +145,30 @@ export default function HeroSection() {
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommencer(); } }}
           placeholder="Décrivez l'application que vous souhaitez créer..."
           rows={3}
-          className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+          className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
         />
 
         <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-1.5">
-            {/* + button */}
+          <div className="flex items-center gap-1">
+            {/* + file button */}
             <div className="relative" ref={fileMenuRef}>
               <button
                 onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }}
-                className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-colors"
               >
-                <Plus className="w-4 h-4 text-muted-foreground" />
+                <Plus className="w-4 h-4 text-foreground/50" />
               </button>
               <AnimatePresence>
                 {showFileMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                    className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[160px] z-50"
-                  >
+                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[150px] z-50">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-muted transition-colors text-left"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-foreground/5 transition-colors text-left text-foreground/80"
                     >
-                      <FileText className="w-4 h-4 text-primary" />
+                      <FileText className="w-3.5 h-3.5" />
                       Joindre un fichier
                     </button>
                     <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
@@ -181,73 +177,62 @@ export default function HeroSection() {
               </AnimatePresence>
             </div>
 
-            {/* Agent button - only on home */}
-            {isHome && (
-              <div className="relative" ref={agentMenuRef}>
-                <button
-                  onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
-                  className="h-8 px-2.5 rounded-lg bg-muted flex items-center gap-1.5 hover:bg-muted/80 transition-colors"
-                >
-                  <Bot className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Agent IA</span>
-                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
-                </button>
-                <AnimatePresence>
-                  {showAgentMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                      className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[200px] z-50"
-                    >
-                      <p className="text-[10px] text-muted-foreground px-3 py-1 font-medium uppercase tracking-wide">Choisir un agent</p>
-                      {AGENTS.map((a) => (
-                        <a key={a.id} href={`/?agent=${a.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-muted transition-colors">
-                          <Bot className="w-4 h-4 text-primary" />
-                          {a.label}
-                        </a>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+            {/* Agent button */}
+            <div className="relative" ref={agentMenuRef}>
+              <button
+                onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
+                className="h-8 px-2.5 rounded-lg bg-foreground/5 flex items-center gap-1.5 hover:bg-foreground/10 transition-colors"
+              >
+                <Bot className="w-3.5 h-3.5 text-foreground/50" />
+                <span className="text-xs text-foreground/60 font-medium">
+                  {lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : 'Agent'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-foreground/40" />
+              </button>
+              <AnimatePresence>
+                {showAgentMenu && (
+                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[200px] z-50">
+                    <p className="text-[10px] text-muted-foreground px-3 py-1.5 font-semibold uppercase tracking-wider">Agent IA</p>
+                    {AGENTS.map((a) => (
+                      <a key={a.id} href={`/?agent=${a.id}`} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${lockedAgent === a.id ? 'bg-primary/8 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                        <Bot className="w-3.5 h-3.5" />
+                        {a.label}
+                      </a>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Mode button */}
             <div className="relative" ref={modeMenuRef}>
               <button
                 onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }}
-                className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-colors"
               >
-                <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-foreground/50" />
               </button>
               <AnimatePresence>
                 {showModeMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                    className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[200px] z-50"
-                  >
-                    <p className="text-[10px] text-muted-foreground px-3 py-1 font-medium uppercase tracking-wide">Mode Agent</p>
+                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[190px] z-50">
+                    <p className="text-[10px] text-muted-foreground px-3 py-1.5 font-semibold uppercase tracking-wider">Mode</p>
                     {MODES.map((m) => {
                       const Icon = m.icon;
+                      const isSelected = mode.id === m.id;
                       return (
                         <button
                           key={m.id}
                           onClick={() => { setMode(m); setShowModeMenu(false); }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left border mb-1 last:mb-0 ${
-                            mode.id === m.id ? m.bg + ' border-current' : 'border-transparent hover:bg-muted'
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left mb-0.5 last:mb-0 ${
+                            isSelected ? 'bg-primary/8 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'
                           }`}
                         >
-                          <Icon className={`w-4 h-4 ${m.color}`} />
+                          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                           <div>
-                            <p className={`font-medium text-sm ${m.color}`}>{m.label}</p>
+                            <p className="text-sm font-medium">{m.label}</p>
                             <p className="text-[10px] text-muted-foreground">{m.desc}</p>
                           </div>
-                          {m.id === 'ultimate' && (
-                            <span className="ml-auto text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">TOP</span>
-                          )}
+                          {m.id === 'ultimate' && <span className="ml-auto text-[9px] bg-foreground/10 text-foreground/60 px-1.5 py-0.5 rounded font-bold">TOP</span>}
                         </button>
                       );
                     })}
@@ -257,14 +242,13 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Right: mode indicator + mic */}
+          {/* Right: mode label + mic */}
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-medium hidden sm:block ${mode.color}`}>{mode.label}</span>
-            {/* Mic */}
+            <span className="text-xs font-medium text-muted-foreground hidden sm:block">{mode.label}</span>
             <button
               onClick={toggleRecording}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                isRecording ? 'bg-red-500 shadow-lg shadow-red-200' : 'bg-muted hover:bg-muted/80'
+                isRecording ? 'bg-foreground text-background shadow-lg' : 'bg-foreground/5 hover:bg-foreground/10'
               }`}
             >
               {isRecording ? (
@@ -272,75 +256,56 @@ export default function HeroSection() {
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="w-0.5 bg-white rounded-full"
+                      className="w-0.5 bg-background rounded-full"
                       animate={{ height: ['4px', '12px', '4px'] }}
-                      transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
+                      transition={{ repeat: Infinity, duration: 0.7, delay: i * 0.12 }}
                     />
                   ))}
                 </motion.div>
               ) : (
-                <Mic className="w-4 h-4 text-muted-foreground" />
+                <Mic className="w-3.5 h-3.5 text-foreground/50" />
               )}
             </button>
           </div>
         </div>
       </motion.div>
 
-      {/* Commencer button */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
+      {/* Commencer */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-3"
+        transition={{ delay: 0.15 }}
+        onClick={handleCommencer}
+        disabled={!query.trim()}
+        className={`mt-2.5 w-full py-3.5 rounded-xl font-bold text-base tracking-wide transition-all ${
+          query.trim()
+            ? 'bg-foreground text-background hover:opacity-90 hover:-translate-y-0.5 shadow-lg'
+            : 'bg-foreground/8 text-foreground/30 cursor-not-allowed'
+        }`}
       >
-        <button
-          onClick={handleCommencer}
-          disabled={isLoading || !query.trim()}
-          className={`w-full py-3.5 rounded-xl font-bold text-base tracking-wide transition-all shadow-md ${
-            query.trim() && !isLoading
-              ? 'bg-primary text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5'
-              : 'bg-muted text-muted-foreground cursor-not-allowed'
-          }`}
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              En cours...
-            </span>
-          ) : 'Commencer'}
-        </button>
-      </motion.div>
-
-      {/* AI Response */}
-      <AnimatePresence>
-        {response && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mt-4 bg-card border border-border rounded-2xl p-4 text-left shadow-sm"
-          >
-            <p className="text-xs text-muted-foreground mb-2 font-medium flex items-center gap-1">
-              <Bot className="w-3 h-3" /> Réponse ({mode.label})
-            </p>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{response}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        Commencer
+      </motion.button>
 
       {/* Categories */}
-      {!response && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-5">
-          <p className="text-xs text-muted-foreground mb-3">Que souhaitez-vous créer ?</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {['CRM', 'Productivité', 'Divertissement', 'Éducatif', 'Finances personnelles'].map((cat) => (
-              <button key={cat} onClick={() => setQuery(`Crée une application de type ${cat}`)} className="px-4 py-1.5 rounded-full border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors">
-                {cat}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="mt-5"
+      >
+        <p className="text-xs text-muted-foreground mb-3">Que souhaitez-vous créer ?</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {['CRM', 'Productivité', 'Divertissement', 'Éducatif', 'Finances personnelles'].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setQuery(`Crée une application de type ${cat}`)}
+              className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground transition-colors"
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </motion.div>
     </section>
   );
 }
