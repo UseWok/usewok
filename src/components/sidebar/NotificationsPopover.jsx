@@ -1,15 +1,19 @@
 import { useRef, useEffect } from 'react';
-import { Bell, Megaphone, Sparkles } from 'lucide-react';
+import { Bell, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const newsItems = [
-  { icon: Sparkles, title: 'Nouvelle fonctionnalité', desc: 'Découvrez les agents IA améliorés', time: 'Il y a 2h' },
-  { icon: Megaphone, title: 'Mise à jour v2.5', desc: 'Performance et stabilité améliorées', time: 'Il y a 1j' },
-  { icon: Sparkles, title: 'Parcours disponibles', desc: 'Apprenez à créer vos premiers projets', time: 'Il y a 3j' },
-];
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 export default function NotificationsPopover({ open, onClose, anchorRef }) {
   const popoverRef = useRef(null);
+  const navigate = useNavigate();
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => base44.entities.Notification.list('-created_date', 20),
+    enabled: open,
+  });
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -23,9 +27,17 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
   }, [open, onClose, anchorRef]);
 
   const getPosition = () => {
-    if (!anchorRef?.current) return { left: 60, bottom: 16 };
+    if (!anchorRef?.current) return { left: 76, bottom: 16 };
     const rect = anchorRef.current.getBoundingClientRect();
-    return { left: rect.right + 8, bottom: window.innerHeight - rect.bottom };
+    return { left: rect.right + 12, bottom: window.innerHeight - rect.bottom };
+  };
+
+  const handleNotifClick = (notif) => {
+    onClose();
+    if (notif.link) {
+      if (notif.link.startsWith('http')) window.open(notif.link, '_blank');
+      else navigate(notif.link);
+    }
   };
 
   const pos = open ? getPosition() : {};
@@ -35,29 +47,58 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
       {open && (
         <motion.div
           ref={popoverRef}
-          initial={{ opacity: 0, x: -8, scale: 0.95 }}
+          initial={{ opacity: 0, x: -10, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: -8, scale: 0.95 }}
-          transition={{ duration: 0.15 }}
-          className="fixed z-[100] w-72 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
-          style={{ left: pos.left, bottom: pos.bottom }}
+          exit={{ opacity: 0, x: -10, scale: 0.96 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          className="fixed z-[200] w-80 rounded-2xl overflow-hidden shadow-2xl"
+          style={{ left: pos.left, bottom: pos.bottom, background: '#1E0050', border: '1px solid rgba(255,255,255,0.15)' }}
         >
-          <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
-            <Bell className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold">Notifications</span>
+          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(167,139,250,0.2)' }}>
+              <Bell className="w-3.5 h-3.5" style={{ color: '#a78bfa' }} />
+            </div>
+            <span className="text-sm font-bold text-white">Notifications</span>
+            <span className="ml-auto text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{notifications.length}</span>
           </div>
-          <div className="max-h-64 overflow-y-auto">
-            {newsItems.map((item, i) => (
-              <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-0">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <item.icon className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1">{item.time}</p>
-                </div>
+
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 && (
+              <div className="px-4 py-8 text-center">
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Aucune notification</p>
               </div>
+            )}
+            {notifications.map((notif, i) => (
+              <motion.button
+                key={notif.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => handleNotifClick(notif)}
+                className="w-full text-left flex items-start gap-3 px-4 py-3 transition-all"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(167,139,250,0.15)' }}>
+                  <Bell className="w-4 h-4" style={{ color: '#a78bfa' }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-white">{notif.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{notif.message}</p>
+                  {notif.link && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <ExternalLink className="w-3 h-3" style={{ color: '#a78bfa' }} />
+                      <span className="text-[10px] font-medium" style={{ color: '#a78bfa' }}>
+                        {notif.link_label || 'Voir plus'}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {new Date(notif.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </motion.button>
             ))}
           </div>
         </motion.div>

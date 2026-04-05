@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Zap, Star, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { resetCredits } from '@/lib/credits';
+import { useNavigate } from 'react-router-dom';
 
 const plans = [
   {
@@ -33,10 +35,16 @@ const plans = [
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
+  const [purchased, setPurchased] = useState(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+
+  const handlePurchase = (plan) => {
+    resetCredits(plan.credits);
+    setPurchased(plan.id);
+    setTimeout(() => navigate('/'), 1500);
+  };
 
   const isAdmin = user?.role === 'admin';
 
@@ -91,13 +99,14 @@ export default function PricingPage() {
                 </ul>
                 <button
                   disabled={plan.id === 'free'}
+                  onClick={() => plan.id !== 'free' && handlePurchase(plan)}
                   className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     plan.id === 'free' ? 'bg-foreground/5 text-foreground/40 cursor-default'
                     : plan.popular ? 'bg-primary text-primary-foreground hover:opacity-90 hover:-translate-y-0.5 shadow-md'
                     : 'bg-foreground/8 text-foreground hover:bg-foreground/12'
                   }`}
                 >
-                  {plan.id === 'free' ? 'Plan actuel' : 'Choisir ce plan'}
+                  {purchased === plan.id ? '✓ Activé !' : plan.id === 'free' ? 'Plan actuel' : 'Choisir ce plan'}
                 </button>
               </motion.div>
             );

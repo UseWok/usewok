@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 const STORAGE_KEY = 'discussions_v1';
 
 const DEFAULTS = [
-  { id: '1', title: 'Agent Universelle - Première session', preview: 'Comment créer un agent IA ?', date: '2026-04-03', model: 'Fast', agent: 'universelle' },
-  { id: '2', title: 'Coach Finance - Budget mensuel', preview: 'Analyse de mes dépenses...', date: '2026-04-02', model: 'Pro', agent: 'coach-finance' },
-  { id: '3', title: 'Projet CRM personnalisé', preview: 'Crée un CRM pour mon équipe', date: '2026-04-01', model: 'Thinking', agent: null },
+  { id: '1', title: 'Agent Global - Première session', preview: 'Comment bien démarrer ?', date: '2026-04-03', model: 'Fast', agent: 'global' },
+  { id: '2', title: 'Émotions & Dépenses', preview: 'Analyse de mes habitudes...', date: '2026-04-02', model: 'Pro', agent: 'emotions-depenses' },
+  { id: '3', title: 'Stratégie Wealth', preview: 'Plan d\'investissement...', date: '2026-04-01', model: 'Thinking', agent: 'wealth-strategy' },
 ];
 
 function getDiscussions() {

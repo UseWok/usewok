@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const AGENTS = [
-  { id: 'universelle', label: 'Universelle' },
-  { id: 'coach-finance', label: 'Coach Finance Perso' },
-  { id: 'gestion-achat', label: 'Gestion Achats Compulsifs' },
+  { id: 'global', label: 'Agent Global' },
+  { id: 'emotions-depenses', label: 'Stensor | Émotions & Dépenses' },
+  { id: 'wealth-strategy', label: 'Stensor | Wealth Strategy' },
 ];
 
 const MODES = [
@@ -91,7 +91,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
         transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-bold text-foreground tracking-tight"
       >
-        {lockedAgentLabel ? lockedAgentLabel : 'Que construirez-vous ensuite ?'}
+        {lockedAgentLabel ? lockedAgentLabel : 'Que voulez-vous accomplir ?'}
       </motion.h1>
       <motion.p
         initial={{ opacity: 0, y: 8 }}
@@ -100,8 +100,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
         className="mt-2 text-sm text-muted-foreground"
       >
         {lockedAgentLabel
-          ? 'Agent actif · changez-le via le menu ci-dessous'
-          : <>Décrivez votre idée ou inspirez-vous de nos <span className="underline cursor-pointer text-foreground font-medium">modèles</span></>
+          ? 'Agent sélectionné — modifiez via le menu'
+          : 'Posez une question ou décrivez ce que vous souhaitez accomplir'
         }
       </motion.p>
 

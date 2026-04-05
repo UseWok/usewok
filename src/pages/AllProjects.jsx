@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, MessageSquare, Trash2, Pencil, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const STORAGE_KEY = 'discussions_v1';
 
@@ -27,6 +28,7 @@ const modelColor = (m) => {
 };
 
 export default function AllProjects() {
+  const navigate = useNavigate();
   const [discussions, setDiscussions] = useState(getDiscussions);
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
@@ -75,6 +77,7 @@ export default function AllProjects() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               onContextMenu={(e) => openCtx(e, disc.id)}
+              onClick={() => navigate(`/chat?conversationId=${disc.id}${disc.agent ? '&agent=' + disc.agent : ''}${disc.model ? '&mode=' + disc.model.toLowerCase() : ''}`)}
               className="group bg-card rounded-2xl p-4 border border-border hover:shadow-lg hover:border-primary/20 transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-3">
