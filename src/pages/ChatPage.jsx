@@ -130,6 +130,7 @@ export default function ChatPage() {
   const sendMessage = async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
     const startTime = Date.now();
+    const isTestMode = text.trim().startsWith('..') && text.trim().endsWith('..');
     const userMsg = { role: 'user', content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -137,17 +138,24 @@ export default function ChatPage() {
     setIsLoading(true);
 
     try {
+      let content;
+      if (isTestMode) {
+        const minDur = MIN_DURATIONS[mode.id] || 6000;
+        await new Promise(r => setTimeout(r, minDur));
+        content = 'bonjour et voilà';
+      } else {
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
       const systemContext = agentConfig?.instructions
         ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n`
         : (agentLabel ? `Tu es l'agent ${agentLabel}. ` : '');
 
       const result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + text, model: mode.model });
-      const content = typeof result === 'string' ? result : JSON.stringify(result);
+      content = typeof result === 'string' ? result : JSON.stringify(result);
 
       const elapsed = Date.now() - startTime;
       const minDur = MIN_DURATIONS[mode.id] || 0;
       if (elapsed < minDur) await new Promise(r => setTimeout(r, minDur - elapsed));
+      }
 
       const assistantMsg = { role: 'assistant', content };
       const finalMessages = [...newMessages, assistantMsg];
@@ -238,11 +246,9 @@ export default function ChatPage() {
         )}
         {messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-            className={`flex items-end gap-2 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            className={`flex items-end gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: '#1E0050' }}>
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-              </div>
+              <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain flex-shrink-0 mb-1 opacity-80" />
             )}
             <div className={`max-w-[75%] flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
@@ -268,18 +274,15 @@ export default function ChatPage() {
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs text-white flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #1E0050, #3b0080)' }}>
-                {user?.full_name?.charAt(0)?.toUpperCase() || '?'}
-              </div>
+              <span className="text-xs font-semibold flex-shrink-0 mb-1" style={{ color: 'rgba(58,0,136,0.5)' }}>
+                {user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'}
+              </span>
             )}
           </motion.div>
         ))}
         {isLoading && (
-          <div className="flex justify-start items-end gap-2">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: '#1E0050' }}>
-              <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-            </div>
+          <div className="flex justify-start items-end gap-3">
+            <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain flex-shrink-0 mb-1 opacity-80" />
             <div className="bg-card border border-border rounded-2xl rounded-bl-sm shadow-sm">
               <ChatLoadingAnimation mode={mode.id} />
             </div>
