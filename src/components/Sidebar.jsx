@@ -88,7 +88,7 @@ export default function Sidebar({ expanded, setExpanded }) {
         {/* Header */}
         <div className="flex items-center px-3 py-4 flex-shrink-0" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
           <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img src={LOGO_URL} alt="Stensor" className="w-7 h-7 object-contain" />
             </div>
             {expanded && (
