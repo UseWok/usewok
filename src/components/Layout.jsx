@@ -43,10 +43,10 @@ export default function Layout() {
         {isMobile && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="fixed top-3 left-3 z-30 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
-            style={{ background: '#1E0050', color: 'white' }}
+            className="fixed top-4 left-4 z-30 w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(30,0,80,0.7)', color: 'white', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4 h-4" />
           </button>
         )}
         <Outlet />

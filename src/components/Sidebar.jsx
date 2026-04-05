@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Bell, Globe, GraduationCap, TrendingUp, Users, Globe2, ChevronDown, X, Bot, ShoppingBag, Zap, ChevronRight } from 'lucide-react';
@@ -13,8 +14,8 @@ export const EXPANDED_W = 280;
 
 export const AGENTS = [
   { id: 'global', label: 'Agent Global' },
-  { id: 'emotions-depenses', label: 'Stensor | Émotions & Dépenses' },
-  { id: 'wealth-strategy', label: 'Stensor | Wealth Strategy' },
+  { id: 'emotions-depenses', label: 'Émotions & Dépenses' },
+  { id: 'wealth-strategy', label: 'Wealth Strategy' },
 ];
 
 const BG = '#1E0050';
@@ -31,6 +32,14 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [agentsOpen, setAgentsOpen] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(getCreditsUsed());
   const [creditsLimit, setCreditsLimit] = useState(getCreditsLimit());
+
+  const { data: notifsList = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => base44.entities.Notification.list('-created_date', 10),
+    refetchInterval: 30000,
+  });
+  const lastSeen = parseInt(localStorage.getItem('stensor_notifs_last_seen') || '0');
+  const hasUnread = notifsList.some(n => new Date(n.created_date).getTime() > lastSeen);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -67,7 +76,10 @@ export default function Sidebar({ expanded, setExpanded }) {
     setExpanded(false);
   };
 
-  const togglePopover = (name) => setActivePopover(p => p === name ? null : name);
+  const togglePopover = (name) => {
+    if (name === 'noti') localStorage.setItem('stensor_notifs_last_seen', String(Date.now()));
+    setActivePopover(p => p === name ? null : name);
+  };
 
   const userInitial = user?.full_name
     ? user.full_name.charAt(0).toUpperCase()
@@ -219,26 +231,26 @@ export default function Sidebar({ expanded, setExpanded }) {
             <button
               ref={profileRef}
               onClick={() => togglePopover('profile')}
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ background: activePopover === 'profile' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)' }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:bg-white/10"
             >
               <span className="text-xs font-bold text-white">{userInitial}</span>
             </button>
             <button
               ref={langRef}
               onClick={() => togglePopover('lang')}
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ background: activePopover === 'lang' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)' }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:bg-white/10"
             >
               <Globe2 className="w-4 h-4" style={{ color: ICON_INACTIVE }} />
             </button>
             <button
               ref={notiRef}
               onClick={() => togglePopover('noti')}
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ background: activePopover === 'noti' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)' }}
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:bg-white/10"
             >
               <Bell className="w-4 h-4" style={{ color: ICON_INACTIVE }} />
+              {hasUnread && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" style={{ border: '1.5px solid #1E0050' }} />
+              )}
             </button>
           </div>
         </div>

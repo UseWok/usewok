@@ -1,13 +1,14 @@
 import { useRef, useEffect } from 'react';
-import { Bell, ExternalLink } from 'lucide-react';
+import { Bell, ExternalLink, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 export default function NotificationsPopover({ open, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications'],
@@ -15,12 +16,18 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
     enabled: open,
   });
 
+  // Mark as seen when opened
+  useEffect(() => {
+    if (open) {
+      localStorage.setItem('stensor_notifs_last_seen', String(Date.now()));
+      qc.invalidateQueries(['notifications_unread']);
+    }
+  }, [open, qc]);
+
   useEffect(() => {
     const handleClick = (e) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target) &&
-          anchorRef?.current && !anchorRef.current.contains(e.target)) {
-        onClose();
-      }
+          anchorRef?.current && !anchorRef.current.contains(e.target)) onClose();
     };
     if (open) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -40,6 +47,12 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
     }
   };
 
+  const deleteNotif = async (e, id) => {
+    e.stopPropagation();
+    await base44.entities.Notification.delete(id);
+    qc.invalidateQueries(['notifications']);
+  };
+
   const pos = open ? getPosition() : {};
 
   return (
@@ -50,7 +63,7 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
           initial={{ opacity: 0, x: -10, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -10, scale: 0.96 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.18 }}
           className="fixed z-[200] w-80 rounded-2xl overflow-hidden shadow-2xl"
           style={{ left: pos.left, bottom: pos.bottom, background: '#1E0050', border: '1px solid rgba(255,255,255,0.15)' }}
         >
@@ -69,36 +82,47 @@ export default function NotificationsPopover({ open, onClose, anchorRef }) {
               </div>
             )}
             {notifications.map((notif, i) => (
-              <motion.button
+              <motion.div
                 key={notif.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => handleNotifClick(notif)}
-                className="w-full text-left flex items-start gap-3 px-4 py-3 transition-all"
+                className="group relative"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(167,139,250,0.15)' }}>
-                  <Bell className="w-4 h-4" style={{ color: '#a78bfa' }} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-white">{notif.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{notif.message}</p>
-                  {notif.link && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <ExternalLink className="w-3 h-3" style={{ color: '#a78bfa' }} />
-                      <span className="text-[10px] font-medium" style={{ color: '#a78bfa' }}>
-                        {notif.link_label || 'Voir plus'}
-                      </span>
-                    </div>
-                  )}
-                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    {new Date(notif.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </motion.button>
+                <button
+                  onClick={() => handleNotifClick(notif)}
+                  className="w-full text-left flex items-start gap-3 px-4 py-3 pr-10 transition-all"
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(167,139,250,0.15)' }}>
+                    <Bell className="w-4 h-4" style={{ color: '#a78bfa' }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white">{notif.title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{notif.message}</p>
+                    {notif.link && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <ExternalLink className="w-3 h-3" style={{ color: '#a78bfa' }} />
+                        <span className="text-[10px] font-medium" style={{ color: '#a78bfa' }}>{notif.link_label || 'Voir plus'}</span>
+                      </div>
+                    )}
+                    <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      {new Date(notif.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => deleteNotif(e, notif.id)}
+                  className="absolute top-3 right-3 w-6 h-6 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                  style={{ background: 'rgba(255,255,255,0.1)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.3)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                >
+                  <Trash2 className="w-3 h-3 text-white" />
+                </button>
+              </motion.div>
             ))}
           </div>
         </motion.div>
