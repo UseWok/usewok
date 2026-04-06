@@ -32,18 +32,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(MODES[3]);
-  const [isRecording, setIsRecording] = useState(false);
+  // Default agent is 'global' if none selected
+  const effectiveAgentId = agentId || 'global';
 
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const fileMenuRef = useRef(null);
-  const agentMenuRef = useRef(null);
-  const modeMenuRef = useRef(null);
-  const atMenuRef = useRef(null);
-  const textareaRef = useRef(null);
-  const recognitionRef = useRef(null);
-
-  const lockedAgentLabel = AGENTS.find(a => a.id === agentId)?.label;
+  const lockedAgentLabel = AGENTS.find(a => a.id === effectiveAgentId)?.label;
 
   useEffect(() => {
     const handler = (e) => {
@@ -229,9 +221,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
                       <p className="text-[10px] text-muted-foreground px-3 py-1.5 font-semibold uppercase tracking-wider">Agent IA</p>
                       {AGENTS.map((a) => (
                         <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left ${agentId === a.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
                           <Bot className="w-3.5 h-3.5" /> {a.label}
-                        </button>
+                          </button>
                       ))}
                     </motion.div>
                   )}
@@ -265,14 +257,18 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-foreground/40 hidden sm:block">{mode.label}</span>
-              <button onClick={toggleRecording} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-foreground text-background shadow-lg' : 'hover:bg-foreground/6'}`}>
+              <button onClick={toggleRecording}
+                className="relative w-8 h-8 rounded-full flex items-center justify-center transition-all overflow-hidden"
+                style={{ background: isRecording ? 'linear-gradient(135deg, #1E0050, #7c3aed)' : 'rgba(30,0,80,0.05)' }}>
                 {isRecording ? (
-                  <motion.div className="flex items-end gap-0.5 h-4">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div key={i} className="w-0.5 bg-background rounded-full" animate={{ height: ['4px', '12px', '4px'] }} transition={{ repeat: Infinity, duration: 0.7, delay: i * 0.12 }} />
+                  <div className="flex items-end gap-0.5 h-4">
+                    {[0, 1, 2, 3].map((i) => (
+                      <motion.div key={i} className="w-0.5 rounded-full bg-white"
+                        animate={{ height: ['3px', '14px', '6px', '10px', '3px'] }}
+                        transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15, ease: 'easeInOut' }} />
                     ))}
-                  </motion.div>
-                ) : <Mic className="w-3.5 h-3.5 text-foreground/35" />}
+                  </div>
+                ) : <Mic className="w-3.5 h-3.5" style={{ color: 'rgba(30,0,80,0.4)' }} />}
               </button>
             </div>
           </div>
@@ -282,23 +278,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {/* Commencer button */}
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         onClick={handleCommencer} disabled={!hasText}
-        className="mt-3 w-full relative overflow-hidden rounded-xl font-bold text-base tracking-wide transition-all"
+        className="mt-3 w-full rounded-2xl font-bold text-sm transition-all"
         style={{
           padding: '14px 0',
-          background: hasText ? 'linear-gradient(135deg, #3A0088 0%, #6B00CC 50%, #3A0088 100%)' : 'rgba(0,0,0,0.06)',
-          color: hasText ? '#DDFF00' : 'rgba(0,0,0,0.25)',
-          boxShadow: hasText ? '0 4px 24px rgba(58,0,136,0.4), 0 1px 3px rgba(0,0,0,0.1)' : 'none',
-          border: hasText ? '1px solid rgba(221,255,0,0.3)' : '1px solid rgba(0,0,0,0.08)',
+          background: hasText ? 'linear-gradient(135deg, #1E0050, #4c1d95)' : 'rgba(30,0,80,0.06)',
+          color: hasText ? 'white' : 'rgba(30,0,80,0.25)',
+          boxShadow: hasText ? '0 4px 20px rgba(30,0,80,0.3)' : 'none',
+          border: hasText ? 'none' : '1px solid rgba(30,0,80,0.08)',
           cursor: hasText ? 'pointer' : 'not-allowed',
         }}>
-        {hasText && (
-          <motion.div className="absolute inset-0 opacity-20"
-            animate={{ x: ['-100%', '100%'] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-            style={{ background: 'linear-gradient(90deg, transparent, #DDFF00, transparent)' }}
-          />
-        )}
-        <span className="relative z-10">Commencer →</span>
+        <span>Commencer →</span>
       </motion.button>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-5">

@@ -7,7 +7,6 @@ import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
 import LanguagePopover from './sidebar/LanguagePopover';
-import { getCreditsUsed, getCreditsLimit } from '@/lib/credits';
 
 export const COLLAPSED_W = 68;
 export const EXPANDED_W = 280;
@@ -30,8 +29,8 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [activePopover, setActivePopover] = useState(null);
   const [user, setUser] = useState(null);
   const [agentsOpen, setAgentsOpen] = useState(false);
-  const [creditsUsed, setCreditsUsed] = useState(getCreditsUsed());
-  const [creditsLimit, setCreditsLimit] = useState(getCreditsLimit());
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [creditsLimit, setCreditsLimit] = useState(25);
 
   const { data: notifsList = [] } = useQuery({
     queryKey: ['notifications'],
@@ -53,16 +52,12 @@ export default function Sidebar({ expanded, setExpanded }) {
   const agentParam = new URLSearchParams(window.location.search).get('agent');
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      setCreditsUsed(u?.credits_used ?? 0);
+      setCreditsLimit(u?.credits_limit ?? 25);
+    }).catch(() => {});
   }, []);
-
-  // Refresh credits when expanded
-  useEffect(() => {
-    if (expanded) {
-      setCreditsUsed(getCreditsUsed());
-      setCreditsLimit(getCreditsLimit());
-    }
-  }, [expanded]);
 
   const handleAgentSelect = (agentId) => {
     navigate(`/?agent=${agentId}`);
@@ -85,8 +80,7 @@ export default function Sidebar({ expanded, setExpanded }) {
     ? user.full_name.charAt(0).toUpperCase()
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
-  const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
-  const remaining = Math.max(creditsLimit - creditsUsed, 0);
+  const pct = Math.min((creditsUsed / (creditsLimit || 1)) * 100, 100);
   const isOut = !isAdmin && creditsUsed >= creditsLimit;
 
   return (
@@ -187,30 +181,29 @@ export default function Sidebar({ expanded, setExpanded }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5" style={{ color: isOut ? '#ef4444' : '#a78bfa' }} />
-                <span className="text-xs font-semibold text-white">Crédits</span>
+                <span className="text-xs font-semibold text-white">Crédits consommés</span>
               </div>
               <span className="text-xs font-bold" style={{ color: isOut ? '#ef4444' : 'rgba(255,255,255,0.7)' }}>
-                {creditsUsed} / {isAdmin ? '∞' : creditsLimit}
+                {isAdmin ? '∞' : creditsUsed}
               </span>
             </div>
-            <div className="w-full h-2 rounded-full overflow-hidden mb-1.5" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              <motion.div
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="h-full rounded-full"
-                style={{ background: isOut ? '#ef4444' : 'linear-gradient(90deg, #a78bfa, #818cf8)' }}
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                {isOut ? 'Limite atteinte' : `${remaining} restants`}
-              </span>
-              {isOut && (
-                <button onClick={() => navigate('/pricing')} className="text-[10px] font-semibold" style={{ color: '#a78bfa' }}>
-                  Mettre à niveau →
-                </button>
-              )}
-            </div>
+            {!isAdmin && (
+              <>
+                <div className="w-full h-2 rounded-full overflow-hidden mb-1.5" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                  <motion.div
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="h-full rounded-full"
+                    style={{ background: isOut ? '#ef4444' : 'linear-gradient(90deg, #a78bfa, #818cf8)' }}
+                  />
+                </div>
+                {isOut && (
+                  <button onClick={() => navigate('/pricing')} className="text-[10px] font-semibold" style={{ color: '#a78bfa' }}>
+                    Mettre à niveau →
+                  </button>
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -257,7 +250,7 @@ export default function Sidebar({ expanded, setExpanded }) {
       </motion.aside>
 
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
-      <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} />
+      <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} />
       <LanguagePopover open={activePopover === 'lang'} onClose={() => setActivePopover(null)} anchorRef={langRef} />
     </>
   );

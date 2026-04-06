@@ -1,0 +1,29 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "credits_used": {
+      "type": "number",
+      "default": 0
+    },
+    "credits_limit": {
+      "type": "number",
+      "default": 25
+    },
+    "is_banned": {
+      "type": "boolean",
+      "default": false
+    },
+    "ban_until": {
+      "type": "string"
+    }
+  }
+}
