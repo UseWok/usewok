@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, TrendingUp, X, AlertCircle, ChevronRight, Zap, Wifi, Crown, Star, Shield } from 'lucide-react';
+import { ArrowLeft, Check, TrendingUp, X, AlertCircle, ChevronRight, Zap, Crown, Star, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { toast } from 'sonner';
@@ -9,12 +9,6 @@ import { toast } from 'sonner';
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 const GREEN = '#16a34a';
-
-const CANCEL_REASONS = [
-  'Trop cher', 'Je n\'utilise pas assez', 'Je passe à un autre outil',
-  'Pas assez de fonctionnalités', 'Autre'
-];
-
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: TrendingUp, expert: Star, supreme: Crown };
 
 export default function ManagePlanPage() {
@@ -22,13 +16,11 @@ export default function ManagePlanPage() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showCancel, setShowCancel] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [showDowngradeWarning, setShowDowngradeWarning] = useState(false);
   const [cancelNote, setCancelNote] = useState('');
+  const [cancelEmail, setCancelEmail] = useState('');
   const [cancelSent, setCancelSent] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelEmail, setCancelEmail] = useState('');
-  const [showDiscussionWarning, setShowDiscussionWarning] = useState(false);
-  const plans = getPlansConfig().filter(p => p.id !== 'free');
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -42,18 +34,6 @@ export default function ManagePlanPage() {
   const creditsLimit = userPlan?.credits_limit || 10;
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
 
-  const submitCancel = async () => {
-    if (!user) return;
-    setCancelLoading(true);
-    await base44.entities.Notification.create({
-      title: `Annulation — ${user.full_name || user.email}`,
-      message: `Utilisateur: ${user.email} | Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Raison: ${cancelReason || 'Non précisée'} | Note: ${cancelNote || '-'}`,
-    });
-    setCancelLoading(false);
-    setCancelSent(true);
-    toast.success('Demande envoyée');
-  };
-
   const features = [
     userPlan?.credits_limit && `${userPlan.credits_limit} Tensors/mois`,
     userPlan?.internet_access && 'Recherche Internet',
@@ -62,6 +42,43 @@ export default function ManagePlanPage() {
     userPlan?.max_discussions === 0 && 'Discussions illimitées',
     userPlan?.premium_support && 'Support Premium',
   ].filter(Boolean);
+
+  const handleCancelClick = () => {
+    const STORAGE_KEY = 'discussions_v1';
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (stored.length > 10) { setShowDowngradeWarning(true); return; }
+    } catch {}
+    setShowCancel(true);
+  };
+
+  const confirmDowngrade = () => {
+    const STORAGE_KEY = 'discussions_v1';
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const trimmed = stored.slice(0, 10);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+      const keptIds = new Set(trimmed.map(d => d.id));
+      const msgs = JSON.parse(localStorage.getItem('discussion_messages_v1') || '{}');
+      Object.keys(msgs).forEach(id => { if (!keptIds.has(id)) delete msgs[id]; });
+      localStorage.setItem('discussion_messages_v1', JSON.stringify(msgs));
+    } catch {}
+    setShowDowngradeWarning(false);
+    setShowCancel(true);
+  };
+
+  const submitCancel = async () => {
+    if (!user) return;
+    setCancelLoading(true);
+    await base44.entities.Notification.create({
+      title: `Annulation — ${user.full_name || user.email}`,
+      message: `Utilisateur: ${user.email} | Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote || '-'}`,
+    });
+    setCancelLoading(false);
+    setCancelSent(true);
+    setShowCancel(false);
+    toast.success('Demande envoyée');
+  };
 
   return (
     <div className="min-h-screen bg-white font-be">
@@ -84,7 +101,6 @@ export default function ManagePlanPage() {
               <p className="text-xs text-white/50">Plan actuel</p>
             </div>
           </div>
-          {/* Usage bar */}
           <div className="mb-3">
             <div className="flex justify-between mb-1">
               <span className="text-xs text-white/60">Tensors ce mois</span>
@@ -94,7 +110,6 @@ export default function ManagePlanPage() {
               <div className="h-full rounded-full" style={{ width: `${pct}%`, background: YUZU }} />
             </div>
           </div>
-          {/* Features */}
           <div className="grid grid-cols-2 gap-1.5">
             {features.map((f, i) => (
               <div key={i} className="flex items-center gap-1.5">
@@ -111,7 +126,7 @@ export default function ManagePlanPage() {
           style={{ background: YUZU, borderRadius: '5px' }}>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" style={{ color: FG }} />
-            <span className="text-sm font-black" style={{ color: FG }}>Mettre a niveau</span>
+            <span className="text-sm font-black" style={{ color: FG }}>Mettre à niveau</span>
           </div>
           <ChevronRight className="w-4 h-4" style={{ color: FG }} />
         </button>
@@ -134,7 +149,7 @@ export default function ManagePlanPage() {
 
         {/* Cancel */}
         {userPlan?.price_monthly > 0 && !cancelSent && (
-          <button onClick={() => setShowCancel(true)}
+          <button onClick={handleCancelClick}
             className="text-xs font-medium transition-colors hover:text-black"
             style={{ color: '#bbb' }}>
             Annuler mon abonnement
@@ -144,10 +159,49 @@ export default function ManagePlanPage() {
         {cancelSent && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 mt-3" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)' }}>
             <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Demande en attente</p>
-            <p className="text-xs" style={{ color: '#888' }}>Votre demande a ete envoyee. L'equipe Stensor fera de son possible pour traiter votre demande dans les plus brefs delais.</p>
+            <p className="text-xs" style={{ color: '#888' }}>Votre demande a été envoyée. L'équipe Stensor la traitera dans les plus brefs délais.</p>
           </motion.div>
         )}
       </div>
+
+      {/* Downgrade warning modal */}
+      <AnimatePresence>
+        {showDowngradeWarning && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowDowngradeWarning(false); }}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="w-full max-w-sm bg-white overflow-hidden"
+              style={{ borderRadius: '6px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#fef2f2' }}>
+                <AlertCircle className="w-4 h-4 text-red-500" />
+                <p className="font-black text-sm text-red-700">Attention — Suppression automatique</p>
+              </div>
+              <div className="p-5 space-y-3">
+                <p className="text-sm font-semibold" style={{ color: FG }}>En passant au plan Free :</p>
+                <ul className="text-sm space-y-1" style={{ color: '#555' }}>
+                  <li>• Vous serez limité à <strong>10 discussions</strong></li>
+                  <li>• Toutes vos discussions au-delà de 10 seront <strong>définitivement supprimées</strong></li>
+                  <li>• Cette action est irréversible</li>
+                </ul>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={confirmDowngrade}
+                    className="flex-1 py-2.5 text-sm font-bold"
+                    style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
+                    Confirmer et supprimer
+                  </button>
+                  <button onClick={() => setShowDowngradeWarning(false)}
+                    className="px-4 py-2.5 text-sm font-medium"
+                    style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '4px' }}>
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Cancel modal */}
       <AnimatePresence>
@@ -169,10 +223,6 @@ export default function ManagePlanPage() {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <div className="p-3 mb-2" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '5px' }}>
-                  <p className="text-xs font-semibold" style={{ color: '#ef4444' }}>Attention</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#888' }}>En passant au plan Free, vous serez limité à 10 discussions. Les discussions supplémentaires seront supprimées.</p>
-                </div>
                 <p className="text-sm" style={{ color: '#555' }}>Pourquoi souhaitez-vous annuler ? (facultatif)</p>
                 <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
                   placeholder="Commentaire optionnel..."

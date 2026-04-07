@@ -1,25 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, MessageSquare, MoreHorizontal, Trash2, Pencil, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { Search, MessageSquare, MoreHorizontal, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 
 const STORAGE_KEY = 'discussions_v1';
 const FG = '#0A0A0A';
-const YUZU = '#DDFF00';
 
 function getDiscussions() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
 }
 function saveDiscussions(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
-
-const MODE_BADGE = {
-  Fast: { bg: 'rgba(0,0,0,0.05)', text: FG },
-  Standard: { bg: 'rgba(0,0,0,0.05)', text: FG },
-  Advanced: { bg: '#0A0A0A', text: '#fff' },
-  Expert: { bg: '#DDFF00', text: '#0A0A0A' },
-};
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -57,7 +49,6 @@ export default function RecentApps({ agentId }) {
   const handleOpen = (disc) => {
     const params = new URLSearchParams({ conversationId: disc.id });
     if (disc.agent) params.set('agent', disc.agent);
-    if (disc.model) params.set('mode', disc.model.toLowerCase());
     navigate(`/chat?${params.toString()}`);
   };
 
@@ -93,52 +84,45 @@ export default function RecentApps({ agentId }) {
         {filtered.length === 0 && (
           <p className="text-xs text-center py-6" style={{ color: '#ccc' }}>{t('no_discussions')}</p>
         )}
-        {filtered.map(disc => {
-          const badge = MODE_BADGE[disc.model] || MODE_BADGE.Fast;
-          return (
-            <motion.div key={disc.id} layout
-              onClick={() => handleOpen(disc)}
-              onContextMenu={e => openCtx(e, disc.id)}
-              className="group flex items-center gap-4 p-4 bg-white cursor-pointer transition-all"
-              style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '5px' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}>
+        {filtered.map(disc => (
+          <motion.div key={disc.id} layout
+            onClick={() => handleOpen(disc)}
+            onContextMenu={e => openCtx(e, disc.id)}
+            className="group flex items-center gap-4 p-4 bg-white cursor-pointer transition-all"
+            style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '5px' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}>
 
-              {/* Icon */}
-              <div className="w-10 h-10 flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
-                <MessageSquare className="w-4 h-4" style={{ color: FG }} />
-              </div>
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
+              <MessageSquare className="w-4 h-4" style={{ color: FG }} />
+            </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                {renaming === disc.id ? (
-                  <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)}
-                    onBlur={() => confirmRename(disc.id)}
-                    onKeyDown={e => { if (e.key === 'Enter') confirmRename(disc.id); if (e.key === 'Escape') setRenaming(null); }}
-                    className="w-full text-sm font-semibold bg-white focus:outline-none border-b border-black"
-                    onClick={e => e.stopPropagation()} />
-                ) : (
-                  <p className="text-sm font-semibold truncate" style={{ color: FG }}>{disc.title}</p>
-                )}
-                <p className="text-xs truncate mt-0.5" style={{ color: '#aaa' }}>{disc.preview}</p>
-              </div>
+            <div className="flex-1 min-w-0">
+              {renaming === disc.id ? (
+                <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)}
+                  onBlur={() => confirmRename(disc.id)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmRename(disc.id); if (e.key === 'Escape') setRenaming(null); }}
+                  className="w-full text-sm font-semibold bg-white focus:outline-none border-b border-black"
+                  onClick={e => e.stopPropagation()} />
+              ) : (
+                <p className="text-sm font-semibold truncate" style={{ color: FG }}>{disc.title}</p>
+              )}
+              <p className="text-xs truncate mt-0.5" style={{ color: '#aaa' }}>{disc.preview}</p>
+            </div>
 
-              {/* Right side */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-[10px]" style={{ color: '#ccc' }}>{formatDate(disc.date)}</span>
-                <button onClick={e => openCtx(e, disc.id)}
-                  className="w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
-                  <MoreHorizontal className="w-3.5 h-3.5" style={{ color: '#999' }} />
-                </button>
-              </div>
-            </motion.div>
-          );
-        })}
+              <button onClick={e => openCtx(e, disc.id)}
+                className="w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+                <MoreHorizontal className="w-3.5 h-3.5" style={{ color: '#999' }} />
+              </button>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Context menu */}
       <AnimatePresence>
         {contextMenu && (
           <motion.div ref={contextRef}

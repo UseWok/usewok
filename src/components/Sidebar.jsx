@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, GraduationCap, Users, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, Lock } from 'lucide-react';
+import { Home, Bell, Globe2, GraduationCap, Users, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, Lock, X } from 'lucide-react';
 import ReferralModal from './ReferralModal';
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';

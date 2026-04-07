@@ -73,6 +73,16 @@ export default function ChatProfilePopover({ open, onClose, anchorRef, user }) {
               </>
             )}
           </div>
+            {!isAdmin && (
+              <>
+                <div className="w-full h-1.5 rounded-full overflow-hidden mb-1" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                  <motion.div animate={{ width: `${pct}%` }} className="h-full rounded-full"
+                    style={{ background: pct >= 90 ? '#ef4444' : 'linear-gradient(90deg, #7c3aed, #a78bfa)' }} />
+                </div>
+                <p className="text-[10px] text-muted-foreground">{Math.max(creditsLimit - creditsUsed, 0)} restants / {creditsLimit} total</p>
+              </>
+            )}
+          </div>
 
           <div className="p-2">
             <button onClick={() => { navigate('/pricing'); onClose(); }}

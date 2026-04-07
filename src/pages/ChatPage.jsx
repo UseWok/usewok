@@ -363,15 +363,13 @@ export default function ChatPage() {
             className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
               {msg.role === 'assistant' && (
-                <div className="flex items-center gap-1.5 mb-1 opacity-90">
-                  <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-                  <span className="text-[10px] font-black" style={{ color: '#0A0A0A', letterSpacing: '-0.01em' }}>Stensor</span>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain" style={{ opacity: 0.85 }} />
+                  <span className="text-[10px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
                 </div>
               )}
               {msg.role === 'user' && (
-              <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>
-                {userName}
-              </p>
+                <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>{userName}</p>
               )}
               <div className={`text-sm leading-7 px-4 py-3 ${msg.role === 'user' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`}
                 style={msg.role === 'user'
@@ -697,7 +695,7 @@ export default function ChatPage() {
         />
         {/* Legal */}
         <p className="text-center mt-2 text-[9px]" style={{ color: '#ccc' }}>
-          AI may make mistakes · Not financial advice · Ceci n&apos;est pas un conseil en investissement
+          Ceci n&apos;est pas un conseil en investissement · AI may make mistakes · Not financial advice
         </p>
         </div>
 
