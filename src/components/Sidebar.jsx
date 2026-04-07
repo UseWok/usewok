@@ -26,6 +26,7 @@ const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf83
 const PURPLE = '#3A0088';
 const YUZU = '#DDFF00';
 const CORAL = '#FF4F00';
+const FG = '#0A0A0A';
 
 const UNLOCKABLE_FEATURES = [
   { labelKey: 'mode_ultimate', plan: 'Expert', planId: 'expert', icon: '👑' },
