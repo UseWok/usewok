@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import TicketsTab from '@/components/admin/TicketsTab';
 import CodesTab from '@/components/admin/CodesTab';
+import PlanCodesSection from '@/components/admin/CodesTab';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
