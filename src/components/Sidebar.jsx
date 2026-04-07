@@ -106,7 +106,7 @@ export default function Sidebar({ expanded, setExpanded }) {
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/', active: location.pathname === '/' },
     { icon: GraduationCap, labelKey: 'parcours', path: '/parcours', active: location.pathname === '/parcours' },
-    { icon: Users, labelKey: 'community', path: null, active: false },
+    { icon: Users, labelKey: 'community', path: '/community', active: location.pathname === '/community' },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 

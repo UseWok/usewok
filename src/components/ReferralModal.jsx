@@ -62,8 +62,10 @@ export default function ReferralModal({ open, onClose, user }) {
                 </div>
                 <div>
                   <p className="text-sm font-black" style={{ color: FG }}>Invite Friends, Earn Tensors</p>
-              {/* no emoji */}
-                  <p className="text-[10px]" style={{ color: '#999' }}>+10 tensors per completed referral · max {MAX_REFERRALS}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs font-black px-2 py-0.5" style={{ background: FG, color: YUZU, borderRadius: '4px' }}>+10 T</span>
+                      <span className="text-[10px]" style={{ color: '#aaa' }}>par parrainage · max {MAX_REFERRALS}</span>
+                    </div>
                 </div>
               </div>
               <button onClick={onClose}
@@ -78,9 +80,9 @@ export default function ReferralModal({ open, onClose, user }) {
               {/* Steps */}
               <div className="space-y-2">
                 {[
-                  'Share your unique link with a friend',
-                  'They sign up and send their first message',
-                  'You both receive +10 tensors instantly',
+                  'Partagez votre lien unique avec un ami',
+                  'Il s\'inscrit et envoie son premier message',
+                  'Vous recevez tous les deux +10 T instantanément',
                 ].map((text, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 flex items-center justify-center text-[10px] font-black flex-shrink-0"
@@ -119,8 +121,8 @@ export default function ReferralModal({ open, onClose, user }) {
                 <div className="w-px h-4" style={{ background: 'rgba(0,0,0,0.1)' }} />
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" style={{ color: '#aaa' }} />
-                  <span className="text-xs font-bold" style={{ color: FG }}>{completed * 10}</span>
-                  <span className="text-xs" style={{ color: '#aaa' }}>tensors earned</span>
+                  <span className="text-xs font-black px-2 py-0.5" style={{ background: YUZU, color: FG, borderRadius: '4px' }}>{completed * 10} T</span>
+                  <span className="text-xs" style={{ color: '#aaa' }}>gagnés</span>
                 </div>
               </div>
 

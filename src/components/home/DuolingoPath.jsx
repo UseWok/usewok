@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { getPageModes } from '@/lib/page-modes';
+import UnderConstruction from '@/components/UnderConstruction';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Star, Zap, BookOpen, MessageSquare, Trophy, CheckCircle, TrendingUp, Crown, ChevronRight, Brain, Flame, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -64,6 +66,9 @@ export default function DuolingoPath() {
     base44.auth.me().then(u => setUserPlan(getUserPlan(u))).catch(() => {});
   }, []);
 
+  const [pageMode, setPageMode] = useState('live');
+  useEffect(() => { getPageModes().then(m => setPageMode(m.parcours || 'live')); }, []);
+
   const PLAN_ORDER = ['free', 'essential', 'advanced', 'expert', 'supreme'];
   const userPlanIdx = PLAN_ORDER.indexOf(userPlan?.id || 'free');
 
@@ -75,6 +80,15 @@ export default function DuolingoPath() {
   const totalLessons = SECTIONS.reduce((acc, s) => acc + s.lessons.length, 0);
   const doneLessons = SECTIONS.reduce((acc, s) => acc + s.lessons.filter(l => l.status === 'done').length, 0);
   const totalXP = SECTIONS.reduce((acc, s) => acc + s.lessons.filter(l => l.status === 'done').reduce((a, l) => a + l.xp, 0), 0);
+
+  if (pageMode === 'construction') {
+    return (
+      <UnderConstruction
+        title="Le Parcours se forge"
+        subtitle="Nous construisons quelque chose d'exceptionnel — un programme d'apprentissage unique pour transformer votre rapport à l'IA et à la finance."
+      />
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-20 mt-8">

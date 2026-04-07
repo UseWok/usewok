@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import TicketsTab from '@/components/admin/TicketsTab';
+import { getPageModes, savePageModes } from '@/lib/page-modes';
+import { Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Users, Save, Bot, Ban, Search, ChevronDown, ChevronUp,
@@ -328,6 +330,7 @@ export default function AdminProducts() {
   const [codesInput, setCodesInput] = useState({}); // planId_billing -> textarea
   const [codesSaved, setCodesSaved] = useState(false);
   const [showCodesTab, setShowCodesTab] = useState(false);
+  const [pageModes, setPageModes] = useState({ parcours: 'live', community: 'live' });
 
   const qc = useQueryClient();
 
@@ -339,6 +342,7 @@ export default function AdminProducts() {
     base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
       if (results.length > 0) { try { setCommunityUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
+    getPageModes().then(m => setPageModes(m));
   }, []);
 
   const { data: notifications = [], refetch: refetchNotifs } = useQuery({
@@ -428,10 +432,13 @@ export default function AdminProducts() {
   const plans = getPlansConfig().filter(p => p.id !== 'free');
   const filteredUsers = users.filter(u => !userSearch || u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()));
 
+  const savePageModesHandler = async () => { await savePageModes(pageModes); showSaved(); };
+
   const tabs = [
     { id: 'plans', label: 'Abonnements', icon: CreditCard },
     { id: 'codes', label: 'Codes Accès', icon: Gift },
     { id: 'agents', label: 'Agents IA', icon: Bot },
+    { id: 'pages', label: 'Pages', icon: Map },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'tickets', label: 'Tickets', icon: MessageSquare },
     { id: 'users', label: 'Utilisateurs', icon: Users },
@@ -715,6 +722,43 @@ export default function AdminProducts() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* PAGES TAB */}
+        {tab === 'pages' && (
+          <div className="max-w-xl">
+            <p className="text-sm mb-6" style={{ color: '#666' }}>Choisissez si une page affiche son contenu réel ou une page "En Construction" vivante.</p>
+            <div className="space-y-3">
+              {[{ key: 'parcours', label: 'Tensor Academy (Parcours)', desc: 'Le parcours d\'apprentissage IA' }, { key: 'community', label: 'Communauté', desc: 'L\'espace communautaire' }].map(page => (
+                <div key={page.key} className="bg-white p-5 overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: FG }}>{page.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>{page.desc}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      {['live', 'construction'].map(opt => (
+                        <button key={opt} onClick={() => setPageModes(m => ({ ...m, [page.key]: opt }))}
+                          className="px-3 py-1.5 text-xs font-bold transition-all"
+                          style={{
+                            borderRadius: '6px',
+                            background: pageModes[page.key] === opt ? FG : 'rgba(0,0,0,0.05)',
+                            color: pageModes[page.key] === opt ? (opt === 'live' ? YUZU : '#FF6B6B') : '#888',
+                          }}>
+                          {opt === 'live' ? '✓ En ligne' : '🚧 Construction'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={savePageModesHandler}
+              className="mt-5 flex items-center gap-2 px-5 py-2.5 text-sm font-bold"
+              style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+              <Save className="w-4 h-4" /> Sauvegarder les modes
+            </button>
           </div>
         )}
 

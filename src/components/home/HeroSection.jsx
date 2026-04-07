@@ -212,10 +212,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
                            <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
-                          {isAllowed && (
-                            <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>{m.credit_cost}T</span>
-                          )}
-                          {!isAllowed && <Lock className="w-3 h-3 ml-auto flex-shrink-0" style={{ color: '#ccc' }} />}
+                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: isAllowed ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)', color: isAllowed ? '#777' : '#ccc', borderRadius: '2px' }}>{m.credit_cost}T</span>
+                          {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0" style={{ color: '#ccc' }} />}
                           {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
                         </button>
                       );

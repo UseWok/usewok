@@ -17,6 +17,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import ManagePlanPage from './pages/ManagePlanPage';
+import Community from './pages/Community';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/manage-plan" element={<ManagePlanPage />} />
+        <Route path="/community" element={<Community />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
