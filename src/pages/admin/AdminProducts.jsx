@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Users, Save, Bot, Ban, Search, ChevronDown, ChevronUp,
   Gift, Check, X, Pencil, Trash2, CreditCard, Globe, Zap,
-  Crown, Shield, Star, MessageSquare, Send
+  Crown, Shield, Star, MessageSquare, Send, Eye, Eye as EyeOff
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -586,11 +586,13 @@ export default function AdminProducts() {
                 </div>
               )))}
             </div>
-            <button onClick={saveActivationCodes}
-              className="mt-4 px-5 py-2.5 text-sm font-bold transition-all"
-              style={{ background: codesSaved ? '#16a34a' : FG, color: 'white', borderRadius: '4px' }}>
-              {codesSaved ? '✓ Codes ajoutés !' : 'Importer tous les codes'}
-            </button>
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveActivationCodes}
+                className="px-5 py-2.5 text-sm font-bold transition-all flex-1"
+                style={{ background: codesSaved ? '#16a34a' : FG, color: 'white', borderRadius: '4px' }}>
+                {codesSaved ? '✓ Codes enregistrés !' : 'Enregistrer les codes'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -724,10 +726,27 @@ export default function AdminProducts() {
 
         {/* PAGES TAB */}
         {tab === 'pages' && (
-          <div className="max-w-xl">
-            <p className="text-sm mb-6" style={{ color: '#666' }}>Choisissez si une page affiche son contenu réel ou une page "En Construction" vivante.</p>
-            <div className="space-y-3">
-              {[{ key: 'parcours', label: 'Tensor Academy (Parcours)', desc: 'Le parcours d\'apprentissage IA' }, { key: 'community', label: 'Communauté', desc: 'L\'espace communautaire' }].map(page => (
+          <div className="max-w-xl space-y-6">
+            {/* Landing Preview */}
+            <div className="bg-white p-5 border" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold" style={{ color: FG }}>Prévisualiser Landing Page</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>Voir comment la page d\'accueil apparaît</p>
+                </div>
+                <button onClick={() => window.open('/', '_blank')}
+                  className="px-4 py-2 text-xs font-bold flex items-center gap-2 transition-all"
+                  style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                  <Eye className="w-3.5 h-3.5" /> Voir
+                </button>
+              </div>
+            </div>
+
+            {/* Home Page Visibility */}
+            <div>
+              <p className="text-sm mb-6" style={{ color: '#666' }}>Masquer sections de l'accueil pour tous les utilisateurs.</p>
+              <div className="space-y-3">
+                {[{ key: 'show_parcours', label: 'Tensor Academy (Parcours)', desc: 'Le parcours d\'apprentissage IA' }, { key: 'show_community', label: 'Communauté', desc: 'L\'espace communautaire' }].map(page => (
                 <div key={page.key} className="bg-white p-5 overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
                   <div className="flex items-center justify-between gap-4">
                     <div>
@@ -735,27 +754,36 @@ export default function AdminProducts() {
                       <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>{page.desc}</p>
                     </div>
                     <div className="flex gap-2">
-                      {['live', 'construction'].map(opt => (
-                        <button key={opt} onClick={() => setPageModes(m => ({ ...m, [page.key]: opt }))}
-                          className="px-3 py-1.5 text-xs font-bold transition-all"
-                          style={{
-                            borderRadius: '6px',
-                            background: pageModes[page.key] === opt ? FG : 'rgba(0,0,0,0.05)',
-                            color: pageModes[page.key] === opt ? (opt === 'live' ? YUZU : '#FF6B6B') : '#888',
-                          }}>
-                          {opt === 'live' ? '✓ En ligne' : '🚧 Construction'}
-                        </button>
-                      ))}
+                      <button 
+                        onClick={() => {
+                          const current = pageSettings[page.key];
+                          const updated = { ...pageSettings, [page.key]: !current };
+                          setPageSettings(updated);
+                          base44.entities.AppSettings.filter({ key: 'home_page_settings' })
+                            .then(results => {
+                              const val = JSON.stringify(updated);
+                              if (results.length > 0) {
+                                return base44.entities.AppSettings.update(results[0].id, { value: val });
+                              } else {
+                                return base44.entities.AppSettings.create({ key: 'home_page_settings', value: val });
+                              }
+                            })
+                            .then(() => showSaved())
+                            .catch(() => {});
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold transition-all"
+                        style={{
+                          borderRadius: '6px',
+                          background: pageSettings[page.key] ? FG : 'rgba(0,0,0,0.05)',
+                          color: pageSettings[page.key] ? YUZU : '#888',
+                        }}>
+                        {pageSettings[page.key] ? '✓ Visible' : '✕ Masqué'}
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            <button onClick={savePageModesHandler}
-              className="mt-5 flex items-center gap-2 px-5 py-2.5 text-sm font-bold"
-              style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-              <Save className="w-4 h-4" /> Sauvegarder les modes
-            </button>
+                ))}
+                </div>
           </div>
         )}
 
