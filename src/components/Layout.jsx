@@ -13,8 +13,7 @@ export default function Layout() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const cart = (() => { try { return JSON.parse(localStorage.getItem('stensor_cart_v1')); } catch { return null; } })();
-  const hasCart = cart && Date.now() - (cart.ts || 0) < 24 * 60 * 60 * 1000;
+
 
   return (
     <div className="min-h-screen bg-white flex font-be">
@@ -54,16 +53,7 @@ export default function Layout() {
             <Menu className="w-4 h-4" />
           </button>
         )}
-        {hasCart && (
-          <motion.button
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={() => navigate(`/checkout?plan=${cart.planId}&billing=${cart.billing}`)}
-            className="fixed top-4 right-4 z-30 flex items-center gap-2 px-3 py-1.5 text-xs font-black"
-            style={{ background: '#0A0A0A', color: '#DDFF00', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
-            🛒 {t('resume_cart')}
-          </motion.button>
-        )}
+
         <Outlet />
       </motion.main>
     </div>

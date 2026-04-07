@@ -145,7 +145,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
-        {lockedAgentLabel ? lockedAgentLabel : t('hero_title')}
+        {t('hero_title')}
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
         className="mt-3 text-sm" style={{ color: '#888' }}>
@@ -205,6 +205,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           )}
         </AnimatePresence>
 
+        <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
         <div className="bg-white overflow-visible"
           style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
           
@@ -257,7 +258,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         Joindre un fichier
                         {!canUpload && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ddd' }} />}
                       </button>
-                      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -328,17 +328,14 @@ export default function HeroSection({ agentId, onAgentChange }) {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
               <button onClick={toggleRecording}
-                className="relative w-8 h-8 flex items-center justify-center transition-all overflow-hidden"
+                className="relative w-8 h-8 flex items-center justify-center transition-all"
                 style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
                 {isRecording ? (
-                  <div className="flex items-end gap-0.5 h-4">
-                    {[0, 1, 2, 3].map((i) => (
-                      <motion.div key={i} className="w-0.5 rounded-full"
-                        animate={{ height: ['3px', '14px', '6px', '10px', '3px'] }}
-                        transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15, ease: 'easeInOut' }}
-                        style={{ background: YUZU }} />
-                    ))}
-                  </div>
+                  <motion.div
+                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                    transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: YUZU }} />
                 ) : <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />}
               </button>
             </div>

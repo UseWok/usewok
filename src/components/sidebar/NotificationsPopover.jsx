@@ -41,14 +41,14 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
   const getPosition = () => {
     if (!anchorRef?.current) return { left: 76, top: 200 };
     const rect = anchorRef.current.getBoundingClientRect();
-    const popW = 320;
-    const popH = Math.min(notifications.length * 80 + 100, 480);
+    const popW = 300;
     let left = rect.right + 12;
-    if (left + popW > window.innerWidth - 16) left = rect.left - popW - 12;
-    let top = rect.top - 20;
-    if (top + popH > window.innerHeight - 16) top = window.innerHeight - popH - 16;
+    if (left + popW > window.innerWidth - 8) left = Math.max(8, window.innerWidth - popW - 8);
+    const maxH = Math.min(480, window.innerHeight - 32);
+    let top = rect.top;
+    if (top + maxH > window.innerHeight - 8) top = window.innerHeight - maxH - 8;
     if (top < 8) top = 8;
-    return { left, top };
+    return { left, top, maxH };
   };
 
   const handleNotifClick = (notif) => {

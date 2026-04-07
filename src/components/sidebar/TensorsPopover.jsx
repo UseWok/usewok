@@ -32,13 +32,14 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
   }, [open, onClose, anchorRef]);
 
   const getPos = () => {
-    if (!anchorRef?.current) return { left: 72, bottom: 80 };
+    if (!anchorRef?.current) return { left: 72, top: 200 };
     const rect = anchorRef.current.getBoundingClientRect();
-    const popW = 260;
+    const popW = 256;
     let left = rect.right + 12;
-    if (left + popW > window.innerWidth - 16) left = rect.left - popW - 12;
+    if (left + popW > window.innerWidth - 8) left = Math.max(8, window.innerWidth - popW - 8);
     let top = rect.top;
-    if (top + 180 > window.innerHeight - 16) top = window.innerHeight - 196;
+    if (top + 220 > window.innerHeight - 8) top = window.innerHeight - 228;
+    if (top < 8) top = 8;
     return { left, top };
   };
 

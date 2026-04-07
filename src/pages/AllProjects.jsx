@@ -14,11 +14,12 @@ function getDiscussions() {
 }
 function saveDiscussions(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
 
+const FG = '#0A0A0A';
 const MODE_COLORS = {
-  Fast: { bg: 'rgba(58,0,136,0.08)', text: PURPLE },
-  Standard: { bg: 'rgba(58,0,136,0.08)', text: PURPLE },
-  Advanced: { bg: 'rgba(58,0,136,0.12)', text: PURPLE },
-  Expert: { bg: '#DDFF00', text: PURPLE },
+  Fast: { bg: 'rgba(0,0,0,0.05)', text: FG },
+  Standard: { bg: 'rgba(0,0,0,0.05)', text: FG },
+  Advanced: { bg: 'rgba(0,0,0,0.08)', text: FG },
+  Expert: { bg: '#DDFF00', text: FG },
 };
 
 export default function AllProjects() {
@@ -57,7 +58,7 @@ export default function AllProjects() {
               <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
             </button>
             <div>
-              <h1 className="text-2xl font-black" style={{ color: PURPLE }}>{t('recent_discussions')}</h1>
+              <h1 className="text-2xl font-black" style={{ color: FG }}>{t('recent_discussions')}</h1>
               <p className="text-sm" style={{ color: '#999' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
@@ -82,11 +83,11 @@ export default function AllProjects() {
                   onClick={() => navigate(`/chat?conversationId=${disc.id}${disc.agent ? '&agent=' + disc.agent : ''}${disc.model ? '&mode=' + disc.model.toLowerCase() : ''}`)}
                   className="group bg-white cursor-pointer p-4 transition-all"
                   style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = PURPLE; e.currentTarget.style.boxShadow = '0 4px 16px rgba(58,0,136,0.1)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.03)'; }}>
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-8 h-8 flex items-center justify-center" style={{ background: 'rgba(58,0,136,0.06)', borderRadius: '4px' }}>
-                      <MessageSquare className="w-4 h-4" style={{ color: PURPLE }} />
+                    <div className="w-8 h-8 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                      <MessageSquare className="w-4 h-4" style={{ color: FG }} />
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); openCtx(e, disc.id); }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center"
@@ -102,7 +103,7 @@ export default function AllProjects() {
                       style={{ borderColor: PURPLE }}
                       onClick={(e) => e.stopPropagation()} />
                   ) : (
-                    <p className="text-sm font-bold line-clamp-2 mb-1" style={{ color: PURPLE }}>{disc.title}</p>
+                    <p className="text-sm font-bold line-clamp-2 mb-1" style={{ color: FG }}>{disc.title}</p>
                   )}
                   <p className="text-xs line-clamp-2 mb-3" style={{ color: '#999' }}>{disc.preview}</p>
                   <div className="flex items-center gap-2">

@@ -77,7 +77,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
           {plans.map((plan, idx) => {
             const Icon = PLAN_ICONS[plan.id] || Star;
             const price = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
@@ -88,7 +88,8 @@ export default function PricingPage() {
             return (
               <motion.div key={plan.id}
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}
-                className="flex flex-col relative"
+                className="flex flex-col relative flex-shrink-0 w-72 md:w-auto"
+                style={{ scrollSnapAlign: 'start' }}
                 style={{
                   background: isRecommended ? FG : 'white',
                   border: isRecommended ? 'none' : '1px solid rgba(0,0,0,0.09)',
@@ -101,6 +102,14 @@ export default function PricingPage() {
                     <span className="text-[9px] font-black px-3 py-1 tracking-widest"
                       style={{ background: YUZU, color: FG, borderRadius: '2px' }}>
                       {t('recommended')}
+                    </span>
+                  </div>
+                )}
+                {billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
+                  <div className="absolute top-3 right-3">
+                    <span className="text-[9px] font-black px-2 py-1"
+                      style={{ background: GREEN, color: 'white', borderRadius: '2px' }}>
+                      Save {(plan.price_monthly - plan.price_yearly) * 12}$
                     </span>
                   </div>
                 )}
@@ -126,14 +135,10 @@ export default function PricingPage() {
                       <span className="text-3xl font-black" style={{ color: isRecommended ? 'white' : FG }}>
                         {price}$
                       </span>
-                      <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>/mois</span>
+                      <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
+                        /mois{billing === 'yearly' ? ` × 12` : ''}
+                      </span>
                     </div>
-                    {billing === 'yearly' && (
-                      <div className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-1"
-                        style={{ background: GREEN, borderRadius: '2px' }}>
-                        <span className="text-[10px] font-black text-white">×12 = {annualTotal}$/an</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Internet badge — always shown */}

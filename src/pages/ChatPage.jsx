@@ -242,8 +242,17 @@ export default function ChatPage() {
       }
 
       try {
+        // Generate short title from first user message
+        let title = text.slice(0, 50);
+        if (newMessages.length === 1) {
+          const titleResult = await base44.integrations.Core.InvokeLLM({
+            prompt: `Génère un titre ultra court (3-5 mots max) pour cette conversation financière. Message: "${text.slice(0, 200)}". Réponds UNIQUEMENT avec le titre, sans guillemets ni ponctuation.`,
+            model: 'gemini_3_flash',
+          });
+          if (typeof titleResult === 'string' && titleResult.trim()) title = titleResult.trim().slice(0, 60);
+        }
         const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const disc = { id: convId, title: text.slice(0, 50), preview: text, date: new Date().toISOString().slice(0, 10), model: mode.label, agent: currentAgent };
+        const disc = { id: convId, title, preview: text, date: new Date().toISOString().slice(0, 10), model: mode.label, agent: currentAgent };
         const existing = stored.findIndex(d => d.id === convId);
         if (existing >= 0) stored[existing] = { ...stored[existing], ...disc };
         else stored.unshift(disc);
@@ -598,17 +607,14 @@ export default function ChatPage() {
 
             <div className="flex items-center gap-2">
               <button onClick={toggleRecording}
-                className="relative w-8 h-8 rounded-sm flex items-center justify-center transition-all overflow-hidden"
+                className="relative w-8 h-8 rounded-sm flex items-center justify-center transition-all"
                 style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)' }}>
                 {isRecording ? (
-                  <div className="flex items-end gap-0.5 h-4">
-                    {[0, 1, 2, 3].map(i => (
-                      <motion.div key={i} className="w-0.5 rounded-full"
-                        animate={{ height: ['3px', '14px', '6px', '10px', '3px'] }}
-                        transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15, ease: 'easeInOut' }}
-                        style={{ background: YUZU }} />
-                    ))}
-                  </div>
+                  <motion.div
+                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                    transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: YUZU }} />
                 ) : (
                   <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />
                 )}
