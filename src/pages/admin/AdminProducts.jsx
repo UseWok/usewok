@@ -89,6 +89,11 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
             transition={{ duration: 0.2 }} className="overflow-hidden">
             <div className="px-4 pb-4 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              {/* Codes d'accès pour ce plan */}
+              <div className="mb-4 pb-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <PlanCodesSection planId={plan.id} planName={plan.name} />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Tarification</p>
@@ -500,7 +505,6 @@ export default function AdminProducts() {
 
   const tabs = [
     { id: 'plans', label: 'Abonnements', icon: CreditCard },
-    { id: 'codes', label: 'Codes Accès', icon: Gift },
     { id: 'agents', label: 'Agents IA', icon: Bot },
     { id: 'pages', label: 'Pages', icon: Map },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -628,11 +632,6 @@ export default function AdminProducts() {
               Réinitialiser les plans par défaut
             </button>
           </div>
-        )}
-
-        {/* CODES TAB */}
-        {tab === 'codes' && (
-          <CodesTab />
         )}
 
         {/* AGENTS TAB */}
