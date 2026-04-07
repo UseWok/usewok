@@ -257,17 +257,8 @@ export default function ChatPage() {
       const minDur = MIN_DURATIONS[mode.id] || 0;
       if (elapsed < minDur) await new Promise(r => setTimeout(r, minDur - elapsed));
 
-      // Truncate response for FREE plan at ~300 words
-      let finalContent = content;
       const isFree = !userPlan || userPlan.price_monthly === 0;
-      if (isFree) {
-        const words = content.split(/\s+/);
-        if (words.length > 280) {
-          finalContent = words.slice(0, 280).join(' ') + '\n\n---\n*La réponse complète est disponible avec le plan Advanced. [Voir les plans →](/pricing)*';
-        }
-      }
-
-      const assistantMsg = { role: 'assistant', content: finalContent };
+      const assistantMsg = { role: 'assistant', content };
       const finalMessages = [...newMessages, assistantMsg];
       setMessages(finalMessages);
 
