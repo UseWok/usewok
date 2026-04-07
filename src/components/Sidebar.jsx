@@ -122,7 +122,7 @@ export default function Sidebar({ expanded, setExpanded }) {
       >
         {/* Logo */}
         <div
-          className="flex items-center gap-2 px-4 py-5 flex-shrink-0 select-none"
+          className="flex items-center gap-1 px-4 py-5 flex-shrink-0 select-none"
         >
           <div
             className="relative w-9 h-9 flex-shrink-0 cursor-pointer"

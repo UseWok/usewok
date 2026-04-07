@@ -363,9 +363,9 @@ export default function ChatPage() {
             className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
               {msg.role === 'assistant' && (
-                <div className="flex items-center gap-1 mb-0.5">
-                  <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain" style={{ opacity: 0.85 }} />
-                  <span className="text-[10px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain flex-shrink-0" style={{ opacity: 0.9 }} />
+                  <span className="text-[11px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
                 </div>
               )}
               {msg.role === 'user' && (
@@ -438,7 +438,7 @@ export default function ChatPage() {
       )}
 
       {/* Input area */}
-      <div className="px-4 pb-5 pt-2 flex-shrink-0 relative max-w-3xl mx-auto w-full">
+      <div className="px-4 pb-3 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full">
         <AnimatePresence>
           {showAtMenu && (
             <motion.div ref={atMenuRef} {...popUp}
@@ -508,11 +508,11 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="px-4 pt-3.5 pb-1">
+          <div className="px-4 pt-2 pb-1">
             <textarea ref={textareaRef} value={input} onChange={handleInputChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
               placeholder={blocked ? 'Crédits épuisés — mettez à niveau pour continuer' : 'Message… (@ pour agents & modes)'}
-              disabled={blocked} rows={2}
+              disabled={blocked} rows={1}
               className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed break-words"
               style={{ color: FG }} />
           </div>
@@ -693,9 +693,8 @@ export default function ChatPage() {
           onClose={() => setShowFilePanel(false)}
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
-        {/* Legal */}
-        <p className="text-center mt-2 text-[9px]" style={{ color: '#ccc' }}>
-          Ceci n&apos;est pas un conseil en investissement · AI may make mistakes · Not financial advice
+        <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
+          Ceci n&apos;est pas un conseil en investissement · Stensor ne remplace pas un professionnel · IA peut faire des erreurs
         </p>
         </div>
 

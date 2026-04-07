@@ -109,27 +109,20 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
               {bonus > 0 && ` (+${bonus} bonus)`}
             </p>
 
-            {/* Daily limit */}
-            {hasDailyLimit && (
-              <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Tensors quotidiens</span>
-                  <span className="text-[10px] font-black" style={{ color: dailyUsed >= dailyLimit ? '#ef4444' : '#555' }}>{dailyUsed}/{dailyLimit}</span>
-                </div>
+            {/* Daily usage */}
+            <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Aujourd'hui</span>
+                <span className="text-[10px] font-black" style={{ color: hasDailyLimit && dailyUsed >= dailyLimit ? '#ef4444' : '#555' }}>
+                  {dailyUsed}{hasDailyLimit ? `/${dailyLimit}` : ' utilisés'}
+                </span>
+              </div>
+              {hasDailyLimit && (
                 <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((dailyUsed/dailyLimit)*100,100)}%`, background: dailyUsed >= dailyLimit ? '#ef4444' : PURPLE }} />
                 </div>
-              </div>
-            )}
-
-            {/* Plan info */}
-            {user?.subscription_plan && (
-              <div className="mt-2 px-2 py-1.5" style={{ background: 'rgba(58,0,136,0.05)', borderRadius: '4px' }}>
-                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PURPLE }}>
-                  {user.subscription_plan.toUpperCase()} PLAN
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* CTA */}

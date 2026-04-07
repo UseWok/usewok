@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, MessageSquare, Book, ChevronRight, X, FileText,
-  Bug, Zap, Users, ExternalLink, Check, Upload, AlertCircle, Hash, Clock
+  Bug, Zap, ExternalLink, Check, Upload, Hash, Clock, ChevronDown
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -27,6 +27,12 @@ const CATEGORIES = [
 
 const STORAGE_KEY = 'discussions_v1';
 
+const STATUS_CONFIG = {
+  open: { label: 'Ouvert', color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+  in_progress: { label: 'En cours', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+  closed: { label: 'Résolu', color: '#16a34a', bg: 'rgba(22,163,74,0.08)' },
+};
+
 function TicketWizard({ onClose, user }) {
   const [step, setStep] = useState(0);
   const [description, setDescription] = useState('');
@@ -40,7 +46,7 @@ function TicketWizard({ onClose, user }) {
   const handleAnalyse = async () => {
     if (!description.trim()) return;
     setStep(1);
-    await new Promise(r => setTimeout(r, 2800));
+    await new Promise(r => setTimeout(r, 2200));
     setStep(2);
   };
 
@@ -48,88 +54,89 @@ function TicketWizard({ onClose, user }) {
     setSubmitting(true);
     let file_urls = [];
     for (const f of files) {
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: f });
-        file_urls.push(file_url);
-      } catch {}
+      try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
     await base44.entities.SupportTicket.create({
-      description,
-      category,
+      description, category,
       discussion_id: selectedDiscussion?.id || '',
-      file_urls,
-      status: 'open',
+      file_urls, status: 'open',
       user_email: user?.email || '',
       user_plan: user?.subscription_plan || 'free',
-    });
-    await base44.entities.Notification.create({
-      title: `Nouveau ticket — ${user?.email || 'utilisateur'}`,
-      message: `Plan: ${user?.subscription_plan || 'free'} | Catégorie: ${category} | ${description.slice(0, 200)}`,
     });
     setSubmitting(false);
     setStep(4);
   };
 
-  const progressPct = [0, 25, 50, 75, 100][step] || 0;
+  const steps = ['Description', 'Analyse', 'Catégorie', 'Discussion', 'Confirmé'];
+  const progressPct = [0, 33, 55, 77, 100][step] || 0;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[500] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.5)' }}
+      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center sm:p-4"
+      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
-      <motion.div initial={{ scale: 0.95, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 16 }}
-        className="w-full max-w-lg bg-white overflow-hidden"
-        style={{ borderRadius: '8px', boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
+      <motion.div
+        initial={{ y: '100%', opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="w-full bg-white overflow-hidden sm:max-w-md"
+        style={{ borderRadius: '20px 20px 0 0', maxHeight: '92vh', overflowY: 'auto' }}
+        onClick={e => e.stopPropagation()}>
 
-        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.15)' }} />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 py-4 flex items-center justify-between sticky top-0 bg-white z-10" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 flex items-center justify-center" style={{ background: FG, borderRadius: '4px' }}>
+            <div className="w-7 h-7 flex items-center justify-center" style={{ background: FG, borderRadius: '6px' }}>
               <MessageSquare className="w-3.5 h-3.5" style={{ color: YUZU }} />
             </div>
             <div>
               <p className="text-sm font-black" style={{ color: FG }}>Ouvrir un ticket</p>
-              <p className="text-[10px]" style={{ color: '#999' }}>
-                {['Description', 'Analyse', 'Catégorie', 'Discussion', 'Confirmé'][step]}
-              </p>
+              <p className="text-[10px]" style={{ color: '#bbb' }}>{steps[step]}</p>
             </div>
           </div>
           {step !== 1 && step !== 4 && (
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '4px' }}>
-              <X className="w-4 h-4" style={{ color: '#bbb' }} />
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
+              <X className="w-4 h-4" style={{ color: '#999' }} />
             </button>
           )}
         </div>
 
-        <div className="w-full h-1" style={{ background: 'rgba(0,0,0,0.05)' }}>
-          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="h-full" style={{ background: YUZU }} />
+        {/* Progress */}
+        <div className="w-full h-0.5" style={{ background: 'rgba(0,0,0,0.05)' }}>
+          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }}
+            className="h-full" style={{ background: FG }} />
         </div>
 
         <div className="p-5">
           {step === 0 && (
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-black uppercase tracking-wider mb-1.5 block" style={{ color: '#aaa' }}>Décrivez votre problème *</label>
+                <label className="text-xs font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Décrivez votre problème *</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)}
-                  placeholder="Expliquez le problème : quand il survient, ce que vous attendiez, ce qui s'est passé..."
-                  rows={5} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                  style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                  placeholder="Expliquez le problème en détail..."
+                  rows={4} className="w-full px-3.5 py-3 text-sm focus:outline-none resize-none"
+                  style={{ border: `1.5px solid ${description ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '10px', transition: 'border-color 0.15s' }} />
               </div>
               <div>
-                <label className="text-xs font-black uppercase tracking-wider mb-1.5 block" style={{ color: '#aaa' }}>Fichiers (optionnel)</label>
+                <label className="text-xs font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Fichiers (optionnel)</label>
                 <input ref={fileInputRef} type="file" multiple className="hidden"
                   onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
                 <button onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-sm transition-all hover:bg-black/2"
-                  style={{ border: '1px dashed rgba(0,0,0,0.15)', borderRadius: '4px', color: '#888' }}>
-                  <Upload className="w-4 h-4" />
-                  Joindre des fichiers (captures d'écran, logs...)
+                  className="w-full flex items-center justify-center gap-2 py-3 text-sm transition-all"
+                  style={{ border: '1.5px dashed rgba(0,0,0,0.12)', borderRadius: '10px', color: '#999' }}>
+                  <Upload className="w-4 h-4" /> Joindre des fichiers
                 </button>
                 {files.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {files.map((f, i) => (
-                      <div key={i} className="flex items-center gap-1.5 px-2 py-1"
-                        style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.07)' }}>
+                      <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5"
+                        style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '6px' }}>
                         <FileText className="w-3 h-3" style={{ color: '#888' }} />
                         <span className="text-[11px] max-w-[80px] truncate" style={{ color: '#555' }}>{f.name}</span>
                         <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
@@ -141,60 +148,50 @@ function TicketWizard({ onClose, user }) {
                 )}
               </div>
               <button onClick={handleAnalyse} disabled={!description.trim()}
-                className="w-full py-3 text-sm font-bold transition-all disabled:opacity-40"
-                style={{ background: description.trim() ? FG : 'rgba(0,0,0,0.05)', color: description.trim() ? 'white' : '#bbb', borderRadius: '4px' }}>
-                Analyser →
+                className="w-full py-3.5 text-sm font-black transition-all disabled:opacity-30"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
+                Continuer →
               </button>
             </div>
           )}
 
           {step === 1 && (
-            <div className="flex flex-col items-center justify-center py-10 gap-4">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
                 className="w-10 h-10 rounded-full"
                 style={{ border: '3px solid rgba(0,0,0,0.08)', borderTopColor: FG }} />
               <div className="text-center">
-                <p className="font-black text-sm" style={{ color: FG }}>Analysing...</p>
-                <p className="text-xs mt-1" style={{ color: '#999' }}>Analyse de votre problème en cours</p>
+                <p className="font-black text-sm" style={{ color: FG }}>Analyse en cours…</p>
+                <p className="text-xs mt-1" style={{ color: '#aaa' }}>Traitement de votre demande</p>
               </div>
-              {['Lecture de la description', 'Identification du problème', 'Préparation du formulaire'].map((t, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.8 }}
-                  className="flex items-center gap-2 text-xs" style={{ color: '#888' }}>
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.8 + 0.4 }}
-                    className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '50%' }}>
-                    <Check className="w-2.5 h-2.5" style={{ color: FG }} />
-                  </motion.div>
-                  {t}
-                </motion.div>
-              ))}
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-3">
-              <p className="text-sm font-semibold mb-4" style={{ color: FG }}>De quel type de problème s'agit-il ?</p>
+              <p className="text-sm font-semibold mb-4" style={{ color: FG }}>Type de problème</p>
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 const sel = category === cat.id;
                 return (
                   <button key={cat.id} onClick={() => setCategory(cat.id)}
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all"
-                    style={{ border: `1px solid ${sel ? FG : 'rgba(0,0,0,0.08)'}`, background: sel ? FG : 'white', borderRadius: '5px' }}>
-                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                      style={{ background: sel ? YUZU : 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+                    style={{ border: `1.5px solid ${sel ? FG : 'rgba(0,0,0,0.08)'}`, background: sel ? FG : 'white', borderRadius: '12px' }}>
+                    <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+                      style={{ background: sel ? YUZU : 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
                       <Icon className="w-4 h-4" style={{ color: sel ? FG : '#666' }} />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold" style={{ color: sel ? 'white' : FG }}>{cat.label}</p>
-                      <p className="text-xs" style={{ color: sel ? 'rgba(255,255,255,0.6)' : '#999' }}>{cat.desc}</p>
+                      <p className="text-xs" style={{ color: sel ? 'rgba(255,255,255,0.55)' : '#aaa' }}>{cat.desc}</p>
                     </div>
-                    {sel && <Check className="w-4 h-4" style={{ color: YUZU }} />}
+                    {sel && <Check className="w-4 h-4 flex-shrink-0" style={{ color: YUZU }} />}
                   </button>
                 );
               })}
               <button onClick={() => setStep(3)} disabled={!category}
-                className="w-full py-3 text-sm font-bold transition-all disabled:opacity-40 mt-2"
-                style={{ background: category ? FG : 'rgba(0,0,0,0.05)', color: category ? 'white' : '#bbb', borderRadius: '4px' }}>
+                className="w-full py-3.5 text-sm font-black transition-all disabled:opacity-30 mt-2"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
                 Continuer →
               </button>
             </div>
@@ -204,31 +201,29 @@ function TicketWizard({ onClose, user }) {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Discussion concernée</p>
-                <p className="text-xs mb-3" style={{ color: '#999' }}>Optionnel — sélectionnez la discussion où le problème a eu lieu</p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {discussions.length === 0 && <p className="text-xs py-4 text-center" style={{ color: '#bbb' }}>Aucune discussion disponible</p>}
+                <p className="text-xs mb-3" style={{ color: '#aaa' }}>Optionnel — sélectionnez si applicable</p>
+                <div className="space-y-2 max-h-44 overflow-y-auto">
+                  {discussions.length === 0 && <p className="text-xs py-4 text-center" style={{ color: '#ccc' }}>Aucune discussion</p>}
                   {discussions.slice(0, 10).map(d => {
                     const sel = selectedDiscussion?.id === d.id;
                     return (
                       <button key={d.id} onClick={() => setSelectedDiscussion(sel ? null : d)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all"
-                        style={{ border: `1px solid ${sel ? FG : 'rgba(0,0,0,0.08)'}`, background: sel ? FG : 'white', borderRadius: '4px' }}>
-                        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" style={{ color: sel ? YUZU : '#bbb' }} />
+                        style={{ border: `1.5px solid ${sel ? FG : 'rgba(0,0,0,0.08)'}`, background: sel ? FG : 'white', borderRadius: '8px' }}>
+                        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" style={{ color: sel ? YUZU : '#ccc' }} />
                         <span className="text-xs truncate flex-1" style={{ color: sel ? 'white' : '#555' }}>{d.title || d.id}</span>
-                        <span className="text-[10px] flex-shrink-0" style={{ color: sel ? 'rgba(255,255,255,0.4)' : '#ccc' }}>{d.date}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
               <button onClick={handleSubmit} disabled={submitting}
-                className="w-full py-3 text-sm font-bold transition-all disabled:opacity-60"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                {submitting ? 'Envoi...' : 'Soumettre le ticket →'}
+                className="w-full py-3.5 text-sm font-black transition-all disabled:opacity-60"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
+                {submitting ? 'Envoi…' : 'Soumettre le ticket →'}
               </button>
               <button onClick={handleSubmit} disabled={submitting}
-                className="w-full py-2 text-sm transition-colors hover:opacity-60"
-                style={{ color: '#999' }}>
+                className="w-full py-2 text-sm" style={{ color: '#bbb' }}>
                 Passer cette étape
               </button>
             </div>
@@ -236,16 +231,16 @@ function TicketWizard({ onClose, user }) {
 
           {step === 4 && (
             <div className="flex flex-col items-center text-center py-8 gap-4">
-              <div className="w-14 h-14 flex items-center justify-center" style={{ background: YUZU, borderRadius: '50%' }}>
-                <Check className="w-7 h-7" style={{ color: FG }} />
+              <div className="w-16 h-16 flex items-center justify-center" style={{ background: YUZU, borderRadius: '50%' }}>
+                <Check className="w-8 h-8" style={{ color: FG }} />
               </div>
               <div>
                 <p className="text-base font-black mb-2" style={{ color: FG }}>Ticket ouvert !</p>
-                <p className="text-sm" style={{ color: '#666' }}>Votre ticket a été transmis. L'équipe Stensor vous répondra par email.</p>
+                <p className="text-sm" style={{ color: '#777' }}>L'équipe Stensor vous répondra par email dans les plus brefs délais.</p>
               </div>
               <button onClick={onClose}
-                className="mt-2 px-6 py-2.5 text-sm font-bold"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                className="mt-2 px-8 py-3 text-sm font-black"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
                 Fermer
               </button>
             </div>
@@ -262,146 +257,150 @@ export default function SupportPage() {
   const [showTicket, setShowTicket] = useState(false);
   const [user, setUser] = useState(null);
   const [discordUrl, setDiscordUrl] = useState('');
-  const [communityUrl, setCommunityUrl] = useState('');
   const [myTickets, setMyTickets] = useState([]);
 
+  const loadTickets = (u) => {
+    if (u) base44.entities.SupportTicket.filter({ user_email: u.email })
+      .then(t => setMyTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))))
+      .catch(() => {});
+  };
+
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u) base44.entities.SupportTicket.filter({ user_email: u.email }).then(t => setMyTickets(t.sort((a,b) => new Date(b.created_date) - new Date(a.created_date)))).catch(() => {});
-    }).catch(() => {});
+    base44.auth.me().then(u => { setUser(u); loadTickets(u); }).catch(() => {});
     base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
-      if (results.length > 0) {
-        try {
-          const urls = JSON.parse(results[0].value);
-          setDiscordUrl(urls.discord || '');
-          setCommunityUrl(urls.community || '');
-        } catch {}
-      }
+      if (results.length > 0) { try { const urls = JSON.parse(results[0].value); setDiscordUrl(urls.discord || ''); } catch {} }
     }).catch(() => {});
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-be">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-10">
-          <button onClick={() => navigate('/')} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '4px' }}>
+    <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
+      <div className="max-w-2xl mx-auto px-4 py-6 pb-16">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => navigate('/')}
+            className="w-9 h-9 flex items-center justify-center transition-all"
+            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '10px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
           </button>
           <div>
-            <h1 className="text-2xl font-black" style={{ color: FG }}>Centre d'aide</h1>
-            <p className="text-sm" style={{ color: '#999' }}>Documentation, communauté et support technique</p>
+            <h1 className="text-xl font-black" style={{ color: FG }}>Centre d'aide</h1>
+            <p className="text-xs" style={{ color: '#aaa' }}>Support & Documentation</p>
           </div>
         </div>
 
-        {/* 3 action cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        {/* Action cards */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <button onClick={() => document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex flex-col items-center gap-3 p-6 text-center transition-all hover:opacity-90"
-            style={{ background: YUZU, borderRadius: '8px' }}>
-            <div className="w-12 h-12 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '50%' }}>
-              <Book className="w-6 h-6" style={{ color: FG }} />
+            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
+            style={{ background: YUZU, borderRadius: '14px' }}>
+            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '10px' }}>
+              <Book className="w-5 h-5" style={{ color: FG }} />
             </div>
-            <div>
-              <p className="font-black text-sm" style={{ color: FG }}>Documentation</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(0,0,0,0.5)' }}>FAQ et guides</p>
-            </div>
+            <p className="text-xs font-black" style={{ color: FG }}>FAQ</p>
           </button>
 
           <button onClick={() => discordUrl ? window.open(discordUrl, '_blank') : null}
-            className="flex flex-col items-center gap-3 p-6 text-center transition-all hover:opacity-90"
-            style={{ background: '#5865F2', borderRadius: '8px', cursor: discordUrl ? 'pointer' : 'default' }}>
-            <div className="w-12 h-12 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '50%' }}>
-              <Hash className="w-6 h-6 text-white" />
+            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
+            style={{ background: '#5865F2', borderRadius: '14px' }}>
+            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px' }}>
+              <Hash className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <p className="font-black text-sm text-white">Communauté Discord</p>
-              <p className="text-xs mt-0.5 text-white/60">{discordUrl ? 'Rejoindre le serveur' : 'Lien non configuré'}</p>
-            </div>
+            <p className="text-xs font-black text-white">Discord</p>
           </button>
 
           <button onClick={() => setShowTicket(true)}
-            className="flex flex-col items-center gap-3 p-6 text-center transition-all hover:opacity-90"
-            style={{ background: FG, borderRadius: '8px' }}>
-            <div className="w-12 h-12 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}>
-              <AlertCircle className="w-6 h-6" style={{ color: YUZU }} />
+            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
+            style={{ background: FG, borderRadius: '14px' }}>
+            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+              <MessageSquare className="w-5 h-5" style={{ color: YUZU }} />
             </div>
-            <div>
-              <p className="font-black text-sm" style={{ color: YUZU }}>Support Ticket</p>
-              <p className="text-xs mt-0.5 text-white/50">Ouvrir un ticket</p>
-            </div>
+            <p className="text-xs font-black" style={{ color: YUZU }}>Ticket</p>
           </button>
         </div>
 
-        {/* Community link */}
-        {communityUrl && (
-          <div className="mb-8 flex items-center justify-between px-5 py-4"
-            style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5" style={{ color: '#888' }} />
-              <div>
-                <p className="text-sm font-semibold" style={{ color: FG }}>Rejoindre la communauté</p>
-                <p className="text-xs" style={{ color: '#999' }}>Échangez avec d'autres utilisateurs Stensor</p>
-              </div>
+        {/* My Tickets — always shown */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" style={{ color: '#aaa' }} />
+              <h2 className="text-sm font-black" style={{ color: FG }}>Mes tickets</h2>
+              {myTickets.length > 0 && (
+                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#666', borderRadius: '4px' }}>
+                  {myTickets.length}
+                </span>
+              )}
             </div>
-            <button onClick={() => window.open(communityUrl, '_blank')}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold transition-all hover:opacity-90"
-              style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-              Rejoindre <ExternalLink className="w-3 h-3" />
+            <button onClick={() => setShowTicket(true)}
+              className="text-xs font-bold flex items-center gap-1 px-3 py-1.5 transition-all"
+              style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+              + Nouveau
             </button>
           </div>
-        )}
 
-        {/* My tickets */}
-        {myTickets.length > 0 && (
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 flex items-center justify-center" style={{ background: FG, borderRadius: '4px' }}>
-                <Clock className="w-3.5 h-3.5" style={{ color: '#DDFF00' }} />
+          {myTickets.length === 0 ? (
+            <div className="flex flex-col items-center py-8 gap-3"
+              style={{ background: 'white', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.07)' }}>
+              <div className="w-12 h-12 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
+                <MessageSquare className="w-6 h-6" style={{ color: '#ccc' }} />
               </div>
-              <h2 className="text-base font-black" style={{ color: FG }}>Mes tickets ({myTickets.length})</h2>
+              <div className="text-center">
+                <p className="text-sm font-semibold" style={{ color: '#aaa' }}>Aucun ticket pour l'instant</p>
+                <p className="text-xs mt-0.5" style={{ color: '#ccc' }}>Ouvrez un ticket si vous avez un problème</p>
+              </div>
             </div>
+          ) : (
             <div className="space-y-2">
               {myTickets.map(ticket => {
-                const statusColor = { open: '#ef4444', in_progress: '#f59e0b', closed: '#16a34a' }[ticket.status] || '#ef4444';
+                const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
                 return (
-                  <div key={ticket.id} className="p-4" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '6px', background: 'white' }}>
+                  <div key={ticket.id} className="p-4"
+                    style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)' }}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: FG }}>{ticket.description?.slice(0, 80)}{ticket.description?.length > 80 ? '…' : ''}</p>
-                        <p className="text-[10px] mt-1" style={{ color: '#bbb' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                        <p className="text-sm font-semibold line-clamp-2" style={{ color: FG }}>
+                          {ticket.description?.slice(0, 100)}{ticket.description?.length > 100 ? '…' : ''}
+                        </p>
+                        <p className="text-[10px] mt-1" style={{ color: '#ccc' }}>
+                          {new Date(ticket.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
                       </div>
-                      <span className="text-[10px] font-black px-2 py-1 flex-shrink-0" style={{ background: `${statusColor}15`, color: statusColor, borderRadius: '4px' }}>
-                        {ticket.status === 'open' ? 'OUVERT' : ticket.status === 'in_progress' ? 'EN COURS' : 'CLOS'}
+                      <span className="text-[10px] font-black px-2.5 py-1 flex-shrink-0"
+                        style={{ background: s.bg, color: s.color, borderRadius: '6px' }}>
+                        {s.label}
                       </span>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* FAQ */}
         <div id="faq-section">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="w-7 h-7 flex items-center justify-center" style={{ background: YUZU, borderRadius: '4px' }}>
-              <Book className="w-3.5 h-3.5" style={{ color: FG }} />
-            </div>
-            <h2 className="text-base font-black" style={{ color: FG }}>Questions fréquentes</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <Book className="w-4 h-4" style={{ color: '#aaa' }} />
+            <h2 className="text-sm font-black" style={{ color: FG }}>Questions fréquentes</h2>
           </div>
           <div className="space-y-2">
             {FAQS.map((faq, i) => (
-              <div key={i} style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
+              <div key={i} style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden' }}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-black/2 transition-colors">
-                  <span className="text-sm font-semibold" style={{ color: FG }}>{faq.q}</span>
-                  <ChevronRight className="w-4 h-4 flex-shrink-0 transition-transform" style={{ color: '#bbb', transform: openFaq === i ? 'rotate(90deg)' : 'none' }} />
+                  className="w-full flex items-center justify-between px-4 py-4 text-left transition-colors"
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.01)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <span className="text-sm font-semibold pr-3" style={{ color: FG }}>{faq.q}</span>
+                  <ChevronDown className="w-4 h-4 flex-shrink-0 transition-transform"
+                    style={{ color: '#bbb', transform: openFaq === i ? 'rotate(180deg)' : 'none' }} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
-                      <p className="px-4 pb-4 text-sm leading-relaxed" style={{ color: '#666' }}>{faq.a}</p>
+                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
+                      transition={{ duration: 0.18 }} className="overflow-hidden">
+                      <p className="px-4 pb-4 text-sm leading-relaxed" style={{ color: '#666', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                        {faq.a}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -412,7 +411,12 @@ export default function SupportPage() {
       </div>
 
       <AnimatePresence>
-        {showTicket && <TicketWizard onClose={() => { setShowTicket(false); base44.auth.me().then(u => { if (u) base44.entities.SupportTicket.filter({ user_email: u.email }).then(t => setMyTickets(t.sort((a,b) => new Date(b.created_date) - new Date(a.created_date)))).catch(() => {}); }).catch(() => {}); }} user={user} />}
+        {showTicket && (
+          <TicketWizard
+            onClose={() => { setShowTicket(false); loadTickets(user); }}
+            user={user}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
