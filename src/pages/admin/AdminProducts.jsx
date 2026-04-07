@@ -331,8 +331,15 @@ export default function AdminProducts() {
   const [codesSaved, setCodesSaved] = useState(false);
   const [showCodesTab, setShowCodesTab] = useState(false);
   const [pageModes, setPageModes] = useState({ parcours: 'live', community: 'live' });
+  const [saveTimeouts, setSaveTimeouts] = useState({});
 
   const qc = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      Object.values(saveTimeouts).forEach(t => clearTimeout(t));
+    };
+  }, [saveTimeouts]);
 
   useEffect(() => {
     // Load existing activation codes
@@ -397,8 +404,8 @@ export default function AdminProducts() {
     showSaved();
   };
 
-  const saveActivationCodes = async () => {
-    const entries = Object.entries(codesInput);
+  const saveActivationCodes = async (inputData) => {
+    const entries = Object.entries(inputData || codesInput);
     const allCodes = [];
     const seenCodes = new Set();
 
@@ -407,7 +414,6 @@ export default function AdminProducts() {
       const [planId, billing] = key.split('__');
       if (!planId || !billing) continue;
 
-      // Parse codes: accept newline, comma, semicolon, space as separators
       const codes = raw
         .split(/[\n,;\s]+/)
         .map(c => c.trim().toUpperCase())
@@ -421,16 +427,27 @@ export default function AdminProducts() {
       }
     }
 
-    if (allCodes.length === 0) {
-      toast.error('Aucun code trouvé');
-      return;
-    }
+    if (allCodes.length === 0) return;
 
-    await base44.entities.ActivationCode.bulkCreate(allCodes);
-    setCodesInput({});
-    setCodesSaved(true);
-    setTimeout(() => setCodesSaved(false), 3000);
-    toast.success(`${allCodes.length} codes enregistrés avec succès !`);
+    try {
+      await base44.entities.ActivationCode.bulkCreate(allCodes);
+      setCodesSaved(true);
+      setTimeout(() => setCodesSaved(false), 1500);
+    } catch (err) {
+      toast.error('Erreur lors de l\'enregistrement');
+    }
+  };
+
+  const handleCodesChange = (key, value) => {
+    setCodesInput(c => ({ ...c, [key]: value }));
+    
+    // Auto-save avec debounce
+    if (saveTimeouts[key]) clearTimeout(saveTimeouts[key]);
+    const timeout = setTimeout(() => {
+      const newData = { ...codesInput, [key]: value };
+      saveActivationCodes(newData);
+    }, 1000);
+    setSaveTimeouts(t => ({ ...t, [key]: timeout }));
   };
   const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 
@@ -609,22 +626,22 @@ export default function AdminProducts() {
                       {billing === 'monthly' ? 'Mensuel' : 'Annuel'}
                     </span>
                   </div>
-                  <textarea
-                   value={codesInput[`${plan.id}__${billing}`] || ''}
-                   onChange={e => setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: e.target.value }))}
-                   rows={4}
-                   placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
-                   className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
-                   style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }}
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={codesInput[`${plan.id}__${billing}`] || ''}
+                      onChange={e => handleCodesChange(`${plan.id}__${billing}`, e.target.value)}
+                      rows={4}
+                      placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
+                      className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
+                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }}
+                    />
+                    {codesSaved && (
+                      <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-1" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>✓ Enregistré</span>
+                    )}
+                  </div>
                 </div>
               )))}
             </div>
-            <button onClick={saveActivationCodes}
-              className="mt-4 px-5 py-2.5 text-sm font-bold transition-all"
-              style={{ background: codesSaved ? '#16a34a' : FG, color: 'white', borderRadius: '4px' }}>
-              {codesSaved ? '✓ Codes ajoutés !' : 'Importer tous les codes'}
-            </button>
           </div>
         )}
 
