@@ -233,11 +233,11 @@ export default function CodesTab() {
       setImportingCount(0);
       const allCodesObj = {};
 
-      // Générer 8000 codes
+      // Générer 800 codes (100 par plan/cycle)
       for (const plan of plans) {
         for (const billing of ['monthly', 'yearly']) {
           const key = `${plan.id}__${billing}`;
-          const codes = generateCodesForPlan(plan.id, billing, 1000);
+          const codes = generateCodesForPlan(plan.id, billing, 100);
           allCodesObj[key] = codes;
         }
       }
@@ -287,19 +287,19 @@ export default function CodesTab() {
       <div className="max-w-4xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold" style={{ color: FG }}>8000 Codes Générés</h3>
-            <p className="text-xs mt-1" style={{ color: '#999' }}>1000 par plan × cycle</p>
+            <h3 className="text-lg font-bold" style={{ color: FG }}>800 Codes Générés</h3>
+            <p className="text-xs mt-1" style={{ color: '#999' }}>100 par plan × cycle</p>
           </div>
           <div className="flex gap-2">
             <button onClick={() => { setGeneratedCodes(null); setShowGenerator(false); }}
               className="px-4 py-2 text-xs font-bold" style={{ background: '#f5f5f5', color: FG, borderRadius: '3px' }}>
               Annuler
             </button>
-            <button onClick={importAllGeneratedCodes} disabled={importingCount > 0 && importingCount < 8000}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold disabled:opacity-40"
-              style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-              <Zap className="w-3.5 h-3.5" />
-              {importingCount > 0 ? `Import... (${importingCount}/8000)` : 'Importer tout'}
+            <button onClick={importAllGeneratedCodes} disabled={importingCount > 0 && importingCount < 800}
+             className="flex items-center gap-2 px-4 py-2 text-xs font-bold disabled:opacity-40"
+             style={{ background: FG, color: 'white', borderRadius: '3px' }}>
+             <Zap className="w-3.5 h-3.5" />
+             {importingCount > 0 ? `Import... (${importingCount}/800)` : 'Importer tout'}
             </button>
           </div>
         </div>
@@ -340,11 +340,11 @@ export default function CodesTab() {
   return (
     <div className="max-w-3xl space-y-4">
       <motion.button onClick={generateAndImportAllCodes}
-        className="w-full flex items-center justify-center gap-3 py-4 text-sm font-bold rounded-sm transition-all hover:opacity-90"
-        style={{ background: YUZU, color: FG }}
-        whileHover={{ scale: 1.02 }}>
-        <Zap className="w-5 h-5" />
-        Générer & Importer 8000 Codes (1000/plan)
+       className="w-full flex items-center justify-center gap-3 py-4 text-sm font-bold rounded-sm transition-all hover:opacity-90"
+       style={{ background: YUZU, color: FG }}
+       whileHover={{ scale: 1.02 }}>
+       <Zap className="w-5 h-5" />
+       Générer & Importer 800 Codes (100/plan)
       </motion.button>
 
       <div className="mb-4">
