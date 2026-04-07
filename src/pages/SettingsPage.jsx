@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { User, MessageSquare, CreditCard, Zap, ArrowLeft, Save, Check, Download, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, MessageSquare, CreditCard, Zap, ArrowLeft, Save, Check, Download, ChevronRight, Trash2, LogOut, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -32,6 +32,9 @@ export default function SettingsPage() {
   const [activationCode, setActivationCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
   const [invoiceRequested, setInvoiceRequested] = useState({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelEmail, setCancelEmail] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -110,11 +113,31 @@ export default function SettingsPage() {
     toast.success('Demande envoyée');
   };
 
+  const cancelSubscription = async () => {
+    if (!cancelEmail.trim() || !user) return;
+    await base44.integrations.Core.SendEmail({
+      to: user.email,
+      subject: 'Demande d\'annulation d\'abonnement',
+      body: `Demande d'annulation d'abonnement reçue.\n\nUtilisateur: ${user.full_name || user.email}\nEmail de contact: ${cancelEmail}\n\nVeuillez confirmer l'annulation au plus tôt.`,
+    });
+    toast.success('Demande d\'annulation envoyée');
+    setCancelEmail('');
+    setShowCancelModal(false);
+  };
+
+  const deleteAccount = async () => {
+    if (!user) return;
+    await base44.auth.updateMe({});
+    await base44.entities.User.delete(user.id);
+    base44.auth.logout();
+  };
+
   const navItems = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'chat', label: 'Paramètres chat', icon: MessageSquare },
     { id: 'plan', label: 'Plan & Facturation', icon: CreditCard },
     { id: 'usage', label: 'Usage Tensors', icon: Zap },
+    { id: 'account', label: 'Compte', icon: LogOut },
   ];
 
   return (
@@ -270,6 +293,35 @@ export default function SettingsPage() {
               </motion.div>
             )}
 
+            {/* ACCOUNT */}
+            {activeSection === 'account' && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <SectionTitle>Compte</SectionTitle>
+                <div className="space-y-4 max-w-md">
+                  {/* Cancel subscription */}
+                  <div className="p-4" style={{ border: '1px solid rgba(255,159,64,0.3)', background: 'rgba(255,159,64,0.05)', borderRadius: '5px' }}>
+                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>Annuler l'abonnement</p>
+                    <p className="text-xs mb-4" style={{ color: '#888' }}>Résilier votre abonnement et revenir au plan gratuit.</p>
+                    <button onClick={() => setShowCancelModal(true)}
+                      className="w-full px-4 py-2.5 text-sm font-bold transition-all"
+                      style={{ background: 'rgba(255,159,64,0.2)', color: '#ff9f40', borderRadius: '4px' }}>
+                      Demander l'annulation
+                    </button>
+                  </div>
+                  {/* Delete account */}
+                  <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', borderRadius: '5px' }}>
+                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>Supprimer le compte</p>
+                    <p className="text-xs mb-4" style={{ color: '#888' }}>Supprimez définitivement votre compte et toutes vos données.</p>
+                    <button onClick={() => setShowDeleteModal(true)}
+                      className="w-full px-4 py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                      style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '4px' }}>
+                      <Trash2 className="w-4 h-4" /> Supprimer le compte
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* USAGE */}
             {activeSection === 'usage' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -334,6 +386,77 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancel subscription modal */}
+      <AnimatePresence>
+        {showCancelModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowCancelModal(false); }}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-sm bg-white overflow-hidden"
+              style={{ borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.15)' }}>
+              <div className="px-6 pt-6 pb-4" style={{ background: FG }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-base font-bold text-white">Annuler l'abonnement</p>
+                  <button onClick={() => setShowCancelModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 transition-colors" style={{ borderRadius: '3px' }}>
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-xs" style={{ color: '#888' }}>Confirmez votre email pour traiter la demande d'annulation.</p>
+                <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)} placeholder="Confirmer votre email"
+                  className="w-full px-3 py-2.5 text-sm focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                <button onClick={cancelSubscription} disabled={!cancelEmail.trim()}
+                  className="w-full py-2.5 font-bold text-sm transition-all disabled:opacity-40"
+                  style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                  Confirmer l'annulation
+                </button>
+                <button onClick={() => setShowCancelModal(false)} className="w-full py-2 text-sm font-medium transition-colors hover:bg-black/5" style={{ borderRadius: '4px', color: '#999' }}>
+                  Annuler
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete account modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-sm bg-white overflow-hidden"
+              style={{ borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.15)' }}>
+              <div className="px-6 pt-6 pb-4" style={{ background: '#ef4444' }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-base font-bold text-white">Supprimer le compte</p>
+                  <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 transition-colors" style={{ borderRadius: '3px' }}>
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-xs font-semibold" style={{ color: '#555' }}>Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
+                <div className="p-3 bg-black/3" style={{ borderRadius: '4px' }}>
+                  <p className="text-xs" style={{ color: '#999' }}>Email: <strong>{user?.email}</strong></p>
+                </div>
+                <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm transition-all" style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
+                  Confirmer la suppression
+                </button>
+                <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium transition-colors hover:bg-black/5" style={{ borderRadius: '4px', color: '#999' }}>
+                  Annuler
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

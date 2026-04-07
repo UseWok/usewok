@@ -58,8 +58,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: Settings, label: 'Parametres du compte', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
     { divider: true },
-    { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout(), destructive: true },
-    { icon: Trash2, label: 'Supprimer le compte', isDelete: true, destructive: true },
+    { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout() },
   ];
 
   const handleDeleteClick = () => {
@@ -107,15 +106,6 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
                   }} />
                   <item.icon className="w-4 h-4 flex-shrink-0 relative z-10" />
                   <span className="relative z-10">Supprimer le compte {deleteHoldTime > 0 ? `(${(deleteHoldTime).toFixed(1)}s)` : ''}</span>
-                </button>
-                ) : item.isDelete ? (
-                <button
-                key={i}
-                onClick={handleDeleteClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted text-destructive"
-                >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                {item.label}
                 </button>
                 ) : (
                 <button

@@ -591,7 +591,7 @@ export default function AdminProducts() {
                   </div>
                   <textarea
                     value={codesInput[`${plan.id}__${billing}`] || ''}
-                    onChange={e => setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: e.target.value }))}
+                    onChange={e => { const val = e.target.value.split(/\n|,|;|\s+/).filter(c => c.trim().length >= 4); if (val.length <= 99) setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: val.join('\n') })); }}
                     rows={4}
                     placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
                     className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
