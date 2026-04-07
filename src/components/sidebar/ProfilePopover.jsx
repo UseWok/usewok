@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Settings, HelpCircle, LogOut } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Settings, HelpCircle, LogOut, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
@@ -20,6 +20,29 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
   }, [open, onClose, anchorRef]);
 
   const navigate = useNavigate();
+  const [deleteHoldTime, setDeleteHoldTime] = useState(0);
+  const deleteHoldRef = useRef(null);
+
+  const handleDeleteMouseDown = () => {
+    deleteHoldRef.current = setInterval(() => {
+      setDeleteHoldTime(prev => {
+        if (prev >= 3) {
+          clearInterval(deleteHoldRef.current);
+          base44.auth.updateMe({}).catch(() => {}); // Dummy call
+          base44.entities.User.delete(user.id).then(() => {
+            base44.auth.logout();
+          }).catch(() => {});
+          return 0;
+        }
+        return prev + 0.1;
+      });
+    }, 100);
+  };
+
+  const handleDeleteMouseUp = () => {
+    if (deleteHoldRef.current) clearInterval(deleteHoldRef.current);
+    setDeleteHoldTime(0);
+  };
 
   const getPosition = () => {
     if (!anchorRef?.current) return { left: 60, bottom: 16 };
@@ -34,6 +57,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
     { divider: true },
     { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout(), destructive: true },
+    { icon: Trash2, label: 'Supprimer le compte', isDelete: true, destructive: true },
   ];
 
   return (
@@ -62,6 +86,21 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
             {items.map((item, i) =>
               item.divider ? (
                 <div key={i} className="my-1 border-t border-border" />
+              ) : item.isDelete ? (
+                <button
+                  key={i}
+                  onMouseDown={handleDeleteMouseDown}
+                  onMouseUp={handleDeleteMouseUp}
+                  onMouseLeave={handleDeleteMouseUp}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-muted relative overflow-hidden"
+                >
+                  <div className="absolute left-0 top-0 bottom-0 transition-all" style={{
+                    width: `${(deleteHoldTime / 3) * 100}%`,
+                    background: 'rgba(239, 68, 68, 0.1)',
+                  }} />
+                  <item.icon className="w-4 h-4 flex-shrink-0 relative z-10" />
+                  <span className="relative z-10">Supprimer le compte {deleteHoldTime > 0 ? `(${(deleteHoldTime).toFixed(1)}s)` : ''}</span>
+                </button>
               ) : (
                 <button
                   key={i}
