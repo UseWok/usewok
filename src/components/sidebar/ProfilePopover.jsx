@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Settings, HelpCircle, LogOut, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfilePopover({ open, onClose, anchorRef, user, userInitial }) {
   const popoverRef = useRef(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -54,24 +52,15 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
 
   const pos = open ? getPosition() : {};
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText.toLowerCase() !== 'supprimer') return;
-    try {
-      await base44.entities.User.delete(user.id);
-      base44.auth.logout();
-    } catch {}
-  };
-
   const items = [
     { icon: Settings, label: 'Parametres du compte', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
     { divider: true },
     { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout(), destructive: true },
-    { icon: Trash2, label: 'Supprimer le compte', isDelete: true, destructive: true, action: () => setShowDeleteModal(true) },
+    { icon: Trash2, label: 'Supprimer le compte', isDelete: true, destructive: true },
   ];
 
   return (
-    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -100,11 +89,17 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
               ) : item.isDelete ? (
                 <button
                   key={i}
-                  onClick={item.action}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-muted"
+                  onMouseDown={handleDeleteMouseDown}
+                  onMouseUp={handleDeleteMouseUp}
+                  onMouseLeave={handleDeleteMouseUp}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-muted relative overflow-hidden"
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  {item.label}
+                  <div className="absolute left-0 top-0 bottom-0 transition-all" style={{
+                    width: `${(deleteHoldTime / 3) * 100}%`,
+                    background: 'rgba(239, 68, 68, 0.1)',
+                  }} />
+                  <item.icon className="w-4 h-4 flex-shrink-0 relative z-10" />
+                  <span className="relative z-10">Supprimer le compte {deleteHoldTime > 0 ? `(${(deleteHoldTime).toFixed(1)}s)` : ''}</span>
                 </button>
               ) : (
                 <button
@@ -118,50 +113,8 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
               )
             )}
           </div>
-          </motion.div>
-          )}
-          </AnimatePresence>
-
-          {/* Delete Modal */}
-          <AnimatePresence>
-          {showDeleteModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
-            className="bg-card rounded-lg shadow-xl border border-border p-6 max-w-sm w-full">
-            <h2 className="text-lg font-bold mb-2 text-foreground">Supprimer votre compte ?</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Cette action est irréversible. Toutes vos données seront supprimées.
-            </p>
-            <input
-              type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder='Tapez "supprimer" pour confirmer'
-              className="w-full px-3 py-2 text-sm border border-border rounded mb-4 focus:outline-none"
-              style={{ background: 'var(--background)' }}
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted rounded"
-                style={{ color: 'var(--foreground)' }}>
-                Annuler
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteConfirmText.toLowerCase() !== 'supprimer'}
-                className="flex-1 px-4 py-2 text-sm font-bold rounded text-white disabled:opacity-40"
-                style={{ background: 'hsl(var(--destructive))' }}>
-                Supprimer définitivement
-              </button>
-            </div>
-          </motion.div>
-          </motion.div>
-          )}
-          </AnimatePresence>
-          </>
-          );
-          }
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
