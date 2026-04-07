@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, X, Copy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -22,6 +22,7 @@ export default function PlanCodesSection({ planId, planName }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const debounceTimerRef = useRef(null);
 
   const load = async () => {
     setLoading(true);
@@ -66,37 +67,43 @@ export default function PlanCodesSection({ planId, planName }) {
     setSaving(false);
   };
 
-  const handleAvailCodesChange = async (text) => {
-    const codesFromText = text.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
-    const currentAvailCodes = new Set(availCodes.map(c => c.code));
-    const newCodesSet = new Set(codesFromText);
+  const handleAvailCodesChange = (text) => {
+    // Annuler le précédent debounce
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     
-    setSaving(true);
-    try {
-      // Supprimer les codes qui ont été enlevés
-      for (const code of availCodes) {
-        if (!newCodesSet.has(code.code)) {
-          await base44.entities.ActivationCode.delete(code.id);
+    // Créer un nouveau debounce: sync après 1.5s sans modification
+    debounceTimerRef.current = setTimeout(async () => {
+      const codesFromText = text.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+      const currentAvailCodes = new Set(availCodes.map(c => c.code));
+      const newCodesSet = new Set(codesFromText);
+      
+      setSaving(true);
+      try {
+        // Supprimer les codes qui ont été enlevés
+        for (const code of availCodes) {
+          if (!newCodesSet.has(code.code)) {
+            await base44.entities.ActivationCode.delete(code.id);
+          }
         }
+        
+        // Ajouter les nouveaux codes
+        const toCreate = codesFromText.filter(c => !currentAvailCodes.has(c));
+        if (toCreate.length > 0) {
+          await base44.entities.ActivationCode.bulkCreate(
+            toCreate.map(code => ({ code, plan_id: planId, billing: 'monthly', used: false }))
+          );
+        }
+        
+        // Recharger
+        const data = await base44.entities.ActivationCode.filter({ plan_id: planId });
+        setCodes(data);
+        toast.success('Codes mis à jour');
+      } catch {
+        toast.error('Erreur lors de la mise à jour');
+        load();
       }
-      
-      // Ajouter les nouveaux codes
-      const toCreate = codesFromText.filter(c => !currentAvailCodes.has(c));
-      if (toCreate.length > 0) {
-        await base44.entities.ActivationCode.bulkCreate(
-          toCreate.map(code => ({ code, plan_id: planId, billing: 'monthly', used: false }))
-        );
-      }
-      
-      // Recharger
-      const data = await base44.entities.ActivationCode.filter({ plan_id: planId });
-      setCodes(data);
-      toast.success('Codes mis à jour');
-    } catch {
-      toast.error('Erreur lors de la mise à jour');
-      load();
-    }
-    setSaving(false);
+      setSaving(false);
+    }, 1500);
   };
 
   const deleteCode = async (id) => {
