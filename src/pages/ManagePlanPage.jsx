@@ -26,6 +26,8 @@ export default function ManagePlanPage() {
   const [cancelNote, setCancelNote] = useState('');
   const [cancelSent, setCancelSent] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelEmail, setCancelEmail] = useState('');
+  const [showDiscussionWarning, setShowDiscussionWarning] = useState(false);
   const plans = getPlansConfig().filter(p => p.id !== 'free');
 
   useEffect(() => {
@@ -43,10 +45,9 @@ export default function ManagePlanPage() {
   const submitCancel = async () => {
     if (!user) return;
     setCancelLoading(true);
-    // Create a notification for admin
     await base44.entities.Notification.create({
-      title: `Demande d'annulation — ${user.full_name || user.email}`,
-      message: `L'utilisateur ${user.email} souhaite annuler son plan ${userPlan?.name || ''}. Raison: ${cancelReason || 'Non précisée'}. Note: ${cancelNote || '-'}`,
+      title: `Annulation — ${user.full_name || user.email}`,
+      message: `Utilisateur: ${user.email} | Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Raison: ${cancelReason || 'Non précisée'} | Note: ${cancelNote || '-'}`,
     });
     setCancelLoading(false);
     setCancelSent(true);
@@ -168,21 +169,23 @@ export default function ManagePlanPage() {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-sm" style={{ color: '#555' }}>Pourquoi souhaitez-vous annuler ? (facultatif)</p>
-                <div className="space-y-2">
-                  {CANCEL_REASONS.map(r => (
-                    <button key={r} onClick={() => setCancelReason(r)}
-                      className="w-full text-left px-3 py-2.5 text-sm transition-all"
-                      style={{ border: `1px solid ${cancelReason === r ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '4px', background: cancelReason === r ? FG : 'white', color: cancelReason === r ? 'white' : '#444' }}>
-                      {r}
-                    </button>
-                  ))}
+                <div className="p-3 mb-2" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '5px' }}>
+                  <p className="text-xs font-semibold" style={{ color: '#ef4444' }}>Attention</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#888' }}>En passant au plan Free, vous serez limité à 10 discussions. Les discussions supplémentaires seront supprimées.</p>
                 </div>
+                <p className="text-sm" style={{ color: '#555' }}>Pourquoi souhaitez-vous annuler ? (facultatif)</p>
                 <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
                   placeholder="Commentaire optionnel..."
                   rows={2}
                   className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
                   style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                <div>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email utilisé pour le paiement *</label>
+                  <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)}
+                    placeholder="votre-email@exemple.com"
+                    className="w-full px-3 py-2.5 text-sm focus:outline-none"
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                </div>
                 <div className="flex gap-2">
                   <button onClick={submitCancel} disabled={cancelLoading}
                     className="flex-1 py-2.5 text-sm font-bold disabled:opacity-50"

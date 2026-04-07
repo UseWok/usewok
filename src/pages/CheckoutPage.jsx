@@ -47,9 +47,8 @@ export default function CheckoutPage() {
       if (results.length > 0) {
         try {
           const urls = JSON.parse(results[0].value);
-          // update plans config with fetched urls
           const currentPlans = getPlansConfig();
-          const updated = currentPlans.map(p => urls[p.id] ? { ...p, checkout_url: urls[p.id] } : p);
+          const updated = currentPlans.map(p => ({ ...p, checkout_urls: urls }));
           savePlansConfig(updated);
         } catch {}
       }
@@ -78,7 +77,8 @@ export default function CheckoutPage() {
   ].filter(Boolean);
 
   const handleContinue = () => {
-    const redirectUrl = plan?.checkout_url;
+    const urlKey = `${plan?.id}_${billing}`;
+    const redirectUrl = plan?.checkout_urls?.[urlKey] || plan?.checkout_url;
     if (redirectUrl) {
       clearCart();
       window.location.href = redirectUrl;

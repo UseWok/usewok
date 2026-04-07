@@ -1,0 +1,44 @@
+{
+  "name": "SupportTicket",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "bug_report",
+        "chat_issue",
+        "other"
+      ]
+    },
+    "discussion_id": {
+      "type": "string"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "closed"
+      ]
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_plan": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "category"
+  ]
+}

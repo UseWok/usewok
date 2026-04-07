@@ -223,9 +223,10 @@ export default function ChatPage() {
       }
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
+      const emojiRule = 'IMPORTANT: Ajoute exactement 2 emojis pertinents dans ta réponse, pas plus.';
       const systemContext = agentConfig?.instructions
-        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\nSois concis et direct. Quand tu utilises du **gras**, mets-le toujours sur sa propre ligne. Pas de réponses trop longues.\n\n`
-        : `Tu es Stensor, un assistant coach financier IA. Réponds de façon concise et directe. Évite les listes à rallonge. Quand tu utilises du **texte en gras**, mets-le toujours sur sa propre ligne précédée d'une ligne vide. Ceci n'est pas un conseil financier ou en investissement.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''}\n\n`;
+        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\nSois concis et direct. Quand tu utilises du **gras**, mets-le toujours sur sa propre ligne. Pas de réponses trop longues. ${emojiRule}\n\n`
+        : `Tu es Stensor, un assistant coach financier IA. Réponds de façon concise et directe. Évite les listes à rallonge. Quand tu utilises du **texte en gras**, mets-le toujours sur sa propre ligne précédée d'une ligne vide. Ceci n'est pas un conseil financier ou en investissement.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''} ${emojiRule}\n\n`;
 
       const useInternet = useWebSearch && hasInternet && mode.model !== 'claude_opus_4_6';
 
@@ -361,9 +362,9 @@ export default function ChatPage() {
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
             className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="flex-shrink-0 flex flex-col items-center gap-1 mt-0.5">
-                <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain" />
-                <span className="text-[10px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
+              <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5 opacity-90">
+                <img src={LOGO_URL} alt="Stensor" className="w-7 h-7 object-contain" />
+                <span className="text-[11px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
               </div>
             )}
             <div className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
@@ -712,10 +713,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Legal */}
-      <div className="text-center pb-3">
-        <p className="text-[9px]" style={{ color: '#ccc' }}>AI may make mistakes · Not financial advice</p>
-      </div>
+
 
       {/* Upgrade overlay */}
       <AnimatePresence>

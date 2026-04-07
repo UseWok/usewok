@@ -39,22 +39,19 @@ export default function ReferralModal({ open, onClose, user }) {
             className="fixed inset-0 z-[300]" style={{ background: 'rgba(0,0,0,0.25)' }}
             onClick={onClose} />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.15 }}
             className="fixed z-[301] bg-white font-be"
             style={{
               position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 'min(380px, calc(100vw - 24px))',
-              maxHeight: 'min(520px, calc(100vh - 48px))',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              maxHeight: '100%',
               overflowY: 'auto',
-              borderRadius: '8px',
-              border: '1px solid rgba(0,0,0,0.09)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
+              borderRadius: 0,
             }}>
 
             {/* Header */}

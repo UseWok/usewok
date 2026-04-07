@@ -193,9 +193,9 @@ export default function PricingPage() {
                     className="w-full py-3 text-xs font-black tracking-wide transition-all"
                     style={{
                       borderRadius: '3px',
-                      border: isCurrentPlan ? `2px solid ${FG}` : 'none',
+                      border: isCurrentPlan ? `2px solid ${isRecommended ? YUZU : FG}` : 'none',
                       background: isCurrentPlan ? 'transparent' : isRecommended ? YUZU : FG,
-                      color: isCurrentPlan ? FG : isRecommended ? FG : 'white',
+                      color: isCurrentPlan ? (isRecommended ? YUZU : FG) : isRecommended ? FG : 'white',
                       cursor: 'pointer',
                     }}>
                     {isCurrentPlan ? 'Gerer' : t('choose_plan', { name: plan.name })}

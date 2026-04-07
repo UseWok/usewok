@@ -323,6 +323,7 @@ export default function AdminProducts() {
   const [agentsConfig, setAgentsConfig] = useState(getAgentsConfig);
   const [currentUser, setCurrentUser] = useState(null);
   const [checkoutUrls, setCheckoutUrls] = useState({});
+  const [communityUrls, setCommunityUrls] = useState({ discord: '', community: '' });
   const [codesInput, setCodesInput] = useState({}); // planId_billing -> textarea
   const [codesSaved, setCodesSaved] = useState(false);
   const [showCodesTab, setShowCodesTab] = useState(false);
@@ -331,11 +332,11 @@ export default function AdminProducts() {
 
   useEffect(() => {
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
-    // Load checkout URLs from DB
     base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
-      if (results.length > 0) {
-        try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {}
-      }
+      if (results.length > 0) { try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
+    }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
+      if (results.length > 0) { try { setCommunityUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
   }, []);
 
@@ -355,8 +356,15 @@ export default function AdminProducts() {
 
   const savePlans = () => { savePlansConfig(plansConfig); showSaved(); };
 
+  const saveCommunityUrls = async () => {
+    const existing = await base44.entities.AppSettings.filter({ key: 'community_urls' });
+    const val = JSON.stringify(communityUrls);
+    if (existing.length > 0) await base44.entities.AppSettings.update(existing[0].id, { value: val });
+    else await base44.entities.AppSettings.create({ key: 'community_urls', value: val });
+    showSaved();
+  };
+
   const saveCheckoutUrls = async () => {
-    // Save to DB so all devices get it
     const existing = await base44.entities.AppSettings.filter({ key: 'checkout_urls' });
     const val = JSON.stringify(checkoutUrls);
     if (existing.length > 0) {
@@ -470,22 +478,56 @@ export default function AdminProducts() {
             {/* Checkout URLs */}
             <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
               <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Liens de paiement (redirection Stripe)</p>
-              <div className="space-y-2">
-                {plansConfig.filter(p => p.id !== 'free').map(plan => (
-                  <div key={plan.id} className="flex items-center gap-2">
-                    <span className="text-xs font-bold w-20 flex-shrink-0" style={{ color: FG }}>{plan.name}</span>
+              <div className="space-y-3">
+                {plansConfig.filter(p => p.id !== 'free').flatMap(plan => [
+                  <div key={`${plan.id}_monthly`} className="flex items-center gap-2">
+                    <span className="text-xs font-bold w-28 flex-shrink-0" style={{ color: FG }}>{plan.name} <span className="font-normal" style={{ color: '#aaa' }}>mensuel</span></span>
                     <input
-                      value={checkoutUrls[plan.id] || ''}
-                      onChange={e => setCheckoutUrls(u => ({ ...u, [plan.id]: e.target.value }))}
+                      value={checkoutUrls[`${plan.id}_monthly`] || ''}
+                      onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_monthly`]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..."
+                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                  </div>,
+                  <div key={`${plan.id}_yearly`} className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold w-28 flex-shrink-0" style={{ color: FG }}>{plan.name} <span className="font-normal" style={{ color: '#aaa' }}>annuel</span></span>
+                    <input
+                      value={checkoutUrls[`${plan.id}_yearly`] || ''}
+                      onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_yearly`]: e.target.value }))}
                       placeholder="https://buy.stripe.com/..."
                       className="flex-1 px-3 py-2 text-xs focus:outline-none"
                       style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
                   </div>
-                ))}
+                ])}
               </div>
               <button onClick={saveCheckoutUrls}
                 className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
                 Sauvegarder les liens (tous appareils)
+              </button>
+            </div>
+
+            {/* Community URLs */}
+            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Liens Communaute</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold w-24 flex-shrink-0" style={{ color: FG }}>Discord</span>
+                  <input value={communityUrls.discord} onChange={e => setCommunityUrls(u => ({ ...u, discord: e.target.value }))}
+                    placeholder="https://discord.gg/..."
+                    className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold w-24 flex-shrink-0" style={{ color: FG }}>Communaute</span>
+                  <input value={communityUrls.community} onChange={e => setCommunityUrls(u => ({ ...u, community: e.target.value }))}
+                    placeholder="https://..."
+                    className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                </div>
+              </div>
+              <button onClick={saveCommunityUrls}
+                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
+                Sauvegarder les liens communaute
               </button>
             </div>
             <div className="flex items-center justify-between mb-4">
