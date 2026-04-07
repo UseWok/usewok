@@ -106,13 +106,8 @@ export default function Sidebar({ expanded, setExpanded }) {
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 
-  const lockedFeatures = UNLOCKABLE_FEATURES.filter(f => {
-    if (!userPlan) return true;
-    if (f.planId === 'expert') return !userPlan.ultimate_access;
-    if (f.planId === 'advanced') return !userPlan.internet_access;
-    if (f.planId === 'essential') return !userPlan.file_upload;
-    return false;
-  });
+  // Toujours afficher toutes les features, juste griser celles débloquées
+  const lockedFeatures = UNLOCKABLE_FEATURES;
 
   return (
     <>
@@ -171,18 +166,29 @@ export default function Sidebar({ expanded, setExpanded }) {
                   <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
                     transition={{ duration: 0.2 }} className="overflow-hidden">
                     <div className="space-y-1 px-2 py-1">
-                      {lockedFeatures.map(f => (
-                        <button key={f.label || f.labelKey}
-                          onClick={() => navigate('/pricing')}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 text-left transition-colors"
-                          style={{ borderRadius: '3px' }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(58,0,136,0.04)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          <span className="text-xs">{f.icon}</span>
-                          <span className="text-[11px] flex-1" style={{ color: '#888' }}>{f.label || t(f.labelKey)}</span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(58,0,136,0.08)', color: PURPLE, borderRadius: '2px' }}>🔒 {f.plan}</span>
-                        </button>
-                      ))}
+                      {UNLOCKABLE_FEATURES.map(f => {
+                        let unlocked = false;
+                        if (userPlan) {
+                          if (f.planId === 'expert') unlocked = userPlan.ultimate_access;
+                          else if (f.planId === 'advanced') unlocked = userPlan.internet_access || (f.label === 'Unlimited Discussions' && userPlan.max_discussions === 0);
+                          else if (f.planId === 'essential') unlocked = userPlan.file_upload;
+                        }
+                        return (
+                          <button key={f.label || f.labelKey}
+                            onClick={() => !unlocked && navigate('/pricing')}
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-left transition-colors"
+                            style={{ borderRadius: '3px', cursor: unlocked ? 'default' : 'pointer' }}
+                            onMouseEnter={e => { if (!unlocked) e.currentTarget.style.background = 'rgba(58,0,136,0.04)'; }}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            <span className="text-xs">{f.icon}</span>
+                            <span className="text-[11px] flex-1" style={{ color: unlocked ? '#444' : '#888' }}>{f.label || t(f.labelKey)}</span>
+                            {unlocked
+                              ? <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderRadius: '2px' }}>✓ Actif</span>
+                              : <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(58,0,136,0.08)', color: PURPLE, borderRadius: '2px' }}>Upgrade {f.plan}+</span>
+                            }
+                          </button>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}

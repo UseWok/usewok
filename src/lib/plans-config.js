@@ -10,7 +10,7 @@ export const DEFAULT_PLANS = [
     daily_credits_limit: 3,
     can_choose_model: false,
     default_model: 'gemini_3_flash',
-    allowed_modes: ['fast'],
+    allowed_modes: ['thinking'],
     internet_access: false,
     max_discussions: 15,
     file_upload: false,

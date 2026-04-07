@@ -46,7 +46,9 @@ export default function ReferralModal({ open, onClose, user }) {
             className="fixed z-[301] bg-white font-be"
             style={{
               top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: 'min(380px, 90vw)',
+              width: 'min(380px, calc(100vw - 24px))',
+              maxHeight: 'calc(100vh - 48px)',
+              overflowY: 'auto',
               borderRadius: '8px',
               border: '1px solid rgba(0,0,0,0.09)',
               boxShadow: '0 20px 60px rgba(0,0,0,0.12)',

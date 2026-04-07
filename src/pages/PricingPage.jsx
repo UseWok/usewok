@@ -145,6 +145,11 @@ export default function PricingPage() {
                       <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
                         /mois
                       </span>
+                      {billing === 'yearly' && plan.price_monthly > 0 && (
+                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: GREEN, color: 'white', borderRadius: '3px' }}>
+                          Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -165,7 +170,7 @@ export default function PricingPage() {
                       plan.ultimate_access && t('mode_ultimate'),
                       plan.file_upload && t('file_upload_feature'),
                       plan.max_discussions === 0 ? t('unlimited_discussions') : null,
-                      plan.shareable_credits > 0 && t('shareable_credits_feature', { n: plan.shareable_credits }),
+                      billing === 'yearly' && plan.shareable_credits > 0 && t('shareable_credits_feature', { n: plan.shareable_credits }),
                       plan.premium_support && t('premium_support_feature'),
                     ].filter(Boolean).map((f, i) => (
                       <li key={i} className="flex items-center gap-2 text-xs">

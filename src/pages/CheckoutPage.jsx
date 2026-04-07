@@ -139,9 +139,9 @@ export default function CheckoutPage() {
                   <span className="text-4xl font-black text-white">{price}$</span>
                   <span className="text-sm text-white/40 ml-1">/mois</span>
                 </div>
-                {isYearly && (
+                {isYearly && plan?.price_monthly && (
                   <div className="mb-1 px-2.5 py-1" style={{ background: GREEN, borderRadius: '3px' }}>
-                    <p className="text-[10px] font-black text-white">×12 = {annualTotal}$/an</p>
+                    <p className="text-[10px] font-black text-white">Save {(plan.price_monthly - plan.price_yearly) * 12}$/year</p>
                   </div>
                 )}
               </div>

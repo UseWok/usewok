@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Globe } from 'lucide-react';
+import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Globe, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -44,6 +44,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
+  const [useWebSearch, setUseWebSearch] = useState(false);
 
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -130,9 +131,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
     setShowFileMenu(false);
   };
 
+  const hasInternet = userPlan?.internet_access || false;
+
   const handleCommencer = () => {
     if (!query.trim()) return;
-    const params = new URLSearchParams({ q: query, mode: mode.id, model: mode.model });
+    const params = new URLSearchParams({ q: query, mode: mode.id, model: mode.model, webSearch: useWebSearch && hasInternet ? '1' : '0' });
     if (agentId) params.set('agent', agentId);
     navigate(`/chat?${params.toString()}`);
   };
@@ -333,6 +336,19 @@ export default function HeroSection({ agentId, onAgentChange }) {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (!hasInternet) { navigate('/pricing'); return; }
+                  setUseWebSearch(w => !w);
+                }}
+                className="h-8 px-2 flex items-center gap-1.5 transition-colors"
+                style={{ background: useWebSearch ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                {useWebSearch
+                  ? <Wifi className="w-3.5 h-3.5" style={{ color: '#16a34a' }} />
+                  : <WifiOff className="w-3.5 h-3.5" style={{ color: '#bbb' }} />}
+                <span className="text-[11px] font-semibold hidden sm:block" style={{ color: useWebSearch ? '#16a34a' : '#bbb' }}>Web</span>
+                {!hasInternet && <span className="text-[9px] font-bold ml-1" style={{ color: '#ccc' }}>Advanced+</span>}
+              </button>
               <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 flex items-center justify-center transition-all"

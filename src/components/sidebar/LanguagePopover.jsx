@@ -27,13 +27,20 @@ export default function LanguagePopover({ open, onClose, anchorRef }) {
   }, [open, onClose, anchorRef]);
 
   const getPos = () => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      const w = Math.min(220, window.innerWidth - 32);
+      return { left: (window.innerWidth - w) / 2, top: Math.max(60, (window.innerHeight - 220) / 2), width: w };
+    }
     if (!anchorRef?.current) return { left: 72, top: 200 };
     const rect = anchorRef.current.getBoundingClientRect();
     const popW = 220;
     let left = rect.right + 12;
-    if (left + popW > window.innerWidth - 16) left = rect.left - popW - 12;
+    if (left + popW > window.innerWidth - 16) left = Math.max(8, rect.left - popW - 12);
+    if (left < 8) left = 8;
     let top = rect.top - 20;
     if (top + 240 > window.innerHeight - 16) top = window.innerHeight - 256;
+    if (top < 8) top = 8;
     return { left, top };
   };
 

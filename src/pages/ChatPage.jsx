@@ -329,7 +329,7 @@ export default function ChatPage() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={() => { setUpgradeFeature(''); setShowUpgradeOverlay(true); }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+            className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-semibold transition-all"
             style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
             <TrendingUp className="w-3 h-3" /> Upgrade
           </button>
@@ -688,7 +688,7 @@ export default function ChatPage() {
             <div className="w-24 h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : YUZU }} />
             </div>
-            <span className="text-[10px]" style={{ color: '#bbb' }}>{creditsUsed}/{creditsLimit} crédits</span>
+            <span className="text-[10px]" style={{ color: '#bbb' }}>{creditsUsed}/{creditsLimit} Tensors</span>
           </div>
           {pct >= 80 && (
             <button onClick={() => setShowUpgradeOverlay(true)}
@@ -702,7 +702,7 @@ export default function ChatPage() {
 
       {/* Legal */}
       <div className="text-center pb-3">
-        <p className="text-[9px]" style={{ color: '#ccc' }}>AI may make mistakes · Not financial advice · Consult a licensed professional</p>
+        <p className="text-[9px]" style={{ color: '#ccc' }}>AI may make mistakes · Not financial advice</p>
       </div>
 
       {/* Upgrade overlay */}
