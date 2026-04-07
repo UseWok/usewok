@@ -36,6 +36,12 @@ function TicketRow({ ticket, onRefetch }) {
       subject: `[Stensor Support] Réponse à votre ticket`,
       body: `Bonjour,\n\nVoici la réponse de l'équipe Stensor concernant votre ticket :\n\n${reply}\n\nCordialement,\nL'équipe Stensor`,
     });
+    await base44.entities.Notification.create({
+      title: `Réponse à votre ticket — ${ticket.category?.replace('_', ' ')}`,
+      message: reply.slice(0, 200),
+      link: '/support',
+      link_label: 'Voir mes tickets',
+    });
     await base44.entities.SupportTicket.update(ticket.id, { status: 'closed' });
     setReply('');
     setSending(false);

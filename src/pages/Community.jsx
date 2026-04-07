@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Hash, ExternalLink, Users, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Hash, ExternalLink, Users, ArrowLeft } from 'lucide-react';
 import { getPageModes } from '@/lib/page-modes';
 import { base44 } from '@/api/base44Client';
 import UnderConstruction from '@/components/UnderConstruction';
@@ -26,8 +26,8 @@ export default function Community() {
   if (mode === 'construction') {
     return (
       <UnderConstruction
-        title="La communauté arrive bientôt"
-        subtitle="Nous construisons un espace d'échange unique où les membres Stensor partagent stratégies, résultats et insights financiers."
+        title="Communauté en construction"
+        subtitle="L'espace communautaire Stensor est en cours de développement."
       />
     );
   }
@@ -36,7 +36,7 @@ export default function Community() {
     <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate('/')}
+          <button onClick={() => navigate('/app')}
             className="w-9 h-9 flex items-center justify-center"
             style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '10px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
@@ -49,9 +49,7 @@ export default function Community() {
 
         <div className="grid gap-4">
           {discordUrl && (
-            <motion.button
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+            <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               onClick={() => window.open(discordUrl, '_blank')}
               className="w-full flex items-center gap-4 p-5 text-left transition-all"
               style={{ background: '#5865F2', borderRadius: '14px' }}>
@@ -67,10 +65,7 @@ export default function Community() {
             </motion.button>
           )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="p-5 text-center"
             style={{ background: 'white', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.07)' }}>
             <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4"

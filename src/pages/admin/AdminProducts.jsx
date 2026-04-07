@@ -114,9 +114,9 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Modes IA autorisés</p>
-                  {['fast', 'thinking', 'pro', 'ultimate'].map(modeId => (
+                  {[{id:'thinking',label:'Standard (1T)'},{id:'pro',label:'Avancé (2T)'},{id:'ultimate',label:'Expert (4T)'}].map(({id: modeId, label: modeLabel}) => (
                     <div key={modeId} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                      <span className="text-xs capitalize" style={{ color: '#555' }}>{modeId}</span>
+                      <span className="text-xs" style={{ color: '#555' }}>{modeLabel}</span>
                       <Toggle
                         value={plan.allowed_modes?.includes(modeId)}
                         onChange={v => {

@@ -41,7 +41,8 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [logoHovered, setLogoHovered] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [showFeatures, setShowFeatures] = useState(false);
+  const [showFeatures, setShowFeatures] = useState(true);
+  useEffect(() => { if (expanded) setShowFeatures(true); }, [expanded]);
   const isMobile = useIsMobile();
   const qc = useQueryClient();
 
@@ -104,7 +105,7 @@ export default function Sidebar({ expanded, setExpanded }) {
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
   const navItems = [
-    { icon: Home, labelKey: 'home', path: '/', active: location.pathname === '/' },
+    { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
     { icon: GraduationCap, labelKey: 'parcours', path: '/parcours', active: location.pathname === '/parcours' },
     { icon: Users, labelKey: 'community', path: '/community', active: location.pathname === '/community' },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),

@@ -340,7 +340,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
                             onMouseLeave={e => { if (mode.id !== m.id) e.currentTarget.style.background = 'transparent'; }}>
                             <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                             <div className="flex-1"><p className="text-sm font-medium">{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
-                            {!isAllowed && <Lock className="w-3 h-3 flex-shrink-0" style={{ color: '#ccc' }} />}
+                            {isAllowed
+                              ? <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>{m.credit_cost}T</span>
+                              : <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap" style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '2px' }}>{m.requiredPlan ? m.requiredPlan.charAt(0).toUpperCase() + m.requiredPlan.slice(1) + '+' : ''}</span>
+                            }
                           </button>
                         );
                       })}

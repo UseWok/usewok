@@ -18,6 +18,7 @@ import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import ManagePlanPage from './pages/ManagePlanPage';
 import Community from './pages/Community';
+import LandingPage from './pages/LandingPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,8 +46,9 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/app" element={<Home />} />
         <Route path="/parcours" element={<Parcours />} />
         <Route path="/projects" element={<AllProjects />} />
         <Route path="/chat" element={<ChatPage />} />

@@ -313,7 +313,7 @@ export default function ChatPage() {
       {/* Top bar */}
       <div className="flex items-center px-4 h-14 flex-shrink-0 z-20 relative bg-white"
         style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-        <button onClick={() => navigate('/')}
+        <button onClick={() => navigate('/app')}
           className="w-8 h-8 rounded-sm flex items-center justify-center transition-colors mr-3 flex-shrink-0 hover:bg-black/5">
           <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
         </button>

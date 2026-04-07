@@ -283,7 +283,7 @@ export default function SupportPage() {
             backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(221,255,0,0.1) 0%, transparent 55%)'
           }} />
           <div className="relative flex items-center gap-4">
-            <button onClick={() => navigate('/')}
+            <button onClick={() => navigate('/app')}
               className="w-9 h-9 flex items-center justify-center flex-shrink-0 transition-all"
               style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
               <ArrowLeft className="w-4 h-4 text-white" />

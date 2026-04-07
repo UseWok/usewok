@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState(urlParams.get('billing') || 'monthly');
   const [user, setUser] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState('');
   const [activationCode, setActivationCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
 
@@ -47,9 +48,7 @@ export default function CheckoutPage() {
       if (results.length > 0) {
         try {
           const urls = JSON.parse(results[0].value);
-          const currentPlans = getPlansConfig();
-          const updated = currentPlans.map(p => ({ ...p, checkout_urls: urls }));
-          savePlansConfig(updated);
+          setCheckoutUrl(urls[`${planId}_${billing}`] || '');
         } catch {}
       }
     }).catch(() => {});
@@ -77,11 +76,9 @@ export default function CheckoutPage() {
   ].filter(Boolean);
 
   const handleContinue = () => {
-    const urlKey = `${plan?.id}_${billing}`;
-    const redirectUrl = plan?.checkout_urls?.[urlKey] || plan?.checkout_url;
-    if (redirectUrl) {
+    if (checkoutUrl) {
       clearCart();
-      window.location.href = redirectUrl;
+      window.location.href = checkoutUrl;
     } else {
       setConfirming(true);
     }
