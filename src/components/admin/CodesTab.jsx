@@ -90,7 +90,7 @@ function PlanCodeSection({ planId, billing, planName }) {
           </div>
           {!loading && (
             <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-[11px]" style={{ color: '#16a34a' }}>✓ {availCodes.length} disponibles</span>
+              <span className="text-[11px]" style={{ color: '#16a34a' }}>✓ {Math.min(availCodes.length, 100)} disponibles</span>
               <span className="text-[11px]" style={{ color: usedCodes.length > 0 ? '#f59e0b' : '#bbb' }}>
                 {usedCodes.length} utilisés
               </span>
