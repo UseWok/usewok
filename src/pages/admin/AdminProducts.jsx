@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TicketsTab from '@/components/admin/TicketsTab';
+import CodesTab from '@/components/admin/CodesTab';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -631,41 +632,7 @@ export default function AdminProducts() {
 
         {/* CODES TAB */}
         {tab === 'codes' && (
-          <div className="max-w-3xl">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm" style={{ color: '#666' }}>Collez vos codes pour chaque plan/facturation (un par ligne, virgule ou espace). Ils s'ajoutent automatiquement en base.</p>
-              <button onClick={() => saveActivationCodes()}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                <Save className="w-4 h-4" /> Sauvegarder tous
-              </button>
-            </div>
-            <div className="space-y-4">
-              {plans.flatMap(plan => ['monthly', 'yearly'].map(billing => (
-                <div key={`${plan.id}__${billing}`} className="bg-white border p-4" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold" style={{ color: FG }}>{plan.name}</span>
-                    <span className="text-[10px] font-black px-2 py-0.5" style={{ background: billing === 'yearly' ? FG : YUZU, color: billing === 'yearly' ? 'white' : FG, borderRadius: '2px' }}>
-                      {billing === 'monthly' ? 'Mensuel' : 'Annuel'}
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <textarea
-                      value={codesInput[`${plan.id}__${billing}`] || ''}
-                      onChange={e => handleCodesChange(`${plan.id}__${billing}`, e.target.value)}
-                      rows={4}
-                      placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
-                      className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }}
-                    />
-                    {codesSaved && (
-                      <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-1" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>✓ Enregistré</span>
-                    )}
-                  </div>
-                </div>
-              )))}
-            </div>
-          </div>
+          <CodesTab />
         )}
 
         {/* AGENTS TAB */}
