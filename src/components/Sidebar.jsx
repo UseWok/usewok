@@ -37,6 +37,7 @@ const UNLOCKABLE_FEATURES = [
 export default function Sidebar({ expanded, setExpanded }) {
   const [activePopover, setActivePopover] = useState(null);
   const [showReferral, setShowReferral] = useState(false);
+  const [logoHovered, setLogoHovered] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showFeatures, setShowFeatures] = useState(false);
@@ -121,17 +122,30 @@ export default function Sidebar({ expanded, setExpanded }) {
       >
         {/* Logo */}
         <div
-          className="flex items-center gap-3 px-4 py-5 flex-shrink-0 cursor-pointer select-none"
-          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 px-4 py-5 flex-shrink-0 select-none"
         >
-          <img src={LOGO_URL} alt="Stensor" className="w-9 h-9 object-contain flex-shrink-0" />
+          <div
+            className="relative w-9 h-9 flex-shrink-0 cursor-pointer"
+            onMouseEnter={() => setLogoHovered(true)}
+            onMouseLeave={() => setLogoHovered(false)}
+            onClick={() => { setLogoHovered(false); setExpanded(false); }}
+          >
+            <img src={LOGO_URL} alt="Stensor"
+              className="w-9 h-9 object-contain transition-all"
+              style={{ filter: logoHovered ? 'blur(2px)' : 'none', opacity: logoHovered ? 0.5 : 1 }} />
+            {logoHovered && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <X className="w-5 h-5" style={{ color: FG }} />
+              </div>
+            )}
+          </div>
           {expanded && (
             <motion.span
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.15 }}
               className="font-black text-base tracking-tight whitespace-nowrap"
-              style={{ color: PURPLE }}
+              style={{ color: '#0A0A0A' }}
             >
               Stensor
             </motion.span>

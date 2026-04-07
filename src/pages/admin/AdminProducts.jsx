@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import TicketsTab from '@/components/admin/TicketsTab';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Users, Save, Bot, Ban, Search, ChevronDown, ChevronUp,
   Gift, Check, X, Pencil, Trash2, CreditCard, Globe, Zap,
-  Crown, Shield, Star
+  Crown, Shield, Star, MessageSquare, Send
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -432,6 +433,7 @@ export default function AdminProducts() {
     { id: 'codes', label: 'Codes Accès', icon: Gift },
     { id: 'agents', label: 'Agents IA', icon: Bot },
     { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'tickets', label: 'Tickets', icon: MessageSquare },
     { id: 'users', label: 'Utilisateurs', icon: Users },
   ];
 
@@ -715,6 +717,9 @@ export default function AdminProducts() {
             </div>
           </div>
         )}
+
+        {/* TICKETS TAB */}
+        {tab === 'tickets' && <TicketsTab />}
 
         {/* USERS TAB */}
         {tab === 'users' && (

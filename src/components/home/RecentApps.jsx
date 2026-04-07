@@ -126,13 +126,7 @@ export default function RecentApps({ agentId }) {
 
               {/* Right side */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                {disc.model && (
-                  <span className="text-[9px] font-black px-2 py-0.5"
-                    style={{ background: badge.bg, color: badge.text, borderRadius: '2px' }}>
-                    {disc.model.toUpperCase()}
-                  </span>
-                )}
-                <span className="text-[10px]" style={{ color: '#ccc' }}>{formatDate(disc.date)}</span>
+              <span className="text-[10px]" style={{ color: '#ccc' }}>{formatDate(disc.date)}</span>
                 <button onClick={e => openCtx(e, disc.id)}
                   className="w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>

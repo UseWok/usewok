@@ -361,13 +361,13 @@ export default function ChatPage() {
         {messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
             className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            {msg.role === 'assistant' && (
-              <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5 opacity-90">
-                <img src={LOGO_URL} alt="Stensor" className="w-7 h-7 object-contain" />
-                <span className="text-[11px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
-              </div>
-            )}
-            <div className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
+            <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
+              {msg.role === 'assistant' && (
+                <div className="flex items-center gap-1.5 mb-1 opacity-90">
+                  <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
+                  <span className="text-[10px] font-black" style={{ color: '#0A0A0A', letterSpacing: '-0.01em' }}>Stensor</span>
+                </div>
+              )}
               {msg.role === 'user' && (
               <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>
                 {userName}
@@ -399,7 +399,7 @@ export default function ChatPage() {
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="w-6 h-6 rounded-sm flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-6"
+              <div className="w-5 h-5 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 mt-5"
                 style={{ background: FG }}>
                 {userInitial}
               </div>
@@ -695,27 +695,13 @@ export default function ChatPage() {
           onClose={() => setShowFilePanel(false)}
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
-        {/* Credit hint */}
-        <div className="flex items-center justify-between mt-2 px-1">
-          <div className="flex items-center gap-2">
-            <div className="w-24 h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
-              <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : YUZU }} />
-            </div>
-            <span className="text-[10px]" style={{ color: '#bbb' }}>{creditsUsed}/{creditsLimit} Tensors</span>
-          </div>
-          {pct >= 80 && (
-            <button onClick={() => setShowUpgradeOverlay(true)}
-              className="text-[10px] font-semibold transition-opacity hover:opacity-70"
-              style={{ color: CORAL }}>
-              Augmenter →
-            </button>
-          )}
+        {/* Legal */}
+        <p className="text-center mt-2 text-[9px]" style={{ color: '#ccc' }}>
+          AI may make mistakes · Not financial advice · Ceci n&apos;est pas un conseil en investissement
+        </p>
         </div>
-      </div>
 
-
-
-      {/* Upgrade overlay */}
+        {/* Upgrade overlay */}
       <AnimatePresence>
         {showUpgradeOverlay && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

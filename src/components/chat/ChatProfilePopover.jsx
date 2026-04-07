@@ -60,7 +60,7 @@ export default function ChatProfilePopover({ open, onClose, anchorRef, user }) {
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-foreground/60">Consommation</p>
               <p className="text-xs font-bold text-foreground">
-                {isAdmin ? '∞ admin' : `${creditsUsed} crédit${creditsUsed !== 1 ? 's' : ''} consommé${creditsUsed !== 1 ? 's' : ''}`}
+                {isAdmin ? '∞ admin' : `${creditsUsed} / ${creditsLimit}`}
               </p>
             </div>
             {!isAdmin && (
@@ -69,7 +69,7 @@ export default function ChatProfilePopover({ open, onClose, anchorRef, user }) {
                   <motion.div animate={{ width: `${pct}%` }} className="h-full rounded-full"
                     style={{ background: pct >= 90 ? '#ef4444' : 'linear-gradient(90deg, #7c3aed, #a78bfa)' }} />
                 </div>
-                <p className="text-[10px] text-muted-foreground">{Math.max(creditsLimit - creditsUsed, 0)} restant{Math.max(creditsLimit - creditsUsed, 0) !== 1 ? 's' : ''} / {creditsLimit} total</p>
+                <p className="text-[10px] text-muted-foreground">{Math.max(creditsLimit - creditsUsed, 0)} restants / {creditsLimit} total</p>
               </>
             )}
           </div>

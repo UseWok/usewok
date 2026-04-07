@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, MessageSquare, Book, ChevronRight, X, FileText,
-  Bug, Zap, Users, ExternalLink, Check, Upload, AlertCircle, Hash
+  Bug, Zap, Users, ExternalLink, Check, Upload, AlertCircle, Hash, Clock
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -263,9 +263,13 @@ export default function SupportPage() {
   const [user, setUser] = useState(null);
   const [discordUrl, setDiscordUrl] = useState('');
   const [communityUrl, setCommunityUrl] = useState('');
+  const [myTickets, setMyTickets] = useState([]);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      if (u) base44.entities.SupportTicket.filter({ user_email: u.email }).then(t => setMyTickets(t.sort((a,b) => new Date(b.created_date) - new Date(a.created_date)))).catch(() => {});
+    }).catch(() => {});
     base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
       if (results.length > 0) {
         try {
@@ -348,6 +352,36 @@ export default function SupportPage() {
           </div>
         )}
 
+        {/* My tickets */}
+        {myTickets.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 flex items-center justify-center" style={{ background: FG, borderRadius: '4px' }}>
+                <Clock className="w-3.5 h-3.5" style={{ color: '#DDFF00' }} />
+              </div>
+              <h2 className="text-base font-black" style={{ color: FG }}>Mes tickets ({myTickets.length})</h2>
+            </div>
+            <div className="space-y-2">
+              {myTickets.map(ticket => {
+                const statusColor = { open: '#ef4444', in_progress: '#f59e0b', closed: '#16a34a' }[ticket.status] || '#ef4444';
+                return (
+                  <div key={ticket.id} className="p-4" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '6px', background: 'white' }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold" style={{ color: FG }}>{ticket.description?.slice(0, 80)}{ticket.description?.length > 80 ? '…' : ''}</p>
+                        <p className="text-[10px] mt-1" style={{ color: '#bbb' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      </div>
+                      <span className="text-[10px] font-black px-2 py-1 flex-shrink-0" style={{ background: `${statusColor}15`, color: statusColor, borderRadius: '4px' }}>
+                        {ticket.status === 'open' ? 'OUVERT' : ticket.status === 'in_progress' ? 'EN COURS' : 'CLOS'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* FAQ */}
         <div id="faq-section">
           <div className="flex items-center gap-2 mb-5">
@@ -378,7 +412,7 @@ export default function SupportPage() {
       </div>
 
       <AnimatePresence>
-        {showTicket && <TicketWizard onClose={() => setShowTicket(false)} user={user} />}
+        {showTicket && <TicketWizard onClose={() => { setShowTicket(false); base44.auth.me().then(u => { if (u) base44.entities.SupportTicket.filter({ user_email: u.email }).then(t => setMyTickets(t.sort((a,b) => new Date(b.created_date) - new Date(a.created_date)))).catch(() => {}); }).catch(() => {}); }} user={user} />}
       </AnimatePresence>
     </div>
   );
