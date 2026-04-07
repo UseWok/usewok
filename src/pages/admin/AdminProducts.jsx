@@ -632,7 +632,14 @@ export default function AdminProducts() {
         {/* CODES TAB */}
         {tab === 'codes' && (
           <div className="max-w-3xl">
-            <p className="text-sm mb-6" style={{ color: '#666' }}>Collez vos codes pour chaque plan/facturation (un par ligne, virgule ou espace). Ils s'ajoutent automatiquement en base.</p>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm" style={{ color: '#666' }}>Collez vos codes pour chaque plan/facturation (un par ligne, virgule ou espace). Ils s'ajoutent automatiquement en base.</p>
+              <button onClick={() => saveActivationCodes()}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all"
+                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                <Save className="w-4 h-4" /> Sauvegarder tous
+              </button>
+            </div>
             <div className="space-y-4">
               {plans.flatMap(plan => ['monthly', 'yearly'].map(billing => (
                 <div key={`${plan.id}__${billing}`} className="bg-white border p-4" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>

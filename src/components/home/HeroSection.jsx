@@ -290,7 +290,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50"
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       <button onClick={handleFileAttach}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left"
@@ -322,7 +322,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                 </button>
                 <AnimatePresence>
                   {showAgentMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50"
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       {AGENTS.map((a) => (
                         <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
@@ -347,7 +347,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50"
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       {ALL_MODES.map((m) => {
                         const Icon = m.icon;
