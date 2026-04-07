@@ -71,25 +71,23 @@ export default function PlanCodesSection({ planId, planName }) {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     
     debounceTimerRef.current = setTimeout(async () => {
-      const newLines = text.split(/\n/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
-      const oldLines = availCodes.map(c => c.code);
+      const newCodes = text.split(/\n/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+      const newCodesSet = new Set(newCodes);
+      const oldCodeMap = new Map(availCodes.map(c => [c.code, c.id]));
       
       setSaving(true);
       try {
-        // Mettre à jour ou créer/supprimer ligne par ligne
-        for (let i = 0; i < Math.max(newLines.length, oldLines.length); i++) {
-          const newCode = newLines[i];
-          const oldCode = oldLines[i];
-          
-          if (newCode && oldCode && newCode !== oldCode) {
-            // Modification : mettre à jour le code
-            await base44.entities.ActivationCode.update(availCodes[i].id, { code: newCode });
-          } else if (!newCode && oldCode) {
-            // Suppression : supprimer le code
-            await base44.entities.ActivationCode.delete(availCodes[i].id);
-          } else if (newCode && !oldCode) {
-            // Ajout : créer un nouveau code
-            await base44.entities.ActivationCode.create({ code: newCode, plan_id: planId, billing: 'monthly', used: false });
+        // Créer les codes qui n'existent pas
+        for (const code of newCodes) {
+          if (!oldCodeMap.has(code)) {
+            await base44.entities.ActivationCode.create({ code, plan_id: planId, billing: 'monthly', used: false });
+          }
+        }
+        
+        // Supprimer les codes qui ont disparu
+        for (const [code, id] of oldCodeMap.entries()) {
+          if (!newCodesSet.has(code)) {
+            await base44.entities.ActivationCode.delete(id);
           }
         }
         
