@@ -66,6 +66,39 @@ export default function PlanCodesSection({ planId, planName }) {
     setSaving(false);
   };
 
+  const handleAvailCodesChange = async (text) => {
+    const codesFromText = text.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+    const currentAvailCodes = new Set(availCodes.map(c => c.code));
+    const newCodesSet = new Set(codesFromText);
+    
+    setSaving(true);
+    try {
+      // Supprimer les codes qui ont été enlevés
+      for (const code of availCodes) {
+        if (!newCodesSet.has(code.code)) {
+          await base44.entities.ActivationCode.delete(code.id);
+        }
+      }
+      
+      // Ajouter les nouveaux codes
+      const toCreate = codesFromText.filter(c => !currentAvailCodes.has(c));
+      if (toCreate.length > 0) {
+        await base44.entities.ActivationCode.bulkCreate(
+          toCreate.map(code => ({ code, plan_id: planId, billing: 'monthly', used: false }))
+        );
+      }
+      
+      // Recharger
+      const data = await base44.entities.ActivationCode.filter({ plan_id: planId });
+      setCodes(data);
+      toast.success('Codes mis à jour');
+    } catch {
+      toast.error('Erreur lors de la mise à jour');
+      load();
+    }
+    setSaving(false);
+  };
+
   const deleteCode = async (id) => {
     await base44.entities.ActivationCode.delete(id);
     setCodes(prev => prev.filter(c => c.id !== id));
@@ -97,19 +130,20 @@ export default function PlanCodesSection({ planId, planName }) {
             transition={{ duration: 0.2 }} className="overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#fafafa' }}>
               
-              {/* Codes disponibles - copiables */}
-              {availCodes.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-black mb-1" style={{ color: '#aaa' }}>CODES DISPO ({availCodes.length})</p>
-                  <textarea
-                    readOnly
-                    value={availCodes.map(c => c.code).join('\n')}
-                    className="w-full px-3 py-2 text-xs font-mono focus:outline-none resize-none"
-                    rows={6}
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }}
-                  />
-                </div>
-              )}
+              {/* Codes disponibles - éditables */}
+              <div>
+                <p className="text-[10px] font-black mb-1" style={{ color: '#aaa' }}>CODES DISPO ({availCodes.length})</p>
+                <textarea
+                  value={availCodes.map(c => c.code).join('\n')}
+                  onChange={e => handleAvailCodesChange(e.target.value)}
+                  disabled={saving}
+                  placeholder="Ajoute, modifie ou supprime les codes ici"
+                  className="w-full px-3 py-2 text-xs font-mono focus:outline-none resize-none"
+                  rows={6}
+                  style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: saving ? '#f0f0f0' : 'white', color: '#333' }}
+                />
+                <p className="text-[9px] mt-1" style={{ color: '#aaa' }}>Edite librement • Chaque ligne = 1 code</p>
+              </div>
 
               {/* Ajouter codes (plusieurs à la fois) */}
               <div>
