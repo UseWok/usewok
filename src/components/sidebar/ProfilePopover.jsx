@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfilePopover({ open, onClose, anchorRef, user, userInitial }) {
   const popoverRef = useRef(null);
@@ -163,9 +162,8 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
           </motion.div>
           )}
           </AnimatePresence>
-        </motion.div>
-      )}
-    </AnimatePresence>
-    </>
+          </>
+          );
+          }
   );
 }
