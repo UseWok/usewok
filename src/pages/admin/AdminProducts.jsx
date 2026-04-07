@@ -395,7 +395,6 @@ export default function AdminProducts() {
     }
     if (allCodes.length === 0) { toast.error('Aucun code trouvé'); return; }
     await base44.entities.ActivationCode.bulkCreate(allCodes);
-    setCodesInput({});
     setCodesSaved(true); setTimeout(() => setCodesSaved(false), 3000);
     toast.success(`${allCodes.length} codes enregistrés avec succès !`);
   };
