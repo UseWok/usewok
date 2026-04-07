@@ -68,38 +68,36 @@ export default function PlanCodesSection({ planId, planName }) {
   };
 
   const handleAvailCodesChange = (text) => {
-    // Annuler le précédent debounce
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     
-    // Créer un nouveau debounce: sync après 1.5s sans modification
     debounceTimerRef.current = setTimeout(async () => {
-      const codesFromText = text.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
-      const currentAvailCodes = new Set(availCodes.map(c => c.code));
-      const newCodesSet = new Set(codesFromText);
+      const newLines = text.split(/\n/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+      const oldLines = availCodes.map(c => c.code);
       
       setSaving(true);
       try {
-        // Supprimer les codes qui ont été enlevés
-        for (const code of availCodes) {
-          if (!newCodesSet.has(code.code)) {
-            await base44.entities.ActivationCode.delete(code.id);
+        // Mettre à jour ou créer/supprimer ligne par ligne
+        for (let i = 0; i < Math.max(newLines.length, oldLines.length); i++) {
+          const newCode = newLines[i];
+          const oldCode = oldLines[i];
+          
+          if (newCode && oldCode && newCode !== oldCode) {
+            // Modification : mettre à jour le code
+            await base44.entities.ActivationCode.update(availCodes[i].id, { code: newCode });
+          } else if (!newCode && oldCode) {
+            // Suppression : supprimer le code
+            await base44.entities.ActivationCode.delete(availCodes[i].id);
+          } else if (newCode && !oldCode) {
+            // Ajout : créer un nouveau code
+            await base44.entities.ActivationCode.create({ code: newCode, plan_id: planId, billing: 'monthly', used: false });
           }
         }
         
-        // Ajouter les nouveaux codes
-        const toCreate = codesFromText.filter(c => !currentAvailCodes.has(c));
-        if (toCreate.length > 0) {
-          await base44.entities.ActivationCode.bulkCreate(
-            toCreate.map(code => ({ code, plan_id: planId, billing: 'monthly', used: false }))
-          );
-        }
-        
-        // Recharger
         const data = await base44.entities.ActivationCode.filter({ plan_id: planId });
         setCodes(data);
-        toast.success('Codes mis à jour');
-      } catch {
-        toast.error('Erreur lors de la mise à jour');
+        toast.success('Codes synchronisés');
+      } catch (err) {
+        toast.error('Erreur lors de la sync');
         load();
       }
       setSaving(false);
