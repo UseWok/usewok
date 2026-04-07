@@ -42,7 +42,7 @@ function TicketRow({ ticket, onRefetch }) {
       link: '/support',
       link_label: 'Voir mes tickets',
     });
-    await base44.entities.SupportTicket.update(ticket.id, { status: 'closed' });
+    await base44.entities.SupportTicket.update(ticket.id, { status: 'closed', admin_reply: reply });
     setReply('');
     setSending(false);
     onRefetch();

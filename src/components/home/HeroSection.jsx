@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
+import { getUserColor } from '@/lib/user-color';
 import { useLanguage } from '@/lib/i18n';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
@@ -43,6 +44,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const finalTranscriptRef = useRef('');
   const [userPlan, setUserPlan] = useState(null);
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [hasInternetState, setHasInternetState] = useState(false);
@@ -97,11 +100,31 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
-    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); return; }
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      setVoiceLoading(true);
+      return;
+    }
+    finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
-    rec.onresult = (e) => setQuery(Array.from(e.results).map(r => r[0].transcript).join(''));
-    rec.onend = () => setIsRecording(false);
+    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = false;
+    rec.onresult = (e) => {
+      const finals = Array.from(e.results).filter(r => r.isFinal).map(r => r[0].transcript.trim()).join(' ');
+      if (finals) finalTranscriptRef.current = finals;
+    };
+    rec.onend = () => {
+      setIsRecording(false);
+      setVoiceLoading(false);
+      const raw = finalTranscriptRef.current.trim();
+      if (raw) {
+        const isQuestion = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
+        let text = raw.charAt(0).toUpperCase() + raw.slice(1);
+        if (!'.!?'.includes(text[text.length - 1])) text += isQuestion ? ' ?' : '.';
+        setQuery(text);
+      }
+      finalTranscriptRef.current = '';
+    };
     rec.start(); recognitionRef.current = rec; setIsRecording(true);
   };
 
@@ -164,11 +187,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
-        {t('hero_title')}
+        Prenez le contrôle de votre argent
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
         className="mt-3 text-sm" style={{ color: '#888' }}>
-        {t('hero_subtitle')}
+        Des milliers d’utilisateurs font confiance à Stensor pour investir intelligemment et atteindre leur liberté financière.
       </motion.p>
 
       {/* Input card */}
@@ -371,13 +394,14 @@ export default function HeroSection({ agentId, onAgentChange }) {
               <span className="text-[9px] font-black hidden sm:block px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.06)', color: '#999', borderRadius: '2px' }}>{mode.credit_cost}T</span>
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 flex items-center justify-center transition-all"
-                style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
-                {isRecording ? (
-                  <motion.div
-                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                {voiceLoading ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
+                    className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
+                ) : isRecording ? (
+                  <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
                     transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: YUZU }} />
+                    className="w-2.5 h-2.5 rounded-full" style={{ background: YUZU }} />
                 ) : <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />}
               </button>
             </div>

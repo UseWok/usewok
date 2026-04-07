@@ -392,6 +392,12 @@ export default function SupportPage() {
                         <p className="text-sm font-semibold line-clamp-2" style={{ color: FG }}>
                           {ticket.description?.slice(0, 100)}{ticket.description?.length > 100 ? '…' : ''}
                         </p>
+                        {ticket.admin_reply && (
+                          <div className="mt-2 p-2.5" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '6px', borderLeft: '3px solid #0A0A0A' }}>
+                            <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Réponse Stensor</p>
+                            <p className="text-xs" style={{ color: '#444' }}>{ticket.admin_reply}</p>
+                          </div>
+                        )}
                         <p className="text-[10px] mt-1" style={{ color: '#ccc' }}>
                           {new Date(ticket.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>

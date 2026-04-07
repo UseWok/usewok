@@ -385,22 +385,19 @@ export default function AdminProducts() {
 
   const saveActivationCodes = async () => {
     const entries = Object.entries(codesInput);
-    let total = 0;
+    const allCodes = [];
     for (const [key, raw] of entries) {
       const [planId, billing] = key.split('__');
-      const codes = raw.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length >= 6);
+      const codes = raw.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length >= 4);
       for (const code of codes) {
-        // Avoid duplicates
-        const exists = await base44.entities.ActivationCode.filter({ code });
-        if (exists.length === 0) {
-          await base44.entities.ActivationCode.create({ code, plan_id: planId, billing, used: false });
-          total++;
-        }
+        allCodes.push({ code, plan_id: planId, billing, used: false });
       }
     }
+    if (allCodes.length === 0) { toast.error('Aucun code trouvé'); return; }
+    await base44.entities.ActivationCode.bulkCreate(allCodes);
     setCodesInput({});
     setCodesSaved(true); setTimeout(() => setCodesSaved(false), 3000);
-    toast.success(`${total} codes ajoutés`);
+    toast.success(`${allCodes.length} codes enregistrés avec succès !`);
   };
   const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 

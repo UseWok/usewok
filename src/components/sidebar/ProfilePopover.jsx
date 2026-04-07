@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Settings, HelpCircle, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,7 +49,8 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
           style={{ left: pos.left, bottom: pos.bottom }}
         >
           <div className="p-3 border-b border-border flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+              style={{ background: getUserColor(user) }}>
               {userInitial}
             </div>
             <div className="min-w-0">

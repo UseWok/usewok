@@ -10,6 +10,7 @@ import NotificationsPopover from './sidebar/NotificationsPopover';
 import LanguagePopover from './sidebar/LanguagePopover';
 import TensorsPopover from './sidebar/TensorsPopover';
 import { useLanguage } from '@/lib/i18n';
+import { getUserColor } from '@/lib/user-color';
 import { getUserPlan } from '@/lib/plans-config';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -42,7 +43,7 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showFeatures, setShowFeatures] = useState(true);
-  useEffect(() => { if (expanded) setShowFeatures(true); }, [expanded]);
+  useEffect(() => { if (expanded) setShowFeatures(true); else setShowFeatures(false); }, [expanded]);
   const isMobile = useIsMobile();
   const qc = useQueryClient();
 
@@ -293,7 +294,7 @@ export default function Sidebar({ expanded, setExpanded }) {
               ref={profileRef}
               onClick={() => togglePopover('profile')}
               className="w-9 h-9 flex items-center justify-center flex-shrink-0 transition-all hover:opacity-80"
-              style={{ background: PURPLE, borderRadius: '4px' }}
+              style={{ background: getUserColor(user), borderRadius: '4px' }}
             >
               <span className="text-xs font-bold text-white">{userInitial}</span>
             </button>

@@ -35,6 +35,9 @@
     },
     "user_plan": {
       "type": "string"
+    },
+    "admin_reply": {
+      "type": "string"
     }
   },
   "required": [

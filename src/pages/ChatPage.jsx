@@ -12,6 +12,7 @@ import { getAgentConfig } from '@/lib/agents-config';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
 import { getUserPlan } from '@/lib/plans-config';
+import { getUserColor } from '@/lib/user-color';
 import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 
@@ -77,6 +78,8 @@ export default function ChatPage() {
   const [files, setFiles] = useState([]);
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const finalTranscriptRef = useRef('');
   const [useWebSearch, setUseWebSearch] = useState(true);
   const [showInternetMenu, setShowInternetMenu] = useState(false);
   const { t } = useLanguage();
@@ -223,10 +226,10 @@ export default function ChatPage() {
       }
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
-      const emojiRule = 'IMPORTANT: Ajoute exactement 2 emojis pertinents dans ta réponse, pas plus.';
+      const formatRule = 'FORMAT: Réponses en mini-paragraphes de 2-3 phrases max, bien aérés. Utilise **gras** sur sa propre ligne pour les points clés. Maximum 3 emojis pertinents. Va à l\'essentiel, pas de liste à rallonge.';
       const systemContext = agentConfig?.instructions
-        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\nSois concis et direct. Quand tu utilises du **gras**, mets-le toujours sur sa propre ligne. Pas de réponses trop longues. ${emojiRule}\n\n`
-        : `Tu es Stensor, un assistant coach financier IA. Réponds de façon concise et directe. Évite les listes à rallonge. Quand tu utilises du **texte en gras**, mets-le toujours sur sa propre ligne précédée d'une ligne vide. Ceci n'est pas un conseil financier ou en investissement.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''} ${emojiRule}\n\n`;
+        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
+        : `Tu es Stensor, un coach financier IA de haut niveau. Réponds de manière directe, structure ta réponse en paragraphes courts et aérés.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''} ${formatRule}\n\n`;
 
       const useInternet = useWebSearch && hasInternet && mode.model !== 'claude_opus_4_6';
 
@@ -249,7 +252,13 @@ export default function ChatPage() {
       saveConversationMessages(convId, finalMessages);
 
       if (user) {
-        const costPerMsg = (mode.credit_cost || 1) + (useInternet ? 1 : 0);
+        const responseLen = content.length;
+      const baseCost = mode.credit_cost || 1;
+      let extra = 0;
+      if (mode.id === 'thinking') extra = Math.min(Math.floor(responseLen / 400), 2);
+      else if (mode.id === 'pro') extra = Math.min(Math.floor(responseLen / 500), 3);
+      else if (mode.id === 'ultimate') extra = Math.min(Math.floor(responseLen / 600), 4);
+      const costPerMsg = baseCost + extra + (useInternet ? 1 : 0);
         const newUsed = (user.credits_used || 0) + costPerMsg;
         await base44.entities.User.update(user.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
@@ -293,11 +302,31 @@ export default function ChatPage() {
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
-    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); return; }
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      setVoiceLoading(true);
+      return;
+    }
+    finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
-    rec.onresult = (e) => setInput(Array.from(e.results).map(r => r[0].transcript).join(''));
-    rec.onend = () => setIsRecording(false);
+    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = false;
+    rec.onresult = (e) => {
+      const finals = Array.from(e.results).filter(r => r.isFinal).map(r => r[0].transcript.trim()).join(' ');
+      if (finals) finalTranscriptRef.current = finals;
+    };
+    rec.onend = () => {
+      setIsRecording(false);
+      setVoiceLoading(false);
+      const raw = finalTranscriptRef.current.trim();
+      if (raw) {
+        const isQuestion = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
+        let text = raw.charAt(0).toUpperCase() + raw.slice(1);
+        if (!'.!?'.includes(text[text.length - 1])) text += isQuestion ? ' ?' : '.';
+        setInput(text);
+      }
+      finalTranscriptRef.current = '';
+    };
     rec.start(); recognitionRef.current = rec; setIsRecording(true);
   };
 
@@ -345,7 +374,7 @@ export default function ChatPage() {
             <TrendingUp className="w-3 h-3" /> Upgrade
           </button>
           <div className="w-8 h-8 rounded-sm flex items-center justify-center font-bold text-xs text-white flex-shrink-0"
-            style={{ background: FG }}>
+            style={{ background: getUserColor(user) }}>
             {userInitial}
           </div>
         </div>
@@ -399,7 +428,7 @@ export default function ChatPage() {
             </div>
             {msg.role === 'user' && (
               <div className="w-5 h-5 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 mt-5"
-                style={{ background: FG }}>
+                style={{ background: getUserColor(user) }}>
                 {userInitial}
               </div>
             )}
@@ -676,13 +705,14 @@ export default function ChatPage() {
             <div className="flex items-center gap-2">
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 rounded-sm flex items-center justify-center transition-all"
-                style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)' }}>
-                {isRecording ? (
-                  <motion.div
-                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)' }}>
+                {voiceLoading ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
+                    className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
+                ) : isRecording ? (
+                  <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
                     transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: YUZU }} />
+                    className="w-2.5 h-2.5 rounded-full" style={{ background: YUZU }} />
                 ) : (
                   <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />
                 )}
@@ -709,7 +739,7 @@ export default function ChatPage() {
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
         <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
-          Ceci n&apos;est pas un conseil en investissement · Stensor ne remplace pas un professionnel · IA peut faire des erreurs
+          Stensor est un outil IA · Les réponses peuvent contenir des erreurs · À utiliser avec discernement
         </p>
         </div>
 
