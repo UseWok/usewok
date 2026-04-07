@@ -335,6 +335,20 @@ export default function AdminProducts() {
   const qc = useQueryClient();
 
   useEffect(() => {
+    // Load existing activation codes
+    base44.entities.ActivationCode.list('-created_date', 500).then(codes => {
+      const grouped = {};
+      codes.forEach(code => {
+        const key = `${code.plan_id}__${code.billing}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(code.code);
+      });
+      const formatted = {};
+      Object.entries(grouped).forEach(([key, codes]) => {
+        formatted[key] = codes.join('\n');
+      });
+      setCodesInput(formatted);
+    }).catch(() => {});
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
     base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
       if (results.length > 0) { try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
