@@ -32,6 +32,7 @@ const ALL_MODES = [
 ];
 
 const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
+const FREE_DELAY_MS = 3500; // délai artificiel plan FREE
 
 const popUp = {
   initial: { opacity: 0, y: 6, scale: 0.97 },
@@ -86,6 +87,9 @@ export default function ChatPage() {
   const [showUpgradeOverlay, setShowUpgradeOverlay] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
+  const [freeDelayMsg, setFreeDelayMsg] = useState(false);
+  const [milestoneShown, setMilestoneShown] = useState(false);
+  const [comparisonMsg, setComparisonMsg] = useState('');
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -206,6 +210,13 @@ export default function ChatPage() {
       } catch {}
     }
 
+    // Délai artificiel pour FREE avec message
+    if (!userPlan || userPlan.price_monthly === 0) {
+      setFreeDelayMsg(true);
+      await new Promise(r => setTimeout(r, FREE_DELAY_MS));
+      setFreeDelayMsg(false);
+    }
+
     const startTime = Date.now();
     const userMsg = { role: 'user', content: text };
     const newMessages = [...messages, userMsg];
@@ -246,9 +257,40 @@ export default function ChatPage() {
       const minDur = MIN_DURATIONS[mode.id] || 0;
       if (elapsed < minDur) await new Promise(r => setTimeout(r, minDur - elapsed));
 
-      const assistantMsg = { role: 'assistant', content };
+      // Truncate response for FREE plan at ~300 words
+      let finalContent = content;
+      const isFree = !userPlan || userPlan.price_monthly === 0;
+      if (isFree) {
+        const words = content.split(/\s+/);
+        if (words.length > 280) {
+          finalContent = words.slice(0, 280).join(' ') + '\n\n---\n*La réponse complète est disponible avec le plan Advanced. [Voir les plans →](/pricing)*';
+        }
+      }
+
+      const assistantMsg = { role: 'assistant', content: finalContent };
       const finalMessages = [...newMessages, assistantMsg];
       setMessages(finalMessages);
+
+      // Comparison message for FREE/ESSENTIAL
+      if (isFree || (userPlan && userPlan.price_monthly <= 9)) {
+        if (mode.id === 'thinking') {
+          setComparisonMsg('✨ Avec le mode Avancé, cette réponse aurait été 3× plus détaillée et précise.');
+          setTimeout(() => setComparisonMsg(''), 6000);
+        }
+      }
+
+      // Milestone : 10ème message
+      const totalMsgs = finalMessages.filter(m => m.role === 'user').length;
+      if (totalMsgs === 10 && !milestoneShown) {
+        setMilestoneShown(true);
+        toast(
+          <div>
+            <p className="font-bold text-sm">🎉 Vous adorez Stensor !</p>
+            <p className="text-xs mt-0.5 opacity-70">10 messages envoyés. Avec Advanced, accédez aussi à la recherche Internet et aux leçons exclusives.</p>
+          </div>,
+          { duration: 7000 }
+        );
+      }
       saveConversationMessages(convId, finalMessages);
 
       if (user) {
@@ -460,7 +502,9 @@ export default function ChatPage() {
             onClick={() => setShowUpgradeOverlay(true)}>
             <div>
               <p className="text-sm font-bold text-white">Crédits épuisés ce mois</p>
-              <p className="text-xs mt-0.5 text-white/60">Passez à un forfait supérieur pour continuer</p>
+              <p className="text-xs mt-0.5 text-white/60">
+                {userPlan?.id === 'free' ? 'Passez à Essential → 100 crédits + sans quota journalier' : userPlan?.id === 'essential' ? 'Passez à Advanced → 250 crédits + recherche Internet' : 'Passez à un forfait supérieur pour continuer'}
+              </p>
             </div>
             <span className="text-xs font-bold px-3 py-1.5 text-black" style={{ background: YUZU, borderRadius: '3px' }}>Upgrade →</span>
           </motion.div>
@@ -738,6 +782,26 @@ export default function ChatPage() {
           onClose={() => setShowFilePanel(false)}
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
+        {/* Comparison banner */}
+        {comparisonMsg && (
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mt-2 px-3 py-2 flex items-center justify-between cursor-pointer"
+            style={{ background: 'rgba(58,0,136,0.06)', borderRadius: '4px', border: '1px solid rgba(58,0,136,0.1)' }}
+            onClick={() => navigate('/pricing')}>
+            <span className="text-xs" style={{ color: '#3A0088' }}>{comparisonMsg}</span>
+            <span className="text-[10px] font-bold ml-3 flex-shrink-0 px-2 py-0.5" style={{ background: '#3A0088', color: 'white', borderRadius: '3px' }}>Upgrade</span>
+          </motion.div>
+        )}
+
+        {/* Free delay message */}
+        {freeDelayMsg && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="mt-2 px-3 py-2 text-center"
+            style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+            <p className="text-[10px]" style={{ color: '#aaa' }}>⏳ Mode Free — Les plans payés répondent instantanément</p>
+          </motion.div>
+        )}
+
         <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
           Stensor est un outil IA · Les réponses peuvent contenir des erreurs
         </p>

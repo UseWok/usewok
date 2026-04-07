@@ -187,7 +187,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
-        Prenez le contrôle de votre argent
+        Bâtissons ensemble votre liberté financière.
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
         className="mt-3 text-sm" style={{ color: '#888' }}>
