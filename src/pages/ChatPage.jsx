@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Plus, SlidersHorizontal, Mic, X, FileText, Bot,
-  ChevronDown, Zap, Brain, Star, Crown, Send, Copy, Pencil, TrendingUp, Wifi, Lock
+  ChevronDown, Zap, Brain, Star, Crown, Send, Copy, Pencil, TrendingUp, Wifi, Lock, Check
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
