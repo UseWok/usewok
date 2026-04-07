@@ -32,7 +32,7 @@ const ALL_MODES = [
 ];
 
 const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
-const FREE_DELAY_MS = 3500; // délai artificiel plan FREE
+
 
 const popUp = {
   initial: { opacity: 0, y: 6, scale: 0.97 },
@@ -83,11 +83,11 @@ export default function ChatPage() {
   const finalTranscriptRef = useRef('');
   const [useWebSearch, setUseWebSearch] = useState(true);
   const [showInternetMenu, setShowInternetMenu] = useState(false);
+  const [freeDelayMsg, setFreeDelayMsg] = useState(false);
   const { t } = useLanguage();
   const [showUpgradeOverlay, setShowUpgradeOverlay] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
-  const [freeDelayMsg, setFreeDelayMsg] = useState(false);
   const [milestoneShown, setMilestoneShown] = useState(false);
   const [comparisonMsg, setComparisonMsg] = useState('');
 
@@ -210,12 +210,7 @@ export default function ChatPage() {
       } catch {}
     }
 
-    // Délai artificiel pour FREE avec message
-    if (!userPlan || userPlan.price_monthly === 0) {
-      setFreeDelayMsg(true);
-      await new Promise(r => setTimeout(r, FREE_DELAY_MS));
-      setFreeDelayMsg(false);
-    }
+
 
     const startTime = Date.now();
     const userMsg = { role: 'user', content: text };
@@ -785,13 +780,7 @@ export default function ChatPage() {
         )}
 
         {/* Free delay message */}
-        {freeDelayMsg && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="mt-2 px-3 py-2 text-center"
-            style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
-            <p className="text-[10px]" style={{ color: '#aaa' }}>⏳ Mode Free — Les plans payés répondent instantanément</p>
-          </motion.div>
-        )}
+
 
         <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
           Stensor est un outil IA · Les réponses peuvent contenir des erreurs

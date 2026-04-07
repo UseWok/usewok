@@ -150,9 +150,10 @@ export default function ManagePlanPage() {
         {/* Cancel */}
         {userPlan?.price_monthly > 0 && !cancelSent && (
           <button onClick={handleCancelClick}
-            className="text-xs font-medium transition-colors hover:text-black"
-            style={{ color: '#bbb' }}>
-            Annuler mon abonnement
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold transition-all"
+            style={{ background: '#ef4444', color: 'white', borderRadius: '5px' }}>
+            <X className="w-4 h-4" />
+            Annuler l'abonnement
           </button>
         )}
 

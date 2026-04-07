@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/home/HeroSection';
 import RecentApps from '../components/home/RecentApps';
-import DuolingoPath from '../components/home/DuolingoPath';
 import { AGENTS } from '../components/Sidebar';
 import { useLanguage } from '@/lib/i18n';
 
@@ -28,7 +27,6 @@ export default function Home() {
     <div className="min-h-screen py-12 md:py-20">
       <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
       <RecentApps agentId={selectedAgent} />
-      <DuolingoPath />
     </div>
   );
 }

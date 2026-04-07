@@ -8,7 +8,6 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { LanguageProvider } from '@/lib/i18n';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Parcours from './pages/Parcours';
 import AllProjects from './pages/AllProjects';
 import ChatPage from './pages/ChatPage';
 import PricingPage from './pages/PricingPage';
@@ -49,7 +48,6 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<LandingPage />} />
       <Route element={<Layout />}>
         <Route path="/app" element={<Home />} />
-        <Route path="/parcours" element={<Parcours />} />
         <Route path="/projects" element={<AllProjects />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/pricing" element={<PricingPage />} />
