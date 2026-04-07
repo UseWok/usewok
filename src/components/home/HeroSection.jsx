@@ -11,9 +11,9 @@ const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
 const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
 const ALL_MODES = [
-  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4 },
-  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2 },
-  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1 },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2, credit_max: 5 },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
 ];
 
 const YUZU = '#DDFF00';
@@ -235,7 +235,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
                            <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
-                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: isAllowed ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)', color: isAllowed ? '#777' : '#ccc', borderRadius: '2px' }}>{m.credit_cost}T</span>
+                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: isAllowed ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)', color: isAllowed ? '#777' : '#ccc', borderRadius: '2px' }}>{m.credit_cost}-{m.credit_max}T</span>
                           {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0" style={{ color: '#ccc' }} />}
                           {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
                         </button>
@@ -391,7 +391,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                 {!hasInternet && <span className="text-[9px] font-bold ml-1" style={{ color: '#ccc' }}>Advanced+</span>}
               </button>
               <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
-              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.06)', color: '#999', borderRadius: '2px' }}>{mode.credit_cost}T</span>
+              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.06)', color: '#999', borderRadius: '2px' }}>{mode.credit_cost}-{mode.credit_max}T</span>
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 flex items-center justify-center transition-all"
                 style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>

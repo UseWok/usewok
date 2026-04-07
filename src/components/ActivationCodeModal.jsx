@@ -28,7 +28,7 @@ export default function ActivationCodeModal({ open, onClose }) {
     const plan = plans.find(p => p.id === codeRecord.plan_id);
     if (!plan) { toast.error('Plan introuvable'); setLoading(false); return; }
     await base44.auth.updateMe({ subscription_plan: plan.id, credits_limit: plan.credits_limit, credits_used: 0, credits_bonus: 0 });
-    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
+    await base44.entities.ActivationCode.delete(codeRecord.id);
     setSuccess(plan.name);
     setLoading(false);
   };

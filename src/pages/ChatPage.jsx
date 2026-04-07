@@ -26,9 +26,9 @@ const CORAL = '#FF4F00';
 const MAX_VISIBLE_FILES = 3;
 
 const ALL_MODES = [
-  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4 },
-  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2 },
-  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1 },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2, credit_max: 5 },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
 ];
 
 const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
@@ -612,7 +612,7 @@ export default function ChatPage() {
                   className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5">
                   <SlidersHorizontal className="w-3 h-3" style={{ color: '#aaa' }} />
                   <span className="text-[11px] font-medium" style={{ color: '#aaa' }}>{mode.label}</span>
-                  <span className="text-[9px] font-black px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#888', borderRadius: '2px' }}>{mode.credit_cost}T</span>
+                  <span className="text-[9px] font-black px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#888', borderRadius: '2px' }}>{mode.credit_cost}-{mode.credit_max}T</span>
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
@@ -638,7 +638,7 @@ export default function ChatPage() {
                             {isAllowed ? (
                               <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0"
                                 style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>
-                                {m.credit_cost}T
+                                {m.credit_cost}-{m.credit_max}T
                               </span>
                             ) : (
                               <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
@@ -739,7 +739,7 @@ export default function ChatPage() {
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
         <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
-          Stensor est un outil IA · Les réponses peuvent contenir des erreurs · À utiliser avec discernement
+          Stensor est un outil IA · Les réponses peuvent contenir des erreurs
         </p>
         </div>
 

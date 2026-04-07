@@ -98,7 +98,7 @@ export default function CheckoutPage() {
     const codePlan = plans.find(p => p.id === codeRecord.plan_id);
     if (!codePlan) { toast.error('Plan introuvable'); setCodeLoading(false); return; }
     await base44.auth.updateMe({ subscription_plan: codePlan.id, credits_limit: codePlan.credits_limit, credits_used: 0, credits_bonus: 0 });
-    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
+    await base44.entities.ActivationCode.delete(codeRecord.id);
     clearCart();
     toast.success(`Plan ${codePlan.name} activé !`);
     navigate('/');

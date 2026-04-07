@@ -52,8 +52,8 @@ export default function LandingPage() {
         <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
           className="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-6 max-w-3xl"
           style={{ color: FG }}>
-          Votre coach financier<br />
-          <span style={{ color: FG }}>propulsé par l'IA</span>
+          Bâtissons ensemble<br />
+          <span style={{ color: FG }}>votre liberté financière.</span>
         </motion.h1>
 
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
