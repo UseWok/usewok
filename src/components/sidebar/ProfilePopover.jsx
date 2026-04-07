@@ -165,5 +165,3 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
           </>
           );
           }
-  );
-}
