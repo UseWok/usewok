@@ -127,9 +127,9 @@ export default function Sidebar({ expanded, setExpanded }) {
         >
           <div
             className="relative w-9 h-9 flex-shrink-0 cursor-pointer"
-            onMouseEnter={() => setLogoHovered(true)}
+            onMouseEnter={() => { if (expanded) setLogoHovered(true); }}
             onMouseLeave={() => setLogoHovered(false)}
-            onClick={() => { setLogoHovered(false); setExpanded(false); }}
+            onClick={() => { if (expanded) { setLogoHovered(false); setExpanded(false); } else { setExpanded(true); } }}
           >
             <img src={LOGO_URL} alt="Stensor"
               className="w-9 h-9 object-contain transition-all"

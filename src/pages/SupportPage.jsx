@@ -277,46 +277,77 @@ export default function SupportPage() {
       <div className="max-w-2xl mx-auto px-4 py-6 pb-16">
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate('/')}
-            className="w-9 h-9 flex items-center justify-center transition-all"
-            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '10px' }}>
-            <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
-          </button>
-          <div>
-            <h1 className="text-xl font-black" style={{ color: FG }}>Centre d'aide</h1>
-            <p className="text-xs" style={{ color: '#aaa' }}>Support & Documentation</p>
+        <div className="relative overflow-hidden mb-8 px-5 py-6"
+          style={{ background: FG, borderRadius: '14px' }}>
+          <div className="absolute inset-0 pointer-events-none" style={{
+            backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(221,255,0,0.1) 0%, transparent 55%)'
+          }} />
+          <div className="relative flex items-center gap-4">
+            <button onClick={() => navigate('/')}
+              className="w-9 h-9 flex items-center justify-center flex-shrink-0 transition-all"
+              style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
+              <ArrowLeft className="w-4 h-4 text-white" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-lg font-black text-white">Centre d'aide</h1>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>Support · Documentation · Community</p>
+            </div>
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0"
+              style={{ background: YUZU, borderRadius: '10px' }}>
+              <MessageSquare className="w-5 h-5" style={{ color: FG }} />
+            </div>
           </div>
         </div>
 
         {/* Action cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <button onClick={() => document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
-            style={{ background: YUZU, borderRadius: '14px' }}>
-            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '10px' }}>
-              <Book className="w-5 h-5" style={{ color: FG }} />
-            </div>
-            <p className="text-xs font-black" style={{ color: FG }}>FAQ</p>
-          </button>
-
-          <button onClick={() => discordUrl ? window.open(discordUrl, '_blank') : null}
-            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
-            style={{ background: '#5865F2', borderRadius: '14px' }}>
-            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px' }}>
-              <Hash className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-xs font-black text-white">Discord</p>
-          </button>
-
+        <div className="mb-6 space-y-3">
+          {/* Primary CTA */}
           <button onClick={() => setShowTicket(true)}
-            className="flex flex-col items-center gap-2.5 p-4 text-center transition-all"
-            style={{ background: FG, borderRadius: '14px' }}>
-            <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px' }}>
-              <MessageSquare className="w-5 h-5" style={{ color: YUZU }} />
+            className="w-full flex items-center gap-4 p-5 text-left transition-all"
+            style={{ background: FG, borderRadius: '14px' }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.92'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
+              style={{ background: YUZU, borderRadius: '12px' }}>
+              <MessageSquare className="w-6 h-6" style={{ color: FG }} />
             </div>
-            <p className="text-xs font-black" style={{ color: YUZU }}>Ticket</p>
+            <div className="flex-1">
+              <p className="text-base font-black text-white">Ouvrir un ticket</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>Notre équipe vous répond rapidement</p>
+            </div>
+            <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }} />
           </button>
+          {/* Secondary */}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-3 p-4 text-left transition-all"
+              style={{ background: YUZU, borderRadius: '12px' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+                <Book className="w-4 h-4" style={{ color: FG }} />
+              </div>
+              <div>
+                <p className="text-sm font-black" style={{ color: FG }}>FAQ</p>
+                <p className="text-[10px]" style={{ color: 'rgba(0,0,0,0.45)' }}>Réponses rapides</p>
+              </div>
+            </button>
+            <button onClick={() => discordUrl ? window.open(discordUrl, '_blank') : null}
+              className="flex items-center gap-3 p-4 text-left transition-all"
+              style={{ background: '#5865F2', borderRadius: '12px' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px' }}>
+                <Hash className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-white">Discord</p>
+                <p className="text-[10px] text-white/50">Communauté</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* My Tickets — always shown */}
@@ -379,9 +410,16 @@ export default function SupportPage() {
 
         {/* FAQ */}
         <div id="faq-section">
-          <div className="flex items-center gap-2 mb-3">
-            <Book className="w-4 h-4" style={{ color: '#aaa' }} />
-            <h2 className="text-sm font-black" style={{ color: FG }}>Questions fréquentes</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 flex items-center justify-center" style={{ background: YUZU, borderRadius: '6px' }}>
+                <Book className="w-3.5 h-3.5" style={{ color: FG }} />
+              </div>
+              <h2 className="text-sm font-black" style={{ color: FG }}>Questions fréquentes</h2>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-1" style={{ background: 'rgba(0,0,0,0.05)', color: '#aaa', borderRadius: '5px' }}>
+              {FAQS.length} questions
+            </span>
           </div>
           <div className="space-y-2">
             {FAQS.map((faq, i) => (

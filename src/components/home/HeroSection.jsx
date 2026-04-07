@@ -10,9 +10,9 @@ const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
 const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
 const ALL_MODES = [
-  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert' },
-  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential' },
-  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4 },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2 },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1 },
 ];
 
 const YUZU = '#DDFF00';
@@ -211,9 +211,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           onMouseEnter={e => { if (isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                          <div><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
-                          {!isAllowed && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ccc' }} />}
-                          {mode.id === m.id && <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
+                           <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
+                          {isAllowed && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>{m.credit_cost}T</span>
+                          )}
+                          {!isAllowed && <Lock className="w-3 h-3 ml-auto flex-shrink-0" style={{ color: '#ccc' }} />}
+                          {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
                         </button>
                       );
                     })}
@@ -275,7 +278,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <FileText className="w-3.5 h-3.5" style={{ color: canUpload ? FG : '#ddd' }} />
                         Joindre un fichier
-                        {!canUpload && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ddd' }} />}
+                        {!canUpload && (
+                          <span className="ml-auto text-[9px] font-black px-1.5 py-0.5"
+                            style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '3px' }}>
+                            Essential+
+                          </span>
+                        )}
                       </button>
                     </motion.div>
                   )}
@@ -359,6 +367,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                 {!hasInternet && <span className="text-[9px] font-bold ml-1" style={{ color: '#ccc' }}>Advanced+</span>}
               </button>
               <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
+              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.06)', color: '#999', borderRadius: '2px' }}>{mode.credit_cost}T</span>
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 flex items-center justify-center transition-all"
                 style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>

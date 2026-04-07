@@ -25,9 +25,9 @@ const CORAL = '#FF4F00';
 const MAX_VISIBLE_FILES = 3;
 
 const ALL_MODES = [
-  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert' },
-  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential' },
-  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4 },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2 },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1 },
 ];
 
 const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
@@ -249,7 +249,8 @@ export default function ChatPage() {
       saveConversationMessages(convId, finalMessages);
 
       if (user) {
-        const newUsed = (user.credits_used || 0) + 1;
+        const costPerMsg = (mode.credit_cost || 1) + (useInternet ? 1 : 0);
+        const newUsed = (user.credits_used || 0) + costPerMsg;
         await base44.entities.User.update(user.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
         incrementDailyUsed();
@@ -536,7 +537,12 @@ export default function ChatPage() {
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <FileText className="w-3.5 h-3.5" style={{ color: canUploadFiles ? FG : '#ddd' }} />
                         <span>Joindre un fichier</span>
-                        {!canUploadFiles && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ddd' }} />}
+                        {!canUploadFiles && (
+                          <span className="ml-auto text-[9px] font-black px-1.5 py-0.5"
+                            style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '3px' }}>
+                            Essential+
+                          </span>
+                        )}
                       </button>
                     </motion.div>
                   )}
@@ -577,6 +583,7 @@ export default function ChatPage() {
                   className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5">
                   <SlidersHorizontal className="w-3 h-3" style={{ color: '#aaa' }} />
                   <span className="text-[11px] font-medium" style={{ color: '#aaa' }}>{mode.label}</span>
+                  <span className="text-[9px] font-black px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#888', borderRadius: '2px' }}>{mode.credit_cost}T</span>
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
@@ -599,7 +606,12 @@ export default function ChatPage() {
                               <p className="font-semibold">{m.label}</p>
                               <p className="text-[9px] opacity-60">{m.desc}</p>
                             </div>
-                            {!isAllowed && (
+                            {isAllowed ? (
+                              <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0"
+                                style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>
+                                {m.credit_cost}T
+                              </span>
+                            ) : (
                               <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
                                 style={{ background: 'rgba(0,0,0,0.05)', color: '#888', borderRadius: '2px' }}>
                                 {m.requiredPlan === 'expert' ? 'Expert' : 'Essential'}+
@@ -620,6 +632,9 @@ export default function ChatPage() {
                   style={{ background: useWebSearch ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
                   <Wifi className="w-3 h-3" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }} />
                   <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }}>Web</span>
+                  {hasInternet && useWebSearch && (
+                    <span className="text-[9px] font-black hidden sm:block" style={{ color: '#16a34a' }}>+1T</span>
+                  )}
                 </button>
                 <AnimatePresence>
                   {showInternetMenu && (
