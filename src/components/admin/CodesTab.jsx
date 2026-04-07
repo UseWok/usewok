@@ -36,6 +36,7 @@ export default function PlanCodesSection({ planId, planName }) {
 
   const addCode = async () => {
     if (!newCode.trim()) return;
+    if (availCodes.length >= 1000) { toast.error('Max 1000 codes par plan'); return; }
     setSaving(true);
     const code = newCode.trim().toUpperCase();
     
@@ -86,6 +87,13 @@ export default function PlanCodesSection({ planId, planName }) {
             transition={{ duration: 0.2 }} className="overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: '#fafafa' }}>
               
+              {/* Max warning */}
+              {availCodes.length >= 1000 && (
+                <div className="px-3 py-2 text-xs rounded-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                  ⚠ Limite de 1000 codes atteinte
+                </div>
+              )}
+
               {/* Add code */}
               <div className="flex gap-2">
                 <input
