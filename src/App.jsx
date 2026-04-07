@@ -15,6 +15,8 @@ import PricingPage from './pages/PricingPage';
 import AdminProducts from './pages/admin/AdminProducts';
 import CheckoutPage from './pages/CheckoutPage';
 import SettingsPage from './pages/SettingsPage';
+import SupportPage from './pages/SupportPage';
+import ManagePlanPage from './pages/ManagePlanPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -51,6 +53,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/manage-plan" element={<ManagePlanPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

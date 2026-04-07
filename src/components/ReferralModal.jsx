@@ -45,9 +45,12 @@ export default function ReferralModal({ open, onClose, user }) {
             transition={{ duration: 0.15 }}
             className="fixed z-[301] bg-white font-be"
             style={{
-              top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
               width: 'min(380px, calc(100vw - 24px))',
-              maxHeight: 'calc(100vh - 48px)',
+              maxHeight: 'min(520px, calc(100vh - 48px))',
               overflowY: 'auto',
               borderRadius: '8px',
               border: '1px solid rgba(0,0,0,0.09)',
@@ -62,6 +65,7 @@ export default function ReferralModal({ open, onClose, user }) {
                 </div>
                 <div>
                   <p className="text-sm font-black" style={{ color: FG }}>Invite Friends, Earn Tensors</p>
+              {/* no emoji */}
                   <p className="text-[10px]" style={{ color: '#999' }}>+10 tensors per completed referral · max {MAX_REFERRALS}</p>
                 </div>
               </div>

@@ -21,6 +21,13 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
   const remaining = total - used;
   const isLow = remaining <= 5;
 
+  // Daily usage
+  const dailyLimit = user?.daily_credits_limit || 0; // 0 = unlimited
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const dailyData = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); } catch { return {}; } })();
+  const dailyUsed = dailyData[todayKey] || 0;
+  const hasDailyLimit = dailyLimit > 0;
+
   useEffect(() => {
     const h = (e) => {
       if (open && popRef.current && !popRef.current.contains(e.target) && anchorRef?.current && !anchorRef.current.contains(e.target)) {
@@ -101,6 +108,19 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
               {t('tensors_used', { used, total })}
               {bonus > 0 && ` (+${bonus} bonus)`}
             </p>
+
+            {/* Daily limit */}
+            {hasDailyLimit && (
+              <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Tensors quotidiens</span>
+                  <span className="text-[10px] font-black" style={{ color: dailyUsed >= dailyLimit ? '#ef4444' : '#555' }}>{dailyUsed}/{dailyLimit}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((dailyUsed/dailyLimit)*100,100)}%`, background: dailyUsed >= dailyLimit ? '#ef4444' : PURPLE }} />
+                </div>
+              </div>
+            )}
 
             {/* Plan info */}
             {user?.subscription_plan && (

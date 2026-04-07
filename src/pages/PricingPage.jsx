@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff } from 'lucide-react';
+import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff, ChevronRight } from 'lucide-react';
+import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { getPlansConfig, getUserPlan } from '@/lib/plans-config';
@@ -26,6 +27,7 @@ export default function PricingPage() {
   });
   const [billing, setBilling] = useState('monthly');
   const [purchased, setPurchased] = useState(null);
+  const [showCodeModal, setShowCodeModal] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -37,10 +39,15 @@ export default function PricingPage() {
   }, []);
 
   const handleChoose = (plan) => {
-    if (purchased === plan.id) return;
+    if (purchased === plan.id) {
+      navigate('/manage-plan');
+      return;
+    }
     saveCart(plan.id, billing);
     navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
+
+  const isPaidPlan = purchased && purchased !== 'free';
 
   return (
     <div className="min-h-screen font-be bg-white py-14 px-4">
@@ -83,7 +90,7 @@ export default function PricingPage() {
         {/* Cart resume */}
         {cartPlan && (
           <div className="flex items-center justify-between mb-6 px-4 py-3" style={{ background: FG, borderRadius: '5px' }}>
-            <p className="text-sm font-semibold text-white">🛒 Resume — {cartPlan.name}</p>
+            <p className="text-sm font-semibold text-white">Resume — {cartPlan.name}</p>
             <div className="flex gap-2">
               <button onClick={() => navigate(`/checkout?plan=${cartPlan.id}&billing=${savedCart.billing}`)} className="px-3 py-1.5 text-xs font-bold" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Resume →</button>
               <button onClick={dismissCart} className="px-3 py-1.5 text-xs font-medium" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: '3px' }}>Cancel</button>
@@ -183,15 +190,15 @@ export default function PricingPage() {
                   {/* CTA */}
                   <button
                     onClick={() => handleChoose(plan)}
-                    disabled={isCurrentPlan}
                     className="w-full py-3 text-xs font-black tracking-wide transition-all"
                     style={{
                       borderRadius: '3px',
-                      background: isCurrentPlan ? 'rgba(0,0,0,0.06)' : isRecommended ? YUZU : FG,
-                      color: isCurrentPlan ? '#aaa' : isRecommended ? FG : 'white',
-                      cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
+                      border: isCurrentPlan ? `2px solid ${FG}` : 'none',
+                      background: isCurrentPlan ? 'transparent' : isRecommended ? YUZU : FG,
+                      color: isCurrentPlan ? FG : isRecommended ? FG : 'white',
+                      cursor: 'pointer',
                     }}>
-                    {isCurrentPlan ? t('current_plan') : t('choose_plan', { name: plan.name })}
+                    {isCurrentPlan ? 'Gerer' : t('choose_plan', { name: plan.name })}
                   </button>
                 </div>
               </motion.div>
@@ -199,9 +206,21 @@ export default function PricingPage() {
           })}
         </div>
 
-        <div className="text-center mt-10">
+        {/* Activation code section */}
+        <div className="max-w-md mx-auto mt-12 mb-4">
+          <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.07)' }} />
+          <p className="text-center text-sm font-semibold mb-3" style={{ color: '#555' }}>Vous avez un code d'activation ?</p>
+          <button onClick={() => setShowCodeModal(true)}
+            className="w-full py-3 text-sm font-bold transition-all hover:opacity-80"
+            style={{ border: '1px solid rgba(0,0,0,0.15)', borderRadius: '4px', color: FG }}>
+            Entrer un code
+          </button>
+        </div>
+
+        <div className="text-center mt-4">
           <p className="text-xs" style={{ color: '#aaa' }}>{t('secure_payment')}</p>
         </div>
+        <ActivationCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} />
       </div>
     </div>
   );

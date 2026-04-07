@@ -229,15 +229,15 @@ export default function SettingsPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => navigate('/pricing')}
+                      <button onClick={() => navigate('/manage-plan')}
                         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
                         style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                        Gérer le plan <ChevronRight className="w-3 h-3" />
+                        Gerer le plan <ChevronRight className="w-3 h-3" />
                       </button>
                       <button onClick={() => navigate('/pricing')}
                         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
                         style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '3px' }}>
-                        Mettre à niveau
+                        Mettre a niveau
                       </button>
                     </div>
                   </div>

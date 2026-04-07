@@ -39,6 +39,12 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
   }, [open, onClose, anchorRef]);
 
   const getPosition = () => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      const w = Math.min(340, window.innerWidth - 24);
+      const maxH = Math.min(460, window.innerHeight - 80);
+      return { left: (window.innerWidth - w) / 2, top: Math.max(60, (window.innerHeight - maxH) / 2), width: w, maxH };
+    }
     if (!anchorRef?.current) return { left: 76, top: 200 };
     const rect = anchorRef.current.getBoundingClientRect();
     const popW = 300;
@@ -79,7 +85,7 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
           className="fixed z-[200] flex flex-col"
           style={{
             left: pos.left, top: pos.top,
-            width: '300px',
+            width: pos.width ? `${pos.width}px` : '300px',
             maxHeight: `${pos.maxH || 460}px`,
             background: 'white',
             border: '1px solid rgba(0,0,0,0.09)',

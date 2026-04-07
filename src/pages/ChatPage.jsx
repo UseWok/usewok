@@ -95,7 +95,13 @@ export default function ChatPage() {
   const textareaRef = useRef(null);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
-  const blocked = creditsUsed >= creditsLimit;
+  const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
+  // Track daily usage
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const getDailyUsed = () => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0; } catch { return 0; } };
+  const incrementDailyUsed = () => { try { const d = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); d[todayKey] = (d[todayKey] || 0) + 1; localStorage.setItem('stensor_daily_usage', JSON.stringify(d)); } catch {} };
+  const dailyBlocked = dailyLimit > 0 && getDailyUsed() >= dailyLimit;
+  const blocked = creditsUsed >= creditsLimit || dailyBlocked;
   const rawAllowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id) || (m.id === 'thinking' && userPlan.allowed_modes.includes('fast'))) : [];
   const allowedModes = rawAllowedModes.length > 0 ? rawAllowedModes : [ALL_MODES[ALL_MODES.length - 1]];
   const canUploadFiles = userPlan?.file_upload || false;
@@ -245,6 +251,7 @@ export default function ChatPage() {
         const newUsed = (user.credits_used || 0) + 1;
         await base44.entities.User.update(user.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
+        incrementDailyUsed();
       }
 
       try {
@@ -354,14 +361,17 @@ export default function ChatPage() {
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
             className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="flex-shrink-0 mt-1">
-                <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60" />
+              <div className="flex-shrink-0 flex flex-col items-center gap-1 mt-0.5">
+                <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain" />
+                <span className="text-[10px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
               </div>
             )}
             <div className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
+              {msg.role === 'user' && (
               <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>
-                {msg.role === 'user' ? userName : 'Stensor'}
+                {userName}
               </p>
+              )}
               <div className={`text-sm leading-7 px-4 py-3 ${msg.role === 'user' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`}
                 style={msg.role === 'user'
                   ? { background: FG, color: 'white', borderRadius: '4px', borderTopRightRadius: '2px' }

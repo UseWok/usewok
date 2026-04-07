@@ -7,35 +7,25 @@
       "enum": [
         "admin",
         "user"
-      ],
-      "default": "user"
+      ]
     },
     "subscription_plan": {
-      "type": "string",
-      "enum": [
-        "free",
-        "essential",
-        "advanced",
-        "expert",
-        "supreme"
-      ],
-      "default": "free"
+      "type": "string"
     },
     "credits_used": {
-      "type": "number",
-      "default": 0
+      "type": "number"
     },
     "credits_limit": {
-      "type": "number",
-      "default": 10
+      "type": "number"
     },
     "credits_bonus": {
-      "type": "number",
-      "default": 0
+      "type": "number"
+    },
+    "daily_credits_limit": {
+      "type": "number"
     },
     "is_banned": {
-      "type": "boolean",
-      "default": false
+      "type": "boolean"
     },
     "ban_until": {
       "type": "string"

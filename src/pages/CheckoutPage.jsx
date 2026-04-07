@@ -238,30 +238,6 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Activation code section */}
-      <div className="mt-6 mb-2">
-        <div className="h-px mb-6" style={{ background: 'rgba(0,0,0,0.07)' }} />
-        <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
-          <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Vous avez un code ?</p>
-          <p className="text-xs mb-3" style={{ color: '#888' }}>Vérifiez vos mails et entrez votre code d'activation à 12 chiffres.</p>
-          <div className="flex gap-2">
-            <input
-              value={activationCode || ''}
-              onChange={e => setActivationCode(e.target.value.toUpperCase())}
-              placeholder="Ex: 4F7K9M2X1R8P"
-              maxLength={12}
-              className="flex-1 px-3 py-2.5 text-sm font-mono focus:outline-none"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }}
-            />
-            <button onClick={activateCode} disabled={codeLoading || !activationCode?.trim()}
-              className="px-4 py-2.5 text-sm font-bold disabled:opacity-40 transition-all"
-              style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-              {codeLoading ? '...' : 'Activer'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* No redirect URL modal */}
       <AnimatePresence>
         {confirming && (

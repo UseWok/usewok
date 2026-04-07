@@ -104,7 +104,8 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Limites</p>
-                  {field('max_discussions', 'Max discussions (0=illimité)', 'number', 0)}
+                  {field('max_discussions', 'Max discussions (0=illimite)', 'number', 0)}
+                  {field('daily_credits_limit', 'Tensors/jour (0=illimite)', 'number', 0)}
                   {field('lessons_per_month', 'Leçons / mois', 'number', 0)}
                   {field('shareable_credits', 'Crédits partageables / an', 'number', 0)}
                 </div>

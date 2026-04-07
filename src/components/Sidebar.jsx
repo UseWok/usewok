@@ -201,7 +201,8 @@ export default function Sidebar({ expanded, setExpanded }) {
 
         {/* Bottom section */}
         <div className="flex-shrink-0 px-2 pb-4 space-y-1">
-          {/* Upgrade card — always visible */}
+          {/* Upgrade card — only shown on free plan */}
+          {userPlan && userPlan.price_monthly === 0 && (
           <button
             onClick={() => navigate('/pricing')}
             className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 transition-all"
@@ -219,6 +220,7 @@ export default function Sidebar({ expanded, setExpanded }) {
               </div>
             )}
           </button>
+          )}
 
           {/* Tensors bar — hidden when collapsed on desktop, always visible on mobile */}
           {(expanded || isMobile) && (
