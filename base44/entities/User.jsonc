@@ -10,18 +10,28 @@
       ],
       "default": "user"
     },
+    "subscription_plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "essential",
+        "advanced",
+        "expert",
+        "supreme"
+      ],
+      "default": "free"
+    },
     "credits_used": {
       "type": "number",
       "default": 0
     },
     "credits_limit": {
       "type": "number",
-      "default": 25
+      "default": 10
     },
     "credits_bonus": {
       "type": "number",
-      "default": 0,
-      "description": "Extra credits gifted by admin or earned via referral"
+      "default": 0
     },
     "is_banned": {
       "type": "boolean",

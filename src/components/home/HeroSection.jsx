@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown } from 'lucide-react';
+import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { getUserPlan } from '@/lib/plans-config';
 
 const AGENTS = [
   { id: 'global', label: 'Agent Global' },
@@ -9,12 +11,15 @@ const AGENTS = [
   { id: 'wealth-strategy', label: 'Wealth Strategy' },
 ];
 
-const MODES = [
-  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant' },
-  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', desc: 'Gemini 3 Pro' },
-  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', desc: 'Raisonnement profond' },
+const ALL_MODES = [
   { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
+  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', desc: 'Réflexion profonde' },
+  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée' },
+  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant' },
 ];
+
+const YUZU = '#DDFF00';
+const FG = '#0A0A0A';
 
 const popAnim = {
   initial: { opacity: 0, y: -4, scale: 0.97 },
@@ -31,8 +36,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
-  const [mode, setMode] = useState(MODES[3]);
+  const [mode, setMode] = useState(ALL_MODES[0]);
   const [isRecording, setIsRecording] = useState(false);
+  const [userPlan, setUserPlan] = useState(null);
 
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -43,10 +49,14 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
-  // Default agent is 'global' if none selected
   const effectiveAgentId = agentId || 'global';
-
   const lockedAgentLabel = AGENTS.find(a => a.id === effectiveAgentId)?.label;
+  const allowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id)) : [ALL_MODES[0]];
+  const canUpload = userPlan?.file_upload || false;
+
+  useEffect(() => {
+    base44.auth.me().then(u => setUserPlan(getUserPlan(u))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -99,11 +109,18 @@ export default function HeroSection({ agentId, onAgentChange }) {
   };
 
   const selectAtMode = (m) => {
+    if (!userPlan?.allowed_modes.includes(m.id)) return;
     const lastAt = query.lastIndexOf('@');
     setQuery(query.slice(0, lastAt) + `@${m.label} `);
     setMode(m);
     setShowAtMenu(false);
     textareaRef.current?.focus();
+  };
+
+  const handleFileAttach = () => {
+    if (!canUpload) { navigate('/pricing'); return; }
+    fileInputRef.current?.click();
+    setShowFileMenu(false);
   };
 
   const handleCommencer = () => {
@@ -114,57 +131,70 @@ export default function HeroSection({ agentId, onAgentChange }) {
   };
 
   const filteredAgents = AGENTS.filter(a => a.label.toLowerCase().includes(atQuery));
-  const filteredModes = MODES.filter(m => m.label.toLowerCase().includes(atQuery));
+  const filteredModes = ALL_MODES.filter(m => m.label.toLowerCase().includes(atQuery));
   const hasText = query.trim().length > 0;
 
   return (
-    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-32">
+    <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+        className="inline-flex items-center gap-2 px-3 py-1 mb-5"
+        style={{ background: YUZU, borderRadius: '2px' }}>
+        <Zap className="w-3 h-3" style={{ color: FG }} />
+        <span className="text-[10px] font-black tracking-widest" style={{ color: FG }}>STENSOR — FINANCE IA</span>
+      </motion.div>
+
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-        className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-        {lockedAgentLabel ? lockedAgentLabel : 'Que voulez-vous accomplir ?'}
+        className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
+        {lockedAgentLabel ? lockedAgentLabel : 'Votre coach financier IA'}
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
-        className="mt-2 text-sm text-muted-foreground">
-        {lockedAgentLabel ? 'Agent sélectionné — modifiez via le menu' : 'Posez une question ou décrivez ce que vous souhaitez accomplir'}
+        className="mt-3 text-sm" style={{ color: '#888' }}>
+        Disponible 24h/24 · Confidentiel · Plus rapide qu'un conseiller humain
       </motion.p>
 
       {/* Input card */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}
-        className="mt-6 relative">
+        className="mt-7 relative">
 
         {/* @ menu */}
         <AnimatePresence>
           {showAtMenu && (
             <motion.div ref={atMenuRef} {...popAnim}
-              className="absolute left-0 right-0 bottom-full mb-2 rounded-xl overflow-hidden shadow-lg z-50 bg-card border border-border text-left">
-              <div className="px-3 py-2 border-b border-border">
-                <p className="text-xs font-semibold text-muted-foreground">@ Agents & Modes</p>
+              className="absolute left-0 right-0 bottom-full mb-2 overflow-hidden shadow-lg z-50 bg-white text-left"
+              style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>@ Agents & Modes</p>
               </div>
               <div className="max-h-52 overflow-y-auto">
                 {filteredAgents.length > 0 && (
                   <div className="px-2 py-1">
-                    <p className="text-[10px] px-2 py-1 font-semibold uppercase tracking-wider text-muted-foreground">Agents</p>
                     {filteredAgents.map(agent => (
                       <button key={agent.id} onClick={() => selectAtAgent(agent)}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left hover:bg-foreground/5 transition-colors ${agentId === agent.id ? 'text-primary font-semibold' : 'text-foreground/70'}`}>
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors"
+                        style={{ borderRadius: '3px', color: agentId === agent.id ? FG : '#555', background: agentId === agent.id ? YUZU : 'transparent' }}
+                        onMouseEnter={e => { if (agentId !== agent.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                        onMouseLeave={e => { if (agentId !== agent.id) e.currentTarget.style.background = 'transparent'; }}>
                         <Bot className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>{agent.label}</span>
-                        {agentId === agent.id && <span className="ml-auto text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">actif</span>}
+                        <span className="font-medium">{agent.label}</span>
                       </button>
                     ))}
                   </div>
                 )}
                 {filteredModes.length > 0 && (
                   <div className="px-2 pb-2">
-                    <p className="text-[10px] px-2 py-1 font-semibold uppercase tracking-wider text-muted-foreground">Modes</p>
                     {filteredModes.map(m => {
                       const Icon = m.icon;
+                      const isAllowed = userPlan?.allowed_modes.includes(m.id);
                       return (
                         <button key={m.id} onClick={() => selectAtMode(m)}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left hover:bg-foreground/5 transition-colors ${mode.id === m.id ? 'text-primary' : 'text-foreground/70'}`}>
-                          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                          <div><p className="text-sm font-medium">{m.label}</p><p className="text-[10px] text-muted-foreground">{m.desc}</p></div>
-                          {mode.id === m.id && <span className="ml-auto text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">actif</span>}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors"
+                          style={{ borderRadius: '3px', opacity: isAllowed ? 1 : 0.4 }}
+                          onMouseEnter={e => { if (isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                          <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
+                          <div><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
+                          {!isAllowed && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ccc' }} />}
+                          {mode.id === m.id && <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
                         </button>
                       );
                     })}
@@ -175,16 +205,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
           )}
         </AnimatePresence>
 
-        <div className="rounded-2xl shadow-lg overflow-visible"
-          style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 20px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div className="bg-white overflow-visible"
+          style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
+          
           {files.length > 0 && (
             <div className="flex gap-2 flex-wrap p-4 pb-0">
               {files.map((file, idx) => (
-                <div key={idx} className="relative w-18 h-18 rounded-lg border border-border bg-muted flex flex-col items-center justify-center overflow-hidden group p-2">
-                  <FileText className="w-5 h-5 text-muted-foreground mb-1" />
-                  <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2">{file.name}</span>
-                  <button onClick={() => removeFile(idx)} className="absolute top-0.5 right-0.5 w-4 h-4 bg-background/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <X className="w-2.5 h-2.5" />
+                <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group"
+                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}>
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
+                  <span className="text-[10px] font-medium max-w-[80px] truncate" style={{ color: '#444' }}>{file.name}</span>
+                  <button onClick={() => removeFile(idx)}
+                    className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(0,0,0,0.1)', borderRadius: '2px' }}>
+                    <X className="w-2 h-2" />
                   </button>
                 </div>
               ))}
@@ -194,9 +228,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
           <div className="px-4 pt-4 pb-1">
             <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommencer(); } }}
-              placeholder="Décrivez ce que vous voulez accomplir... (@ pour agents)"
+              placeholder="Posez votre question financière… (@ pour agents)"
               rows={3}
-              className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/30 focus:outline-none leading-relaxed"
+              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
+              style={{ color: FG }}
             />
           </div>
 
@@ -204,14 +239,23 @@ export default function HeroSection({ agentId, onAgentChange }) {
             <div className="flex items-center gap-1">
               {/* + file button */}
               <div className="relative" ref={fileMenuRef}>
-                <button onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }} className="w-8 h-8 rounded-lg hover:bg-foreground/6 flex items-center justify-center transition-colors">
-                  <Plus className="w-4 h-4 text-foreground/35" />
+                <button onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }}
+                  className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5"
+                  style={{ borderRadius: '4px' }}>
+                  <Plus className="w-4 h-4" style={{ color: '#bbb' }} />
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[150px] z-50">
-                      <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-foreground/5 transition-colors text-left text-foreground/80">
-                        <FileText className="w-3.5 h-3.5" /> Joindre un fichier
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+                      <button onClick={handleFileAttach}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left"
+                        style={{ color: canUpload ? '#444' : '#bbb', borderRadius: '3px' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <FileText className="w-3.5 h-3.5" style={{ color: canUpload ? FG : '#ddd' }} />
+                        Joindre un fichier
+                        {!canUpload && <Lock className="w-3 h-3 ml-auto" style={{ color: '#ddd' }} />}
                       </button>
                       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
                     </motion.div>
@@ -221,20 +265,25 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
               {/* Agent button */}
               <div className="relative" ref={agentMenuRef}>
-                <button onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }} className="h-8 px-2.5 rounded-lg hover:bg-foreground/6 flex items-center gap-1.5 transition-colors">
-                  <Bot className="w-3.5 h-3.5 text-foreground/35" />
-                  <span className="text-xs text-foreground/45 font-medium">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : 'Agent'}</span>
-                  <ChevronDown className="w-3 h-3 text-foreground/30" />
+                <button onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
+                  className="h-8 px-2.5 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderRadius: '4px' }}>
+                  <Bot className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
+                  <span className="text-xs font-medium" style={{ color: '#bbb' }}>{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : 'Agent'}</span>
+                  <ChevronDown className="w-3 h-3" style={{ color: '#ccc' }} />
                 </button>
                 <AnimatePresence>
                   {showAgentMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[200px] z-50">
-                      <p className="text-[10px] text-muted-foreground px-3 py-1.5 font-semibold uppercase tracking-wider">Agent IA</p>
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       {AGENTS.map((a) => (
                         <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
+                          style={{ color: effectiveAgentId === a.id ? FG : '#666', background: effectiveAgentId === a.id ? YUZU : 'transparent', borderRadius: '3px' }}
+                          onMouseEnter={e => { if (effectiveAgentId !== a.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                          onMouseLeave={e => { if (effectiveAgentId !== a.id) e.currentTarget.style.background = 'transparent'; }}>
                           <Bot className="w-3.5 h-3.5" /> {a.label}
-                          </button>
+                        </button>
                       ))}
                     </motion.div>
                   )}
@@ -243,20 +292,30 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
               {/* Mode button */}
               <div className="relative" ref={modeMenuRef}>
-                <button onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }} className="w-8 h-8 rounded-lg hover:bg-foreground/6 flex items-center justify-center transition-colors">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-foreground/35" />
+                <button onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }}
+                  className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5"
+                  style={{ borderRadius: '4px' }}>
+                  <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
-                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-card border border-border rounded-xl shadow-xl p-1.5 min-w-[190px] z-50">
-                      <p className="text-[10px] text-muted-foreground px-3 py-1.5 font-semibold uppercase tracking-wider">Mode</p>
-                      {MODES.map((m) => {
+                    <motion.div {...popAnim} className="absolute top-full mt-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+                      {ALL_MODES.map((m) => {
                         const Icon = m.icon;
+                        const isAllowed = userPlan?.allowed_modes.includes(m.id);
                         return (
-                          <button key={m.id} onClick={() => { setMode(m); setShowModeMenu(false); }}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left mb-0.5 ${mode.id === m.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-foreground/5 text-foreground/70'}`}>
+                          <button key={m.id} onClick={() => {
+                            if (!isAllowed) return;
+                            setMode(m); setShowModeMenu(false);
+                          }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 transition-colors text-left mb-0.5"
+                            style={{ color: mode.id === m.id ? FG : isAllowed ? '#555' : '#ccc', background: mode.id === m.id ? YUZU : 'transparent', borderRadius: '3px', opacity: isAllowed ? 1 : 0.5 }}
+                            onMouseEnter={e => { if (mode.id !== m.id && isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                            onMouseLeave={e => { if (mode.id !== m.id) e.currentTarget.style.background = 'transparent'; }}>
                             <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                            <div><p className="text-sm font-medium">{m.label}</p><p className="text-[10px] text-muted-foreground">{m.desc}</p></div>
+                            <div className="flex-1"><p className="text-sm font-medium">{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
+                            {!isAllowed && <Lock className="w-3 h-3 flex-shrink-0" style={{ color: '#ccc' }} />}
                           </button>
                         );
                       })}
@@ -267,19 +326,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-foreground/40 hidden sm:block">{mode.label}</span>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
               <button onClick={toggleRecording}
-                className="relative w-8 h-8 rounded-full flex items-center justify-center transition-all overflow-hidden"
-                style={{ background: isRecording ? 'linear-gradient(135deg, #1E0050, #7c3aed)' : 'rgba(30,0,80,0.05)' }}>
+                className="relative w-8 h-8 flex items-center justify-center transition-all overflow-hidden"
+                style={{ background: isRecording ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
                 {isRecording ? (
                   <div className="flex items-end gap-0.5 h-4">
                     {[0, 1, 2, 3].map((i) => (
-                      <motion.div key={i} className="w-0.5 rounded-full bg-white"
+                      <motion.div key={i} className="w-0.5 rounded-full"
                         animate={{ height: ['3px', '14px', '6px', '10px', '3px'] }}
-                        transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15, ease: 'easeInOut' }} />
+                        transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15, ease: 'easeInOut' }}
+                        style={{ background: YUZU }} />
                     ))}
                   </div>
-                ) : <Mic className="w-3.5 h-3.5" style={{ color: 'rgba(30,0,80,0.4)' }} />}
+                ) : <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />}
               </button>
             </div>
           </div>
@@ -289,17 +349,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {/* Commencer button */}
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         onClick={handleCommencer} disabled={!hasText}
-        className="mt-3 w-full rounded-xl font-bold text-sm transition-all"
-        style={{ background: hasText ? '#FF4F00' : 'rgba(0,0,0,0.06)', color: hasText ? 'white' : '#aaa', cursor: hasText ? 'pointer' : 'not-allowed' }}>
-        <span>Commencer →</span>
+        className="mt-3 w-full py-3.5 font-black text-sm tracking-wide transition-all"
+        style={{ background: hasText ? FG : 'rgba(0,0,0,0.06)', color: hasText ? 'white' : '#bbb', cursor: hasText ? 'pointer' : 'not-allowed', borderRadius: '4px' }}>
+        Commencer →
       </motion.button>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-5">
-        <p className="text-xs text-muted-foreground mb-3">Que souhaitez-vous créer ?</p>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-6">
+        <p className="text-xs mb-3" style={{ color: '#bbb' }}>Sujets populaires</p>
         <div className="flex flex-wrap justify-center gap-2">
-          {['CRM', 'Productivité', 'Divertissement', 'Éducatif', 'Finances personnelles'].map(cat => (
-            <button key={cat} onClick={() => setQuery(`Crée une application de type ${cat}`)}
-              className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground transition-colors">
+          {['Budget & dépenses', 'Investissement', 'Épargne', 'Retraite', 'Fiscalité'].map(cat => (
+            <button key={cat} onClick={() => setQuery(`Aide-moi sur le sujet : ${cat}`)}
+              className="px-3.5 py-1.5 border text-xs font-medium transition-colors"
+              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', color: '#666', background: 'white' }}
+              onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.border = `1px solid ${FG}`; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#666'; e.currentTarget.style.border = '1px solid rgba(0,0,0,0.1)'; }}>
               {cat}
             </button>
           ))}

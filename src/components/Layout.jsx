@@ -12,8 +12,8 @@ export default function Layout() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background flex font-be">
-      {/* Desktop sidebar — hidden on mobile */}
+    <div className="min-h-screen bg-white flex font-be">
+      {/* Desktop sidebar */}
       {!isMobile && <Sidebar expanded={expanded} setExpanded={setExpanded} />}
 
       {/* Mobile: sidebar drawer */}
@@ -25,7 +25,7 @@ export default function Layout() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 z-40"
+                className="fixed inset-0 bg-black/40 z-40"
                 onClick={() => setExpanded(false)}
               />
               <Sidebar expanded={true} setExpanded={setExpanded} />
@@ -43,8 +43,8 @@ export default function Layout() {
         {isMobile && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="fixed top-4 left-4 z-30 w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'rgba(30,0,80,0.7)', color: 'white', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}
+            className="fixed top-4 left-4 z-30 w-8 h-8 flex items-center justify-center"
+            style={{ background: '#0A0A0A', color: 'white', borderRadius: '4px' }}
           >
             <Menu className="w-4 h-4" />
           </button>
