@@ -1,64 +1,83 @@
-import { useRef, useEffect, useState } from 'react';
-import { Globe, Check } from 'lucide-react';
+import { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Check, X } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n';
 
-const languages = [
-  { code: 'fr', native: 'Français' },
-  { code: 'en', native: 'English' },
-  { code: 'de', native: 'Deutsch' },
-  { code: 'es', native: 'Español' },
+const PURPLE = '#3A0088';
+const YUZU = '#DDFF00';
+
+const LANGUAGES = [
+  { code: 'en', label: 'English', flag: '🇺🇸', native: 'English (US)' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷', native: 'Français' },
+  { code: 'es', label: 'Español', flag: '🇪🇸', native: 'Español' },
+  { code: 'pt', label: 'Português', flag: '🇧🇷', native: 'Português (BR)' },
 ];
 
 export default function LanguagePopover({ open, onClose, anchorRef }) {
-  const popoverRef = useRef(null);
-  const [selected, setSelected] = useState('fr');
+  const popRef = useRef(null);
+  const { lang, setLang } = useLanguage();
 
   useEffect(() => {
-    const handleClick = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target) &&
-          anchorRef?.current && !anchorRef.current.contains(e.target)) {
-        onClose();
-      }
+    const h = (e) => {
+      if (popRef.current && !popRef.current.contains(e.target) &&
+          anchorRef?.current && !anchorRef.current.contains(e.target)) onClose();
     };
-    if (open) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    if (open) document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, [open, onClose, anchorRef]);
 
-  const getPosition = () => {
-    if (!anchorRef?.current) return { left: 60, bottom: 16 };
+  const getPos = () => {
+    if (!anchorRef?.current) return { left: 72, top: 200 };
     const rect = anchorRef.current.getBoundingClientRect();
-    return { left: rect.right + 8, bottom: window.innerHeight - rect.bottom };
+    const popW = 220;
+    let left = rect.right + 12;
+    if (left + popW > window.innerWidth - 16) left = rect.left - popW - 12;
+    let top = rect.top - 20;
+    if (top + 240 > window.innerHeight - 16) top = window.innerHeight - 256;
+    return { left, top };
   };
 
-  const pos = open ? getPosition() : {};
+  const pos = open ? getPos() : {};
+
+  const handleSelect = (code) => {
+    setLang(code);
+    onClose();
+  };
 
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          ref={popoverRef}
-          initial={{ opacity: 0, x: -8, scale: 0.95 }}
+        <motion.div ref={popRef}
+          initial={{ opacity: 0, x: -8, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: -8, scale: 0.95 }}
+          exit={{ opacity: 0, x: -8, scale: 0.96 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[100] w-48 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
-          style={{ left: pos.left, bottom: pos.bottom }}
-        >
-          <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
-            <Globe className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold">Langue</span>
+          className="fixed z-[200] w-52"
+          style={{ left: pos.left, top: pos.top, background: 'white', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }}>
+
+          <div className="flex items-center justify-between px-3 py-2.5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <span className="text-xs font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Language</span>
+            <button onClick={onClose} className="w-5 h-5 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
+              <X className="w-3 h-3" style={{ color: '#bbb' }} />
+            </button>
           </div>
-          <div className="py-1">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => { setSelected(lang.code); onClose(); }}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted transition-colors"
-              >
-                <span className={selected === lang.code ? 'font-medium text-foreground' : 'text-muted-foreground'}>
-                  {lang.native}
-                </span>
-                {selected === lang.code && <Check className="w-3.5 h-3.5 text-primary" />}
+
+          <div className="p-1.5">
+            {LANGUAGES.map(lng => (
+              <button key={lng.code} onClick={() => handleSelect(lng.code)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all"
+                style={{
+                  background: lang === lng.code ? YUZU : 'transparent',
+                  color: lang === lng.code ? PURPLE : '#444',
+                  borderRadius: '4px',
+                }}
+                onMouseEnter={e => { if (lang !== lng.code) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                onMouseLeave={e => { if (lang !== lng.code) e.currentTarget.style.background = 'transparent'; }}>
+                <span className="text-lg leading-none">{lng.flag}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold">{lng.native}</p>
+                </div>
+                {lang === lng.code && <Check className="w-3 h-3 flex-shrink-0" style={{ color: PURPLE }} />}
               </button>
             ))}
           </div>

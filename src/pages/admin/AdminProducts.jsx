@@ -349,7 +349,8 @@ export default function AdminProducts() {
     const plan = plansConfig.find(p => p.id === planId);
     if (!plan) return;
     await base44.auth.updateMe({ subscription_plan: planId, credits_limit: plan.credits_limit, credits_used: 0, credits_bonus: 0 });
-    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+    const updated = await base44.auth.me();
+    setCurrentUser(updated);
     showSaved();
   };
 

@@ -38,16 +38,17 @@ export default function PricingPage() {
 
   const handleSubscribe = async (plan) => {
     if (!user) return;
-    const price = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
-    if (price === 0 && plan.id !== 'free') return;
     await base44.auth.updateMe({
       subscription_plan: plan.id,
       credits_limit: plan.credits_limit,
       credits_used: 0,
       credits_bonus: 0,
     });
+    // Reload user to confirm
+    const updated = await base44.auth.me();
+    setUser(updated);
     setPurchased(plan.id);
-    setTimeout(() => navigate('/'), 1500);
+    setTimeout(() => navigate('/'), 1200);
   };
 
   const getPlanFeatures = (plan) => {
