@@ -145,6 +145,10 @@ export default function LandingPage() {
   }, []);
 
   const handleStart = async (query) => {
+    if (!query?.trim()) {
+      navigate('/app');
+      return;
+    }
     try {
       const auth = await base44.auth.isAuthenticated();
       if (auth) {

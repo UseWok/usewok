@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
+import DeleteAccountModal from './DeleteAccountModal';
 
 export default function ProfilePopover({ open, onClose, anchorRef, user, userInitial }) {
   const popoverRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -60,6 +62,11 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: Trash2, label: 'Supprimer le compte', isDelete: true, destructive: true },
   ];
 
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -101,20 +108,30 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
                   <item.icon className="w-4 h-4 flex-shrink-0 relative z-10" />
                   <span className="relative z-10">Supprimer le compte {deleteHoldTime > 0 ? `(${(deleteHoldTime).toFixed(1)}s)` : ''}</span>
                 </button>
-              ) : (
+                ) : item.isDelete ? (
                 <button
-                  key={i}
-                  onClick={() => { item.action(); onClose(); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted ${item.destructive ? 'text-destructive' : 'text-foreground'}`}
+                key={i}
+                onClick={handleDeleteClick}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted text-destructive"
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  {item.label}
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
                 </button>
-              )
+                ) : (
+                <button
+                key={i}
+                onClick={() => { item.action(); onClose(); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted ${item.destructive ? 'text-destructive' : 'text-foreground'}`}
+                >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
+                </button>
+                )
             )}
           </div>
         </motion.div>
       )}
+      <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} user={user} />
     </AnimatePresence>
   );
 }

@@ -105,10 +105,18 @@ export default function Sidebar({ expanded, setExpanded }) {
     ? user.full_name.charAt(0).toUpperCase()
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
+  const [pageSettings, setPageSettings] = useState({ show_parcours: true, show_community: true });
+
+  useEffect(() => {
+    base44.entities.AppSettings.filter({ key: 'page_modes' }).then(results => {
+      if (results.length > 0) { try { const m = JSON.parse(results[0].value); setPageSettings({ show_parcours: m.show_parcours !== false, show_community: m.show_community !== false }); } catch {} }
+    }).catch(() => {});
+  }, []);
+
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
-    { icon: GraduationCap, labelKey: 'parcours', path: '/parcours', active: location.pathname === '/parcours' },
-    { icon: Users, labelKey: 'community', path: '/community', active: location.pathname === '/community' },
+    ...(pageSettings.show_parcours ? [{ icon: GraduationCap, labelKey: 'parcours', path: '/parcours', active: location.pathname === '/parcours' }] : []),
+    ...(pageSettings.show_community ? [{ icon: Users, labelKey: 'community', path: '/community', active: location.pathname === '/community' }] : []),
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 

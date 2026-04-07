@@ -725,6 +725,15 @@ export default function AdminProducts() {
         {/* PAGES TAB */}
         {tab === 'pages' && (
           <div className="max-w-xl">
+            <div className="bg-white p-5 border mb-6" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+              <p className="text-sm font-bold mb-2" style={{ color: FG }}>Masquer globalement du site</p>
+              <p className="text-xs mb-4" style={{ color: '#aaa' }}>Enlève ces sections de l'accueil et des menus pour tous les utilisateurs.</p>
+              <div className="flex gap-3 flex-wrap">
+                {[{ key: 'show_parcours', label: 'Parcours' }, { key: 'show_community', label: 'Communauté' }].map(opt => (
+                  <Toggle key={opt.key} value={pageModes[opt.key] !== false} onChange={v => setPageModes(m => ({ ...m, [opt.key]: v }))} />
+                ))}
+              </div>
+            </div>
             <p className="text-sm mb-6" style={{ color: '#666' }}>Choisissez si une page affiche son contenu réel ou une page "En Construction" vivante.</p>
             <div className="space-y-3">
               {[{ key: 'parcours', label: 'Tensor Academy (Parcours)', desc: 'Le parcours d\'apprentissage IA' }, { key: 'community', label: 'Communauté', desc: 'L\'espace communautaire' }].map(page => (
