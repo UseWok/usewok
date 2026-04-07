@@ -32,6 +32,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(MODES[3]);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const fileMenuRef = useRef(null);
+  const agentMenuRef = useRef(null);
+  const modeMenuRef = useRef(null);
+  const atMenuRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const navigate = useNavigate();
+
   // Default agent is 'global' if none selected
   const effectiveAgentId = agentId || 'global';
 
