@@ -150,10 +150,10 @@ export default function ManagePlanPage() {
         {/* Cancel */}
         {userPlan?.price_monthly > 0 && !cancelSent && (
           <button onClick={handleCancelClick}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold transition-all"
-            style={{ background: '#ef4444', color: 'white', borderRadius: '5px' }}>
-            <X className="w-4 h-4" />
-            Annuler l'abonnement
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+            style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
+            <X className="w-3 h-3" />
+            Annuler
           </button>
         )}
 
@@ -244,9 +244,9 @@ export default function ManagePlanPage() {
                     {cancelLoading ? 'Envoi...' : 'Envoyer la demande'}
                   </button>
                   <button onClick={() => setShowCancel(false)}
-                    className="px-4 py-2.5 text-sm font-medium"
-                    style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '4px' }}>
-                    Annuler
+                    className="px-3 py-2.5 text-xs font-medium"
+                    style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    Non
                   </button>
                 </div>
               </div>

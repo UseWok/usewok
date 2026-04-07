@@ -173,24 +173,37 @@ export default function SettingsPage() {
             {activeSection === 'profile' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                 <SectionTitle>Profil</SectionTitle>
-                <div className="space-y-4 max-w-md">
-                  <div>
-                    <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Adresse e-mail (non modifiable)</label>
-                    <input value={user?.email || ''} disabled
-                      className="w-full px-3 py-2.5 text-sm bg-black/3 cursor-not-allowed"
-                      style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', color: '#aaa' }} />
+                <div className="space-y-6 max-w-md">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Adresse e-mail (non modifiable)</label>
+                      <input value={user?.email || ''} disabled
+                        className="w-full px-3 py-2.5 text-sm bg-black/3 cursor-not-allowed"
+                        style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', color: '#aaa' }} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Nom complet</label>
+                      <input value={fullName} onChange={e => setFullName(e.target.value)}
+                        className="w-full px-3 py-2.5 text-sm focus:outline-none"
+                        style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                    </div>
+                    <button onClick={saveProfile} disabled={savingProfile}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all"
+                      style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                      <Save className="w-4 h-4" /> {savingProfile ? 'Enregistrement...' : 'Sauvegarder'}
+                    </button>
                   </div>
-                  <div>
-                    <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Nom complet</label>
-                    <input value={fullName} onChange={e => setFullName(e.target.value)}
-                      className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                  
+                  {/* Delete account */}
+                  <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', borderRadius: '5px' }}>
+                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>Supprimer le compte</p>
+                    <p className="text-xs mb-4" style={{ color: '#888' }}>Supprimez définitivement votre compte et toutes vos données.</p>
+                    <button onClick={() => setShowDeleteModal(true)}
+                      className="w-full px-4 py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                      style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '4px' }}>
+                      <Trash2 className="w-4 h-4" /> Supprimer le compte
+                    </button>
                   </div>
-                  <button onClick={saveProfile} disabled={savingProfile}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all"
-                    style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                    <Save className="w-4 h-4" /> {savingProfile ? 'Enregistrement...' : 'Sauvegarder'}
-                  </button>
                 </div>
               </motion.div>
             )}
@@ -337,16 +350,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Delete account */}
-                  <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', borderRadius: '5px' }}>
-                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>Supprimer le compte</p>
-                    <p className="text-xs mb-4" style={{ color: '#888' }}>Supprimez définitivement votre compte et toutes vos données.</p>
-                    <button onClick={() => setShowDeleteModal(true)}
-                      className="w-full px-4 py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
-                      style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '4px' }}>
-                      <Trash2 className="w-4 h-4" /> Supprimer le compte
-                    </button>
-                  </div>
+
                 </div>
               </motion.div>
             )}
