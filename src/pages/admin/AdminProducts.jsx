@@ -401,11 +401,18 @@ export default function AdminProducts() {
     const entries = Object.entries(codesInput);
     const allCodes = [];
     const seenCodes = new Set();
+
     for (const [key, raw] of entries) {
-      if (!raw.trim()) continue;
+      if (!raw || !raw.trim()) continue;
       const [planId, billing] = key.split('__');
       if (!planId || !billing) continue;
-      const codes = raw.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length >= 4);
+
+      // Parse codes: accept newline, comma, semicolon, space as separators
+      const codes = raw
+        .split(/[\n,;\s]+/)
+        .map(c => c.trim().toUpperCase())
+        .filter(c => c.length > 0);
+
       for (const code of codes) {
         if (!seenCodes.has(code)) {
           seenCodes.add(code);
@@ -413,9 +420,16 @@ export default function AdminProducts() {
         }
       }
     }
-    if (allCodes.length === 0) { toast.error('Aucun code trouvé'); return; }
+
+    if (allCodes.length === 0) {
+      toast.error('Aucun code trouvé');
+      return;
+    }
+
     await base44.entities.ActivationCode.bulkCreate(allCodes);
-    setCodesSaved(true); setTimeout(() => setCodesSaved(false), 3000);
+    setCodesInput({});
+    setCodesSaved(true);
+    setTimeout(() => setCodesSaved(false), 3000);
     toast.success(`${allCodes.length} codes enregistrés avec succès !`);
   };
   const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
@@ -598,10 +612,11 @@ export default function AdminProducts() {
                   <textarea
                    value={codesInput[`${plan.id}__${billing}`] || ''}
                    onChange={e => setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: e.target.value }))}
-                    rows={4}
-                    placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
-                    className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
+                   rows={4}
+                   placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
+                   className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
+                   style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }}
+                  />
                 </div>
               )))}
             </div>
