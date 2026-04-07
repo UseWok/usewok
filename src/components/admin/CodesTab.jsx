@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Plus, Save, Search, ChevronDown, ChevronUp, Check, X, User, Calendar } from 'lucide-react';
+import { Trash2, Plus, Save, Search, ChevronDown, ChevronUp, Check, X, User, Calendar, Copy, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { toast } from 'sonner';
@@ -205,14 +205,151 @@ function PlanCodeSection({ planId, billing, planName }) {
   );
 }
 
+function generateCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 12; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function generateCodesForPlan(planId, billing, count = 1000) {
+  const codes = new Set();
+  while (codes.size < count) {
+    codes.add(generateCode());
+  }
+  return Array.from(codes);
+}
+
 export default function CodesTab() {
   const plans = getPlansConfig().filter(p => p.id !== 'free');
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [generatedCodes, setGeneratedCodes] = useState(null);
+  const [importingCount, setImportingCount] = useState(0);
+
+  const generateAndImportAllCodes = async () => {
+    try {
+      setImportingCount(0);
+      const allCodesObj = {};
+
+      // Générer 8000 codes
+      for (const plan of plans) {
+        for (const billing of ['monthly', 'yearly']) {
+          const key = `${plan.id}__${billing}`;
+          const codes = generateCodesForPlan(plan.id, billing, 1000);
+          allCodesObj[key] = codes;
+        }
+      }
+      setGeneratedCodes(allCodesObj);
+    } catch (err) {
+      toast.error('Erreur lors de la génération');
+    }
+  };
+
+  const importAllGeneratedCodes = async () => {
+    if (!generatedCodes) return;
+    try {
+      let total = 0;
+      for (const [key, codes] of Object.entries(generatedCodes)) {
+        const [planId, billing] = key.split('__');
+        // Importer par batch de 100
+        for (let i = 0; i < codes.length; i += 100) {
+          const batch = codes.slice(i, i + 100).map(code => ({
+            code,
+            plan_id: planId,
+            billing,
+            used: false
+          }));
+          await base44.entities.ActivationCode.bulkCreate(batch);
+          total += batch.length;
+          setImportingCount(total);
+        }
+      }
+      toast.success(`✓ ${total} codes importés !`);
+      setGeneratedCodes(null);
+      setShowGenerator(false);
+    } catch (err) {
+      toast.error('Erreur lors de l\'import');
+    }
+  };
+
+  const copyCodesList = (planId, billing) => {
+    if (!generatedCodes) return;
+    const key = `${planId}__${billing}`;
+    const text = generatedCodes[key]?.join('\n') || '';
+    navigator.clipboard.writeText(text);
+    toast.success('Codes copiés !');
+  };
+
+  if (showGenerator && generatedCodes) {
+    return (
+      <div className="max-w-4xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold" style={{ color: FG }}>8000 Codes Générés</h3>
+            <p className="text-xs mt-1" style={{ color: '#999' }}>1000 par plan × cycle</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => { setGeneratedCodes(null); setShowGenerator(false); }}
+              className="px-4 py-2 text-xs font-bold" style={{ background: '#f5f5f5', color: FG, borderRadius: '3px' }}>
+              Annuler
+            </button>
+            <button onClick={importAllGeneratedCodes} disabled={importingCount > 0 && importingCount < 8000}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold disabled:opacity-40"
+              style={{ background: FG, color: 'white', borderRadius: '3px' }}>
+              <Zap className="w-3.5 h-3.5" />
+              {importingCount > 0 ? `Import... (${importingCount}/8000)` : 'Importer tout'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {plans.flatMap(plan =>
+            ['monthly', 'yearly'].map(billing => {
+              const key = `${plan.id}__${billing}`;
+              const codes = generatedCodes[key] || [];
+              return (
+                <div key={key} className="border p-4 rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', background: '#fafafa' }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: FG }}>{plan.name}</p>
+                      <p className="text-[10px]" style={{ color: '#999' }}>
+                        {billing === 'monthly' ? 'Mensuel' : 'Annuel'} • {codes.length} codes
+                      </p>
+                    </div>
+                    <button onClick={() => copyCodesList(plan.id, billing)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold"
+                      style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
+                      <Copy className="w-3 h-3" /> Copier
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto bg-white px-2 py-2 rounded-sm text-[10px] font-mono leading-relaxed" style={{ border: '1px solid rgba(0,0,0,0.05)', color: '#555' }}>
+                    {codes.slice(0, 20).join('\n')}
+                    {codes.length > 20 && <div className="mt-1 italic" style={{ color: '#bbb' }}>... +{codes.length - 20} autres</div>}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl space-y-3">
+    <div className="max-w-3xl space-y-4">
+      <motion.button onClick={generateAndImportAllCodes}
+        className="w-full flex items-center justify-center gap-3 py-4 text-sm font-bold rounded-sm transition-all hover:opacity-90"
+        style={{ background: YUZU, color: FG }}
+        whileHover={{ scale: 1.02 }}>
+        <Zap className="w-5 h-5" />
+        Générer & Importer 8000 Codes (1000/plan)
+      </motion.button>
+
       <div className="mb-4">
         <p className="text-sm" style={{ color: '#666' }}>
-          Ajoutez des codes pour chaque plan/cycle. Suivez leur consommation (qui l'a utilisé, quand). Supprimez individuellement.
+          Ajoutez des codes pour chaque plan/cycle. Suivez leur consommation (qui l\'a utilisé, quand). Supprimez individuellement.
         </p>
       </div>
       {plans.flatMap(plan =>
