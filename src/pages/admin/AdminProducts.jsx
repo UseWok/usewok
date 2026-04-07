@@ -781,10 +781,9 @@ export default function AdminProducts() {
                       </button>
                     </div>
                   </div>
-                </div>
-                ))}
-                </div>
-          </div>
+                  </div>
+                  ))}
+                  </div>
         )}
 
         {/* TICKETS TAB */}
