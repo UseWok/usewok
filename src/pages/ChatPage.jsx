@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Plus, SlidersHorizontal, Mic, X, FileText, Bot,
-  ChevronDown, Zap, Brain, Star, Crown, Send, Copy, Pencil, TrendingUp, Wifi, Lock, Check
+  ChevronDown, Brain, Star, Crown, Send, Copy, Pencil, TrendingUp, Wifi, WifiOff, Lock, Check, Zap
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
@@ -25,13 +25,12 @@ const CORAL = '#FF4F00';
 const MAX_VISIBLE_FILES = 3;
 
 const ALL_MODES = [
-  { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
-  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', desc: 'Réflexion profonde' },
-  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée' },
-  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant' },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert' },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential' },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null },
 ];
 
-const MIN_DURATIONS = { fast: 0, thinking: 13000, pro: 0, ultimate: 0 };
+const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
 
 const popUp = {
   initial: { opacity: 0, y: 6, scale: 0.97 },
@@ -56,7 +55,7 @@ export default function ChatPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const initialQ = urlParams.get('q') || '';
-  const modeId = urlParams.get('mode') || 'fast';
+  const modeId = urlParams.get('mode') || 'thinking';
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
 
@@ -68,7 +67,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState(ALL_MODES.find(m => m.id === modeId) || ALL_MODES[0]);
+  const [mode, setMode] = useState(ALL_MODES.find(m => m.id === modeId) || ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
@@ -78,6 +77,8 @@ export default function ChatPage() {
   const [files, setFiles] = useState([]);
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [useWebSearch, setUseWebSearch] = useState(false);
+  const [showInternetMenu, setShowInternetMenu] = useState(false);
   const { t } = useLanguage();
   const [showUpgradeOverlay, setShowUpgradeOverlay] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
@@ -89,12 +90,14 @@ export default function ChatPage() {
   const agentMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
   const atMenuRef = useRef(null);
+  const internetMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const textareaRef = useRef(null);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const blocked = creditsUsed >= creditsLimit;
-  const allowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id)) : [ALL_MODES[0]];
+  const rawAllowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id) || (m.id === 'thinking' && userPlan.allowed_modes.includes('fast'))) : [];
+  const allowedModes = rawAllowedModes.length > 0 ? rawAllowedModes : [ALL_MODES[ALL_MODES.length - 1]];
   const canUploadFiles = userPlan?.file_upload || false;
   const hasInternet = userPlan?.internet_access || false;
   const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label || 'Global Agent';
@@ -127,6 +130,7 @@ export default function ChatPage() {
       if (agentMenuRef.current && !agentMenuRef.current.contains(e.target)) setShowAgentMenu(false);
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
       if (atMenuRef.current && !atMenuRef.current.contains(e.target)) setShowAtMenu(false);
+      if (internetMenuRef.current && !internetMenuRef.current.contains(e.target)) setShowInternetMenu(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -212,10 +216,10 @@ export default function ChatPage() {
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
       const systemContext = agentConfig?.instructions
-        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n`
-        : (agentLabel ? `Tu es l'agent ${agentLabel} de Stensor, spécialisé en finance personnelle et coaching financier. ` : '');
+        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\nSois concis et direct. Quand tu utilises du **gras**, mets-le toujours sur sa propre ligne. Pas de réponses trop longues.\n\n`
+        : `Tu es Stensor, un assistant coach financier IA. Réponds de façon concise et directe. Évite les listes à rallonge. Quand tu utilises du **texte en gras**, mets-le toujours sur sa propre ligne précédée d'une ligne vide. Ceci n'est pas un conseil financier ou en investissement.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''}\n\n`;
 
-      const useInternet = hasInternet && mode.model !== 'claude_opus_4_6';
+      const useInternet = useWebSearch && hasInternet && mode.model !== 'claude_opus_4_6';
 
       const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text,
@@ -584,7 +588,12 @@ export default function ChatPage() {
                               <p className="font-semibold">{m.label}</p>
                               <p className="text-[9px] opacity-60">{m.desc}</p>
                             </div>
-                            {!isAllowed && <Lock className="w-3 h-3 flex-shrink-0" />}
+                            {!isAllowed && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap"
+                                style={{ background: 'rgba(0,0,0,0.05)', color: '#888', borderRadius: '2px' }}>
+                                {m.requiredPlan === 'expert' ? 'Expert' : 'Essential'}+
+                              </span>
+                            )}
                           </button>
                         );
                       })}
@@ -593,16 +602,49 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
 
-              {/* Internet indicator — always shown, clickable only if allowed */}
-              <button
-                onClick={() => { if (!hasInternet) { setUpgradeFeature('Internet'); setShowUpgradeOverlay(true); } }}
-                className="h-7 px-2 flex items-center gap-1 transition-all"
-                style={{ borderRadius: '4px', opacity: hasInternet ? 1 : 0.35, cursor: hasInternet ? 'default' : 'pointer' }}
-                title={hasInternet ? t('internet_included') : t('internet_not_included')}>
-                <Wifi className="w-3 h-3" style={{ color: hasInternet ? '#16a34a' : '#999' }} />
-                <span className="text-[10px] font-semibold hidden sm:block" style={{ color: hasInternet ? '#16a34a' : '#999' }}>{t('internet')}</span>
-                {!hasInternet && <Lock className="w-2.5 h-2.5" style={{ color: '#ccc' }} />}
-              </button>
+              {/* Internet toggle */}
+              <div className="relative" ref={internetMenuRef}>
+                <button onClick={() => setShowInternetMenu(!showInternetMenu)}
+                  className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ background: useWebSearch ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
+                  <Wifi className="w-3 h-3" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }} />
+                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }}>Web</span>
+                </button>
+                <AnimatePresence>
+                  {showInternetMenu && (
+                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl z-50 bg-white overflow-hidden"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', minWidth: '190px' }}>
+                      <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                        <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Web Search</p>
+                      </div>
+                      <div className="p-1">
+                        <button onClick={() => { setUseWebSearch(false); setShowInternetMenu(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors"
+                          style={{ background: !useWebSearch ? 'rgba(0,0,0,0.04)' : 'transparent', borderRadius: '3px', color: FG }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                          onMouseLeave={e => e.currentTarget.style.background = !useWebSearch ? 'rgba(0,0,0,0.04)' : 'transparent'}>
+                          <WifiOff className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aaa' }} />
+                          <span className="font-medium flex-1">Without Web</span>
+                          {!useWebSearch && <div className="w-1.5 h-1.5 rounded-full" style={{ background: FG }} />}
+                        </button>
+                        <button onClick={() => {
+                          if (!hasInternet) { setUpgradeFeature('Internet'); setShowUpgradeOverlay(true); setShowInternetMenu(false); return; }
+                          setUseWebSearch(true); setShowInternetMenu(false);
+                        }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors"
+                          style={{ background: useWebSearch ? 'rgba(22,163,74,0.06)' : 'transparent', borderRadius: '3px', color: hasInternet ? FG : '#bbb' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(22,163,74,0.06)'}
+                          onMouseLeave={e => e.currentTarget.style.background = useWebSearch ? 'rgba(22,163,74,0.06)' : 'transparent'}>
+                          <Wifi className="w-3.5 h-3.5 flex-shrink-0" style={{ color: hasInternet ? '#16a34a' : '#ddd' }} />
+                          <span className="font-medium flex-1">With Web Search</span>
+                          {!hasInternet && <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.05)', color: '#888', borderRadius: '2px' }}>Advanced+</span>}
+                          {useWebSearch && <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#16a34a' }} />}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -656,6 +698,11 @@ export default function ChatPage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Legal */}
+      <div className="text-center pb-3">
+        <p className="text-[9px]" style={{ color: '#ccc' }}>AI may make mistakes · Not financial advice · Consult a licensed professional</p>
       </div>
 
       {/* Upgrade overlay */}

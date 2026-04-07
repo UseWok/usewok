@@ -10,14 +10,21 @@ const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
 const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
 const ALL_MODES = [
-  { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
-  { id: 'thinking', label: 'Thinking', icon: Brain, model: 'gemini_3_1_pro', desc: 'Réflexion profonde' },
-  { id: 'pro', label: 'Pro', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée' },
-  { id: 'ultimate', label: 'Ultimate', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant' },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert' },
+  { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential' },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null },
 ];
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
+
+const POWER_TOPICS = [
+  { label: 'Build Wealth 📈', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice — be specific." },
+  { label: 'Crush Debt 💪', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers for my situation, and give me a realistic monthly plan to become debt-free. Which one should I choose and why?" },
+  { label: 'Start Investing 🚀', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it — index funds, ETFs, allocation percentages. Explain it clearly, give me a real actionable strategy, not generic advice." },
+  { label: 'Side Hustle 💡', prompt: "Give me the 5 best side income strategies that actually work for people aged 18-35 in 2025. For each: realistic monthly earnings, time required, startup cost, and the exact first step I can take today." },
+  { label: 'Retire Early 🏝️', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now, explain the 4% rule with real numbers, and give me the exact accounts and investments to prioritize. What changes move the needle most?" },
+];
 
 const popAnim = {
   initial: { opacity: 0, y: -4, scale: 0.97 },
@@ -34,7 +41,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
-  const [mode, setMode] = useState(ALL_MODES[0]);
+  const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
 
@@ -354,13 +361,13 @@ export default function HeroSection({ agentId, onAgentChange }) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-6">
         <p className="text-xs mb-3" style={{ color: '#bbb' }}>{t('hero_topics')}</p>
         <div className="flex flex-wrap justify-center gap-2">
-          {(t('topics') || []).map(cat => (
-            <button key={cat} onClick={() => setQuery(`Aide-moi sur le sujet : ${cat}`)}
-              className="px-3.5 py-1.5 border text-xs font-medium transition-colors"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', color: '#666', background: 'white' }}
-              onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.border = `1px solid ${FG}`; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#666'; e.currentTarget.style.border = '1px solid rgba(0,0,0,0.1)'; }}>
-              {cat}
+          {POWER_TOPICS.map(topic => (
+            <button key={topic.label} onClick={() => setQuery(topic.prompt)}
+              className="px-3.5 py-1.5 text-xs font-medium transition-all"
+              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', color: '#555', background: 'white' }}
+              onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
+              {topic.label}
             </button>
           ))}
         </div>

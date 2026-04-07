@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { getPlansConfig, getUserPlan } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
-import { saveCart } from './CheckoutPage';
+import { saveCart, clearCart } from './CheckoutPage';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
@@ -15,6 +15,10 @@ const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
+  const [savedCart, setSavedCart] = useState(() => { try { return JSON.parse(localStorage.getItem('stensor_cart_v1')); } catch { return null; } });
+  const hasValidCart = savedCart && Date.now() - (savedCart.ts || 0) < 24 * 60 * 60 * 1000;
+  const cartPlan = hasValidCart ? (() => { const all = getPlansConfig(); return all.find(p => p.id === savedCart.planId); })() : null;
+  const dismissCart = () => { clearCart(); setSavedCart(null); }; // eslint-disable-line
   const [plans] = useState(() => {
     const all = getPlansConfig();
     // Reverse order (supreme first), remove free
@@ -76,6 +80,17 @@ export default function PricingPage() {
           </motion.div>
         </div>
 
+        {/* Cart resume */}
+        {cartPlan && (
+          <div className="flex items-center justify-between mb-6 px-4 py-3" style={{ background: FG, borderRadius: '5px' }}>
+            <p className="text-sm font-semibold text-white">🛒 Resume — {cartPlan.name}</p>
+            <div className="flex gap-2">
+              <button onClick={() => navigate(`/checkout?plan=${cartPlan.id}&billing=${savedCart.billing}`)} className="px-3 py-1.5 text-xs font-bold" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Resume →</button>
+              <button onClick={dismissCart} className="px-3 py-1.5 text-xs font-medium" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: '3px' }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
         {/* Plans grid */}
         <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
           {plans.map((plan, idx) => {
@@ -89,8 +104,7 @@ export default function PricingPage() {
               <motion.div key={plan.id}
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}
                 className="flex flex-col relative flex-shrink-0 w-72 md:w-auto"
-                style={{ scrollSnapAlign: 'start' }}
-                style={{
+                style={{ scrollSnapAlign: 'start',
                   background: isRecommended ? FG : 'white',
                   border: isRecommended ? 'none' : '1px solid rgba(0,0,0,0.09)',
                   borderRadius: '5px',
@@ -105,14 +119,7 @@ export default function PricingPage() {
                     </span>
                   </div>
                 )}
-                {billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
-                  <div className="absolute top-3 right-3">
-                    <span className="text-[9px] font-black px-2 py-1"
-                      style={{ background: GREEN, color: 'white', borderRadius: '2px' }}>
-                      Save {(plan.price_monthly - plan.price_yearly) * 12}$
-                    </span>
-                  </div>
-                )}
+
 
                 <div className="p-5 flex flex-col flex-1">
                   {/* Icon + Name */}
@@ -136,7 +143,7 @@ export default function PricingPage() {
                         {price}$
                       </span>
                       <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
-                        /mois{billing === 'yearly' ? ` × 12` : ''}
+                        /mois
                       </span>
                     </div>
                   </div>

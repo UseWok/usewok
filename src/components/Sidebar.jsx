@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, GraduationCap, Users, Bot, ShoppingBag, TrendingUp, Zap, ChevronRight, Lock, ShoppingCart } from 'lucide-react';
+import { Home, Bell, Globe2, GraduationCap, Users, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, Lock } from 'lucide-react';
+import ReferralModal from './ReferralModal';
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
@@ -12,7 +13,7 @@ import { useLanguage } from '@/lib/i18n';
 import { getUserPlan } from '@/lib/plans-config';
 
 export const COLLAPSED_W = 64;
-export const EXPANDED_W = 272;
+export const EXPANDED_W = 250;
 
 export const AGENTS = [
   { id: 'global', labelKey: 'global_agent', label: 'Global Agent' },
@@ -34,6 +35,7 @@ const UNLOCKABLE_FEATURES = [
 
 export default function Sidebar({ expanded, setExpanded }) {
   const [activePopover, setActivePopover] = useState(null);
+  const [showReferral, setShowReferral] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showFeatures, setShowFeatures] = useState(false);
@@ -100,7 +102,6 @@ export default function Sidebar({ expanded, setExpanded }) {
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/', active: location.pathname === '/' },
     { icon: GraduationCap, labelKey: 'parcours', path: '/parcours', active: location.pathname === '/parcours' },
-    { icon: Bot, labelKey: 'global_agent', path: null, active: false },
     { icon: Users, labelKey: 'community', path: null, active: false },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
@@ -247,8 +248,21 @@ export default function Sidebar({ expanded, setExpanded }) {
             )}
           </button>
 
-          {/* Profile / Lang / Bell row — always aligned */}
-          <div className="flex items-center justify-center gap-1.5 px-1">
+          {/* Referral */}
+          <button
+            onClick={() => setShowReferral(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 mb-1 transition-all"
+            style={{ borderRadius: '4px' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+              <Gift className="w-3.5 h-3.5" style={{ color: '#666' }} />
+            </div>
+            {expanded && <p className="text-xs font-semibold" style={{ color: '#666' }}>Invite & Earn</p>}
+          </button>
+
+          {/* Profile / Lang / Bell row */}
+          <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col' : ''}`}>
             <button
               ref={profileRef}
               onClick={() => togglePopover('profile')}
@@ -285,6 +299,7 @@ export default function Sidebar({ expanded, setExpanded }) {
       </motion.aside>
 
       {/* Popovers */}
+      <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
       <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} />
       <LanguagePopover open={activePopover === 'lang'} onClose={() => setActivePopover(null)} anchorRef={langRef} />
@@ -294,23 +309,23 @@ export default function Sidebar({ expanded, setExpanded }) {
 }
 
 function NavItem({ icon: Icon, label, onClick, active, expanded }) {
-  const PURPLE = '#3A0088';
+  const FG_NAV = '#0A0A0A';
   const YUZU = '#DDFF00';
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150"
+      className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150"
       style={{
         background: active ? YUZU : 'transparent',
-        color: active ? PURPLE : '#666',
+        color: active ? FG_NAV : '#666',
         borderRadius: '4px',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(58,0,136,0.05)'; }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon className="w-[18px] h-[18px] flex-shrink-0" style={{ color: active ? PURPLE : '#aaa' }} />
-      {expanded && <span className="flex-1 text-left whitespace-nowrap truncate">{label}</span>}
-      {expanded && active && <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: PURPLE, borderRadius: '1px' }} />}
+      <Icon className="w-[17px] h-[17px] flex-shrink-0" style={{ color: active ? FG_NAV : '#aaa' }} />
+      {expanded && <span className="flex-1 text-left whitespace-nowrap truncate text-sm">{label}</span>}
+      {expanded && active && <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: FG_NAV, borderRadius: '1px' }} />}
     </button>
   );
 }

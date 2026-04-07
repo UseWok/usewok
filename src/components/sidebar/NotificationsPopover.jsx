@@ -44,7 +44,7 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
     const popW = 300;
     let left = rect.right + 12;
     if (left + popW > window.innerWidth - 8) left = Math.max(8, window.innerWidth - popW - 8);
-    const maxH = Math.min(480, window.innerHeight - 32);
+    const maxH = Math.min(460, window.innerHeight - 32);
     let top = rect.top;
     if (top + maxH > window.innerHeight - 8) top = window.innerHeight - maxH - 8;
     if (top < 8) top = 8;
@@ -76,65 +76,66 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -10, scale: 0.96 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[200] w-80 flex flex-col"
+          className="fixed z-[200] flex flex-col"
           style={{
             left: pos.left, top: pos.top,
-            maxHeight: 'calc(100vh - 32px)',
-            background: PURPLE,
-            border: '1px solid rgba(255,255,255,0.1)',
+            width: '300px',
+            maxHeight: `${pos.maxH || 460}px`,
+            background: 'white',
+            border: '1px solid rgba(0,0,0,0.09)',
             borderRadius: '6px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.12)',
           }}>
           <div className="px-4 py-3.5 flex items-center gap-2.5 flex-shrink-0"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
             <div className="w-7 h-7 flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '3px' }}>
-              <Bell className="w-3.5 h-3.5 text-white" />
+              style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+              <Bell className="w-3.5 h-3.5" style={{ color: '#333' }} />
             </div>
-            <span className="text-sm font-bold text-white flex-1">{t('notifications')}</span>
+            <span className="text-sm font-bold flex-1" style={{ color: '#0A0A0A' }}>{t('notifications')}</span>
             <span className="text-[10px] font-bold px-2 py-0.5"
-              style={{ background: 'rgba(221,255,0,0.2)', color: '#DDFF00', borderRadius: '2px' }}>
+              style={{ background: 'rgba(0,0,0,0.06)', color: '#555', borderRadius: '2px' }}>
               {notifications.length}
             </span>
             <button onClick={onClose}
-              className="w-6 h-6 flex items-center justify-center hover:bg-white/10 transition-colors"
+              className="w-6 h-6 flex items-center justify-center hover:bg-black/5 transition-colors"
               style={{ borderRadius: '3px' }}>
-              <X className="w-3.5 h-3.5 text-white/60" />
+              <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
             </button>
           </div>
 
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 && (
               <div className="px-4 py-10 text-center">
-                <Bell className="w-8 h-8 mx-auto mb-3 opacity-20 text-white" />
-                <p className="text-sm text-white/30">{t('no_notifications')}</p>
+                <Bell className="w-8 h-8 mx-auto mb-3 opacity-10" style={{ color: '#333' }} />
+                <p className="text-sm" style={{ color: '#bbb' }}>{t('no_notifications')}</p>
               </div>
             )}
             {notifications.map((notif, i) => (
               <motion.div key={notif.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                 className="group relative"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                 <button
                   onClick={() => handleNotifClick(notif)}
-                  className="w-full text-left flex items-start gap-3 px-4 py-3.5 transition-all"
+                  className="w-full text-left flex items-start gap-3 px-4 py-3 transition-all"
                   style={{ paddingRight: isAdmin ? '2.5rem' : '1rem' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: 'rgba(221,255,0,0.15)', borderRadius: '3px' }}>
-                    <Bell className="w-3.5 h-3.5" style={{ color: '#DDFF00' }} />
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+                    <Bell className="w-3 h-3" style={{ color: '#555' }} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white leading-tight">{notif.title}</p>
-                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{notif.message}</p>
+                    <p className="text-sm font-semibold leading-tight" style={{ color: '#0A0A0A' }}>{notif.title}</p>
+                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#777' }}>{notif.message}</p>
                     {notif.link && (
                       <div className="flex items-center gap-1 mt-1.5">
-                        <ExternalLink className="w-2.5 h-2.5" style={{ color: '#DDFF00' }} />
-                        <span className="text-[10px] font-medium" style={{ color: '#DDFF00' }}>{notif.link_label || 'See more'}</span>
+                        <ExternalLink className="w-2.5 h-2.5" style={{ color: '#0A0A0A' }} />
+                        <span className="text-[10px] font-semibold" style={{ color: '#0A0A0A' }}>{notif.link_label || 'See more'}</span>
                       </div>
                     )}
-                    <p className="text-[10px] mt-1 text-white/25">
+                    <p className="text-[10px] mt-1" style={{ color: '#ccc' }}>
                       {new Date(notif.created_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -142,9 +143,9 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
                 {isAdmin && (
                   <button
                     onClick={(e) => deleteNotif(e, notif.id)}
-                    className="absolute top-3.5 right-3 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                    style={{ background: 'rgba(239,68,68,0.25)', borderRadius: '3px' }}>
-                    <X className="w-3 h-3 text-red-300" />
+                    className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    style={{ background: 'rgba(239,68,68,0.08)', borderRadius: '3px' }}>
+                    <X className="w-3 h-3 text-red-400" />
                   </button>
                 )}
               </motion.div>
