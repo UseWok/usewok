@@ -400,11 +400,17 @@ export default function AdminProducts() {
   const saveActivationCodes = async () => {
     const entries = Object.entries(codesInput);
     const allCodes = [];
+    const seenCodes = new Set();
     for (const [key, raw] of entries) {
+      if (!raw.trim()) continue;
       const [planId, billing] = key.split('__');
+      if (!planId || !billing) continue;
       const codes = raw.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length >= 4);
       for (const code of codes) {
-        allCodes.push({ code, plan_id: planId, billing, used: false });
+        if (!seenCodes.has(code)) {
+          seenCodes.add(code);
+          allCodes.push({ code, plan_id: planId, billing, used: false });
+        }
       }
     }
     if (allCodes.length === 0) { toast.error('Aucun code trouvé'); return; }
@@ -590,8 +596,8 @@ export default function AdminProducts() {
                     </span>
                   </div>
                   <textarea
-                    value={codesInput[`${plan.id}__${billing}`] || ''}
-                    onChange={e => { const val = e.target.value.split(/\n|,|;|\s+/).filter(c => c.trim().length >= 4); if (val.length <= 1050) setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: val.join('\n') })); }}
+                   value={codesInput[`${plan.id}__${billing}`] || ''}
+                   onChange={e => setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: e.target.value }))}
                     rows={4}
                     placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
                     className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
