@@ -405,36 +405,52 @@ export default function AdminProducts() {
   };
 
   const saveActivationCodes = async (inputData) => {
-    const entries = Object.entries(inputData || codesInput);
-    const allCodes = [];
-    const seenCodes = new Set();
+    try {
+      const entries = Object.entries(inputData || codesInput);
 
-    for (const [key, raw] of entries) {
-      if (!raw || !raw.trim()) continue;
-      const [planId, billing] = key.split('__');
-      if (!planId || !billing) continue;
+      for (const [key, raw] of entries) {
+        const [planId, billing] = key.split('__');
+        if (!planId || !billing) continue;
 
-      const codes = raw
-        .split(/[\n,;\s]+/)
-        .map(c => c.trim().toUpperCase())
-        .filter(c => c.length > 0);
+        // Parse codes from textarea
+        const newCodes = new Set(
+          (raw || '')
+            .split(/[\n,;\s]+/)
+            .map(c => c.trim().toUpperCase())
+            .filter(c => c.length > 0)
+        );
 
-      for (const code of codes) {
-        if (!seenCodes.has(code)) {
-          seenCodes.add(code);
-          allCodes.push({ code, plan_id: planId, billing, used: false });
+        // Fetch existing codes for this plan/billing
+        const existingRecords = await base44.entities.ActivationCode.filter({
+          plan_id: planId,
+          billing: billing,
+        });
+        const existingCodes = new Set(existingRecords.map(r => r.code));
+
+        // Delete codes that are no longer in the textarea
+        for (const record of existingRecords) {
+          if (!newCodes.has(record.code)) {
+            await base44.entities.ActivationCode.delete(record.id);
+          }
+        }
+
+        // Create codes that are new
+        const codesToCreate = [];
+        for (const code of newCodes) {
+          if (!existingCodes.has(code)) {
+            codesToCreate.push({ code, plan_id: planId, billing, used: false });
+          }
+        }
+
+        if (codesToCreate.length > 0) {
+          await base44.entities.ActivationCode.bulkCreate(codesToCreate);
         }
       }
-    }
 
-    if (allCodes.length === 0) return;
-
-    try {
-      await base44.entities.ActivationCode.bulkCreate(allCodes);
       setCodesSaved(true);
       setTimeout(() => setCodesSaved(false), 1500);
     } catch (err) {
-      toast.error('Erreur lors de l\'enregistrement');
+      toast.error('Erreur lors de la synchronisation');
     }
   };
 
