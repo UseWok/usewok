@@ -1,129 +1,106 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, Star, Crown, Shield, Globe, BookOpen, Users, Wifi, WifiOff, Upload, Lock } from 'lucide-react';
+import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { getPlansConfig, getUserPlan } from '@/lib/plans-config';
+import { useLanguage } from '@/lib/i18n';
+import { saveCart } from './CheckoutPage';
 
-const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
-const CORAL = '#FF4F00';
+const YUZU = '#DDFF00';
+const GREEN = '#16a34a';
 
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star, supreme: Crown };
 
-const FEATURE_LABELS = {
-  credits_limit: (v) => `${v} crédits / mois`,
-  daily_credits_limit: (v) => v > 0 ? `Max ${v} crédits / jour` : null,
-  internet_access: (v) => v ? 'Recherche Internet incluse' : null,
-  file_upload: (v) => v ? 'Envoi de fichiers' : null,
-  file_upload_extended: (v) => v ? 'Envoi fichiers étendu' : null,
-  ultimate_access: (v) => v ? 'Mode Ultimate inclus' : null,
-  max_discussions: (v) => v === 0 ? 'Discussions illimitées' : `${v} discussions max`,
-  lessons_per_month: (v) => v > 0 ? `${v} leçons / mois incluses` : null,
-  shareable_credits: (v) => v > 0 ? `${v} crédits partageables / an` : null,
-  premium_support: (v) => v ? 'Support Premium dédié' : null,
-  can_choose_model: (v) => v ? 'Choix du modèle IA' : 'Modèle IA imposé',
-};
-
 export default function PricingPage() {
   const [user, setUser] = useState(null);
-  const [plans] = useState(getPlansConfig);
-  const [purchased, setPurchased] = useState(null);
+  const [plans] = useState(() => {
+    const all = getPlansConfig();
+    // Reverse order (supreme first), remove free
+    return [...all].filter(p => p.id !== 'free').reverse();
+  });
   const [billing, setBilling] = useState('monthly');
+  const [purchased, setPurchased] = useState(null);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
-    base44.auth.me().then(u => { setUser(u); setPurchased(u?.subscription_plan || 'free'); }).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      setPurchased(u?.subscription_plan || 'free');
+    }).catch(() => {});
   }, []);
 
-  const handleSubscribe = async (plan) => {
-    if (!user) return;
-    await base44.auth.updateMe({
-      subscription_plan: plan.id,
-      credits_limit: plan.credits_limit,
-      credits_used: 0,
-      credits_bonus: 0,
-    });
-    // Reload user to confirm
-    const updated = await base44.auth.me();
-    setUser(updated);
-    setPurchased(plan.id);
-    setTimeout(() => navigate('/'), 1200);
-  };
-
-  const getPlanFeatures = (plan) => {
-    const features = [];
-    const order = ['credits_limit', 'daily_credits_limit', 'can_choose_model', 'internet_access', 'ultimate_access', 'max_discussions', 'file_upload', 'file_upload_extended', 'lessons_per_month', 'shareable_credits', 'premium_support'];
-    for (const key of order) {
-      const label = FEATURE_LABELS[key]?.(plan[key]);
-      if (label) features.push({ label, included: !!plan[key] || (key === 'can_choose_model') });
-    }
-    return features;
+  const handleChoose = (plan) => {
+    if (purchased === plan.id) return;
+    saveCart(plan.id, billing);
+    navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
 
   return (
-    <div className="min-h-screen font-be bg-white py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-
+    <div className="min-h-screen font-be bg-white py-14 px-4">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm mb-4"
-            style={{ background: YUZU, color: FG }}>
-            <Zap className="w-3.5 h-3.5" />
-            <span className="text-xs font-bold tracking-wide">ABONNEMENTS STENSOR</span>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 mb-5"
+            style={{ background: YUZU, borderRadius: '2px' }}>
+            <Zap className="w-3.5 h-3.5" style={{ color: FG }} />
+            <span className="text-xs font-black tracking-widest" style={{ color: FG }}>{t('pricing_badge')}</span>
           </motion.div>
           <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            className="text-4xl font-bold mb-3" style={{ color: FG }}>
-            Votre coach financier IA, 24h/24
+            className="text-4xl font-black mb-3" style={{ color: FG }}>
+            {t('pricing_title')}
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
             className="text-sm" style={{ color: '#666' }}>
-            1 crédit = 1 réponse · Crédits renouvelés chaque mois · Annulation à tout moment
+            {t('pricing_sub')}
           </motion.p>
 
           {/* Billing toggle */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
-            className="inline-flex items-center gap-1 mt-6 p-1 rounded-sm border border-black/8"
-            style={{ background: '#f5f5f5' }}>
+            className="inline-flex items-center gap-1 mt-6 p-1"
+            style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
             {['monthly', 'yearly'].map(b => (
               <button key={b} onClick={() => setBilling(b)}
-                className="px-4 py-2 rounded-sm text-xs font-semibold transition-all"
+                className="px-5 py-2 text-xs font-bold transition-all"
                 style={{
                   background: billing === b ? FG : 'transparent',
                   color: billing === b ? 'white' : '#666',
+                  borderRadius: '3px',
                 }}>
-                {b === 'monthly' ? 'Mensuel' : 'Annuel -20%'}
+                {b === 'monthly' ? t('monthly') : t('yearly')}
               </button>
             ))}
           </motion.div>
         </div>
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {plans.map((plan, idx) => {
-            const Icon = PLAN_ICONS[plan.id] || Zap;
+            const Icon = PLAN_ICONS[plan.id] || Star;
             const price = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
+            const annualTotal = plan.price_yearly * 12;
             const isCurrentPlan = purchased === plan.id;
             const isRecommended = plan.id === 'expert';
-            const features = getPlanFeatures(plan);
 
             return (
               <motion.div key={plan.id}
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}
                 className="flex flex-col relative"
                 style={{
                   background: isRecommended ? FG : 'white',
                   border: isRecommended ? 'none' : '1px solid rgba(0,0,0,0.09)',
-                  borderRadius: '4px',
-                  boxShadow: isRecommended ? '0 20px 60px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                  borderRadius: '5px',
+                  boxShadow: isRecommended ? '0 20px 60px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.03)',
                 }}>
 
                 {isRecommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="text-[9px] font-black px-3 py-1 tracking-widest"
                       style={{ background: YUZU, color: FG, borderRadius: '2px' }}>
-                      RECOMMANDÉ
+                      {t('recommended')}
                     </span>
                   </div>
                 )}
@@ -131,63 +108,73 @@ export default function PricingPage() {
                 <div className="p-5 flex flex-col flex-1">
                   {/* Icon + Name */}
                   <div className="flex items-center gap-2.5 mb-4">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-sm"
-                      style={{ background: isRecommended ? 'rgba(221,255,0,0.15)' : 'rgba(0,0,0,0.05)' }}>
+                    <div className="w-8 h-8 flex items-center justify-center"
+                      style={{ background: isRecommended ? 'rgba(221,255,0,0.15)' : 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
                       <Icon className="w-4 h-4" style={{ color: isRecommended ? YUZU : FG }} />
                     </div>
                     <div>
-                      <p className="font-bold text-sm" style={{ color: isRecommended ? 'white' : FG }}>{plan.name}</p>
-                      <p className="text-[10px]" style={{ color: isRecommended ? 'rgba(255,255,255,0.5)' : '#999' }}>
-                        {plan.credits_limit} crédits
+                      <p className="font-black text-sm" style={{ color: isRecommended ? 'white' : FG }}>{plan.name}</p>
+                      <p className="text-[10px]" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#aaa' }}>
+                        {plan.credits_limit} {t('tensors')}
                       </p>
                     </div>
                   </div>
 
                   {/* Price */}
-                  <div className="mb-5">
-                    <div className="flex items-end gap-1">
+                  <div className="mb-4">
+                    <div className="flex items-end gap-2 flex-wrap">
                       <span className="text-3xl font-black" style={{ color: isRecommended ? 'white' : FG }}>
-                        {price === 0 ? 'Gratuit' : `${price}$`}
+                        {price}$
                       </span>
-                      {price > 0 && <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>/mois</span>}
+                      <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>/mois</span>
                     </div>
-                    {billing === 'yearly' && price > 0 && (
-                      <p className="text-[10px] mt-0.5" style={{ color: isRecommended ? 'rgba(221,255,0,0.7)' : CORAL }}>
-                        {plan.price_monthly - plan.price_yearly}$/mois économisé
-                      </p>
+                    {billing === 'yearly' && (
+                      <div className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-1"
+                        style={{ background: GREEN, borderRadius: '2px' }}>
+                        <span className="text-[10px] font-black text-white">×12 = {annualTotal}$/an</span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Features */}
+                  {/* Internet badge — always shown */}
+                  <div className="flex items-center gap-2 mb-4 px-2.5 py-2"
+                    style={{ background: plan.internet_access ? 'rgba(22,163,74,0.08)' : 'rgba(0,0,0,0.03)', borderRadius: '3px' }}>
+                    {plan.internet_access
+                      ? <Wifi className="w-3.5 h-3.5 flex-shrink-0" style={{ color: GREEN }} />
+                      : <WifiOff className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ccc' }} />}
+                    <span className="text-[11px] font-semibold" style={{ color: plan.internet_access ? GREEN : '#ccc' }}>
+                      {plan.internet_access ? t('internet_included') : t('internet_not_included')}
+                    </span>
+                  </div>
+
+                  {/* Key features */}
                   <ul className="space-y-2 flex-1 mb-5">
-                    {features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs">
-                        <Check className="w-3 h-3 flex-shrink-0 mt-0.5"
-                          style={{ color: isRecommended ? YUZU : FG }} />
-                        <span style={{ color: isRecommended ? 'rgba(255,255,255,0.75)' : '#444' }}>{f.label}</span>
+                    {[
+                      plan.ultimate_access && t('mode_ultimate'),
+                      plan.file_upload && t('file_upload_feature'),
+                      plan.max_discussions === 0 ? t('unlimited_discussions') : null,
+                      plan.shareable_credits > 0 && t('shareable_credits_feature', { n: plan.shareable_credits }),
+                      plan.premium_support && t('premium_support_feature'),
+                    ].filter(Boolean).map((f, i) => (
+                      <li key={i} className="flex items-center gap-2 text-xs">
+                        <Check className="w-3 h-3 flex-shrink-0" style={{ color: isRecommended ? YUZU : FG }} />
+                        <span style={{ color: isRecommended ? 'rgba(255,255,255,0.7)' : '#555' }}>{f}</span>
                       </li>
                     ))}
-                    {!plan.internet_access && (
-                      <li className="flex items-start gap-2 text-xs opacity-40">
-                        <WifiOff className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: isRecommended ? 'white' : FG }} />
-                        <span style={{ color: isRecommended ? 'white' : '#444' }}>Pas d'Internet</span>
-                      </li>
-                    )}
                   </ul>
 
                   {/* CTA */}
                   <button
-                    onClick={() => handleSubscribe(plan)}
+                    onClick={() => handleChoose(plan)}
                     disabled={isCurrentPlan}
-                    className="w-full py-2.5 text-xs font-bold tracking-wide transition-all"
+                    className="w-full py-3 text-xs font-black tracking-wide transition-all"
                     style={{
                       borderRadius: '3px',
-                      background: isCurrentPlan ? 'rgba(0,0,0,0.08)' : isRecommended ? YUZU : FG,
+                      background: isCurrentPlan ? 'rgba(0,0,0,0.06)' : isRecommended ? YUZU : FG,
                       color: isCurrentPlan ? '#aaa' : isRecommended ? FG : 'white',
                       cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
-                      boxShadow: !isCurrentPlan && isRecommended ? `0 4px 20px rgba(221,255,0,0.35)` : 'none',
                     }}>
-                    {isCurrentPlan ? '✓ Plan actuel' : plan.id === 'free' ? 'Continuer gratuitement' : `Choisir ${plan.name}`}
+                    {isCurrentPlan ? t('current_plan') : t('choose_plan', { name: plan.name })}
                   </button>
                 </div>
               </motion.div>
@@ -195,14 +182,8 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Bottom note */}
-        <div className="text-center mt-12 space-y-2">
-          <p className="text-xs" style={{ color: '#999' }}>
-            Paiement sécurisé · Annulation à tout moment · Accès immédiat
-          </p>
-          <p className="text-xs font-medium" style={{ color: '#666' }}>
-            💬 Disponible 24h/24 — Votre coach financier ne dort jamais
-          </p>
+        <div className="text-center mt-10">
+          <p className="text-xs" style={{ color: '#aaa' }}>{t('secure_payment')}</p>
         </div>
       </div>
     </div>

@@ -4,12 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
+import { useLanguage } from '@/lib/i18n';
 
-const AGENTS = [
-  { id: 'global', label: 'Agent Global' },
-  { id: 'emotions-depenses', label: 'Émotions & Dépenses' },
-  { id: 'wealth-strategy', label: 'Wealth Strategy' },
-];
+const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
+const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
 const ALL_MODES = [
   { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
@@ -49,6 +47,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
+  const { t } = useLanguage();
+  const AGENTS = AGENT_IDS.map(id => ({ id, label: t(AGENT_LABEL_KEYS[id]) }));
   const effectiveAgentId = agentId || 'global';
   const lockedAgentLabel = AGENTS.find(a => a.id === effectiveAgentId)?.label;
   const allowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id)) : [ALL_MODES[0]];
@@ -140,16 +140,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
         className="inline-flex items-center gap-2 px-3 py-1 mb-5"
         style={{ background: YUZU, borderRadius: '2px' }}>
         <Zap className="w-3 h-3" style={{ color: FG }} />
-        <span className="text-[10px] font-black tracking-widest" style={{ color: FG }}>STENSOR — FINANCE IA</span>
+        <span className="text-[10px] font-black tracking-widest" style={{ color: FG }}>{t('hero_badge')}</span>
       </motion.div>
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
-        {lockedAgentLabel ? lockedAgentLabel : 'Votre coach financier IA'}
+        {lockedAgentLabel ? lockedAgentLabel : t('hero_title')}
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
         className="mt-3 text-sm" style={{ color: '#888' }}>
-        Disponible 24h/24 · Confidentiel · Plus rapide qu'un conseiller humain
+        {t('hero_subtitle')}
       </motion.p>
 
       {/* Input card */}
@@ -228,7 +228,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           <div className="px-4 pt-4 pb-1">
             <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommencer(); } }}
-              placeholder="Posez votre question financière… (@ pour agents)"
+              placeholder={t('hero_placeholder')}
               rows={3}
               className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
               style={{ color: FG }}
@@ -269,7 +269,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                   className="h-8 px-2.5 flex items-center gap-1.5 transition-colors hover:bg-black/5"
                   style={{ borderRadius: '4px' }}>
                   <Bot className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
-                  <span className="text-xs font-medium" style={{ color: '#bbb' }}>{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : 'Agent'}</span>
+                  <span className="text-xs font-medium" style={{ color: '#bbb' }}>{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
                   <ChevronDown className="w-3 h-3" style={{ color: '#ccc' }} />
                 </button>
                 <AnimatePresence>
@@ -351,13 +351,13 @@ export default function HeroSection({ agentId, onAgentChange }) {
         onClick={handleCommencer} disabled={!hasText}
         className="mt-3 w-full py-3.5 font-black text-sm tracking-wide transition-all"
         style={{ background: hasText ? FG : 'rgba(0,0,0,0.06)', color: hasText ? 'white' : '#bbb', cursor: hasText ? 'pointer' : 'not-allowed', borderRadius: '4px' }}>
-        Commencer →
+        {t('hero_start')}
       </motion.button>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-6">
-        <p className="text-xs mb-3" style={{ color: '#bbb' }}>Sujets populaires</p>
+        <p className="text-xs mb-3" style={{ color: '#bbb' }}>{t('hero_topics')}</p>
         <div className="flex flex-wrap justify-center gap-2">
-          {['Budget & dépenses', 'Investissement', 'Épargne', 'Retraite', 'Fiscalité'].map(cat => (
+          {(t('topics') || []).map(cat => (
             <button key={cat} onClick={() => setQuery(`Aide-moi sur le sujet : ${cat}`)}
               className="px-3.5 py-1.5 border text-xs font-medium transition-colors"
               style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', color: '#666', background: 'white' }}

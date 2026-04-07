@@ -10,7 +10,9 @@ import ReactMarkdown from 'react-markdown';
 import { AGENTS } from '@/components/Sidebar';
 import { getAgentConfig } from '@/lib/agents-config';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
 import { getUserPlan } from '@/lib/plans-config';
+import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'discussions_v1';
@@ -20,6 +22,7 @@ const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf83
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 const CORAL = '#FF4F00';
+const MAX_VISIBLE_FILES = 3;
 
 const ALL_MODES = [
   { id: 'fast', label: 'Fast', icon: Zap, model: 'gemini_3_flash', desc: 'Rapide & efficace' },
@@ -73,7 +76,9 @@ export default function ChatPage() {
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [files, setFiles] = useState([]);
+  const [showFilePanel, setShowFilePanel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const { t } = useLanguage();
   const [showUpgradeOverlay, setShowUpgradeOverlay] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
@@ -92,11 +97,13 @@ export default function ChatPage() {
   const allowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id)) : [ALL_MODES[0]];
   const canUploadFiles = userPlan?.file_upload || false;
   const hasInternet = userPlan?.internet_access || false;
-  const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label;
-  const filteredAgents = AGENTS.filter(a => a.label.toLowerCase().includes(atQuery));
+  const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label || 'Global Agent';
+  const filteredAgents = AGENTS.filter(a => (a.label || a.id).toLowerCase().includes(atQuery));
   const filteredModes = allowedModes.filter(m => m.label.toLowerCase().includes(atQuery));
   const ModeIcon = mode.icon;
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
+  const visibleFiles = files.slice(0, MAX_VISIBLE_FILES);
+  const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -160,7 +167,7 @@ export default function ChatPage() {
 
   const handleFileAttach = () => {
     if (!canUploadFiles) {
-      setUpgradeFeature("l'envoi de fichiers");
+      setUpgradeFeature(t('attach_file'));
       setShowUpgradeOverlay(true);
       return;
     }
@@ -211,11 +218,12 @@ export default function ChatPage() {
       const useInternet = hasInternet && mode.model !== 'claude_opus_4_6';
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: systemContext + text,
-        model: mode.model,
-        add_context_from_internet: useInternet,
-        ...(file_urls.length > 0 ? { file_urls } : {}),
+      prompt: systemContext + text,
+      model: mode.model,
+      add_context_from_internet: useInternet,
+      ...(file_urls.length > 0 ? { file_urls } : {}),
       });
+      // ↑ file_urls is now passed correctly to the LLM
       const content = typeof result === 'string' ? result : JSON.stringify(result);
 
       const elapsed = Date.now() - startTime;
@@ -452,19 +460,27 @@ export default function ChatPage() {
         <div className="bg-white overflow-visible" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
 
           {files.length > 0 && (
-            <div className="flex gap-2 flex-wrap px-3 pt-3">
-              {files.map((file, idx) => (
-                <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group"
-                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}>
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                  <span className="text-[11px] font-medium max-w-[100px] truncate" style={{ color: '#444' }}>{file.name}</span>
+            <div className="flex items-center gap-2 flex-wrap px-3 pt-3">
+              {visibleFiles.map((file, idx) => (
+                <div key={idx} className="relative flex items-center gap-2 px-2.5 py-1.5 group"
+                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px', maxWidth: '120px' }}>
+                  <FileText className="w-3 h-3 flex-shrink-0" style={{ color: FG }} />
+                  <span className="text-[10px] font-medium truncate" style={{ color: FG }}>{file.name}</span>
                   <button onClick={() => setFiles(p => p.filter((_, i) => i !== idx))}
-                    className="w-4 h-4 rounded-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: 'rgba(0,0,0,0.1)' }}>
-                    <X className="w-2.5 h-2.5" style={{ color: '#666' }} />
+                    className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(0,0,0,0.1)', borderRadius: '2px' }}>
+                    <X className="w-2 h-2" style={{ color: '#666' }} />
                   </button>
                 </div>
               ))}
+              {extraFiles > 0 && (
+                <button
+                  onClick={() => setShowFilePanel(true)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black transition-colors"
+                  style={{ background: FG, color: YUZU, borderRadius: '4px' }}>
+                  ···  +{extraFiles}
+                </button>
+              )}
             </div>
           )}
 
@@ -568,13 +584,16 @@ export default function ChatPage() {
                 </AnimatePresence>
               </div>
 
-              {/* Internet indicator */}
-              {hasInternet && (
-                <div className="h-7 px-2 flex items-center gap-1">
-                  <Wifi className="w-3 h-3" style={{ color: '#DDFF00' }} />
-                  <span className="text-[10px] font-semibold hidden sm:block" style={{ color: '#999' }}>Internet</span>
-                </div>
-              )}
+              {/* Internet indicator — always shown, clickable only if allowed */}
+              <button
+                onClick={() => { if (!hasInternet) { setUpgradeFeature('Internet'); setShowUpgradeOverlay(true); } }}
+                className="h-7 px-2 flex items-center gap-1 transition-all"
+                style={{ borderRadius: '4px', opacity: hasInternet ? 1 : 0.35, cursor: hasInternet ? 'default' : 'pointer' }}
+                title={hasInternet ? t('internet_included') : t('internet_not_included')}>
+                <Wifi className="w-3 h-3" style={{ color: hasInternet ? '#16a34a' : '#999' }} />
+                <span className="text-[10px] font-semibold hidden sm:block" style={{ color: hasInternet ? '#16a34a' : '#999' }}>{t('internet')}</span>
+                {!hasInternet && <Lock className="w-2.5 h-2.5" style={{ color: '#ccc' }} />}
+              </button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -608,6 +627,13 @@ export default function ChatPage() {
           </div>
         </div>
 
+        {/* File preview panel */}
+        <FilePreviewPanel
+          files={files}
+          open={showFilePanel}
+          onClose={() => setShowFilePanel(false)}
+          onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
+        />
         {/* Credit hint */}
         <div className="flex items-center justify-between mt-2 px-1">
           <div className="flex items-center gap-2">

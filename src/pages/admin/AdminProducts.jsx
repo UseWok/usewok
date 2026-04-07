@@ -320,6 +320,9 @@ export default function AdminProducts() {
   const [userSearch, setUserSearch] = useState('');
   const [agentsConfig, setAgentsConfig] = useState(getAgentsConfig);
   const [currentUser, setCurrentUser] = useState(null);
+  const [checkoutUrls, setCheckoutUrls] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('stensor_checkout_urls') || '{}'); } catch { return {}; }
+  });
 
   const qc = useQueryClient();
 
@@ -418,6 +421,27 @@ export default function AdminProducts() {
         {/* PLANS TAB */}
         {tab === 'plans' && (
           <div>
+            {/* Checkout URLs */}
+            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Liens de paiement (redirection Stripe)</p>
+              <div className="space-y-2">
+                {plansConfig.filter(p => p.id !== 'free').map(plan => (
+                  <div key={plan.id} className="flex items-center gap-2">
+                    <span className="text-xs font-bold w-20 flex-shrink-0" style={{ color: FG }}>{plan.name}</span>
+                    <input
+                      value={checkoutUrls[plan.id] || ''}
+                      onChange={e => setCheckoutUrls(u => ({ ...u, [plan.id]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..."
+                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => { const updated = getPlansConfig().map(p => checkoutUrls[p.id] ? { ...p, checkout_url: checkoutUrls[p.id] } : p); savePlansConfig(updated); setPlansConfig(updated); localStorage.setItem('stensor_checkout_urls', JSON.stringify(checkoutUrls)); showSaved(); }}
+                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
+                Sauvegarder les liens
+              </button>
+            </div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm" style={{ color: '#666' }}>
                 Configurez les paramètres de chaque plan. En mode test, activez un plan pour le tester sur votre compte.

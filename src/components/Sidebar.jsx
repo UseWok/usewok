@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, GraduationCap, Users, Bot, ShoppingBag, TrendingUp, Zap, ChevronRight, Lock } from 'lucide-react';
+import { Home, Bell, Globe2, GraduationCap, Users, Bot, ShoppingBag, TrendingUp, Zap, ChevronRight, Lock, ShoppingCart } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
@@ -15,9 +15,9 @@ export const COLLAPSED_W = 64;
 export const EXPANDED_W = 272;
 
 export const AGENTS = [
-  { id: 'global', labelKey: 'global_agent' },
-  { id: 'emotions-depenses', labelKey: 'emotions_agent' },
-  { id: 'wealth-strategy', labelKey: 'wealth_agent' },
+  { id: 'global', labelKey: 'global_agent', label: 'Global Agent' },
+  { id: 'emotions-depenses', labelKey: 'emotions_agent', label: 'Emotions & Expenses' },
+  { id: 'wealth-strategy', labelKey: 'wealth_agent', label: 'Wealth Strategy' },
 ];
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
@@ -56,6 +56,9 @@ export default function Sidebar({ expanded, setExpanded }) {
   const notiRef = useRef(null);
   const langRef = useRef(null);
   const tensorsRef = useRef(null);
+
+  const cart = (() => { try { return JSON.parse(localStorage.getItem('stensor_cart_v1')); } catch { return null; } })();
+  const hasCart = cart && Date.now() - (cart?.ts || 0) < 24 * 60 * 60 * 1000;
 
   const loadUser = () => {
     base44.auth.me().then(u => {
