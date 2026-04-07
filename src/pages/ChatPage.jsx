@@ -77,7 +77,7 @@ export default function ChatPage() {
   const [files, setFiles] = useState([]);
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [useWebSearch, setUseWebSearch] = useState(false);
+  const [useWebSearch, setUseWebSearch] = useState(true);
   const [showInternetMenu, setShowInternetMenu] = useState(false);
   const { t } = useLanguage();
   const [showUpgradeOverlay, setShowUpgradeOverlay] = useState(false);
@@ -114,10 +114,12 @@ export default function ChatPage() {
       setCreditsUsed(u?.credits_used ?? 0);
       const plan = getUserPlan(u);
       setUserPlan(plan);
-      // If current mode not allowed, switch to first allowed
-      if (u && !plan.allowed_modes.includes(mode.id)) {
-        setMode(ALL_MODES.find(m => plan.allowed_modes.includes(m.id)) || ALL_MODES[0]);
-      }
+      // Always set highest allowed mode
+      const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
+      if (best) setMode(best);
+      // Web search on by default if allowed
+      if (plan.internet_access) setUseWebSearch(true);
+      else setUseWebSearch(false);
     }).catch(() => {});
   }, []);
 

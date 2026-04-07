@@ -1,0 +1,30 @@
+{
+  "name": "ActivationCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "billing": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ]
+    },
+    "used": {
+      "type": "boolean"
+    },
+    "used_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code",
+    "plan_id",
+    "billing"
+  ]
+}

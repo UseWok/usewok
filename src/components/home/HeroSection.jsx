@@ -45,6 +45,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [isRecording, setIsRecording] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
   const [useWebSearch, setUseWebSearch] = useState(false);
+  const [hasInternetState, setHasInternetState] = useState(false);
 
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -63,7 +64,15 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const canUpload = userPlan?.file_upload || false;
 
   useEffect(() => {
-    base44.auth.me().then(u => setUserPlan(getUserPlan(u))).catch(() => {});
+    base44.auth.me().then(u => {
+      const plan = getUserPlan(u);
+      setUserPlan(plan);
+      // Set highest allowed mode by default
+      const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
+      if (best) setMode(best);
+      // Web search on by default if allowed
+      if (plan.internet_access) { setUseWebSearch(true); setHasInternetState(true); }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -131,7 +140,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
     setShowFileMenu(false);
   };
 
-  const hasInternet = userPlan?.internet_access || false;
+  const hasInternet = hasInternetState || userPlan?.internet_access || false;
 
   const handleCommencer = () => {
     if (!query.trim()) return;

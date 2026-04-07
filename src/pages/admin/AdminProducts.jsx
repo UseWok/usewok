@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Users, Save, Bot, Ban, Search, ChevronDown, ChevronUp,
-  Gift, Check, X, Pencil, Trash2, CreditCard, Globe, Upload, Zap,
-  Crown, Shield, Star, Lock, Unlock, ToggleLeft, ToggleRight
+  Gift, Check, X, Pencil, Trash2, CreditCard, Globe, Zap,
+  Crown, Shield, Star
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig } from '@/lib/agents-config';
 import { getPlansConfig, savePlansConfig, DEFAULT_PLANS } from '@/lib/plans-config';
+import { toast } from 'sonner';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
@@ -320,14 +321,21 @@ export default function AdminProducts() {
   const [userSearch, setUserSearch] = useState('');
   const [agentsConfig, setAgentsConfig] = useState(getAgentsConfig);
   const [currentUser, setCurrentUser] = useState(null);
-  const [checkoutUrls, setCheckoutUrls] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('stensor_checkout_urls') || '{}'); } catch { return {}; }
-  });
+  const [checkoutUrls, setCheckoutUrls] = useState({});
+  const [codesInput, setCodesInput] = useState({}); // planId_billing -> textarea
+  const [codesSaved, setCodesSaved] = useState(false);
+  const [showCodesTab, setShowCodesTab] = useState(false);
 
   const qc = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+    // Load checkout URLs from DB
+    base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
+      if (results.length > 0) {
+        try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {}
+      }
+    }).catch(() => {});
   }, []);
 
   const { data: notifications = [], refetch: refetchNotifs } = useQuery({
@@ -345,6 +353,41 @@ export default function AdminProducts() {
   const showSaved = () => { setSavedMsg(true); setTimeout(() => setSavedMsg(false), 2000); };
 
   const savePlans = () => { savePlansConfig(plansConfig); showSaved(); };
+
+  const saveCheckoutUrls = async () => {
+    // Save to DB so all devices get it
+    const existing = await base44.entities.AppSettings.filter({ key: 'checkout_urls' });
+    const val = JSON.stringify(checkoutUrls);
+    if (existing.length > 0) {
+      await base44.entities.AppSettings.update(existing[0].id, { value: val });
+    } else {
+      await base44.entities.AppSettings.create({ key: 'checkout_urls', value: val });
+    }
+    // Also update plans config with urls
+    const updated = getPlansConfig().map(p => checkoutUrls[p.id] ? { ...p, checkout_url: checkoutUrls[p.id] } : p);
+    savePlansConfig(updated); setPlansConfig(updated);
+    showSaved();
+  };
+
+  const saveActivationCodes = async () => {
+    const entries = Object.entries(codesInput);
+    let total = 0;
+    for (const [key, raw] of entries) {
+      const [planId, billing] = key.split('__');
+      const codes = raw.split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length >= 6);
+      for (const code of codes) {
+        // Avoid duplicates
+        const exists = await base44.entities.ActivationCode.filter({ code });
+        if (exists.length === 0) {
+          await base44.entities.ActivationCode.create({ code, plan_id: planId, billing, used: false });
+          total++;
+        }
+      }
+    }
+    setCodesInput({});
+    setCodesSaved(true); setTimeout(() => setCodesSaved(false), 3000);
+    toast.success(`${total} codes ajoutés`);
+  };
   const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 
   const activatePlan = async (planId) => {
@@ -372,10 +415,12 @@ export default function AdminProducts() {
     setEditingNotif(null); refetchNotifs();
   };
 
+  const plans = getPlansConfig().filter(p => p.id !== 'free');
   const filteredUsers = users.filter(u => !userSearch || u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()));
 
   const tabs = [
     { id: 'plans', label: 'Abonnements', icon: CreditCard },
+    { id: 'codes', label: 'Codes Accès', icon: Gift },
     { id: 'agents', label: 'Agents IA', icon: Bot },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'users', label: 'Utilisateurs', icon: Users },
@@ -437,9 +482,9 @@ export default function AdminProducts() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => { const updated = getPlansConfig().map(p => checkoutUrls[p.id] ? { ...p, checkout_url: checkoutUrls[p.id] } : p); savePlansConfig(updated); setPlansConfig(updated); localStorage.setItem('stensor_checkout_urls', JSON.stringify(checkoutUrls)); showSaved(); }}
+              <button onClick={saveCheckoutUrls}
                 className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                Sauvegarder les liens
+                Sauvegarder les liens (tous appareils)
               </button>
             </div>
             <div className="flex items-center justify-between mb-4">
@@ -465,6 +510,37 @@ export default function AdminProducts() {
               className="mt-4 text-xs font-medium transition-colors hover:text-black"
               style={{ color: '#aaa' }}>
               Réinitialiser les plans par défaut
+            </button>
+          </div>
+        )}
+
+        {/* CODES TAB */}
+        {tab === 'codes' && (
+          <div className="max-w-3xl">
+            <p className="text-sm mb-6" style={{ color: '#666' }}>Collez vos codes pour chaque plan/facturation (un par ligne, virgule ou espace). Ils s'ajoutent automatiquement en base.</p>
+            <div className="space-y-4">
+              {plans.flatMap(plan => ['monthly', 'yearly'].map(billing => (
+                <div key={`${plan.id}__${billing}`} className="bg-white border p-4" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-bold" style={{ color: FG }}>{plan.name}</span>
+                    <span className="text-[10px] font-black px-2 py-0.5" style={{ background: billing === 'yearly' ? FG : YUZU, color: billing === 'yearly' ? 'white' : FG, borderRadius: '2px' }}>
+                      {billing === 'monthly' ? 'Mensuel' : 'Annuel'}
+                    </span>
+                  </div>
+                  <textarea
+                    value={codesInput[`${plan.id}__${billing}`] || ''}
+                    onChange={e => setCodesInput(c => ({ ...c, [`${plan.id}__${billing}`]: e.target.value }))}
+                    rows={4}
+                    placeholder="Collez ici vos codes (1 par ligne)&#10;Ex: 4F7K9M2X1R8P"
+                    className="w-full px-3 py-2.5 text-xs font-mono focus:outline-none resize-none"
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
+                </div>
+              )))}
+            </div>
+            <button onClick={saveActivationCodes}
+              className="mt-4 px-5 py-2.5 text-sm font-bold transition-all"
+              style={{ background: codesSaved ? '#16a34a' : FG, color: 'white', borderRadius: '4px' }}>
+              {codesSaved ? '✓ Codes ajoutés !' : 'Importer tous les codes'}
             </button>
           </div>
         )}

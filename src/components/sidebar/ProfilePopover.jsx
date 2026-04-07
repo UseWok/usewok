@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Settings, HelpCircle, Users, Gift, LogOut } from 'lucide-react';
+import { Settings, HelpCircle, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +18,8 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open, onClose, anchorRef]);
 
+  const navigate = useNavigate();
+
   const getPosition = () => {
     if (!anchorRef?.current) return { left: 60, bottom: 16 };
     const rect = anchorRef.current.getBoundingClientRect();
@@ -26,11 +29,8 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
   const pos = open ? getPosition() : {};
 
   const items = [
-    { icon: Settings, label: 'Paramètres du compte', action: () => {} },
+    { icon: Settings, label: 'Paramètres du compte', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Aide et support', action: () => {} },
-    { divider: true },
-    { icon: Users, label: 'Parrainer un ami', action: () => {} },
-    { icon: Gift, label: 'Envoyer un cadeau', action: () => {} },
     { divider: true },
     { icon: LogOut, label: 'Se déconnecter', action: () => base44.auth.logout(), destructive: true },
   ];

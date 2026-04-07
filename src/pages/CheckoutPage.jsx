@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Wifi, WifiOff, ExternalLink, ChevronLeft, Zap, Shield, Globe, Star, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { getPlansConfig, getUserPlan } from '@/lib/plans-config';
+import { getPlansConfig, getUserPlan, savePlansConfig } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
+import { toast } from 'sonner';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
@@ -29,6 +30,8 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState(urlParams.get('billing') || 'monthly');
   const [user, setUser] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  const [activationCode, setActivationCode] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
 
   const plans = getPlansConfig();
   const plan = plans.find(p => p.id === planId) || plans[1];
@@ -39,6 +42,18 @@ export default function CheckoutPage() {
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => {});
     saveCart(planId, billing);
+    // Load checkout URLs from DB
+    base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
+      if (results.length > 0) {
+        try {
+          const urls = JSON.parse(results[0].value);
+          // update plans config with fetched urls
+          const currentPlans = getPlansConfig();
+          const updated = currentPlans.map(p => urls[p.id] ? { ...p, checkout_url: urls[p.id] } : p);
+          savePlansConfig(updated);
+        } catch {}
+      }
+    }).catch(() => {});
   }, [planId, billing]);
 
   const isYearly = billing === 'yearly';
@@ -70,6 +85,27 @@ export default function CheckoutPage() {
     } else {
       setConfirming(true);
     }
+  };
+
+  const activateCode = async () => {
+    if (!activationCode.trim() || !user) return;
+    setCodeLoading(true);
+    const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
+    if (results.length === 0) {
+      toast.error('Code invalide ou déjà utilisé');
+      setCodeLoading(false);
+      return;
+    }
+    const codeRecord = results[0];
+    const plans = getPlansConfig();
+    const codePlan = plans.find(p => p.id === codeRecord.plan_id);
+    if (!codePlan) { toast.error('Plan introuvable'); setCodeLoading(false); return; }
+    await base44.auth.updateMe({ subscription_plan: codePlan.id, credits_limit: codePlan.credits_limit, credits_used: 0, credits_bonus: 0 });
+    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
+    clearCart();
+    toast.success(`Plan ${codePlan.name} activé !`);
+    navigate('/');
+    setCodeLoading(false);
   };
 
   const handleDemoSubscribe = async () => {
@@ -199,6 +235,30 @@ export default function CheckoutPage() {
               {t('cancel_cart')}
             </button>
           </motion.div>
+        </div>
+      </div>
+
+      {/* Activation code section */}
+      <div className="mt-6 mb-2">
+        <div className="h-px mb-6" style={{ background: 'rgba(0,0,0,0.07)' }} />
+        <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
+          <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Vous avez un code ?</p>
+          <p className="text-xs mb-3" style={{ color: '#888' }}>Vérifiez vos mails et entrez votre code d'activation à 12 chiffres.</p>
+          <div className="flex gap-2">
+            <input
+              value={activationCode || ''}
+              onChange={e => setActivationCode(e.target.value.toUpperCase())}
+              placeholder="Ex: 4F7K9M2X1R8P"
+              maxLength={12}
+              className="flex-1 px-3 py-2.5 text-sm font-mono focus:outline-none"
+              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }}
+            />
+            <button onClick={activateCode} disabled={codeLoading || !activationCode?.trim()}
+              className="px-4 py-2.5 text-sm font-bold disabled:opacity-40 transition-all"
+              style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+              {codeLoading ? '...' : 'Activer'}
+            </button>
+          </div>
         </div>
       </div>
 

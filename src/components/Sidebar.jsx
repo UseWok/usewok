@@ -11,6 +11,7 @@ import LanguagePopover from './sidebar/LanguagePopover';
 import TensorsPopover from './sidebar/TensorsPopover';
 import { useLanguage } from '@/lib/i18n';
 import { getUserPlan } from '@/lib/plans-config';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const COLLAPSED_W = 64;
 export const EXPANDED_W = 250;
@@ -39,6 +40,7 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showFeatures, setShowFeatures] = useState(false);
+  const isMobile = useIsMobile();
   const qc = useQueryClient();
 
   const { t } = useLanguage();
@@ -218,7 +220,8 @@ export default function Sidebar({ expanded, setExpanded }) {
             )}
           </button>
 
-          {/* Tensors bar — always visible */}
+          {/* Tensors bar — hidden when collapsed on desktop, always visible on mobile */}
+          {(expanded || isMobile) && (
           <button
             ref={tensorsRef}
             onClick={() => togglePopover('tensors')}
@@ -238,21 +241,20 @@ export default function Sidebar({ expanded, setExpanded }) {
                   style={{ background: CORAL, borderRadius: '50%', border: '1.5px solid white' }} />
               )}
             </div>
-            {expanded && (
-              <div className="flex-1 min-w-0 text-left">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold" style={{ color: isLow ? CORAL : PURPLE }}>
-                    {isLow ? '⚠ ' : ''}{used}/{total}
-                  </span>
-                  <span className="text-[9px]" style={{ color: '#bbb' }}>{t('tensors')}</span>
-                </div>
-                <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
-                  <div className="h-full rounded-full transition-all"
-                    style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : PURPLE }} />
-                </div>
+            <div className="flex-1 min-w-0 text-left">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold" style={{ color: isLow ? CORAL : PURPLE }}>
+                  {isLow ? '⚠ ' : ''}{used}/{total}
+                </span>
+                <span className="text-[9px]" style={{ color: '#bbb' }}>{t('tensors')}</span>
               </div>
-            )}
+              <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
+                <div className="h-full rounded-full transition-all"
+                  style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : PURPLE }} />
+              </div>
+            </div>
           </button>
+          )}
 
           {/* Referral */}
           <button
