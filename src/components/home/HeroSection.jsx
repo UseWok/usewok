@@ -289,14 +289,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {/* Commencer button */}
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         onClick={handleCommencer} disabled={!hasText}
-        className="mt-3 w-full rounded-2xl font-bold text-sm transition-all"
-        style={{
-          padding: '14px 0',
-          background: hasText ? 'linear-gradient(135deg, #1E0050, #4c1d95)' : 'rgba(30,0,80,0.06)',
-          color: hasText ? 'white' : 'rgba(30,0,80,0.25)',
-          boxShadow: hasText ? '0 4px 20px rgba(30,0,80,0.3)' : 'none',
-          border: hasText ? 'none' : '1px solid rgba(30,0,80,0.08)',
-          cursor: hasText ? 'pointer' : 'not-allowed',
+        className="mt-3 w-full rounded-xl font-bold text-sm transition-all"
         }}>
         <span>Commencer →</span>
       </motion.button>
