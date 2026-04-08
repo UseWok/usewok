@@ -351,7 +351,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     // Load existing activation codes
-    base44.entities.ActivationCode.list('-created_date', 500).then(codes => {
+    base44.entities.ActivationCode.list('-created_date', 8000).then(codes => {
       const grouped = {};
       codes.forEach(code => {
         const key = `${code.plan_id}__${code.billing}`;
