@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TicketsTab from '@/components/admin/TicketsTab';
+import LandingEditor from '@/components/admin/LandingEditor';
 import CodesTab from '@/components/admin/CodesTab';
 import PlanCodesSection from '@/components/admin/CodesTab';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
@@ -533,6 +534,7 @@ export default function AdminProducts() {
     { id: 'plans', label: 'Abonnements', icon: CreditCard },
     { id: 'agents', label: 'Agents IA', icon: Bot },
     { id: 'pages', label: 'Pages', icon: Map },
+    { id: 'landing', label: 'Landing Page', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'tickets', label: 'Tickets', icon: MessageSquare },
     { id: 'users', label: 'Utilisateurs', icon: Users },
@@ -833,6 +835,9 @@ export default function AdminProducts() {
             </button>
           </div>
         )}
+
+        {/* LANDING TAB */}
+        {tab === 'landing' && <LandingEditor />}
 
         {/* TICKETS TAB */}
         {tab === 'tickets' && <TicketsTab />}

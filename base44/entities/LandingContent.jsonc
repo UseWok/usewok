@@ -1,0 +1,16 @@
+{
+  "name": "LandingContent",
+  "type": "object",
+  "properties": {
+    "section": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "section",
+    "content"
+  ]
+}
