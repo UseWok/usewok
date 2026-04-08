@@ -173,7 +173,7 @@ export const TRANSLATIONS = {
     landing_most_popular: 'Le Plus Populaire · Essentiel',
     landing_best_value: 'Meilleur Rapport',
     landing_coach_desc: 'Un coach humain facture 200$/h pour 1h/mois. Stensor Essentiel vous donne un accès illimité, 24h/24, pour une fraction du prix — sans jugement.',
-    landing_10x_cheaper: '10× moins cher qu'une heure avec un conseiller financier traditionnel.',
+    landing_10x_cheaper: "10× moins cher qu'une heure avec un conseiller financier traditionnel.",
   },
   es: {
     pricing_badge: 'STENSOR — FINANZAS IA', back_to_plans: 'Volver a planes',
