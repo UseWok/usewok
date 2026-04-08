@@ -145,7 +145,7 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
           className="w-full max-w-2xl mb-8">
           <div className="relative flex items-end gap-3 p-5 bg-white border border-black/10"
-            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.08)', borderRadius: '16px' }}>
+            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
             <textarea ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
               placeholder={hero.placeholder} rows={3}
@@ -153,7 +153,7 @@ export default function LandingPage() {
               style={{ color: FG, minHeight: '72px' }} />
             <button onClick={handleSend} disabled={!query.trim()}
               className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all"
-              style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '10px' }}>
+              style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '4px' }}>
               <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
             </button>
           </div>
@@ -171,7 +171,7 @@ export default function LandingPage() {
               return (
                 <button key={i} onClick={() => handleTopicClick(topic)}
                   className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
-                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '8px', background: 'white' }}
+                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'white' }}>
                   onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'rgba(10,10,10,0.6)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
                   {label}
@@ -200,7 +200,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.55, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
               className="sticky overflow-hidden"
-              style={{ top: `${80 + i * 16}px`, background: FG, borderRadius: '20px' }}>
+              style={{ top: `${80 + i * 16}px`, background: FG, borderRadius: '8px' }}>
               <div className="flex flex-col md:flex-row">
                 {/* Image */}
                 <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
@@ -234,7 +234,7 @@ export default function LandingPage() {
                   <div className="mt-8">
                     <button onClick={handleCta}
                       className="text-sm font-black px-6 py-3 transition-all hover:scale-[1.02]"
-                      style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
+                      style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
                       Get my strategy →
                     </button>
                   </div>
@@ -256,7 +256,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {/* Free */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="p-10 border border-black/08" style={{ borderRadius: '16px' }}>
+              className="p-10 border border-black/08" style={{ borderRadius: '4px' }}>
               <h3 className="text-xl font-black mb-2" style={{ color: FG }}>{pricing.free_title}</h3>
               <p className="text-3xl font-black mb-6" style={{ color: FG }}>{pricing.free_price}</p>
               <div className="space-y-3 mb-8">
@@ -271,14 +271,14 @@ export default function LandingPage() {
               </div>
               <button onClick={handleCta}
                 className="w-full py-3.5 font-black text-sm transition-colors"
-                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
+                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
                 {pricing.free_cta}
               </button>
             </motion.div>
             {/* Paid */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.08 }}
-              className="p-10 bg-black" style={{ borderRadius: '16px' }}>
+              className="p-10 bg-black" style={{ borderRadius: '4px' }}>
               <h3 className="text-xl font-black mb-2 text-white">{pricing.paid_title}</h3>
               <p className="font-black mb-1 text-white" style={{ fontSize: '2.5rem' }}>
                 {pricing.paid_price} <span className="text-lg font-semibold opacity-40">{pricing.paid_currency}</span>
@@ -295,7 +295,7 @@ export default function LandingPage() {
               </div>
               <button onClick={() => navigate(pricing.paid_url)}
                 className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
-                style={{ background: YUZU, color: FG, borderRadius: '10px' }}>
+                style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
                 {pricing.paid_cta}
               </button>
             </motion.div>
@@ -344,7 +344,7 @@ export default function LandingPage() {
         <motion.button initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           transition={{ delay: 0.1 }} onClick={handleCta}
           className="font-black text-base px-10 py-5 transition-all hover:opacity-85"
-          style={{ background: YUZU, color: FG, borderRadius: '12px' }}>
+          style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
           {cta.button}
         </motion.button>
       </section>

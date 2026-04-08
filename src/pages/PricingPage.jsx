@@ -22,7 +22,7 @@ export default function PricingPage() {
   const dismissCart = () => { clearCart(); setSavedCart(null); }; // eslint-disable-line
   const [plans] = useState(() => {
     const all = getPlansConfig();
-    return [...all].filter(p => p.id !== 'free');
+    return [...all].filter(p => p.id !== 'free').reverse();
   });
   const [billing, setBilling] = useState('yearly');
   const [purchased, setPurchased] = useState(null);

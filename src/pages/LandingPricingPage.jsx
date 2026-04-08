@@ -34,7 +34,7 @@ export default function LandingPricingPage() {
   const [billing, setBilling] = useState('yearly');
   const [scrolled, setScrolled] = useState(false);
   const [navData, setNavData] = useState(null);
-  const plans = getPlansConfig(); // cheap → expensive left to right
+  const plans = [...getPlansConfig()].reverse(); // most expensive first (left to right)
 
   useEffect(() => {
     getLandingContent().then(d => setNavData(d?.nav));
