@@ -64,7 +64,7 @@ export const DEFAULT_LANDING = {
     free_features: ['10 credits/month', 'Standard mode', '3 discussions max', 'Access to all knowledge bases'],
     free_cta: 'Start Building',
     paid_title: 'Paid plans from',
-    paid_price: '9',
+    paid_price: '16',
     paid_currency: '$/mo',
     paid_features: ['100+ credits/month', 'Advanced & Expert modes', 'Unlimited discussions', 'Internet search', 'File attachments'],
     paid_cta: 'See all plans →',
