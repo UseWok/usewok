@@ -91,8 +91,9 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
             transition={{ duration: 0.2 }} className="overflow-hidden">
             <div className="px-4 pb-4 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
               {/* Codes d'accès pour ce plan */}
-              <div className="mb-4 pb-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <PlanCodesSection planId={plan.id} planName={plan.name} />
+              <div className="mb-4 pb-4 space-y-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <PlanCodesSection planId={plan.id} planName={plan.name} billing="monthly" />
+                <PlanCodesSection planId={plan.id} planName={plan.name} billing="yearly" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
