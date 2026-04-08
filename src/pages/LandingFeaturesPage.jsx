@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Brain, Globe, Paperclip, MessageSquare, Zap, Crown, BarChart2, Shield, Clock } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n';
 import { getLandingContent } from '@/lib/landing-content';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
@@ -79,6 +80,7 @@ export default function LandingFeaturesPage() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [navData, setNavData] = useState(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     getLandingContent().then(d => setNavData(d?.nav));
@@ -113,11 +115,11 @@ export default function LandingFeaturesPage() {
           <div className="flex items-center gap-2">
             <button onClick={() => base44.auth.redirectToLogin('/app')}
               className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
-              Sign In
+              {t('landing_sign_in')}
             </button>
             <button onClick={handleCta}
               className="text-xs font-black px-4 py-2.5 bg-black text-white hover:bg-gray-900 transition-colors">
-              Get Started
+              {t('landing_get_started')}
             </button>
           </div>
         </nav>
@@ -128,14 +130,14 @@ export default function LandingFeaturesPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
             style={{ background: YUZU, color: FG }}>
-            All Features
+            {t('landing_features_badge')}
           </div>
           <h1 className="font-black tracking-tight leading-[1.02] mb-6"
             style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', color: FG }}>
-            Everything a financial<br />AI coach can do.
+            {t('landing_features_title')}
           </h1>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(10,10,10,0.4)' }}>
-            Designed to give you a real edge on your finances — not just generic answers.
+            {t('landing_features_sub')}
           </p>
         </motion.div>
       </section>
@@ -182,13 +184,13 @@ export default function LandingFeaturesPage() {
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="font-black tracking-tight text-white mb-8"
           style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
-          Ready to take control<br />of your finances?
+          {t('landing_features_cta')}
         </motion.h2>
         <motion.button initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           transition={{ delay: 0.1 }} onClick={handleCta}
           className="inline-flex items-center gap-3 font-black text-sm px-10 py-5 hover:opacity-85 transition-opacity"
           style={{ background: YUZU, color: FG }}>
-          Start building <ArrowRight className="w-4 h-4" />
+          {t('landing_features_start')} <ArrowRight className="w-4 h-4" />
         </motion.button>
       </section>
 

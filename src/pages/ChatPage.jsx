@@ -189,6 +189,8 @@ export default function ChatPage() {
   const canUploadExtended = userPlan?.file_upload_extended || false;
   const acceptedFileTypes = canUploadExtended ? ALL_FILE_TYPES : BASIC_FILE_TYPES;
 
+  const MAX_TOTAL_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+
   const handleFileAttach = () => {
     if (!canUploadFiles) {
       setUpgradeFeature(t('attach_file'));
@@ -259,9 +261,30 @@ export default function ChatPage() {
 
 
       const isFree = !userPlan || userPlan.price_monthly === 0;
-      const assistantMsg = { role: 'assistant', content };
+
+      // Typewriter effect: add message with empty content, then fill char by char
+      const assistantMsg = { role: 'assistant', content: '' };
       const finalMessages = [...newMessages, assistantMsg];
       setMessages(finalMessages);
+
+      // Animate typing
+      let i = 0;
+      const CHAR_SPEED = 8; // ms per character
+      const typeNext = () => {
+        if (i < content.length) {
+          i++;
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'assistant', content: content.slice(0, i) };
+            return updated;
+          });
+          setTimeout(typeNext, CHAR_SPEED);
+        } else {
+          // Typing done — save final
+          saveConversationMessages(convId, [...newMessages, { role: 'assistant', content }]);
+        }
+      };
+      typeNext();
 
       // Comparison message for FREE/ESSENTIAL
       if (isFree || (userPlan && userPlan.price_monthly <= 9)) {
@@ -283,8 +306,6 @@ export default function ChatPage() {
           { duration: 7000 }
         );
       }
-      saveConversationMessages(convId, finalMessages);
-
       if (user) {
         const responseLen = content.length;
         const baseCost = mode.credit_cost || 1;
@@ -381,7 +402,16 @@ export default function ChatPage() {
       {/* Hidden file input - always mounted */}
       <input ref={fileInputRef} type="file" multiple className="hidden"
         accept={acceptedFileTypes}
-        onChange={(e) => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
+        onChange={(e) => {
+          const newFiles = Array.from(e.target.files || []);
+          const currentSize = files.reduce((acc, f) => acc + f.size, 0);
+          const newSize = newFiles.reduce((acc, f) => acc + f.size, 0);
+          if (currentSize + newSize > MAX_TOTAL_FILE_SIZE) {
+            toast.error(`Taille totale des fichiers dépassée (max 20 Mo). Actuellement : ${Math.round((currentSize + newSize) / 1024 / 1024 * 10) / 10} Mo.`);
+            return;
+          }
+          setFiles(p => [...p, ...newFiles]);
+        }} />
 
       {/* Top bar */}
       <div className="flex items-center px-4 h-14 flex-shrink-0 z-20 relative bg-white"

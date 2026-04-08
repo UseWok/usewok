@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowUp, ChevronDown, MoreHorizontal, X, Globe, Tag } from 'lucide-react';
 import { getLandingContent } from '@/lib/landing-content';
+import { useLanguage } from '@/lib/i18n';
 
 const PENDING_KEY = 'stensor_pending_query';
 const YUZU = '#DDFF00';
@@ -25,7 +26,7 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [data, setData] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [mobileLang, setMobileLang] = useState(() => localStorage.getItem('stensor_lang') || 'en');
+  const { lang: mobileLang, setLang: setMobileLang, t } = useLanguage();
   const inputRef = useRef(null);
 
   useEffect(() => { getLandingContent().then(setData); }, []);
@@ -188,7 +189,7 @@ export default function LandingPage() {
                 <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Language</p>
                 <div className="grid grid-cols-2 gap-2 mb-6">
                   {[{ code: 'en', label: '🇬🇧 English' }, { code: 'fr', label: '🇫🇷 Français' }].map(l => (
-                    <button key={l.code} onClick={() => { localStorage.setItem('stensor_lang', l.code); setMobileLang(l.code); }}
+                    <button key={l.code} onClick={() => { setMobileLang(l.code); setShowMobileMenu(false); }}
                       className="py-3 text-sm font-bold transition-all"
                       style={{
                         borderRadius: '8px',
