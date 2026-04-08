@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
-import StackingCards from '@/components/landing/StackingCards';
+import { ArrowUp, ChevronDown, Globe } from 'lucide-react';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const PENDING_KEY = 'stensor_pending_query';
@@ -18,143 +17,61 @@ const TOPICS = [
 
 const CARDS = [
   {
-    num: '01',
-    total: '04',
+    num: '01', total: '04',
     title: 'Investissez à la vitesse de vos ambitions',
     desc: "Décrivez votre situation à Stensor et regardez vos doutes se transformer en un plan d'action clair et mathématique.",
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80',
   },
   {
-    num: '02',
-    total: '04',
+    num: '02', total: '04',
     title: "L'ingénierie financière, en arrière-plan.",
-    desc: "Pendant que vous discutez de vos projets, Stensor calcule automatiquement la logique nécessaire pour sécuriser votre avenir. Allocation d'actifs, intérêts composés, gestion des risques et optimisation fiscale sont gérés en arrière-plan.",
+    desc: "Allocation d'actifs, intérêts composés, gestion des risques et optimisation fiscale sont gérés automatiquement pendant que vous décrivez vos projets.",
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
   },
   {
-    num: '03',
-    total: '04',
+    num: '03', total: '04',
     title: "Actionnable, instantanément.",
-    desc: "Nous ne faisons pas dans la théorie. Dès la première discussion, vous obtenez les étapes exactes pour placer votre argent, automatiser vos finances et commencer à bâtir, dès aujourd'hui.",
+    desc: "Dès la première discussion, vous obtenez les étapes exactes pour placer votre argent, automatiser vos finances et commencer à bâtir, dès aujourd'hui.",
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
   },
   {
-    num: '04',
-    total: '04',
+    num: '04', total: '04',
     title: "Un seul coach. Tous les cerveaux de l'IA.",
-    desc: "Accédez aux tout derniers modèles d'intelligence artificielle dès leur sortie (GPT, Claude, Gemini). Stensor sélectionne automatiquement le modèle le plus adapté à votre problématique financière.",
+    desc: "Accédez aux tout derniers modèles d'intelligence artificielle (GPT, Claude, Gemini). Stensor sélectionne automatiquement le modèle le plus adapté à votre question.",
+    image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80',
   },
 ];
 
 const FAQS = [
-  { q: "Qu'est-ce que Stensor ?", a: "Stensor est une plateforme propulsée par l'IA qui permet de structurer ses finances personnelles en quelques minutes. Il suffit d'utiliser un langage naturel pour transformer ses objectifs en plans d'investissement, stratégies de désendettement et solutions de retraite prêts à l'emploi, sans aucune expertise requise." },
+  { q: "Qu'est-ce que Stensor ?", a: "Stensor est une plateforme propulsée par l'IA qui permet de structurer ses finances personnelles en quelques minutes. Il suffit d'utiliser un langage naturel pour transformer ses objectifs en plans d'investissement, stratégies de désendettement et solutions de retraite prêts à l'emploi." },
   { q: "Ai-je besoin de connaissances en finance pour utiliser Stensor ?", a: "Absolument pas. Stensor s'adapte à votre niveau de connaissance. Que vous débutiez ou que vous soyez un investisseur expérimenté, les réponses sont toujours calibrées pour vous." },
   { q: "Quel type de stratégies puis-je créer avec Stensor ?", a: "Investissement en ETF, remboursement de dettes, planification retraite, optimisation fiscale, revenus passifs — et bien plus. Si c'est financier, Stensor peut vous aider." },
   { q: "Mes données financières sont-elles en sécurité ?", a: "Totalement. Vos conversations sont privées et chiffrées. Nous ne revendons jamais vos informations. Votre vie financière reste strictement la vôtre." },
   { q: "Puis-je annuler mon abonnement à tout moment ?", a: "Oui, sans condition. Aucun contrat, aucuns frais cachés, aucune pénalité. Vous gardez l'accès jusqu'à la fin de votre période de facturation en cours." },
 ];
 
-function useAuth() {
+function useAuthState() {
   const [isAuth, setIsAuth] = useState(null);
   useEffect(() => {
-    base44.auth.isAuthenticated().then(auth => {
-      setIsAuth(auth);
-    }).catch(() => setIsAuth(false));
+    base44.auth.isAuthenticated().then(setIsAuth).catch(() => setIsAuth(false));
   }, []);
   return isAuth;
 }
 
-function GlowOrb({ x, y, size, color, opacity }) {
-  return (
-    <div
-      className="absolute pointer-events-none rounded-full"
-      style={{
-        left: x, top: y, width: size, height: size,
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        opacity, filter: 'blur(60px)', transform: 'translate(-50%, -50%)',
-      }}
-    />
-  );
-}
-
-function FeatureCard({ card, index, onCta }) {
-  const ref = useRef(null);
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="relative w-full"
-    >
-      <div
-        className="relative overflow-hidden p-10 md:p-16"
-        style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(20px)',
-        }}
-      >
-        {/* Subtle gradient accent */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse at ${index % 2 === 0 ? '0% 100%' : '100% 0%'}, rgba(221,255,0,0.04) 0%, transparent 60%)`,
-          }}
-        />
-
-        <div className="relative">
-          <div className="flex items-start justify-between mb-8">
-            <span
-              className="text-[11px] font-black tracking-[0.2em] uppercase"
-              style={{ color: 'rgba(221,255,0,0.5)' }}
-            >
-              {card.num} / {card.total}
-            </span>
-            <div className="w-1 h-1 rounded-full mt-2" style={{ background: 'rgba(221,255,0,0.3)' }} />
-          </div>
-
-          <h3
-            className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight mb-6"
-            style={{ color: 'white' }}
-          >
-            {card.title}
-          </h3>
-          <p
-            className="text-base leading-relaxed max-w-xl mb-10"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
-          >
-            {card.desc}
-          </p>
-
-          <button
-            onClick={onCta}
-            className="inline-flex items-center gap-3 px-7 py-3.5 font-black text-sm transition-all hover:gap-4"
-            style={{ background: '#DDFF00', color: '#0A0A0A' }}
-          >
-            Obtenir ma stratégie <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function LandingPage() {
   const navigate = useNavigate();
-  const isAuth = useAuth();
-  const [mobileMenu, setMobileMenu] = useState(false);
+  const isAuth = useAuthState();
+  const [query, setQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const heroRef = useRef(null);
-  const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const heroY = useTransform(scrollY, [0, 400], [0, -60]);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (isAuth === true) navigate('/app', { replace: true });
   }, [isAuth, navigate]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -169,12 +86,26 @@ export default function LandingPage() {
     }
   };
 
+  const handleSend = async () => {
+    if (!query.trim()) return;
+    try {
+      const auth = await base44.auth.isAuthenticated();
+      if (auth) navigate(`/chat?q=${encodeURIComponent(query)}`);
+      else {
+        localStorage.setItem(PENDING_KEY, query);
+        base44.auth.redirectToLogin('/app');
+      }
+    } catch {
+      localStorage.setItem(PENDING_KEY, query);
+      base44.auth.redirectToLogin('/app');
+    }
+  };
+
   const handleTopicClick = async (topic) => {
     try {
       const auth = await base44.auth.isAuthenticated();
-      if (auth) {
-        navigate(`/chat?q=${encodeURIComponent(topic)}`);
-      } else {
+      if (auth) navigate(`/chat?q=${encodeURIComponent(topic)}`);
+      else {
         localStorage.setItem(PENDING_KEY, topic);
         base44.auth.redirectToLogin('/app');
       }
@@ -187,253 +118,334 @@ export default function LandingPage() {
   if (isAuth === null) return null;
 
   return (
-    <div
-      className="min-h-screen font-be"
-      style={{ background: '#050508', overflowX: 'hidden', color: 'white' }}
-    >
-      {/* ── NAV ── */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-        style={{
-          background: scrolled ? 'rgba(13,13,24,0.9)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(24px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.04)' : 'none',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
+    <div className="min-h-screen font-be overflow-x-hidden" style={{ background: 'linear-gradient(160deg, #c8eee8 0%, #d8f0ea 20%, #e8f4f0 40%, #f5ede8 70%, #f8e8e0 100%)' }}>
+      
+      {/* ── FLOATING NAV ── */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
+        <motion.nav
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-5xl mx-auto flex items-center justify-between px-5 py-3"
+          style={{
+            background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '999px',
+            border: '1px solid rgba(255,255,255,0.9)',
+            boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.10)' : '0 4px 20px rgba(0,0,0,0.06)',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {/* Logo */}
           <div className="flex items-center gap-2.5">
             <img src={LOGO_URL} alt="Stensor" className="w-7 h-7 object-contain" />
-            <span className="font-black text-sm tracking-tight">Stensor</span>
+            <span className="font-black text-sm tracking-tight text-gray-900">Stensor</span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
+
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-7">
             {[['Fonctionnalités', '/fonctionnalites'], ['Tarifs', '/tarifs']].map(([label, href]) => (
-              <a
-                key={label}
-                href={href}
-                className="text-xs font-medium transition-all"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'white')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
-              >
+              <a key={label} href={href}
+                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">
                 {label}
               </a>
             ))}
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* CTAs */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => base44.auth.redirectToLogin('/app?mode=login')}
-              className="hidden md:flex items-center gap-2 px-5 py-2.5 font-black text-xs transition-all hover:opacity-90"
-              style={{ background: 'rgba(255,255,255,0.07)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
-            >
+              className="hidden md:block text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors px-3 py-2">
               Se connecter
             </button>
             <button
               onClick={handleCta}
-              className="hidden md:flex items-center gap-2 px-5 py-2.5 font-black text-xs transition-all hover:opacity-90"
-              style={{ background: '#DDFF00', color: '#0A0A0A' }}
-            >
-              Créer un compte <ArrowRight className="w-3 h-3" />
-            </button>
-            <button
-              onClick={() => setMobileMenu(o => !o)}
-              className="md:hidden"
-              style={{ color: 'white' }}
-            >
-              {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              className="text-xs font-black px-4 py-2.5 transition-all hover:opacity-90"
+              style={{ background: '#DDFF00', color: '#0A0A0A', borderRadius: '999px' }}>
+              Commencer à créer
             </button>
           </div>
-        </div>
-        <AnimatePresence>
-          {mobileMenu && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden md:hidden"
-              style={{ background: 'rgba(5,5,8,0.96)', borderTop: '1px solid rgba(255,255,255,0.04)' }}
-            >
-              <div className="px-6 py-6 flex flex-col gap-5">
-                {[['Fonctionnalités', '#features'], ['Tarifs', '/pricing']].map(([label, href]) => (
-                  <a key={label} href={href} className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }} onClick={() => setMobileMenu(false)}>
-                    {label}
-                  </a>
-                ))}
-                <button onClick={() => { setMobileMenu(false); handleCta(); }} className="w-full py-3.5 font-black text-sm" style={{ background: '#DDFF00', color: '#0A0A0A' }}>
-                  Commencer gratuitement
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+        </motion.nav>
+      </div>
 
       {/* ── HERO ── */}
-      <section
-        ref={heroRef}
-        className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center"
-        style={{ paddingTop: '120px', paddingBottom: '80px' }}
-      >
-        <GlowOrb x="20%" y="30%" size="600px" color="rgba(221,255,0,0.07)" opacity={1} />
-        <GlowOrb x="80%" y="60%" size="500px" color="rgba(100,50,255,0.06)" opacity={1} />
-        <GlowOrb x="50%" y="80%" size="400px" color="rgba(0,200,255,0.04)" opacity={1} />
-
-        {/* Noise texture overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E")`,
-            opacity: 0.4,
-          }}
-        />
-
-        <motion.div
-          style={{ opacity: heroOpacity, y: heroY }}
-          className="relative z-10 max-w-4xl mx-auto"
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-6" style={{ paddingTop: '120px', paddingBottom: '60px' }}>
+        
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="font-black tracking-tight leading-[1.05] mb-6"
+          style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: '#0A0A0A', maxWidth: '800px' }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 mb-10"
-            style={{ border: '1px solid rgba(221,255,0,0.15)', background: 'rgba(221,255,0,0.04)' }}
-          >
-            <div className="w-1.5 h-1.5" style={{ background: '#DDFF00', borderRadius: '50%', boxShadow: '0 0 8px #DDFF00' }} />
-            <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: '#DDFF00' }}>
-              Coach financier IA
-            </span>
-          </motion.div>
+          Bâtissons votre<br />liberté financière.
+        </motion.h1>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-black tracking-tight leading-[1.02] mb-8"
-            style={{ fontSize: 'clamp(2.8rem, 8vw, 6rem)', color: 'white' }}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25 }}
+          className="text-base md:text-lg max-w-xl mx-auto mb-12 leading-relaxed"
+          style={{ color: 'rgba(10,10,10,0.5)' }}
+        >
+          Stensor vous permet d'obtenir une stratégie financière complète et actionnable en quelques minutes, simplement avec vos mots. Sans tableur, sans jargon.
+        </motion.p>
+
+        {/* Big Input */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.35 }}
+          className="w-full max-w-2xl mb-8"
+        >
+          <div
+            className="relative flex items-end gap-3 p-5"
+            style={{
+              background: 'rgba(255,255,255,0.95)',
+              borderRadius: '20px',
+              border: '1px solid rgba(255,255,255,1)',
+              boxShadow: '0 4px 40px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+            }}
           >
-            Bâtissons ensemble<br />
-            <span
+            <textarea
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              placeholder="Décrivez votre situation financière…"
+              rows={3}
+              className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
+              style={{ color: '#0A0A0A', minHeight: '72px' }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={!query.trim()}
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all"
               style={{
-                color: '#DDFF00',
-                textShadow: '0 0 80px rgba(221,255,0,0.3)',
+                borderRadius: '999px',
+                background: query.trim() ? '#FF5722' : 'rgba(0,0,0,0.1)',
+                cursor: query.trim() ? 'pointer' : 'not-allowed',
               }}
             >
-              votre liberté financière.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25 }}
-            className="text-base md:text-lg max-w-2xl mx-auto mb-14 leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
-          >
-            Stensor vous permet d'obtenir une stratégie financière complète et actionnable en quelques minutes, simplement avec vos mots. Sans tableur, sans jargon, sans effort.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            {/* Topics */}
-            <p
-              className="text-[10px] font-black tracking-[0.2em] uppercase mb-5"
-              style={{ color: 'rgba(255,255,255,0.2)' }}
-            >
-              Vous ne savez pas par où commencer ? Essayez l'un de ces objectifs :
-            </p>
-            <div className="flex flex-wrap justify-center gap-2.5 mb-10">
-              {TOPICS.map((topic) => (
-                <button
-                  key={topic}
-                  onClick={() => handleTopicClick(topic)}
-                  className="px-4 py-2 text-xs font-semibold transition-all duration-300"
-                  style={{
-                    background: 'transparent',
-                    color: 'rgba(255,255,255,0.45)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#DDFF00';
-                    e.currentTarget.style.color = '#0A0A0A';
-                    e.currentTarget.style.borderColor = '#DDFF00';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.45)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                  }}
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-
-            <p className="text-sm font-bold mb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
-              Tout est possible.
-            </p>
-
-            <button
-              onClick={handleCta}
-              className="inline-flex items-center gap-3 px-8 py-4 font-black text-sm transition-all hover:gap-5 hover:opacity-90"
-              style={{ background: '#DDFF00', color: '#0A0A0A', boxShadow: '0 0 60px rgba(221,255,0,0.2)' }}
-            >
-              Obtenir ma stratégie <ArrowRight className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
             </button>
-          </motion.div>
+          </div>
         </motion.div>
 
-        {/* Scroll indicator */}
+        {/* Topics */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col items-center gap-4"
         >
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          >
-            <ChevronDown className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.15)' }} />
-          </motion.div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(10,10,10,0.35)' }}>
+            Vous ne savez pas par où commencer ? Essayez l'un de ces objectifs :
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {TOPICS.map(topic => (
+              <button
+                key={topic}
+                onClick={() => handleTopicClick(topic)}
+                className="px-4 py-2 text-xs font-medium transition-all hover:shadow-md"
+                style={{
+                  background: 'rgba(255,255,255,0.8)',
+                  color: 'rgba(10,10,10,0.7)',
+                  border: '1px solid rgba(255,255,255,0.9)',
+                  borderRadius: '999px',
+                  backdropFilter: 'blur(10px)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#0A0A0A'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.8)'; e.currentTarget.style.color = 'rgba(10,10,10,0.7)'; }}
+              >
+                {topic}
+              </button>
+            ))}
+          </div>
         </motion.div>
       </section>
 
-      {/* ── STACKING CARDS ── */}
-      <StackingCards cards={CARDS} onCta={handleCta} />
+      {/* ── EVERYTHING IS POSSIBLE ── */}
+      <section className="px-6 py-8 text-center">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="font-black text-3xl md:text-4xl"
+          style={{ color: '#0A0A0A' }}
+        >
+          Tout est possible.
+        </motion.h2>
+      </section>
 
-      {/* ── PLANS ── */}
-      {/* ── FAQ ── */}
-      <section className="relative px-6 md:px-10 py-32">
-        <GlowOrb x="20%" y="50%" size="600px" color="rgba(100,50,255,0.04)" opacity={1} />
-        <div className="max-w-2xl mx-auto relative">
+      {/* ── STACKING CARDS ── */}
+      <section className="px-6 md:px-10 pb-32">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {CARDS.map((card, i) => (
+            <motion.div
+              key={card.num}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              className="sticky"
+              style={{ top: `${80 + i * 16}px` }}
+            >
+              <div
+                className="overflow-hidden"
+                style={{
+                  background: 'rgba(255,255,255,0.85)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.95)',
+                  borderRadius: '20px',
+                  boxShadow: '0 8px 48px rgba(0,0,0,0.08)',
+                }}
+              >
+                <div className="flex flex-col md:flex-row">
+                  {/* Image */}
+                  <div className="md:w-64 md:flex-shrink-0 h-48 md:h-auto overflow-hidden" style={{ borderRadius: '20px 0 0 20px' }}>
+                    <img
+                      src={card.image}
+                      alt={card.title}
+                      className="w-full h-full object-cover"
+                      style={{ filter: 'brightness(0.95)' }}
+                    />
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 p-10 md:p-12">
+                    <div className="flex items-center gap-3 mb-8">
+                      <span className="text-xs font-black tracking-[0.2em] uppercase" style={{ color: 'rgba(10,10,10,0.3)' }}>
+                        {card.num} / {card.total}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-black leading-tight mb-5" style={{ color: '#0A0A0A' }}>
+                      {card.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed mb-8" style={{ color: 'rgba(10,10,10,0.5)' }}>
+                      {card.desc}
+                    </p>
+                    <button
+                      onClick={handleCta}
+                      className="text-sm font-black px-6 py-3 transition-all hover:opacity-85"
+                      style={{ background: '#0A0A0A', color: 'white', borderRadius: '999px' }}
+                    >
+                      Obtenir ma stratégie →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="px-6 py-24">
+        <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-5" style={{ color: 'rgba(221,255,0,0.5)' }}>FAQ</p>
-            <h2 className="text-3xl md:text-5xl font-black" style={{ color: 'white' }}>Foire aux questions</h2>
+            <h2 className="font-black text-3xl md:text-5xl mb-4" style={{ color: '#0A0A0A' }}>
+              Plans d'abonnement pour tous les besoins
+            </h2>
+            <p className="text-sm" style={{ color: 'rgba(10,10,10,0.45)' }}>
+              Faites évoluer votre stratégie financière à votre rythme.
+            </p>
           </motion.div>
 
-          <div className="space-y-px">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Free */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ delay: 0 }}
+              className="p-10"
+              style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', backdropFilter: 'blur(20px)' }}
+            >
+              <h3 className="text-xl font-black mb-2" style={{ color: '#0A0A0A' }}>Commencez gratuitement.</h3>
+              <p className="text-3xl font-black mb-6" style={{ color: '#0A0A0A' }}>Gratuit</p>
+              <div className="space-y-3 mb-8">
+                {['10 crédits par mois', 'Mode Standard', '3 discussions max', 'Accès à toutes les bases'].map(f => (
+                  <div key={f} className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
+                      <span className="text-[10px] font-black text-black">✓</span>
+                    </div>
+                    <span className="text-sm" style={{ color: 'rgba(10,10,10,0.6)' }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={handleCta}
+                className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
+                style={{ background: '#0A0A0A', color: 'white', borderRadius: '999px' }}
+              >
+                Commencer à créer
+              </button>
+            </motion.div>
+
+            {/* Paid */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="p-10"
+              style={{ background: '#0A0A0A', borderRadius: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}
+            >
+              <h3 className="text-xl font-black mb-2 text-white">Plans payants à partir de</h3>
+              <p className="font-black mb-1" style={{ fontSize: '2.5rem', color: '#DDFF00' }}>9 €</p>
+              <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>/mois</p>
+              <div className="space-y-3 mb-8">
+                {['100+ crédits par mois', 'Modes Avancé & Expert', 'Discussions illimitées', 'Recherche Internet', 'Fichiers joints'].map(f => (
+                  <div key={f} className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
+                      <span className="text-[10px] font-black text-black">✓</span>
+                    </div>
+                    <span className="text-sm text-white/70">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate('/tarifs')}
+                className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
+                style={{ background: '#DDFF00', color: '#0A0A0A', borderRadius: '999px' }}
+              >
+                Voir tous les plans →
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="px-6 py-20">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <h2 className="font-black text-3xl md:text-5xl" style={{ color: '#0A0A0A' }}>Foire aux questions</h2>
+          </motion.div>
+
+          <div className="space-y-2">
             {FAQS.map((faq, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                style={{
+                  background: 'rgba(255,255,255,0.8)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.9)',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(10px)',
+                }}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between py-6 text-left gap-4 transition-all"
-                  onMouseEnter={e => (e.currentTarget.style.paddingLeft = '4px')}
-                  onMouseLeave={e => (e.currentTarget.style.paddingLeft = '0')}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
                 >
-                  <span className="text-sm font-semibold pr-4" style={{ color: openFaq === i ? 'white' : 'rgba(255,255,255,0.6)' }}>
-                    {faq.q}
-                  </span>
+                  <span className="text-sm font-semibold" style={{ color: '#0A0A0A' }}>{faq.q}</span>
                   <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: '#DDFF00' }} />
+                    <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(10,10,10,0.4)' }} />
                   </motion.div>
                 </button>
                 <AnimatePresence initial={false}>
@@ -445,7 +457,7 @@ export default function LandingPage() {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <p className="pb-6 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: 'rgba(10,10,10,0.5)' }}>
                         {faq.a}
                       </p>
                     </motion.div>
@@ -458,51 +470,37 @@ export default function LandingPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section
-        className="relative px-6 text-center py-40 overflow-hidden"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
-      >
-        <GlowOrb x="50%" y="50%" size="1000px" color="rgba(221,255,0,0.05)" opacity={1} />
-        <GlowOrb x="50%" y="50%" size="400px" color="rgba(221,255,0,0.08)" opacity={1} />
-        <div className="relative max-w-3xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
-            className="font-black tracking-tight leading-tight mb-8"
-            style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', color: 'white' }}
-          >
-            Alors, qu'allons-nous<br />
-            <span style={{ color: '#DDFF00', textShadow: '0 0 100px rgba(221,255,0,0.4)' }}>bâtir ?</span>
-          </motion.h2>
-          <motion.button
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
-            onClick={handleCta}
-            className="inline-flex items-center gap-3 px-10 py-5 font-black text-base transition-all hover:gap-5"
-            style={{ background: '#DDFF00', color: '#0A0A0A', boxShadow: '0 0 80px rgba(221,255,0,0.25)' }}
-          >
-            Commencer à investir <ArrowRight className="w-5 h-5" />
-          </motion.button>
-          <p className="text-xs mt-8" style={{ color: 'rgba(255,255,255,0.12)' }}>
-            Stensor est une plateforme propulsée par l'IA qui permet de structurer ses finances personnelles en quelques minutes. Avec Stensor, il suffit d'utiliser un langage naturel pour transformer ses objectifs en plans d'investissement, stratégies de désendettement et solutions de retraite prêts à l'emploi, sans aucune expertise requise.
-          </p>
-        </div>
+      <section className="px-6 py-32 text-center">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="font-black tracking-tight mb-10"
+          style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', color: '#0A0A0A' }}
+        >
+          Alors, qu'allons-nous<br />bâtir ensemble ?
+        </motion.h2>
+        <motion.button
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
+          onClick={handleCta}
+          className="font-black text-base px-10 py-5 transition-all hover:opacity-90 hover:scale-105"
+          style={{ background: '#0A0A0A', color: 'white', borderRadius: '999px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+        >
+          Commencer à investir →
+        </motion.button>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer
-        className="px-6 md:px-10 py-10"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}
-      >
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="px-6 md:px-10 py-10" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="" className="w-4 h-4 object-contain opacity-20" />
-            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.12)' }}>Stensor 2026</span>
+            <img src={LOGO_URL} alt="" className="w-5 h-5 object-contain opacity-40" />
+            <span className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.3)' }}>Stensor 2026</span>
           </div>
           <div className="flex gap-6">
-            {[['Conditions', '/terms'], ['Confidentialité', '/privacy'], ['Support', '/support']].map(([l, h]) => (
-              <a key={l} href={h} className="text-xs transition-opacity hover:opacity-80" style={{ color: 'rgba(255,255,255,0.15)' }}>{l}</a>
+            {[['Fonctionnalités', '/fonctionnalites'], ['Tarifs', '/tarifs'], ['Support', '/support']].map(([l, h]) => (
+              <a key={l} href={h} className="text-xs transition-opacity hover:opacity-80" style={{ color: 'rgba(10,10,10,0.35)' }}>{l}</a>
             ))}
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.06)' }}>Les réponses IA peuvent contenir des inexactitudes</p>
+          <p className="text-xs" style={{ color: 'rgba(10,10,10,0.2)' }}>Les réponses IA peuvent contenir des inexactitudes</p>
         </div>
       </footer>
     </div>
