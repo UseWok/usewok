@@ -88,8 +88,16 @@ export default function SettingsPage() {
     const plans = getPlansConfig();
     const plan = plans.find(p => p.id === codeRecord.plan_id);
     if (!plan) { toast.error('Plan introuvable'); setCodeLoading(false); return; }
-    // Activate plan
-    await base44.auth.updateMe({ subscription_plan: plan.id, credits_limit: plan.credits_limit, credits_used: 0, credits_bonus: 0 });
+    const billingCycle = codeRecord.billing || 'monthly';
+    // Activate plan with billing info
+    await base44.auth.updateMe({
+      subscription_plan: plan.id,
+      credits_limit: plan.credits_limit,
+      credits_used: 0,
+      credits_bonus: 0,
+      billing_cycle: billingCycle,
+      subscription_date: new Date().toISOString(),
+    });
     // Mark code as used
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
     setActivationCode('');
@@ -241,13 +249,33 @@ export default function SettingsPage() {
                         <p className="text-lg font-black" style={{ color: FG }}>{userPlan?.name || 'Free'}</p>
                         <p className="text-xs mt-0.5" style={{ color: '#999' }}>
                           {userPlan?.price_monthly > 0
-                            ? `Se renouvelle mensuellement · ${userPlan.price_monthly}$/mois`
+                            ? (() => {
+                                const isYearly = user?.billing_cycle === 'yearly';
+                                const price = isYearly ? (userPlan.price_yearly || userPlan.price_monthly) : userPlan.price_monthly;
+                                const renewalLabel = isYearly ? 'Se renouvelle dans 1 an' : 'Se renouvelle dans 1 mois';
+                                const subDate = user?.subscription_date ? new Date(user.subscription_date) : null;
+                                let renewalDate = '';
+                                if (subDate) {
+                                  const next = new Date(subDate);
+                                  if (isYearly) next.setFullYear(next.getFullYear() + 1);
+                                  else next.setMonth(next.getMonth() + 1);
+                                  renewalDate = ` · le ${next.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+                                }
+                                return `${price}$/mois · ${renewalLabel}${renewalDate}`;
+                              })()
                             : 'Plan gratuit'}
                         </p>
                       </div>
-                      <span className="px-3 py-1.5 text-xs font-bold" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
-                        {userPlan?.credits_limit} Tensors/mois
-                      </span>
+                      <div className="text-right flex-shrink-0">
+                        {user?.billing_cycle && userPlan?.price_monthly > 0 && (
+                          <span className="text-[9px] font-bold px-2 py-0.5 mb-1 inline-block" style={{ background: user.billing_cycle === 'yearly' ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.05)', color: user.billing_cycle === 'yearly' ? '#16a34a' : '#666', borderRadius: '3px' }}>
+                            {user.billing_cycle === 'yearly' ? 'ANNUEL' : 'MENSUEL'}
+                          </span>
+                        )}
+                        <span className="px-3 py-1.5 text-xs font-bold block" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
+                          {userPlan?.credits_limit} Tensors/mois
+                        </span>
+                      </div>
                     </div>
                     <div className="flex gap-2 mt-3">
                       <button onClick={() => navigate('/manage-plan')}
@@ -270,12 +298,14 @@ export default function SettingsPage() {
                       <div className="border overflow-hidden" style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.09)' }}>
                         <div className="flex items-center gap-4 px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold" style={{ color: FG }}>Plan {userPlan.name}</p>
+                            <p className="text-sm font-semibold" style={{ color: FG }}>Plan {userPlan.name} ({user?.billing_cycle === 'yearly' ? 'Annuel' : 'Mensuel'})</p>
                             <p className="text-xs" style={{ color: '#999' }}>
-                              {new Date(user?.created_date || Date.now()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(user?.subscription_date || user?.created_date || Date.now()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                           </div>
-                          <span className="text-sm font-bold" style={{ color: FG }}>{userPlan.price_monthly}$</span>
+                          <span className="text-sm font-bold" style={{ color: FG }}>
+                            {user?.billing_cycle === 'yearly' ? (userPlan.price_yearly || userPlan.price_monthly) : userPlan.price_monthly}$/mois
+                          </span>
                           <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderRadius: '2px' }}>PAID</span>
                           <button onClick={() => requestInvoice(userPlan.name)}
                             className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold transition-all"

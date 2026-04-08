@@ -12,6 +12,16 @@
     "subscription_plan": {
       "type": "string"
     },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ]
+    },
+    "subscription_date": {
+      "type": "string"
+    },
     "credits_used": {
       "type": "number"
     },
@@ -30,5 +40,15 @@
     "ban_until": {
       "type": "string"
     }
-  }
+  },
+  "required": [
+    "role",
+    "subscription_plan",
+    "credits_used",
+    "credits_limit",
+    "credits_bonus",
+    "daily_credits_limit",
+    "is_banned",
+    "ban_until"
+  ]
 }
