@@ -2,6 +2,11 @@ import { base44 } from '@/api/base44Client';
 
 export const LANDING_QUERY_KEY = ['landing_content'];
 
+// Force bypass cache for unauthenticated landing pages
+export async function getLandingContentFresh() {
+  return getLandingContent();
+}
+
 export const DEFAULT_LANDING = {
   nav: {
     logo_url: 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png',

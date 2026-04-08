@@ -35,7 +35,7 @@ export default function LandingPricingPage() {
   const navigate = useNavigate();
   const [billing, setBilling] = useState('yearly');
   const [scrolled, setScrolled] = useState(false);
-  const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
+  const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
   const navData = landingData?.nav || null;
   const { t } = useLanguage();
   const plans = [...getPlansConfig()].reverse(); // most expensive first (left to right)
