@@ -83,21 +83,31 @@ export async function getLandingContent() {
   try {
     const results = await base44.entities.LandingContent.filter({ section: 'main' });
     if (results.length > 0) {
-      return { ...DEFAULT_LANDING, ...JSON.parse(results[0].content), _id: results[0].id };
+      const parsed = JSON.parse(results[0].content);
+      // Deep merge: each top-level key merges with DEFAULT_LANDING defaults
+      const merged = {};
+      for (const key of Object.keys(DEFAULT_LANDING)) {
+        if (parsed[key] !== undefined) {
+          merged[key] = parsed[key];
+        } else {
+          merged[key] = DEFAULT_LANDING[key];
+        }
+      }
+      return { ...merged, _id: results[0].id };
     }
-  } catch {}
-  return DEFAULT_LANDING;
+  } catch (e) {
+    console.warn('getLandingContent error', e);
+  }
+  return { ...DEFAULT_LANDING };
 }
 
 export async function saveLandingContent(data) {
-  try {
-    const results = await base44.entities.LandingContent.filter({ section: 'main' });
-    const { _id, ...clean } = data;
-    const content = JSON.stringify(clean);
-    if (results.length > 0) {
-      await base44.entities.LandingContent.update(results[0].id, { section: 'main', content });
-    } else {
-      await base44.entities.LandingContent.create({ section: 'main', content });
-    }
-  } catch {}
+  const { _id, ...clean } = data;
+  const content = JSON.stringify(clean);
+  const results = await base44.entities.LandingContent.filter({ section: 'main' });
+  if (results.length > 0) {
+    await base44.entities.LandingContent.update(results[0].id, { section: 'main', content });
+  } else {
+    await base44.entities.LandingContent.create({ section: 'main', content });
+  }
 }

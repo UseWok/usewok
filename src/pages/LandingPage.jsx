@@ -63,18 +63,9 @@ export default function LandingPage() {
     }
   };
 
-  const handleTopicClick = async (topic) => {
-    try {
-      const auth = await base44.auth.isAuthenticated();
-      if (auth) navigate(`/chat?q=${encodeURIComponent(topic)}`);
-      else {
-        localStorage.setItem(PENDING_KEY, topic);
-        base44.auth.redirectToLogin('/app');
-      }
-    } catch {
-      localStorage.setItem(PENDING_KEY, topic);
-      base44.auth.redirectToLogin('/app');
-    }
+  const handleTopicClick = (topic) => {
+    setQuery(topic);
+    inputRef.current?.focus();
   };
 
   if (isAuth === null || !data) return null;
