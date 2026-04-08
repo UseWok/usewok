@@ -21,6 +21,84 @@ function SectionTitle({ children }) {
   return <h2 className="text-sm font-black uppercase tracking-wider mb-4" style={{ color: '#aaa' }}>{children}</h2>;
 }
 
+// Shared content renderer for mobile accordion + desktop panels
+function MobileSectionContent({ section, user, userPlan, fullName, setFullName, saveProfile, savingProfile, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, invoiceRequested, requestInvoice, setShowDeleteModal, CORAL }) {
+  const FG = '#0A0A0A';
+  const YUZU = '#DDFF00';
+  if (section === 'profile') return (
+    <div className="space-y-4 pt-2">
+      <div>
+        <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Email (non modifiable)</label>
+        <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px', color: '#aaa', background: 'rgba(0,0,0,0.03)' }} />
+      </div>
+      <div>
+        <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Nom complet</label>
+        <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-3 py-2.5 text-sm focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px' }} />
+      </div>
+      <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
+        <Save className="w-4 h-4" /> {savingProfile ? 'Enregistrement...' : 'Sauvegarder'}
+      </button>
+      <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)', borderRadius: '10px' }}>
+        <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Supprimer le compte</p>
+        <p className="text-xs mb-3" style={{ color: '#888' }}>Action irréversible. Toutes vos données seront supprimées.</p>
+        <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', borderRadius: '8px' }}>
+          <Trash2 className="w-4 h-4" /> Supprimer le compte
+        </button>
+      </div>
+    </div>
+  );
+  if (section === 'chat') return (
+    <div className="space-y-2 pt-2">
+      <p className="text-xs font-semibold mb-3" style={{ color: '#555' }}>Raccourci pour envoyer un message</p>
+      {SHORTCUTS.map(s => (
+        <button key={s.id} onClick={() => saveShortcut(s.id)} className="w-full flex items-center justify-between px-4 py-3 transition-all"
+          style={{ border: `1px solid ${shortcut === s.id ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '8px', background: shortcut === s.id ? FG : 'white' }}>
+          <span className="text-sm font-medium" style={{ color: shortcut === s.id ? 'white' : '#444' }}>{s.label}</span>
+          {shortcut === s.id && <Check className="w-4 h-4 text-white" />}
+        </button>
+      ))}
+    </div>
+  );
+  if (section === 'plan') return (
+    <div className="space-y-4 pt-2">
+      <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px', background: 'white' }}>
+        <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Plan actuel</p>
+        <p className="text-lg font-black mb-0.5" style={{ color: FG }}>{userPlan?.name || 'Free'}</p>
+        <span className="inline-block px-2.5 py-1 text-xs font-bold mb-3" style={{ background: YUZU, color: FG, borderRadius: '4px' }}>{userPlan?.credits_limit} Tensors/mois</span>
+        <div className="flex gap-2">
+          <button onClick={() => navigate('/manage-plan')} className="flex-1 py-2.5 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '6px' }}>Gérer le plan</button>
+          <button onClick={() => navigate('/pricing')} className="flex-1 py-2.5 text-xs font-bold" style={{ background: 'rgba(0,0,0,0.06)', color: '#555', borderRadius: '6px' }}>Mettre à niveau</button>
+        </div>
+      </div>
+    </div>
+  );
+  if (section === 'usage') return (
+    <div className="space-y-4 pt-2">
+      <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px' }}>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold" style={{ color: '#555' }}>Tensors ce mois</p>
+          <p className="text-xs font-black" style={{ color: pct >= 90 ? CORAL : FG }}>{creditsUsed} / {creditsLimit}</p>
+        </div>
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : FG }} />
+        </div>
+      </div>
+      <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px' }}>
+        <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Code d'activation</p>
+        <div className="flex gap-2 mt-3">
+          <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())} placeholder="Ex: 4F7K9M2X1R8P" maxLength={12}
+            className="flex-1 px-3 py-2.5 text-sm font-mono focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px' }}
+            onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
+          <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()} className="px-4 py-2.5 text-sm font-bold disabled:opacity-40" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
+            {codeLoading ? '...' : 'Activer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+  return null;
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('profile');
@@ -134,19 +212,50 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white font-be">
+    <div className="min-h-screen font-be" style={{ background: '#f7f7f7' }}>
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate('/')} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '4px' }}>
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center transition-colors" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
           </button>
-          <h1 className="text-xl font-black" style={{ color: FG }}>Paramètres</h1>
+          <h1 className="text-xl font-black" style={{ color: FG }}>Settings</h1>
         </div>
 
-        <div className="flex gap-8">
+        {/* Mobile: stacked cards layout */}
+        <div className="md:hidden space-y-2 mb-4">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isOpen = activeSection === item.id;
+            return (
+              <div key={item.id} className="bg-white overflow-hidden" style={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)' }}>
+                <button onClick={() => setActiveSection(isOpen ? null : item.id)}
+                  className="w-full flex items-center gap-3 px-4 py-4">
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ background: isOpen ? FG : 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+                    <Icon className="w-4 h-4" style={{ color: isOpen ? YUZU : '#888' }} />
+                  </div>
+                  <span className="flex-1 text-left text-sm font-semibold" style={{ color: FG }}>{item.label}</span>
+                  <ChevronRight className="w-4 h-4 transition-transform" style={{ color: '#ccc', transform: isOpen ? 'rotate(90deg)' : 'none' }} />
+                </button>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
+                      transition={{ duration: 0.2 }} className="overflow-hidden">
+                      <div className="px-4 pb-5 pt-1" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                        <MobileSectionContent section={item.id} {...{ user, userPlan, fullName, setFullName, saveProfile, savingProfile, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, invoiceRequested, requestInvoice, setShowDeleteModal, CORAL }} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden md:flex gap-8">
           {/* Left nav — desktop */}
-          <nav className="hidden md:flex flex-col gap-1 w-48 flex-shrink-0">
+          <nav className="flex flex-col gap-1 w-48 flex-shrink-0">
             {navItems.map(item => {
               const Icon = item.icon;
               return (
@@ -159,20 +268,6 @@ export default function SettingsPage() {
               );
             })}
           </nav>
-
-          {/* Mobile nav */}
-          <div className="md:hidden flex gap-2 mb-4 overflow-x-auto pb-1 w-full">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              return (
-                <button key={item.id} onClick={() => setActiveSection(item.id)}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold whitespace-nowrap flex-shrink-0"
-                  style={{ background: activeSection === item.id ? FG : 'rgba(0,0,0,0.05)', color: activeSection === item.id ? 'white' : '#666', borderRadius: '4px' }}>
-                  <Icon className="w-3.5 h-3.5" /> {item.label}
-                </button>
-              );
-            })}
-          </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -385,7 +480,7 @@ export default function SettingsPage() {
               </motion.div>
             )}
           </div>
-        </div>
+        </div>{/* end md:flex */}
       </div>
 
       {/* Delete account modal */}

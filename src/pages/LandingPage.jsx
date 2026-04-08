@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowUp, ChevronDown } from 'lucide-react';
+import { ArrowUp, ChevronDown, MoreHorizontal, X, Globe, Tag } from 'lucide-react';
 import { getLandingContent } from '@/lib/landing-content';
 
 const PENDING_KEY = 'stensor_pending_query';
@@ -24,6 +24,8 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [data, setData] = useState(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [mobileLang, setMobileLang] = useState(() => localStorage.getItem('stensor_lang') || 'en');
   const inputRef = useRef(null);
 
   useEffect(() => { getLandingContent().then(setData); }, []);
@@ -112,6 +114,12 @@ export default function LandingPage() {
               className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
               {nav.login_label}
             </button>
+            {/* Mobile menu dot */}
+            <button onClick={() => setShowMobileMenu(true)}
+              className="md:hidden w-8 h-8 flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '6px' }}>
+              <MoreHorizontal className="w-4 h-4" style={{ color: FG }} />
+            </button>
             <button onClick={handleCta}
               className="text-xs font-black px-4 py-2.5 transition-colors"
               style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
@@ -159,6 +167,64 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
+        {/* Mobile Menu Drawer */}
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-end"
+              style={{ background: 'rgba(0,0,0,0.4)' }}
+              onClick={() => setShowMobileMenu(false)}>
+              <motion.div
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                className="w-full bg-white p-6 pb-10"
+                style={{ borderRadius: '20px 20px 0 0' }}
+                onClick={e => e.stopPropagation()}>
+                {/* Handle */}
+                <div className="flex justify-center mb-5">
+                  <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
+                </div>
+                {/* Language */}
+                <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Language</p>
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {[{ code: 'en', label: '🇬🇧 English' }, { code: 'fr', label: '🇫🇷 Français' }].map(l => (
+                    <button key={l.code} onClick={() => { localStorage.setItem('stensor_lang', l.code); setMobileLang(l.code); }}
+                      className="py-3 text-sm font-bold transition-all"
+                      style={{
+                        borderRadius: '8px',
+                        background: mobileLang === l.code ? FG : 'rgba(0,0,0,0.05)',
+                        color: mobileLang === l.code ? 'white' : '#555',
+                      }}>
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Links */}
+                <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Navigate</p>
+                <div className="space-y-2">
+                  <a href={nav.features_url}
+                    className="flex items-center gap-3 px-4 py-3.5 w-full"
+                    style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
+                    <Globe className="w-4 h-4" style={{ color: '#888' }} />
+                    <span className="text-sm font-semibold" style={{ color: FG }}>Features</span>
+                  </a>
+                  <a href={nav.pricing_url}
+                    className="flex items-center gap-3 px-4 py-3.5 w-full"
+                    style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
+                    <Tag className="w-4 h-4" style={{ color: '#888' }} />
+                    <span className="text-sm font-semibold" style={{ color: FG }}>Pricing</span>
+                  </a>
+                  <button onClick={() => { setShowMobileMenu(false); handleCta(); }}
+                    className="flex items-center justify-center w-full py-3.5 text-sm font-black"
+                    style={{ background: YUZU, color: FG, borderRadius: '10px' }}>
+                    {nav.cta_label}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Topics */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="flex flex-col items-center gap-4">
@@ -171,7 +237,7 @@ export default function LandingPage() {
               return (
                 <button key={i} onClick={() => handleTopicClick(topic)}
                   className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
-                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'white' }}>
+                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'white' }}
                   onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'rgba(10,10,10,0.6)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
                   {label}
