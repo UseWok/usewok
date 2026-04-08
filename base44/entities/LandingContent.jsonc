@@ -12,5 +12,11 @@
   "required": [
     "section",
     "content"
-  ]
+  ],
+  "rls": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  }
 }

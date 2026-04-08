@@ -12,5 +12,11 @@
   "required": [
     "key",
     "value"
-  ]
+  ],
+  "rls": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  }
 }
