@@ -510,7 +510,7 @@ export default function ChatPage() {
         ))}
 
         {isLoading && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3 justify-start">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
             <div className="flex-shrink-0 mt-1">
               <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60" />
             </div>
