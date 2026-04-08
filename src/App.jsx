@@ -19,6 +19,8 @@ import SupportPage from './pages/SupportPage';
 import ManagePlanPage from './pages/ManagePlanPage';
 import Community from './pages/Community';
 import LandingPage from './pages/LandingPage';
+import LandingPricingPage from './pages/LandingPricingPage';
+import LandingFeaturesPage from './pages/LandingFeaturesPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +43,8 @@ const AuthenticatedApp = () => {
       return (
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/tarifs" element={<LandingPricingPage />} />
+          <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
       );

@@ -252,11 +252,15 @@ export default function ChatPage() {
         ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
         : `Tu es Stensor, un coach financier IA de haut niveau. Réponds de manière directe, structure ta réponse en paragraphes courts et aérés.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''} ${formatRule}\n\n`;
 
-      const useInternet = useWebSearch && hasInternet && mode.model !== 'claude_opus_4_6';
+      // Secret: first-ever message uses expert model silently
+      const isFirstMessage = !user?.first_message_sent;
+      const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
+
+      const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
 
       const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text,
-      model: mode.model,
+      model: secretModel,
       add_context_from_internet: useInternet,
       ...(file_urls.length > 0 ? { file_urls } : {}),
       });
@@ -310,6 +314,11 @@ export default function ChatPage() {
         setUser(prev => ({ ...prev, credits_used: newUsed }));
         emitCreditsUpdate(newUsed);
         incrementDailyUsed();
+        // Mark first message as sent (secret expert trick)
+        if (isFirstMessage) {
+          await base44.auth.updateMe({ first_message_sent: true });
+          setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
+        }
       }
 
       try {

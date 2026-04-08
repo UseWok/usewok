@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
+import StackingCards from '@/components/landing/StackingCards';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const PENDING_KEY = 'stensor_pending_query';
@@ -194,7 +195,7 @@ export default function LandingPage() {
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
         style={{
-          background: scrolled ? 'rgba(5,5,8,0.85)' : 'transparent',
+          background: scrolled ? 'rgba(13,13,24,0.9)' : 'transparent',
           backdropFilter: scrolled ? 'blur(24px)' : 'none',
           borderBottom: scrolled ? '1px solid rgba(255,255,255,0.04)' : 'none',
         }}
@@ -205,7 +206,7 @@ export default function LandingPage() {
             <span className="font-black text-sm tracking-tight">Stensor</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            {[['Fonctionnalités', '#features'], ['Tarifs', '/pricing'], ['Communauté', '/community']].map(([label, href]) => (
+            {[['Fonctionnalités', '/fonctionnalites'], ['Tarifs', '/tarifs']].map(([label, href]) => (
               <a
                 key={label}
                 href={href}
@@ -220,20 +221,18 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => base44.auth.redirectToLogin('/app')}
-              className="hidden md:block text-xs font-semibold transition-all"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'white')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+              onClick={() => base44.auth.redirectToLogin('/app?mode=login')}
+              className="hidden md:flex items-center gap-2 px-5 py-2.5 font-black text-xs transition-all hover:opacity-90"
+              style={{ background: 'rgba(255,255,255,0.07)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              Connexion
+              Se connecter
             </button>
             <button
               onClick={handleCta}
               className="hidden md:flex items-center gap-2 px-5 py-2.5 font-black text-xs transition-all hover:opacity-90"
               style={{ background: '#DDFF00', color: '#0A0A0A' }}
             >
-              Commencer
+              Créer un compte <ArrowRight className="w-3 h-3" />
             </button>
             <button
               onClick={() => setMobileMenu(o => !o)}
@@ -274,7 +273,6 @@ export default function LandingPage() {
         className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center"
         style={{ paddingTop: '120px', paddingBottom: '80px' }}
       >
-        {/* Orbs */}
         <GlowOrb x="20%" y="30%" size="600px" color="rgba(221,255,0,0.07)" opacity={1} />
         <GlowOrb x="80%" y="60%" size="500px" color="rgba(100,50,255,0.06)" opacity={1} />
         <GlowOrb x="50%" y="80%" size="400px" color="rgba(0,200,255,0.04)" opacity={1} />
@@ -402,108 +400,10 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── FEATURE CARDS ── */}
-      <section id="features" className="relative px-6 md:px-10 pb-32">
-        <div className="max-w-4xl mx-auto space-y-4">
-          {CARDS.map((card, i) => (
-            <FeatureCard key={card.num} card={card} index={i} onCta={handleCta} />
-          ))}
-        </div>
-      </section>
+      {/* ── STACKING CARDS ── */}
+      <StackingCards cards={CARDS} onCta={handleCta} />
 
       {/* ── PLANS ── */}
-      <section
-        className="relative px-6 md:px-10 py-32"
-        style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-      >
-        <GlowOrb x="80%" y="50%" size="700px" color="rgba(221,255,0,0.04)" opacity={1} />
-        <div className="max-w-4xl mx-auto relative">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center mb-20"
-          >
-            <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-5" style={{ color: 'rgba(221,255,0,0.5)' }}>
-              Tarifs
-            </p>
-            <h2
-              className="font-black leading-tight mb-5"
-              style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'white' }}
-            >
-              Plans d'abonnement<br />
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>pour tous les portefeuilles</span>
-            </h2>
-            <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Faites évoluer votre patrimoine à votre rythme grâce à des plans conçus pour accompagner votre croissance.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Free plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
-              className="p-10"
-              style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}
-            >
-              <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Gratuit</p>
-              <p className="text-4xl font-black mb-2" style={{ color: 'white' }}>0$</p>
-              <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>Commencez gratuitement.</p>
-
-              <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.2)' }}>Accédez à :</p>
-              <div className="space-y-3 mb-10">
-                {[
-                  "L'analyse de vos objectifs essentiels",
-                  "Votre premier plan d'action personnalisé",
-                  'La sélection des meilleurs ETF',
-                  'Le simulateur de remboursement de dettes',
-                ].map(f => (
-                  <div key={f} className="flex items-start gap-3">
-                    <div className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{ background: '#DDFF00' }} />
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={handleCta}
-                className="w-full py-4 font-black text-sm transition-all hover:opacity-90"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.08)' }}
-              >
-                Commencer gratuitement
-              </button>
-            </motion.div>
-
-            {/* Paid plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
-              className="p-10 relative overflow-hidden"
-              style={{ background: '#DDFF00' }}
-            >
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 60%)' }}
-              />
-              <div className="relative">
-                <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: 'rgba(10,10,10,0.4)' }}>Payant</p>
-                <p className="text-4xl font-black mb-2" style={{ color: '#0A0A0A' }}>à partir de <span>16$</span><span className="text-base font-normal">/mois</span></p>
-                <p className="text-sm mb-8" style={{ color: 'rgba(10,10,10,0.55)' }}>
-                  Passez à l'offre supérieure pour débloquer l'analyse de vos documents financiers, une modélisation avancée et des discussions illimitées avec votre coach.
-                </p>
-                <button
-                  onClick={() => navigate('/pricing')}
-                  className="w-full py-4 font-black text-sm transition-all hover:opacity-80 mt-auto"
-                  style={{ background: '#0A0A0A', color: '#DDFF00' }}
-                >
-                  Voir tous les plans
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
       <section className="relative px-6 md:px-10 py-32">
         <GlowOrb x="20%" y="50%" size="600px" color="rgba(100,50,255,0.04)" opacity={1} />

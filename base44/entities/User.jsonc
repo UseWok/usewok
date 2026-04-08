@@ -12,16 +12,6 @@
     "subscription_plan": {
       "type": "string"
     },
-    "billing_cycle": {
-      "type": "string",
-      "enum": [
-        "monthly",
-        "yearly"
-      ]
-    },
-    "subscription_date": {
-      "type": "string"
-    },
     "credits_used": {
       "type": "number"
     },
@@ -31,24 +21,17 @@
     "credits_bonus": {
       "type": "number"
     },
-    "daily_credits_limit": {
-      "type": "number"
-    },
     "is_banned": {
       "type": "boolean"
     },
     "ban_until": {
       "type": "string"
+    },
+    "daily_credits_limit": {
+      "type": "number"
+    },
+    "first_message_sent": {
+      "type": "boolean"
     }
-  },
-  "required": [
-    "role",
-    "subscription_plan",
-    "credits_used",
-    "credits_limit",
-    "credits_bonus",
-    "daily_credits_limit",
-    "is_banned",
-    "ban_until"
-  ]
+  }
 }
