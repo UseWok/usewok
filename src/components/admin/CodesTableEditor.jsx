@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { Trash2, Plus, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -7,19 +6,17 @@ import { toast } from 'sonner';
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 
-export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving }) {
+export default function CodesTableEditor({ planId, billing = 'monthly', codes, onCodesUpdate, saving }) {
   const [bulkInput, setBulkInput] = useState('');
   const [bulkSaving, setBulkSaving] = useState(false);
   const [localCodes, setLocalCodes] = useState(codes);
 
   const codeMap = new Map(codes.map(c => [c.code, c.id]));
 
-  // Ajouter une ligne vide
   const addEmptyRow = () => {
     setLocalCodes(p => [...p, { id: `temp_${Date.now()}`, code: '', used: false }]);
   };
 
-  // Supprimer un code
   const deleteCode = async (idx) => {
     const code = localCodes[idx];
     if (code.id.startsWith('temp_')) {
@@ -28,14 +25,15 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
     }
     try {
       await base44.entities.ActivationCode.delete(code.id);
-      setLocalCodes(p => p.filter((_, i) => i !== idx));
+      const updated = localCodes.filter((_, i) => i !== idx);
+      setLocalCodes(updated);
+      onCodesUpdate(updated);
       toast.success('Code supprimé');
     } catch {
       toast.error('Erreur lors de la suppression');
     }
   };
 
-  // Mettre à jour le code (inline)
   const updateCodeValue = (idx, newValue) => {
     setLocalCodes(p => {
       const updated = [...p];
@@ -44,7 +42,6 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
     });
   };
 
-  // Sauvegarder les modifications d'une ligne
   const saveCodeRow = async (idx) => {
     const code = localCodes[idx];
     if (!code.code.trim()) {
@@ -52,25 +49,22 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
       return;
     }
     if (code.id.startsWith('temp_')) {
-      // Créer un nouveau code
       try {
         const created = await base44.entities.ActivationCode.create({
           code: code.code,
           plan_id: planId,
-          billing: 'monthly',
+          billing: billing,
           used: false
         });
-        setLocalCodes(p => {
-          const updated = [...p];
-          updated[idx] = created;
-          return updated;
-        });
+        const updated = [...localCodes];
+        updated[idx] = created;
+        setLocalCodes(updated);
+        onCodesUpdate(updated);
         toast.success('Code créé');
       } catch {
         toast.error('Erreur lors de la création');
       }
     } else {
-      // Mettre à jour un code existant
       try {
         await base44.entities.ActivationCode.update(code.id, { code: code.code });
         toast.success('Code mis à jour');
@@ -80,7 +74,6 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
     }
   };
 
-  // Importer des codes en masse
   const importBulkCodes = async () => {
     const lines = bulkInput.split('\n').map(l => l.trim().toUpperCase()).filter(l => l.length > 0);
     if (lines.length === 0) {
@@ -94,11 +87,11 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
 
       if (toCreate.length > 0) {
         await base44.entities.ActivationCode.bulkCreate(
-          toCreate.map(code => ({ code, plan_id: planId, billing: 'monthly', used: false }))
+          toCreate.map(code => ({ code, plan_id: planId, billing: billing, used: false }))
         );
       }
 
-      const updated = await base44.entities.ActivationCode.filter({ plan_id: planId });
+      const updated = await base44.entities.ActivationCode.filter({ plan_id: planId, billing: billing });
       setLocalCodes(updated);
       setBulkInput('');
       toast.success(`${toCreate.length} code(s) importé(s)`);
@@ -120,7 +113,7 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
         <textarea
           value={bulkInput}
           onChange={e => setBulkInput(e.target.value)}
-          placeholder="CODE1\nCODE2\nCODE3\n... (jusqu'à 1000)"
+          placeholder={"CODE1\nCODE2\nCODE3\n... (jusqu'à 1000)"}
           className="w-full px-3 py-2 text-xs font-mono focus:outline-none resize-none"
           rows={4}
           style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }}
@@ -141,7 +134,7 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
           {availCodes.length === 0 && (
             <p className="text-[10px] text-center py-4" style={{ color: '#bbb' }}>Aucun code</p>
           )}
-          {availCodes.map((code, idx) => {
+          {availCodes.map((code) => {
             const realIdx = localCodes.findIndex(c => c.id === code.id);
             return (
               <div key={code.id} className="flex items-center gap-2 p-2 bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '3px' }}>
@@ -181,7 +174,7 @@ export default function CodesTableEditor({ planId, codes, onCodesUpdate, saving 
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Codes Utilisés ({usedCodes.length})</p>
           <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-            {usedCodes.map((code, idx) => {
+            {usedCodes.map((code) => {
               const realIdx = localCodes.findIndex(c => c.id === code.id);
               return (
                 <div key={code.id} className="flex items-center gap-2 p-2" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '3px' }}>
