@@ -24,7 +24,7 @@ const FEATURES = [
   {
     icon: Paperclip,
     title: 'Analyse de Documents Financiers',
-    desc: "Importez relevés bancaires, bulletins de salaire, contrats d'assurance-vie. Stensor les analyse automatiquement et intègre vos chiffres réels dans la stratégie.", Stensor les analyse automatiquement et intègre vos chiffres réels dans la stratégie.',
+    desc: "Importez relevés bancaires, bulletins de salaire, contrats d'assurance-vie. Stensor les analyse automatiquement et intègre vos chiffres réels dans la stratégie.",
     tag: 'Essential+',
   },
   {
@@ -43,7 +43,7 @@ const FEATURES = [
   {
     icon: Crown,
     title: 'Mode Expert — Raisonnement Approfondi',
-    desc: 'Pour les questions complexes : simulation Monte Carlo, optimisation de portefeuille multi-actifs, analyse fiscale détaillée. Résultats d'un niveau professionnel.',
+    desc: "Pour les questions complexes : simulation Monte Carlo, optimisation de portefeuille multi-actifs, analyse fiscale détaillée. Résultats d'un niveau professionnel.",
     tag: 'Expert+',
     accent: true,
   },
@@ -61,8 +61,8 @@ const FEATURES = [
   },
   {
     icon: Clock,
-    title: 'Plans d'Action Actionnables',
-    desc: 'Pas de théorie vague. Chaque réponse inclut les étapes exactes, les comptes à ouvrir, les montants précis à investir — dès aujourd'hui.',
+    title: "Plans d'Action Actionnables",
+    desc: "Pas de théorie vague. Chaque réponse inclut les étapes exactes, les comptes à ouvrir, les montants précis à investir — dès aujourd'hui.",
     tag: 'Tous plans',
   },
 ];
