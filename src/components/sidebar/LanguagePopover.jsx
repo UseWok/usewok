@@ -9,8 +9,6 @@ const YUZU = '#DDFF00';
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇺🇸', native: 'English (US)' },
   { code: 'fr', label: 'Français', flag: '🇫🇷', native: 'Français' },
-  { code: 'es', label: 'Español', flag: '🇪🇸', native: 'Español' },
-  { code: 'pt', label: 'Português', flag: '🇧🇷', native: 'Português (BR)' },
 ];
 
 export default function LanguagePopover({ open, onClose, anchorRef }) {

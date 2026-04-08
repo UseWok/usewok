@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
@@ -25,6 +26,7 @@ function SectionTitle({ children }) {
 function MobileSectionContent({ section, user, userPlan, fullName, setFullName, saveProfile, savingProfile, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, invoiceRequested, requestInvoice, setShowDeleteModal, CORAL }) {
   const FG = '#0A0A0A';
   const YUZU = '#DDFF00';
+  const { t } = useLanguage();
   if (section === 'profile') return (
     <div className="space-y-4 pt-2">
       <div>
@@ -101,6 +103,7 @@ function MobileSectionContent({ section, user, userPlan, fullName, setFullName, 
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState('profile');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
@@ -205,10 +208,10 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: 'Profil', icon: User },
-    { id: 'chat', label: 'Paramètres chat', icon: MessageSquare },
-    { id: 'plan', label: 'Plan & Facturation', icon: CreditCard },
-    { id: 'usage', label: 'Usage Tensors', icon: Zap },
+    { id: 'profile', label: t('settings_profile'), icon: User },
+    { id: 'chat', label: t('settings_chat'), icon: MessageSquare },
+    { id: 'plan', label: t('settings_plan'), icon: CreditCard },
+    { id: 'usage', label: t('settings_usage'), icon: Zap },
   ];
 
   return (
@@ -275,17 +278,17 @@ export default function SettingsPage() {
             {/* PROFILE */}
             {activeSection === 'profile' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                <SectionTitle>Profil</SectionTitle>
+                <SectionTitle>{t('settings_profile')}</SectionTitle>
                 <div className="space-y-6 max-w-md">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Adresse e-mail (non modifiable)</label>
+                      <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>{t('settings_email_label')}</label>
                       <input value={user?.email || ''} disabled
                         className="w-full px-3 py-2.5 text-sm bg-black/3 cursor-not-allowed"
                         style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', color: '#aaa' }} />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Nom complet</label>
+                      <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>{t('settings_fullname')}</label>
                       <input value={fullName} onChange={e => setFullName(e.target.value)}
                         className="w-full px-3 py-2.5 text-sm focus:outline-none"
                         style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
@@ -293,18 +296,18 @@ export default function SettingsPage() {
                     <button onClick={saveProfile} disabled={savingProfile}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all"
                       style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                      <Save className="w-4 h-4" /> {savingProfile ? 'Enregistrement...' : 'Sauvegarder'}
+                      <Save className="w-4 h-4" /> {savingProfile ? t('settings_saving') : t('settings_save')}
                     </button>
                   </div>
                   
                   {/* Delete account */}
                   <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', borderRadius: '5px' }}>
-                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>Supprimer le compte</p>
-                    <p className="text-xs mb-4" style={{ color: '#888' }}>Supprimez définitivement votre compte et toutes vos données.</p>
+                    <p className="text-sm font-semibold mb-2" style={{ color: FG }}>{t('settings_delete_account')}</p>
+                    <p className="text-xs mb-4" style={{ color: '#888' }}>{t('settings_delete_irreversible')}</p>
                     <button onClick={() => setShowDeleteModal(true)}
                       className="w-full px-4 py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
                       style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '4px' }}>
-                      <Trash2 className="w-4 h-4" /> Supprimer le compte
+                      <Trash2 className="w-4 h-4" /> {t('settings_delete_account')}
                     </button>
                   </div>
                 </div>
@@ -314,9 +317,9 @@ export default function SettingsPage() {
             {/* CHAT SETTINGS */}
             {activeSection === 'chat' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                <SectionTitle>Paramètres chat</SectionTitle>
+                <SectionTitle>{t('settings_chat')}</SectionTitle>
                 <div className="max-w-md">
-                  <p className="text-xs font-semibold mb-3" style={{ color: '#555' }}>Raccourci pour envoyer un message</p>
+                  <p className="text-xs font-semibold mb-3" style={{ color: '#555' }}>{t('settings_shortcut_label')}</p>
                   <div className="space-y-2">
                     {SHORTCUTS.map(s => (
                       <button key={s.id} onClick={() => saveShortcut(s.id)}
@@ -334,11 +337,11 @@ export default function SettingsPage() {
             {/* PLAN & BILLING */}
             {activeSection === 'plan' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                <SectionTitle>Plan & Facturation</SectionTitle>
+                <SectionTitle>{t('settings_plan')}</SectionTitle>
                 <div className="space-y-4 max-w-lg">
                   {/* Current plan */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px' }}>
-                    <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Plan actuel</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>{t('settings_current_plan')}</p>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-lg font-black" style={{ color: FG }}>{userPlan?.name || 'Free'}</p>
@@ -376,12 +379,12 @@ export default function SettingsPage() {
                       <button onClick={() => navigate('/manage-plan')}
                         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
                         style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                        Gerer le plan <ChevronRight className="w-3 h-3" />
+                        {t('settings_manage_plan')} <ChevronRight className="w-3 h-3" />
                       </button>
                       <button onClick={() => navigate('/pricing')}
                         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
                         style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '3px' }}>
-                        Mettre a niveau
+                        {t('settings_upgrade')}
                       </button>
                     </div>
                   </div>
@@ -389,7 +392,7 @@ export default function SettingsPage() {
                   {/* Billing history */}
                   {userPlan?.price_monthly > 0 && (
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Historique de facturation</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>{t('settings_billing_history')}</p>
                       <div className="border overflow-hidden" style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.09)' }}>
                         <div className="flex items-center gap-4 px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                           <div className="flex-1">
@@ -419,7 +422,7 @@ export default function SettingsPage() {
             {/* USAGE */}
             {activeSection === 'usage' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                <SectionTitle>Usage Tensors</SectionTitle>
+                <SectionTitle>{t('settings_usage')}</SectionTitle>
                 <div className="space-y-5 max-w-lg">
                   {/* Plan info */}
                   <div className="flex items-center justify-between px-4 py-3" style={{ background: FG, borderRadius: '5px' }}>
@@ -435,7 +438,7 @@ export default function SettingsPage() {
                   {/* Usage bar */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold" style={{ color: '#555' }}>Tensors ce mois</p>
+                      <p className="text-xs font-semibold" style={{ color: '#555' }}>{t('settings_tensors_month')}</p>
                       <p className="text-xs font-black" style={{ color: pct >= 90 ? CORAL : FG }}>{creditsUsed} / {creditsLimit}</p>
                     </div>
                     <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
@@ -446,7 +449,7 @@ export default function SettingsPage() {
 
                   {/* 7-day chart */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
-                    <p className="text-xs font-semibold mb-4" style={{ color: '#555' }}>7 derniers jours</p>
+                    <p className="text-xs font-semibold mb-4" style={{ color: '#555' }}>{t('settings_7days')}</p>
                     <ResponsiveContainer width="100%" height={100}>
                       <BarChart data={getDailyUsage()} barSize={14}>
                         <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#bbb' }} axisLine={false} tickLine={false} />
@@ -458,8 +461,8 @@ export default function SettingsPage() {
 
                   {/* Activation code */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
-                    <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Code d'activation</p>
-                    <p className="text-xs mb-3" style={{ color: '#888' }}>Entrez un code reçu par e-mail pour activer un abonnement.</p>
+                    <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>{t('settings_activation_code')}</p>
+                    <p className="text-xs mb-3" style={{ color: '#888' }}>{t('settings_activation_desc')}</p>
                     <div className="flex gap-2">
                       <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
                         placeholder="Ex: 4F7K9M2X1R8P"
@@ -470,7 +473,7 @@ export default function SettingsPage() {
                       <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
                         className="px-4 py-2.5 text-sm font-bold disabled:opacity-40"
                         style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                        {codeLoading ? '...' : 'Activer'}
+                        {codeLoading ? '...' : t('settings_activate')}
                       </button>
                     </div>
                   </div>
@@ -495,22 +498,22 @@ export default function SettingsPage() {
               style={{ borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.15)' }}>
               <div className="px-6 pt-6 pb-4" style={{ background: '#ef4444' }}>
                 <div className="flex items-center justify-between">
-                  <p className="text-base font-bold text-white">Supprimer le compte</p>
+                  <p className="text-base font-bold text-white">{t('settings_delete_account')}</p>
                   <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 transition-colors" style={{ borderRadius: '3px' }}>
                     <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-xs font-semibold" style={{ color: '#555' }}>Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
+                <p className="text-xs font-semibold" style={{ color: '#555' }}>{t('settings_delete_irreversible')}</p>
                 <div className="p-3 bg-black/3" style={{ borderRadius: '4px' }}>
                   <p className="text-xs" style={{ color: '#999' }}>Email: <strong>{user?.email}</strong></p>
                 </div>
                 <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm transition-all" style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
-                  Confirmer la suppression
+                  {t('settings_confirm_delete')}
                 </button>
                 <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium transition-colors hover:bg-black/5" style={{ borderRadius: '4px', color: '#999' }}>
-                  Annuler
+                  {t('cancel')}
                 </button>
               </div>
             </motion.div>

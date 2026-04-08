@@ -289,7 +289,7 @@ export default function ChatPage() {
       // Comparison message for FREE/ESSENTIAL
       if (isFree || (userPlan && userPlan.price_monthly <= 9)) {
         if (mode.id === 'thinking') {
-          setComparisonMsg('✨ Avec le mode Avancé, cette réponse aurait été 3× plus détaillée et précise.');
+          setComparisonMsg(t('pro_comparison'));
           setTimeout(() => setComparisonMsg(''), 6000);
         }
       }
@@ -300,8 +300,8 @@ export default function ChatPage() {
         setMilestoneShown(true);
         toast(
           <div>
-            <p className="font-bold text-sm">🎉 Vous adorez Stensor !</p>
-            <p className="text-xs mt-0.5 opacity-70">10 messages envoyés. Avec Advanced, accédez aussi à la recherche Internet et aux leçons exclusives.</p>
+            <p className="font-bold text-sm">{t('milestone_title')}</p>
+            <p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p>
           </div>,
           { duration: 7000 }
         );
@@ -347,7 +347,7 @@ export default function ChatPage() {
         saveDiscussions(stored);
       } catch {}
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Une erreur est survenue. Veuillez réessayer.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: t('error_occurred') }]);
     }
     setIsLoading(false);
   };
@@ -360,7 +360,7 @@ export default function ChatPage() {
 
   const copyMessage = (content) => {
     navigator.clipboard.writeText(content);
-    toast.success('Copié !', { duration: 1000 });
+    toast.success(t('copied'), { duration: 1000 });
   };
 
   const toggleRecording = () => {
@@ -459,7 +459,7 @@ export default function ChatPage() {
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 opacity-20">
             <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
-            <p className="text-sm" style={{ color: '#888' }}>Démarrez la conversation…</p>
+            <p className="text-sm" style={{ color: '#888' }}>{t('start_conversation')}</p>
           </div>
         )}
         {messages.map((msg, idx) => (
@@ -533,9 +533,9 @@ export default function ChatPage() {
             style={{ background: FG, borderRadius: '4px' }}
             onClick={() => setShowUpgradeOverlay(true)}>
             <div>
-              <p className="text-sm font-bold text-white">Crédits épuisés ce mois</p>
+              <p className="text-sm font-bold text-white">{t('credits_exhausted_month')}</p>
               <p className="text-xs mt-0.5 text-white/60">
-                {userPlan?.id === 'free' ? 'Passez à Essential → 100 crédits + sans quota journalier' : userPlan?.id === 'essential' ? 'Passez à Advanced → 250 crédits + recherche Internet' : 'Passez à un forfait supérieur pour continuer'}
+                {userPlan?.id === 'free' ? t('upgrade_to_essential') : userPlan?.id === 'essential' ? t('upgrade_to_advanced') : t('upgrade_to_higher_plan')}
               </p>
             </div>
             <span className="text-xs font-bold px-3 py-1.5 text-black" style={{ background: YUZU, borderRadius: '3px' }}>Upgrade →</span>
@@ -617,7 +617,7 @@ export default function ChatPage() {
           <div className="px-4 pt-2 pb-1">
             <textarea ref={textareaRef} value={input} onChange={handleInputChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-              placeholder={blocked ? 'Crédits épuisés — mettez à niveau pour continuer' : 'Message… (@ pour agents & modes)'}
+              placeholder={blocked ? t('blocked_placeholder') : t('send_message')}
               disabled={blocked} rows={1}
               className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed break-words"
               style={{ color: FG }} />
@@ -834,7 +834,7 @@ export default function ChatPage() {
 
 
         <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
-          Stensor est un outil IA · Les réponses peuvent contenir des erreurs
+          {t('ai_disclaimer')}
         </p>
         </div>
 
@@ -854,7 +854,7 @@ export default function ChatPage() {
                     <div className="w-7 h-7 flex items-center justify-center" style={{ background: YUZU, borderRadius: '3px' }}>
                       <TrendingUp className="w-4 h-4" style={{ color: FG }} />
                     </div>
-                    <p className="text-base font-bold text-white">Passez à Advanced</p>
+                    <p className="text-base font-bold text-white">{t('upgrade_overlay_title')}</p>
                   </div>
                   <button onClick={() => setShowUpgradeOverlay(false)}
                     className="w-7 h-7 flex items-center justify-center transition-colors"
@@ -864,12 +864,12 @@ export default function ChatPage() {
                 </div>
                 {upgradeFeature && (
                   <p className="text-xs text-white/60">
-                    {upgradeFeature} n'est pas disponible sur votre plan actuel.
+                    {upgradeFeature} {t('upgrade_not_available')}
                   </p>
                 )}
               </div>
               <div className="p-5 space-y-2">
-                {['Internet en temps réel', 'Modes Pro & Thinking', 'Fichiers joints', 'Discussions illimitées'].map(f => (
+                {[t('upgrade_feature_internet'), t('upgrade_feature_modes'), t('upgrade_feature_files'), t('upgrade_feature_discussions')].map(f => (
                   <div key={f} className="flex items-center gap-2.5">
                     <div className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '2px' }}>
                       <Check className="w-2.5 h-2.5" style={{ color: FG }} />
@@ -880,12 +880,12 @@ export default function ChatPage() {
                 <button onClick={() => { navigate('/pricing'); setShowUpgradeOverlay(false); }}
                   className="w-full mt-4 py-3 font-bold text-sm transition-all"
                   style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
-                  Voir les abonnements →
+                  {t('see_plans')}
                 </button>
                 <button onClick={() => setShowUpgradeOverlay(false)}
                   className="w-full py-2 text-sm font-medium transition-colors hover:bg-black/5"
                   style={{ color: '#999', borderRadius: '4px' }}>
-                  Continuer en Free
+                  {t('continue_free')}
                 </button>
               </div>
             </motion.div>
