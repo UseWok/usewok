@@ -31,10 +31,10 @@ const ESSENTIAL_PITCH = [
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
-  const [billing, setBilling] = useState('monthly');
+  const [billing, setBilling] = useState('yearly');
   const [scrolled, setScrolled] = useState(false);
   const [navData, setNavData] = useState(null);
-  const plans = getPlansConfig();
+  const plans = getPlansConfig(); // cheap → expensive left to right
 
   useEffect(() => {
     getLandingContent().then(d => setNavData(d?.nav));
@@ -141,7 +141,10 @@ export default function LandingPricingPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => navigate('/checkout?plan=essential&billing=' + billing)}
+                    onClick={() => {
+                    localStorage.setItem('stensor_cart_v1', JSON.stringify({ planId: 'essential', billing, ts: Date.now() }));
+                    base44.auth.redirectToLogin(`/checkout?plan=essential&billing=${billing}`);
+                  }}
                     className="inline-flex items-center gap-3 font-black text-sm px-8 py-4 hover:opacity-85 transition-opacity"
                     style={{ background: YUZU, color: FG }}>
                     Start Essential <ArrowRight className="w-4 h-4" />
@@ -234,15 +237,19 @@ export default function LandingPricingPage() {
                       })}
                     </div>
                     <button
-                      onClick={plan.id === 'free' ? handleCta : () => navigate('/checkout?plan=' + plan.id + '&billing=' + billing)}
+                      onClick={() => {
+                        if (plan.id === 'free') { handleCta(); return; }
+                        localStorage.setItem('stensor_cart_v1', JSON.stringify({ planId: plan.id, billing, ts: Date.now() }));
+                        base44.auth.redirectToLogin(`/checkout?plan=${plan.id}&billing=${billing}`);
+                      }}
                       className="w-full py-3 font-black text-xs transition-all hover:opacity-80"
                       style={{
                         background: isEssential ? YUZU : 'transparent',
                         color: isEssential ? FG : FG,
                         border: isEssential ? 'none' : '1px solid rgba(0,0,0,0.12)',
                       }}>
-                      {plan.id === 'free' ? 'Start free' : 'Choose plan'}
-                    </button>
+                        {plan.id === 'free' ? 'Start free' : 'Choose plan'}
+                      </button>
                   </motion.div>
                 );
               })}

@@ -6,6 +6,8 @@ import { ArrowUp, ChevronDown } from 'lucide-react';
 import { getLandingContent } from '@/lib/landing-content';
 
 const PENDING_KEY = 'stensor_pending_query';
+const YUZU = '#DDFF00';
+const FG = '#0A0A0A';
 
 function useAuthState() {
   const [isAuth, setIsAuth] = useState(null);
@@ -24,8 +26,13 @@ export default function LandingPage() {
   const [data, setData] = useState(null);
   const inputRef = useRef(null);
 
+  useEffect(() => { getLandingContent().then(setData); }, []);
+
+  // Re-fetch when landing editor saves (custom event)
   useEffect(() => {
-    getLandingContent().then(setData);
+    const handler = () => getLandingContent().then(setData);
+    window.addEventListener('landing_content_saved', handler);
+    return () => window.removeEventListener('landing_content_saved', handler);
   }, []);
 
   useEffect(() => {
@@ -63,8 +70,10 @@ export default function LandingPage() {
     }
   };
 
+  // Topics: just set query text, do NOT redirect
   const handleTopicClick = (topic) => {
-    setQuery(topic);
+    const prompt = typeof topic === 'object' ? topic.prompt : topic;
+    setQuery(prompt);
     inputRef.current?.focus();
   };
 
@@ -85,13 +94,14 @@ export default function LandingPage() {
           style={{
             background: scrolled ? 'rgba(255,255,255,0.97)' : 'white',
             border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: '10px',
             boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.07)' : '0 2px 12px rgba(0,0,0,0.04)',
             transition: 'all 0.3s ease',
           }}
         >
           <div className="flex items-center gap-2.5">
             <img src={nav.logo_url} alt="Stensor" className="w-6 h-6 object-contain" />
-            <span className="font-black text-sm tracking-tight" style={{ color: '#0A0A0A' }}>Stensor</span>
+            <span className="font-black text-sm tracking-tight" style={{ color: FG }}>Stensor</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href={nav.features_url} className="text-xs font-medium text-gray-500 hover:text-black transition-colors">Features</a>
@@ -103,7 +113,8 @@ export default function LandingPage() {
               {nav.login_label}
             </button>
             <button onClick={handleCta}
-              className="text-xs font-black px-4 py-2.5 bg-black text-white hover:bg-gray-900 transition-colors">
+              className="text-xs font-black px-4 py-2.5 transition-colors"
+              style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
               {nav.cta_label}
             </button>
           </div>
@@ -113,14 +124,14 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="flex flex-col items-center justify-center min-h-screen text-center px-6 pt-36 pb-20 bg-white">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 border border-black/10 text-[10px] font-black tracking-[0.2em] uppercase"
-          style={{ color: '#0A0A0A', background: '#DDFF00' }}>
+          className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
+          style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
           {hero.badge}
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.05 }}
           className="font-black tracking-tight leading-[1.02] mb-6 whitespace-pre-line"
-          style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: '#0A0A0A', maxWidth: '800px' }}>
+          style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: FG, maxWidth: '800px' }}>
           {hero.title}
         </motion.h1>
 
@@ -134,15 +145,15 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
           className="w-full max-w-2xl mb-8">
           <div className="relative flex items-end gap-3 p-5 bg-white border border-black/10"
-            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.08)' }}>
+            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.08)', borderRadius: '16px' }}>
             <textarea ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
               placeholder={hero.placeholder} rows={3}
               className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
-              style={{ color: '#0A0A0A', minHeight: '72px' }} />
+              style={{ color: FG, minHeight: '72px' }} />
             <button onClick={handleSend} disabled={!query.trim()}
               className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all"
-              style={{ background: query.trim() ? '#0A0A0A' : 'rgba(0,0,0,0.08)' }}>
+              style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '10px' }}>
               <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
             </button>
           </div>
@@ -155,57 +166,78 @@ export default function LandingPage() {
             Not sure where to start?
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {hero.topics.map(topic => (
-              <button key={topic} onClick={() => handleTopicClick(topic)}
-                className="px-4 py-2 text-xs font-medium border border-black/10 hover:bg-black hover:text-white hover:border-black transition-all"
-                style={{ color: 'rgba(10,10,10,0.6)' }}>
-                {topic}
-              </button>
-            ))}
+            {(hero.topics || []).map((topic, i) => {
+              const label = typeof topic === 'object' ? topic.label : topic;
+              return (
+                <button key={i} onClick={() => handleTopicClick(topic)}
+                  className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
+                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '8px', background: 'white' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'rgba(10,10,10,0.6)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </motion.div>
       </section>
 
       {/* SECTION TITLE */}
-      <section className="px-6 py-12 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section className="px-6 py-16 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="font-black text-4xl md:text-5xl" style={{ color: '#0A0A0A' }}>
+          className="font-black text-4xl md:text-5xl" style={{ color: FG }}>
           {section_title}
         </motion.h2>
       </section>
 
-      {/* STACKING CARDS — black */}
+      {/* MODERN CARDS */}
       <section className="px-6 md:px-10 pb-32 bg-white">
-        <div className="max-w-5xl mx-auto space-y-4">
+        <div className="max-w-5xl mx-auto space-y-5">
           {cards.map((card, i) => (
             <motion.div key={card.num}
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.6, delay: i * 0.04 }}
+              transition={{ duration: 0.55, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
               className="sticky overflow-hidden"
-              style={{ top: `${80 + i * 14}px`, background: '#0A0A0A' }}>
+              style={{ top: `${80 + i * 16}px`, background: FG, borderRadius: '20px' }}>
               <div className="flex flex-col md:flex-row">
-                <div className="md:w-72 md:flex-shrink-0 h-52 md:h-auto overflow-hidden">
+                {/* Image */}
+                <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
                   <img src={card.image} alt={card.title}
-                    className="w-full h-full object-cover opacity-70" />
-                </div>
-                <div className="flex-1 p-10 md:p-14">
-                  <div className="flex items-center gap-3 mb-8">
-                    <span className="text-xs font-black tracking-[0.2em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                      {card.num} / {card.total}
+                    className="w-full h-full object-cover"
+                    style={{ opacity: 0.55, filter: 'grayscale(20%)' }} />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 60%, #0A0A0A)' }} />
+                  {/* Card number overlay */}
+                  <div className="absolute bottom-4 left-6">
+                    <span className="text-6xl font-black" style={{ color: 'rgba(255,255,255,0.08)', lineHeight: 1 }}>
+                      {card.num}
                     </span>
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-black leading-tight mb-5 text-white">
-                    {card.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    {card.desc}
-                  </p>
-                  <button onClick={handleCta}
-                    className="text-sm font-black px-6 py-3 transition-all hover:opacity-80"
-                    style={{ background: '#DDFF00', color: '#0A0A0A' }}>
-                    Get my strategy →
-                  </button>
+                </div>
+                {/* Content */}
+                <div className="flex-1 p-10 md:p-14 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <span className="text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1"
+                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }}>
+                        {card.num} / {card.total}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-black leading-tight mb-5 text-white">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.42)' }}>
+                      {card.desc}
+                    </p>
+                  </div>
+                  <div className="mt-8">
+                    <button onClick={handleCta}
+                      className="text-sm font-black px-6 py-3 transition-all hover:scale-[1.02]"
+                      style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
+                      Get my strategy →
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -218,19 +250,19 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-center mb-16">
-            <h2 className="font-black text-4xl md:text-5xl mb-4" style={{ color: '#0A0A0A' }}>{pricing.title}</h2>
+            <h2 className="font-black text-4xl md:text-5xl mb-4" style={{ color: FG }}>{pricing.title}</h2>
             <p className="text-sm" style={{ color: 'rgba(10,10,10,0.4)' }}>{pricing.subtitle}</p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {/* Free */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="p-10 border border-black/08">
-              <h3 className="text-xl font-black mb-2" style={{ color: '#0A0A0A' }}>{pricing.free_title}</h3>
-              <p className="text-3xl font-black mb-6" style={{ color: '#0A0A0A' }}>{pricing.free_price}</p>
+              className="p-10 border border-black/08" style={{ borderRadius: '16px' }}>
+              <h3 className="text-xl font-black mb-2" style={{ color: FG }}>{pricing.free_title}</h3>
+              <p className="text-3xl font-black mb-6" style={{ color: FG }}>{pricing.free_price}</p>
               <div className="space-y-3 mb-8">
                 {pricing.free_features.map(f => (
                   <div key={f} className="flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 bg-black">
+                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 bg-black" style={{ borderRadius: '4px' }}>
                       <span className="text-[10px] font-black text-white">✓</span>
                     </div>
                     <span className="text-sm" style={{ color: 'rgba(10,10,10,0.6)' }}>{f}</span>
@@ -238,20 +270,23 @@ export default function LandingPage() {
                 ))}
               </div>
               <button onClick={handleCta}
-                className="w-full py-3.5 font-black text-sm bg-black text-white hover:bg-gray-900 transition-colors">
+                className="w-full py-3.5 font-black text-sm transition-colors"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
                 {pricing.free_cta}
               </button>
             </motion.div>
             {/* Paid */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.08 }}
-              className="p-10 bg-black">
+              className="p-10 bg-black" style={{ borderRadius: '16px' }}>
               <h3 className="text-xl font-black mb-2 text-white">{pricing.paid_title}</h3>
-              <p className="font-black mb-1 text-white" style={{ fontSize: '2.5rem' }}>{pricing.paid_price} <span className="text-lg font-semibold opacity-40">{pricing.paid_currency}</span></p>
+              <p className="font-black mb-1 text-white" style={{ fontSize: '2.5rem' }}>
+                {pricing.paid_price} <span className="text-lg font-semibold opacity-40">{pricing.paid_currency}</span>
+              </p>
               <div className="space-y-3 mb-8 mt-4">
                 {pricing.paid_features.map(f => (
                   <div key={f} className="flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
+                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '4px' }}>
                       <span className="text-[10px] font-black text-black">✓</span>
                     </div>
                     <span className="text-sm text-white/60">{f}</span>
@@ -260,7 +295,7 @@ export default function LandingPage() {
               </div>
               <button onClick={() => navigate(pricing.paid_url)}
                 className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
-                style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+                style={{ background: YUZU, color: FG, borderRadius: '10px' }}>
                 {pricing.paid_cta}
               </button>
             </motion.div>
@@ -272,7 +307,7 @@ export default function LandingPage() {
       <section className="px-6 py-20 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-2xl mx-auto">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="font-black text-4xl md:text-5xl text-center mb-14" style={{ color: '#0A0A0A' }}>
+            className="font-black text-4xl md:text-5xl text-center mb-14" style={{ color: FG }}>
             FAQ
           </motion.h2>
           <div className="space-y-0">
@@ -280,7 +315,7 @@ export default function LandingPage() {
               <div key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between px-0 py-5 text-left gap-4">
-                  <span className="text-sm font-semibold" style={{ color: '#0A0A0A' }}>{item.q}</span>
+                  <span className="text-sm font-semibold" style={{ color: FG }}>{item.q}</span>
                   <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(10,10,10,0.35)' }} />
                   </motion.div>
@@ -307,10 +342,9 @@ export default function LandingPage() {
           {cta.title}
         </motion.h2>
         <motion.button initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          onClick={handleCta}
+          transition={{ delay: 0.1 }} onClick={handleCta}
           className="font-black text-base px-10 py-5 transition-all hover:opacity-85"
-          style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+          style={{ background: YUZU, color: FG, borderRadius: '12px' }}>
           {cta.button}
         </motion.button>
       </section>

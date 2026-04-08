@@ -14,7 +14,13 @@ export const DEFAULT_LANDING = {
     title: "Build your\nfinancial freedom.",
     subtitle: "Thousands of users trust Stensor to invest smarter and reach financial independence — starting from a simple conversation.",
     placeholder: "Describe your financial situation…",
-    topics: ['Invest in ETFs', 'Pay off debt', 'Build retirement', 'Passive income', 'Tax optimization'],
+    topics: [
+      { label: 'Invest in ETFs', prompt: 'I want to start investing in ETFs with $500/month. Give me a concrete step-by-step plan with exact funds to buy and the right allocation.' },
+      { label: 'Pay off debt', prompt: 'I want to eliminate all my debt as fast as possible. Compare avalanche vs snowball with real numbers and give me a monthly action plan.' },
+      { label: 'Build retirement', prompt: 'I want to retire early using the FIRE method. Calculate how much I need to save monthly, explain the 4% rule, and give me exact accounts and investments to prioritize.' },
+      { label: 'Passive income', prompt: 'Give me the 5 best passive income strategies that actually work in 2025. For each: realistic monthly earnings, startup cost, and the exact first step I can take today.' },
+      { label: 'Tax optimization', prompt: 'What are the most powerful legal tax optimization strategies I can use right now to keep more of my money? Be specific and actionable.' },
+    ],
   },
   section_title: 'Everything is possible.',
   cards: [

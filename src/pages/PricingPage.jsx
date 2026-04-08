@@ -22,10 +22,9 @@ export default function PricingPage() {
   const dismissCart = () => { clearCart(); setSavedCart(null); }; // eslint-disable-line
   const [plans] = useState(() => {
     const all = getPlansConfig();
-    // Reverse order (supreme first), remove free
-    return [...all].filter(p => p.id !== 'free').reverse();
+    return [...all].filter(p => p.id !== 'free');
   });
-  const [billing, setBilling] = useState('monthly');
+  const [billing, setBilling] = useState('yearly');
   const [purchased, setPurchased] = useState(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const navigate = useNavigate();

@@ -83,7 +83,8 @@ export default function LandingEditor() {
     setSaving(true);
     await saveLandingContent(data);
     setSaving(false);
-    toast.success('Landing page saved!');
+    window.dispatchEvent(new Event('landing_content_saved'));
+    toast.success('Landing page saved & published!');
   };
 
   const reset = async () => {
@@ -127,21 +128,34 @@ export default function LandingEditor() {
         <Field label="Subtitle" value={data.hero.subtitle} onChange={v => set('hero.subtitle', v)} multiline />
         <Field label="Input Placeholder" value={data.hero.placeholder} onChange={v => set('hero.placeholder', v)} />
         <div>
-          <label className="text-[10px] font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Topic Chips</label>
-          {data.hero.topics.map((t, i) => (
-            <div key={i} className="flex gap-2 mb-2">
-              <input value={t} onChange={e => {
-                const topics = [...data.hero.topics];
-                topics[i] = e.target.value;
-                set('hero.topics', topics);
-              }} className="flex-1 px-3 py-2 text-sm focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
-              <button onClick={() => {
-                const topics = data.hero.topics.filter((_, j) => j !== i);
-                set('hero.topics', topics);
-              }} className="px-2 bg-red-50 text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-            </div>
-          ))}
-          <button onClick={() => set('hero.topics', [...data.hero.topics, ''])}
+          <label className="text-[10px] font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Topic Chips (label shown on button + prompt sent to AI)</label>
+          {(data.hero.topics || []).map((t, i) => {
+            const label = typeof t === 'object' ? t.label : t;
+            const prompt = typeof t === 'object' ? t.prompt : t;
+            return (
+              <div key={i} className="p-3 mb-2 space-y-2" style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'white' }}>
+                <div className="flex gap-2 items-center">
+                  <span className="text-[10px] font-black uppercase tracking-wider w-16 flex-shrink-0" style={{ color: '#aaa' }}>Label</span>
+                  <input value={label} onChange={e => {
+                    const topics = [...data.hero.topics];
+                    topics[i] = { label: e.target.value, prompt };
+                    set('hero.topics', topics);
+                  }} placeholder="Button label" className="flex-1 px-2.5 py-1.5 text-xs focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
+                  <button onClick={() => set('hero.topics', data.hero.topics.filter((_, j) => j !== i))}
+                    className="px-2 py-1.5 bg-red-50 text-red-400 flex-shrink-0"><Trash2 className="w-3 h-3" /></button>
+                </div>
+                <div className="flex gap-2 items-start">
+                  <span className="text-[10px] font-black uppercase tracking-wider w-16 flex-shrink-0 mt-1.5" style={{ color: '#aaa' }}>Prompt</span>
+                  <textarea value={prompt} onChange={e => {
+                    const topics = [...data.hero.topics];
+                    topics[i] = { label, prompt: e.target.value };
+                    set('hero.topics', topics);
+                  }} rows={2} placeholder="Full prompt sent when user clicks" className="flex-1 px-2.5 py-1.5 text-xs focus:outline-none resize-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
+                </div>
+              </div>
+            );
+          })}
+          <button onClick={() => set('hero.topics', [...(data.hero.topics || []), { label: '', prompt: '' }])}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 mt-1"
             style={{ border: '1px solid rgba(0,0,0,0.1)', color: '#666' }}>
             <Plus className="w-3 h-3" /> Add topic
