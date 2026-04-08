@@ -4,14 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 
-const STORAGE_KEY = 'discussions_v1';
+import { getDiscussions, saveDiscussions } from '@/lib/discussions';
 const FG = '#0A0A0A';
-
-function getDiscussions() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-function saveDiscussions(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
 
 function formatDate(dateStr) {
   if (!dateStr) return '';

@@ -4,15 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 
-const STORAGE_KEY = 'discussions_v1';
+import { getDiscussions, saveDiscussions } from '@/lib/discussions';
 const PURPLE = '#3A0088';
 const YUZU = '#DDFF00';
-
-function getDiscussions() {
-  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : []; }
-  catch { return []; }
-}
-function saveDiscussions(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
 
 const FG = '#0A0A0A';
 const MODE_COLORS = {

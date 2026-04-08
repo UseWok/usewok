@@ -17,8 +17,7 @@ import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 
-const STORAGE_KEY = 'discussions_v1';
-const MESSAGES_KEY = 'discussion_messages_v1';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser } from '@/lib/discussions';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 const YUZU = '#DDFF00';
@@ -32,7 +31,7 @@ const ALL_MODES = [
   { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
 ];
 
-const MIN_DURATIONS = { thinking: 0, pro: 0, ultimate: 0 };
+
 
 
 const popUp = {
@@ -42,17 +41,7 @@ const popUp = {
   transition: { duration: 0.1 },
 };
 
-function getConversationMessages(convId) {
-  try { return JSON.parse(localStorage.getItem(MESSAGES_KEY) || '{}')[convId] || []; }
-  catch { return []; }
-}
-function saveConversationMessages(convId, msgs) {
-  try {
-    const all = JSON.parse(localStorage.getItem(MESSAGES_KEY) || '{}');
-    all[convId] = msgs;
-    localStorage.setItem(MESSAGES_KEY, JSON.stringify(all));
-  } catch {}
-}
+
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -125,6 +114,7 @@ export default function ChatPage() {
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
+      if (u?.id) setCurrentUser(u.id);
       setCreditsUsed(u?.credits_used ?? 0);
       const plan = getUserPlan(u);
       setUserPlan(plan);
@@ -267,9 +257,6 @@ export default function ChatPage() {
       // ↑ file_urls is now passed correctly to the LLM
       const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-      const elapsed = Date.now() - startTime;
-      const minDur = MIN_DURATIONS[mode.id] || 0;
-      if (elapsed < minDur) await new Promise(r => setTimeout(r, minDur - elapsed));
 
       const isFree = !userPlan || userPlan.price_monthly === 0;
       const assistantMsg = { role: 'assistant', content };
@@ -331,12 +318,12 @@ export default function ChatPage() {
           });
           if (typeof titleResult === 'string' && titleResult.trim()) title = titleResult.trim().slice(0, 60);
         }
-        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const disc = { id: convId, title, preview: text, date: new Date().toISOString().slice(0, 10), model: mode.label, agent: currentAgent };
+        const stored = getDiscussions();
+        const disc = { id: convId, title, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
         const existing = stored.findIndex(d => d.id === convId);
-        if (existing >= 0) stored[existing] = { ...stored[existing], ...disc };
-        else stored.unshift(disc);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored.slice(0, 50)));
+        if (existing >= 0) stored.splice(existing, 1);
+        stored.unshift(disc);
+        saveDiscussions(stored);
       } catch {}
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Une erreur est survenue. Veuillez réessayer.' }]);
