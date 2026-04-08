@@ -133,7 +133,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(auth => {
-      if (auth) navigate('/app');
+      if (auth) navigate('/app', { replace: true });
       else setIsAuth(false);
     }).catch(() => setIsAuth(false));
   }, [navigate]);
@@ -153,7 +153,7 @@ export default function LandingPage() {
       const auth = await base44.auth.isAuthenticated();
       if (auth) {
         const params = new URLSearchParams({ q: query, mode: 'thinking', model: 'gemini_3_1_pro', webSearch: '0' });
-        window.location.href = `/chat?${params.toString()}`;
+        navigate(`/chat?${params.toString()}`);
       } else {
         localStorage.setItem(PENDING_KEY, query);
         base44.auth.redirectToLogin('/app');

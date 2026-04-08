@@ -18,7 +18,8 @@ export default function Home() {
     const pending = localStorage.getItem(PENDING_KEY);
     if (pending) {
       localStorage.removeItem(PENDING_KEY);
-      const params = new URLSearchParams({ q: pending, mode: 'thinking', model: 'gemini_3_1_pro', webSearch: '0' });
+      // Use best available mode for the user
+      const params = new URLSearchParams({ q: pending });
       navigate(`/chat?${params.toString()}`);
     }
   }, []);

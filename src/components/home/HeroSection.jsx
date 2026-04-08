@@ -73,8 +73,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
       // Set highest allowed mode by default
       const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
       if (best) setMode(best);
-      // Web search on by default if allowed
-      if (plan.internet_access) { setUseWebSearch(true); setHasInternetState(true); }
+      // Web search on by default if allowed and model supports it
+      if (plan.internet_access) {
+        setHasInternetState(true);
+        // Only enable web search if current mode supports it (not claude)
+        if (!best || best.model !== 'claude_opus_4_6') setUseWebSearch(true);
+      }
     }).catch(() => {});
   }, []);
 

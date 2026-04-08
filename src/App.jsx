@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { LanguageProvider } from '@/lib/i18n';
 import Layout from './components/Layout';
+import { Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import AllProjects from './pages/AllProjects';
 import ChatPage from './pages/ChatPage';
@@ -36,16 +37,20 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Show landing page for unauthenticated users
+      return (
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      );
     }
   }
 
   // Render the main app
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Navigate to="/app" replace />} />
       <Route element={<Layout />}>
         <Route path="/app" element={<Home />} />
         <Route path="/projects" element={<AllProjects />} />

@@ -58,7 +58,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: Settings, label: 'Parametres du compte', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
     { divider: true },
-    { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout() },
+    { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout('/') },
   ];
 
   const handleDeleteClick = () => {

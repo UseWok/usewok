@@ -57,7 +57,7 @@ export default function ChatPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const initialQ = urlParams.get('q') || '';
-  const modeId = urlParams.get('mode') || 'thinking';
+  const modeId = urlParams.get('mode') || null; // null = auto-detect best mode
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
 
@@ -69,7 +69,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState(ALL_MODES.find(m => m.id === modeId) || ALL_MODES[ALL_MODES.length - 1]);
+  const [mode, setMode] = useState(modeId ? (ALL_MODES.find(m => m.id === modeId) || ALL_MODES[ALL_MODES.length - 1]) : ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
@@ -127,11 +127,19 @@ export default function ChatPage() {
       setCreditsUsed(u?.credits_used ?? 0);
       const plan = getUserPlan(u);
       setUserPlan(plan);
-      // Always set highest allowed mode
-      const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
-      if (best) setMode(best);
-      // Web search on by default if allowed
-      if (plan.internet_access) setUseWebSearch(true);
+      // If URL specified a mode and it's allowed, keep it; otherwise use best available
+      if (modeId && plan.allowed_modes.includes(modeId)) {
+        // URL mode is valid and allowed, keep current
+      } else {
+        // Auto-select best available mode
+        const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
+        if (best) setMode(best);
+      }
+      // Only set web search default if URL didn't specify
+      const urlWebSearch = urlParams.get('webSearch');
+      if (urlWebSearch === '1' && plan.internet_access) setUseWebSearch(true);
+      else if (urlWebSearch === '0') setUseWebSearch(false);
+      else if (plan.internet_access) setUseWebSearch(true);
       else setUseWebSearch(false);
     }).catch(() => {});
   }, []);
@@ -183,6 +191,12 @@ export default function ChatPage() {
     setShowAtMenu(false);
     textareaRef.current?.focus();
   };
+
+  // File type restrictions based on plan
+  const BASIC_FILE_TYPES = '.jpg,.jpeg,.png,.gif,.txt,.csv';
+  const ALL_FILE_TYPES = '.jpg,.jpeg,.png,.gif,.txt,.csv,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp3,.mp4,.json,.html,.xml,.md';
+  const canUploadExtended = userPlan?.file_upload_extended || false;
+  const acceptedFileTypes = canUploadExtended ? ALL_FILE_TYPES : BASIC_FILE_TYPES;
 
   const handleFileAttach = () => {
     if (!canUploadFiles) {
@@ -281,12 +295,14 @@ export default function ChatPage() {
 
       if (user) {
         const responseLen = content.length;
-      const baseCost = mode.credit_cost || 1;
-      let extra = 0;
-      if (mode.id === 'thinking') extra = Math.min(Math.floor(responseLen / 400), 2);
-      else if (mode.id === 'pro') extra = Math.min(Math.floor(responseLen / 500), 3);
-      else if (mode.id === 'ultimate') extra = Math.min(Math.floor(responseLen / 600), 4);
-      const costPerMsg = baseCost + extra + (useInternet ? 1 : 0);
+        const baseCost = mode.credit_cost || 1;
+        let extra = 0;
+        // Extra cost based on response length (chars)
+        if (mode.id === 'thinking') extra = Math.min(Math.floor(responseLen / 400), 2);
+        else if (mode.id === 'pro') extra = Math.min(Math.floor(responseLen / 500), 3);
+        else if (mode.id === 'ultimate') extra = Math.min(Math.floor(responseLen / 600), 4);
+        const webCost = useInternet && hasInternet ? 1 : 0;
+        const costPerMsg = baseCost + extra + webCost;
         const newUsed = (user.credits_used || 0) + costPerMsg;
         await base44.entities.User.update(user.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
@@ -365,6 +381,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-screen font-be bg-white">
       {/* Hidden file input - always mounted */}
       <input ref={fileInputRef} type="file" multiple className="hidden"
+        accept={acceptedFileTypes}
         onChange={(e) => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
 
       {/* Top bar */}
@@ -596,10 +613,15 @@ export default function ChatPage() {
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <FileText className="w-3.5 h-3.5" style={{ color: canUploadFiles ? FG : '#ddd' }} />
                         <span>Joindre un fichier</span>
-                        {!canUploadFiles && (
+                        {!canUploadFiles ? (
                           <span className="ml-auto text-[9px] font-black px-1.5 py-0.5"
                             style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '3px' }}>
                             Essential+
+                          </span>
+                        ) : !canUploadExtended && (
+                          <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5"
+                            style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706', borderRadius: '3px' }}>
+                            Images/Texte
                           </span>
                         )}
                       </button>
@@ -689,10 +711,10 @@ export default function ChatPage() {
                 <button onClick={() => setShowInternetMenu(!showInternetMenu)}
                   className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5"
                   style={{ background: useWebSearch ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
-                  <Wifi className="w-3 h-3" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }} />
-                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch ? '#16a34a' : '#aaa' }}>Web</span>
+                  <Wifi className="w-3 h-3" style={{ color: useWebSearch && hasInternet ? '#16a34a' : '#aaa' }} />
+                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch && hasInternet ? '#16a34a' : '#aaa' }}>Web</span>
                   {hasInternet && useWebSearch && (
-                    <span className="text-[9px] font-black hidden sm:block" style={{ color: '#16a34a' }}>+1T</span>
+                    <span className="text-[9px] font-black hidden sm:block" style={{ color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: '2px' }}>+1T</span>
                   )}
                 </button>
                 <AnimatePresence>
