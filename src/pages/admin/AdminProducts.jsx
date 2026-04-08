@@ -110,7 +110,22 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                   {field('internet_access', 'Recherche Internet')}
                   {field('ultimate_access', 'Mode Ultimate')}
                   {field('file_upload', 'Envoi de fichiers')}
-                  {field('file_upload_extended', 'Fichiers étendus')}
+                  <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                    <span className="text-xs" style={{ color: '#555' }}>Type d'upload</span>
+                    <div className="flex gap-1">
+                      {['basique', 'complet'].map(opt => (
+                        <button key={opt} onClick={() => onChange({ ...plan, file_upload_extended: opt === 'complet' })}
+                          className="px-2.5 py-1 text-[10px] font-bold transition-all"
+                          style={{
+                            background: (opt === 'complet' ? plan.file_upload_extended : !plan.file_upload_extended) ? FG : 'rgba(0,0,0,0.05)',
+                            color: (opt === 'complet' ? plan.file_upload_extended : !plan.file_upload_extended) ? 'white' : '#888',
+                            borderRadius: '3px',
+                          }}>
+                          {opt === 'basique' ? 'Basique (img/txt)' : 'Complet (tous formats)'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   {field('premium_support', 'Support Premium')}
                 </div>
                 <div>
@@ -118,7 +133,16 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                   {field('max_discussions', 'Max discussions (0=illimite)', 'number', 0)}
                   {field('daily_credits_limit', 'Tensors/jour (0=illimite)', 'number', 0)}
                   {field('lessons_per_month', 'Leçons / mois', 'number', 0)}
-                  {field('shareable_credits', 'Crédits partageables / an', 'number', 0)}
+                  <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div>
+                      <span className="text-xs" style={{ color: '#555' }}>Crédits partageables</span>
+                      <span className="text-[9px] ml-2 px-1.5 py-0.5 font-bold" style={{ background: 'rgba(58,0,136,0.08)', color: '#3A0088', borderRadius: '2px' }}>Annuel uniquement</span>
+                    </div>
+                    <input type="number" min={0} value={plan.shareable_credits}
+                      onChange={e => onChange({ ...plan, shareable_credits: parseInt(e.target.value) || 0 })}
+                      className="w-20 text-right text-xs px-2 py-1 focus:outline-none"
+                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
+                  </div>
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Modes IA autorisés</p>

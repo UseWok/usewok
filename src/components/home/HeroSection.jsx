@@ -20,11 +20,11 @@ const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
 const POWER_TOPICS = [
-  { label: 'Build Wealth 📈', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice — be specific." },
-  { label: 'Crush Debt 💪', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers for my situation, and give me a realistic monthly plan to become debt-free. Which one should I choose and why?" },
-  { label: 'Start Investing 🚀', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it — index funds, ETFs, allocation percentages. Explain it clearly, give me a real actionable strategy, not generic advice." },
-  { label: 'Side Hustle 💡', prompt: "Give me the 5 best side income strategies that actually work for people aged 18-35 in 2025. For each: realistic monthly earnings, time required, startup cost, and the exact first step I can take today." },
-  { label: 'Retire Early 🏝️', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now, explain the 4% rule with real numbers, and give me the exact accounts and investments to prioritize. What changes move the needle most?" },
+  { label: 'Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice \u2014 be specific." },
+  { label: 'Crush Debt', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers for my situation, and give me a realistic monthly plan to become debt-free. Which one should I choose and why?" },
+  { label: 'Start Investing', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it \u2014 index funds, ETFs, allocation percentages. Explain it clearly, give me a real actionable strategy, not generic advice." },
+  { label: 'Side Hustle', prompt: "Give me the 5 best side income strategies that actually work for people aged 18-35 in 2025. For each: realistic monthly earnings, time required, startup cost, and the exact first step I can take today." },
+  { label: 'Retire Early', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now, explain the 4% rule with real numbers, and give me the exact accounts and investments to prioritize. What changes move the needle most?" },
 ];
 
 const popAnim = {

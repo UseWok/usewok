@@ -13,6 +13,7 @@ import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
 import { getUserPlan } from '@/lib/plans-config';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { onCreditsUpdate } from '@/lib/credits-events';
 
 export const COLLAPSED_W = 64;
 export const EXPANDED_W = 250;
@@ -82,6 +83,13 @@ export default function Sidebar({ expanded, setExpanded }) {
     const handler = () => loadUser();
     window.addEventListener('focus', handler);
     return () => window.removeEventListener('focus', handler);
+  }, []);
+
+  // Listen for real-time credit updates from ChatPage
+  useEffect(() => {
+    return onCreditsUpdate(({ credits_used }) => {
+      setUser(prev => prev ? { ...prev, credits_used } : prev);
+    });
   }, []);
 
   const isAdmin = user?.role === 'admin';

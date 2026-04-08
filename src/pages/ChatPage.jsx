@@ -15,6 +15,7 @@ import { getUserPlan } from '@/lib/plans-config';
 import { getUserColor } from '@/lib/user-color';
 import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { emitCreditsUpdate } from '@/lib/credits-events';
 
 const STORAGE_KEY = 'discussions_v1';
 const MESSAGES_KEY = 'discussion_messages_v1';
@@ -306,6 +307,8 @@ export default function ChatPage() {
         const newUsed = (user.credits_used || 0) + costPerMsg;
         await base44.entities.User.update(user.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
+        setUser(prev => ({ ...prev, credits_used: newUsed }));
+        emitCreditsUpdate(newUsed);
         incrementDailyUsed();
       }
 
