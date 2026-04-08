@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Check, X } from 'lucide-react';
 import { getPlansConfig } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
-import { getLandingContent } from '@/lib/landing-content';
+import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const YUZU = '#DDFF00';
@@ -34,12 +35,12 @@ export default function LandingPricingPage() {
   const navigate = useNavigate();
   const [billing, setBilling] = useState('yearly');
   const [scrolled, setScrolled] = useState(false);
-  const [navData, setNavData] = useState(null);
+  const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
+  const navData = landingData?.nav || null;
   const { t } = useLanguage();
   const plans = [...getPlansConfig()].reverse(); // most expensive first (left to right)
 
   useEffect(() => {
-    getLandingContent().then(d => setNavData(d?.nav));
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);

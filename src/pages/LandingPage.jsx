@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowUp, ChevronDown, MoreHorizontal, X, Globe, Tag } from 'lucide-react';
-import { getLandingContent } from '@/lib/landing-content';
+import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 import { useLanguage } from '@/lib/i18n';
 
 const PENDING_KEY = 'stensor_pending_query';
@@ -24,19 +25,12 @@ export default function LandingPage() {
   const [query, setQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [data, setData] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { data } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
   const { lang: mobileLang, setLang: setMobileLang, t } = useLanguage();
   const inputRef = useRef(null);
 
-  useEffect(() => { getLandingContent().then(setData); }, []);
 
-  // Re-fetch when landing editor saves (custom event)
-  useEffect(() => {
-    const handler = () => getLandingContent().then(setData);
-    window.addEventListener('landing_content_saved', handler);
-    return () => window.removeEventListener('landing_content_saved', handler);
-  }, []);
 
   useEffect(() => {
     if (isAuth === true) navigate('/app', { replace: true });

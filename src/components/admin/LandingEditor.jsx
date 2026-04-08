@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { LANDING_QUERY_KEY } from '@/lib/landing-content';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { getLandingContent, saveLandingContent, DEFAULT_LANDING } from '@/lib/landing-content';
@@ -52,6 +54,7 @@ function Section({ title, children, defaultOpen = false }) {
 export default function LandingEditor() {
   const [data, setData] = useState(null);
   const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => { getLandingContent().then(setData); }, []);
 
@@ -82,8 +85,8 @@ export default function LandingEditor() {
   const save = async () => {
     setSaving(true);
     await saveLandingContent(data);
+    await queryClient.invalidateQueries({ queryKey: LANDING_QUERY_KEY });
     setSaving(false);
-    window.dispatchEvent(new Event('landing_content_saved'));
     toast.success('Landing page saved & published!');
   };
 
