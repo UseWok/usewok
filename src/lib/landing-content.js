@@ -87,14 +87,15 @@ export const DEFAULT_LANDING = {
 
 export async function getLandingContent() {
   try {
-    const results = await base44.entities.AppSettings.filter({ key: 'landing_content' });
-    if (results.length > 0) {
-      const parsed = JSON.parse(results[0].value);
+    const results = await base44.entities.AppSettings.list('-updated_date', 100);
+    const record = results.find(r => r.key === 'landing_content');
+    if (record) {
+      const parsed = JSON.parse(record.value);
       const merged = {};
       for (const key of Object.keys(DEFAULT_LANDING)) {
         merged[key] = parsed[key] !== undefined ? parsed[key] : DEFAULT_LANDING[key];
       }
-      return { ...merged, _settingsId: results[0].id };
+      return { ...merged, _settingsId: record.id };
     }
   } catch (e) {
     console.warn('getLandingContent error', e);
