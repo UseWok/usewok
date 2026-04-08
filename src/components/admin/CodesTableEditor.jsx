@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Plus, Upload } from 'lucide-react';
+import { Trash2, Plus, Upload, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -129,7 +129,28 @@ export default function CodesTableEditor({ planId, billing = 'monthly', codes, o
 
       {/* Codes dispo */}
       <div>
-        <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Codes Disponibles ({availCodes.length})</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Codes Disponibles ({availCodes.length})</p>
+          {availCodes.length > 0 && (
+            <button
+              onClick={async () => {
+                if (!confirm(`Supprimer les ${availCodes.length} codes disponibles ?`)) return;
+                for (const code of availCodes) {
+                  if (!code.id.startsWith('temp_')) {
+                    await base44.entities.ActivationCode.delete(code.id);
+                  }
+                }
+                const remaining = localCodes.filter(c => c.used);
+                setLocalCodes(remaining);
+                onCodesUpdate(remaining);
+                toast.success(`${availCodes.length} codes supprimés`);
+              }}
+              className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold transition-colors hover:bg-red-100"
+              style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', borderRadius: '3px' }}>
+              <Trash2 className="w-3 h-3" /> Tout supprimer
+            </button>
+          )}
+        </div>
         <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
           {availCodes.length === 0 && (
             <p className="text-[10px] text-center py-4" style={{ color: '#bbb' }}>Aucun code</p>
