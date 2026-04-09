@@ -35,7 +35,7 @@ export const DEFAULT_LANDING = {
       num: '01', total: '04',
       title: 'Strategize at the speed of thought.',
       desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.1&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ_QPMb3l9vRQ7tEAsB3ewe0w-CjNwT7KykE-t4yrjSWZCZ8a9L455UOspBOzVjBSUSQmT-pT87BrRtej2N6_6RPh7Zo8G-0DdmPkTrzXx1r4RPTmywt4s3m7Jc&disp=emb&realattid=ii_mnpxi8so0&zw',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.6&permmsgid=msg-a:r4338182998879924046&th=19d719e3682435aa&view=fimg&fur=ip&permmsgid=msg-a:r4338182998879924046&sz=s0-l75-ft&attbid=ANGjdJ-HfI5ASRRdPuO_84IieLRvpHgkLrTYvunMDE7P-Isy5wrdG731h0gg4V6atlwhQyenAUxUEVgPmLhlkDGhOA7orEwt9L9x1rLq8UPAq1baCw0iK1Z0zP_sXu4&disp=emb&realattid=ii_mnraeuwl5&zw',
     },
     {
       num: '02', total: '04',
