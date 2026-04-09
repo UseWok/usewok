@@ -42,19 +42,19 @@ export const DEFAULT_LANDING = {
       num: '02', total: '04',
       title: 'Strategize at the speed of thought.',
       desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
-      image: 'https://i.postimg.cc/0NRG1C5z/unnamed.png',
+      image: 'https://i.postimg.cc/zBNsdMyc/unnamed.png',
     },
     {
       num: '03', total: '04',
       title: 'Ready to take action, instantly.',
       desc: "From the first conversation, you get the exact steps to place your money, automate your finances and start building — today.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.11&permmsgid=msg-a:r8541193655053300312&th=19d7282c0e461007&view=fimg&fur=ip&permmsgid=msg-a:r8541193655053300312&sz=s0-l75-ft&attbid=ANGjdJ_On3ZwyM7JhmFcscNCZfRxXDIxIDGF7GrP89_O73hai6ZNTQL4tJgVOWzIFfdg97Y01K1NsED5vi9fV7a8GGgnRE3Y5YWdNyuUGwm571EORhagRIPA2y5M_Wc&disp=emb&realattid=ii_mnrjbydw10&zw',
+      image: 'https://i.postimg.cc/ZKQ1k09d/unnamed.png',
     },
     {
       num: '04', total: '04',
       title: 'One coach. All the brains of AI.',
       desc: "Access the latest AI models (GPT, Claude, Gemini). Stensor automatically selects the best model for your question.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.13&permmsgid=msg-a:r-5359015375784306806&th=19d72b3d33be6465&view=fimg&fur=ip&permmsgid=msg-a:r-5359015375784306806&sz=s0-l75-ft&attbid=ANGjdJ_1WpZTvEQ9jYG5RNf8srJIaSFFS-lQ3Is3bIzAgGgHgZ1hSmUMUB6Cx_8MLslxlI4wcmZeWhr_CyGKFJZg8pRPxqRgLnVR04-hjQ16l2UeKP8pW-LbYxJn9tg&disp=emb&realattid=ii_mnrl8v6v12&zw',
+      image: 'https://i.postimg.cc/mk56G6gJ/unnamed.png',
     },
   ],
   pricing: {
