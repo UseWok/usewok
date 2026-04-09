@@ -18,7 +18,7 @@ export const DEFAULT_LANDING = {
   },
   hero: {
     badge: 'AI Financial Coach',
-    title: "Build your\nfinancial freedom.",
+    title: "Let's build your\nfinancial freedom together.",
     subtitle: "Stensor allows you to obtain a complete and actionable financial strategy in minutes, simply using your own words. No spreadsheets, no jargon, no effort.",
     placeholder: "What is the #1 financial issue keeping you up at night...",
     topics: [
