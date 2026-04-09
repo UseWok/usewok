@@ -29,7 +29,7 @@ export const DEFAULT_LANDING = {
       { label: 'Optimize my taxes', prompt: 'What are the most powerful legal tax optimization strategies I can use right now to keep more of my money? Be specific and actionable.' },
     ],
   },
-  youtube_url: 'https://youtu.be/mHUVjd8-BF8?si=5TeS7SsNTiunVcAT',
+  youtube_url: 'https://youtu.be/FXLmWojBELE?si=MUWhJev6EcedlHlV',
   section_title: 'Everything is Possible.',
   cards: [
     {
