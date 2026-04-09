@@ -283,10 +283,12 @@ export default function LandingPage() {
               <div className="flex flex-col md:flex-row">
                 {/* Image */}
                 <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
-                  <img src={card.image} alt={card.title}
-                    className="w-full h-full object-cover"
-                    style={{ opacity: 1.00, filter: 'grayscale(10%)' }} />
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 70%, #0A0A0A)' }} />
+                  <img 
+  src={card.image} 
+  alt={card.title} 
+  className="w-full h-full object-cover" 
+  style={{ opacity: 1.00 }} // Suppression du filtre ici
+/>
                   {/* Card number overlay */}
                   <div className="absolute bottom-4 left-6">
                     <span className="text-6xl font-black" style={{ color: 'rgba(255,255,255,0.08)', lineHeight: 1 }}>
