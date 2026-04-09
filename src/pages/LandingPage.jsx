@@ -249,7 +249,7 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               className="overflow-hidden"
-              style={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
+              style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
               <iframe
                 src={`https://www.youtube.com/embed/${youtube_url.includes('watch?v=') ? youtube_url.split('watch?v=')[1].split('&')[0] : youtube_url.includes('youtu.be/') ? youtube_url.split('youtu.be/')[1].split('?')[0] : youtube_url}`}
                 title="Stensor demo"
