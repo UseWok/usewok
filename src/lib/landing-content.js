@@ -29,7 +29,7 @@ export const DEFAULT_LANDING = {
       { label: 'Optimize my taxes', prompt: 'What are the most powerful legal tax optimization strategies I can use right now to keep more of my money? Be specific and actionable.' },
     ],
   },
-  section_title: 'Everything is possible.',
+  section_title: 'Everything is Possible.',
   cards: [
     {
       num: '01', total: '04',
