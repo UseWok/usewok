@@ -48,7 +48,7 @@ export const DEFAULT_LANDING = {
       num: '03', total: '04',
       title: 'Ready to take action, instantly.',
       desc: "From the first conversation, you get the exact steps to place your money, automate your finances and start building — today.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.5&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ8loNUsT9h4__pFO1XRcv6j_JhaeBMDUsbaNKWVZtCs3uMChgpALidrTo_TgURnRgjvwFIhj2meNiwzKHu-r4G1ffJ6HGF3o0rN5B7L0wV27k1kGJx42UJrh8U&disp=emb&realattid=ii_mnq36kla4&zw',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.11&permmsgid=msg-a:r8541193655053300312&th=19d7282c0e461007&view=fimg&fur=ip&permmsgid=msg-a:r8541193655053300312&sz=s0-l75-ft&attbid=ANGjdJ_On3ZwyM7JhmFcscNCZfRxXDIxIDGF7GrP89_O73hai6ZNTQL4tJgVOWzIFfdg97Y01K1NsED5vi9fV7a8GGgnRE3Y5YWdNyuUGwm571EORhagRIPA2y5M_Wc&disp=emb&realattid=ii_mnrjbydw10&zw',
     },
     {
       num: '04', total: '04',
