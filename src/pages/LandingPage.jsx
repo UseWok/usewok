@@ -241,14 +241,12 @@ export default function LandingPage() {
             })}
           </div>
         </motion.div>
-      </section>
 
-      {/* YOUTUBE VIDEO */}
-      {youtube_url && (
-        <section className="px-6 pb-10 bg-white">
-          <div className="max-w-4xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="overflow-hidden"
+        {/* YOUTUBE VIDEO inline */}
+        {youtube_url && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+            className="w-full max-w-2xl mt-10">
+            <div className="overflow-hidden w-full"
               style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
               <iframe
                 src={`https://www.youtube.com/embed/${youtube_url.includes('watch?v=') ? youtube_url.split('watch?v=')[1].split('&')[0] : youtube_url.includes('youtu.be/') ? youtube_url.split('youtu.be/')[1].split('?')[0] : youtube_url}`}
@@ -258,10 +256,10 @@ export default function LandingPage() {
                 className="w-full h-full"
                 style={{ border: 'none' }}
               />
-            </motion.div>
-          </div>
-        </section>
-      )}
+            </div>
+          </motion.div>
+        )}
+      </section>
 
       {/* SECTION TITLE */}
       <section className="px-6 py-16 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
