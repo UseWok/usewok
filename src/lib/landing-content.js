@@ -41,19 +41,19 @@ export const DEFAULT_LANDING = {
       num: '02', total: '04',
       title: 'Financial engineering, running in the background.',
       desc: "Asset allocation, compound interest, risk management and tax optimization are handled automatically while you describe your goals.",
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.2&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ8yGtdYoamfSx8HelGbsSgPURd0-Ksryje5sty_XS7Y0BkrJHQOjDtgN96B8bfmcov3jENW1Ebvh4fRVrc2wcjEG7jz0Iq2f3bVHHGytHtyRlefI16hk5TXchk&disp=emb&realattid=ii_mnpxii5f1&zw',
     },
     {
       num: '03', total: '04',
       title: 'Ready to take action, instantly.',
       desc: "From the first conversation, you get the exact steps to place your money, automate your finances and start building — today.",
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.5&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ93O-XewApnOWFkV___uqdeZHgCHjZWewdoYmd2ZrO8MXqLFi-22Mnit1EFZn0ubZsZyv41x-V-ldJflFKFEneNUeqf3RBleOXtKSLQ3kwFENRJ-DUlw9eVYIw&disp=emb&realattid=ii_mnq36kla4&zw',
     },
     {
       num: '04', total: '04',
       title: 'One coach. All the brains of AI.',
       desc: "Access the latest AI models (GPT, Claude, Gemini). Stensor automatically selects the best model for your question.",
-      image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.4&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ8b1KE2B6xR1FnFY_ewUSWIXORF_EQ5c-cLK67aWnsN32IpFbbfVswzEiELJi6xhczuWZPEfndXgRvGGh7PTCwUtzFJ3-tv6U42UCUMe2h-UEt6QpMKyHE197I&disp=emb&realattid=ii_mnq35k9y3&zw',
     },
   ],
   pricing: {
