@@ -20,7 +20,7 @@ export const DEFAULT_LANDING = {
     badge: 'AI Financial Coach',
     title: "Build your\nfinancial freedom.",
     subtitle: "Stensor allows you to obtain a complete and actionable financial strategy in minutes, simply using your own words. No spreadsheets, no jargon, no effort.",
-    placeholder: "Describe your financial situation…",
+    placeholder: "What is the #1 financial issue keeping you up at night...",
     topics: [
       { label: 'Investing in ETFs', prompt: 'I want to start investing in ETFs with $500/month. Give me a concrete step-by-step plan with exact funds to buy and the right allocation.' },
       { label: 'Pay off my debts', prompt: 'I want to eliminate all my debt as fast as possible. Compare avalanche vs snowball with real numbers and give me a monthly action plan.' },
