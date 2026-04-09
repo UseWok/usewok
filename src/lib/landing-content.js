@@ -35,13 +35,14 @@ export const DEFAULT_LANDING = {
     {
       num: '01', total: '04',
       title: 'Strategize at the speed of thought.',
-      desc: 'https://i.postimg.cc/0NRG1C5z/unnamed.png',
+      desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
+      image: 'https://i.postimg.cc/0NRG1C5z/unnamed.png',
     },
     {
       num: '02', total: '04',
-      title: 'Financial engineering, running in the background.',
-      desc: "Asset allocation, compound interest, risk management and tax optimization are handled automatically while you describe your goals.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.2&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ-R2oCtTuiojLCvOulbd6lhSFIh4fj3Woty2SrBRcBTApWUoLnBZBKduKRDrWpS3YRnLfOCAuzBQzQ0BR363-_JfCRdSeAhQOcWY1-NFPPJUYRdYQWmcdA53lc&disp=emb&realattid=ii_mnpxii5f1&zw',
+      title: 'Strategize at the speed of thought.',
+      desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
+      image: 'https://i.postimg.cc/0NRG1C5z/unnamed.png',
     },
     {
       num: '03', total: '04',
