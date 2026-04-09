@@ -166,6 +166,11 @@ export default function LandingEditor() {
         </div>
       </Section>
 
+      {/* YOUTUBE VIDEO */}
+      <Section title="YouTube Video (below hero topics)">
+        <Field label="YouTube URL (full URL or video ID — leave empty to hide)" value={data.youtube_url || ''} onChange={v => set('youtube_url', v)} placeholder="https://www.youtube.com/watch?v=..." />
+      </Section>
+
       {/* SECTION TITLE */}
       <Section title="Section Title (between hero and cards)">
         <Field label="Title" value={data.section_title} onChange={v => set('section_title', v)} />

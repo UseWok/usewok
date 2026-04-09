@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { AGENTS } from '@/components/Sidebar';
 import { getAgentConfig } from '@/lib/agents-config';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
@@ -262,14 +263,30 @@ export default function ChatPage() {
 
       const isFree = !userPlan || userPlan.price_monthly === 0;
 
-      // Typewriter effect: add message with empty content, then fill char by char
-      const assistantMsg = { role: 'assistant', content: '' };
-      const finalMessages = [...newMessages, assistantMsg];
-      setMessages(finalMessages);
+      // Credit cost: be generous (use realistic cost per message)
+      const responseLen = content.length;
+      const baseCost = mode.credit_cost || 1;
+      let extra = 0;
+      if (mode.id === 'thinking') extra = Math.max(1, Math.min(Math.floor(responseLen / 200), 3));
+      else if (mode.id === 'pro') extra = Math.max(2, Math.min(Math.floor(responseLen / 250), 5));
+      else if (mode.id === 'ultimate') extra = Math.max(3, Math.min(Math.floor(responseLen / 300), 6));
+      const webCost = useInternet && hasInternet ? 1 : 0;
+      const costPerMsg = baseCost + extra + webCost;
 
-      // Animate typing
-      let i = 0;
-      const CHAR_SPEED = 8; // ms per character
+      if (user) {
+        const newUsed = (user.credits_used || 0) + costPerMsg;
+        await base44.entities.User.update(user.id, { credits_used: newUsed });
+        setCreditsUsed(newUsed);
+        setUser(prev => ({ ...prev, credits_used: newUsed }));
+        emitCreditsUpdate(newUsed);
+        incrementDailyUsed();
+        if (isFirstMessage) {
+          await base44.auth.updateMe({ first_message_sent: true });
+          setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
+        }
+      }
+
+      // Typewriter effect: add message with empty content, then fill char by char
       const typeNext = () => {
         if (i < content.length) {
           i++;
@@ -306,28 +323,7 @@ export default function ChatPage() {
           { duration: 7000 }
         );
       }
-      if (user) {
-        const responseLen = content.length;
-        const baseCost = mode.credit_cost || 1;
-        let extra = 0;
-        // Extra cost based on response length (chars)
-        if (mode.id === 'thinking') extra = Math.min(Math.floor(responseLen / 400), 2);
-        else if (mode.id === 'pro') extra = Math.min(Math.floor(responseLen / 500), 3);
-        else if (mode.id === 'ultimate') extra = Math.min(Math.floor(responseLen / 600), 4);
-        const webCost = useInternet && hasInternet ? 1 : 0;
-        const costPerMsg = baseCost + extra + webCost;
-        const newUsed = (user.credits_used || 0) + costPerMsg;
-        await base44.entities.User.update(user.id, { credits_used: newUsed });
-        setCreditsUsed(newUsed);
-        setUser(prev => ({ ...prev, credits_used: newUsed }));
-        emitCreditsUpdate(newUsed);
-        incrementDailyUsed();
-        // Mark first message as sent (secret expert trick)
-        if (isFirstMessage) {
-          await base44.auth.updateMe({ first_message_sent: true });
-          setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
-        }
-      }
+      // credits already deducted above
 
       try {
         // Generate short title from first user message
@@ -480,7 +476,7 @@ export default function ChatPage() {
                   ? { background: FG, color: 'white', borderRadius: '4px', borderTopRightRadius: '2px' }
                   : { background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 {msg.role === 'assistant' ? (
-                  <ReactMarkdown className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-2 prose-li:my-0.5">
+                  <ReactMarkdown className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-2 prose-li:my-0.5 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-black/10 [&_th]:bg-black [&_th]:text-white [&_th]:text-xs [&_th]:font-bold [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-black/10 [&_td]:text-xs [&_td]:px-3 [&_td]:py-2 [&_tr:nth-child(even)_td]:bg-black/[0.02]" remarkPlugins={[remarkGfm]}>
                     {msg.content}
                   </ReactMarkdown>
                 ) : (

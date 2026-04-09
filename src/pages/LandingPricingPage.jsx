@@ -50,8 +50,8 @@ export default function LandingPricingPage() {
   const logoUrl = navData?.logo_url || LOGO_URL;
   const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
 
-  const essentialPlan = plans.find(p => p.id === 'essential');
-  const otherPlans = plans.filter(p => p.id !== 'essential').reverse();
+  const essentialPlan = plans.find(p => p.id === 'expert');
+  const otherPlans = plans.filter(p => p.id !== 'expert').reverse();
 
   return (
     <div className="min-h-screen font-be bg-white overflow-x-hidden">
@@ -128,7 +128,7 @@ export default function LandingPricingPage() {
                     {t('landing_most_popular')}
                   </div>
                   <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
-                    Your first real<br />financial upgrade.
+                    Your ultimate<br />financial weapon.
                   </h2>
                   <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.45)' }}>
                     {t('landing_coach_desc')}
@@ -144,10 +144,7 @@ export default function LandingPricingPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => {
-                    localStorage.setItem('stensor_cart_v1', JSON.stringify({ planId: 'essential', billing, ts: Date.now() }));
-                    base44.auth.redirectToLogin(`/checkout?plan=essential&billing=${billing}`);
-                  }}
+                    onClick={() => base44.auth.redirectToLogin('/manage-plan')}
                     className="inline-flex items-center gap-3 font-black text-sm px-8 py-4 hover:opacity-85 transition-opacity"
                     style={{ background: YUZU, color: FG }}>
                     Start Essential <ArrowRight className="w-4 h-4" />
@@ -189,7 +186,7 @@ export default function LandingPricingPage() {
               style={{ gridTemplateColumns: `repeat(${plans.length}, 1fr)` }}>
               {plans.map((plan, i) => {
                 const p = price(plan);
-                const isEssential = plan.id === 'essential';
+                const isEssential = plan.id === 'expert';
                 return (
                   <motion.div key={plan.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -242,8 +239,7 @@ export default function LandingPricingPage() {
                     <button
                       onClick={() => {
                         if (plan.id === 'free') { handleCta(); return; }
-                        localStorage.setItem('stensor_cart_v1', JSON.stringify({ planId: plan.id, billing, ts: Date.now() }));
-                        base44.auth.redirectToLogin(`/checkout?plan=${plan.id}&billing=${billing}`);
+                        base44.auth.redirectToLogin('/manage-plan');
                       }}
                       className="w-full py-3 font-black text-xs transition-all hover:opacity-80"
                       style={{

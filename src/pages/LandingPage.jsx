@@ -76,7 +76,7 @@ export default function LandingPage() {
 
   if (isAuth === null || !data) return null;
 
-  const { nav, hero, section_title, cards, pricing, faq, cta, footer } = data;
+  const { nav, hero, section_title, cards, pricing, faq, cta, footer, youtube_url } = data;
 
   return (
     <div className="min-h-screen font-be overflow-x-hidden bg-white">
@@ -243,6 +243,26 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* YOUTUBE VIDEO */}
+      {youtube_url && (
+        <section className="px-6 pb-10 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="overflow-hidden"
+              style={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${youtube_url.includes('watch?v=') ? youtube_url.split('watch?v=')[1].split('&')[0] : youtube_url.includes('youtu.be/') ? youtube_url.split('youtu.be/')[1].split('?')[0] : youtube_url}`}
+                title="Stensor demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                style={{ border: 'none' }}
+              />
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* SECTION TITLE */}
       <section className="px-6 py-16 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -267,8 +287,8 @@ export default function LandingPage() {
                 <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
                   <img src={card.image} alt={card.title}
                     className="w-full h-full object-cover"
-                    style={{ opacity: 0.55, filter: 'grayscale(20%)' }} />
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 60%, #0A0A0A)' }} />
+                    style={{ opacity: 0.85, filter: 'grayscale(10%)' }} />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 70%, #0A0A0A)' }} />
                   {/* Card number overlay */}
                   <div className="absolute bottom-4 left-6">
                     <span className="text-6xl font-black" style={{ color: 'rgba(255,255,255,0.08)', lineHeight: 1 }}>

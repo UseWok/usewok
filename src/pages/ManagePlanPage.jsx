@@ -16,6 +16,7 @@ export default function ManagePlanPage() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showCancel, setShowCancel] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDowngradeWarning, setShowDowngradeWarning] = useState(false);
   const [cancelNote, setCancelNote] = useState('');
   const [cancelEmail, setCancelEmail] = useState('');
@@ -44,6 +45,11 @@ export default function ManagePlanPage() {
   ].filter(Boolean);
 
   const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const proceedToCancel = () => {
+    setShowCancelConfirm(false);
     const STORAGE_KEY = 'discussions_v1';
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -164,6 +170,48 @@ export default function ManagePlanPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Cancel confirm modal */}
+      <AnimatePresence>
+        {showCancelConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowCancelConfirm(false); }}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="w-full max-w-sm bg-white overflow-hidden"
+              style={{ borderRadius: '6px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              <div className="px-5 py-4" style={{ background: FG }}>
+                <p className="font-black text-white text-base">Vous êtes sur le point d'annuler 😔</p>
+                <p className="text-xs text-white/50 mt-1">Cette action est irréversible à la fin de votre période de facturation.</p>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="p-3 rounded" style={{ background: '#fef2f2', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <p className="text-xs font-semibold text-red-700">En annulant, vous perdrez :</p>
+                  <ul className="text-xs text-red-600 mt-1 space-y-0.5">
+                    <li>• Tous vos crédits restants ce mois</li>
+                    <li>• L'accès aux modes avancés & Internet</li>
+                    <li>• L'historique de vos discussions illimitées</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-center font-medium" style={{ color: '#888' }}>Vous êtes sûr(e) de vouloir continuer ?</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowCancelConfirm(false)}
+                    className="flex-1 py-2.5 text-sm font-black"
+                    style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
+                    Non, je reste 💪
+                  </button>
+                  <button onClick={proceedToCancel}
+                    className="px-4 py-2.5 text-xs font-medium"
+                    style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    Continuer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Downgrade warning modal */}
       <AnimatePresence>
