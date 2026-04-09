@@ -24,11 +24,11 @@ const FEATURE_ROWS = [
 
 // Essential plan upsell points
 const ESSENTIAL_PITCH = [
-  '100 credits/month — 10× more than free',
-  'Advanced & Pro AI modes unlocked',
-  'Attach PDFs, images, bank statements',
-  'Access to all specialized financial agents',
-  'Priority support — real humans answer',
+  '500 actions per month — More than enough to manage everything',
+  'No daily limit — Chat as much as you want',
+  'Web connected — Real-time market information',
+  'File reading — Analyze your PDFs and statements',
+  'AI in Expert Mode — Our most powerful technology',
 ];
 
 export default function LandingPricingPage() {
