@@ -137,7 +137,17 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => { if (initialQ && messages.length === 0) sendMessage(initialQ); }, []);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // Only auto-scroll if user is near the bottom (within 150px)
+  const scrollContainerRef = useRef(null);
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distFromBottom < 150) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -451,7 +461,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6 max-w-3xl mx-auto w-full">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 opacity-20">
             <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
