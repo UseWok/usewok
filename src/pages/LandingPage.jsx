@@ -310,13 +310,16 @@ export default function LandingPage() {
                       {card.desc}
                     </p>
                   </div>
-                  <div className="mt-8">
-                    <button onClick={handleCta}
-                      className="text-sm font-black px-6 py-3 transition-all hover:scale-[1.02]"
-                      style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
-                      Get my strategy →
-                    </button>
-                  </div>
+                  {/* N'affiche le bouton QUE si c'est la dernière carte (index 3) */}
+{i === cards.length - 1 && (
+  <div className="mt-8">
+    <button onClick={handleCta}
+      className="text-sm font-black px-6 py-3 transition-all hover:scale-[1.02]"
+      style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
+      Get my strategy →
+    </button>
+  </div>
+)}
                 </div>
               </div>
             </motion.div>
