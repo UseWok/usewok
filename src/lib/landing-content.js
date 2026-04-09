@@ -54,7 +54,7 @@ export const DEFAULT_LANDING = {
       num: '04', total: '04',
       title: 'One coach. All the brains of AI.',
       desc: "Access the latest AI models (GPT, Claude, Gemini). Stensor automatically selects the best model for your question.",
-      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.4&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ9zKwQetSNYIVWX4BrAjdmhsqdbuxxDjYc6jTYZbzvzk3lF4y6ejux5A8clMW2DSRs7_RvIwtDd7u209Kz7uPTn8gM8lQ_V7r-sCaiAhx-YD8jPvZTYCC493tk&disp=emb&realattid=ii_mnq35k9y3&zw',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.13&permmsgid=msg-a:r-5359015375784306806&th=19d72b3d33be6465&view=fimg&fur=ip&permmsgid=msg-a:r-5359015375784306806&sz=s0-l75-ft&attbid=ANGjdJ_1WpZTvEQ9jYG5RNf8srJIaSFFS-lQ3Is3bIzAgGgHgZ1hSmUMUB6Cx_8MLslxlI4wcmZeWhr_CyGKFJZg8pRPxqRgLnVR04-hjQ16l2UeKP8pW-LbYxJn9tg&disp=emb&realattid=ii_mnrl8v6v12&zw',
     },
   ],
   pricing: {
