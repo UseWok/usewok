@@ -285,7 +285,7 @@ export default function LandingPage() {
                 <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
                   <img src={card.image} alt={card.title}
                     className="w-full h-full object-cover"
-                    style={{ opacity: 0.85, filter: 'grayscale(10%)' }} />
+                    style={{ opacity: 0.15, filter: 'grayscale(10%)' }} />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 70%, #0A0A0A)' }} />
                   {/* Card number overlay */}
                   <div className="absolute bottom-4 left-6">
