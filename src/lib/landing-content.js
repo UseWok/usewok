@@ -40,8 +40,8 @@ export const DEFAULT_LANDING = {
     },
     {
       num: '02', total: '04',
-      title: 'Strategize at the speed of thought.',
-      desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
+      title: 'Built-in safety. Absolute privacy.',
+      desc: "Stensor applies strict guardrails for safe, reliable, and compliant AI outputs.",
       image: 'https://i.postimg.cc/zBNsdMyc/unnamed.png',
     },
     {
