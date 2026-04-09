@@ -35,7 +35,7 @@ export const DEFAULT_LANDING = {
       num: '01', total: '04',
       title: 'Strategize at the speed of thought.',
       desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
-      image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80',
+      image: 'https://mail.google.com/mail/u/1?ui=2&ik=d3e253f90c&attid=0.1&permmsgid=msg-a:r-7800607063244962501&th=19d6d4a340c5adc0&view=fimg&fur=ip&permmsgid=msg-a:r-7800607063244962501&sz=s0-l75-ft&attbid=ANGjdJ_QPMb3l9vRQ7tEAsB3ewe0w-CjNwT7KykE-t4yrjSWZCZ8a9L455UOspBOzVjBSUSQmT-pT87BrRtej2N6_6RPh7Zo8G-0DdmPkTrzXx1r4RPTmywt4s3m7Jc&disp=emb&realattid=ii_mnpxi8so0&zw',
     },
     {
       num: '02', total: '04',
