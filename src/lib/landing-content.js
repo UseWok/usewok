@@ -33,8 +33,8 @@ export const DEFAULT_LANDING = {
   cards: [
     {
       num: '01', total: '04',
-      title: 'Invest at the speed of your ambitions.',
-      desc: "Describe your situation to Stensor and watch your doubts transform into a clear, mathematical action plan.",
+      title: 'Strategize at the speed of thought.',
+      desc: "Describe your financial goals to Stensor and watch them instantly transform into a tailor-made investment plan.",
       image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80',
     },
     {
@@ -45,13 +45,13 @@ export const DEFAULT_LANDING = {
     },
     {
       num: '03', total: '04',
-      title: 'Actionable. Instantly.',
+      title: 'Ready to take action, instantly.',
       desc: "From the first conversation, you get the exact steps to place your money, automate your finances and start building — today.",
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
     },
     {
       num: '04', total: '04',
-      title: 'One coach. Every AI brain.',
+      title: 'One coach. All the brains of AI.',
       desc: "Access the latest AI models (GPT, Claude, Gemini). Stensor automatically selects the best model for your question.",
       image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80',
     },
