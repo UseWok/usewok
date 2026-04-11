@@ -59,7 +59,10 @@ export default function AssistantMessage({ content, agent, meta }) {
               <tr className="transition-colors hover:bg-black/[0.02]">{children}</tr>
             ),
             a: ({ href, children }) => (
-              <span className="text-blue-600 font-medium">{children}</span>
+              <a href={href} target="_blank" rel="noopener noreferrer"
+                className="text-blue-600 font-medium underline hover:opacity-75 transition-opacity">
+                {children}
+              </a>
             ),
           }}>
           {cleanContent}
