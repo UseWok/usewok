@@ -88,13 +88,21 @@ export default function PricingPage() {
             style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
             {['monthly', 'yearly'].map(b => (
               <button key={b} onClick={() => setBilling(b)}
-                className="px-5 py-2 text-xs font-bold transition-all"
+                className="px-5 py-2 text-xs font-bold transition-all flex items-center gap-1.5"
                 style={{
                   background: billing === b ? FG : 'transparent',
                   color: billing === b ? 'white' : '#666',
                   borderRadius: '3px',
                 }}>
-                {b === 'monthly' ? t('monthly') : t('yearly')}
+                {b === 'monthly' ? t('monthly') : (
+                  <>
+                    {t('yearly')}
+                    <span className="text-[9px] font-black px-1.5 py-0.5"
+                      style={{ background: billing === 'yearly' ? '#DDFF00' : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? '#0A0A0A' : '#888', borderRadius: '2px' }}>
+                      {offerActive ? '-50%' : '-20%'}
+                    </span>
+                  </>
+                )}
               </button>
             ))}
           </motion.div>
@@ -161,6 +169,11 @@ export default function PricingPage() {
                   {/* Price */}
                   <div className="mb-4">
                     <div className="flex items-end gap-2 flex-wrap">
+                      {hasEventDiscount && (
+                        <span className="text-base font-bold line-through" style={{ color: isRecommended ? 'rgba(255,255,255,0.3)' : '#ccc' }}>
+                          {basePrice}$
+                        </span>
+                      )}
                       <span className="text-3xl font-black" style={{ color: isRecommended ? 'white' : FG }}>
                         {price}$
                       </span>
@@ -168,13 +181,8 @@ export default function PricingPage() {
                         /mois
                       </span>
                       {hasEventDiscount && (
-                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: GREEN, color: 'white', borderRadius: '3px' }}>
-                          Save 30%
-                        </span>
-                      )}
-                      {!hasEventDiscount && billing === 'yearly' && plan.price_monthly > 0 && (
-                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: GREEN, color: 'white', borderRadius: '3px' }}>
-                          Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
+                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
+                          -30%
                         </span>
                       )}
                     </div>

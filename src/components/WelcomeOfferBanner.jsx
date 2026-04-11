@@ -24,6 +24,7 @@ export default function WelcomeOfferBanner() {
   const navigate = useNavigate();
   const remaining = useCountdown(targetMs);
 
+
   useEffect(() => {
     base44.auth.me().then(u => {
       if (isOfferActive(u)) {
@@ -53,27 +54,18 @@ export default function WelcomeOfferBanner() {
   return (
     <div
       onClick={() => navigate('/pricing')}
-      className="w-full flex items-center justify-center gap-4 px-4 py-2.5 cursor-pointer select-none"
-      style={{ background: FG, borderBottom: `2px solid ${YUZU}` }}>
-      <span className="text-xs font-bold text-white/70 hidden sm:block">Offre de bienvenue limitée</span>
-      <div className="flex items-center gap-2 px-3 py-1.5"
-        style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '999px' }}>
-        <span className="text-xs font-black" style={{ color: YUZU }}>
-          Profitez de -30% sur les plans sélectionnés →
-        </span>
-      </div>
-      <div className="flex items-center gap-1 font-black tabular-nums text-lg" style={{ color: YUZU }}>
+      className="w-full flex items-center justify-center gap-3 px-4 py-2 cursor-pointer select-none"
+      style={{ background: 'white', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+      <span className="text-[11px] font-medium" style={{ color: '#888' }}>Limited time welcome offer</span>
+      <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#ddd' }} />
+      <span className="text-[11px] font-medium" style={{ color: '#555' }}>Get 30% off select yearly plans</span>
+      <div className="flex items-center gap-0.5 font-bold tabular-nums text-[11px]" style={{ color: FG }}>
         <span>{pad(h)}</span>
-        <span className="opacity-50 text-base">:</span>
+        <span style={{ color: '#bbb' }}>:</span>
         <span>{pad(m)}</span>
-        <span className="opacity-50 text-base">:</span>
+        <span style={{ color: '#bbb' }}>:</span>
         <span>{pad(s)}</span>
       </div>
-      <button
-        onClick={handleDismiss}
-        className="ml-2 text-white/30 hover:text-white/70 transition-colors text-xs font-bold">
-        ✕
-      </button>
     </div>
   );
 }
