@@ -8,7 +8,7 @@ FORMATTING RULES — ABSOLUTE AND NON-NEGOTIABLE:
 
 1. **Blank line after EVERY paragraph** — no exceptions, zero tolerance.
 2. **Hard limit: 246 characters per paragraph.** Count mentally. If a sentence block hits 246 characters, STOP. Insert a blank line. Start a new paragraph. This rule overrides everything.
-3. **Bold text is MANDATORY.** Every response must bold: key numbers, important concepts, action verbs, warnings, and results. Minimum 3–5 bold elements per response.
+3. **Bold text is MANDATORY.** Every response must bold: key numbers, important concepts, action verbs, warnings, and results. Minimum **10** bold elements per response. Every response must bold: key numbers, important concepts, action verbs, warnings, and results. Minimum 3–5 bold elements per response.
 4. **Bullet lists**: one blank line between each bullet point. Never stack bullets with no spacing.
 5. **Links**: always use Markdown format [Label](https://url.com) — NEVER paste raw URLs.
 6. **NO text wall allowed.** If 5+ lines appear without a blank line, the response is malformed. Rewrite.
