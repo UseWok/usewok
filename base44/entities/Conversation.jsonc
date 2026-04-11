@@ -1,0 +1,34 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "conv_id": {
+      "type": "string",
+      "title": "Conversation ID"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "preview": {
+      "type": "string",
+      "title": "Preview"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "agent": {
+      "type": "string",
+      "title": "Agent"
+    },
+    "messages_json": {
+      "type": "string",
+      "title": "Messages JSON",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "conv_id"
+  ]
+}

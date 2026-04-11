@@ -18,7 +18,9 @@ import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 
-import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud } from '@/lib/discussions';
+import AssistantMessage from '@/components/chat/AssistantMessage';
+import UserMessageBubble from '@/components/chat/UserMessageBubble';
 const STORAGE_KEY = 'stensor_discussions';
 const CHAR_SPEED = 15;
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
@@ -93,6 +95,8 @@ export default function ChatPage() {
   const internetMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const textareaRef = useRef(null);
+  const isMountedRef = useRef(true);
+  const typewriterRef = useRef(null);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
@@ -139,6 +143,22 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => { if (initialQ && messages.length === 0) sendMessage(initialQ); }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { isMountedRef.current = false; if (typewriterRef.current) clearTimeout(typewriterRef.current); };
+  }, []);
+
+  // Load from cloud for cross-device sync
+  useEffect(() => {
+    if (!conversationId) return;
+    loadConversationFromCloud(conversationId).then(cloudMsgs => {
+      if (cloudMsgs && isMountedRef.current) {
+        setMessages(cloudMsgs);
+        saveConversationMessages(conversationId, cloudMsgs);
+      }
+    });
+  }, [conversationId]);
 
   // Only auto-scroll if user is near the bottom (within 150px)
   const scrollContainerRef = useRef(null);
@@ -230,10 +250,8 @@ export default function ChatPage() {
       } catch {}
     }
 
-
-
-    const startTime = Date.now();
-    const userMsg = { role: 'user', content: text };
+    const sentFileNames = files.map(f => f.name);
+    const userMsg = { role: 'user', content: text, files: sentFileNames.length > 0 ? sentFileNames : undefined };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
@@ -252,6 +270,7 @@ export default function ChatPage() {
       }
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
+      const fileInstruction = file_urls.length > 0 ? '\n\nIMPORTANT: Des fichiers ont été joints. Utilise-les comme contexte pour répondre mais ne les décris pas et ne liste pas leur contenu. Réponds directement à la question de l\'utilisateur en utilisant les fichiers comme référence.' : '';
       const formatRule = 'FORMAT: Réponses en mini-paragraphes de 2-3 phrases max, bien aérés. Utilise **gras** sur sa propre ligne pour les points clés. Maximum 3 emojis pertinents. Va à l\'essentiel, pas de liste à rallonge.';
       const systemContext = agentConfig?.instructions
         ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
@@ -264,7 +283,7 @@ export default function ChatPage() {
       const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
 
       const result = await base44.integrations.Core.InvokeLLM({
-      prompt: systemContext + text,
+      prompt: systemContext + text + fileInstruction,
       model: secretModel,
       add_context_from_internet: useInternet,
       ...(file_urls.length > 0 ? { file_urls } : {}),
@@ -298,9 +317,18 @@ export default function ChatPage() {
         }
       }
 
-      // Typewriter effect: add message with empty content, then fill char by char
+      // Add assistant placeholder BEFORE typewriter starts (fixes disappearing user message bug)
+      setMessages([...newMessages, { role: 'assistant', content: '' }]);
+
+      // Typewriter effect
       let i = 0;
       const typeNext = () => {
+        if (!isMountedRef.current) {
+          // Component unmounted — save final silently
+          saveConversationMessages(convId, [...newMessages, { role: 'assistant', content }]);
+          syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content }], { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
+          return;
+        }
         if (i < content.length) {
           i++;
           setMessages(prev => {
@@ -308,10 +336,12 @@ export default function ChatPage() {
             updated[updated.length - 1] = { role: 'assistant', content: content.slice(0, i) };
             return updated;
           });
-          setTimeout(typeNext, CHAR_SPEED);
+          typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
         } else {
           // Typing done — save final
-          saveConversationMessages(convId, [...newMessages, { role: 'assistant', content }]);
+          const finalMsgs = [...newMessages, { role: 'assistant', content }];
+          saveConversationMessages(convId, finalMsgs);
+          syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
         }
       };
       typeNext();
@@ -472,49 +502,17 @@ export default function ChatPage() {
           </div>
         )}
         {messages.map((msg, idx) => (
-          <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-            className={`flex gap-3 group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end max-w-[72%]' : 'items-start max-w-[82%]'}`}>
-              {msg.role === 'assistant' && (
-                <div className="flex items-center gap-1.5 mb-2">
-                  <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain flex-shrink-0" style={{ opacity: 0.9 }} />
-                  <span className="text-[11px] font-black" style={{ color: '#0A0A0A' }}>Stensor</span>
-                </div>
-              )}
-              {msg.role === 'user' && (
-                <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>{userName}</p>
-              )}
-              <div className={`text-sm leading-7 px-4 py-3 ${msg.role === 'user' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`}
-                style={msg.role === 'user'
-                  ? { background: FG, color: 'white', borderRadius: '4px', borderTopRightRadius: '2px' }
-                  : { background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                {msg.role === 'assistant' ? (
-                  <ReactMarkdown className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-2 prose-li:my-0.5 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-black/10 [&_th]:bg-black [&_th]:text-white [&_th]:text-xs [&_th]:font-bold [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-black/10 [&_td]:text-xs [&_td]:px-3 [&_td]:py-2 [&_tr:nth-child(even)_td]:bg-black/[0.02]" remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </ReactMarkdown>
-                ) : (
-                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                )}
-              </div>
-              {msg.role === 'user' && (
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => copyMessage(msg.content)}
-                    className="w-6 h-6 rounded-sm flex items-center justify-center transition-colors hover:bg-black/6">
-                    <Copy className="w-3 h-3" style={{ color: '#bbb' }} />
-                  </button>
-                  <button onClick={() => editMessage(idx)}
-                    className="w-6 h-6 rounded-sm flex items-center justify-center transition-colors hover:bg-black/6">
-                    <Pencil className="w-3 h-3" style={{ color: '#bbb' }} />
-                  </button>
-                </div>
-              )}
-            </div>
-            {msg.role === 'user' && (
-              <div className="w-5 h-5 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 mt-5"
-                style={{ background: getUserColor(user) }}>
-                {userInitial}
-              </div>
-            )}
+          <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+            {msg.role === 'assistant'
+              ? <AssistantMessage content={msg.content} />
+              : <UserMessageBubble
+                  msg={msg}
+                  userName={userName}
+                  user={user}
+                  onCopy={copyMessage}
+                  onEdit={() => editMessage(idx)}
+                />
+            }
           </motion.div>
         ))}
 
