@@ -275,6 +275,7 @@ export default function Sidebar({ expanded, setExpanded }) {
                   style={{ background: CORAL, borderRadius: '50%', border: '1.5px solid white' }} />
               )}
             </div>
+            {expanded && (
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold" style={{ color: isLow ? CORAL : PURPLE }}>
@@ -287,6 +288,7 @@ export default function Sidebar({ expanded, setExpanded }) {
                   style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : PURPLE }} />
               </div>
             </div>
+            )}
           </button>
           )}
 

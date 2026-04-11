@@ -295,18 +295,23 @@ export default function ChatPage() {
       const content = typeof result === 'string' ? result : JSON.stringify(result);
 
 
-      // Credit cost — weighted random per mode (use secretMode for first message)
+      // Credit cost — first message always costs exactly 1 tensor (secret expert boost)
+      // Subsequent messages: weighted random per mode
       const r = Math.random();
       let baseCost;
-      const effectiveModeId = secretMode.id;
-      if (effectiveModeId === 'thinking') {
-        baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3;
-      } else if (effectiveModeId === 'pro') {
-        baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5;
-      } else if (effectiveModeId === 'ultimate') {
-        baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8;
-      } else {
+      if (isFirstMessage) {
         baseCost = 1;
+      } else {
+        const effectiveModeId = mode.id;
+        if (effectiveModeId === 'thinking') {
+          baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3;
+        } else if (effectiveModeId === 'pro') {
+          baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5;
+        } else if (effectiveModeId === 'ultimate') {
+          baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8;
+        } else {
+          baseCost = 1;
+        }
       }
       const webCost = useInternet && hasInternet ? 1 : 0;
       const costPerMsg = baseCost + webCost;
@@ -324,8 +329,16 @@ export default function ChatPage() {
         }
       }
 
+      // Meta info for this response
+      const msgMeta = {
+        modeName: isFirstMessage ? 'Expert' : mode.label,
+        modelName: secretModel,
+        usedInternet: useInternet,
+        hasFiles: file_urls.length > 0,
+      };
+
       // Add assistant placeholder BEFORE typewriter starts (fixes disappearing user message bug)
-      setMessages([...newMessages, { role: 'assistant', content: '' }]);
+      setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
 
       // Typewriter effect
       let i = 0;
@@ -340,13 +353,13 @@ export default function ChatPage() {
           i++;
           setMessages(prev => {
             const updated = [...prev];
-            updated[updated.length - 1] = { role: 'assistant', content: content.slice(0, i) };
+            updated[updated.length - 1] = { role: 'assistant', content: content.slice(0, i), meta: msgMeta };
             return updated;
           });
           typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
         } else {
           // Typing done — save final
-          const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent }];
+          const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
           saveConversationMessages(convId, finalMsgs);
           syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
         }
@@ -440,7 +453,7 @@ export default function ChatPage() {
   const userName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi';
 
   return (
-    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh' }}>
+    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh', overflow: 'hidden' }}>
       {/* Hidden file input - always mounted */}
       <input ref={fileInputRef} type="file" multiple className="hidden"
         accept={acceptedFileTypes}
@@ -497,7 +510,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6 max-w-3xl mx-auto w-full">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 md:px-8 py-4 space-y-4 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 opacity-20">
             <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
@@ -507,7 +520,7 @@ export default function ChatPage() {
         {messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} />
+              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
               : <UserMessageBubble
                   msg={msg}
                   userName={userName}

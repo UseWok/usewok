@@ -23,7 +23,7 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content, agent }) {
+export default function AssistantMessage({ content, agent, meta }) {
   const [showAgent, setShowAgent] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
   const sources = extractSources(content);
@@ -66,18 +66,44 @@ export default function AssistantMessage({ content, agent }) {
         </ReactMarkdown>
       </div>
 
-      {/* Agent info button */}
-      <div className="flex items-center gap-2 mt-1">
+      {/* Info button */}
+      <div className="flex items-center gap-2 mt-2">
         <button onClick={() => setShowAgent(s => !s)}
           className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
           style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', color: '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
           <MoreHorizontal className="w-3 h-3" />
         </button>
         {showAgent && (
-          <div className="flex items-center gap-1.5 px-2 py-1"
-            style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-            <Bot className="w-3 h-3" style={{ color: '#888' }} />
-            <span className="text-[10px] font-semibold" style={{ color: '#555' }}>{agentLabel}</span>
+          <div className="flex items-center flex-wrap gap-1.5">
+            <div className="flex items-center gap-1 px-2 py-1"
+              style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <Bot className="w-3 h-3" style={{ color: '#888' }} />
+              <span className="text-[10px] font-semibold" style={{ color: '#555' }}>{agentLabel}</span>
+            </div>
+            {meta?.modeName && (
+              <div className="flex items-center gap-1 px-2 py-1"
+                style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <span className="text-[10px] font-semibold" style={{ color: '#555' }}>Mode: {meta.modeName}</span>
+              </div>
+            )}
+            {meta?.modelName && (
+              <div className="px-2 py-1"
+                style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <span className="text-[10px]" style={{ color: '#888' }}>{meta.modelName}</span>
+              </div>
+            )}
+            {meta?.usedInternet && (
+              <div className="px-2 py-1"
+                style={{ background: 'rgba(22,163,74,0.08)', borderRadius: '4px', border: '1px solid rgba(22,163,74,0.2)' }}>
+                <span className="text-[10px] font-semibold" style={{ color: '#16a34a' }}>🌐 Web</span>
+              </div>
+            )}
+            {meta?.hasFiles && (
+              <div className="px-2 py-1"
+                style={{ background: 'rgba(59,130,246,0.08)', borderRadius: '4px', border: '1px solid rgba(59,130,246,0.2)' }}>
+                <span className="text-[10px] font-semibold" style={{ color: '#3b82f6' }}>📎 File read</span>
+              </div>
+            )}
           </div>
         )}
       </div>
