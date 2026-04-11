@@ -74,7 +74,11 @@ export default function LandingPage() {
     inputRef.current?.focus();
   };
 
-  if (isAuth === null || !data) return null;
+  if (isAuth === null || !data) return (
+    <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+    </div>
+  );
 
   const { nav, hero, section_title, cards, pricing, faq, cta, footer, youtube_url } = data;
 
@@ -249,9 +253,22 @@ export default function LandingPage() {
             <div className="overflow-hidden w-full"
               style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
               <iframe
-                src={`https://www.youtube.com/embed/${youtube_url.includes('watch?v=') ? youtube_url.split('watch?v=')[1].split('&')[0] : youtube_url.includes('youtu.be/') ? youtube_url.split('youtu.be/')[1].split('?')[0] : youtube_url}`}
+                src={(() => {
+                  try {
+                    const url = new URL(youtube_url);
+                    let videoId = '';
+                    if (url.hostname.includes('youtu.be')) {
+                      videoId = url.pathname.replace('/', '');
+                    } else {
+                      videoId = url.searchParams.get('v') || '';
+                    }
+                    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+                  } catch {
+                    return `https://www.youtube.com/embed/${youtube_url}`;
+                  }
+                })()}
                 title="Stensor demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 className="w-full h-full"
                 style={{ border: 'none' }}

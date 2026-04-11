@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 
 import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser } from '@/lib/discussions';
+const STORAGE_KEY = 'stensor_discussions';
+const CHAR_SPEED = 15;
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 const YUZU = '#DDFF00';
@@ -297,6 +299,7 @@ export default function ChatPage() {
       }
 
       // Typewriter effect: add message with empty content, then fill char by char
+      let i = 0;
       const typeNext = () => {
         if (i < content.length) {
           i++;
@@ -322,7 +325,7 @@ export default function ChatPage() {
       }
 
       // Milestone : 10ème message
-      const totalMsgs = finalMessages.filter(m => m.role === 'user').length;
+      const totalMsgs = [...newMessages, { role: 'assistant', content }].filter(m => m.role === 'user').length;
       if (totalMsgs === 10 && !milestoneShown) {
         setMilestoneShown(true);
         toast(
