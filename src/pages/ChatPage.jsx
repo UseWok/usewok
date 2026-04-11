@@ -243,8 +243,11 @@ export default function ChatPage() {
   };
 
   const selectAtAgent = (agent) => {
-    const lastAt = input.lastIndexOf('@');
-    setInput(input.slice(0, lastAt) + `@${agent.label} `);
+    // Remove any existing @AgentLabel mentions, then insert new one
+    let cleaned = AGENTS.reduce((q, a) => q.replace(new RegExp(`@${a.label}\\s*`, 'g'), ''), input);
+    const lastAt = cleaned.lastIndexOf('@');
+    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
+    setInput(base + `@${agent.label} `);
     setCurrentAgent(agent.id);
     setShowAtMenu(false);
     textareaRef.current?.focus();
@@ -256,8 +259,11 @@ export default function ChatPage() {
       setShowUpgradeOverlay(true);
       return;
     }
-    const lastAt = input.lastIndexOf('@');
-    setInput(input.slice(0, lastAt) + `@${m.label} `);
+    // Remove any existing @ModeLabel mentions, then insert new one
+    let cleaned = ALL_MODES.reduce((q, md) => q.replace(new RegExp(`@${md.label}\\s*`, 'g'), ''), input);
+    const lastAt = cleaned.lastIndexOf('@');
+    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
+    setInput(base + `@${m.label} `);
     setMode(m);
     setShowAtMenu(false);
     textareaRef.current?.focus();
@@ -347,10 +353,10 @@ export default function ChatPage() {
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
       const fileInstruction = file_urls.length > 0 ? '\n\nIMPORTANT: Files have been attached. Use them as context to answer but do not describe or list their content. Answer the user\'s question directly using the files as reference.' : '';
-      const formatRule = 'FORMAT: Short paragraphs of 2-3 sentences max, well-spaced. Use **bold** on its own line for key points. Maximum 3 relevant emojis. Be concise, no long lists.';
+      const formatRule = 'LANGUAGE: Always respond in the exact same language the user writes in. If unclear, default to English. STYLE: Be warm, friendly and encouraging — like a trusted friend who knows finance deeply. TONE: Slightly affectionate, never cold or robotic. FORMAT: Short paragraphs of 2-3 sentences max. Always skip a line between paragraphs. No text walls. Use **bold** sparingly for key points. Max 2 emojis. Get straight to the point — no filler, no long intros.';
       const systemContext = agentConfig?.instructions
         ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge base:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
-        : `You are Stensor, a high-level AI financial coach. Answer directly, structure your response in short spaced paragraphs.${agentLabel ? ` Active agent: ${agentLabel}.` : ''} ${formatRule}\n\n`;
+        : `You are Stensor, a warm and caring AI financial coach. Be friendly, direct, and genuinely helpful — like a trusted friend who happens to know everything about money. ${agentLabel ? `Active agent context: ${agentLabel}.` : ''}\n\n${formatRule}\n\n`;
 
       // Secret: first-ever message uses Expert model silently (claude_opus)
       const isFirstMessage = !currentUser?.first_message_sent;
@@ -637,16 +643,22 @@ export default function ChatPage() {
       {blocked && (
         <div className="px-4 pb-2 max-w-3xl mx-auto w-full">
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="px-4 py-3 flex items-center justify-between cursor-pointer"
-            style={{ background: FG, borderRadius: '4px' }}
-            onClick={() => setShowUpgradeOverlay(true)}>
+            className="px-4 py-3 flex items-center justify-between"
+            style={{ background: FG, borderRadius: '4px', cursor: dailyBlocked ? 'default' : 'pointer' }}
+            onClick={dailyBlocked ? undefined : () => setShowUpgradeOverlay(true)}>
             <div>
-              <p className="text-sm font-bold text-white">{t('credits_exhausted_month')}</p>
+              <p className="text-sm font-bold text-white">
+                {dailyBlocked ? 'Daily limit reached 🌙' : t('credits_exhausted_month')}
+              </p>
               <p className="text-xs mt-0.5 text-white/60">
-                {userPlan?.id === 'free' ? t('upgrade_to_essential') : userPlan?.id === 'essential' ? t('upgrade_to_advanced') : t('upgrade_to_higher_plan')}
+                {dailyBlocked
+                  ? 'Come back tomorrow to continue your conversations.'
+                  : userPlan?.id === 'free' ? t('upgrade_to_essential') : userPlan?.id === 'essential' ? t('upgrade_to_advanced') : t('upgrade_to_higher_plan')}
               </p>
             </div>
-            <span className="text-xs font-bold px-3 py-1.5 text-black" style={{ background: YUZU, borderRadius: '3px' }}>Upgrade →</span>
+            {!dailyBlocked && (
+              <span className="text-xs font-bold px-3 py-1.5 text-black" style={{ background: YUZU, borderRadius: '3px' }}>Upgrade →</span>
+            )}
           </motion.div>
         </div>
       )}

@@ -20,9 +20,9 @@ const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
 const POWER_TOPICS = [
-  { label: 'Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice \u2014 be specific." },
+  { label: 'Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice — be specific." },
   { label: 'Crush Debt', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers for my situation, and give me a realistic monthly plan to become debt-free. Which one should I choose and why?" },
-  { label: 'Start Investing', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it \u2014 index funds, ETFs, allocation percentages. Explain it clearly, give me a real actionable strategy, not generic advice." },
+  { label: 'Start Investing', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it — index funds, ETFs, allocation percentages. Explain it clearly, give me a real actionable strategy, not generic advice." },
   { label: 'Side Hustle', prompt: "Give me the 5 best side income strategies that actually work for people aged 18-35 in 2025. For each: realistic monthly earnings, time required, startup cost, and the exact first step I can take today." },
   { label: 'Retire Early', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now, explain the 4% rule with real numbers, and give me the exact accounts and investments to prioritize. What changes move the needle most?" },
 ];
@@ -70,13 +70,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
     base44.auth.me().then(u => {
       const plan = getUserPlan(u);
       setUserPlan(plan);
-      // Set highest allowed mode by default
       const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
       if (best) setMode(best);
-      // Web search on by default if allowed and model supports it
       if (plan.internet_access) {
         setHasInternetState(true);
-        // Only enable web search if current mode supports it (not claude)
         if (!best || best.model !== 'claude_opus_4_6') setUseWebSearch(true);
       }
     }).catch(() => {});
@@ -145,8 +142,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
   };
 
   const selectAtAgent = (agent) => {
-    const lastAt = query.lastIndexOf('@');
-    setQuery(query.slice(0, lastAt) + `@${agent.label} `);
+    // Replace any existing @AgentLabel mention instead of duplicating
+    let cleaned = AGENTS.reduce((q, a) => q.replace(new RegExp(`@${a.label}\\s*`, 'g'), ''), query);
+    const lastAt = cleaned.lastIndexOf('@');
+    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
+    setQuery(base + `@${agent.label} `);
     onAgentChange(agent.id);
     setShowAtMenu(false);
     textareaRef.current?.focus();
@@ -154,8 +154,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const selectAtMode = (m) => {
     if (!userPlan?.allowed_modes.includes(m.id)) return;
-    const lastAt = query.lastIndexOf('@');
-    setQuery(query.slice(0, lastAt) + `@${m.label} `);
+    // Replace any existing @ModeLabel mention instead of duplicating
+    let cleaned = ALL_MODES.reduce((q, md) => q.replace(new RegExp(`@${md.label}\\s*`, 'g'), ''), query);
+    const lastAt = cleaned.lastIndexOf('@');
+    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
+    setQuery(base + `@${m.label} `);
     setMode(m);
     setShowAtMenu(false);
     textareaRef.current?.focus();
@@ -191,11 +194,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
-        Bâtissons ensemble votre liberté financière.
+        Let's build your financial freedom together.
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
         className="mt-3 text-sm" style={{ color: '#888' }}>
-        Des milliers d’utilisateurs font confiance à Stensor pour investir intelligemment et atteindre leur liberté financière.
+        Your personal AI financial coach — clear answers, real strategies, straight to the point.
       </motion.p>
 
       {/* Input card */}
