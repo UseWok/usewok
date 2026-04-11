@@ -359,6 +359,7 @@ export default function AdminProducts() {
   const [agentsConfig, setAgentsConfig] = useState(getAgentsConfig);
   const [currentUser, setCurrentUser] = useState(null);
   const [checkoutUrls, setCheckoutUrls] = useState({});
+  const [eventCheckoutUrls, setEventCheckoutUrls] = useState({});
   const [communityUrls, setCommunityUrls] = useState({ discord: '', community: '' });
   const [codesInput, setCodesInput] = useState({}); // planId_billing -> textarea
   const [codesSaved, setCodesSaved] = useState(false);
@@ -395,6 +396,9 @@ export default function AdminProducts() {
     base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
       if (results.length > 0) { try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(results => {
+      if (results.length > 0) { try { setEventCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
+    }).catch(() => {});
     base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
       if (results.length > 0) { try { setCommunityUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
@@ -422,6 +426,14 @@ export default function AdminProducts() {
     const val = JSON.stringify(communityUrls);
     if (existing.length > 0) await base44.entities.AppSettings.update(existing[0].id, { value: val });
     else await base44.entities.AppSettings.create({ key: 'community_urls', value: val });
+    showSaved();
+  };
+
+  const saveEventCheckoutUrls = async () => {
+    const existing = await base44.entities.AppSettings.filter({ key: 'checkout_urls_event' });
+    const val = JSON.stringify(eventCheckoutUrls);
+    if (existing.length > 0) await base44.entities.AppSettings.update(existing[0].id, { key: 'checkout_urls_event', value: val });
+    else await base44.entities.AppSettings.create({ key: 'checkout_urls_event', value: val });
     showSaved();
   };
 
@@ -610,6 +622,29 @@ export default function AdminProducts() {
               <button onClick={saveCheckoutUrls}
                 className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
                 Sauvegarder les liens (tous appareils)
+              </button>
+            </div>
+
+            {/* EVENT Checkout URLs */}
+            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(221,255,0,0.4)', borderRadius: '4px', background: 'rgba(221,255,0,0.03)' }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#888' }}>🎯 Liens paiement — Offre événement 30%</p>
+              <p className="text-[10px] mb-3" style={{ color: '#bbb' }}>Advanced, Expert & Supreme annuel uniquement. Actifs uniquement pendant la fenêtre 48h de bienvenue.</p>
+              <div className="space-y-3">
+                {['advanced', 'expert', 'supreme'].map(pid => (
+                  <div key={pid} className="flex items-center gap-2">
+                    <span className="text-xs font-bold w-28 flex-shrink-0 capitalize" style={{ color: FG }}>{pid} <span className="font-normal" style={{ color: '#aaa' }}>annuel -30%</span></span>
+                    <input
+                      value={eventCheckoutUrls[`${pid}_yearly_event`] || ''}
+                      onChange={e => setEventCheckoutUrls(u => ({ ...u, [`${pid}_yearly_event`]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..."
+                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                  </div>
+                ))}
+              </div>
+              <button onClick={saveEventCheckoutUrls}
+                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: '#0A0A0A', color: '#DDFF00', borderRadius: '3px' }}>
+                Sauvegarder liens événement
               </button>
             </div>
 

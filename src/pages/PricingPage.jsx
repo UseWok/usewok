@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { isOfferActive, isEligibleForDiscount, getDiscountedPrice } from '@/lib/welcome-offer';
 import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff, ChevronRight } from 'lucide-react';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
@@ -16,7 +17,8 @@ const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
-  const [isInOfferWindow, setIsInOfferWindow] = useState(false);
+  const [offerActive, setOfferActive] = useState(false);
+  const [eventCheckoutUrls, setEventCheckoutUrls] = useState({});
   const [savedCart, setSavedCart] = useState(() => { try { return JSON.parse(localStorage.getItem('stensor_cart_v1')); } catch { return null; } });
   const hasValidCart = savedCart && Date.now() - (savedCart.ts || 0) < 24 * 60 * 60 * 1000;
   const cartPlan = hasValidCart ? (() => { const all = getPlansConfig(); return all.find(p => p.id === savedCart.planId); })() : null;
@@ -35,12 +37,11 @@ export default function PricingPage() {
     base44.auth.me().then(u => {
       setUser(u);
       setPurchased(u?.subscription_plan || 'free');
-      // Check 48h welcome offer window
-      if (u?.created_date) {
-        const created = new Date(u.created_date).getTime();
-        const dismissed = localStorage.getItem('stensor_welcome_dismissed');
-        if (!dismissed && Date.now() - created < 48 * 3600 * 1000) setIsInOfferWindow(true);
-      }
+      setOfferActive(isOfferActive(u));
+    }).catch(() => {});
+    // Load event checkout URLs
+    base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(results => {
+      if (results.length > 0) { try { setEventCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
   }, []);
 
@@ -48,6 +49,12 @@ export default function PricingPage() {
     if (purchased === plan.id) {
       navigate('/manage-plan');
       return;
+    }
+    // During event: redirect to event URL if available
+    const hasEvent = offerActive && isEligibleForDiscount(plan.id, billing);
+    if (hasEvent) {
+      const url = eventCheckoutUrls[`${plan.id}_yearly_event`];
+      if (url) { window.location.href = url; return; }
     }
     saveCart(plan.id, billing);
     navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
@@ -108,9 +115,9 @@ export default function PricingPage() {
         <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
           {plans.map((plan, idx) => {
             const Icon = PLAN_ICONS[plan.id] || Star;
-            const isEligibleForOffer = isInOfferWindow && plan.id !== 'essential';
+            const hasEventDiscount = offerActive && isEligibleForDiscount(plan.id, billing);
             const basePrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
-            const price = isEligibleForOffer && basePrice > 0 ? Math.round(basePrice * 0.7 * 100) / 100 : basePrice;
+            const price = hasEventDiscount ? getDiscountedPrice(basePrice) : basePrice;
             const annualTotal = plan.price_yearly * 12;
             const isCurrentPlan = purchased === plan.id;
             const isRecommended = plan.id === 'expert';
@@ -160,12 +167,12 @@ export default function PricingPage() {
                       <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
                         /mois
                       </span>
-                      {isEligibleForOffer && basePrice > 0 && (
+                      {hasEventDiscount && (
                         <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: GREEN, color: 'white', borderRadius: '3px' }}>
-                          -30% Offre bienvenue
+                          Save 30%
                         </span>
                       )}
-                      {!isEligibleForOffer && billing === 'yearly' && plan.price_monthly > 0 && (
+                      {!hasEventDiscount && billing === 'yearly' && plan.price_monthly > 0 && (
                         <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: GREEN, color: 'white', borderRadius: '3px' }}>
                           Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
                         </span>

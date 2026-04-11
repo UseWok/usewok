@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Wifi, WifiOff, ExternalLink, ChevronLeft, Zap, Shield, Globe, Star, Crown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig, getUserPlan, savePlansConfig } from '@/lib/plans-config';
+import { isOfferActive, isEligibleForDiscount, getDiscountedPrice } from '@/lib/welcome-offer';
 import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
   const planId = urlParams.get('plan') || 'expert';
   const [billing, setBilling] = useState(urlParams.get('billing') || 'monthly');
   const [user, setUser] = useState(null);
+  const [offerActive, setOfferActive] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState('');
   const [activationCode, setActivationCode] = useState('');
@@ -37,22 +39,26 @@ export default function CheckoutPage() {
   const plans = getPlansConfig();
   const plan = plans.find(p => p.id === planId) || plans[1];
   const Icon = PLAN_ICONS[plan?.id] || Star;
-  const price = billing === 'yearly' ? plan?.price_yearly : plan?.price_monthly;
+  const hasEventDiscount = offerActive && isEligibleForDiscount(planId, billing);
+  const basePrice = billing === 'yearly' ? plan?.price_yearly : plan?.price_monthly;
+  const price = hasEventDiscount ? getDiscountedPrice(basePrice) : basePrice;
   const annualTotal = plan?.price_yearly ? plan.price_yearly * 12 : 0;
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    base44.auth.me().then(u => { setUser(u); setOfferActive(isOfferActive(u)); }).catch(() => {});
     saveCart(planId, billing);
-    // Load checkout URLs from DB
-    base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
-      if (results.length > 0) {
-        try {
-          const urls = JSON.parse(results[0].value);
-          setCheckoutUrl(urls[`${planId}_${billing}`] || '');
-        } catch {}
+    // Load correct checkout URL (event or normal)
+    const loadUrl = async () => {
+      const eventActive = offerActive && isEligibleForDiscount(planId, billing);
+      if (eventActive) {
+        const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).catch(() => []);
+        if (r.length > 0) { try { const u = JSON.parse(r[0].value); setCheckoutUrl(u[`${planId}_yearly_event`] || ''); return; } catch {} }
       }
-    }).catch(() => {});
-  }, [planId, billing]);
+      const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls' }).catch(() => []);
+      if (r.length > 0) { try { const u = JSON.parse(r[0].value); setCheckoutUrl(u[`${planId}_${billing}`] || ''); } catch {} }
+    };
+    loadUrl();
+  }, [planId, billing, offerActive]);
 
   const isYearly = billing === 'yearly';
 
@@ -172,7 +178,12 @@ export default function CheckoutPage() {
                   <span className="text-4xl font-black text-white">{price}$</span>
                   <span className="text-sm text-white/40 ml-1">/mois</span>
                 </div>
-                {isYearly && plan?.price_monthly && (
+                {hasEventDiscount && (
+                  <div className="mb-1 px-2.5 py-1" style={{ background: GREEN, borderRadius: '3px' }}>
+                    <p className="text-[10px] font-black text-white">Save 30% — Offre événement</p>
+                  </div>
+                )}
+                {!hasEventDiscount && isYearly && plan?.price_monthly && (
                   <div className="mb-1 px-2.5 py-1" style={{ background: GREEN, borderRadius: '3px' }}>
                     <p className="text-[10px] font-black text-white">Save {(plan.price_monthly - plan.price_yearly) * 12}$/year</p>
                   </div>

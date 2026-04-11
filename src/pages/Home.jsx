@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import WelcomeOfferPopup from '../components/WelcomeOfferPopup';
 import HeroSection from '../components/home/HeroSection';
 import RecentApps from '../components/home/RecentApps';
 import { AGENTS } from '../components/Sidebar';
@@ -26,6 +27,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen py-12 md:py-20">
+      <WelcomeOfferPopup />
       <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
       <RecentApps agentId={selectedAgent} />
     </div>

@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { isOfferActive, getOfferExpiry, OFFER_DISMISS_KEY, OFFER_HOURS } from '@/lib/welcome-offer';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
-const OFFER_HOURS = 48;
-const DISMISS_KEY = 'stensor_welcome_dismissed';
 
 function useCountdown(targetMs) {
   const [remaining, setRemaining] = useState(() => Math.max(0, targetMs - Date.now()));
@@ -26,13 +25,9 @@ export default function WelcomeOfferBanner() {
   const remaining = useCountdown(targetMs);
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISS_KEY)) return;
     base44.auth.me().then(u => {
-      if (!u?.created_date) return;
-      const created = new Date(u.created_date).getTime();
-      const expiresAt = created + OFFER_HOURS * 3600 * 1000;
-      if (Date.now() < expiresAt) {
-        setTargetMs(expiresAt);
+      if (isOfferActive(u)) {
+        setTargetMs(getOfferExpiry(u));
         setShow(true);
       }
     }).catch(() => {});
@@ -51,7 +46,7 @@ export default function WelcomeOfferBanner() {
 
   const handleDismiss = (e) => {
     e.stopPropagation();
-    localStorage.setItem(DISMISS_KEY, '1');
+    localStorage.setItem(OFFER_DISMISS_KEY, '1');
     setShow(false);
   };
 
