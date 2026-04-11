@@ -50,10 +50,12 @@ export async function syncConversationToCloud(convId, messages, meta = {}) {
   } catch {}
 }
 
-// Load messages from cloud (returns null if not found)
+// Load messages from cloud — secured by user ownership
 export async function loadConversationFromCloud(convId) {
   try {
-    const results = await base44.entities.Conversation.filter({ conv_id: convId });
+    const me = await base44.auth.me();
+    if (!me?.email) return null;
+    const results = await base44.entities.Conversation.filter({ conv_id: convId, created_by: me.email });
     if (results.length > 0 && results[0].messages_json) {
       return JSON.parse(results[0].messages_json);
     }

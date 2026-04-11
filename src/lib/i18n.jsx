@@ -380,20 +380,15 @@ export const TRANSLATIONS = {
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  // Force English — admin uses hardcoded French
-  const [lang, setLangState] = useState('en');
-
-  const setLang = (newLang) => {
-    localStorage.setItem(LANG_KEY, newLang);
-    setLangState(newLang);
-  };
+  // Always English — admin panel uses hardcoded strings
+  const lang = 'en';
+  const setLang = () => {}; // no-op, language is locked
 
   const t = useCallback((key, vars = {}) => {
-    const tr = TRANSLATIONS[lang] || TRANSLATIONS.en;
-    let str = tr[key] ?? TRANSLATIONS.en[key] ?? key;
+    let str = TRANSLATIONS.en[key] ?? key;
     Object.entries(vars).forEach(([k, v]) => { str = str.replace(`{${k}}`, v); });
     return str;
-  }, [lang]);
+  }, []);
 
   return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
 }

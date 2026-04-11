@@ -144,7 +144,11 @@ export default function ChatPage() {
     }).catch(() => {});
   }, []);
 
-  useEffect(() => { if (initialQ && messages.length === 0) sendMessage(initialQ); }, []);
+  useEffect(() => {
+    if (initialQ && messages.length === 0) sendMessage(initialQ);
+    // Scroll to bottom on mount
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -492,7 +496,7 @@ export default function ChatPage() {
                 </span>
               )}
             </div>
-            <p className="text-[10px]" style={{ color: '#999' }}>{agentLabel || 'Agent Global'}</p>
+            <p className="text-[10px] hidden sm:block" style={{ color: '#999' }}>{agentLabel || 'Global Agent'}</p>
           </div>
         </div>
 
@@ -567,7 +571,7 @@ export default function ChatPage() {
       )}
 
       {/* Input area */}
-      <div className="px-4 pb-3 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full">
+      <div className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full">
         <AnimatePresence>
           {showAtMenu && (
             <motion.div ref={atMenuRef} {...popUp}
@@ -647,9 +651,9 @@ export default function ChatPage() {
           </div>
 
           <div className="flex items-center justify-between px-3 pb-3 gap-2">
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5 overflow-hidden">
               {/* File */}
-              <div className="relative" ref={fileMenuRef}>
+              <div className="relative flex-shrink-0" ref={fileMenuRef}>
                 <button onClick={() => setShowFileMenu(!showFileMenu)}
                   className="w-7 h-7 rounded-sm flex items-center justify-center transition-colors hover:bg-black/5">
                   <Plus className="w-3.5 h-3.5" style={{ color: '#aaa' }} />
@@ -664,7 +668,7 @@ export default function ChatPage() {
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <FileText className="w-3.5 h-3.5" style={{ color: canUploadFiles ? FG : '#ddd' }} />
-                        <span>Joindre un fichier</span>
+                        <span>Attach file</span>
                         {!canUploadFiles ? (
                           <span className="ml-auto text-[9px] font-black px-1.5 py-0.5"
                             style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '3px' }}>
@@ -673,7 +677,7 @@ export default function ChatPage() {
                         ) : !canUploadExtended && (
                           <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5"
                             style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706', borderRadius: '3px' }}>
-                            Images/Texte
+                            Images/Text
                           </span>
                         )}
                       </button>
@@ -683,11 +687,11 @@ export default function ChatPage() {
               </div>
 
               {/* Agent */}
-              <div className="relative" ref={agentMenuRef}>
+              <div className="relative flex-shrink-0" ref={agentMenuRef}>
                 <button onClick={() => setShowAgentMenu(!showAgentMenu)}
-                  className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5">
+                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-black/5">
                   <Bot className="w-3 h-3" style={{ color: '#aaa' }} />
-                  <span className="text-[11px] font-medium" style={{ color: '#aaa' }}>
+                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: '#aaa' }}>
                     {agentLabel?.split(' ')[0] || 'Agent'}
                   </span>
                   <ChevronDown className="w-2.5 h-2.5" style={{ color: '#ccc' }} />
@@ -711,11 +715,11 @@ export default function ChatPage() {
               </div>
 
               {/* Mode */}
-              <div className="relative" ref={modeMenuRef}>
+              <div className="relative flex-shrink-0" ref={modeMenuRef}>
                 <button onClick={() => setShowModeMenu(!showModeMenu)}
-                  className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5">
+                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-black/5">
                   <SlidersHorizontal className="w-3 h-3" style={{ color: '#aaa' }} />
-                  <span className="text-[11px] font-medium" style={{ color: '#aaa' }}>{mode.label}</span>
+                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: '#aaa' }}>{mode.label}</span>
                   <span className="text-[9px] font-black px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#888', borderRadius: '2px' }}>{mode.credit_cost}-{mode.credit_max}T</span>
                 </button>
                 <AnimatePresence>
@@ -759,15 +763,12 @@ export default function ChatPage() {
               </div>
 
               {/* Internet toggle */}
-              <div className="relative" ref={internetMenuRef}>
+              <div className="relative flex-shrink-0" ref={internetMenuRef}>
                 <button onClick={() => setShowInternetMenu(!showInternetMenu)}
-                  className="h-7 px-2.5 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-black/5"
                   style={{ background: useWebSearch ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
                   <Wifi className="w-3 h-3" style={{ color: useWebSearch && hasInternet ? '#16a34a' : '#aaa' }} />
                   <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch && hasInternet ? '#16a34a' : '#aaa' }}>Web</span>
-                  {hasInternet && useWebSearch && (
-                    <span className="text-[9px] font-black hidden sm:block" style={{ color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: '2px' }}>+1T</span>
-                  )}
                 </button>
                 <AnimatePresence>
                   {showInternetMenu && (
@@ -806,7 +807,7 @@ export default function ChatPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button onClick={toggleRecording}
                 className="relative w-8 h-8 rounded-sm flex items-center justify-center transition-all"
                 style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)' }}>
@@ -830,12 +831,11 @@ export default function ChatPage() {
                   cursor: !input.trim() || isLoading || blocked ? 'not-allowed' : 'pointer',
                 }}>
                 <Send className="w-3.5 h-3.5" style={{ color: input.trim() && !isLoading && !blocked ? 'white' : '#ccc' }} />
-              </button>
-            </div>
+                </button>
+                </div>
           </div>
         </div>
 
-        {/* File preview panel */}
         <FilePreviewPanel
           files={files}
           open={showFilePanel}
@@ -843,11 +843,7 @@ export default function ChatPage() {
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
 
-
-        {/* Free delay message */}
-
-
-        <p className="text-center mt-1.5 text-[9px]" style={{ color: '#ccc' }}>
+        <p className="text-center mt-1 text-[9px]" style={{ color: '#ccc' }}>
           {t('ai_disclaimer')}
         </p>
         </div>
