@@ -294,17 +294,21 @@ export default function ChatPage() {
       const content = typeof result === 'string' ? result : JSON.stringify(result);
 
 
-      const isFree = !userPlan || userPlan.price_monthly === 0;
-
-      // Credit cost — more generous for paid plans
-      const responseLen = content.length;
-      const baseCost = mode.credit_cost || 1;
-      let extra = 0;
-      if (mode.id === 'thinking') extra = Math.max(2, Math.min(Math.floor(responseLen / 150), 5));
-      else if (mode.id === 'pro') extra = Math.max(4, Math.min(Math.floor(responseLen / 180), 8));
-      else if (mode.id === 'ultimate') extra = Math.max(6, Math.min(Math.floor(responseLen / 200), 12));
+      // Credit cost — weighted random per mode
+      // Standard: 60%→2T, 20%→1T, 20%→3T | Avancé: 50%→3T, 25%→2T, 25%→5T | Expert: 50%→6T, 25%→4T, 25%→8T
+      const r = Math.random();
+      let baseCost;
+      if (mode.id === 'thinking') {
+        baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3;
+      } else if (mode.id === 'pro') {
+        baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5;
+      } else if (mode.id === 'ultimate') {
+        baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8;
+      } else {
+        baseCost = 1;
+      }
       const webCost = useInternet && hasInternet ? 1 : 0;
-      const costPerMsg = baseCost + extra + webCost;
+      const costPerMsg = baseCost + webCost;
 
       if (user) {
         const newUsed = (user.credits_used || 0) + costPerMsg;

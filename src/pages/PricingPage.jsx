@@ -91,10 +91,12 @@ export default function PricingPage() {
                 {b === 'monthly' ? t('monthly') : (
                   <>
                     {t('yearly')}
-                    <span className="text-[9px] font-black px-1.5 py-0.5"
-                      style={{ background: billing === 'yearly' ? '#DDFF00' : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? '#0A0A0A' : '#888', borderRadius: '2px' }}>
-                      {offerActive ? '-50%' : '-20%'}
-                    </span>
+                    {!isPaidPlan && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5"
+                        style={{ background: billing === 'yearly' ? '#DDFF00' : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? '#0A0A0A' : '#888', borderRadius: '2px' }}>
+                        {offerActive ? '-50%' : '-20%'}
+                      </span>
+                    )}
                   </>
                 )}
               </button>
@@ -177,6 +179,11 @@ export default function PricingPage() {
                       {hasEventDiscount && (
                         <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
                           -30%
+                        </span>
+                      )}
+                      {!hasEventDiscount && !offerActive && billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
+                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
+                          Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
                         </span>
                       )}
                     </div>

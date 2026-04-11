@@ -62,10 +62,10 @@ export default function HomeEventBanner({ large = false }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 mb-6">
+    <div className="max-w-2xl mx-auto px-4 mb-4">
       <div
         onClick={() => navigate('/pricing')}
-        className="w-full flex items-center justify-between px-5 py-4 cursor-pointer transition-all hover:opacity-90"
+        className="w-full flex items-center justify-between px-4 py-3 cursor-pointer transition-all hover:opacity-90"
         style={{
           background: 'white',
           border: `1.5px solid ${YUZU}`,

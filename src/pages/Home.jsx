@@ -26,7 +26,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <div className="min-h-screen pt-4 pb-12 md:pt-6 md:pb-20">
       <HomeEventBanner />
       <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
       <RecentApps agentId={selectedAgent} />
