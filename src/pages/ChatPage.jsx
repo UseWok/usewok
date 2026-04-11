@@ -379,8 +379,8 @@ export default function ChatPage() {
           const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
           saveConversationMessages(convId, finalMsgs);
           syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
-          // Reset to Standard mode after Expert use
-          if (mode.id === 'ultimate' || isFirstMessage) {
+          // Reset to Standard mode only after first message secret boost
+          if (isFirstMessage) {
             const standardMode = ALL_MODES.find(m => m.id === 'thinking');
             if (standardMode) setMode(standardMode);
           }
@@ -475,7 +475,7 @@ export default function ChatPage() {
   const userName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi';
 
   return (
-    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh', overflow: 'hidden' }}>
+    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh' }}>
       {/* Hidden file input - always mounted */}
       <input ref={fileInputRef} type="file" multiple className="hidden"
         accept={acceptedFileTypes}
@@ -669,7 +669,7 @@ export default function ChatPage() {
           </div>
 
           <div className="flex items-center justify-between px-3 pb-3 gap-2">
-            <div className="flex items-center gap-0.5 overflow-hidden">
+            <div className="flex items-center gap-0.5">
               {/* File */}
               <div className="relative flex-shrink-0" ref={fileMenuRef}>
                 <button onClick={() => setShowFileMenu(!showFileMenu)}
