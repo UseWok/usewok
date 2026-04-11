@@ -18,7 +18,7 @@ import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 
-import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
@@ -412,15 +412,15 @@ export default function ChatPage() {
         hasFiles: file_urls.length > 0,
       };
 
-      // Generate AI title BEFORE typewriter so all saves use the correct title
-      // For subsequent messages, always preserve the existing stored title
+      // Generate AI title BEFORE typewriter — preserve existing cloud title for subsequent messages
       let convTitle = text.slice(0, 50);
       try {
-        const storedDiscs = getDiscussions();
-        const existingDisc = storedDiscs.find(d => d.id === convId);
-        if (existingDisc?.title) {
-          convTitle = existingDisc.title;
+        // Always check cloud first (works across all devices/platforms)
+        const cloudTitle = await loadConversationTitleFromCloud(convId);
+        if (cloudTitle) {
+          convTitle = cloudTitle;
         } else if (newMessages.length === 1) {
+          // First message — generate AI title and save everywhere
           const titleResult = await base44.integrations.Core.InvokeLLM({
             prompt: `Titre très court (3-5 mots) pour résumer ce message: "${text.slice(0, 150)}". Réponds UNIQUEMENT avec le titre, sans guillemets.`,
             model: 'gpt_5_mini',
