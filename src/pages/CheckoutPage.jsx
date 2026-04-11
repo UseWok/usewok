@@ -47,22 +47,21 @@ export default function CheckoutPage() {
   useEffect(() => {
     const init = async () => {
       const u = await base44.auth.me().catch(() => null);
-      if (u) { setUser(u); }
+      if (u) { setUser(u); setOfferActive(isOfferActive(u)); }
+      saveCart(planId, billing);
+      // Load the right Stripe URL: event URL if eligible, else normal
       const active = isOfferActive(u);
-      setOfferActive(active);
-      const eventEligible = active && isEligibleForDiscount(planId, 'yearly');
+      const eventEligible = active && isEligibleForDiscount(planId, billing);
       if (eventEligible) {
         const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).catch(() => []);
         if (r.length > 0) {
           try {
             const urls = JSON.parse(r[0].value);
             const url = urls[`${planId}_yearly_event`];
-            if (url) { window.location.href = url; return; }
+            if (url) { setCheckoutUrl(url); return; }
           } catch {}
         }
       }
-      // Normal URL
-      saveCart(planId, billing);
       const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls' }).catch(() => []);
       if (r.length > 0) { try { const urls = JSON.parse(r[0].value); setCheckoutUrl(urls[`${planId}_${billing}`] || ''); } catch {} }
     };

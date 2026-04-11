@@ -50,12 +50,6 @@ export default function PricingPage() {
       navigate('/manage-plan');
       return;
     }
-    // During event: redirect to event URL if available
-    const hasEvent = offerActive && isEligibleForDiscount(plan.id, billing);
-    if (hasEvent) {
-      const url = eventCheckoutUrls[`${plan.id}_yearly_event`];
-      if (url) { window.location.href = url; return; }
-    }
     saveCart(plan.id, billing);
     navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
