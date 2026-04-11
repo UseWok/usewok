@@ -40,6 +40,34 @@ const ALL_MODES = [
 
 
 
+// Détection de message incompréhensible/gibberish
+function isGibberish(text) {
+  const t = text.trim();
+  if (t.length === 0) return false;
+  // Remove spaces and punctuation
+  const letters = t.toLowerCase().replace(/[^a-záàâäéèêëíìîïóòôöúùûü]/g, '');
+  if (letters.length === 0) return false; // only numbers/symbols
+  if (letters.length < 2) return true;
+  const vowels = (letters.match(/[aeiouáàâäéèêëíìîïóòôöúùûü]/g) || []).length;
+  const vowelRatio = vowels / letters.length;
+  // Detect longest consonant run
+  const parts = letters.split(/[aeiouáàâäéèêëíìîïóòôöúùûü]/);
+  const maxRun = Math.max(...parts.map(s => s.length));
+  // No vowels at all and long enough = gibberish
+  if (letters.length >= 4 && vowelRatio < 0.05) return true;
+  // Very long consonant run = gibberish
+  if (maxRun >= 5) return true;
+  // Repeating same char pattern
+  if (/^(.{1,3})\1{3,}$/.test(letters)) return true;
+  return false;
+}
+
+const GIBBERISH_RESPONSES = [
+  "Je ne comprends pas ce message — pourriez-vous reformuler votre question de façon plus claire ? 😊",
+  "Ce message ne me dit rien, mais je suis là pour vous aider : posez-moi votre vraie question !",
+  "Hmm, je n'arrive pas à interpréter ça — essayez de formuler autrement et je ferai de mon mieux.",
+];
+
 const popUp = {
   initial: { opacity: 0, y: 6, scale: 0.97 },
   animate: { opacity: 1, y: 0, scale: 1 },
@@ -276,6 +304,22 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
+
+    // Gibberish detection — skip API, charge 1 tensor, return canned response
+    if (isGibberish(text) && files.length === 0) {
+      const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
+      setMessages([...newMessages, { role: 'assistant', content: canned }]);
+      if (user) {
+        const newUsed = (user.credits_used || 0) + 1;
+        await base44.entities.User.update(user.id, { credits_used: newUsed });
+        setCreditsUsed(newUsed);
+        setUser(prev => ({ ...prev, credits_used: newUsed }));
+        emitCreditsUpdate(newUsed);
+        incrementDailyUsed();
+      }
+      setIsLoading(false);
+      return;
+    }
 
     try {
       let file_urls = [];

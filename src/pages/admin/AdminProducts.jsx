@@ -103,7 +103,6 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                   {field('price_monthly', 'Prix mensuel ($)', 'number', 0)}
                   {field('price_yearly', 'Prix annuel ($)', 'number', 0)}
                   {field('credits_limit', 'Crédits / mois', 'number', 1)}
-                  {field('daily_credits_limit', 'Quota journalier (0=illimité)', 'number', 0)}
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Fonctionnalités</p>
@@ -131,8 +130,8 @@ function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Limites</p>
-                  {field('max_discussions', 'Max discussions (0=illimite)', 'number', 0)}
-                  {field('daily_credits_limit', 'Tensors/jour (0=illimite)', 'number', 0)}
+                  {field('max_discussions', 'Max discussions (0=illimité)', 'number', 0)}
+                  {field('daily_credits_limit', 'Réponses IA / jour (0=illimité)', 'number', 0)}
                   {field('lessons_per_month', 'Leçons / mois', 'number', 0)}
                   <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                     <div>
