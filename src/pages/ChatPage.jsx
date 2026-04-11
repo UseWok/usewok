@@ -166,15 +166,24 @@ export default function ChatPage() {
     });
   }, [conversationId]);
 
-  // Only auto-scroll if user is near the bottom (within 150px)
+  // Auto-scroll: only if user hasn't scrolled up
   const scrollContainerRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
+
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    if (distFromBottom < 150) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
+    const handleScroll = () => {
+      const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      userScrolledUpRef.current = distFromBottom > 80;
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (userScrolledUpRef.current) return; // user scrolled up — don't force scroll
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
@@ -186,7 +195,11 @@ export default function ChatPage() {
       if (internetMenuRef.current && !internetMenuRef.current.contains(e.target)) setShowInternetMenu(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -366,6 +379,11 @@ export default function ChatPage() {
           const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
           saveConversationMessages(convId, finalMsgs);
           syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
+          // Reset to Standard mode after Expert use
+          if (mode.id === 'ultimate' || isFirstMessage) {
+            const standardMode = ALL_MODES.find(m => m.id === 'thinking');
+            if (standardMode) setMode(standardMode);
+          }
         }
       };
       typeNext();
@@ -660,7 +678,7 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[160px] z-50 bg-white"
+                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[160px] z-[300] bg-white"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       <button onClick={handleFileAttach}
                         className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left"
@@ -698,7 +716,7 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showAgentMenu && (
-                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-50 bg-white"
+                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-[300] bg-white"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       {AGENTS.map(a => (
                         <button key={a.id} onClick={() => { setCurrentAgent(a.id); setShowAgentMenu(false); }}
@@ -724,7 +742,7 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
-                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[180px] z-50 bg-white"
+                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[180px] z-[300] bg-white"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
                       {ALL_MODES.map(m => {
                         const Icon = m.icon;
@@ -772,7 +790,7 @@ export default function ChatPage() {
                 </button>
                 <AnimatePresence>
                   {showInternetMenu && (
-                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl z-50 bg-white overflow-hidden"
+                    <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl z-[300] bg-white overflow-hidden"
                       style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', minWidth: '190px' }}>
                       <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                         <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Web Search</p>
