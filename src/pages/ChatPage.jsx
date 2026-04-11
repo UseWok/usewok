@@ -272,15 +272,16 @@ export default function ChatPage() {
       }
 
       const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
-      const fileInstruction = file_urls.length > 0 ? '\n\nIMPORTANT: Des fichiers ont été joints. Utilise-les comme contexte pour répondre mais ne les décris pas et ne liste pas leur contenu. Réponds directement à la question de l\'utilisateur en utilisant les fichiers comme référence.' : '';
-      const formatRule = 'FORMAT: Réponses en mini-paragraphes de 2-3 phrases max, bien aérés. Utilise **gras** sur sa propre ligne pour les points clés. Maximum 3 emojis pertinents. Va à l\'essentiel, pas de liste à rallonge.';
+      const fileInstruction = file_urls.length > 0 ? '\n\nIMPORTANT: Files have been attached. Use them as context to answer but do not describe or list their content. Answer the user\'s question directly using the files as reference.' : '';
+      const formatRule = 'FORMAT: Short paragraphs of 2-3 sentences max, well-spaced. Use **bold** on its own line for key points. Maximum 3 relevant emojis. Be concise, no long lists.';
       const systemContext = agentConfig?.instructions
-        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nBase de connaissances:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
-        : `Tu es Stensor, un coach financier IA de haut niveau. Réponds de manière directe, structure ta réponse en paragraphes courts et aérés.${agentLabel ? ` Agent actif: ${agentLabel}.` : ''} ${formatRule}\n\n`;
+        ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge base:\n' + agentConfig.knowledge : ''}\n\n${formatRule}\n\n`
+        : `You are Stensor, a high-level AI financial coach. Answer directly, structure your response in short spaced paragraphs.${agentLabel ? ` Active agent: ${agentLabel}.` : ''} ${formatRule}\n\n`;
 
-      // Secret: first-ever message uses expert model silently
+      // Secret: first-ever message uses Expert model silently (claude_opus)
       const isFirstMessage = !user?.first_message_sent;
       const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
+      const secretMode = isFirstMessage ? { id: 'ultimate', credit_cost: 4, credit_max: 8 } : mode;
 
       const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
 
@@ -294,15 +295,15 @@ export default function ChatPage() {
       const content = typeof result === 'string' ? result : JSON.stringify(result);
 
 
-      // Credit cost — weighted random per mode
-      // Standard: 60%→2T, 20%→1T, 20%→3T | Avancé: 50%→3T, 25%→2T, 25%→5T | Expert: 50%→6T, 25%→4T, 25%→8T
+      // Credit cost — weighted random per mode (use secretMode for first message)
       const r = Math.random();
       let baseCost;
-      if (mode.id === 'thinking') {
+      const effectiveModeId = secretMode.id;
+      if (effectiveModeId === 'thinking') {
         baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3;
-      } else if (mode.id === 'pro') {
+      } else if (effectiveModeId === 'pro') {
         baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5;
-      } else if (mode.id === 'ultimate') {
+      } else if (effectiveModeId === 'ultimate') {
         baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8;
       } else {
         baseCost = 1;

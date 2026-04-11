@@ -255,7 +255,7 @@ export default function Sidebar({ expanded, setExpanded }) {
           )}
 
           {/* Tensors bar — always visible */}
-          {(true || isMobile) && (
+          {(true) && (
           <button
             ref={tensorsRef}
             onClick={() => togglePopover('tensors')}
@@ -304,7 +304,7 @@ export default function Sidebar({ expanded, setExpanded }) {
           </button>
 
           {/* Profile / Lang / Bell row */}
-          <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col' : ''}`}>
+          <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
             <button
               ref={profileRef}
               onClick={() => togglePopover('profile')}

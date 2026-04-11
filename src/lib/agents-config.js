@@ -34,7 +34,11 @@ export function getAgentsConfig() {
 }
 
 export function getAgentConfig(id) {
-  return getAgentsConfig().find(a => a.id === id) || null;
+  const configs = getAgentsConfig();
+  // match by id, case-insensitive, also try matching 'wealth-strategy' or 'Wealth Strategy'
+  return configs.find(a => a.id === id) ||
+    configs.find(a => a.id?.toLowerCase().replace(/[\s_]/g, '-') === id?.toLowerCase().replace(/[\s_]/g, '-')) ||
+    null;
 }
 
 export function saveAgentsConfig(configs) {
