@@ -284,6 +284,18 @@ export default function ChatPage() {
   const sendMessage = async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
 
+    // Ensure user is loaded before sending (fixes Expert mode bug on initialQ)
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        currentUser = await base44.auth.me();
+        if (currentUser) {
+          setUser(currentUser);
+          setCreditsUsed(currentUser.credits_used ?? 0);
+        }
+      } catch {}
+    }
+
     // Check discussion limit
     if (userPlan?.max_discussions > 0) {
       try {
@@ -309,13 +321,14 @@ export default function ChatPage() {
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
-      if (user) {
-        const newUsed = (user.credits_used || 0) + 1;
-        await base44.entities.User.update(user.id, { credits_used: newUsed });
+      if (currentUser) {
+        const newUsed = (currentUser.credits_used || 0) + 1;
+        await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
         setUser(prev => ({ ...prev, credits_used: newUsed }));
         emitCreditsUpdate(newUsed);
         incrementDailyUsed();
+        setUser(prev => prev ? { ...prev, credits_used: newUsed } : prev);
       }
       setIsLoading(false);
       return;
@@ -340,7 +353,7 @@ export default function ChatPage() {
         : `You are Stensor, a high-level AI financial coach. Answer directly, structure your response in short spaced paragraphs.${agentLabel ? ` Active agent: ${agentLabel}.` : ''} ${formatRule}\n\n`;
 
       // Secret: first-ever message uses Expert model silently (claude_opus)
-      const isFirstMessage = !user?.first_message_sent;
+      const isFirstMessage = !currentUser?.first_message_sent;
       const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
       const secretMode = isFirstMessage ? { id: 'ultimate', credit_cost: 4, credit_max: 8 } : mode;
 
@@ -377,15 +390,16 @@ export default function ChatPage() {
       const webCost = useInternet && hasInternet ? 1 : 0;
       const costPerMsg = baseCost + webCost;
 
-      if (user) {
-        const newUsed = (user.credits_used || 0) + costPerMsg;
-        await base44.entities.User.update(user.id, { credits_used: newUsed });
+      if (currentUser) {
+        const newUsed = (currentUser.credits_used || 0) + costPerMsg;
+        await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
         setCreditsUsed(newUsed);
         setUser(prev => ({ ...prev, credits_used: newUsed }));
         emitCreditsUpdate(newUsed);
         incrementDailyUsed();
         if (isFirstMessage) {
           await base44.auth.updateMe({ first_message_sent: true });
+          currentUser = { ...currentUser, first_message_sent: true };
           setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
         }
       }
@@ -399,19 +413,19 @@ export default function ChatPage() {
       };
 
       // Generate AI title BEFORE typewriter so all saves use the correct title
+      // For subsequent messages, always preserve the existing stored title
       let convTitle = text.slice(0, 50);
       try {
-        if (newMessages.length === 1) {
+        const storedDiscs = getDiscussions();
+        const existingDisc = storedDiscs.find(d => d.id === convId);
+        if (existingDisc?.title) {
+          convTitle = existingDisc.title;
+        } else if (newMessages.length === 1) {
           const titleResult = await base44.integrations.Core.InvokeLLM({
             prompt: `Titre très court (3-5 mots) pour résumer ce message: "${text.slice(0, 150)}". Réponds UNIQUEMENT avec le titre, sans guillemets.`,
             model: 'gpt_5_mini',
           });
           if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
-        } else {
-          // For subsequent messages, keep existing title from stored discussions
-          const stored = getDiscussions();
-          const existing = stored.find(d => d.id === convId);
-          if (existing?.title) convTitle = existing.title;
         }
       } catch {}
 
