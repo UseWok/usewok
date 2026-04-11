@@ -45,20 +45,29 @@ export default function CheckoutPage() {
   const annualTotal = plan?.price_yearly ? plan.price_yearly * 12 : 0;
 
   useEffect(() => {
-    base44.auth.me().then(u => { setUser(u); setOfferActive(isOfferActive(u)); }).catch(() => {});
-    saveCart(planId, billing);
-    // Load correct checkout URL (event or normal)
-    const loadUrl = async () => {
-      const eventActive = offerActive && isEligibleForDiscount(planId, billing);
-      if (eventActive) {
+    const init = async () => {
+      const u = await base44.auth.me().catch(() => null);
+      if (u) { setUser(u); }
+      const active = isOfferActive(u);
+      setOfferActive(active);
+      const eventEligible = active && isEligibleForDiscount(planId, 'yearly');
+      if (eventEligible) {
         const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).catch(() => []);
-        if (r.length > 0) { try { const u = JSON.parse(r[0].value); setCheckoutUrl(u[`${planId}_yearly_event`] || ''); return; } catch {} }
+        if (r.length > 0) {
+          try {
+            const urls = JSON.parse(r[0].value);
+            const url = urls[`${planId}_yearly_event`];
+            if (url) { window.location.href = url; return; }
+          } catch {}
+        }
       }
+      // Normal URL
+      saveCart(planId, billing);
       const r = await base44.entities.AppSettings.filter({ key: 'checkout_urls' }).catch(() => []);
-      if (r.length > 0) { try { const u = JSON.parse(r[0].value); setCheckoutUrl(u[`${planId}_${billing}`] || ''); } catch {} }
+      if (r.length > 0) { try { const urls = JSON.parse(r[0].value); setCheckoutUrl(urls[`${planId}_${billing}`] || ''); } catch {} }
     };
-    loadUrl();
-  }, [planId, billing, offerActive]);
+    init();
+  }, [planId, billing]);
 
   const isYearly = billing === 'yearly';
 

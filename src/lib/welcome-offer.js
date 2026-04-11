@@ -10,6 +10,10 @@ export function getOfferExpiry(user) {
 }
 
 export function isOfferActive(user) {
+  if (!user) return false;
+  // Paid users never see the offer
+  const plan = user.subscription_plan;
+  if (plan && plan !== 'free') return false;
   const dismissed = localStorage.getItem(OFFER_DISMISS_KEY);
   if (dismissed) return false;
   const expiry = getOfferExpiry(user);

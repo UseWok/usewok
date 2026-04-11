@@ -365,12 +365,12 @@ export default function ChatPage() {
       // credits already deducted above
 
       try {
-        // Generate short title from first user message
+        // Generate short title from first user message using cheapest model
         let title = text.slice(0, 50);
         if (newMessages.length === 1) {
           const titleResult = await base44.integrations.Core.InvokeLLM({
-            prompt: `Génère un titre ultra court (3-5 mots max) pour cette conversation financière. Message: "${text.slice(0, 200)}". Réponds UNIQUEMENT avec le titre, sans guillemets ni ponctuation.`,
-            model: 'gemini_3_flash',
+            prompt: `Titre très court (3-5 mots) pour résumer ce message: "${text.slice(0, 150)}". Réponds UNIQUEMENT avec le titre, sans guillemets.`,
+            model: 'gpt_5_mini',
           });
           if (typeof titleResult === 'string' && titleResult.trim()) title = titleResult.trim().slice(0, 60);
         }
@@ -433,7 +433,7 @@ export default function ChatPage() {
   const userName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi';
 
   return (
-    <div className="flex flex-col h-screen font-be bg-white">
+    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh' }}>
       {/* Hidden file input - always mounted */}
       <input ref={fileInputRef} type="file" multiple className="hidden"
         accept={acceptedFileTypes}

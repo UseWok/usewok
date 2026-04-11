@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, TrendingUp, X, AlertCircle, ChevronRight, Zap, Crown, Star, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
+import HomeEventBanner from '@/components/home/HomeEventBanner';
 import { toast } from 'sonner';
 
 const FG = '#0A0A0A';
@@ -125,6 +126,9 @@ export default function ManagePlanPage() {
             ))}
           </div>
         </div>
+
+        {/* Event banner */}
+        <HomeEventBanner large />
 
         {/* Upgrade */}
         <button onClick={() => navigate('/pricing')}
