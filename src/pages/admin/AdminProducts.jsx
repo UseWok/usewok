@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAgentsConfig, saveAgentsConfig } from '@/lib/agents-config';
+import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB } from '@/lib/agents-config';
 import { getPlansConfig, savePlansConfig, DEFAULT_PLANS } from '@/lib/plans-config';
 import { toast } from 'sonner';
 
@@ -375,6 +375,8 @@ export default function AdminProducts() {
   }, [saveTimeouts]);
 
   useEffect(() => {
+    // Load agents from DB on mount
+    initAgentsFromDB().then(configs => setAgentsConfig(configs)).catch(() => {});
     // Load existing activation codes
     base44.entities.ActivationCode.list('-created_date', 8000).then(codes => {
       const grouped = {};

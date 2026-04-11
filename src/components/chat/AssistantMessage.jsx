@@ -1,6 +1,8 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Bot, MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
+import { AGENTS } from '@/components/Sidebar';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const FG = '#0A0A0A';
@@ -21,7 +23,9 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content }) {
+export default function AssistantMessage({ content, agent }) {
+  const [showAgent, setShowAgent] = useState(false);
+  const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
   const sources = extractSources(content);
   const cleanContent = sources.length > 0 ? stripSourceUrls(content) : content;
 
@@ -60,6 +64,22 @@ export default function AssistantMessage({ content }) {
           }}>
           {cleanContent}
         </ReactMarkdown>
+      </div>
+
+      {/* Agent info button */}
+      <div className="flex items-center gap-2 mt-1">
+        <button onClick={() => setShowAgent(s => !s)}
+          className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
+          style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', color: '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
+          <MoreHorizontal className="w-3 h-3" />
+        </button>
+        {showAgent && (
+          <div className="flex items-center gap-1.5 px-2 py-1"
+            style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+            <Bot className="w-3 h-3" style={{ color: '#888' }} />
+            <span className="text-[10px] font-semibold" style={{ color: '#555' }}>{agentLabel}</span>
+          </div>
+        )}
       </div>
 
       {sources.length > 0 && (

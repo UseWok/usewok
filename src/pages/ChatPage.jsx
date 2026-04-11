@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 
 import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud } from '@/lib/discussions';
+import { initAgentsFromDB } from '@/lib/agents-config';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 const STORAGE_KEY = 'stensor_discussions';
@@ -28,7 +29,7 @@ const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf83
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 const CORAL = '#FF4F00';
-const MAX_VISIBLE_FILES = 3;
+const MAX_VISIBLE_FILES = 1;
 
 const ALL_MODES = [
   { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
@@ -119,7 +120,8 @@ export default function ChatPage() {
   const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    initAgentsFromDB().catch(() => {});
+  base44.auth.me().then(u => {
       setUser(u);
       if (u?.id) setCurrentUser(u.id);
       setCreditsUsed(u?.credits_used ?? 0);
@@ -294,13 +296,13 @@ export default function ChatPage() {
 
       const isFree = !userPlan || userPlan.price_monthly === 0;
 
-      // Credit cost: be generous (use realistic cost per message)
+      // Credit cost — more generous for paid plans
       const responseLen = content.length;
       const baseCost = mode.credit_cost || 1;
       let extra = 0;
-      if (mode.id === 'thinking') extra = Math.max(1, Math.min(Math.floor(responseLen / 200), 3));
-      else if (mode.id === 'pro') extra = Math.max(2, Math.min(Math.floor(responseLen / 250), 5));
-      else if (mode.id === 'ultimate') extra = Math.max(3, Math.min(Math.floor(responseLen / 300), 6));
+      if (mode.id === 'thinking') extra = Math.max(2, Math.min(Math.floor(responseLen / 150), 5));
+      else if (mode.id === 'pro') extra = Math.max(4, Math.min(Math.floor(responseLen / 180), 8));
+      else if (mode.id === 'ultimate') extra = Math.max(6, Math.min(Math.floor(responseLen / 200), 12));
       const webCost = useInternet && hasInternet ? 1 : 0;
       const costPerMsg = baseCost + extra + webCost;
 
@@ -326,7 +328,7 @@ export default function ChatPage() {
         if (!isMountedRef.current) {
           // Component unmounted — save final silently
           saveConversationMessages(convId, [...newMessages, { role: 'assistant', content }]);
-          syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content }], { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
+          syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content, agent: currentAgent }], { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
           return;
         }
         if (i < content.length) {
@@ -339,20 +341,14 @@ export default function ChatPage() {
           typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
         } else {
           // Typing done — save final
-          const finalMsgs = [...newMessages, { role: 'assistant', content }];
+          const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent }];
           saveConversationMessages(convId, finalMsgs);
           syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
         }
       };
       typeNext();
 
-      // Comparison message for FREE/ESSENTIAL
-      if (isFree || (userPlan && userPlan.price_monthly <= 9)) {
-        if (mode.id === 'thinking') {
-          setComparisonMsg(t('pro_comparison'));
-          setTimeout(() => setComparisonMsg(''), 6000);
-        }
-      }
+
 
       // Milestone : 10ème message
       const totalMsgs = [...newMessages, { role: 'assistant', content }].filter(m => m.role === 'user').length;
@@ -504,7 +500,7 @@ export default function ChatPage() {
         {messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} />
+              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} />
               : <UserMessageBubble
                   msg={msg}
                   userName={userName}
@@ -826,16 +822,7 @@ export default function ChatPage() {
           onClose={() => setShowFilePanel(false)}
           onRemove={(idx) => setFiles(p => p.filter((_, i) => i !== idx))}
         />
-        {/* Comparison banner */}
-        {comparisonMsg && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mt-2 px-3 py-2 flex items-center justify-between cursor-pointer"
-            style={{ background: 'rgba(58,0,136,0.06)', borderRadius: '4px', border: '1px solid rgba(58,0,136,0.1)' }}
-            onClick={() => navigate('/pricing')}>
-            <span className="text-xs" style={{ color: '#3A0088' }}>{comparisonMsg}</span>
-            <span className="text-[10px] font-bold ml-3 flex-shrink-0 px-2 py-0.5" style={{ background: '#3A0088', color: 'white', borderRadius: '3px' }}>Upgrade</span>
-          </motion.div>
-        )}
+
 
         {/* Free delay message */}
 

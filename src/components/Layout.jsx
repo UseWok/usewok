@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import WelcomeOfferBanner from './WelcomeOfferBanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
 import { Menu } from 'lucide-react';
@@ -54,6 +55,7 @@ export default function Layout() {
           </button>
         )}
 
+        <WelcomeOfferBanner />
         <Outlet />
       </motion.main>
     </div>
