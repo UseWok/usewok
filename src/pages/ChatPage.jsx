@@ -398,7 +398,34 @@ export default function ChatPage() {
         hasFiles: file_urls.length > 0,
       };
 
-      // Add assistant placeholder BEFORE typewriter starts (fixes disappearing user message bug)
+      // Generate AI title BEFORE typewriter so all saves use the correct title
+      let convTitle = text.slice(0, 50);
+      try {
+        if (newMessages.length === 1) {
+          const titleResult = await base44.integrations.Core.InvokeLLM({
+            prompt: `Titre très court (3-5 mots) pour résumer ce message: "${text.slice(0, 150)}". Réponds UNIQUEMENT avec le titre, sans guillemets.`,
+            model: 'gpt_5_mini',
+          });
+          if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
+        } else {
+          // For subsequent messages, keep existing title from stored discussions
+          const stored = getDiscussions();
+          const existing = stored.find(d => d.id === convId);
+          if (existing?.title) convTitle = existing.title;
+        }
+      } catch {}
+
+      // Save discussion metadata with the correct title
+      try {
+        const stored = getDiscussions();
+        const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
+        const existingIdx = stored.findIndex(d => d.id === convId);
+        if (existingIdx >= 0) stored.splice(existingIdx, 1);
+        stored.unshift(disc);
+        saveDiscussions(stored);
+      } catch {}
+
+      // Add assistant placeholder BEFORE typewriter starts
       setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
 
       // Typewriter effect
@@ -406,8 +433,9 @@ export default function ChatPage() {
       const typeNext = () => {
         if (!isMountedRef.current) {
           // Component unmounted — save final silently
-          saveConversationMessages(convId, [...newMessages, { role: 'assistant', content }]);
-          syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content, agent: currentAgent }], { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
+          const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
+          saveConversationMessages(convId, finalMsgs);
+          syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
           return;
         }
         if (i < content.length) {
@@ -419,10 +447,10 @@ export default function ChatPage() {
           });
           typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
         } else {
-          // Typing done — save final
+          // Typing done — save final with correct title everywhere
           const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
           saveConversationMessages(convId, finalMsgs);
-          syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 60), preview: text, model: mode.label, agent: currentAgent });
+          syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
           // Reset to Standard mode only after first message secret boost
           if (isFirstMessage) {
             const standardMode = ALL_MODES.find(m => m.id === 'thinking');
@@ -431,8 +459,6 @@ export default function ChatPage() {
         }
       };
       typeNext();
-
-
 
       // Milestone : 10ème message
       const totalMsgs = [...newMessages, { role: 'assistant', content }].filter(m => m.role === 'user').length;
@@ -446,27 +472,6 @@ export default function ChatPage() {
           { duration: 7000 }
         );
       }
-      // credits already deducted above
-
-      try {
-        // Generate short title from first user message using cheapest model
-        let title = text.slice(0, 50);
-        if (newMessages.length === 1) {
-          const titleResult = await base44.integrations.Core.InvokeLLM({
-            prompt: `Titre très court (3-5 mots) pour résumer ce message: "${text.slice(0, 150)}". Réponds UNIQUEMENT avec le titre, sans guillemets.`,
-            model: 'gpt_5_mini',
-          });
-          if (typeof titleResult === 'string' && titleResult.trim()) title = titleResult.trim().slice(0, 60);
-        }
-        const stored = getDiscussions();
-        const disc = { id: convId, title, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
-        const existing = stored.findIndex(d => d.id === convId);
-        if (existing >= 0) stored.splice(existing, 1);
-        stored.unshift(disc);
-        saveDiscussions(stored);
-        // Also update cloud title with AI-generated title
-        syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content, agent: currentAgent }], { title, preview: text, model: mode.label, agent: currentAgent });
-      } catch {}
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: t('error_occurred') }]);
     }
