@@ -34,7 +34,7 @@ const MAX_VISIBLE_FILES = 1;
 const ALL_MODES = [
   { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
   { id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2, credit_max: 5 },
-  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
+  { id: 'thinking', label: 'Standard', icon: Brain, model: 'gpt_5', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
 ];
 
 
