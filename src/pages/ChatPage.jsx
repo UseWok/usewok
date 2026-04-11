@@ -363,8 +363,9 @@ Website: stensor.app
 
 🆓 FREE PLAN — €0/month
 - 10 tensors/month (AI credits)
+- 5 tensors/day max (resets at midnight)
 - Standard mode only
-- 3 conversations max
+- 15 conversations max
 - No file uploads, no internet search
 - Community access included
 

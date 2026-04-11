@@ -7,7 +7,7 @@ export const DEFAULT_PLANS = [
     price_monthly: 0,
     price_yearly: 0,
     credits_limit: 10,
-    daily_credits_limit: 3,
+    daily_credits_limit: 5,
     can_choose_model: false,
     default_model: 'gemini_3_flash',
     allowed_modes: ['thinking'],
