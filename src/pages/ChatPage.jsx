@@ -384,6 +384,8 @@ export default function ChatPage() {
         if (existing >= 0) stored.splice(existing, 1);
         stored.unshift(disc);
         saveDiscussions(stored);
+        // Also update cloud title with AI-generated title
+        syncConversationToCloud(convId, [...newMessages, { role: 'assistant', content, agent: currentAgent }], { title, preview: text, model: mode.label, agent: currentAgent });
       } catch {}
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: t('error_occurred') }]);

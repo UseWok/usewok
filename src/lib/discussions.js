@@ -61,9 +61,11 @@ export async function loadConversationFromCloud(convId) {
   return null;
 }
 
-// Load all cloud discussions for sidebar
+// Load all cloud discussions for sidebar — filtered to current user
 export async function loadDiscussionsFromCloud() {
   try {
-    return await base44.entities.Conversation.list('-updated_date', 50);
+    const me = await base44.auth.me();
+    if (!me?.email) return [];
+    return await base44.entities.Conversation.filter({ created_by: me.email }, '-updated_date', 50);
   } catch { return []; }
 }

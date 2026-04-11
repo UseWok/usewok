@@ -94,7 +94,7 @@ export default function PricingPage() {
                     {!isPaidPlan && (
                       <span className="text-[9px] font-black px-1.5 py-0.5"
                         style={{ background: billing === 'yearly' ? '#DDFF00' : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? '#0A0A0A' : '#888', borderRadius: '2px' }}>
-                        {offerActive ? '-50%' : '-20%'}
+                        {offerActive ? 'Event -50%' : '-20%'}
                       </span>
                     )}
                   </>
@@ -166,7 +166,7 @@ export default function PricingPage() {
                   <div className="mb-4">
                     <div className="flex items-end gap-2 flex-wrap">
                       {hasEventDiscount && (
-                        <span className="text-base font-bold line-through" style={{ color: isRecommended ? 'rgba(255,255,255,0.3)' : '#ccc' }}>
+                        <span className="text-xl font-bold line-through" style={{ color: isRecommended ? 'rgba(255,255,255,0.5)' : '#888' }}>
                           {basePrice}$
                         </span>
                       )}

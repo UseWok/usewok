@@ -32,7 +32,7 @@ export const TRANSLATIONS = {
     mode_fast: 'Fast', mode_thinking: 'Standard', mode_pro: 'Advanced', mode_ultimate: 'Expert',
     mode_fast_desc: 'Quick & efficient', mode_thinking_desc: 'Deep reasoning', mode_pro_desc: 'Advanced analysis', mode_ultimate_desc: 'Most powerful',
     // Agents
-    global_agent: 'Global Agent', emotions_agent: 'Emotions & Expenses', wealth_agent: 'Wealth Strategy',
+    global_agent: "Knowing exactly where I'm going", emotions_agent: 'Spend without guilt', wealth_agent: 'Becoming financially free',
     // Chat
     send_message: 'Message… (@ for agents & modes)',
     tensors_used: '{used}/{total} tensors used', attach_file: 'Attach a file', agent: 'Agent', mode: 'Mode',
@@ -380,7 +380,8 @@ export const TRANSLATIONS = {
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(() => localStorage.getItem(LANG_KEY) || 'en');
+  // Force English — admin uses hardcoded French
+  const [lang, setLangState] = useState('en');
 
   const setLang = (newLang) => {
     localStorage.setItem(LANG_KEY, newLang);

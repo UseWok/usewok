@@ -19,9 +19,9 @@ export const COLLAPSED_W = 64;
 export const EXPANDED_W = 250;
 
 export const AGENTS = [
-  { id: 'global', labelKey: 'global_agent', label: 'Global Agent' },
-  { id: 'emotions-depenses', labelKey: 'emotions_agent', label: 'Emotions & Expenses' },
-  { id: 'wealth-strategy', labelKey: 'wealth_agent', label: 'Wealth Strategy' },
+  { id: 'global', labelKey: 'global_agent', label: "Knowing exactly where I'm going" },
+  { id: 'emotions-depenses', labelKey: 'emotions_agent', label: 'Spend without guilt' },
+  { id: 'wealth-strategy', labelKey: 'wealth_agent', label: 'Becoming financially free' },
 ];
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
@@ -254,8 +254,8 @@ export default function Sidebar({ expanded, setExpanded }) {
           </button>
           )}
 
-          {/* Tensors bar — hidden when collapsed on desktop, always visible on mobile */}
-          {(expanded || isMobile) && (
+          {/* Tensors bar — always visible */}
+          {(true || isMobile) && (
           <button
             ref={tensorsRef}
             onClick={() => togglePopover('tensors')}
