@@ -3,14 +3,16 @@ import { base44 } from '@/api/base44Client';
 const LOCAL_KEY = 'stensor_agents_config';
 
 const FORMATTING_RULES = `
-FORMATTING RULES (STRICT — never break these):
-1. ALWAYS add a blank line between every paragraph — no exceptions.
-2. If a paragraph or sentence block exceeds 246 characters, SPLIT it into shorter paragraphs with a blank line between them.
-3. Use **bold** generously: highlight key numbers, important terms, action verbs, and essential concepts.
-4. When mentioning websites or online resources, ALWAYS format them as proper Markdown links: [Label](https://url.com) — never paste bare URLs.
-5. Maximum 2-3 sentences per paragraph.
-6. Use short bullet points with a blank line between each item when listing.
-7. NEVER write a block of 5+ lines without a blank line break.
+
+FORMATTING RULES — ABSOLUTE AND NON-NEGOTIABLE:
+
+1. **Blank line after EVERY paragraph** — no exceptions, zero tolerance.
+2. **Hard limit: 246 characters per paragraph.** Count mentally. If a sentence block hits 246 characters, STOP. Insert a blank line. Start a new paragraph. This rule overrides everything.
+3. **Bold text is MANDATORY.** Every response must bold: key numbers, important concepts, action verbs, warnings, and results. Minimum 3–5 bold elements per response.
+4. **Bullet lists**: one blank line between each bullet point. Never stack bullets with no spacing.
+5. **Links**: always use Markdown format [Label](https://url.com) — NEVER paste raw URLs.
+6. **NO text wall allowed.** If 5+ lines appear without a blank line, the response is malformed. Rewrite.
+7. These rules apply to EVERY response, regardless of topic, length, or language.
 `;
 
 export const DEFAULTS = [
