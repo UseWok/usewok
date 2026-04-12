@@ -135,10 +135,42 @@ export default function DiscussionsPage() {
         {/* AI Search */}
         <motion.div initial={{ opacity: 0, filter: 'blur(8px)', y: 4 }} animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }} transition={{ duration: 0.5, delay: 0.07, ease: [0.22,1,0.36,1] }}
           className="mb-6 p-5 bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#DDFF00', filter: 'drop-shadow(0 0 4px #DDFF00)' }} />
+            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#aaa' }}>AI Search</p>
+            {aiResults !== null && (
+              <button onClick={clearAiSearch} className="ml-auto flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: 'rgba(0,0,0,0.05)', color: '#aaa' }}>
+                <X className="w-3 h-3" /> Clear
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              value={aiQuery}
+              onChange={e => setAiQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAiSearch(); }}
+              placeholder="Search by theme, topic, or concept…"
+              className="flex-1 text-sm bg-transparent focus:outline-none py-2 px-3 rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', color: '#0A0A0A' }}
+            />
+            <button
+              onClick={handleAiSearch}
+              disabled={aiLoading || !aiQuery.trim()}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-black rounded-lg transition-all disabled:opacity-40"
+              style={{ background: '#0A0A0A', color: 'white' }}>
+              {aiLoading ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+                  className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5" />
+              )}
+              {aiLoading ? 'Searching…' : 'Search'}
+            </button>
+          </div>
           {aiError && (
             <div className="flex items-center gap-2 mt-3 px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', borderRadius: '4px' }}>
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ef4444' }} />
-              <p className="text-xs" style={{ color: '#ef4444' }}>{aiError.replace('Aucune discussion trouvée pour ce thème.', 'No discussions found for this topic.').replace('Erreur lors de la recherche. Réessayez.', 'Search error. Please try again.')}</p>
+              <p className="text-xs" style={{ color: '#ef4444' }}>{aiError}</p>
             </div>
           )}
           {aiResults !== null && aiResults.length > 0 && (

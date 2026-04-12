@@ -24,8 +24,7 @@ import LandingFeaturesPage from './pages/LandingFeaturesPage';
 import DiscussionsPage from './pages/DiscussionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import StensorScore from './pages/StensorScore';
-import AboutPage from './pages/AboutPage';
-import LegalPage from './pages/LegalPage';
+
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -81,8 +80,7 @@ const AuthenticatedApp = () => {
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/score" element={<StensorScore />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/legal" element={<LegalPage />} />
+
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
