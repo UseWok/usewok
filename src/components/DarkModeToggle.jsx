@@ -1,20 +1,33 @@
-import { useTheme } from 'next-themes';
+import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getTheme, toggleTheme } from '@/lib/theme';
 
 export default function DarkModeToggle({ collapsed = false }) {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const [isDark, setIsDark] = useState(() => getTheme() === 'dark');
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const handleToggle = () => {
+    const next = toggleTheme();
+    setIsDark(next === 'dark');
+  };
 
   return (
     <button
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={handleToggle}
       aria-label="Toggle dark mode"
-      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5`}
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5"
     >
       <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-black/6 dark:bg-white/8 rounded-sm">
         <motion.div
-          key={isDark ? 'moon' : 'sun'}
+          key={isDark ? 'sun' : 'moon'}
           initial={{ rotate: -30, opacity: 0 }}
           animate={{ rotate: 0, opacity: 1 }}
           transition={{ duration: 0.2 }}

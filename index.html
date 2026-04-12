@@ -29,6 +29,12 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script>
+    (function() {
+      var t = localStorage.getItem('stensor_theme');
+      if (t === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
