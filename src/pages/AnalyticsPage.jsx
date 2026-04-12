@@ -4,7 +4,7 @@ import { Zap, MessageSquare, Clock, Timer, Target, Sparkles, ChevronRight } from
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getDiscussions } from '@/lib/discussions';
+import { getDiscussions, getConversationMessages } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 import { getTotalMinutes } from '@/components/Layout';
 
@@ -64,6 +64,8 @@ export default function AnalyticsPage() {
   const [totalMinutes, setTotalMinutes] = useState(0);
   const navigate = useNavigate();
 
+  const [aiResponseCount, setAiResponseCount] = useState(0);
+
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
@@ -71,16 +73,24 @@ export default function AnalyticsPage() {
       const mins = getTotalMinutes(u.id);
       setTotalMinutes(mins);
     }).catch(() => {});
-    setDiscussions(getDiscussions());
+    const discs = getDiscussions();
+    setDiscussions(discs);
+    // Count total AI responses across all discussions
+    let count = 0;
+    discs.forEach(d => {
+      const msgs = getConversationMessages(d.id);
+      count += msgs.filter(m => m.role === 'assistant').length;
+    });
+    setAiResponseCount(count);
   }, []);
 
   const creditsUsed = Math.round((user?.credits_used || 0) * 10) / 10;
   const creditLimit = userPlan ? (userPlan.credits_limit + (user?.credits_bonus || 0)) : 10;
   const pct = Math.min((creditsUsed / creditLimit) * 100, 100);
 
-  // Time calculations
+  // Time calculations — based on actual AI responses (not tensors)
   const sessionHours = totalMinutes / 60;
-  const timeSavedMins = Math.round(creditsUsed * MINS_SAVED_PER_MSG);
+  const timeSavedMins = Math.round(aiResponseCount * MINS_SAVED_PER_MSG);
   const moneySaved = Math.round((timeSavedMins / 60) * DOLLARS_PER_HOUR);
   const timeSavedHours = Math.floor(timeSavedMins / 60);
   const timeSavedRemMins = timeSavedMins % 60;
@@ -169,7 +179,7 @@ export default function AnalyticsPage() {
           <p className="text-sm font-black mb-3" style={{ color: FG }}>Time saved vs. a human coach</p>
           <div className="grid grid-cols-3 gap-3 text-center mb-3">
             <div className="p-3" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '2px' }}>
-              <p className="text-lg font-black" style={{ color: FG }}>{fmtN(creditsUsed)}</p>
+              <p className="text-lg font-black" style={{ color: FG }}>{aiResponseCount}</p>
               <p className="text-[10px] mt-0.5" style={{ color: '#aaa' }}>AI answers</p>
             </div>
             <div className="p-3 flex flex-col items-center justify-center">
@@ -182,7 +192,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <p className="text-[11px]" style={{ color: '#bbb' }}>
-            A human coach needs ~18 min to research + answer. AI takes ~1 min. That's {MINS_SAVED_PER_MSG} min saved per message. {MINS_SAVED_PER_MSG} min = ${(MINS_SAVED_PER_MSG / 60 * DOLLARS_PER_HOUR).toFixed(2)} value.
+            A human coach needs ~18 min per answer, AI takes ~1 min → {MINS_SAVED_PER_MSG} min saved per response. 6 min on Stensor ≈ $10 saved vs. a real advisor.
           </p>
         </div>
 
@@ -190,11 +200,11 @@ export default function AnalyticsPage() {
         <div className="p-5 mb-4 bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '2px' }}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-black" style={{ color: FG }}>Tensor consumption</p>
-            <span className="text-xs font-bold" style={{ color: pct > 80 ? '#ef4444' : '#aaa' }}>{Math.round(pct)}%</span>
+            <span className="text-xs font-bold" style={{ color: '#aaa' }}>{Math.round(pct)}%</span>
           </div>
           <div className="w-full h-2 overflow-hidden mb-2" style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '2px' }}>
             <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full" style={{ background: pct > 80 ? '#ef4444' : FG, borderRadius: '2px' }} />
+              className="h-full" style={{ background: FG, borderRadius: '2px' }} />
           </div>
           <p className="text-xs" style={{ color: '#aaa' }}>
             {fmtN(creditsUsed)} used · {fmtN(Math.max(0, creditLimit - creditsUsed))} remaining · monthly renewal
