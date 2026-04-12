@@ -132,7 +132,7 @@ export default function DiscussionsPage() {
           <p className="text-sm" style={{ color: '#aaa' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''} saved</p>
         </motion.div>
 
-        {/* AI Search */
+        {/* AI Search */}
         <motion.div initial={{ opacity: 0, filter: 'blur(8px)', y: 4 }} animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }} transition={{ duration: 0.5, delay: 0.07, ease: [0.22,1,0.36,1] }}
           className="mb-6 p-5 bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px' }}>
           {aiError && (

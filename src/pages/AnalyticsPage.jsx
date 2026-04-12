@@ -291,7 +291,7 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* Detected Goals */
+        {/* Detected Goals */}
         <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-9 h-9 flex items-center justify-center bg-yuzu rounded-xl">
