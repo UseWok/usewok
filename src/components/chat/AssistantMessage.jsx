@@ -30,12 +30,12 @@ export default function AssistantMessage({ content, agent, meta }) {
   const cleanContent = sources.length > 0 ? stripSourceUrls(content) : content;
 
   return (
-    <div className="flex flex-col gap-1 items-start w-full max-w-[95%] sm:max-w-[82%] mb-2 overflow-hidden">
+    <div className="flex flex-col gap-1 items-start w-full mb-2">
       <div className="flex items-center gap-1.5 mb-2">
         <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain flex-shrink-0" style={{ opacity: 0.9 }} />
         <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
       </div>
-      <div className="text-sm leading-7 px-4 py-3"
+      <div className="text-sm leading-7 px-4 py-3 w-full break-words overflow-wrap-anywhere"
         style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
