@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, X, Award } from 'lucide-react';
-import ReferralModal from './ReferralModal';
+import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, X, Award } from 'lucide-react';
+
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
@@ -13,7 +13,7 @@ import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
 import { getUserPlan } from '@/lib/plans-config';
 import { useIsMobile } from '@/hooks/use-mobile';
-import DarkModeToggle from './DarkModeToggle';
+
 import { onCreditsUpdate } from '@/lib/credits-events';
 
 export const COLLAPSED_W = 64;
@@ -41,7 +41,7 @@ const UNLOCKABLE_FEATURES = [
 
 export default function Sidebar({ expanded, setExpanded }) {
   const [activePopover, setActivePopover] = useState(null);
-  const [showReferral, setShowReferral] = useState(false);
+
   const [logoHovered, setLogoHovered] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
@@ -240,18 +240,6 @@ export default function Sidebar({ expanded, setExpanded }) {
             )}
           </button>
 
-          {/* Referral */}
-          <button onClick={() => setShowReferral(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 mb-1 rounded-md hover:bg-black/5 transition-colors">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-black/5 rounded-sm">
-              <Gift className="w-3.5 h-3.5 text-zinc-500" />
-            </div>
-            {expanded && <p className="text-xs font-semibold text-zinc-500">Invite & Earn</p>}
-          </button>
-
-          {/* Dark mode */}
-          <DarkModeToggle collapsed={!expanded} />
-
           {/* Profile / Lang / Bell row */}
           <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
             <button ref={profileRef} onClick={() => togglePopover('profile')}
@@ -275,7 +263,7 @@ export default function Sidebar({ expanded, setExpanded }) {
         </div>
       </motion.aside>
 
-      <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
+
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
       <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} user={user} />
       <LanguagePopover open={activePopover === 'lang'} onClose={() => setActivePopover(null)} anchorRef={langRef} />

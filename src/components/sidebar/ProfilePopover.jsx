@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Settings, HelpCircle, LogOut, Trash2 } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Gift } from 'lucide-react';
+import ReferralModal from '@/components/ReferralModal';
 import { useNavigate } from 'react-router-dom';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
@@ -9,6 +10,7 @@ import DeleteAccountModal from './DeleteAccountModal';
 export default function ProfilePopover({ open, onClose, anchorRef, user, userInitial }) {
   const popoverRef = useRef(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -55,10 +57,11 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
   const pos = open ? getPosition() : {};
 
   const items = [
-    { icon: Settings, label: 'Parametres du compte', action: () => navigate('/settings') },
+    { icon: Settings, label: 'Paramètres du compte', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
+    { icon: Gift, label: 'Earn Tensors', action: () => setShowReferral(true), accent: true },
     { divider: true },
-    { icon: LogOut, label: 'Se deconnecter', action: () => base44.auth.logout('/') },
+    { icon: LogOut, label: 'Se déconnecter', action: () => base44.auth.logout('/') },
   ];
 
   const handleDeleteClick = () => {
@@ -111,7 +114,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
                 <button
                 key={i}
                 onClick={() => { item.action(); onClose(); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted ${item.destructive ? 'text-destructive' : 'text-foreground'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted ${item.destructive ? 'text-destructive' : item.accent ? 'text-green-600 font-semibold' : 'text-foreground'}`}
                 >
                 <item.icon className="w-4 h-4 flex-shrink-0" />
                 {item.label}
@@ -122,6 +125,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
         </motion.div>
       )}
       <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} user={user} />
+      <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
     </AnimatePresence>
   );
 }

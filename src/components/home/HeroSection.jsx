@@ -9,6 +9,11 @@ import { getUserPlan } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
+const AGENT_META = {
+  global:              { emoji: '🧭', desc: 'Big picture clarity & direction' },
+  'emotions-depenses': { emoji: '💚', desc: 'Mindful spending, guilt-free money' },
+  'wealth-strategy':   { emoji: '🚀', desc: 'Long-term wealth & freedom' },
+};
 const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
 const ALL_MODES = [
@@ -254,54 +259,56 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         </button>
                       );
                     })}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    </div>
+                    )}
+                    </div>
+                    </motion.div>
+                    )}
+                    </AnimatePresence>
 
-        <DragDropOverlay visible={isDragging} canUpload={canUpload} />
-        <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
+                    <DragDropOverlay visible={isDragging} canUpload={canUpload} />
+                    <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
 
-        <div className="bg-white border border-black/10 rounded-lg shadow-md overflow-visible">
-          {files.length > 0 && (
-            <div className="flex gap-2 flex-wrap p-4 pb-0">
-              {files.map((file, idx) => (
-                <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group bg-black/5 border border-black/8 rounded-md">
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
-                  <span className="text-[10px] font-medium max-w-[80px] truncate text-zinc-600">{file.name}</span>
-                  <button onClick={() => removeFile(idx)}
+                    <div className="bg-white border border-black/10 rounded-lg shadow-md overflow-visible">
+                    {files.length > 0 && (
+                    <div className="flex gap-2 flex-wrap p-4 pb-0">
+                    {files.map((file, idx) => (
+                    <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group bg-black/5 border border-black/8 rounded-md">
+                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                    <span className="text-[10px] font-medium max-w-[80px] truncate text-zinc-600">{file.name}</span>
+                    <button onClick={() => removeFile(idx)}
                     className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-sm">
                     <X className="w-2 h-2" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    </button>
+                    </div>
+                    ))}
+                    </div>
+                    )}
 
-          <div className="px-4 pt-4 pb-1">
-            <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleCommencer(); } }}
-              placeholder={isBlocked
-                ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue')
-                : t('hero_placeholder')}
-              disabled={isBlocked}
-              rows={3}
-              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed text-fg placeholder:text-zinc-400"
-            />
-          </div>
+                    <div className="px-4 pt-4 pb-1">
+                    <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleCommencer(); } }}
+                    placeholder={isBlocked
+                    ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue')
+                    : t('hero_placeholder')}
+                    disabled={isBlocked}
+                    rows={3}
+                    aria-label="Your financial question"
+                    className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed text-fg placeholder:text-zinc-400"
+                    />
+                    </div>
 
-          <div className="flex items-center justify-between px-4 pb-4">
-            <div className="flex items-center gap-1">
-              {/* + file */}
-              <div className="relative" ref={fileMenuRef}>
-                <button onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }}
-                  className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-                  <Plus className="w-4 h-4 text-zinc-300" />
-                </button>
-                <AnimatePresence>
-                  {showFileMenu && (
+                    <div className="flex items-center justify-between px-4 pb-4">
+                    <div className="flex items-center gap-1">
+                    {/* + file */}
+                    <div className="relative" ref={fileMenuRef}>
+                    <button onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }}
+                    aria-label="Attach file"
+                    className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
+                    <Plus className="w-4 h-4 text-zinc-300" />
+                    </button>
+                    <AnimatePresence>
+                    {showFileMenu && (
                     <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50 border border-black/10 rounded-md">
                       <button onClick={handleFileAttach}
                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
@@ -312,40 +319,48 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         )}
                       </button>
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    )}
+                    </AnimatePresence>
+                    </div>
 
-              {/* Agent button */}
-              <div className="relative" ref={agentMenuRef}>
-                <button onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
-                  className="h-8 px-2.5 flex items-center gap-1.5 rounded-md hover:bg-black/5 transition-colors">
-                  <Bot className="w-3.5 h-3.5 text-zinc-300" />
-                  <span className="text-xs font-medium text-zinc-300">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
-                  <ChevronDown className="w-3 h-3 text-zinc-300" />
-                </button>
-                <AnimatePresence>
-                  {showAgentMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50 border border-black/10 rounded-md">
-                      {AGENTS.map((a) => (
-                        <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
-                          <Bot className="w-3.5 h-3.5" /> {a.label}
-                        </button>
-                      ))}
+                    {/* Agent button */}
+                    <div className="relative" ref={agentMenuRef}>
+                    <button onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
+                    className="h-8 px-2.5 flex items-center gap-1.5 rounded-md hover:bg-black/5 transition-colors">
+                    <Bot className="w-3.5 h-3.5 text-zinc-300" />
+                    <span className="text-xs font-medium text-zinc-300">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
+                    <ChevronDown className="w-3 h-3 text-zinc-300" />
+                    </button>
+                    <AnimatePresence>
+                    {showAgentMenu && (
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[220px] z-50 border border-black/10 rounded-md">
+                      {AGENTS.map((a) => {
+                        const meta = AGENT_META[a.id] || {};
+                        return (
+                          <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
+                            aria-pressed={effectiveAgentId === a.id}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
+                            <span className="text-base flex-shrink-0">{meta.emoji || '🤖'}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-tight">{a.label}</p>
+                              <p className="text-[10px] text-zinc-400 truncate">{meta.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    )}
+                    </AnimatePresence>
+                    </div>
 
-              {/* Mode button */}
-              <div className="relative" ref={modeMenuRef}>
-                <button onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }}
-                  className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-300" />
-                </button>
-                <AnimatePresence>
-                  {showModeMenu && (
+                    {/* Mode button */}
+                    <div className="relative" ref={modeMenuRef}>
+                    <button onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }}
+                    className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-300" />
+                    </button>
+                    <AnimatePresence>
+                    {showModeMenu && (
                     <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-md">
                       {ALL_MODES.map((m) => {
                         const Icon = m.icon;
@@ -366,12 +381,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         );
                       })}
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
+                    )}
+                    </AnimatePresence>
+                    </div>
+                    </div>
 
-            <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
               <button
                 onClick={() => { if (!hasInternet) { setUpsellFeature('internet'); return; } setUseWebSearch(w => !w); }}
                 className={`h-8 px-2 flex items-center gap-1.5 rounded-md transition-colors ${useWebSearch ? 'bg-green-100' : 'bg-black/5'}`}>
@@ -384,6 +399,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
               <span className="text-xs font-semibold hidden sm:block text-zinc-300">{mode.label}</span>
               <span className="text-[9px] font-black hidden sm:block px-1 py-0.5 bg-black/8 text-zinc-400 rounded-sm">{mode.credit_cost}-{mode.credit_max}T</span>
               <button onClick={toggleRecording}
+                aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                aria-pressed={isRecording}
                 className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
                 {voiceLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
@@ -418,8 +435,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
         </motion.div>
       )}
 
-      <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        whileHover={!isBlocked && hasText ? { scale: 1.01 } : {}}
+        whileTap={!isBlocked && hasText ? { scale: 0.98 } : {}}
         onClick={handleCommencer} disabled={!hasText || isBlocked}
+        aria-label="Start conversation"
         className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all ${hasText ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-black/8 text-zinc-400 cursor-not-allowed'}`}>
         {t('hero_start')}
       </motion.button>
@@ -428,10 +449,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
         <p className="text-xs mb-3 text-zinc-300">{t('hero_topics')}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {POWER_TOPICS.map(topic => (
-            <button key={topic.label} onClick={() => setQuery(topic.prompt)}
+            <motion.button key={topic.label} onClick={() => setQuery(topic.prompt)}
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              aria-label={`Use topic: ${topic.label}`}
               className="px-3.5 py-1.5 text-xs font-medium border border-black/10 rounded-sm text-zinc-600 bg-white hover:bg-fg hover:text-white hover:border-fg transition-all">
               {topic.label}
-            </button>
+            </motion.button>
           ))}
         </div>
       </motion.div>
