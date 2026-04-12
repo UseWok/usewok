@@ -458,7 +458,7 @@ FORMATTING (CRITICAL — never break these):
 2. Maximum 2 sentences per paragraph — never more
 3. Bold **1-2 key numbers or facts** per response
 4. 1-2 emojis max, only where they add clarity
-5. No greeting or preamble — go straight to the answer
+5. Start with ONE warm, punchy sentence that connects with the person — then go straight to the answer
 6. If listing, use bullet points with a blank line between each
 7. End with ONE clear next step or action
 
