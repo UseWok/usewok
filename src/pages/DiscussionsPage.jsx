@@ -94,6 +94,36 @@ export default function DiscussionsPage() {
     navigate(`/chat?${params.toString()}`);
   };
 
+  // Skeleton loaders
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white font-be">
+        <div className="max-w-2xl mx-auto px-4 py-10">
+          <div className="mb-8 animate-pulse">
+            <div className="h-7 w-40 bg-black/8 rounded-sm mb-2" />
+            <div className="h-3 w-24 bg-black/5 rounded-sm" />
+          </div>
+          <div className="mb-6 p-4 border border-black/8 rounded-md animate-pulse">
+            <div className="h-3 w-24 bg-black/8 rounded-sm mb-3" />
+            <div className="h-10 bg-black/5 rounded-md" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center gap-4 p-4 border border-black/8 rounded-md animate-pulse">
+                <div className="w-9 h-9 bg-black/8 rounded-md flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-black/8 rounded-sm w-3/4" />
+                  <div className="h-2.5 bg-black/5 rounded-sm w-1/2" />
+                </div>
+                <div className="h-2.5 w-10 bg-black/5 rounded-sm" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white font-be">
       <div className="max-w-2xl mx-auto px-4 py-10">
@@ -167,11 +197,28 @@ export default function DiscussionsPage() {
 
         {/* List */}
         <div className="space-y-2">
-          {filtered.length === 0 && !aiLoading && (
-            <div className="text-center py-12">
-              <MessageSquare className="w-8 h-8 mx-auto mb-3 opacity-20" style={{ color: FG }} />
-              <p className="text-sm" style={{ color: '#ccc' }}>No discussions found</p>
-            </div>
+          {filtered.length === 0 && !aiLoading && discussions.length === 0 && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-14 h-14 flex items-center justify-center bg-yuzu rounded-xl mb-4">
+                <MessageSquare className="w-6 h-6" style={{ color: FG }} />
+              </div>
+              <p className="text-sm font-black text-fg mb-1">No conversations yet</p>
+              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed mb-5">
+                Start a conversation with your AI financial coach and it will appear here.
+              </p>
+              <button onClick={() => navigate('/chat')}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-white rounded-md hover:opacity-90 transition-opacity"
+                style={{ background: FG }}>
+                Start a conversation
+              </button>
+            </motion.div>
+          )}
+          {filtered.length === 0 && !aiLoading && discussions.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+              <p className="text-sm font-semibold text-zinc-400 mb-1">No results</p>
+              <p className="text-xs text-zinc-300">Try a different search term</p>
+            </motion.div>
           )}
           <AnimatePresence>
             {filtered.map((disc, i) => (

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, X } from 'lucide-react';
+import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, X, Award } from 'lucide-react';
 import ReferralModal from './ReferralModal';
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
@@ -113,6 +113,7 @@ export default function Sidebar({ expanded, setExpanded }) {
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
     { icon: BarChart2, label: 'Analyses', path: '/analytics', active: location.pathname === '/analytics' },
+    { icon: Award, label: 'Stensor Score', path: '/score', active: location.pathname === '/score' },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 
