@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HomeEventBanner from '../components/home/HomeEventBanner';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
+import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import HeroSection from '../components/home/HeroSection';
 import RecentApps from '../components/home/RecentApps';
 import { AGENTS } from '../components/Sidebar';
@@ -14,8 +15,7 @@ export default function Home() {
   const agentFromUrl = urlParams.get('agent');
   const [selectedAgent, setSelectedAgent] = useState(agentFromUrl || null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { t } = useLanguage();
-  const navigate = useNavigate();
+  const [showUserOnboarding, setShowUserOnboarding] = useState(false);
 
   useEffect(() => {
     const pending = localStorage.getItem(PENDING_KEY);
@@ -25,13 +25,18 @@ export default function Home() {
       navigate(`/chat?${params.toString()}`);
     }
     // Show onboarding for new users
-    if (shouldShowTensorsOnboarding()) {
+    if (shouldShowUserOnboarding()) {
+      setTimeout(() => setShowUserOnboarding(true), 800);
+    } else if (shouldShowTensorsOnboarding()) {
       setTimeout(() => setShowOnboarding(true), 1200);
     }
   }, []);
 
   return (
-    <div className="min-h-screen pt-4 pb-12 md:pt-6 md:pb-20">
+    <div className="min-h-screen pt-4 pb-12 md:pt-6 md:pb-20 relative overflow-hidden">
+      {/* Subtle gradient mesh background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 40% at 50% -10%, rgba(221,255,0,0.07), transparent)' }} />
+      {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
       <HomeEventBanner />
       <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />

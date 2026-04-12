@@ -32,9 +32,12 @@ const setCache = (key, cacheKey, value) => { const c = getCache(key); c[cacheKey
 
 function StatCard({ icon: Icon, label, value, sub, accent, trend, delay = 0 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
-      className="p-5 bg-white border border-black/10 rounded-sm">
-      <div className={`w-9 h-9 flex items-center justify-center mb-3 rounded-sm ${accent === 'yuzu' ? 'bg-yuzu' : 'bg-black/8'}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ delay, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="p-5 bg-white border border-black/8 rounded-2xl hover:shadow-md transition-shadow">
+      <div className={`w-9 h-9 flex items-center justify-center mb-3 rounded-xl ${accent === 'yuzu' ? 'bg-yuzu' : 'bg-black/5'}`}>
         <Icon className={`w-4 h-4 ${accent === 'yuzu' ? 'text-fg' : 'text-zinc-500'}`} />
       </div>
       <p className="text-2xl font-black text-fg">{value}</p>
@@ -218,12 +221,20 @@ export default function AnalyticsPage() {
   }, [user?.id, discussions.length]);
 
   return (
-    <div className="min-h-screen bg-white font-be">
+    <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
       <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-black text-fg">Analytics</h1>
-          <p className="text-sm mt-1 text-zinc-400">Your private dashboard · Member for {daysSinceJoin} day{daysSinceJoin > 1 ? 's' : ''}</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-yuzu" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Private dashboard</p>
+          </div>
+          <h1 className="text-3xl font-black text-fg">Analytics</h1>
+          <p className="text-sm mt-1 text-zinc-400">Member for {daysSinceJoin} day{daysSinceJoin > 1 ? 's' : ''}</p>
+        </motion.div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-3 mb-4">

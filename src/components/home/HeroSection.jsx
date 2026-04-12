@@ -196,24 +196,35 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+      <motion.div
+        initial={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="inline-flex items-center gap-2 px-3 py-1 mb-5 bg-yuzu rounded-sm">
         <Zap className="w-3 h-3 text-fg" />
         <span className="text-[10px] font-black tracking-widest text-fg">{t('hero_badge')}</span>
       </motion.div>
 
-      <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+      <motion.h1
+        initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         className="text-3xl md:text-4xl font-black tracking-tight text-fg">
         Let's build your financial freedom together.
       </motion.h1>
-      <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
+      <motion.p
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         className="mt-3 text-sm text-zinc-400">
         Your personal AI financial coach — clear answers, real strategies, straight to the point.
       </motion.p>
 
       {/* Input card */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}
-        className="mt-7 relative"
+      <motion.div
+        initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.5, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
         ref={inputCardRef}
         onDragEnter={e => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
         onDragLeave={e => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
@@ -436,8 +447,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
       )}
 
       <motion.button
-        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        whileHover={!isBlocked && hasText ? { scale: 1.01 } : {}}
+        initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ delay: 0.25, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={!isBlocked && hasText ? { scale: 1.01, y: -1 } : {}}
         whileTap={!isBlocked && hasText ? { scale: 0.98 } : {}}
         onClick={handleCommencer} disabled={!hasText || isBlocked}
         aria-label="Start conversation"
@@ -445,12 +458,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
         {t('hero_start')}
       </motion.button>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-6">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-6">
         <p className="text-xs mb-3 text-zinc-300">{t('hero_topics')}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {POWER_TOPICS.map(topic => (
             <motion.button key={topic.label} onClick={() => setQuery(topic.prompt)}
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}
               aria-label={`Use topic: ${topic.label}`}
               className="px-3.5 py-1.5 text-xs font-medium border border-black/10 rounded-sm text-zinc-600 bg-white hover:bg-fg hover:text-white hover:border-fg transition-all">
               {topic.label}

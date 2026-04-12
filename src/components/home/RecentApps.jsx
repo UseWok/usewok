@@ -111,7 +111,9 @@ export default function RecentApps({ agentId }) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+      initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="max-w-2xl mx-auto mt-8 px-4 pb-6">
 
       {/* Header */}
@@ -145,10 +147,12 @@ export default function RecentApps({ agentId }) {
         )}
         {filtered.map((disc, i) => (
           <motion.div key={disc.id} layout
-            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             onClick={() => handleOpen(disc)}
             onContextMenu={e => openCtx(e, disc.id)}
-            className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white dark:bg-zinc-900 border border-black/8 dark:border-white/8 rounded-md cursor-pointer transition-all hover:border-fg dark:hover:border-yuzu hover:shadow-sm active:scale-[0.99]">
+            className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white dark:bg-zinc-900 border border-black/8 dark:border-white/8 rounded-xl cursor-pointer transition-all hover:border-fg dark:hover:border-yuzu hover:shadow-md active:scale-[0.99]">
 
             <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0 bg-black/5 dark:bg-white/8 rounded-md">
               <MessageSquare className="w-4 h-4 text-fg dark:text-white" />

@@ -79,8 +79,10 @@ function PillarCard({ pillar, score, recommendation, delay = 0 }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
-      className="bg-white border border-black/8 rounded-md overflow-hidden"
+      initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ delay, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="bg-white border border-black/6 rounded-2xl overflow-hidden hover:shadow-md transition-shadow"
     >
       <button
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-black/2 transition-colors"
@@ -221,22 +223,25 @@ export default function StensorScore() {
   })() : null;
 
   return (
-    <div className="min-h-screen bg-white font-be">
+    <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
       {/* Header */}
-      <div className="border-b border-black/8 px-4 py-5 flex items-center justify-between">
-        <div>
+      <div className="border-b border-black/6 px-4 py-5 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <motion.div
+          initial={{ opacity: 0, x: -10, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
           <h1 className="text-xl font-black text-fg flex items-center gap-2">
-            <span className="w-7 h-7 flex items-center justify-center bg-yuzu rounded-sm">
+            <span className="w-7 h-7 flex items-center justify-center bg-yuzu rounded-xl">
               <Zap className="w-4 h-4 text-fg" />
             </span>
             Stensor Score
           </h1>
           <p className="text-xs text-zinc-400 mt-0.5">Your personal financial health index</p>
-        </div>
+        </motion.div>
         <button
           onClick={computeScore}
           disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 text-xs font-bold bg-black/5 rounded-md hover:bg-black/8 transition-colors disabled:opacity-40"
+          className="flex items-center gap-2 px-3 py-2 text-xs font-bold bg-black/5 rounded-xl hover:bg-black/8 transition-colors disabled:opacity-40"
           aria-label="Refresh score"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -251,7 +256,11 @@ export default function StensorScore() {
         ) : scoreData ? (
           <>
             {/* Gauge */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              className="flex justify-center mb-8">
               <ScoreGauge score={overall} />
             </motion.div>
 
@@ -260,7 +269,10 @@ export default function StensorScore() {
             )}
 
             {/* Pillars */}
-            <h2 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-3">Score Breakdown</h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.35 }}
+              className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-3">Score Breakdown</motion.h2>
             <div className="space-y-2 mb-6">
               {PILLARS.map((pillar, i) => (
                 <PillarCard
@@ -276,7 +288,7 @@ export default function StensorScore() {
             {/* Next action */}
             {scoreData.next_action && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-                className="p-4 border border-yuzu/40 bg-yuzu/5 rounded-md mb-6">
+                className="p-4 border border-yuzu/40 bg-yuzu/5 rounded-2xl mb-6">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="w-4 h-4 text-fg" />
                   <p className="text-xs font-black text-fg">Your #1 Next Action</p>
@@ -292,13 +304,13 @@ export default function StensorScore() {
             {/* Upgrade CTA */}
             {userPlan?.price_monthly === 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-                className="p-4 bg-fg rounded-md flex items-center justify-between">
+                className="p-4 bg-fg rounded-2xl flex items-center justify-between">
                 <div>
                   <p className="text-sm font-black text-white">Get detailed insights</p>
                   <p className="text-xs text-white/50 mt-0.5">Upgrade for weekly score tracking</p>
                 </div>
                 <button onClick={() => navigate('/pricing')}
-                  className="px-3 py-2 bg-yuzu text-fg text-xs font-black rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1">
+                  className="px-3 py-2 bg-yuzu text-fg text-xs font-black rounded-xl hover:opacity-90 transition-opacity flex items-center gap-1">
                   Upgrade <Lock className="w-3 h-3" />
                 </button>
               </motion.div>

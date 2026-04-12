@@ -131,13 +131,13 @@ export default function SettingsPage() {
   const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
 
   return (
-    <div className="min-h-screen bg-muted/30 font-be">
+    <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-border rounded-lg hover:bg-muted transition-colors">
+          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-black/8 rounded-xl hover:shadow-md transition-all">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
-          <h1 className="text-xl font-black text-fg">Settings</h1>
+          <h1 className="text-2xl font-black text-fg">Settings</h1>
         </div>
 
         {/* Mobile: stacked accordion */}
@@ -176,16 +176,20 @@ export default function SettingsPage() {
               const active = activeSection === item.id;
               return (
                 <button key={item.id} onClick={() => setActiveSection(item.id)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-lg transition-all ${active ? 'bg-yuzu text-fg' : 'text-muted-foreground hover:bg-muted'}`}>
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  {item.label}
-                </button>
+                  className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-xl transition-all duration-200 ${active ? 'bg-yuzu text-fg shadow-sm' : 'text-muted-foreground hover:bg-black/5'}`}>
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
+              </button>
               );
             })}
           </nav>
 
           <div className="flex-1 min-w-0">
-            <motion.div key={activeSection} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
               <SectionTitle>{navItems.find(n => n.id === activeSection)?.label}</SectionTitle>
               <SectionContent section={activeSection} {...sharedProps} desktop />
             </motion.div>

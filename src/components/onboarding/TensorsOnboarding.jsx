@@ -64,7 +64,8 @@ const STEPS = [
 ];
 
 export function shouldShowTensorsOnboarding() {
-  try { return !localStorage.getItem(ONBOARDING_KEY); } catch { return false; }
+  // Replaced by UserOnboarding — kept for backward compat
+  return false;
 }
 
 export function markTensorsOnboardingSeen() {
