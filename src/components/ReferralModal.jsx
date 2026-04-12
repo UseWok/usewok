@@ -28,7 +28,7 @@ export default function ReferralModal({ open, onClose, user }) {
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
-    toast.success('Lien copié !', { duration: 1500 });
+    toast.success('Link copied!', { duration: 1500 });
   };
 
   return (
@@ -78,23 +78,23 @@ export default function ReferralModal({ open, onClose, user }) {
                   style={{ background: FG, borderRadius: '14px' }}>
                   <Zap className="w-8 h-8" style={{ color: YUZU }} />
                 </motion.div>
-                <h2 className="text-xl font-black mb-1" style={{ color: FG }}>+{TENSORS_PER_REFERRAL} Tensors par ami</h2>
+                <h2 className="text-xl font-black mb-1" style={{ color: FG }}>+{TENSORS_PER_REFERRAL} Tensors per friend</h2>
                 <p className="text-xs leading-relaxed" style={{ color: 'rgba(0,0,0,0.5)' }}>
-                  Invitez un ami. Dès qu'il envoie son premier message, vous recevez automatiquement {TENSORS_PER_REFERRAL} Tensors.
+                  Invite a friend. As soon as they send their first message, you automatically receive {TENSORS_PER_REFERRAL} Tensors.
                 </p>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-px" style={{ background: 'rgba(0,0,0,0.06)' }}>
                 {[
-                  { label: 'Invités', value: referrals.length, icon: Users },
-                  { label: 'En attente', value: pending, icon: Gift },
-                  { label: 'Gagnés', value: `${earned}T`, icon: Zap },
+                  { label: 'Invited', value: referrals.length, icon: Users },
+                  { label: 'Pending', value: pending, icon: Gift },
+                  { label: 'Earned', value: `${earned}T`, icon: Zap },
                 ].map((stat, i) => {
                   const Icon = stat.icon;
                   return (
                     <div key={i} className="flex flex-col items-center py-3 px-2" style={{ background: 'white' }}>
-                      <p className="text-lg font-black" style={{ color: i === 2 ? '#3A0088' : FG }}>{stat.value}</p>
+                      <p className="text-lg font-black" style={{ color: FG }}>{stat.value}</p>
                       <p className="text-[10px] font-semibold uppercase tracking-wider mt-0.5" style={{ color: '#bbb' }}>{stat.label}</p>
                     </div>
                   );
@@ -121,12 +121,12 @@ export default function ReferralModal({ open, onClose, user }) {
                   className="w-full py-3 font-black text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90"
                   style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
                   {copied
-                    ? <><Check className="w-4 h-4" /> Lien copié !</>
-                    : <><Copy className="w-4 h-4" /> Copier mon lien de parrainage</>}
+                    ? <><Check className="w-4 h-4" /> Link copied!</>
+                    : <><Copy className="w-4 h-4" /> Copy my referral link</>}
                 </button>
 
                 <p className="text-center text-[10px]" style={{ color: '#ccc' }}>
-                  Crédits attribués uniquement après le premier message de votre filleul
+                  Credits are granted only after your referral sends their first message.
                 </p>
               </div>
             </div>

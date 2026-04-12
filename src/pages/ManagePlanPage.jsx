@@ -13,11 +13,11 @@ const GREEN = '#16a34a';
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: TrendingUp, expert: Star, supreme: Crown };
 
 const SURVEY_CRITERIA = [
-  { id: 'satisfaction', label: 'Satisfaction générale' },
-  { id: 'value', label: 'Rapport qualité-prix' },
-  { id: 'ease', label: 'Facilité d\'utilisation' },
-  { id: 'features', label: 'Fonctionnalités proposées' },
-  { id: 'support', label: 'Support et accompagnement' },
+  { id: 'satisfaction', label: 'Overall satisfaction' },
+  { id: 'value', label: 'Value for money' },
+  { id: 'ease', label: 'Ease of use' },
+  { id: 'features', label: 'Features offered' },
+  { id: 'support', label: 'Support & assistance' },
 ];
 
 function StarRating({ value, onChange }) {
@@ -67,18 +67,19 @@ export default function ManagePlanPage() {
     }).catch(() => {});
   }, []);
 
+  const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const Icon = PLAN_ICONS[userPlan?.id] || Zap;
   const creditsUsed = user?.credits_used || 0;
   const creditsLimit = userPlan?.credits_limit || 10;
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
 
   const features = [
-    userPlan?.credits_limit && `${userPlan.credits_limit} Tensors/mois`,
-    userPlan?.internet_access && 'Recherche Internet',
-    userPlan?.ultimate_access && 'Mode Expert',
-    userPlan?.file_upload && 'Envoi de fichiers',
-    userPlan?.max_discussions === 0 && 'Discussions illimitées',
-    userPlan?.premium_support && 'Support Premium',
+    userPlan?.credits_limit && `${userPlan.credits_limit} Tensors/mo`,
+    userPlan?.internet_access && 'Internet search',
+    userPlan?.ultimate_access && 'Expert mode',
+    userPlan?.file_upload && 'File uploads',
+    userPlan?.max_discussions === 0 && 'Unlimited discussions',
+    userPlan?.premium_support && 'Premium support',
   ].filter(Boolean);
 
   const closeAll = () => {
@@ -152,7 +153,7 @@ export default function ManagePlanPage() {
           <button onClick={() => navigate('/settings?section=plan')} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '4px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
           </button>
-          <h1 className="text-xl font-black" style={{ color: FG }}>Gérer mon plan</h1>
+          <h1 className="text-xl font-black" style={{ color: FG }}>Manage my plan</h1>
         </div>
 
         {/* Current plan card */}
@@ -163,13 +164,13 @@ export default function ManagePlanPage() {
             </div>
             <div>
               <p className="font-black text-white text-lg">{userPlan?.name || 'Free'}</p>
-              <p className="text-xs text-white/50">Plan actuel</p>
+              <p className="text-xs text-white/50">Current plan</p>
             </div>
           </div>
           <div className="mb-3">
             <div className="flex justify-between mb-1">
-              <span className="text-xs text-white/60">Tensors ce mois</span>
-              <span className="text-xs font-bold text-white">{creditsUsed}/{creditsLimit}</span>
+              <span className="text-xs text-white/60">Tensors this month</span>
+              <span className="text-xs font-bold text-white">{fmtN(creditsUsed)}/{fmtN(creditsLimit)}</span>
             </div>
             <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
               <div className="h-full rounded-full" style={{ width: `${pct}%`, background: YUZU }} />
@@ -192,7 +193,7 @@ export default function ManagePlanPage() {
           style={{ background: YUZU, borderRadius: '5px' }}>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" style={{ color: FG }} />
-            <span className="text-sm font-black" style={{ color: FG }}>Mettre à niveau</span>
+            <span className="text-sm font-black" style={{ color: FG }}>Upgrade plan</span>
           </div>
           <ChevronRight className="w-4 h-4" style={{ color: FG }} />
         </button>
@@ -200,14 +201,14 @@ export default function ManagePlanPage() {
         {userPlan?.price_monthly > 0 && (
           <div className="mb-4 border overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
             <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-              <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Historique de facturation</p>
+              <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Billing history</p>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold" style={{ color: FG }}>Plan {userPlan.name}</p>
-                <p className="text-xs" style={{ color: '#999' }}>{userPlan.price_monthly}$/mois</p>
+                <p className="text-xs" style={{ color: '#999' }}>${userPlan.price_monthly}/mo</p>
               </div>
-              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: GREEN, borderRadius: '2px' }}>ACTIF</span>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: GREEN, borderRadius: '2px' }}>ACTIVE</span>
             </div>
           </div>
         )}
@@ -217,14 +218,14 @@ export default function ManagePlanPage() {
             className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
             style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
             <X className="w-3 h-3" />
-            Annuler
+            Cancel subscription
           </button>
         )}
 
         {cancelSent && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 mt-3" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Demande en attente</p>
-            <p className="text-xs" style={{ color: '#888' }}>Votre demande a été envoyée. L'équipe Stensor la traitera dans les plus brefs délais.</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Request pending</p>
+            <p className="text-xs" style={{ color: '#888' }}>Your request has been sent. The Stensor team will process it as soon as possible.</p>
           </motion.div>
         )}
       </div>
@@ -240,7 +241,7 @@ export default function ManagePlanPage() {
               className="w-full max-w-md bg-white overflow-hidden"
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="font-black text-sm" style={{ color: FG }}>Aidez-nous à améliorer en évaluant votre expérience</p>
+                <p className="font-black text-sm" style={{ color: FG }}>Help us improve by rating your experience</p>
                 <button onClick={() => setShowSurvey(false)} className="w-7 h-7 flex items-center justify-center hover:bg-black/5 transition-colors flex-shrink-0 ml-3" style={{ borderRadius: '4px' }}>
                   <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
@@ -257,7 +258,7 @@ export default function ManagePlanPage() {
                   disabled={!surveyComplete}
                   className="w-full mt-2 py-3 text-sm font-black transition-all disabled:opacity-40"
                   style={{ background: FG, color: 'white', borderRadius: '5px', cursor: surveyComplete ? 'pointer' : 'not-allowed' }}>
-                  Continuer
+                  Continue
                 </button>
               </div>
             </motion.div>
@@ -276,18 +277,18 @@ export default function ManagePlanPage() {
               className="w-full max-w-md bg-white overflow-hidden"
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="font-black text-base" style={{ color: FG }}>En annulant, vous perdez immédiatement</p>
-                <p className="text-xs mt-1" style={{ color: '#ef4444' }}>Ces avantages disparaissent dès la fin de votre période en cours.</p>
+                <p className="font-black text-base" style={{ color: FG }}>By cancelling, you immediately lose</p>
+                <p className="text-xs mt-1" style={{ color: '#ef4444' }}>These benefits disappear at the end of your current period.</p>
               </div>
               <div className="p-5 space-y-3">
                 <div className="space-y-2">
                   {[
-                    { icon: '⚡', text: `${userPlan?.credits_limit || 0} Tensors par mois` },
-                    userPlan?.internet_access && { icon: '🌐', text: 'Recherche web en temps réel' },
-                    userPlan?.ultimate_access && { icon: '👑', text: 'Mode Expert (Claude Opus)' },
-                    userPlan?.file_upload && { icon: '📎', text: 'Envoi de fichiers & images' },
-                    userPlan?.max_discussions === 0 && { icon: '💬', text: 'Discussions illimitées' },
-                    { icon: '📊', text: 'Tout votre historique de conversations' },
+                    { icon: '⚡', text: `${userPlan?.credits_limit || 0} Tensors per month` },
+                    userPlan?.internet_access && { icon: '🌐', text: 'Real-time web search' },
+                    userPlan?.ultimate_access && { icon: '👑', text: 'Expert mode (Claude Opus)' },
+                    userPlan?.file_upload && { icon: '📎', text: 'File & image uploads' },
+                    userPlan?.max_discussions === 0 && { icon: '💬', text: 'Unlimited discussions' },
+                    { icon: '📊', text: 'Your full conversation history' },
                   ].filter(Boolean).map((item, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ background: 'rgba(239,68,68,0.05)', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.12)' }}>
                       <span className="text-lg">{item.icon}</span>
@@ -298,12 +299,12 @@ export default function ManagePlanPage() {
                 <button onClick={() => { setShowLossAversion(false); }}
                   className="w-full py-3 text-sm font-black transition-all hover:opacity-90"
                   style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                  Garder mon abonnement
+                  Keep my subscription
                 </button>
                 <button onClick={proceedToCancel}
                   className="w-full py-2 text-xs font-medium transition-all hover:opacity-70"
                   style={{ color: '#999' }}>
-                  non merci, annuler mon abonnement
+                  No thanks, cancel my subscription
                 </button>
               </div>
             </motion.div>
@@ -323,20 +324,20 @@ export default function ManagePlanPage() {
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <AlertCircle className="w-4 h-4" style={{ color: '#f59e0b' }} />
-                <p className="font-black text-sm" style={{ color: FG }}>Suppression automatique</p>
+                <p className="font-black text-sm" style={{ color: FG }}>Automatic deletion</p>
               </div>
               <div className="p-5 space-y-3">
-                <p className="text-sm" style={{ color: '#555' }}>En passant au plan Free, vous serez limité à <strong>10 discussions</strong>. Les discussions supplémentaires seront définitivement supprimées.</p>
+                <p className="text-sm" style={{ color: '#555' }}>Switching to the Free plan limits you to <strong>10 discussions</strong>. Extra discussions will be permanently deleted.</p>
                 <div className="flex gap-2 pt-1">
                   <button onClick={confirmDowngrade}
                     className="flex-1 py-2.5 text-sm font-bold"
                     style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
-                    Confirmer et supprimer
+                    Confirm & delete
                   </button>
                   <button onClick={() => setShowDowngradeWarning(false)}
                     className="px-4 py-2.5 text-sm font-medium"
                     style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '4px' }}>
-                    Annuler
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -356,22 +357,22 @@ export default function ManagePlanPage() {
               className="w-full max-w-sm bg-white overflow-hidden"
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="font-black text-sm" style={{ color: FG }}>Confirmer l'annulation</p>
+                <p className="font-black text-sm" style={{ color: FG }}>Confirm cancellation</p>
                 <button onClick={() => setShowCancelForm(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
                   <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-sm" style={{ color: '#555' }}>Commentaire optionnel</p>
+                <p className="text-sm" style={{ color: '#555' }}>Optional comment</p>
                 <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
-                  placeholder="Commentaire..."
+                  placeholder="Comment..."
                   rows={2}
                   className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
                   style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
                 <div>
-                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email utilisé pour le paiement *</label>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email used for payment *</label>
                   <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)}
-                    placeholder="votre-email@exemple.com"
+                    placeholder="your-email@example.com"
                     className="w-full px-3 py-2.5 text-sm focus:outline-none"
                     style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
                 </div>
@@ -379,12 +380,12 @@ export default function ManagePlanPage() {
                   <button onClick={submitCancel} disabled={cancelLoading || !cancelEmail.trim()}
                     className="flex-1 py-2.5 text-sm font-bold disabled:opacity-50"
                     style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
-                    {cancelLoading ? 'Envoi...' : 'Envoyer la demande'}
+                    {cancelLoading ? 'Sending...' : 'Send request'}
                   </button>
                   <button onClick={() => setShowCancelForm(false)}
                     className="px-3 py-2.5 text-xs font-medium"
                     style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
-                    Non
+                    No
                   </button>
                 </div>
               </div>

@@ -30,28 +30,28 @@ function MobileSectionContent({ section, user, userPlan, fullName, setFullName, 
   if (section === 'profile') return (
     <div className="space-y-4 pt-2">
       <div>
-        <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Email (non modifiable)</label>
+        <label className="text-xs font-semibold block mb-1" style={{ color: '#999' }}>Email (read-only)</label>
         <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px', color: '#aaa', background: 'rgba(0,0,0,0.03)' }} />
       </div>
       <div>
-        <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Nom complet</label>
+        <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Full name</label>
         <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-3 py-2.5 text-sm focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px' }} />
       </div>
       <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
-        <Save className="w-4 h-4" /> {savingProfile ? 'Enregistrement...' : 'Sauvegarder'}
+        <Save className="w-4 h-4" /> {savingProfile ? 'Saving...' : 'Save'}
       </button>
       <div className="p-4" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)', borderRadius: '10px' }}>
-        <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Supprimer le compte</p>
-        <p className="text-xs mb-3" style={{ color: '#888' }}>Action irréversible. Toutes vos données seront supprimées.</p>
+        <p className="text-sm font-semibold mb-1" style={{ color: FG }}>Delete account</p>
+        <p className="text-xs mb-3" style={{ color: '#888' }}>This action is irreversible. All your data will be permanently deleted.</p>
         <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', borderRadius: '8px' }}>
-          <Trash2 className="w-4 h-4" /> Supprimer le compte
+          <Trash2 className="w-4 h-4" /> Delete account
         </button>
       </div>
     </div>
   );
   if (section === 'chat') return (
     <div className="space-y-2 pt-2">
-      <p className="text-xs font-semibold mb-3" style={{ color: '#555' }}>Raccourci pour envoyer un message</p>
+      <p className="text-xs font-semibold mb-3" style={{ color: '#555' }}>Shortcut to send a message</p>
       {SHORTCUTS.map(s => (
         <button key={s.id} onClick={() => saveShortcut(s.id)} className="w-full flex items-center justify-between px-4 py-3 transition-all"
           style={{ border: `1px solid ${shortcut === s.id ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '8px', background: shortcut === s.id ? FG : 'white' }}>
@@ -86,13 +86,13 @@ function MobileSectionContent({ section, user, userPlan, fullName, setFullName, 
         </div>
       </div>
       <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px' }}>
-        <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Code d'activation</p>
+        <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Activation code</p>
         <div className="flex gap-2 mt-3">
           <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())} placeholder="Ex: 4F7K9M2X1R8P" maxLength={12}
             className="flex-1 px-3 py-2.5 text-sm font-mono focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px' }}
             onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
           <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()} className="px-4 py-2.5 text-sm font-bold disabled:opacity-40" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
-            {codeLoading ? '...' : 'Activer'}
+            {codeLoading ? '...' : 'Activate'}
           </button>
         </div>
       </div>
@@ -123,6 +123,7 @@ export default function SettingsPage() {
     }).catch(() => {});
   }, []);
 
+  const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
@@ -136,7 +137,7 @@ export default function SettingsPage() {
         const d = new Date();
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
-        days.push({ date: d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 });
+        days.push({ date: d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 });
       }
       return days;
     } catch { return []; }
@@ -147,13 +148,13 @@ export default function SettingsPage() {
     setSavingProfile(true);
     await base44.auth.updateMe({ full_name: fullName });
     setSavingProfile(false);
-    toast.success('Profil mis à jour');
+    toast.success('Profile updated');
   };
 
   const saveShortcut = (s) => {
     setShortcut(s);
     localStorage.setItem('stensor_send_shortcut', s);
-    toast.success('Raccourci enregistré');
+    toast.success('Shortcut saved');
   };
 
   const activateCode = async () => {
@@ -161,14 +162,14 @@ export default function SettingsPage() {
     setCodeLoading(true);
     const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
     if (results.length === 0) {
-      toast.error('Code invalide ou déjà utilisé');
+      toast.error('Invalid or already used code');
       setCodeLoading(false);
       return;
     }
     const codeRecord = results[0];
     const plans = getPlansConfig();
     const plan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!plan) { toast.error('Plan introuvable'); setCodeLoading(false); return; }
+    if (!plan) { toast.error('Plan not found'); setCodeLoading(false); return; }
     const billingCycle = codeRecord.billing || 'monthly';
     // Activate plan with billing info
     await base44.auth.updateMe({
@@ -182,7 +183,7 @@ export default function SettingsPage() {
     // Mark code as used
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
     setActivationCode('');
-    toast.success(`Plan ${plan.name} activé !`);
+    toast.success(`Plan ${plan.name} activated!`);
     const updated = await base44.auth.me();
     setUser(updated);
     setUserPlan(getUserPlan(updated));
@@ -193,11 +194,11 @@ export default function SettingsPage() {
     if (!user) return;
     await base44.integrations.Core.SendEmail({
       to: user.email,
-      subject: `Demande de facture — ${planName}`,
-      body: `L'utilisateur ${user.full_name || user.email} (${user.email}) demande une facture pour le plan ${planName}.`,
+      subject: `Invoice request — ${planName}`,
+      body: `User ${user.full_name || user.email} (${user.email}) requests an invoice for plan ${planName}.`,
     });
     setInvoiceRequested(p => ({ ...p, [planName]: true }));
-    toast.success('Demande envoyée');
+    toast.success('Request sent');
   };
 
   const deleteAccount = async () => {
@@ -341,7 +342,7 @@ export default function SettingsPage() {
                 <div className="space-y-4 max-w-lg">
                   {/* Current plan */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px' }}>
-                    <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>{t('settings_current_plan')}</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Current plan</p>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-lg font-black" style={{ color: FG }}>{userPlan?.name || 'Free'}</p>
@@ -350,28 +351,28 @@ export default function SettingsPage() {
                             ? (() => {
                                 const isYearly = user?.billing_cycle === 'yearly';
                                 const price = isYearly ? (userPlan.price_yearly || userPlan.price_monthly) : userPlan.price_monthly;
-                                const renewalLabel = isYearly ? 'Se renouvelle dans 1 an' : 'Se renouvelle dans 1 mois';
+                                const renewalLabel = isYearly ? 'Renews in 1 year' : 'Renews in 1 month';
                                 const subDate = user?.subscription_date ? new Date(user.subscription_date) : null;
                                 let renewalDate = '';
                                 if (subDate) {
                                   const next = new Date(subDate);
                                   if (isYearly) next.setFullYear(next.getFullYear() + 1);
                                   else next.setMonth(next.getMonth() + 1);
-                                  renewalDate = ` · le ${next.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+                                  renewalDate = ` · ${next.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
                                 }
-                                return `${price}$/mois · ${renewalLabel}${renewalDate}`;
+                                return `$${price}/mo · ${renewalLabel}${renewalDate}`;
                               })()
-                            : 'Plan gratuit'}
+                            : 'Free plan'}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         {user?.billing_cycle && userPlan?.price_monthly > 0 && (
                           <span className="text-[9px] font-bold px-2 py-0.5 mb-1 inline-block" style={{ background: user.billing_cycle === 'yearly' ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.05)', color: user.billing_cycle === 'yearly' ? '#16a34a' : '#666', borderRadius: '3px' }}>
-                            {user.billing_cycle === 'yearly' ? 'ANNUEL' : 'MENSUEL'}
+                            {user.billing_cycle === 'yearly' ? 'YEARLY' : 'MONTHLY'}
                           </span>
                         )}
                         <span className="px-3 py-1.5 text-xs font-bold block" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
-                          {userPlan?.credits_limit} Tensors/mois
+                          {userPlan?.credits_limit} Tensors/mo
                         </span>
                       </div>
                     </div>
@@ -396,20 +397,20 @@ export default function SettingsPage() {
                       <div className="border overflow-hidden" style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.09)' }}>
                         <div className="flex items-center gap-4 px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold" style={{ color: FG }}>Plan {userPlan.name} ({user?.billing_cycle === 'yearly' ? 'Annuel' : 'Mensuel'})</p>
+                            <p className="text-sm font-semibold" style={{ color: FG }}>Plan {userPlan.name} ({user?.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly'})</p>
                             <p className="text-xs" style={{ color: '#999' }}>
-                              {new Date(user?.subscription_date || user?.created_date || Date.now()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(user?.subscription_date || user?.created_date || Date.now()).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                           </div>
                           <span className="text-sm font-bold" style={{ color: FG }}>
-                            {user?.billing_cycle === 'yearly' ? (userPlan.price_yearly || userPlan.price_monthly) : userPlan.price_monthly}$/mois
+                            ${user?.billing_cycle === 'yearly' ? (userPlan.price_yearly || userPlan.price_monthly) : userPlan.price_monthly}/mo
                           </span>
                           <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderRadius: '2px' }}>PAID</span>
                           <button onClick={() => requestInvoice(userPlan.name)}
                             className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold transition-all"
                             style={{ background: invoiceRequested[userPlan.name] ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.05)', color: invoiceRequested[userPlan.name] ? '#16a34a' : '#666', borderRadius: '3px' }}>
                             <Download className="w-3 h-3" />
-                            {invoiceRequested[userPlan.name] ? 'Envoyé !' : 'Facture'}
+                            {invoiceRequested[userPlan.name] ? 'Sent!' : 'Invoice'}
                           </button>
                         </div>
                       </div>
@@ -427,11 +428,11 @@ export default function SettingsPage() {
                   {/* Plan info */}
                   <div className="flex items-center justify-between px-4 py-3" style={{ background: FG, borderRadius: '5px' }}>
                     <div>
-                      <p className="text-xs text-white/60">Plan actuel</p>
+                      <p className="text-xs text-white/60">Current plan</p>
                       <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
                     </div>
                     <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
-                      Mettre à niveau
+                      Upgrade
                     </button>
                   </div>
 
@@ -439,12 +440,12 @@ export default function SettingsPage() {
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-semibold" style={{ color: '#555' }}>{t('settings_tensors_month')}</p>
-                      <p className="text-xs font-black" style={{ color: pct >= 90 ? CORAL : FG }}>{creditsUsed} / {creditsLimit}</p>
+                      <p className="text-xs font-black" style={{ color: pct >= 90 ? CORAL : FG }}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
                     </div>
                     <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : FG }} />
                     </div>
-                    <p className="text-[10px] mt-1.5" style={{ color: '#bbb' }}>{Math.round(pct)}% utilisés</p>
+                    <p className="text-[10px] mt-1.5" style={{ color: '#bbb' }}>{Math.round(pct)}% used</p>
                   </div>
 
                   {/* 7-day chart */}
@@ -462,7 +463,7 @@ export default function SettingsPage() {
                   {/* Activation code */}
                   <div className="p-4" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
                     <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>{t('settings_activation_code')}</p>
-                    <p className="text-xs mb-3" style={{ color: '#888' }}>{t('settings_activation_desc')}</p>
+                    <p className="text-xs mb-3" style={{ color: '#888' }}>Enter a code received by email to activate a subscription.</p>
                     <div className="flex gap-2">
                       <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
                         placeholder="Ex: 4F7K9M2X1R8P"
