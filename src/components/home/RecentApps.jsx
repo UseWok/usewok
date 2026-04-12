@@ -3,8 +3,7 @@ import { Search, MessageSquare, MoreHorizontal, Trash2, Pencil, ChevronRight } f
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
-
-import { getDiscussions, saveDiscussions, loadDiscussionsFromCloud } from '@/lib/discussions';
+import { useDiscussions, useDeleteDiscussion, useRenameDiscussion } from '@/lib/useDiscussions';
 const FG = '#0A0A0A';
 
 function formatDate(dateStr) {
@@ -14,25 +13,10 @@ function formatDate(dateStr) {
 }
 
 export default function RecentApps({ agentId }) {
-  const [discussions, setDiscussions] = useState(getDiscussions);
+  const { data: discussions = [] } = useDiscussions();
+  const deleteDiscussion = useDeleteDiscussion();
+  const renameDiscussion = useRenameDiscussion();
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    loadDiscussionsFromCloud().then(cloudDiscs => {
-      if (!cloudDiscs || cloudDiscs.length === 0) return;
-      const local = getDiscussions();
-      const localIds = new Set(local.map(d => d.id));
-      const merged = [...local];
-      cloudDiscs.forEach(c => {
-        if (!localIds.has(c.conv_id)) {
-          merged.push({ id: c.conv_id, title: c.title || 'Discussion', preview: c.preview || '', date: c.updated_date?.slice(0, 10) || '', updatedAt: new Date(c.updated_date || Date.now()).getTime(), model: c.model, agent: c.agent });
-        }
-      });
-      merged.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-      setDiscussions(merged.slice(0, 50));
-      saveDiscussions(merged.slice(0, 50));
-    }).catch(() => {});
-  }, []);
   const [contextMenu, setContextMenu] = useState(null);
   const [renaming, setRenaming] = useState(null);
   const [renameValue, setRenameValue] = useState('');
@@ -53,9 +37,9 @@ export default function RecentApps({ agentId }) {
   }, []);
 
   const openCtx = (e, id) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ id, x: e.clientX, y: e.clientY }); };
-  const deleteItem = (id) => { const u = discussions.filter(d => d.id !== id); setDiscussions(u); saveDiscussions(u); setContextMenu(null); };
+  const deleteItem = (id) => { deleteDiscussion.mutate(id); setContextMenu(null); };
   const startRename = (id) => { const d = discussions.find(d => d.id === id); setRenameValue(d?.title || ''); setRenaming(id); setContextMenu(null); };
-  const confirmRename = (id) => { const u = discussions.map(d => d.id === id ? { ...d, title: renameValue } : d); setDiscussions(u); saveDiscussions(u); setRenaming(null); };
+  const confirmRename = (id) => { renameDiscussion.mutate({ discId: id, title: renameValue }); setRenaming(null); };
 
   const handleOpen = (disc) => {
     const params = new URLSearchParams({ conversationId: disc.id });

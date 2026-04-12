@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MessageSquare, Trash2, Pencil, Sparkles, X, AlertCircle, Zap } from 'lucide-react';
+import { Search, MessageSquare, Trash2, Pencil, Sparkles, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getDiscussions, saveDiscussions, loadDiscussionsFromCloud, setCurrentUser } from '@/lib/discussions';
+import { useDiscussions, useDeleteDiscussion, useRenameDiscussion } from '@/lib/useDiscussions';
 import { getUserPlan } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
@@ -22,7 +22,9 @@ function formatDate(dateStr) {
 }
 
 export default function DiscussionsPage() {
-  const [discussions, setDiscussions] = useState([]);
+  const { data: discussions = [], isLoading } = useDiscussions();
+  const deleteDiscussion = useDeleteDiscussion();
+  const renameDiscussion = useRenameDiscussion();
   const [search, setSearch] = useState('');
   const [aiQuery, setAiQuery] = useState('');
   const [aiResults, setAiResults] = useState(null);
@@ -40,22 +42,6 @@ export default function DiscussionsPage() {
     base44.auth.me().then(u => {
       setUser(u);
       setUserPlan(getUserPlan(u));
-      setCurrentUser(u.id); // ensure storage key is scoped to this user
-      const local = getDiscussions();
-      setDiscussions(local);
-      loadDiscussionsFromCloud().then(cloudDiscs => {
-        if (!cloudDiscs?.length) return;
-        const localIds = new Set(local.map(d => d.id));
-        const merged = [...local];
-        cloudDiscs.forEach(c => {
-          if (!localIds.has(c.conv_id)) {
-            merged.push({ id: c.conv_id, title: c.title || 'Discussion', preview: c.preview || '', date: c.updated_date?.slice(0, 10) || '', updatedAt: new Date(c.updated_date || Date.now()).getTime(), model: c.model, agent: c.agent });
-          }
-        });
-        merged.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        setDiscussions(merged.slice(0, 100));
-        saveDiscussions(merged.slice(0, 100));
-      }).catch(() => {});
     }).catch(() => {});
   }, []);
 
@@ -98,9 +84,9 @@ export default function DiscussionsPage() {
 
   const clearAiSearch = () => { setAiResults(null); setAiQuery(''); setAiError(''); };
 
-  const deleteItem = (id) => { const u = discussions.filter(d => d.id !== id); setDiscussions(u); saveDiscussions(u); setContextMenu(null); };
+  const deleteItem = (id) => { deleteDiscussion.mutate(id); setContextMenu(null); };
   const startRename = (id) => { const d = discussions.find(d => d.id === id); setRenameValue(d?.title || ''); setRenaming(id); setContextMenu(null); };
-  const confirmRename = (id) => { const u = discussions.map(d => d.id === id ? { ...d, title: renameValue } : d); setDiscussions(u); saveDiscussions(u); setRenaming(null); };
+  const confirmRename = (id) => { renameDiscussion.mutate({ discId: id, title: renameValue }); setRenaming(null); };
 
   const handleOpen = (disc) => {
     const params = new URLSearchParams({ conversationId: disc.id });
