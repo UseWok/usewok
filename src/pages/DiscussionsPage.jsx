@@ -3,7 +3,7 @@ import { Search, MessageSquare, Trash2, Pencil, Sparkles, X, AlertCircle, Zap } 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getDiscussions, saveDiscussions, loadDiscussionsFromCloud } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, loadDiscussionsFromCloud, setCurrentUser } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
@@ -40,6 +40,7 @@ export default function DiscussionsPage() {
     base44.auth.me().then(u => {
       setUser(u);
       setUserPlan(getUserPlan(u));
+      setCurrentUser(u.id); // ensure storage key is scoped to this user
       const local = getDiscussions();
       setDiscussions(local);
       loadDiscussionsFromCloud().then(cloudDiscs => {

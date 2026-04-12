@@ -23,8 +23,6 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
   const bonus = user?.credits_bonus || 0;
   const total = limit + bonus;
   const pct = Math.min((used / total) * 100, 100);
-  const remaining = total - used;
-  const isLow = remaining <= 5;
 
   // Daily usage
   const dailyLimit = user?.daily_credits_limit || 0; // 0 = unlimited
@@ -88,15 +86,7 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
                 <span className="text-2xl font-black" style={{ color: FG }}>{fmtN(used)}</span>
                 <span className="text-sm ml-1" style={{ color: '#bbb' }}>/ {fmtN(total)}</span>
               </div>
-              {isLow && (
-                <motion.span
-                  animate={{ opacity: [1, 0.4, 1] }}
-                  transition={{ repeat: Infinity, duration: 1.2 }}
-                  className="text-[10px] font-black px-2 py-1"
-                  style={{ background: CORAL, color: 'white', borderRadius: '3px' }}>
-                  {t('low_tensors_warning', { remaining })}
-                </motion.span>
-              )}
+
             </div>
 
             {/* Progress bar */}
@@ -106,7 +96,7 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
                 className="h-full rounded-full"
-                style={{ background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : FG }} />
+                style={{ background: FG }} />
             </div>
 
             <p className="text-[10px]" style={{ color: '#aaa' }}>

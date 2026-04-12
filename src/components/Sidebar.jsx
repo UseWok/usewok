@@ -344,7 +344,7 @@ export default function Sidebar({ expanded, setExpanded }) {
       {/* Popovers */}
       <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
-      <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} />
+      <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} user={user} />
       <LanguagePopover open={activePopover === 'lang'} onClose={() => setActivePopover(null)} anchorRef={langRef} />
       <TensorsPopover open={activePopover === 'tensors'} onClose={() => setActivePopover(null)} anchorRef={tensorsRef} user={user} />
     </>

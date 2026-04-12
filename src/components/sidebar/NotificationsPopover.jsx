@@ -8,19 +8,23 @@ import { useLanguage } from '@/lib/i18n';
 
 const PURPLE = '#3A0088';
 
-export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin }) {
+export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin, user }) {
   const popoverRef = useRef(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { t } = useLanguage();
 
-  const { data: notifications = [] } = useQuery({
+  const { data: rawNotifications = [] } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => base44.entities.Notification.list('-created_date', 30),
     enabled: open,
     refetchOnWindowFocus: false,
     refetchInterval: open ? 10000 : false,
   });
+  // Non-admins only see broadcast notifications (not internal admin notes created by users)
+  const notifications = isAdmin
+    ? rawNotifications
+    : rawNotifications.filter(n => n.created_by !== user?.email && !n.title?.includes(' — '));
 
   useEffect(() => {
     if (open) {
