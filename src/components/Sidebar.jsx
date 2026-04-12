@@ -48,8 +48,8 @@ export default function Sidebar({ expanded, setExpanded }) {
   const [logoHovered, setLogoHovered] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [showFeatures, setShowFeatures] = useState(true);
-  useEffect(() => { if (expanded) setShowFeatures(true); else setShowFeatures(false); }, [expanded]);
+  const [showFeatures, setShowFeatures] = useState(false);
+  useEffect(() => { if (!expanded) setShowFeatures(false); }, [expanded]);
   const isMobile = useIsMobile();
   const qc = useQueryClient();
 

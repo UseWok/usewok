@@ -109,7 +109,7 @@ export default function DiscussionsPage() {
       <div className="max-w-2xl mx-auto px-4 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-black" style={{ color: FG }}>Discussions</h1>
-          <p className="text-sm mt-1" style={{ color: '#aaa' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''} enregistrée{discussions.length !== 1 ? 's' : ''}</p>
+          <p className="text-sm mt-1" style={{ color: '#aaa' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''} saved</p>
         </div>
 
         {/* AI Search */}
@@ -118,16 +118,16 @@ export default function DiscussionsPage() {
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '3px' }}>
               <Sparkles className="w-3.5 h-3.5" style={{ color: FG }} />
             </div>
-            <p className="text-xs font-black" style={{ color: FG }}>Recherche IA</p>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 ml-auto" style={{ background: 'rgba(0,0,0,0.06)', color: '#777', borderRadius: '3px' }}>0.3 T par recherche</span>
+            <p className="text-xs font-black" style={{ color: FG }}>AI Search</p>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 ml-auto" style={{ background: 'rgba(0,0,0,0.06)', color: '#777', borderRadius: '3px' }}>0.3T per search</span>
           </div>
-          <p className="text-[11px] mb-3" style={{ color: '#bbb' }}>Décrivez un thème ou sujet — l'IA trouve les discussions correspondantes.</p>
+          <p className="text-[11px] mb-3" style={{ color: '#bbb' }}>Describe a theme or topic — the AI finds matching discussions.</p>
           <div className="flex gap-2">
             <input
               value={aiQuery}
               onChange={e => setAiQuery(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleAiSearch(); }}
-              placeholder="Ex: investissement immobilier, budget mensuel..."
+              placeholder="E.g. real estate investment, monthly budget..."
               className="flex-1 px-3 py-2.5 text-sm focus:outline-none"
               style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', color: FG }}
             />
@@ -140,10 +140,10 @@ export default function DiscussionsPage() {
                 <>
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
                     className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
-                  Recherche...
+                  Searching...
                 </>
               ) : (
-                <><Sparkles className="w-3.5 h-3.5" /> Chercher</>
+                <><Sparkles className="w-3.5 h-3.5" /> Search</>
               )}
             </button>
             {aiResults !== null && (
@@ -155,11 +155,11 @@ export default function DiscussionsPage() {
           {aiError && (
             <div className="flex items-center gap-2 mt-3 px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', borderRadius: '4px' }}>
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ef4444' }} />
-              <p className="text-xs" style={{ color: '#ef4444' }}>{aiError}</p>
+              <p className="text-xs" style={{ color: '#ef4444' }}>{aiError.replace('Aucune discussion trouvée pour ce thème.', 'No discussions found for this topic.').replace('Erreur lors de la recherche. Réessayez.', 'Search error. Please try again.')}</p>
             </div>
           )}
           {aiResults !== null && aiResults.length > 0 && (
-            <p className="text-xs mt-2" style={{ color: '#16a34a' }}>✓ {aiResults.length} discussion{aiResults.length > 1 ? 's' : ''} trouvée{aiResults.length > 1 ? 's' : ''}</p>
+            <p className="text-xs mt-2" style={{ color: '#16a34a' }}>✓ {aiResults.length} discussion{aiResults.length > 1 ? 's' : ''} found</p>
           )}
         </div>
 
@@ -169,7 +169,7 @@ export default function DiscussionsPage() {
             style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}>
             <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ccc' }} />
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Rechercher par titre ou contenu..."
+              placeholder="Search by title or content..."
               className="flex-1 text-sm bg-transparent focus:outline-none"
               style={{ color: FG }} />
           </div>
@@ -180,7 +180,7 @@ export default function DiscussionsPage() {
           {filtered.length === 0 && !aiLoading && (
             <div className="text-center py-12">
               <MessageSquare className="w-8 h-8 mx-auto mb-3 opacity-20" style={{ color: FG }} />
-              <p className="text-sm" style={{ color: '#ccc' }}>Aucune discussion trouvée</p>
+              <p className="text-sm" style={{ color: '#ccc' }}>No discussions found</p>
             </div>
           )}
           <AnimatePresence>
@@ -235,13 +235,13 @@ export default function DiscussionsPage() {
               style={{ color: FG }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <Pencil className="w-3.5 h-3.5" style={{ color: '#aaa' }} /> Renommer
+              <Pencil className="w-3.5 h-3.5" style={{ color: '#aaa' }} /> Rename
             </button>
             <button onClick={() => deleteItem(contextMenu.id)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 w-full text-left transition-colors"
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <Trash2 className="w-3.5 h-3.5" /> Supprimer
+              <Trash2 className="w-3.5 h-3.5" /> Delete
             </button>
           </motion.div>
         )}

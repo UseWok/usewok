@@ -1,5 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+
+const SESSION_KEY = 'stensor_total_minutes';
+
+function trackSession(userId) {
+  const key = `${SESSION_KEY}_${userId}`;
+  const start = Date.now();
+  return () => {
+    const elapsed = (Date.now() - start) / 60000; // minutes
+    const prev = parseFloat(localStorage.getItem(key) || '0');
+    localStorage.setItem(key, String(prev + elapsed));
+  };
+}
+
+export function getTotalMinutes(userId) {
+  return parseFloat(localStorage.getItem(`${SESSION_KEY}_${userId}`) || '0');
+}
 import WelcomeOfferBanner from './WelcomeOfferBanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
@@ -14,6 +31,14 @@ export default function Layout() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      if (!u?.id) return;
+      const cleanup = trackSession(u.id);
+      return cleanup;
+    }).catch(() => {});
+  }, []);
 
 
   return (
