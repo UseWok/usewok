@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
-import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Globe, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ContextualUpsell from '@/components/upsell/ContextualUpsell';
+import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Wifi, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
-import { getUserColor } from '@/lib/user-color';
 import { useLanguage } from '@/lib/i18n';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
@@ -54,6 +54,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [hasInternetState, setHasInternetState] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [upsellFeature, setUpsellFeature] = useState(null);
   const dragCounterRef = useRef(0);
   const inputCardRef = useRef(null);
 
@@ -70,7 +71,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const AGENTS = AGENT_IDS.map(id => ({ id, label: t(AGENT_LABEL_KEYS[id]) }));
   const effectiveAgentId = agentId || 'global';
   const lockedAgentLabel = AGENTS.find(a => a.id === effectiveAgentId)?.label;
-  const allowedModes = userPlan ? ALL_MODES.filter(m => userPlan.allowed_modes.includes(m.id)) : [ALL_MODES[0]];
   const canUpload = userPlan?.file_upload || false;
 
   useEffect(() => {
@@ -82,7 +82,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
       const total = (plan.credits_limit || 10) + bonus;
       setCreditsUsed(used);
       setCreditsTotal(total);
-      // Daily limit check
       if (plan.daily_credits_limit > 0) {
         const todayKey = new Date().toISOString().slice(0, 10);
         const dailyUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0; } catch { return 0; } })();
@@ -160,7 +159,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
   };
 
   const selectAtAgent = (agent) => {
-    // Replace any existing @AgentLabel mention instead of duplicating
     let cleaned = AGENTS.reduce((q, a) => q.replace(new RegExp(`@${a.label}\\s*`, 'g'), ''), query);
     const lastAt = cleaned.lastIndexOf('@');
     const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
@@ -172,7 +170,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const selectAtMode = (m) => {
     if (!userPlan?.allowed_modes.includes(m.id)) return;
-    // Replace any existing @ModeLabel mention instead of duplicating
     let cleaned = ALL_MODES.reduce((q, md) => q.replace(new RegExp(`@${md.label}\\s*`, 'g'), ''), query);
     const lastAt = cleaned.lastIndexOf('@');
     const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
@@ -183,7 +180,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   };
 
   const handleFileAttach = () => {
-    if (!canUpload) { navigate('/pricing'); return; }
+    if (!canUpload) { setUpsellFeature('files'); setShowFileMenu(false); return; }
     fileInputRef.current?.click();
     setShowFileMenu(false);
   };
@@ -227,7 +224,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
         onDragEnter={e => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
         onDragLeave={e => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
         onDragOver={e => e.preventDefault()}
-        onDrop={e => { e.preventDefault(); dragCounterRef.current = 0; setIsDragging(false); const dropped = Array.from(e.dataTransfer.files || []); if (dropped.length === 0) return; if (!canUpload) { navigate('/pricing'); return; } setFiles(prev => [...prev, ...dropped]); }}>
+        onDrop={e => { e.preventDefault(); dragCounterRef.current = 0; setIsDragging(false); const dropped = Array.from(e.dataTransfer.files || []); if (dropped.length === 0) return; if (!canUpload) { setUpsellFeature('files'); return; } setFiles(prev => [...prev, ...dropped]); }}>
 
         {/* @ menu */}
         <AnimatePresence>
@@ -265,7 +262,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           onMouseEnter={e => { if (isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                           <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
+                          <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
                           <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: isAllowed ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)', color: isAllowed ? '#777' : '#ccc', borderRadius: '2px' }}>{m.credit_cost}-{m.credit_max}T</span>
                           {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0" style={{ color: '#ccc' }} />}
                           {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
@@ -283,7 +280,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
         <div className="bg-white overflow-visible"
           style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
-          
+
           {files.length > 0 && (
             <div className="flex gap-2 flex-wrap p-4 pb-0">
               {files.map((file, idx) => (
@@ -304,7 +301,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           <div className="px-4 pt-4 pb-1">
             <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleCommencer(); } }}
-              placeholder={isBlocked ? (dailyBlocked ? 'Limite quotidienne atteinte — revenez demain ✨' : 'Limite mensuelle atteinte — passez à un plan supérieur') : t('hero_placeholder')}
+              placeholder={isBlocked ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue') : t('hero_placeholder')}
               disabled={isBlocked}
               rows={3}
               className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed"
@@ -412,7 +409,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  if (!hasInternet) { navigate('/pricing'); return; }
+                  if (!hasInternet) { setUpsellFeature('internet'); return; }
                   setUseWebSearch(w => !w);
                 }}
                 className="h-8 px-2 flex items-center gap-1.5 transition-colors"
@@ -442,16 +439,26 @@ export default function HeroSection({ agentId, onAgentChange }) {
         </div>
       </motion.div>
 
-      {/* Commencer button */}
+      {/* Contextual upsell */}
+      <AnimatePresence>
+        {upsellFeature && (
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="mt-3">
+            <ContextualUpsell feature={upsellFeature} onDismiss={() => setUpsellFeature(null)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Blocked banner */}
       {isBlocked && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
           onClick={() => navigate('/pricing')}
           className="mt-3 w-full py-3 flex items-center justify-between px-4 cursor-pointer transition-all hover:opacity-90"
           style={{ background: FG, borderRadius: '4px' }}>
-          <p className="text-sm font-bold text-white">{dailyBlocked ? 'Limite quotidienne atteinte 🌙' : 'Limite mensuelle atteinte'}</p>
+          <p className="text-sm font-bold text-white">{dailyBlocked ? 'Daily limit reached 🌙' : 'Monthly limit reached'}</p>
           <span className="text-xs font-black px-3 py-1" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Upgrade →</span>
         </motion.div>
       )}
+
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         onClick={handleCommencer} disabled={!hasText || isBlocked}
         className="mt-3 w-full py-3.5 font-black text-sm tracking-wide transition-all"
