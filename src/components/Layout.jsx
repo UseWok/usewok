@@ -21,6 +21,7 @@ import WelcomeOfferBanner from './WelcomeOfferBanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
 import { Menu } from 'lucide-react';
+import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/lib/i18n';
 
@@ -33,6 +34,7 @@ export default function Layout() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    captureReferralFromUrl();
     base44.auth.me().then(u => {
       if (!u?.id) return;
       const cleanup = trackSession(u.id);
@@ -73,8 +75,7 @@ export default function Layout() {
         {isMobile && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="fixed top-4 left-4 z-30 w-8 h-8 flex items-center justify-center"
-            style={{ background: '#0A0A0A', color: 'white', borderRadius: '4px' }}
+            className="fixed top-4 left-4 z-30 w-8 h-8 flex items-center justify-center bg-fg text-white rounded-sm"
           >
             <Menu className="w-4 h-4" />
           </button>

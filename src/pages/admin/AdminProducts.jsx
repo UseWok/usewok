@@ -1,347 +1,24 @@
 import { useState, useEffect } from 'react';
-import TicketsTab from '@/components/admin/TicketsTab';
-import LandingEditor from '@/components/admin/LandingEditor';
-import CodesTab from '@/components/admin/CodesTab';
-import PlanCodesSection from '@/components/admin/CodesTab';
-import { getPageModes, savePageModes } from '@/lib/page-modes';
-import { Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bell, Users, Save, Bot, Ban, Search, ChevronDown, ChevronUp,
-  Gift, Check, X, Pencil, Trash2, CreditCard, Globe, Zap,
-  Crown, Shield, Star, MessageSquare, Send
-} from 'lucide-react';
+import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB } from '@/lib/agents-config';
 import { getPlansConfig, savePlansConfig, DEFAULT_PLANS } from '@/lib/plans-config';
+import { getPageModes, savePageModes } from '@/lib/page-modes';
+import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
-
-const YUZU = '#DDFF00';
-const FG = '#0A0A0A';
+import TicketsTab from '@/components/admin/TicketsTab';
+import LandingEditor from '@/components/admin/LandingEditor';
+import PlanEditor from '@/components/admin/PlanEditor';
+import UserRow from '@/components/admin/UserRow';
 
 function Toggle({ value, onChange }) {
   return (
     <button onClick={() => onChange(!value)}
-      className="relative w-10 h-5 transition-colors flex-shrink-0"
-      style={{ background: value ? FG : 'rgba(0,0,0,0.12)', borderRadius: '10px' }}>
-      <div className={`absolute top-0.5 w-4 h-4 bg-white shadow transition-transform`}
-        style={{ borderRadius: '8px', transform: value ? 'translateX(22px)' : 'translateX(2px)' }} />
+      className={`relative w-10 h-5 flex-shrink-0 rounded-full transition-colors ${value ? 'bg-fg' : 'bg-black/10'}`}>
+      <div className={`absolute top-0.5 w-4 h-4 bg-white shadow rounded-full transition-transform ${value ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
     </button>
-  );
-}
-
-function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const field = (key, label, type = 'toggle', min = 0) => {
-    if (type === 'toggle') {
-      return (
-        <div key={key} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <span className="text-xs" style={{ color: '#555' }}>{label}</span>
-          <Toggle value={!!plan[key]} onChange={v => onChange({ ...plan, [key]: v })} />
-        </div>
-      );
-    }
-    if (type === 'number') {
-      return (
-        <div key={key} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <span className="text-xs" style={{ color: '#555' }}>{label}</span>
-          <input type="number" min={min} value={plan[key]}
-            onChange={e => onChange({ ...plan, [key]: parseInt(e.target.value) || 0 })}
-            className="w-20 text-right text-xs px-2 py-1 focus:outline-none"
-            style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
-        </div>
-      );
-    }
-  };
-
-  const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star, supreme: Crown };
-  const Icon = PLAN_ICONS[plan.id] || Zap;
-
-  return (
-    <div className="bg-white border rounded-sm overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-      <button onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-black/2">
-        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
-          style={{ background: isCurrentPlan ? YUZU : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
-          <Icon className="w-4 h-4" style={{ color: isCurrentPlan ? FG : '#666' }} />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-bold" style={{ color: FG }}>{plan.name}</p>
-            {isCurrentPlan && <span className="text-[9px] font-black px-2 py-0.5 tracking-wider" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>VOTRE PLAN</span>}
-          </div>
-          <p className="text-xs" style={{ color: '#999' }}>{plan.price_monthly}$/mois · {plan.credits_limit} crédits</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isCurrentPlan && (
-            <button onClick={(e) => { e.stopPropagation(); onActivate(); }}
-              className="px-3 py-1.5 text-xs font-bold transition-all"
-              style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-              Activer (test)
-            </button>
-          )}
-          {expanded ? <ChevronUp className="w-4 h-4" style={{ color: '#bbb' }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#bbb' }} />}
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-            transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-4 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {/* Codes d'accès pour ce plan */}
-              <div className="mb-4 pb-4 space-y-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <PlanCodesSection planId={plan.id} planName={plan.name} billing="monthly" />
-                <PlanCodesSection planId={plan.id} planName={plan.name} billing="yearly" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Tarification</p>
-                  {field('price_monthly', 'Prix mensuel ($)', 'number', 0)}
-                  {field('price_yearly', 'Prix annuel ($)', 'number', 0)}
-                  {field('credits_limit', 'Crédits / mois', 'number', 1)}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Fonctionnalités</p>
-                  {field('can_choose_model', 'Choix du modèle IA')}
-                  {field('internet_access', 'Recherche Internet')}
-                  {field('ultimate_access', 'Mode Ultimate')}
-                  {field('file_upload', 'Envoi de fichiers')}
-                  <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                    <span className="text-xs" style={{ color: '#555' }}>Type d'upload</span>
-                    <div className="flex gap-1">
-                      {['basique', 'complet'].map(opt => (
-                        <button key={opt} onClick={() => onChange({ ...plan, file_upload_extended: opt === 'complet' })}
-                          className="px-2.5 py-1 text-[10px] font-bold transition-all"
-                          style={{
-                            background: (opt === 'complet' ? plan.file_upload_extended : !plan.file_upload_extended) ? FG : 'rgba(0,0,0,0.05)',
-                            color: (opt === 'complet' ? plan.file_upload_extended : !plan.file_upload_extended) ? 'white' : '#888',
-                            borderRadius: '3px',
-                          }}>
-                          {opt === 'basique' ? 'Basique (img/txt)' : 'Complet (tous formats)'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {field('premium_support', 'Support Premium')}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Limites</p>
-                  {field('max_discussions', 'Max discussions (0=illimité)', 'number', 0)}
-                  {field('daily_credits_limit', 'Réponses IA / jour (0=illimité)', 'number', 0)}
-                  {field('lessons_per_month', 'Leçons / mois', 'number', 0)}
-                  <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                    <div>
-                      <span className="text-xs" style={{ color: '#555' }}>Crédits partageables</span>
-                      <span className="text-[9px] ml-2 px-1.5 py-0.5 font-bold" style={{ background: 'rgba(58,0,136,0.08)', color: '#3A0088', borderRadius: '2px' }}>Annuel uniquement</span>
-                    </div>
-                    <input type="number" min={0} value={plan.shareable_credits}
-                      onChange={e => onChange({ ...plan, shareable_credits: parseInt(e.target.value) || 0 })}
-                      className="w-20 text-right text-xs px-2 py-1 focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3" style={{ color: '#aaa' }}>Modes IA autorisés</p>
-                  {[{id:'thinking',label:'Standard (1T)'},{id:'pro',label:'Avancé (2T)'},{id:'ultimate',label:'Expert (4T)'}].map(({id: modeId, label: modeLabel}) => (
-                    <div key={modeId} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                      <span className="text-xs" style={{ color: '#555' }}>{modeLabel}</span>
-                      <Toggle
-                        value={plan.allowed_modes?.includes(modeId)}
-                        onChange={v => {
-                          const modes = plan.allowed_modes || [];
-                          onChange({ ...plan, allowed_modes: v ? [...modes, modeId] : modes.filter(m => m !== modeId) });
-                        }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function UserRow({ u, onUpdate }) {
-  const [expanded, setExpanded] = useState(false);
-  const [editCredits, setEditCredits] = useState('');
-  const [editLimit, setEditLimit] = useState('');
-  const [saved, setSaved] = useState(false);
-  const plans = getPlansConfig();
-
-  const isBanned = u.is_banned && (!u.ban_until || u.ban_until === 'permanent' || new Date(u.ban_until) > new Date());
-  const showSaved = () => { setSaved(true); setTimeout(() => setSaved(false), 1800); };
-
-  const applyCreditsUpdate = async () => {
-    const updates = {};
-    if (editCredits !== '') updates.credits_used = parseInt(editCredits);
-    if (editLimit !== '') updates.credits_limit = parseInt(editLimit);
-    if (Object.keys(updates).length === 0) return;
-    await base44.entities.User.update(u.id, updates);
-    showSaved(); onUpdate();
-    setEditCredits(''); setEditLimit('');
-  };
-
-  const giftCredits = async (amount) => {
-    const newBonus = (u.credits_bonus || 0) + amount;
-    await base44.entities.User.update(u.id, { credits_bonus: newBonus });
-    showSaved(); onUpdate();
-  };
-
-  const changePlan = async (planId) => {
-    const plan = plans.find(p => p.id === planId);
-    if (!plan) return;
-    await base44.entities.User.update(u.id, {
-      subscription_plan: planId,
-      credits_limit: plan.credits_limit,
-      credits_used: 0,
-      credits_bonus: 0,
-    });
-    showSaved(); onUpdate();
-  };
-
-  const setBan = async (val) => {
-    const ban_until = val === 'permanent' ? 'permanent' : new Date(Date.now() + val * 86400000).toISOString();
-    await base44.entities.User.update(u.id, { is_banned: true, ban_until });
-    showSaved(); onUpdate();
-  };
-
-  const removeBan = async () => {
-    await base44.entities.User.update(u.id, { is_banned: false, ban_until: null });
-    showSaved(); onUpdate();
-  };
-
-  const pct = Math.min(((u.credits_used || 0) / (u.credits_limit || 10)) * 100, 100);
-
-  return (
-    <div className="bg-white border rounded-sm overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-      <button onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-black/2 transition-colors">
-        <div className="w-9 h-9 flex items-center justify-center font-bold text-sm flex-shrink-0"
-          style={{ background: 'rgba(0,0,0,0.06)', color: FG, borderRadius: '4px' }}>
-          {u.full_name?.charAt(0)?.toUpperCase() || u.email?.charAt(0)?.toUpperCase() || '?'}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold truncate" style={{ color: FG }}>{u.full_name || u.email}</p>
-            {isBanned && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-red-100 text-red-600" style={{ borderRadius: '2px' }}>BANNI</span>}
-            {u.role === 'admin' && <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>ADMIN</span>}
-            {u.subscription_plan && u.subscription_plan !== 'free' && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 bg-black/5" style={{ borderRadius: '2px', color: '#444' }}>
-                {u.subscription_plan.toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 mt-0.5">
-            <p className="text-xs truncate" style={{ color: '#999' }}>{u.email}</p>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <div className="w-16 h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.1)' }}>
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 100 ? '#ef4444' : FG }} />
-              </div>
-              <span className="text-[10px]" style={{ color: '#aaa' }}>{u.credits_used || 0}/{u.credits_limit || 10}</span>
-            </div>
-          </div>
-        </div>
-        {saved && <span className="text-[10px] font-bold text-green-600 flex-shrink-0">✓</span>}
-        {expanded ? <ChevronUp className="w-4 h-4 flex-shrink-0" style={{ color: '#bbb' }} /> : <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: '#bbb' }} />}
-      </button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-            transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-4 pt-2 space-y-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {/* Change plan */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Abonnement</p>
-                <div className="flex gap-2 flex-wrap">
-                  {getPlansConfig().map(plan => (
-                    <button key={plan.id} onClick={() => changePlan(plan.id)}
-                      className="px-3 py-1.5 text-xs font-semibold transition-all"
-                      style={{
-                        borderRadius: '3px',
-                        background: u.subscription_plan === plan.id ? FG : 'rgba(0,0,0,0.05)',
-                        color: u.subscription_plan === plan.id ? 'white' : '#444',
-                      }}>
-                      {plan.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Credits */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Crédits manuels</p>
-                <div className="flex gap-2 flex-wrap">
-                  <div className="flex-1 min-w-[90px]">
-                    <label className="text-[10px] mb-1 block" style={{ color: '#aaa' }}>Utilisés</label>
-                    <input type="number" value={editCredits} onChange={e => setEditCredits(e.target.value)}
-                      placeholder={String(u.credits_used || 0)}
-                      className="w-full px-2.5 py-2 text-sm focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
-                  </div>
-                  <div className="flex-1 min-w-[90px]">
-                    <label className="text-[10px] mb-1 block" style={{ color: '#aaa' }}>Limite</label>
-                    <input type="number" value={editLimit} onChange={e => setEditLimit(e.target.value)}
-                      placeholder={String(u.credits_limit || 10)}
-                      className="w-full px-2.5 py-2 text-sm focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
-                  </div>
-                  <div className="flex items-end">
-                    <button onClick={applyCreditsUpdate}
-                      className="px-3 py-2 text-xs font-bold"
-                      style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                      <Save className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gift credits */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Offrir des crédits bonus</p>
-                <div className="flex gap-2 flex-wrap">
-                  {[10, 25, 50, 100, 500].map(amt => (
-                    <button key={amt} onClick={() => giftCredits(amt)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold transition-colors"
-                      style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
-                      <Gift className="w-3 h-3" /> +{amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Ban */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Accès</p>
-                {isBanned ? (
-                  <button onClick={removeBan}
-                    className="px-3 py-1.5 text-xs font-semibold bg-black/5 hover:bg-black/10 transition-colors"
-                    style={{ borderRadius: '3px', color: FG }}>
-                    Débannir
-                  </button>
-                ) : (
-                  <div className="flex gap-2 flex-wrap">
-                    {[{ label: '1 jour', val: 1 }, { label: '7 jours', val: 7 }, { label: '30 jours', val: 30 }, { label: 'Permanent', val: 'permanent' }].map(opt => (
-                      <button key={opt.label} onClick={() => setBan(opt.val)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold transition-colors ${opt.val === 'permanent' ? 'bg-red-100 text-red-700' : 'bg-orange-50 text-orange-700'}`}
-                        style={{ borderRadius: '3px' }}>
-                        <Ban className="w-3 h-3" /> {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
   );
 }
 
@@ -360,24 +37,18 @@ export default function AdminProducts() {
   const [checkoutUrls, setCheckoutUrls] = useState({});
   const [eventCheckoutUrls, setEventCheckoutUrls] = useState({});
   const [communityUrls, setCommunityUrls] = useState({ discord: '', community: '' });
-  const [codesInput, setCodesInput] = useState({}); // planId_billing -> textarea
-  const [codesSaved, setCodesSaved] = useState(false);
-  const [showCodesTab, setShowCodesTab] = useState(false);
   const [pageModes, setPageModes] = useState({ parcours: 'live', community: 'live' });
   const [saveTimeouts, setSaveTimeouts] = useState({});
+  const [codesInput, setCodesInput] = useState({});
 
   const qc = useQueryClient();
 
   useEffect(() => {
-    return () => {
-      Object.values(saveTimeouts).forEach(t => clearTimeout(t));
-    };
+    return () => { Object.values(saveTimeouts).forEach(t => clearTimeout(t)); };
   }, [saveTimeouts]);
 
   useEffect(() => {
-    // Load agents from DB on mount
     initAgentsFromDB().then(configs => setAgentsConfig(configs)).catch(() => {});
-    // Load existing activation codes
     base44.entities.ActivationCode.list('-created_date', 8000).then(codes => {
       const grouped = {};
       codes.forEach(code => {
@@ -386,21 +57,13 @@ export default function AdminProducts() {
         grouped[key].push(code.code);
       });
       const formatted = {};
-      Object.entries(grouped).forEach(([key, codes]) => {
-        formatted[key] = codes.join('\n');
-      });
+      Object.entries(grouped).forEach(([key, codes]) => { formatted[key] = codes.join('\n'); });
       setCodesInput(formatted);
     }).catch(() => {});
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
-    base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(results => {
-      if (results.length > 0) { try { setCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
-    }).catch(() => {});
-    base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(results => {
-      if (results.length > 0) { try { setEventCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
-    }).catch(() => {});
-    base44.entities.AppSettings.filter({ key: 'community_urls' }).then(results => {
-      if (results.length > 0) { try { setCommunityUrls(JSON.parse(results[0].value)); } catch {} }
-    }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'checkout_urls' }).then(r => { if (r.length > 0) { try { setCheckoutUrls(JSON.parse(r[0].value)); } catch {} } }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(r => { if (r.length > 0) { try { setEventCheckoutUrls(JSON.parse(r[0].value)); } catch {} } }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'community_urls' }).then(r => { if (r.length > 0) { try { setCommunityUrls(JSON.parse(r[0].value)); } catch {} } }).catch(() => {});
     getPageModes().then(m => setPageModes(m));
   }, []);
 
@@ -417,101 +80,32 @@ export default function AdminProducts() {
   };
 
   const showSaved = () => { setSavedMsg(true); setTimeout(() => setSavedMsg(false), 2000); };
-
   const savePlans = () => { savePlansConfig(plansConfig); showSaved(); };
+  const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 
-  const saveCommunityUrls = async () => {
-    const existing = await base44.entities.AppSettings.filter({ key: 'community_urls' });
-    const val = JSON.stringify(communityUrls);
+  const saveAppSetting = async (key, value) => {
+    const existing = await base44.entities.AppSettings.filter({ key });
+    const val = JSON.stringify(value);
     if (existing.length > 0) await base44.entities.AppSettings.update(existing[0].id, { value: val });
-    else await base44.entities.AppSettings.create({ key: 'community_urls', value: val });
-    showSaved();
-  };
-
-  const saveEventCheckoutUrls = async () => {
-    const existing = await base44.entities.AppSettings.filter({ key: 'checkout_urls_event' });
-    const val = JSON.stringify(eventCheckoutUrls);
-    if (existing.length > 0) await base44.entities.AppSettings.update(existing[0].id, { key: 'checkout_urls_event', value: val });
-    else await base44.entities.AppSettings.create({ key: 'checkout_urls_event', value: val });
-    showSaved();
-  };
-
-  const saveCheckoutUrls = async () => {
-    const existing = await base44.entities.AppSettings.filter({ key: 'checkout_urls' });
-    const val = JSON.stringify(checkoutUrls);
-    if (existing.length > 0) {
-      await base44.entities.AppSettings.update(existing[0].id, { value: val });
-    } else {
-      await base44.entities.AppSettings.create({ key: 'checkout_urls', value: val });
-    }
-    // Also update plans config with urls
-    const updated = getPlansConfig().map(p => checkoutUrls[p.id] ? { ...p, checkout_url: checkoutUrls[p.id] } : p);
-    savePlansConfig(updated); setPlansConfig(updated);
+    else await base44.entities.AppSettings.create({ key, value: val });
     showSaved();
   };
 
   const saveActivationCodes = async (inputData) => {
-    try {
-      const entries = Object.entries(inputData || codesInput);
-
-      for (const [key, raw] of entries) {
-        const [planId, billing] = key.split('__');
-        if (!planId || !billing) continue;
-
-        // Parse codes from textarea
-        const newCodes = new Set(
-          (raw || '')
-            .split(/[\n,;\s]+/)
-            .map(c => c.trim().toUpperCase())
-            .filter(c => c.length > 0)
-        );
-
-        // Fetch existing codes for this plan/billing
-        const existingRecords = await base44.entities.ActivationCode.filter({
-          plan_id: planId,
-          billing: billing,
-        });
-        const existingCodes = new Set(existingRecords.map(r => r.code));
-
-        // Delete codes that are no longer in the textarea
-        for (const record of existingRecords) {
-          if (!newCodes.has(record.code)) {
-            await base44.entities.ActivationCode.delete(record.id);
-          }
-        }
-
-        // Create codes that are new
-        const codesToCreate = [];
-        for (const code of newCodes) {
-          if (!existingCodes.has(code)) {
-            codesToCreate.push({ code, plan_id: planId, billing, used: false });
-          }
-        }
-
-        if (codesToCreate.length > 0) {
-          await base44.entities.ActivationCode.bulkCreate(codesToCreate);
-        }
-      }
-
-      setCodesSaved(true);
-      setTimeout(() => setCodesSaved(false), 1500);
-    } catch (err) {
-      toast.error('Erreur lors de la synchronisation');
+    const entries = Object.entries(inputData || codesInput);
+    for (const [key, raw] of entries) {
+      const [planId, billing] = key.split('__');
+      if (!planId || !billing) continue;
+      const newCodes = new Set((raw || '').split(/[\n,;\s]+/).map(c => c.trim().toUpperCase()).filter(c => c.length > 0));
+      const existingRecords = await base44.entities.ActivationCode.filter({ plan_id: planId, billing });
+      const existingCodes = new Set(existingRecords.map(r => r.code));
+      for (const record of existingRecords) { if (!newCodes.has(record.code)) await base44.entities.ActivationCode.delete(record.id); }
+      const codesToCreate = [];
+      for (const code of newCodes) { if (!existingCodes.has(code)) codesToCreate.push({ code, plan_id: planId, billing, used: false }); }
+      if (codesToCreate.length > 0) await base44.entities.ActivationCode.bulkCreate(codesToCreate);
     }
+    showSaved();
   };
-
-  const handleCodesChange = (key, value) => {
-    setCodesInput(c => ({ ...c, [key]: value }));
-    
-    // Auto-save avec debounce
-    if (saveTimeouts[key]) clearTimeout(saveTimeouts[key]);
-    const timeout = setTimeout(() => {
-      const newData = { ...codesInput, [key]: value };
-      saveActivationCodes(newData);
-    }, 1000);
-    setSaveTimeouts(t => ({ ...t, [key]: timeout }));
-  };
-  const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 
   const activatePlan = async (planId) => {
     if (!currentUser) return;
@@ -519,8 +113,7 @@ export default function AdminProducts() {
     if (!plan) return;
     await base44.auth.updateMe({ subscription_plan: planId, credits_limit: plan.credits_limit, credits_used: 0, credits_bonus: 0 });
     const updated = await base44.auth.me();
-    setCurrentUser(updated);
-    showSaved();
+    setCurrentUser(updated); showSaved();
   };
 
   const sendNotif = async () => {
@@ -538,19 +131,16 @@ export default function AdminProducts() {
     setEditingNotif(null); refetchNotifs();
   };
 
-  const plans = getPlansConfig().filter(p => p.id !== 'free');
   const filteredUsers = users.filter(u => !userSearch || u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()));
 
-  const savePageModesHandler = async () => { await savePageModes(pageModes); showSaved(); };
-
   const tabs = [
-    { id: 'plans', label: 'Abonnements', icon: CreditCard },
-    { id: 'agents', label: 'Agents IA', icon: Bot },
+    { id: 'plans', label: 'Subscriptions', icon: CreditCard },
+    { id: 'agents', label: 'AI Agents', icon: Bot },
     { id: 'pages', label: 'Pages', icon: Map },
     { id: 'landing', label: 'Landing Page', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'tickets', label: 'Tickets', icon: MessageSquare },
-    { id: 'users', label: 'Utilisateurs', icon: Users },
+    { id: 'users', label: 'Users', icon: Users },
   ];
 
   return (
@@ -558,32 +148,26 @@ export default function AdminProducts() {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: FG }}>Administration</h1>
-            <p className="text-sm mt-0.5" style={{ color: '#999' }}>Gérez votre plateforme Stensor</p>
+            <h1 className="text-2xl font-bold text-fg">Administration</h1>
+            <p className="text-sm mt-0.5 text-muted-foreground">Manage your Stensor platform</p>
           </div>
           <AnimatePresence>
             {savedMsg && (
               <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold"
-                style={{ background: YUZU, color: FG, borderRadius: '3px' }}>
-                <Check className="w-4 h-4" /> Enregistré
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold bg-yuzu text-fg rounded-sm">
+                <Check className="w-4 h-4" /> Saved
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="flex gap-1 p-1 mb-8 w-fit flex-wrap" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '5px' }}>
+        {/* Tab bar */}
+        <div className="flex gap-1 p-1 mb-8 w-fit flex-wrap bg-muted rounded-sm">
           {tabs.map(t => {
             const Icon = t.icon;
             return (
               <button key={t.id} onClick={() => { setTab(t.id); if (t.id === 'users') loadUsers(); }}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all`}
-                style={{
-                  background: tab === t.id ? 'white' : 'transparent',
-                  color: tab === t.id ? FG : '#888',
-                  borderRadius: '4px',
-                  boxShadow: tab === t.id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                }}>
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-sm transition-all ${tab === t.id ? 'bg-white text-fg shadow-sm' : 'text-muted-foreground hover:text-fg'}`}>
                 <Icon className="w-4 h-4" /> {t.label}
               </button>
             );
@@ -594,91 +178,60 @@ export default function AdminProducts() {
         {tab === 'plans' && (
           <div>
             {/* Checkout URLs */}
-            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
-              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Liens de paiement (redirection Stripe)</p>
+            <div className="mb-6 p-4 border border-border rounded-sm">
+              <p className="text-xs font-black uppercase tracking-wider mb-3 text-muted-foreground">Stripe payment links</p>
               <div className="space-y-3">
                 {plansConfig.filter(p => p.id !== 'free').flatMap(plan => [
                   <div key={`${plan.id}_monthly`} className="flex items-center gap-2">
-                    <span className="text-xs font-bold w-28 flex-shrink-0" style={{ color: FG }}>{plan.name} <span className="font-normal" style={{ color: '#aaa' }}>mensuel</span></span>
-                    <input
-                      value={checkoutUrls[`${plan.id}_monthly`] || ''}
-                      onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_monthly`]: e.target.value }))}
-                      placeholder="https://buy.stripe.com/..."
-                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                    <span className="text-xs font-bold w-28 flex-shrink-0 text-fg">{plan.name} <span className="font-normal text-muted-foreground">monthly</span></span>
+                    <input value={checkoutUrls[`${plan.id}_monthly`] || ''} onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_monthly`]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..." className="flex-1 px-3 py-2 text-xs border border-border rounded-sm focus:outline-none" />
                   </div>,
                   <div key={`${plan.id}_yearly`} className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold w-28 flex-shrink-0" style={{ color: FG }}>{plan.name} <span className="font-normal" style={{ color: '#aaa' }}>annuel</span></span>
-                    <input
-                      value={checkoutUrls[`${plan.id}_yearly`] || ''}
-                      onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_yearly`]: e.target.value }))}
-                      placeholder="https://buy.stripe.com/..."
-                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                    <span className="text-xs font-bold w-28 flex-shrink-0 text-fg">{plan.name} <span className="font-normal text-muted-foreground">yearly</span></span>
+                    <input value={checkoutUrls[`${plan.id}_yearly`] || ''} onChange={e => setCheckoutUrls(u => ({ ...u, [`${plan.id}_yearly`]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..." className="flex-1 px-3 py-2 text-xs border border-border rounded-sm focus:outline-none" />
                   </div>
                 ])}
               </div>
-              <button onClick={saveCheckoutUrls}
-                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                Sauvegarder les liens (tous appareils)
-              </button>
+              <button onClick={() => saveAppSetting('checkout_urls', checkoutUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-white rounded-sm hover:opacity-90">Save links</button>
             </div>
 
-            {/* EVENT Checkout URLs */}
-            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(221,255,0,0.4)', borderRadius: '4px', background: 'rgba(221,255,0,0.03)' }}>
-              <p className="text-xs font-black uppercase tracking-wider mb-1" style={{ color: '#888' }}>🎯 Liens paiement — Offre événement 30%</p>
-              <p className="text-[10px] mb-3" style={{ color: '#bbb' }}>Advanced, Expert & Supreme annuel uniquement. Actifs uniquement pendant la fenêtre 48h de bienvenue.</p>
+            {/* Event checkout URLs */}
+            <div className="mb-6 p-4 border border-yuzu/40 bg-yuzu/5 rounded-sm">
+              <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">🎯 Event offer links — 30% off</p>
+              <p className="text-[10px] mb-3 text-muted-foreground">Advanced, Expert & Supreme yearly only. Active during 48h welcome window.</p>
               <div className="space-y-3">
                 {['advanced', 'expert', 'supreme'].map(pid => (
                   <div key={pid} className="flex items-center gap-2">
-                    <span className="text-xs font-bold w-28 flex-shrink-0 capitalize" style={{ color: FG }}>{pid} <span className="font-normal" style={{ color: '#aaa' }}>annuel -30%</span></span>
-                    <input
-                      value={eventCheckoutUrls[`${pid}_yearly_event`] || ''}
-                      onChange={e => setEventCheckoutUrls(u => ({ ...u, [`${pid}_yearly_event`]: e.target.value }))}
-                      placeholder="https://buy.stripe.com/..."
-                      className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                    <span className="text-xs font-bold w-28 flex-shrink-0 capitalize text-fg">{pid} <span className="font-normal text-muted-foreground">yearly -30%</span></span>
+                    <input value={eventCheckoutUrls[`${pid}_yearly_event`] || ''} onChange={e => setEventCheckoutUrls(u => ({ ...u, [`${pid}_yearly_event`]: e.target.value }))}
+                      placeholder="https://buy.stripe.com/..." className="flex-1 px-3 py-2 text-xs border border-border rounded-sm focus:outline-none" />
                   </div>
                 ))}
               </div>
-              <button onClick={saveEventCheckoutUrls}
-                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: '#0A0A0A', color: '#DDFF00', borderRadius: '3px' }}>
-                Sauvegarder liens événement
-              </button>
+              <button onClick={() => saveAppSetting('checkout_urls_event', eventCheckoutUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-yuzu rounded-sm hover:opacity-90">Save event links</button>
             </div>
 
             {/* Community URLs */}
-            <div className="mb-6 p-4 border rounded-sm" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px' }}>
-              <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Liens Communaute</p>
+            <div className="mb-6 p-4 border border-border rounded-sm">
+              <p className="text-xs font-black uppercase tracking-wider mb-3 text-muted-foreground">Community links</p>
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold w-24 flex-shrink-0" style={{ color: FG }}>Discord</span>
-                  <input value={communityUrls.discord} onChange={e => setCommunityUrls(u => ({ ...u, discord: e.target.value }))}
-                    placeholder="https://discord.gg/..."
-                    className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold w-24 flex-shrink-0" style={{ color: FG }}>Communaute</span>
-                  <input value={communityUrls.community} onChange={e => setCommunityUrls(u => ({ ...u, community: e.target.value }))}
-                    placeholder="https://..."
-                    className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
-                </div>
+                {['discord', 'community'].map(key => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="text-xs font-bold w-24 flex-shrink-0 capitalize text-fg">{key}</span>
+                    <input value={communityUrls[key]} onChange={e => setCommunityUrls(u => ({ ...u, [key]: e.target.value }))}
+                      placeholder="https://..." className="flex-1 px-3 py-2 text-xs border border-border rounded-sm focus:outline-none" />
+                  </div>
+                ))}
               </div>
-              <button onClick={saveCommunityUrls}
-                className="mt-3 px-4 py-2 text-xs font-bold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>
-                Sauvegarder les liens communaute
-              </button>
+              <button onClick={() => saveAppSetting('community_urls', communityUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-white rounded-sm hover:opacity-90">Save</button>
             </div>
+
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm" style={{ color: '#666' }}>
-                Configurez les paramètres de chaque plan. En mode test, activez un plan pour le tester sur votre compte.
-              </p>
-              <button onClick={savePlans}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                <Save className="w-4 h-4" /> Sauvegarder
+              <p className="text-sm text-muted-foreground">Configure each plan. In test mode, activate a plan to test on your account.</p>
+              <button onClick={savePlans} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90">
+                <Save className="w-4 h-4" /> Save
               </button>
             </div>
             <div className="space-y-3">
@@ -691,9 +244,8 @@ export default function AdminProducts() {
               ))}
             </div>
             <button onClick={() => { savePlansConfig(DEFAULT_PLANS); setPlansConfig(DEFAULT_PLANS); showSaved(); }}
-              className="mt-4 text-xs font-medium transition-colors hover:text-black"
-              style={{ color: '#aaa' }}>
-              Réinitialiser les plans par défaut
+              className="mt-4 text-xs font-medium text-muted-foreground hover:text-fg transition-colors">
+              Reset to default plans
             </button>
           </div>
         )}
@@ -702,41 +254,34 @@ export default function AdminProducts() {
         {tab === 'agents' && (
           <div className="space-y-5">
             <div className="flex justify-end">
-              <button onClick={saveAgents}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-                <Save className="w-4 h-4" /> Sauvegarder tout
+              <button onClick={saveAgents} className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90">
+                <Save className="w-4 h-4" /> Save all
               </button>
             </div>
             {agentsConfig.map((agent, idx) => (
-              <div key={agent.id} className="bg-white border rounded-sm p-5" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+              <div key={agent.id} className="bg-white border border-border rounded-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
-                      <Bot className="w-4 h-4" style={{ color: FG }} />
+                    <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-sm">
+                      <Bot className="w-4 h-4 text-fg" />
                     </div>
                     <div>
-                      <p className="font-bold text-sm" style={{ color: FG }}>{agent.name}</p>
-                      <p className="text-xs" style={{ color: '#aaa' }}>ID: {agent.id}</p>
+                      <p className="font-bold text-sm text-fg">{agent.name}</p>
+                      <p className="text-xs text-muted-foreground">ID: {agent.id}</p>
                     </div>
                   </div>
                   <Toggle value={agent.enabled} onChange={v => { const u = [...agentsConfig]; u[idx] = { ...u[idx], enabled: v }; setAgentsConfig(u); }} />
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block" style={{ color: '#aaa' }}>Instructions système</label>
-                    <textarea value={agent.instructions}
-                      onChange={(e) => { const u = [...agentsConfig]; u[idx] = { ...u[idx], instructions: e.target.value }; setAgentsConfig(u); }}
-                      rows={4} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block" style={{ color: '#aaa' }}>Base de connaissances</label>
-                    <textarea value={agent.knowledge}
-                      onChange={(e) => { const u = [...agentsConfig]; u[idx] = { ...u[idx], knowledge: e.target.value }; setAgentsConfig(u); }}
-                      rows={3} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', background: '#fafafa' }} />
-                  </div>
+                  {['instructions', 'knowledge'].map(field => (
+                    <div key={field}>
+                      <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block text-muted-foreground">
+                        {field === 'instructions' ? 'System instructions' : 'Knowledge base'}
+                      </label>
+                      <textarea value={agent[field]} onChange={e => { const u = [...agentsConfig]; u[idx] = { ...u[idx], [field]: e.target.value }; setAgentsConfig(u); }}
+                        rows={field === 'instructions' ? 4 : 3} className="w-full px-3 py-2.5 text-sm border border-border rounded-sm bg-muted/30 focus:outline-none resize-none" />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -746,74 +291,64 @@ export default function AdminProducts() {
         {/* NOTIFICATIONS TAB */}
         {tab === 'notifications' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border rounded-sm p-5" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-              <h2 className="text-base font-bold mb-4" style={{ color: FG }}>Envoyer une notification</h2>
+            <div className="bg-white border border-border rounded-sm p-5">
+              <h2 className="text-base font-bold mb-4 text-fg">Send notification</h2>
               <div className="space-y-3">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider mb-1 block" style={{ color: '#aaa' }}>Titre *</label>
-                  <input value={notifForm.title} onChange={e => setNotifForm(f => ({ ...f, title: e.target.value }))}
-                    className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} placeholder="Titre de la notification" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider mb-1 block" style={{ color: '#aaa' }}>Message *</label>
-                  <textarea value={notifForm.message} onChange={e => setNotifForm(f => ({ ...f, message: e.target.value }))}
-                    className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} rows={3} placeholder="Contenu..." />
-                </div>
+                {['title', 'message'].map(key => (
+                  <div key={key}>
+                    <label className="text-[10px] font-black uppercase tracking-wider mb-1 block text-muted-foreground">{key} *</label>
+                    {key === 'message'
+                      ? <textarea value={notifForm[key]} onChange={e => setNotifForm(f => ({ ...f, [key]: e.target.value }))}
+                          className="w-full px-3 py-2.5 text-sm border border-border rounded-sm focus:outline-none resize-none" rows={3} />
+                      : <input value={notifForm[key]} onChange={e => setNotifForm(f => ({ ...f, [key]: e.target.value }))}
+                          className="w-full px-3 py-2.5 text-sm border border-border rounded-sm focus:outline-none" />}
+                  </div>
+                ))}
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider mb-1 block" style={{ color: '#aaa' }}>Lien</label>
-                    <input value={notifForm.link} onChange={e => setNotifForm(f => ({ ...f, link: e.target.value }))}
-                      className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} placeholder="/pricing" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider mb-1 block" style={{ color: '#aaa' }}>Libellé</label>
-                    <input value={notifForm.link_label} onChange={e => setNotifForm(f => ({ ...f, link_label: e.target.value }))}
-                      className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} placeholder="Voir plus" />
-                  </div>
+                  {['link', 'link_label'].map(key => (
+                    <div key={key}>
+                      <label className="text-[10px] font-black uppercase tracking-wider mb-1 block text-muted-foreground">{key.replace('_', ' ')}</label>
+                      <input value={notifForm[key]} onChange={e => setNotifForm(f => ({ ...f, [key]: e.target.value }))}
+                        className="w-full px-3 py-2.5 text-sm border border-border rounded-sm focus:outline-none"
+                        placeholder={key === 'link' ? '/pricing' : 'See more'} />
+                    </div>
+                  ))}
                 </div>
                 <button onClick={sendNotif} disabled={!notifForm.title || !notifForm.message}
-                  className="w-full py-2.5 font-bold text-sm disabled:opacity-40"
-                  style={{ background: notifSent ? '#16a34a' : FG, color: notifSent ? 'white' : 'white', borderRadius: '4px' }}>
-                  {notifSent ? '✓ Envoyée !' : 'Envoyer à tous'}
+                  className={`w-full py-2.5 font-bold text-sm rounded-sm transition-colors disabled:opacity-40 ${notifSent ? 'bg-green-600 text-white' : 'bg-fg text-white hover:opacity-90'}`}>
+                  {notifSent ? '✓ Sent!' : 'Send to all'}
                 </button>
               </div>
             </div>
-
             <div>
-              <h2 className="text-base font-bold mb-4" style={{ color: FG }}>Historique ({notifications.length})</h2>
+              <h2 className="text-base font-bold mb-4 text-fg">History ({notifications.length})</h2>
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {notifications.length === 0 && <p className="text-sm text-center py-8" style={{ color: '#aaa' }}>Aucune notification</p>}
+                {notifications.length === 0 && <p className="text-sm text-center py-8 text-muted-foreground">No notifications</p>}
                 {notifications.map(notif => (
-                  <div key={notif.id} className="bg-white border rounded-sm p-3" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                  <div key={notif.id} className="bg-white border border-border rounded-sm p-3">
                     {editingNotif?.id === notif.id ? (
                       <div className="space-y-2">
                         <input value={editingNotif.title} onChange={e => setEditingNotif(n => ({ ...n, title: e.target.value }))}
-                          className="w-full px-2.5 py-1.5 text-sm focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                          className="w-full px-2.5 py-1.5 text-sm border border-border rounded-sm focus:outline-none" />
                         <textarea value={editingNotif.message} onChange={e => setEditingNotif(n => ({ ...n, message: e.target.value }))}
-                          rows={2} className="w-full px-2.5 py-1.5 text-xs focus:outline-none resize-none" style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }} />
+                          rows={2} className="w-full px-2.5 py-1.5 text-xs border border-border rounded-sm focus:outline-none resize-none" />
                         <div className="flex gap-2">
-                          <button onClick={saveNotif} className="flex-1 py-1.5 text-xs font-semibold" style={{ background: FG, color: 'white', borderRadius: '3px' }}>Sauvegarder</button>
-                          <button onClick={() => setEditingNotif(null)} className="px-3 py-1.5 text-xs bg-black/5" style={{ borderRadius: '3px' }}>Annuler</button>
+                          <button onClick={saveNotif} className="flex-1 py-1.5 text-xs font-semibold bg-fg text-white rounded-sm">Save</button>
+                          <button onClick={() => setEditingNotif(null)} className="px-3 py-1.5 text-xs bg-muted rounded-sm">Cancel</button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-start gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold" style={{ color: FG }}>{notif.title}</p>
-                          <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#888' }}>{notif.message}</p>
-                          <p className="text-[10px] mt-1" style={{ color: '#ccc' }}>{new Date(notif.created_date).toLocaleDateString('fr-FR')}</p>
+                          <p className="text-sm font-semibold text-fg">{notif.title}</p>
+                          <p className="text-xs mt-0.5 line-clamp-2 text-muted-foreground">{notif.message}</p>
+                          <p className="text-[10px] mt-1 text-muted-foreground/50">{new Date(notif.created_date).toLocaleDateString()}</p>
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
-                          <button onClick={() => setEditingNotif({ ...notif })}
-                            className="w-7 h-7 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
-                            <Pencil className="w-3 h-3" style={{ color: '#aaa' }} />
+                          <button onClick={() => setEditingNotif({ ...notif })} className="w-7 h-7 flex items-center justify-center hover:bg-muted rounded-sm transition-colors">
+                            <Pencil className="w-3 h-3 text-muted-foreground" />
                           </button>
-                          <button onClick={() => deleteNotif(notif.id)}
-                            className="w-7 h-7 flex items-center justify-center bg-red-50 hover:bg-red-100 transition-colors" style={{ borderRadius: '3px' }}>
+                          <button onClick={() => deleteNotif(notif.id)} className="w-7 h-7 flex items-center justify-center bg-red-50 hover:bg-red-100 rounded-sm transition-colors">
                             <Trash2 className="w-3 h-3 text-red-500" />
                           </button>
                         </div>
@@ -829,34 +364,31 @@ export default function AdminProducts() {
         {/* PAGES TAB */}
         {tab === 'pages' && (
           <div className="max-w-xl">
-            <div className="bg-white p-5 border mb-6" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
-              <p className="text-sm font-bold mb-2" style={{ color: FG }}>Masquer globalement du site</p>
-              <p className="text-xs mb-4" style={{ color: '#aaa' }}>Enlève ces sections de l'accueil et des menus pour tous les utilisateurs.</p>
-              <div className="flex gap-3 flex-wrap">
-                {[{ key: 'show_parcours', label: 'Parcours' }, { key: 'show_community', label: 'Communauté' }].map(opt => (
-                  <Toggle key={opt.key} value={pageModes[opt.key] !== false} onChange={v => setPageModes(m => ({ ...m, [opt.key]: v }))} />
+            <div className="bg-white p-5 border border-border rounded-sm mb-6">
+              <p className="text-sm font-bold mb-2 text-fg">Hide from site globally</p>
+              <p className="text-xs mb-4 text-muted-foreground">Removes these sections from the home and menus for all users.</p>
+              <div className="flex gap-4 flex-wrap">
+                {[{ key: 'show_parcours', label: 'Journey' }, { key: 'show_community', label: 'Community' }].map(opt => (
+                  <div key={opt.key} className="flex items-center gap-2">
+                    <Toggle value={pageModes[opt.key] !== false} onChange={v => setPageModes(m => ({ ...m, [opt.key]: v }))} />
+                    <span className="text-xs font-medium text-fg">{opt.label}</span>
+                  </div>
                 ))}
               </div>
             </div>
-            <p className="text-sm mb-6" style={{ color: '#666' }}>Choisissez si une page affiche son contenu réel ou une page "En Construction" vivante.</p>
-            <div className="space-y-3">
-              {[{ key: 'parcours', label: 'Tensor Academy (Parcours)', desc: 'Le parcours d\'apprentissage IA' }, { key: 'community', label: 'Communauté', desc: 'L\'espace communautaire' }].map(page => (
-                <div key={page.key} className="bg-white p-5 overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+            <div className="space-y-3 mb-5">
+              {[{ key: 'parcours', label: 'Tensor Academy', desc: 'AI learning journey' }, { key: 'community', label: 'Community', desc: 'Community space' }].map(page => (
+                <div key={page.key} className="bg-white p-5 border border-border rounded-sm">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-bold" style={{ color: FG }}>{page.label}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>{page.desc}</p>
+                      <p className="text-sm font-bold text-fg">{page.label}</p>
+                      <p className="text-xs mt-0.5 text-muted-foreground">{page.desc}</p>
                     </div>
                     <div className="flex gap-2">
                       {['live', 'construction'].map(opt => (
                         <button key={opt} onClick={() => setPageModes(m => ({ ...m, [page.key]: opt }))}
-                          className="px-3 py-1.5 text-xs font-bold transition-all"
-                          style={{
-                            borderRadius: '6px',
-                            background: pageModes[page.key] === opt ? FG : 'rgba(0,0,0,0.05)',
-                            color: pageModes[page.key] === opt ? (opt === 'live' ? YUZU : '#FF6B6B') : '#888',
-                          }}>
-                          {opt === 'live' ? '✓ En ligne' : '🚧 Construction'}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-sm transition-all ${pageModes[page.key] === opt ? 'bg-fg text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                          {opt === 'live' ? '✓ Live' : '🚧 Construction'}
                         </button>
                       ))}
                     </div>
@@ -864,34 +396,30 @@ export default function AdminProducts() {
                 </div>
               ))}
             </div>
-            <button onClick={savePageModesHandler}
-              className="mt-5 flex items-center gap-2 px-5 py-2.5 text-sm font-bold"
-              style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-              <Save className="w-4 h-4" /> Sauvegarder les modes
+            <button onClick={async () => { await savePageModes(pageModes); showSaved(); }}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-fg text-white rounded-sm hover:opacity-90">
+              <Save className="w-4 h-4" /> Save page modes
             </button>
           </div>
         )}
 
-        {/* LANDING TAB */}
         {tab === 'landing' && <LandingEditor />}
-
-        {/* TICKETS TAB */}
         {tab === 'tickets' && <TicketsTab />}
 
         {/* USERS TAB */}
         {tab === 'users' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm" style={{ color: '#999' }}>{filteredUsers.length} utilisateur{filteredUsers.length !== 1 ? 's' : ''}</p>
-              <div className="flex items-center gap-2 px-3 py-2 w-56" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
-                <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aaa' }} />
+              <p className="text-sm text-muted-foreground">{filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}</p>
+              <div className="flex items-center gap-2 px-3 py-2 w-56 bg-muted rounded-sm">
+                <Search className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
                 <input value={userSearch} onChange={e => setUserSearch(e.target.value)}
-                  placeholder="Rechercher..." className="bg-transparent text-sm focus:outline-none flex-1" style={{ color: FG }} />
+                  placeholder="Search..." className="bg-transparent text-sm focus:outline-none flex-1 text-fg" />
               </div>
             </div>
             <div className="space-y-2">
               {filteredUsers.map(u => <UserRow key={u.id} u={u} onUpdate={loadUsers} />)}
-              {filteredUsers.length === 0 && <p className="text-sm text-center py-12" style={{ color: '#aaa' }}>Aucun utilisateur trouvé</p>}
+              {filteredUsers.length === 0 && <p className="text-sm text-center py-12 text-muted-foreground">No users found</p>}
             </div>
           </div>
         )}

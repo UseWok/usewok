@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 import { ALL_MODES, CHAR_SPEED, LOGO_URL, FG, YUZU, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { completeReferralOnFirstMessage } from '@/lib/referral';
 import { getUserPlan } from '@/lib/plans-config';
 import { emitCreditsUpdate } from '@/lib/credits-events';
 import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
@@ -216,6 +217,8 @@ export default function ChatPage() {
         await base44.auth.updateMe({ first_message_sent: true });
         currentUser = { ...currentUser, first_message_sent: true };
         setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
+        // Complete referral and gift Tensors to referrer
+        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
       }
     }
 
