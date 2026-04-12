@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import DragDropOverlay from '@/components/DragDropOverlay';
 import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Globe, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +53,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [dailyBlocked, setDailyBlocked] = useState(false);
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [hasInternetState, setHasInternetState] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
+  const inputCardRef = useRef(null);
 
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -218,7 +222,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       {/* Input card */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}
-        className="mt-7 relative">
+        className="mt-7 relative"
+        ref={inputCardRef}
+        onDragEnter={e => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
+        onDragLeave={e => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => { e.preventDefault(); dragCounterRef.current = 0; setIsDragging(false); const dropped = Array.from(e.dataTransfer.files || []); if (dropped.length === 0) return; if (!canUpload) { navigate('/pricing'); return; } setFiles(prev => [...prev, ...dropped]); }}>
 
         {/* @ menu */}
         <AnimatePresence>
@@ -270,6 +279,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           )}
         </AnimatePresence>
 
+        <DragDropOverlay visible={isDragging} canUpload={canUpload} />
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
         <div className="bg-white overflow-visible"
           style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, GraduationCap, Users, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, Lock, X } from 'lucide-react';
+import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, Gift, X } from 'lucide-react';
 import ReferralModal from './ReferralModal';
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
@@ -123,7 +123,8 @@ export default function Sidebar({ expanded, setExpanded }) {
 
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
-    ...(pageSettings.show_community ? [{ icon: Users, labelKey: 'community', path: '/community', active: location.pathname === '/community' }] : []),
+    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+    { icon: BarChart2, label: 'Analyses', path: '/analytics', active: location.pathname === '/analytics' },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 
@@ -134,7 +135,7 @@ export default function Sidebar({ expanded, setExpanded }) {
     <>
       <motion.aside
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
-        transition={{ duration: 0.22, ease: 'easeInOut' }}
+        transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
         className="fixed left-0 top-0 bottom-0 z-50 flex flex-col overflow-hidden bg-white"
         style={{ borderRight: '1px solid rgba(0,0,0,0.07)' }}
       >
@@ -176,7 +177,7 @@ export default function Sidebar({ expanded, setExpanded }) {
             <NavItem
               key={item.labelKey}
               icon={item.icon}
-              label={t(item.labelKey)}
+              label={item.label || t(item.labelKey)}
               active={item.active}
               expanded={expanded}
               onClick={() => { if (item.path) navigate(item.path); }}

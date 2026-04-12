@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import DragDropOverlay from '@/components/DragDropOverlay';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -118,6 +119,8 @@ export default function ChatPage() {
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
   const [comparisonMsg, setComparisonMsg] = useState('');
 
   const messagesEndRef = useRef(null);
@@ -759,7 +762,12 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
       </div>
 
       {/* Input area */}
-      <div className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full">
+      <div
+        className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full"
+        onDragEnter={e => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
+        onDragLeave={e => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => { e.preventDefault(); dragCounterRef.current = 0; setIsDragging(false); const dropped = Array.from(e.dataTransfer.files || []); if (dropped.length === 0) return; if (!canUploadFiles) { setUpgradeFeature('Joindre un fichier'); setShowUpgradeOverlay(true); return; } setFiles(p => [...p, ...dropped]); }}>
         <AnimatePresence>
           {showAtMenu && (
             <motion.div ref={atMenuRef} {...popUp}
@@ -802,6 +810,7 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
           )}
         </AnimatePresence>
 
+        <DragDropOverlay visible={isDragging} canUpload={canUploadFiles} />
         <div className="bg-white overflow-visible" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
 
           {files.length > 0 && (

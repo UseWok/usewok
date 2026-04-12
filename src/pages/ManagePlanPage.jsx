@@ -275,9 +275,9 @@ export default function ManagePlanPage() {
             <motion.div initial={{ scale: 0.96, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 12 }}
               className="w-full max-w-md bg-white overflow-hidden"
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <div className="px-5 py-4" style={{ background: FG }}>
-                <p className="font-black text-white text-base">En annulant, vous perdez immédiatement</p>
-                <p className="text-xs text-white/50 mt-1">Ces avantages disparaissent dès la fin de votre période en cours.</p>
+              <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <p className="font-black text-base" style={{ color: FG }}>En annulant, vous perdez immédiatement</p>
+                <p className="text-xs mt-1" style={{ color: '#ef4444' }}>Ces avantages disparaissent dès la fin de votre période en cours.</p>
               </div>
               <div className="p-5 space-y-3">
                 <div className="space-y-2">
@@ -289,15 +289,15 @@ export default function ManagePlanPage() {
                     userPlan?.max_discussions === 0 && { icon: '💬', text: 'Discussions illimitées' },
                     { icon: '📊', text: 'Tout votre historique de conversations' },
                   ].filter(Boolean).map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                    <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ background: 'rgba(239,68,68,0.05)', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.12)' }}>
                       <span className="text-lg">{item.icon}</span>
-                      <p className="text-sm font-medium" style={{ color: '#333' }}>{item.text}</p>
+                      <p className="text-sm font-semibold" style={{ color: '#dc2626' }}>{item.text}</p>
                     </div>
                   ))}
                 </div>
                 <button onClick={() => { setShowLossAversion(false); }}
                   className="w-full py-3 text-sm font-black transition-all hover:opacity-90"
-                  style={{ background: YUZU, color: FG, borderRadius: '5px' }}>
+                  style={{ background: FG, color: 'white', borderRadius: '4px' }}>
                   Garder mon abonnement
                 </button>
                 <button onClick={proceedToCancel}

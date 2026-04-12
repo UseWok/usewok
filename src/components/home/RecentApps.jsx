@@ -73,7 +73,7 @@ export default function RecentApps({ agentId }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: '#aaa' }}>{t('recent_discussions')}</h2>
-        <button onClick={() => navigate('/projects')}
+        <button onClick={() => navigate('/discussions')}
           className="flex items-center gap-1 text-xs font-semibold transition-opacity hover:opacity-60"
           style={{ color: FG }}>
           {t('see_all')} <ChevronRight className="w-3 h-3" />

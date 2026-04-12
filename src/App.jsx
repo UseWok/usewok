@@ -21,6 +21,8 @@ import Community from './pages/Community';
 import LandingPage from './pages/LandingPage';
 import LandingPricingPage from './pages/LandingPricingPage';
 import LandingFeaturesPage from './pages/LandingFeaturesPage';
+import DiscussionsPage from './pages/DiscussionsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -73,6 +75,8 @@ const AuthenticatedApp = () => {
           <Route path="/support" element={<SupportPage />} />
           <Route path="/manage-plan" element={<ManagePlanPage />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/discussions" element={<DiscussionsPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>

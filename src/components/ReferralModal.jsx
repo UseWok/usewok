@@ -69,17 +69,17 @@ export default function ReferralModal({ open, onClose, user }) {
               </div>
 
               {/* Hero area */}
-              <div className="px-5 pt-5 pb-4 text-center" style={{ background: FG }}>
+              <div className="px-5 pt-5 pb-4 text-center" style={{ background: YUZU }}>
                 <motion.div
                   initial={{ scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
                   className="w-16 h-16 flex items-center justify-center mx-auto mb-3"
-                  style={{ background: YUZU, borderRadius: '14px' }}>
-                  <Zap className="w-8 h-8" style={{ color: FG }} />
+                  style={{ background: FG, borderRadius: '14px' }}>
+                  <Zap className="w-8 h-8" style={{ color: YUZU }} />
                 </motion.div>
-                <h2 className="text-xl font-black text-white mb-1">+{TENSORS_PER_REFERRAL} Tensors par ami</h2>
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                <h2 className="text-xl font-black mb-1" style={{ color: FG }}>+{TENSORS_PER_REFERRAL} Tensors par ami</h2>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(0,0,0,0.5)' }}>
                   Invitez un ami. Dès qu'il envoie son premier message, vous recevez automatiquement {TENSORS_PER_REFERRAL} Tensors.
                 </p>
               </div>
