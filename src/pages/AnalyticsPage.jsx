@@ -245,14 +245,14 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Tensor gauge */}
-        <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+        <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-black text-fg">Tensor consumption</p>
             <span className="text-xs font-bold text-zinc-400">{Math.round(pct)}%</span>
           </div>
-          <div className="w-full h-2 bg-black/10 rounded-sm overflow-hidden mb-2">
+          <div className="w-full h-2 bg-black/10 rounded-full overflow-hidden mb-2">
             <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-fg rounded-sm" />
+              className="h-full bg-fg rounded-full" />
           </div>
           <p className="text-xs text-zinc-400">
             {fmtN(creditsUsed)} used · {fmtN(Math.max(0, creditLimit - creditsUsed))} remaining · monthly renewal
@@ -260,10 +260,10 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Financial Sentiment */}
-        <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+        <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 flex items-center justify-center bg-black/8 rounded-sm">
-              <Heart className="w-3.5 h-3.5 text-fg" />
+            <div className="w-9 h-9 flex items-center justify-center bg-black/6 rounded-xl">
+              <Heart className="w-4 h-4 text-fg" />
             </div>
             <p className="text-sm font-black text-fg">Financial Sentiment</p>
           </div>
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="w-full h-1.5 rounded-full overflow-hidden bg-black/8">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${d.score}%` }} transition={{ duration: 0.7, ease: 'easeOut' }}
-                      className="h-full bg-fg rounded-sm" />
+                      className="h-full bg-fg rounded-full" />
                   </div>
                 </div>
               ))}
@@ -291,11 +291,11 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* Detected Goals */}
-        <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+        {/* Detected Goals */
+        <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 flex items-center justify-center bg-yuzu rounded-sm">
-              <Target className="w-3.5 h-3.5 text-fg" />
+            <div className="w-9 h-9 flex items-center justify-center bg-yuzu rounded-xl">
+              <Target className="w-4 h-4 text-fg" />
             </div>
             <div>
               <p className="text-sm font-black text-fg">Detected Goals</p>
@@ -310,11 +310,11 @@ export default function AnalyticsPage() {
                     <span className="text-xs font-semibold flex items-center gap-1.5 text-fg">
                       <span>{g.emoji}</span>{g.label}
                     </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-black/8 text-zinc-500 rounded-sm">{Math.round(g.progress)}%</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-black/8 text-zinc-500 rounded-lg">{Math.round(g.progress)}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-black/8 rounded-sm overflow-hidden">
+                  <div className="w-full h-1.5 bg-black/8 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${g.progress}%` }} transition={{ duration: 0.7, delay: i * 0.1 }}
-                      className={`h-full rounded-sm ${i === 0 ? 'bg-yuzu' : 'bg-fg'}`} />
+                      className={`h-full rounded-full ${i === 0 ? 'bg-yuzu' : 'bg-fg'}`} />
                   </div>
                 </div>
               ))}
@@ -326,13 +326,13 @@ export default function AnalyticsPage() {
 
         {/* Daily activity */}
         {dailyData.some(d => d.count > 0) && (
-          <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+          <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
             <p className="text-sm font-black mb-4 text-fg">Daily activity — last 14 days</p>
             <ResponsiveContainer width="100%" height={100}>
               <LineChart data={dailyData}>
                 <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#a1a1aa' }} axisLine={false} tickLine={false} interval={1} />
                 <YAxis hide />
-                <Tooltip contentStyle={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', fontSize: 11 }} />
+                <Tooltip contentStyle={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '12px', fontSize: 11 }} />
                 <Line type="monotone" dataKey="count" stroke={FG} strokeWidth={2} dot={{ r: 3, fill: YUZU, stroke: FG, strokeWidth: 1.5 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -341,14 +341,14 @@ export default function AnalyticsPage() {
 
         {/* Weekly bars */}
         {weekData.some(w => w.count > 0) && (
-          <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+          <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
             <p className="text-sm font-black mb-4 text-fg">Activity — last 4 weeks</p>
             <ResponsiveContainer width="100%" height={110}>
               <BarChart data={weekData} barSize={22}>
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                 <YAxis hide />
-                <Tooltip contentStyle={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', fontSize: 11 }} />
-                <Bar dataKey="count" radius={[2, 2, 0, 0]} fill={FG} />
+                <Tooltip contentStyle={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '12px', fontSize: 11 }} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]} fill={FG} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -356,7 +356,7 @@ export default function AnalyticsPage() {
 
         {/* Agent balance */}
         {agentData.length > 0 && (
-          <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
+          <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
             <p className="text-sm font-black mb-1 text-fg">Agent balance</p>
             <p className="text-xs mb-4 text-zinc-400">How you distribute coaching sessions</p>
             <div className="flex items-center gap-4">
@@ -368,7 +368,7 @@ export default function AnalyticsPage() {
               <div className="flex-1 space-y-2">
                 {agentData.map((a, i) => (
                   <div key={a.id} className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 flex-shrink-0 rounded-sm" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="w-2.5 h-2.5 flex-shrink-0 rounded-md" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <p className="text-xs flex-1 truncate text-zinc-600">{a.name}</p>
                     <span className="text-xs font-bold text-fg">{a.count}</span>
                   </div>
@@ -391,18 +391,18 @@ export default function AnalyticsPage() {
         )}
 
         {/* Time saved breakdown */}
-        <div className="p-5 mb-4 bg-white border border-black/10 rounded-sm">
-          <p className="text-sm font-black mb-3 text-fg">Time saved vs. a human coach</p>
+        <div className="p-6 mb-4 bg-white border border-border rounded-2xl">
+          <p className="text-sm font-black mb-4 text-fg">Time saved vs. a human coach</p>
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 bg-black/5 rounded-sm">
+            <div className="p-4 bg-black/5 rounded-xl">
               <p className="text-lg font-black text-fg">{aiResponseCount}</p>
               <p className="text-[10px] mt-0.5 text-zinc-400">AI answers</p>
             </div>
-            <div className="p-3 flex flex-col items-center justify-center">
+            <div className="p-4 flex flex-col items-center justify-center">
               <p className="text-xs font-bold text-zinc-400">×</p>
               <p className="text-[10px] mt-1 text-zinc-400">{MINS_SAVED_PER_MSG} min/answer</p>
             </div>
-            <div className="p-3 bg-yuzu rounded-sm">
+            <div className="p-4 bg-yuzu rounded-xl">
               <p className="text-lg font-black text-fg">{timeSavedDisplay}</p>
               <p className="text-[10px] mt-0.5 text-fg/60">~${moneySaved} saved</p>
             </div>
@@ -410,10 +410,10 @@ export default function AnalyticsPage() {
         </div>
 
         {/* AI Recommendation */}
-        <div className="p-5 mb-4 border border-yuzu/50 bg-yuzu/5 rounded-sm">
+        <div className="p-6 mb-4 border border-yuzu/50 bg-yuzu/5 rounded-2xl">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm">
-              <Sparkles className="w-3.5 h-3.5 text-fg" />
+            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-xl">
+              <Sparkles className="w-4 h-4 text-fg" />
             </div>
             <p className="text-sm font-black text-fg">AI Recommendation</p>
           </div>

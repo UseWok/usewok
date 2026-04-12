@@ -13,6 +13,7 @@ const PENDING_KEY = 'stensor_pending_query';
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const agentFromUrl = urlParams.get('agent');
+  const navigate = useNavigate();
   const [selectedAgent, setSelectedAgent] = useState(agentFromUrl || null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
@@ -24,7 +25,6 @@ export default function Home() {
       const params = new URLSearchParams({ q: pending });
       navigate(`/chat?${params.toString()}`);
     }
-    // Show onboarding for new users
     if (shouldShowUserOnboarding()) {
       setTimeout(() => setShowUserOnboarding(true), 800);
     } else if (shouldShowTensorsOnboarding()) {

@@ -127,51 +127,14 @@ export default function DiscussionsPage() {
   return (
     <div className="min-h-screen bg-white font-be">
       <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-black" style={{ color: FG }}>Discussions</h1>
-          <p className="text-sm mt-1" style={{ color: '#aaa' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''} saved</p>
-        </div>
+        <motion.div initial={{ opacity: 0, filter: 'blur(10px)', y: 4 }} animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }} transition={{ duration: 0.5, ease: [0.22,1,0.36,1] }} className="mb-10">
+          <h1 className="text-3xl font-black mb-1.5" style={{ color: FG }}>Discussions</h1>
+          <p className="text-sm" style={{ color: '#aaa' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''} saved</p>
+        </motion.div>
 
-        {/* AI Search */}
-        <div className="mb-6 p-4 border" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '6px', background: 'white' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '3px' }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: FG }} />
-            </div>
-            <p className="text-xs font-black" style={{ color: FG }}>AI Search</p>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 ml-auto" style={{ background: 'rgba(0,0,0,0.06)', color: '#777', borderRadius: '3px' }}>0.3T per search</span>
-          </div>
-          <p className="text-[11px] mb-3" style={{ color: '#bbb' }}>Describe a theme or topic — the AI finds matching discussions.</p>
-          <div className="flex gap-2">
-            <input
-              value={aiQuery}
-              onChange={e => setAiQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleAiSearch(); }}
-              placeholder="E.g. real estate investment, monthly budget..."
-              className="flex-1 px-3 py-2.5 text-sm focus:outline-none"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', color: FG }}
-            />
-            <button
-              onClick={handleAiSearch}
-              disabled={!aiQuery.trim() || aiLoading}
-              className="px-4 py-2.5 text-sm font-black transition-all disabled:opacity-40 flex items-center gap-2"
-              style={{ background: FG, color: 'white', borderRadius: '4px' }}>
-              {aiLoading ? (
-                <>
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-                    className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
-                  Searching...
-                </>
-              ) : (
-                <><Sparkles className="w-3.5 h-3.5" /> Search</>
-              )}
-            </button>
-            {aiResults !== null && (
-              <button onClick={clearAiSearch} className="px-3 py-2.5 transition-all hover:bg-black/5" style={{ borderRadius: '4px' }}>
-                <X className="w-4 h-4" style={{ color: '#aaa' }} />
-              </button>
-            )}
-          </div>
+        {/* AI Search */
+        <motion.div initial={{ opacity: 0, filter: 'blur(8px)', y: 4 }} animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }} transition={{ duration: 0.5, delay: 0.07, ease: [0.22,1,0.36,1] }}
+          className="mb-6 p-5 bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px' }}>
           {aiError && (
             <div className="flex items-center gap-2 mt-3 px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', borderRadius: '4px' }}>
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ef4444' }} />
@@ -181,18 +144,19 @@ export default function DiscussionsPage() {
           {aiResults !== null && aiResults.length > 0 && (
             <p className="text-xs mt-2" style={{ color: '#16a34a' }}>✓ {aiResults.length} discussion{aiResults.length > 1 ? 's' : ''} found</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Regular search */}
         {aiResults === null && (
-          <div className="flex items-center gap-2 px-3 py-2.5 mb-4"
-            style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+            className="flex items-center gap-2 px-4 py-3 mb-4"
+            style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px' }}>
             <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#ccc' }} />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by title or content..."
               className="flex-1 text-sm bg-transparent focus:outline-none"
               style={{ color: FG }} />
-          </div>
+          </motion.div>
         )}
 
         {/* List */}
@@ -227,9 +191,9 @@ export default function DiscussionsPage() {
                 transition={{ delay: i * 0.03 }}
                 onClick={() => handleOpen(disc)}
                 onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setContextMenu({ id: disc.id, x: e.clientX, y: e.clientY }); }}
-                className="group flex items-center gap-4 p-4 bg-white cursor-pointer transition-all"
-                style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
+                className="group flex items-center gap-4 p-5 bg-white cursor-pointer transition-all"
+                style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.07)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px' }}>
                   <MessageSquare className="w-4 h-4" style={{ color: FG }} />
