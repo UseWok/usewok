@@ -12,6 +12,11 @@ const YUZU = '#DDFF00';
 const GREEN = '#16a34a';
 const RED = '#ef4444';
 
+const fmtN = (n) => {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+};
+
 const AGENT_LABELS = {
   'global': "Knowing exactly where I'm going",
   'emotions-depenses': 'Spend without guilt',
@@ -49,7 +54,7 @@ export default function AnalyticsPage() {
   }, []);
 
   const totalDiscs = discussions.length;
-  const creditsUsed = user?.credits_used || 0;
+  const creditsUsed = Math.round((user?.credits_used || 0) * 10) / 10;
   const creditLimit = userPlan ? (userPlan.credits_limit + (user?.credits_bonus || 0)) : 10;
   const pct = Math.min((creditsUsed / creditLimit) * 100, 100);
   const joinDate = user?.created_date ? new Date(user.created_date) : new Date();
@@ -104,7 +109,7 @@ export default function AnalyticsPage() {
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <StatCard icon={MessageSquare} label="Discussions" value={totalDiscs} sub="Conversations totales" />
-          <StatCard icon={Zap} label="Tensors utilisés" value={creditsUsed} sub={`sur ${creditLimit} ce mois`} accent={YUZU} />
+          <StatCard icon={Zap} label="Tensors used" value={fmtN(creditsUsed)} sub={`of ${fmtN(creditLimit)} this month`} accent={YUZU} />
           <StatCard icon={Clock} label="Temps gagné" value={`~${timeSavedHours}h`} sub="estimées depuis votre inscription" accent="rgba(0,0,0,0.08)" />
           <StatCard icon={TrendingUp} label="Économies" value={`~${moneySaved}€`} sub="vs coaching humain" accent="rgba(22,163,74,0.12)" />
         </div>
@@ -119,7 +124,7 @@ export default function AnalyticsPage() {
             <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
               className="h-full rounded-full" style={{ background: pct > 80 ? RED : FG }} />
           </div>
-          <p className="text-xs" style={{ color: '#aaa' }}>{creditsUsed} utilisés · {Math.max(0, creditLimit - creditsUsed)} restants · renouvellement mensuel</p>
+          <p className="text-xs" style={{ color: '#aaa' }}>{fmtN(creditsUsed)} used · {fmtN(Math.max(0, creditLimit - creditsUsed))} remaining · monthly renewal</p>
         </div>
 
         {/* Weekly activity chart */}

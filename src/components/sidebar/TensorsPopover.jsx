@@ -4,9 +4,14 @@ import { Zap, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 
-const PURPLE = '#3A0088';
+const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 const CORAL = '#FF4F00';
+
+const fmtN = (n) => {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+};
 
 export default function TensorsPopover({ open, onClose, anchorRef, user }) {
   const popRef = useRef(null);
@@ -66,10 +71,10 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 flex items-center justify-center" style={{ background: YUZU, borderRadius: '3px' }}>
-                <Zap className="w-3.5 h-3.5" style={{ color: PURPLE }} />
+              <div className="w-6 h-6 flex items-center justify-center" style={{ background: YUZU, borderRadius: '2px' }}>
+                <Zap className="w-3.5 h-3.5" style={{ color: FG }} />
               </div>
-              <span className="text-sm font-bold" style={{ color: PURPLE }}>{t('tensors')}</span>
+              <span className="text-sm font-bold" style={{ color: FG }}>{t('tensors')}</span>
             </div>
             <button onClick={onClose} className="w-5 h-5 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
               <X className="w-3 h-3" style={{ color: '#bbb' }} />
@@ -80,8 +85,8 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
           <div className="px-4 py-3">
             <div className="flex items-end justify-between mb-2">
               <div>
-                <span className="text-2xl font-black" style={{ color: PURPLE }}>{used}</span>
-                <span className="text-sm ml-1" style={{ color: '#bbb' }}>/ {total}</span>
+                <span className="text-2xl font-black" style={{ color: FG }}>{fmtN(used)}</span>
+                <span className="text-sm ml-1" style={{ color: '#bbb' }}>/ {fmtN(total)}</span>
               </div>
               {isLow && (
                 <motion.span
@@ -101,7 +106,7 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
                 className="h-full rounded-full"
-                style={{ background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : PURPLE }} />
+                style={{ background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : FG }} />
             </div>
 
             <p className="text-[10px]" style={{ color: '#aaa' }}>
@@ -114,12 +119,12 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Aujourd'hui</span>
                 <span className="text-[10px] font-black" style={{ color: hasDailyLimit && dailyUsed >= dailyLimit ? '#ef4444' : '#555' }}>
-                  {dailyUsed}{hasDailyLimit ? `/${dailyLimit}` : ' utilisés'}
+                  {fmtN(dailyUsed)}{hasDailyLimit ? `/${fmtN(dailyLimit)}` : ' used'}
                 </span>
               </div>
               {hasDailyLimit && (
                 <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((dailyUsed/dailyLimit)*100,100)}%`, background: dailyUsed >= dailyLimit ? '#ef4444' : PURPLE }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((dailyUsed/dailyLimit)*100,100)}%`, background: dailyUsed >= dailyLimit ? '#ef4444' : FG }} />
                 </div>
               )}
             </div>
@@ -130,7 +135,7 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
             <button
               onClick={() => { navigate('/pricing'); onClose(); }}
               className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hover:opacity-90"
-              style={{ background: PURPLE, color: 'white', borderRadius: '4px' }}>
+              style={{ background: FG, color: 'white', borderRadius: '2px' }}>
               <TrendingUp className="w-3 h-3" />
               {t('upgrade')} →
             </button>

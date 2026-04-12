@@ -8,9 +8,9 @@ module.exports = {
   			be: ['var(--font-be)']
   		},
   		borderRadius: {
-  			lg: '0px',
-  			md: '0px',
-  			sm: '0px'
+  			lg: '2px',
+  			md: '2px',
+  			sm: '1px'
   		},
   		colors: {
   			background: 'hsl(var(--background))',

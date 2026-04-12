@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const LANG_KEY = 'stensor_lang';
 
@@ -380,17 +380,39 @@ export const TRANSLATIONS = {
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  // Always English — admin panel uses hardcoded strings
-  const lang = 'en';
-  const setLang = () => {}; // no-op, language is locked
+  const [lang, setLangState] = useState(() => localStorage.getItem('stensor_lang') || 'en');
+  const [isChanging, setIsChanging] = useState(false);
+
+  const setLang = useCallback((code) => {
+    if (code === lang) return;
+    setIsChanging(true);
+    setTimeout(() => {
+      localStorage.setItem('stensor_lang', code);
+      setLangState(code);
+      setTimeout(() => setIsChanging(false), 200);
+    }, 250);
+  }, [lang]);
 
   const t = useCallback((key, vars = {}) => {
-    let str = TRANSLATIONS.en[key] ?? key;
+    const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+    let str = dict[key] ?? TRANSLATIONS.en[key] ?? key;
     Object.entries(vars).forEach(([k, v]) => { str = str.replace(`{${k}}`, v); });
     return str;
-  }, []);
+  }, [lang]);
 
-  return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
+      {isChanging && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-black/10 border-t-black rounded-full animate-spin" />
+            <p className="text-xs font-semibold" style={{ color: '#aaa' }}>Loading…</p>
+          </div>
+        </div>
+      )}
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export function useLanguage() {

@@ -151,6 +151,7 @@ export default function ChatPage() {
   const filteredAgents = AGENTS.filter(a => (a.label || a.id).toLowerCase().includes(atQuery));
   const filteredModes = allowedModes.filter(m => m.label.toLowerCase().includes(atQuery));
   const ModeIcon = mode.icon;
+  const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
   const visibleFiles = files.slice(0, MAX_VISIBLE_FILES);
   const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
@@ -683,7 +684,7 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
               <p className="text-sm font-bold" style={{ color: FG }}>Stensor</p>
               <span className="text-[10px] px-1.5 py-0.5 font-bold"
                 style={{ background: YUZU, color: FG, borderRadius: '2px' }}>
-                {mode.label}
+                {mode.label} · {fmtN(creditsUsed)}/{fmtN(creditsLimit)}T
               </span>
               {hasInternet && (
                 <span className="text-[10px] px-1.5 py-0.5 font-semibold hidden sm:inline-block"

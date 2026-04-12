@@ -25,10 +25,14 @@ export const AGENTS = [
 ];
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
-const PURPLE = '#3A0088';
+const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 const CORAL = '#FF4F00';
-const FG = '#0A0A0A';
+
+const fmtN = (n) => {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+};
 
 const UNLOCKABLE_FEATURES = [
   { labelKey: 'mode_ultimate', plan: 'Expert', planId: 'expert', icon: '👑' },
@@ -36,6 +40,7 @@ const UNLOCKABLE_FEATURES = [
   { label: 'File Uploads', plan: 'Essential', planId: 'essential', icon: '📎' },
   { label: 'Unlimited Discussions', plan: 'Advanced', planId: 'advanced', icon: '💬' },
 ];
+
 
 export default function Sidebar({ expanded, setExpanded }) {
   const [activePopover, setActivePopover] = useState(null);
@@ -213,13 +218,13 @@ export default function Sidebar({ expanded, setExpanded }) {
                             onClick={() => !unlocked && navigate('/pricing')}
                             className="w-full flex items-center gap-2 px-2 py-1.5 text-left transition-colors"
                             style={{ borderRadius: '3px', cursor: unlocked ? 'default' : 'pointer' }}
-                            onMouseEnter={e => { if (!unlocked) e.currentTarget.style.background = 'rgba(58,0,136,0.04)'; }}
+                            onMouseEnter={e => { if (!unlocked) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                             <span className="text-xs">{f.icon}</span>
                             <span className="text-[11px] flex-1" style={{ color: unlocked ? '#444' : '#888' }}>{f.label || t(f.labelKey)}</span>
                             {unlocked
                               ? <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderRadius: '2px' }}>✓ Actif</span>
-                              : <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(58,0,136,0.08)', color: PURPLE, borderRadius: '2px' }}>Upgrade {f.plan}+</span>
+                              : <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.07)', color: '#555', borderRadius: '2px' }}>Upgrade {f.plan}+</span>
                             }
                           </button>
                         );
@@ -239,12 +244,12 @@ export default function Sidebar({ expanded, setExpanded }) {
           <button
             onClick={() => navigate('/pricing')}
             className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 transition-all"
-            style={{ background: PURPLE, borderRadius: '4px' }}
+            style={{ background: FG, borderRadius: '2px' }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '3px' }}>
-              <TrendingUp className="w-3.5 h-3.5" style={{ color: PURPLE }} />
+            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '2px' }}>
+            <TrendingUp className="w-3.5 h-3.5" style={{ color: FG }} />
             </div>
             {expanded && (
               <div className="flex-1 min-w-0 text-left">
@@ -266,20 +271,20 @@ export default function Sidebar({ expanded, setExpanded }) {
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
-              style={{ background: YUZU, borderRadius: '3px' }}>
-              <Zap className="w-3.5 h-3.5" style={{ color: PURPLE }} />
+            style={{ background: YUZU, borderRadius: '2px' }}>
+            <Zap className="w-3.5 h-3.5" style={{ color: FG }} />
             </div>
             {expanded && (
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-bold" style={{ color: PURPLE }}>
-                  {used}/{total}
+                <span className="text-[10px] font-bold" style={{ color: FG }}>
+                  {fmtN(used)}/{fmtN(total)}
                 </span>
                 <span className="text-[9px]" style={{ color: '#bbb' }}>{t('tensors')}</span>
               </div>
               <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
-                <div className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, background: PURPLE }} />
+              <div className="h-full rounded-full transition-all"
+                style={{ width: `${pct}%`, background: FG }} />
               </div>
             </div>
             )}

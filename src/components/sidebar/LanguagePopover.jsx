@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 
-const PURPLE = '#3A0088';
+const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 
 const LANGUAGES = [
@@ -73,8 +73,8 @@ export default function LanguagePopover({ open, onClose, anchorRef }) {
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all"
                 style={{
                   background: lang === lng.code ? YUZU : 'transparent',
-                  color: lang === lng.code ? PURPLE : '#444',
-                  borderRadius: '4px',
+                  color: lang === lng.code ? FG : '#444',
+                  borderRadius: '2px',
                 }}
                 onMouseEnter={e => { if (lang !== lng.code) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                 onMouseLeave={e => { if (lang !== lng.code) e.currentTarget.style.background = 'transparent'; }}>
@@ -82,7 +82,7 @@ export default function LanguagePopover({ open, onClose, anchorRef }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold">{lng.native}</p>
                 </div>
-                {lang === lng.code && <Check className="w-3 h-3 flex-shrink-0" style={{ color: PURPLE }} />}
+                {lang === lng.code && <Check className="w-3 h-3 flex-shrink-0" style={{ color: FG }} />}
               </button>
             ))}
           </div>
