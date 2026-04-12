@@ -9,15 +9,25 @@ module.exports = {
   			be: ['var(--font-be)']
   		},
   		borderRadius: {
-  			lg: '2px',
-  			md: '2px',
-  			sm: '1px'
+  			none: '0px',
+  			sm: '2px',
+  			DEFAULT: '2px',
+  			md: '4px',
+  			lg: '6px',
+  			xl: '8px',
+  			'2xl': '12px',
+  			'3xl': '16px',
+  			full: '9999px',
   		},
   		colors: {
   				// Brand tokens
-  				fg:    '#0A0A0A',
-  				yuzu:  '#DDFF00',
-  				coral: '#FF4F00',
+  					fg:    '#0A0A0A',
+  					yuzu:  '#DDFF00',
+  					coral: '#FF4F00',
+  					// Semantic shorthands
+  					'zinc-400': '#a1a1aa',
+  					'zinc-500': '#71717a',
+  					'zinc-600': '#52525b',
   				background: 'hsl(var(--background))',
   				foreground: 'hsl(var(--foreground))',
   			card: {

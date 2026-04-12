@@ -1,75 +1,65 @@
-import { useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Home, MessageSquare } from 'lucide-react';
 
+const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function PageNotFound({}) {
-    const location = useLocation();
-    const pageName = location.pathname.substring(1);
+export default function PageNotFound() {
+  const navigate = useNavigate();
 
-    const { data: authData, isFetched } = useQuery({
-        queryKey: ['user'],
-        queryFn: async () => {
-            try {
-                const user = await base44.auth.me();
-                return { user, isAuthenticated: true };
-            } catch (error) {
-                return { user: null, isAuthenticated: false };
-            }
-        }
-    });
-    
-    return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-            <div className="max-w-md w-full">
-                <div className="text-center space-y-6">
-                    {/* 404 Error Code */}
-                    <div className="space-y-2">
-                        <h1 className="text-7xl font-light text-slate-300">404</h1>
-                        <div className="h-0.5 w-16 bg-slate-200 mx-auto"></div>
-                    </div>
-                    
-                    {/* Main Message */}
-                    <div className="space-y-3">
-                        <h2 className="text-2xl font-medium text-slate-800">
-                            Page Not Found
-                        </h2>
-                        <p className="text-slate-600 leading-relaxed">
-                            The page <span className="font-medium text-slate-700">"{pageName}"</span> could not be found in this application.
-                        </p>
-                    </div>
-                    
-                    {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.user?.role === 'admin' && (
-                        <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
-                            <div className="flex items-start space-x-3">
-                                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">
-                                    <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-                                </div>
-                                <div className="text-left space-y-1">
-                                    <p className="text-sm font-medium text-slate-700">Admin Note</p>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        This could mean that the AI hasn't implemented this page yet. Ask it to implement it in the chat.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Action Button */}
-                    <div className="pt-6">
-                        <button 
-                            onClick={() => window.location.href = '/'} 
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            Go Home
-                        </button>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 font-be">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-sm w-full text-center"
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-12">
+          <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain" />
+          <span className="font-black text-lg text-fg tracking-tight">Stensor</span>
         </div>
-    )
+
+        {/* 404 */}
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-yuzu rounded-2xl mb-6">
+            <span className="text-3xl font-black text-fg">404</span>
+          </div>
+          <h1 className="text-2xl font-black text-fg mb-2">Page introuvable</h1>
+          <p className="text-zinc-500 text-sm leading-relaxed">
+            Cette page n'existe pas ou a été déplacée.
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="w-12 h-0.5 bg-black/10 mx-auto mb-8" />
+
+        {/* Actions */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => navigate('/app')}
+            className="flex items-center justify-center gap-2 w-full py-3 bg-fg text-white font-bold text-sm rounded-md hover:opacity-90 transition-opacity"
+          >
+            <Home className="w-4 h-4" />
+            Retour à l'accueil
+          </button>
+          <button
+            onClick={() => navigate('/chat')}
+            className="flex items-center justify-center gap-2 w-full py-3 bg-yuzu text-fg font-bold text-sm rounded-md hover:opacity-90 transition-opacity"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Démarrer une conversation
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-zinc-500 hover:text-fg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Revenir en arrière
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
 }

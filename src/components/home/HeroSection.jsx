@@ -17,9 +17,6 @@ const ALL_MODES = [
   { id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 },
 ];
 
-const YUZU = '#DDFF00';
-const FG = '#0A0A0A';
-
 const POWER_TOPICS = [
   { label: 'Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week. No generic advice — be specific." },
   { label: 'Crush Debt', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers for my situation, and give me a realistic monthly plan to become debt-free. Which one should I choose and why?" },
@@ -108,8 +105,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   }, []);
 
   const handleFileSelect = (e) => {
-    const picked = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...picked]);
+    setFiles(prev => [...prev, ...Array.from(e.target.files || [])]);
     setShowFileMenu(false);
   };
 
@@ -118,12 +114,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
-    if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
-      setVoiceLoading(true);
-      return;
-    }
+    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(true); return; }
     finalTranscriptRef.current = '';
     const rec = new SR();
     rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = false;
@@ -132,8 +123,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
       if (finals) finalTranscriptRef.current = finals;
     };
     rec.onend = () => {
-      setIsRecording(false);
-      setVoiceLoading(false);
+      setIsRecording(false); setVoiceLoading(false);
       const raw = finalTranscriptRef.current.trim();
       if (raw) {
         const isQuestion = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
@@ -202,18 +192,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-        className="inline-flex items-center gap-2 px-3 py-1 mb-5"
-        style={{ background: YUZU, borderRadius: '2px' }}>
-        <Zap className="w-3 h-3" style={{ color: FG }} />
-        <span className="text-[10px] font-black tracking-widest" style={{ color: FG }}>{t('hero_badge')}</span>
+        className="inline-flex items-center gap-2 px-3 py-1 mb-5 bg-yuzu rounded-sm">
+        <Zap className="w-3 h-3 text-fg" />
+        <span className="text-[10px] font-black tracking-widest text-fg">{t('hero_badge')}</span>
       </motion.div>
 
       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-        className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: FG }}>
+        className="text-3xl md:text-4xl font-black tracking-tight text-fg">
         Let's build your financial freedom together.
       </motion.h1>
       <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}
-        className="mt-3 text-sm" style={{ color: '#888' }}>
+        className="mt-3 text-sm text-zinc-400">
         Your personal AI financial coach — clear answers, real strategies, straight to the point.
       </motion.p>
 
@@ -230,20 +219,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
         <AnimatePresence>
           {showAtMenu && (
             <motion.div ref={atMenuRef} {...popAnim}
-              className="absolute left-0 right-0 bottom-full mb-2 overflow-hidden shadow-lg z-50 bg-white text-left"
-              style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
-              <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>@ Agents & Modes</p>
+              className="absolute left-0 right-0 bottom-full mb-2 overflow-hidden shadow-lg z-50 bg-white border border-black/10 rounded-md text-left">
+              <div className="px-3 py-2 border-b border-black/8">
+                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">@ Agents & Modes</p>
               </div>
               <div className="max-h-52 overflow-y-auto">
                 {filteredAgents.length > 0 && (
                   <div className="px-2 py-1">
                     {filteredAgents.map(agent => (
                       <button key={agent.id} onClick={() => selectAtAgent(agent)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors"
-                        style={{ borderRadius: '3px', color: agentId === agent.id ? FG : '#555', background: agentId === agent.id ? YUZU : 'transparent' }}
-                        onMouseEnter={e => { if (agentId !== agent.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                        onMouseLeave={e => { if (agentId !== agent.id) e.currentTarget.style.background = 'transparent'; }}>
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left rounded-sm transition-colors ${agentId === agent.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
                         <Bot className="w-3.5 h-3.5 flex-shrink-0" />
                         <span className="font-medium">{agent.label}</span>
                       </button>
@@ -257,15 +242,15 @@ export default function HeroSection({ agentId, onAgentChange }) {
                       const isAllowed = userPlan?.allowed_modes.includes(m.id);
                       return (
                         <button key={m.id} onClick={() => selectAtMode(m)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors"
-                          style={{ borderRadius: '3px', opacity: isAllowed ? 1 : 0.4 }}
-                          onMouseEnter={e => { if (isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                          <div className="flex-1"><p className="text-sm font-medium" style={{ color: FG }}>{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
-                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: isAllowed ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)', color: isAllowed ? '#777' : '#ccc', borderRadius: '2px' }}>{m.credit_cost}-{m.credit_max}T</span>
-                          {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0" style={{ color: '#ccc' }} />}
-                          {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0" style={{ background: YUZU, color: FG, borderRadius: '2px' }}>actif</span>}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-left rounded-sm transition-colors mb-0.5 ${!isAllowed ? 'opacity-40' : 'hover:bg-black/5'}`}>
+                          <Icon className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-fg">{m.label}</p>
+                            <p className="text-[10px] text-zinc-400">{m.desc}</p>
+                          </div>
+                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 bg-black/8 text-zinc-500 rounded-sm">{m.credit_cost}-{m.credit_max}T</span>
+                          {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0 text-zinc-300" />}
+                          {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 bg-yuzu text-fg rounded-sm">active</span>}
                         </button>
                       );
                     })}
@@ -278,19 +263,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
         <DragDropOverlay visible={isDragging} canUpload={canUpload} />
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
-        <div className="bg-white overflow-visible"
-          style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '6px', boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)' }}>
 
+        <div className="bg-white border border-black/10 rounded-lg shadow-md overflow-visible">
           {files.length > 0 && (
             <div className="flex gap-2 flex-wrap p-4 pb-0">
               {files.map((file, idx) => (
-                <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group"
-                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '4px' }}>
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                  <span className="text-[10px] font-medium max-w-[80px] truncate" style={{ color: '#444' }}>{file.name}</span>
+                <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group bg-black/5 border border-black/8 rounded-md">
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                  <span className="text-[10px] font-medium max-w-[80px] truncate text-zinc-600">{file.name}</span>
                   <button onClick={() => removeFile(idx)}
-                    className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: 'rgba(0,0,0,0.1)', borderRadius: '2px' }}>
+                    className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-sm">
                     <X className="w-2 h-2" />
                   </button>
                 </div>
@@ -301,39 +283,32 @@ export default function HeroSection({ agentId, onAgentChange }) {
           <div className="px-4 pt-4 pb-1">
             <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleCommencer(); } }}
-              placeholder={isBlocked ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue') : t('hero_placeholder')}
+              placeholder={isBlocked
+                ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue')
+                : t('hero_placeholder')}
               disabled={isBlocked}
               rows={3}
-              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ color: FG }}
+              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed text-fg placeholder:text-zinc-400"
             />
           </div>
 
           <div className="flex items-center justify-between px-4 pb-4">
             <div className="flex items-center gap-1">
-              {/* + file button */}
+              {/* + file */}
               <div className="relative" ref={fileMenuRef}>
                 <button onClick={() => { setShowFileMenu(!showFileMenu); setShowAgentMenu(false); setShowModeMenu(false); }}
-                  className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5"
-                  style={{ borderRadius: '4px' }}>
-                  <Plus className="w-4 h-4" style={{ color: '#bbb' }} />
+                  className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
+                  <Plus className="w-4 h-4 text-zinc-300" />
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50"
-                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50 border border-black/10 rounded-md">
                       <button onClick={handleFileAttach}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left"
-                        style={{ color: canUpload ? '#444' : '#bbb', borderRadius: '3px' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <FileText className="w-3.5 h-3.5" style={{ color: canUpload ? FG : '#ddd' }} />
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
+                        <FileText className={`w-3.5 h-3.5 ${canUpload ? 'text-fg' : 'text-zinc-300'}`} />
                         Joindre un fichier
                         {!canUpload && (
-                          <span className="ml-auto text-[9px] font-black px-1.5 py-0.5"
-                            style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '3px' }}>
-                            Essential+
-                          </span>
+                          <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-sm">Essential+</span>
                         )}
                       </button>
                     </motion.div>
@@ -344,22 +319,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
               {/* Agent button */}
               <div className="relative" ref={agentMenuRef}>
                 <button onClick={() => { setShowAgentMenu(!showAgentMenu); setShowFileMenu(false); setShowModeMenu(false); }}
-                  className="h-8 px-2.5 flex items-center gap-1.5 transition-colors hover:bg-black/5"
-                  style={{ borderRadius: '4px' }}>
-                  <Bot className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
-                  <span className="text-xs font-medium" style={{ color: '#bbb' }}>{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
-                  <ChevronDown className="w-3 h-3" style={{ color: '#ccc' }} />
+                  className="h-8 px-2.5 flex items-center gap-1.5 rounded-md hover:bg-black/5 transition-colors">
+                  <Bot className="w-3.5 h-3.5 text-zinc-300" />
+                  <span className="text-xs font-medium text-zinc-300">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
+                  <ChevronDown className="w-3 h-3 text-zinc-300" />
                 </button>
                 <AnimatePresence>
                   {showAgentMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50"
-                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[200px] z-50 border border-black/10 rounded-md">
                       {AGENTS.map((a) => (
                         <button key={a.id} onClick={() => { onAgentChange(a.id); setShowAgentMenu(false); }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
-                          style={{ color: effectiveAgentId === a.id ? FG : '#666', background: effectiveAgentId === a.id ? YUZU : 'transparent', borderRadius: '3px' }}
-                          onMouseEnter={e => { if (effectiveAgentId !== a.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                          onMouseLeave={e => { if (effectiveAgentId !== a.id) e.currentTarget.style.background = 'transparent'; }}>
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
                           <Bot className="w-3.5 h-3.5" /> {a.label}
                         </button>
                       ))}
@@ -371,31 +341,26 @@ export default function HeroSection({ agentId, onAgentChange }) {
               {/* Mode button */}
               <div className="relative" ref={modeMenuRef}>
                 <button onClick={() => { setShowModeMenu(!showModeMenu); setShowFileMenu(false); setShowAgentMenu(false); }}
-                  className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5"
-                  style={{ borderRadius: '4px' }}>
-                  <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
+                  className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-300" />
                 </button>
                 <AnimatePresence>
                   {showModeMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50"
-                      style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }}>
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-md">
                       {ALL_MODES.map((m) => {
                         const Icon = m.icon;
                         const isAllowed = userPlan?.allowed_modes.includes(m.id);
                         return (
-                          <button key={m.id} onClick={() => {
-                            if (!isAllowed) return;
-                            setMode(m); setShowModeMenu(false);
-                          }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 transition-colors text-left mb-0.5"
-                            style={{ color: mode.id === m.id ? FG : isAllowed ? '#555' : '#ccc', background: mode.id === m.id ? YUZU : 'transparent', borderRadius: '3px', opacity: isAllowed ? 1 : 0.5 }}
-                            onMouseEnter={e => { if (mode.id !== m.id && isAllowed) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                            onMouseLeave={e => { if (mode.id !== m.id) e.currentTarget.style.background = 'transparent'; }}>
-                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                            <div className="flex-1"><p className="text-sm font-medium">{m.label}</p><p className="text-[10px]" style={{ color: '#aaa' }}>{m.desc}</p></div>
+                          <button key={m.id} onClick={() => { if (!isAllowed) return; setMode(m); setShowModeMenu(false); }}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left mb-0.5 ${mode.id === m.id ? 'bg-yuzu' : isAllowed ? 'hover:bg-black/5' : 'opacity-40'}`}>
+                            <Icon className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                            <div className="flex-1">
+                              <p className={`text-sm font-medium ${mode.id === m.id ? 'text-fg' : 'text-zinc-600'}`}>{m.label}</p>
+                              <p className="text-[10px] text-zinc-400">{m.desc}</p>
+                            </div>
                             {isAllowed
-                              ? <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.07)', color: '#777', borderRadius: '2px' }}>{m.credit_cost}T</span>
-                              : <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap" style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088', borderRadius: '2px' }}>{m.requiredPlan ? m.requiredPlan.charAt(0).toUpperCase() + m.requiredPlan.slice(1) + '+' : ''}</span>
+                              ? <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 bg-black/8 text-zinc-500 rounded-sm">{m.credit_cost}T</span>
+                              : <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap bg-purple-100 text-purple-700 rounded-sm">{m.requiredPlan ? m.requiredPlan.charAt(0).toUpperCase() + m.requiredPlan.slice(1) + '+' : ''}</span>
                             }
                           </button>
                         );
@@ -408,31 +373,26 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => {
-                  if (!hasInternet) { setUpsellFeature('internet'); return; }
-                  setUseWebSearch(w => !w);
-                }}
-                className="h-8 px-2 flex items-center gap-1.5 transition-colors"
-                style={{ background: useWebSearch ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                onClick={() => { if (!hasInternet) { setUpsellFeature('internet'); return; } setUseWebSearch(w => !w); }}
+                className={`h-8 px-2 flex items-center gap-1.5 rounded-md transition-colors ${useWebSearch ? 'bg-green-100' : 'bg-black/5'}`}>
                 {useWebSearch
-                  ? <Wifi className="w-3.5 h-3.5" style={{ color: '#16a34a' }} />
-                  : <WifiOff className="w-3.5 h-3.5" style={{ color: '#bbb' }} />}
-                <span className="text-[11px] font-semibold hidden sm:block" style={{ color: useWebSearch ? '#16a34a' : '#bbb' }}>Web</span>
-                {!hasInternet && <span className="text-[9px] font-bold ml-1" style={{ color: '#ccc' }}>Advanced+</span>}
+                  ? <Wifi className="w-3.5 h-3.5 text-green-600" />
+                  : <WifiOff className="w-3.5 h-3.5 text-zinc-300" />}
+                <span className={`text-[11px] font-semibold hidden sm:block ${useWebSearch ? 'text-green-600' : 'text-zinc-300'}`}>Web</span>
+                {!hasInternet && <span className="text-[9px] font-bold ml-1 text-zinc-300">Advanced+</span>}
               </button>
-              <span className="text-xs font-semibold hidden sm:block" style={{ color: '#bbb' }}>{mode.label}</span>
-              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.06)', color: '#999', borderRadius: '2px' }}>{mode.credit_cost}-{mode.credit_max}T</span>
+              <span className="text-xs font-semibold hidden sm:block text-zinc-300">{mode.label}</span>
+              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5 bg-black/8 text-zinc-400 rounded-sm">{mode.credit_cost}-{mode.credit_max}T</span>
               <button onClick={toggleRecording}
-                className="relative w-8 h-8 flex items-center justify-center transition-all"
-                style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
                 {voiceLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-                    className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
+                    className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yuzu" />
                 ) : isRecording ? (
                   <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                    transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
-                    className="w-2.5 h-2.5 rounded-full" style={{ background: YUZU }} />
-                ) : <Mic className="w-3.5 h-3.5" style={{ color: '#aaa' }} />}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="w-2.5 h-2.5 rounded-full bg-yuzu" />
+                ) : <Mic className="w-3.5 h-3.5 text-zinc-400" />}
               </button>
             </div>
           </div>
@@ -452,29 +412,24 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {isBlocked && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
           onClick={() => navigate('/pricing')}
-          className="mt-3 w-full py-3 flex items-center justify-between px-4 cursor-pointer transition-all hover:opacity-90"
-          style={{ background: FG, borderRadius: '4px' }}>
+          className="mt-3 w-full py-3 flex items-center justify-between px-4 cursor-pointer hover:opacity-90 transition-opacity bg-fg rounded-md">
           <p className="text-sm font-bold text-white">{dailyBlocked ? 'Daily limit reached 🌙' : 'Monthly limit reached'}</p>
-          <span className="text-xs font-black px-3 py-1" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Upgrade →</span>
+          <span className="text-xs font-black px-3 py-1 bg-yuzu text-fg rounded-sm">Upgrade →</span>
         </motion.div>
       )}
 
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         onClick={handleCommencer} disabled={!hasText || isBlocked}
-        className="mt-3 w-full py-3.5 font-black text-sm tracking-wide transition-all"
-        style={{ background: hasText ? FG : 'rgba(0,0,0,0.06)', color: hasText ? 'white' : '#bbb', cursor: hasText ? 'pointer' : 'not-allowed', borderRadius: '4px' }}>
+        className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all ${hasText ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-black/8 text-zinc-400 cursor-not-allowed'}`}>
         {t('hero_start')}
       </motion.button>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-6">
-        <p className="text-xs mb-3" style={{ color: '#bbb' }}>{t('hero_topics')}</p>
+        <p className="text-xs mb-3 text-zinc-300">{t('hero_topics')}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {POWER_TOPICS.map(topic => (
             <button key={topic.label} onClick={() => setQuery(topic.prompt)}
-              className="px-3.5 py-1.5 text-xs font-medium transition-all"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', color: '#555', background: 'white' }}
-              onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
+              className="px-3.5 py-1.5 text-xs font-medium border border-black/10 rounded-sm text-zinc-600 bg-white hover:bg-fg hover:text-white hover:border-fg transition-all">
               {topic.label}
             </button>
           ))}
