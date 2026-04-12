@@ -47,6 +47,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [voiceLoading, setVoiceLoading] = useState(false);
   const finalTranscriptRef = useRef('');
   const [userPlan, setUserPlan] = useState(null);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [creditsTotal, setCreditsTotal] = useState(10);
+  const [dailyBlocked, setDailyBlocked] = useState(false);
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [hasInternetState, setHasInternetState] = useState(false);
 
@@ -70,6 +73,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
     base44.auth.me().then(u => {
       const plan = getUserPlan(u);
       setUserPlan(plan);
+      const used = u?.credits_used || 0;
+      const bonus = u?.credits_bonus || 0;
+      const total = (plan.credits_limit || 10) + bonus;
+      setCreditsUsed(used);
+      setCreditsTotal(total);
+      // Daily limit check
+      if (plan.daily_credits_limit > 0) {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const dailyUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0; } catch { return 0; } })();
+        if (dailyUsed >= plan.daily_credits_limit) setDailyBlocked(true);
+      }
       const best = ALL_MODES.find(m => plan.allowed_modes.includes(m.id));
       if (best) setMode(best);
       if (plan.internet_access) {
@@ -182,6 +196,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const filteredAgents = AGENTS.filter(a => a.label.toLowerCase().includes(atQuery));
   const filteredModes = ALL_MODES.filter(m => m.label.toLowerCase().includes(atQuery));
   const hasText = query.trim().length > 0;
+  const isBlocked = creditsUsed >= creditsTotal || dailyBlocked;
 
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
@@ -278,10 +293,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
           <div className="px-4 pt-4 pb-1">
             <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommencer(); } }}
-              placeholder={t('hero_placeholder')}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleCommencer(); } }}
+              placeholder={isBlocked ? (dailyBlocked ? 'Limite quotidienne atteinte — revenez demain ✨' : 'Limite mensuelle atteinte — passez à un plan supérieur') : t('hero_placeholder')}
+              disabled={isBlocked}
               rows={3}
-              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
+              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ color: FG }}
             />
           </div>
@@ -417,8 +433,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
       </motion.div>
 
       {/* Commencer button */}
+      {isBlocked && (
+        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+          onClick={() => navigate('/pricing')}
+          className="mt-3 w-full py-3 flex items-center justify-between px-4 cursor-pointer transition-all hover:opacity-90"
+          style={{ background: FG, borderRadius: '4px' }}>
+          <p className="text-sm font-bold text-white">{dailyBlocked ? 'Limite quotidienne atteinte 🌙' : 'Limite mensuelle atteinte'}</p>
+          <span className="text-xs font-black px-3 py-1" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Upgrade →</span>
+        </motion.div>
+      )}
       <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        onClick={handleCommencer} disabled={!hasText}
+        onClick={handleCommencer} disabled={!hasText || isBlocked}
         className="mt-3 w-full py-3.5 font-black text-sm tracking-wide transition-all"
         style={{ background: hasText ? FG : 'rgba(0,0,0,0.06)', color: hasText ? 'white' : '#bbb', cursor: hasText ? 'pointer' : 'not-allowed', borderRadius: '4px' }}>
         {t('hero_start')}

@@ -91,6 +91,11 @@ export default function ChatPage() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(() => {
+    if (!conversationId) return false;
+    const local = getConversationMessages(conversationId);
+    return local.length === 0; // loading only if no local cache
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(modeId ? (ALL_MODES.find(m => m.id === modeId) || ALL_MODES[ALL_MODES.length - 1]) : ALL_MODES[ALL_MODES.length - 1]);
@@ -187,10 +192,15 @@ export default function ChatPage() {
   useEffect(() => {
     if (!conversationId) return;
     loadConversationFromCloud(conversationId).then(cloudMsgs => {
-      if (cloudMsgs && isMountedRef.current) {
+      if (!isMountedRef.current) return;
+      if (cloudMsgs && cloudMsgs.length > 0) {
         setMessages(cloudMsgs);
         saveConversationMessages(conversationId, cloudMsgs);
       }
+      // Small delay so the blur transition looks smooth
+      setTimeout(() => setIsLoadingConversation(false), 300);
+    }).catch(() => {
+      setIsLoadingConversation(false);
     });
   }, [conversationId]);
 
@@ -698,13 +708,26 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
 
       {/* Messages */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 md:px-8 py-4 space-y-4 max-w-3xl mx-auto w-full">
-        {messages.length === 0 && (
+        {isLoadingConversation && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
+            <div className="flex-shrink-0 mt-1">
+              <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60" />
+            </div>
+            <div className="flex flex-col gap-1.5 items-start">
+              <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>Chargement...</p>
+              <div style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <ChatLoadingAnimation mode={mode.id} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {!isLoadingConversation && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 opacity-20">
             <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
             <p className="text-sm" style={{ color: '#888' }}>{t('start_conversation')}</p>
           </div>
         )}
-        {messages.map((msg, idx) => (
+        {!isLoadingConversation && messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {msg.role === 'assistant'
               ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
@@ -734,30 +757,6 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Blocked banner */}
-      {blocked && (
-        <div className="px-4 pb-2 max-w-3xl mx-auto w-full">
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="px-4 py-3 flex items-center justify-between"
-            style={{ background: FG, borderRadius: '4px', cursor: dailyBlocked ? 'default' : 'pointer' }}
-            onClick={dailyBlocked ? undefined : () => setShowUpgradeOverlay(true)}>
-            <div>
-              <p className="text-sm font-bold text-white">
-                {dailyBlocked ? 'Daily limit reached 🌙' : t('credits_exhausted_month')}
-              </p>
-              <p className="text-xs mt-0.5 text-white/60">
-                {dailyBlocked
-                  ? 'Come back tomorrow to continue your conversations.'
-                  : userPlan?.id === 'free' ? t('upgrade_to_essential') : userPlan?.id === 'essential' ? t('upgrade_to_advanced') : t('upgrade_to_higher_plan')}
-              </p>
-            </div>
-            {!dailyBlocked && (
-              <span className="text-xs font-bold px-3 py-1.5 text-black" style={{ background: YUZU, borderRadius: '3px' }}>Upgrade →</span>
-            )}
-          </motion.div>
-        </div>
-      )}
 
       {/* Input area */}
       <div className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full">

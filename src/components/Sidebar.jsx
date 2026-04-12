@@ -99,7 +99,7 @@ export default function Sidebar({ expanded, setExpanded }) {
   const total = limit + bonus;
   const pct = Math.min((used / total) * 100, 100);
   const remaining = total - used;
-  const isLow = remaining <= 5;
+  const isLow = false; // Removed anxiety indicators
 
   const togglePopover = (name) => {
     if (name === 'noti') {
@@ -265,27 +265,20 @@ export default function Sidebar({ expanded, setExpanded }) {
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
-              style={{ background: isLow ? CORAL : YUZU, borderRadius: '3px', position: 'relative' }}>
-              <Zap className="w-3.5 h-3.5" style={{ color: isLow ? 'white' : PURPLE }} />
-              {isLow && (
-                <motion.div
-                  animate={{ opacity: [1, 0.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 1 }}
-                  className="absolute -top-1 -right-1 w-2.5 h-2.5"
-                  style={{ background: CORAL, borderRadius: '50%', border: '1.5px solid white' }} />
-              )}
+              style={{ background: YUZU, borderRadius: '3px' }}>
+              <Zap className="w-3.5 h-3.5" style={{ color: PURPLE }} />
             </div>
             {expanded && (
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-bold" style={{ color: isLow ? CORAL : PURPLE }}>
-                  {isLow ? '⚠ ' : ''}{used}/{total}
+                <span className="text-[10px] font-bold" style={{ color: PURPLE }}>
+                  {used}/{total}
                 </span>
                 <span className="text-[9px]" style={{ color: '#bbb' }}>{t('tensors')}</span>
               </div>
               <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
                 <div className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, background: pct >= 90 ? CORAL : pct >= 70 ? '#f59e0b' : PURPLE }} />
+                  style={{ width: `${pct}%`, background: PURPLE }} />
               </div>
             </div>
             )}

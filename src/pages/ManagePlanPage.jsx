@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, TrendingUp, X, AlertCircle, ChevronRight, Zap, Crown, Star, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
+import { getUserPlan } from '@/lib/plans-config';
 import HomeEventBanner from '@/components/home/HomeEventBanner';
 import { toast } from 'sonner';
 
@@ -12,13 +12,49 @@ const YUZU = '#DDFF00';
 const GREEN = '#16a34a';
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: TrendingUp, expert: Star, supreme: Crown };
 
+const SURVEY_CRITERIA = [
+  { id: 'satisfaction', label: 'Satisfaction générale' },
+  { id: 'value', label: 'Rapport qualité-prix' },
+  { id: 'ease', label: 'Facilité d\'utilisation' },
+  { id: 'features', label: 'Fonctionnalités proposées' },
+  { id: 'support', label: 'Support et accompagnement' },
+];
+
+function StarRating({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(star => (
+        <button
+          key={star}
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHover(star)}
+          onMouseLeave={() => setHover(0)}
+          className="transition-transform hover:scale-110"
+        >
+          <Star
+            className="w-6 h-6"
+            fill={(hover || value) >= star ? '#f59e0b' : 'none'}
+            style={{ color: (hover || value) >= star ? '#f59e0b' : '#ddd' }}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ManagePlanPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [showCancel, setShowCancel] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  // Cancel flow steps
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [showLossAversion, setShowLossAversion] = useState(false);
   const [showDowngradeWarning, setShowDowngradeWarning] = useState(false);
+  const [showCancelForm, setShowCancelForm] = useState(false);
+
+  const [ratings, setRatings] = useState({ satisfaction: 0, value: 0, ease: 0, features: 0, support: 0 });
   const [cancelNote, setCancelNote] = useState('');
   const [cancelEmail, setCancelEmail] = useState('');
   const [cancelSent, setCancelSent] = useState(false);
@@ -45,18 +81,36 @@ export default function ManagePlanPage() {
     userPlan?.premium_support && 'Support Premium',
   ].filter(Boolean);
 
-  const handleCancelClick = () => {
-    setShowCancelConfirm(true);
+  const closeAll = () => {
+    setShowSurvey(false);
+    setShowLossAversion(false);
+    setShowDowngradeWarning(false);
+    setShowCancelForm(false);
+  };
+
+  const handleCancelClick = () => setShowSurvey(true);
+
+  const handleSurveyContinue = async () => {
+    // Send ratings to admin
+    if (user) {
+      const ratingsText = SURVEY_CRITERIA.map(c => `${c.label}: ${ratings[c.id] || 0}/5`).join(' | ');
+      base44.entities.Notification.create({
+        title: `Avis départ — ${user.full_name || user.email}`,
+        message: `Plan: ${userPlan?.name} | ${ratingsText}`,
+      }).catch(() => {});
+    }
+    setShowSurvey(false);
+    setShowLossAversion(true);
   };
 
   const proceedToCancel = () => {
-    setShowCancelConfirm(false);
+    setShowLossAversion(false);
     const STORAGE_KEY = 'discussions_v1';
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       if (stored.length > 10) { setShowDowngradeWarning(true); return; }
     } catch {}
-    setShowCancel(true);
+    setShowCancelForm(true);
   };
 
   const confirmDowngrade = () => {
@@ -71,21 +125,25 @@ export default function ManagePlanPage() {
       localStorage.setItem('discussion_messages_v1', JSON.stringify(msgs));
     } catch {}
     setShowDowngradeWarning(false);
-    setShowCancel(true);
+    setShowCancelForm(true);
   };
 
   const submitCancel = async () => {
     if (!user) return;
     setCancelLoading(true);
+    const ratingsText = SURVEY_CRITERIA.map(c => `${c.label}: ${ratings[c.id] || 0}/5`).join(' | ');
     await base44.entities.Notification.create({
       title: `Annulation — ${user.full_name || user.email}`,
-      message: `Utilisateur: ${user.email} | Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote || '-'}`,
+      message: `Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote || '-'} | Avis: ${ratingsText}`,
     });
     setCancelLoading(false);
     setCancelSent(true);
-    setShowCancel(false);
+    closeAll();
     toast.success('Demande envoyée');
   };
+
+  const setRating = (id, val) => setRatings(prev => ({ ...prev, [id]: val }));
+  const surveyComplete = SURVEY_CRITERIA.every(c => ratings[c.id] > 0);
 
   return (
     <div className="min-h-screen bg-white font-be">
@@ -127,10 +185,8 @@ export default function ManagePlanPage() {
           </div>
         </div>
 
-        {/* Event banner */}
         <HomeEventBanner large />
 
-        {/* Upgrade */}
         <button onClick={() => navigate('/pricing')}
           className="w-full flex items-center justify-between px-4 py-3 mb-3 transition-all hover:opacity-90"
           style={{ background: YUZU, borderRadius: '5px' }}>
@@ -141,7 +197,6 @@ export default function ManagePlanPage() {
           <ChevronRight className="w-4 h-4" style={{ color: FG }} />
         </button>
 
-        {/* Billing history */}
         {userPlan?.price_monthly > 0 && (
           <div className="mb-4 border overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
             <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
@@ -157,7 +212,6 @@ export default function ManagePlanPage() {
           </div>
         )}
 
-        {/* Cancel */}
         {userPlan?.price_monthly > 0 && !cancelSent && (
           <button onClick={handleCancelClick}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
@@ -175,42 +229,82 @@ export default function ManagePlanPage() {
         )}
       </div>
 
-      {/* Cancel confirm modal */}
+      {/* STEP 1 — Survey modal */}
       <AnimatePresence>
-        {showCancelConfirm && (
+        {showSurvey && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[500] flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
-            onClick={e => { if (e.target === e.currentTarget) setShowCancelConfirm(false); }}>
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="w-full max-w-sm bg-white overflow-hidden"
-              style={{ borderRadius: '6px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowSurvey(false); }}>
+            <motion.div initial={{ scale: 0.96, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 12 }}
+              className="w-full max-w-md bg-white overflow-hidden"
+              style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <p className="font-black text-sm" style={{ color: FG }}>Aidez-nous à améliorer en évaluant votre expérience</p>
+                <button onClick={() => setShowSurvey(false)} className="w-7 h-7 flex items-center justify-center hover:bg-black/5 transition-colors flex-shrink-0 ml-3" style={{ borderRadius: '4px' }}>
+                  <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                {SURVEY_CRITERIA.map(c => (
+                  <div key={c.id} className="flex items-center justify-between gap-4">
+                    <p className="text-sm" style={{ color: '#444' }}>{c.label}</p>
+                    <StarRating value={ratings[c.id]} onChange={val => setRating(c.id, val)} />
+                  </div>
+                ))}
+                <button
+                  onClick={handleSurveyContinue}
+                  disabled={!surveyComplete}
+                  className="w-full mt-2 py-3 text-sm font-black transition-all disabled:opacity-40"
+                  style={{ background: FG, color: 'white', borderRadius: '5px', cursor: surveyComplete ? 'pointer' : 'not-allowed' }}>
+                  Continuer
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* STEP 2 — Loss aversion modal */}
+      <AnimatePresence>
+        {showLossAversion && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowLossAversion(false); }}>
+            <motion.div initial={{ scale: 0.96, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 12 }}
+              className="w-full max-w-md bg-white overflow-hidden"
+              style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4" style={{ background: FG }}>
-                <p className="font-black text-white text-base">Vous êtes sur le point d'annuler 😔</p>
-                <p className="text-xs text-white/50 mt-1">Cette action est irréversible à la fin de votre période de facturation.</p>
+                <p className="font-black text-white text-base">En annulant, vous perdez immédiatement</p>
+                <p className="text-xs text-white/50 mt-1">Ces avantages disparaissent dès la fin de votre période en cours.</p>
               </div>
               <div className="p-5 space-y-3">
-                <div className="p-3 rounded" style={{ background: '#fef2f2', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <p className="text-xs font-semibold text-red-700">En annulant, vous perdrez :</p>
-                  <ul className="text-xs text-red-600 mt-1 space-y-0.5">
-                    <li>• Tous vos crédits restants ce mois</li>
-                    <li>• L'accès aux modes avancés & Internet</li>
-                    <li>• L'historique de vos discussions illimitées</li>
-                  </ul>
+                <div className="space-y-2">
+                  {[
+                    { icon: '⚡', text: `${userPlan?.credits_limit || 0} Tensors par mois` },
+                    userPlan?.internet_access && { icon: '🌐', text: 'Recherche web en temps réel' },
+                    userPlan?.ultimate_access && { icon: '👑', text: 'Mode Expert (Claude Opus)' },
+                    userPlan?.file_upload && { icon: '📎', text: 'Envoi de fichiers & images' },
+                    userPlan?.max_discussions === 0 && { icon: '💬', text: 'Discussions illimitées' },
+                    { icon: '📊', text: 'Tout votre historique de conversations' },
+                  ].filter(Boolean).map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                      <span className="text-lg">{item.icon}</span>
+                      <p className="text-sm font-medium" style={{ color: '#333' }}>{item.text}</p>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-xs text-center font-medium" style={{ color: '#888' }}>Vous êtes sûr(e) de vouloir continuer ?</p>
-                <div className="flex gap-2">
-                  <button onClick={() => setShowCancelConfirm(false)}
-                    className="flex-1 py-2.5 text-sm font-black"
-                    style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
-                    Non, je reste 💪
-                  </button>
-                  <button onClick={proceedToCancel}
-                    className="px-4 py-2.5 text-xs font-medium"
-                    style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
-                    Continuer
-                  </button>
-                </div>
+                <button onClick={() => { setShowLossAversion(false); }}
+                  className="w-full py-3 text-sm font-black transition-all hover:opacity-90"
+                  style={{ background: YUZU, color: FG, borderRadius: '5px' }}>
+                  Garder mon abonnement
+                </button>
+                <button onClick={proceedToCancel}
+                  className="w-full py-2 text-xs font-medium transition-all hover:opacity-70"
+                  style={{ color: '#999' }}>
+                  non merci, annuler mon abonnement
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -222,23 +316,18 @@ export default function ManagePlanPage() {
         {showDowngradeWarning && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[500] flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
             onClick={e => { if (e.target === e.currentTarget) setShowDowngradeWarning(false); }}>
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+            <motion.div initial={{ scale: 0.96 }} animate={{ scale: 1 }} exit={{ scale: 0.96 }}
               className="w-full max-w-sm bg-white overflow-hidden"
-              style={{ borderRadius: '6px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
-              <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#fef2f2' }}>
-                <AlertCircle className="w-4 h-4 text-red-500" />
-                <p className="font-black text-sm text-red-700">Attention — Suppression automatique</p>
+              style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <AlertCircle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+                <p className="font-black text-sm" style={{ color: FG }}>Suppression automatique</p>
               </div>
               <div className="p-5 space-y-3">
-                <p className="text-sm font-semibold" style={{ color: FG }}>En passant au plan Free :</p>
-                <ul className="text-sm space-y-1" style={{ color: '#555' }}>
-                  <li>• Vous serez limité à <strong>10 discussions</strong></li>
-                  <li>• Toutes vos discussions au-delà de 10 seront <strong>définitivement supprimées</strong></li>
-                  <li>• Cette action est irréversible</li>
-                </ul>
-                <div className="flex gap-2 pt-2">
+                <p className="text-sm" style={{ color: '#555' }}>En passant au plan Free, vous serez limité à <strong>10 discussions</strong>. Les discussions supplémentaires seront définitivement supprimées.</p>
+                <div className="flex gap-2 pt-1">
                   <button onClick={confirmDowngrade}
                     className="flex-1 py-2.5 text-sm font-bold"
                     style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
@@ -256,29 +345,26 @@ export default function ManagePlanPage() {
         )}
       </AnimatePresence>
 
-      {/* Cancel modal */}
+      {/* Final cancel form */}
       <AnimatePresence>
-        {showCancel && (
+        {showCancelForm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[500] flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
-            onClick={e => { if (e.target === e.currentTarget) setShowCancel(false); }}>
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowCancelForm(false); }}>
+            <motion.div initial={{ scale: 0.96 }} animate={{ scale: 1 }} exit={{ scale: 0.96 }}
               className="w-full max-w-sm bg-white overflow-hidden"
-              style={{ borderRadius: '6px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" style={{ color: '#f59e0b' }} />
-                  <p className="font-black text-sm" style={{ color: FG }}>Annuler l'abonnement</p>
-                </div>
-                <button onClick={() => setShowCancel(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
+                <p className="font-black text-sm" style={{ color: FG }}>Confirmer l'annulation</p>
+                <button onClick={() => setShowCancelForm(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
                   <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-sm" style={{ color: '#555' }}>Pourquoi souhaitez-vous annuler ? (facultatif)</p>
+                <p className="text-sm" style={{ color: '#555' }}>Commentaire optionnel</p>
                 <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
-                  placeholder="Commentaire optionnel..."
+                  placeholder="Commentaire..."
                   rows={2}
                   className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
                   style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
@@ -290,12 +376,12 @@ export default function ManagePlanPage() {
                     style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={submitCancel} disabled={cancelLoading}
+                  <button onClick={submitCancel} disabled={cancelLoading || !cancelEmail.trim()}
                     className="flex-1 py-2.5 text-sm font-bold disabled:opacity-50"
-                    style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                    style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
                     {cancelLoading ? 'Envoi...' : 'Envoyer la demande'}
                   </button>
-                  <button onClick={() => setShowCancel(false)}
+                  <button onClick={() => setShowCancelForm(false)}
                     className="px-3 py-2.5 text-xs font-medium"
                     style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
                     Non
