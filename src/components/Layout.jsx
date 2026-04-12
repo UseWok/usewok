@@ -84,12 +84,7 @@ export default function Layout() {
 
         <WelcomeOfferBanner />
         <Outlet />
-        {/* Footer */}
-        <footer className="border-t border-black/6 px-6 py-4 flex flex-wrap items-center justify-center gap-4 text-[10px] text-zinc-400">
-          <Link to="/score" className="hover:text-fg transition-colors">Stensor Score</Link>
-          <a href="mailto:contact@stensor.app" className="hover:text-fg transition-colors">Contact</a>
-          <span>© 2026 Stensor</span>
-        </footer>
+
       </motion.main>
     </div>
   );
