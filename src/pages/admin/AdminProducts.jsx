@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB } from '@/lib/agents-config';
+import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB, AGENT_TONE_OPTIONS, AGENT_LENGTH_OPTIONS, AGENT_LANGUAGE_OPTIONS, AGENT_EMOJI_OPTIONS } from '@/lib/agents-config';
 import { getPlansConfig, savePlansConfig, DEFAULT_PLANS } from '@/lib/plans-config';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { MessageSquare } from 'lucide-react';
@@ -258,11 +258,13 @@ export default function AdminProducts() {
                 <Save className="w-4 h-4" /> Save all
               </button>
             </div>
-            {agentsConfig.map((agent, idx) => (
-              <div key={agent.id} className="bg-white border border-border rounded-sm p-5">
-                <div className="flex items-center justify-between mb-4">
+            {agentsConfig.map((agent, idx) => {
+              const update = (field, val) => { const u = [...agentsConfig]; u[idx] = { ...u[idx], [field]: val }; setAgentsConfig(u); };
+              return (
+              <div key={agent.id} className="bg-white border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-sm">
+                    <div className="w-10 h-10 flex items-center justify-center bg-yuzu rounded-xl">
                       <Bot className="w-4 h-4 text-fg" />
                     </div>
                     <div>
@@ -270,21 +272,48 @@ export default function AdminProducts() {
                       <p className="text-xs text-muted-foreground">ID: {agent.id}</p>
                     </div>
                   </div>
-                  <Toggle value={agent.enabled} onChange={v => { const u = [...agentsConfig]; u[idx] = { ...u[idx], enabled: v }; setAgentsConfig(u); }} />
+                  <Toggle value={agent.enabled} onChange={v => update('enabled', v)} />
                 </div>
-                <div className="space-y-3">
-                  {['instructions', 'knowledge'].map(field => (
+
+                {/* Behaviour options */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  {[
+                    { field: 'tone', label: 'Tone', options: AGENT_TONE_OPTIONS },
+                    { field: 'response_length', label: 'Response length', options: AGENT_LENGTH_OPTIONS },
+                    { field: 'language', label: 'Language', options: AGENT_LANGUAGE_OPTIONS },
+                    { field: 'emoji_usage', label: 'Emoji usage', options: AGENT_EMOJI_OPTIONS },
+                  ].map(({ field, label, options }) => (
                     <div key={field}>
-                      <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block text-muted-foreground">
-                        {field === 'instructions' ? 'System instructions' : 'Knowledge base'}
-                      </label>
-                      <textarea value={agent[field]} onChange={e => { const u = [...agentsConfig]; u[idx] = { ...u[idx], [field]: e.target.value }; setAgentsConfig(u); }}
-                        rows={field === 'instructions' ? 4 : 3} className="w-full px-3 py-2.5 text-sm border border-border rounded-sm bg-muted/30 focus:outline-none resize-none" />
+                      <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block text-muted-foreground">{label}</label>
+                      <select value={agent[field] || 'auto'} onChange={e => update(field, e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-fg cursor-pointer">
+                        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Focus areas */}
+                <div className="mb-4">
+                  <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block text-muted-foreground">Focus areas <span className="normal-case font-normal">(comma-separated, e.g. investing, budgeting)</span></label>
+                  <input value={agent.focus_areas || ''} onChange={e => update('focus_areas', e.target.value)}
+                    placeholder="e.g. real estate, crypto, savings, debt payoff"
+                    className="w-full px-3 py-2.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-fg" />
+                </div>
+
+                {/* System prompt + knowledge */}
+                <div className="space-y-3">
+                  {[{ field: 'instructions', label: 'System instructions', rows: 5 }, { field: 'knowledge', label: 'Knowledge base', rows: 3 }].map(({ field, label, rows }) => (
+                    <div key={field}>
+                      <label className="text-[10px] font-black uppercase tracking-wider mb-1.5 block text-muted-foreground">{label}</label>
+                      <textarea value={agent[field]} onChange={e => update(field, e.target.value)}
+                        rows={rows} className="w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-1 focus:ring-fg resize-none" />
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

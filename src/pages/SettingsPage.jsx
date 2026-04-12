@@ -18,15 +18,6 @@ function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
 }
 
-function Field({ label, children }) {
-  return (
-    <div>
-      <label className="text-xs font-semibold block mb-1 text-muted-foreground">{label}</label>
-      {children}
-    </div>
-  );
-}
-
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -35,9 +26,11 @@ export default function SettingsPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [fullName, setFullName] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
   const [shortcut, setShortcut] = useState(() => localStorage.getItem('stensor_send_shortcut') || 'enter');
   const [activationCode, setActivationCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
+  const [codeError, setCodeError] = useState('');
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -68,9 +61,12 @@ export default function SettingsPage() {
   };
 
   const saveProfile = async () => {
+    setProfileError('');
+    if (!fullName.trim()) { setProfileError('Full name cannot be empty.'); return; }
+    if (fullName.trim().length < 2) { setProfileError('Full name must be at least 2 characters.'); return; }
     if (!user) return;
     setSavingProfile(true);
-    await base44.auth.updateMe({ full_name: fullName });
+    await base44.auth.updateMe({ full_name: fullName.trim() });
     setSavingProfile(false);
     toast.success('Profile updated');
   };
@@ -82,14 +78,21 @@ export default function SettingsPage() {
   };
 
   const activateCode = async () => {
-    if (!activationCode.trim() || !user) return;
+    setCodeError('');
+    if (!activationCode.trim()) { setCodeError('Please enter an activation code.'); return; }
+    if (activationCode.trim().length < 8) { setCodeError('Code too short — check you copied it correctly.'); return; }
+    if (!user) return;
     setCodeLoading(true);
     const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
-    if (results.length === 0) { toast.error('Invalid or already used code'); setCodeLoading(false); return; }
+    if (results.length === 0) {
+      const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
+      setCodeError(anyMatch.length > 0 ? 'This code has already been used.' : 'Code not found. Double-check spelling or contact support.');
+      setCodeLoading(false); return;
+    }
     const codeRecord = results[0];
     const plans = getPlansConfig();
     const plan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!plan) { toast.error('Plan not found'); setCodeLoading(false); return; }
+    if (!plan) { setCodeError('Plan associated with this code no longer exists.'); setCodeLoading(false); return; }
     await base44.auth.updateMe({
       subscription_plan: plan.id, credits_limit: plan.credits_limit, credits_used: 0,
       credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
@@ -125,13 +128,13 @@ export default function SettingsPage() {
     { id: 'usage', label: t('settings_usage'), icon: Zap },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
 
   return (
     <div className="min-h-screen bg-muted/30 font-be">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-border rounded-sm hover:bg-muted transition-colors">
+          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-border rounded-lg hover:bg-muted transition-colors">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
           <h1 className="text-xl font-black text-fg">Settings</h1>
@@ -143,9 +146,9 @@ export default function SettingsPage() {
             const Icon = item.icon;
             const isOpen = activeSection === item.id;
             return (
-              <div key={item.id} className="bg-white overflow-hidden border border-border rounded-sm">
+              <div key={item.id} className="bg-white overflow-hidden border border-border rounded-xl">
                 <button onClick={() => setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-3 px-4 py-4">
-                  <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-sm ${isOpen ? 'bg-fg' : 'bg-muted'}`}>
+                  <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg ${isOpen ? 'bg-fg' : 'bg-muted'}`}>
                     <Icon className={`w-4 h-4 ${isOpen ? 'text-yuzu' : 'text-muted-foreground'}`} />
                   </div>
                   <span className="flex-1 text-left text-sm font-semibold text-fg">{item.label}</span>
@@ -173,7 +176,7 @@ export default function SettingsPage() {
               const active = activeSection === item.id;
               return (
                 <button key={item.id} onClick={() => setActiveSection(item.id)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-sm transition-all ${active ? 'bg-yuzu text-fg' : 'text-muted-foreground hover:bg-muted'}`}>
+                  className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-lg transition-all ${active ? 'bg-yuzu text-fg' : 'text-muted-foreground hover:bg-muted'}`}>
                   <Icon className="w-4 h-4 flex-shrink-0" />
                   {item.label}
                 </button>
@@ -197,22 +200,22 @@ export default function SettingsPage() {
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
             onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-sm bg-white rounded-sm shadow-xl overflow-hidden">
+              className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="px-6 pt-5 pb-4 bg-red-500 flex items-center justify-between">
                 <p className="text-base font-bold text-white">{t('settings_delete_account')}</p>
-                <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 rounded-sm transition-colors">
+                <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
                   <X className="w-4 h-4 text-white" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <p className="text-xs font-semibold text-muted-foreground">{t('settings_delete_irreversible')}</p>
-                <div className="p-3 bg-muted rounded-sm">
+                <div className="p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">Email: <strong className="text-fg">{user?.email}</strong></p>
                 </div>
-                <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm bg-red-500 text-white rounded-sm hover:bg-red-600 transition-colors">
+                <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                   {t('settings_confirm_delete')}
                 </button>
-                <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium text-muted-foreground rounded-sm hover:bg-muted transition-colors">
+                <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium text-muted-foreground rounded-lg hover:bg-muted transition-colors">
                   {t('cancel')}
                 </button>
               </div>
@@ -224,25 +227,27 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t }) {
   if (section === 'profile') return (
     <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
       <div>
         <label className="text-xs font-semibold block mb-1 text-muted-foreground">Email (read-only)</label>
-        <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm bg-muted border border-border rounded-sm text-muted-foreground cursor-not-allowed" />
+        <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm bg-muted border border-border rounded-lg text-muted-foreground cursor-not-allowed" />
       </div>
       <div>
         <label className="text-xs font-semibold block mb-1 text-muted-foreground">{t('settings_fullname')}</label>
-        <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-fg" />
+        <input value={fullName} onChange={e => setFullName(e.target.value)}
+          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all ${profileError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`} />
+        {profileError && <p className="text-xs text-red-500 mt-1">⚠ {profileError}</p>}
       </div>
-      <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
+      <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity">
         <Save className="w-4 h-4" /> {savingProfile ? t('settings_saving') : t('settings_save')}
       </button>
 
-      <div className="p-4 border border-red-200 bg-red-50 rounded-sm mt-4">
+      <div className="p-4 border border-red-200 bg-red-50 rounded-xl mt-4">
         <p className="text-sm font-semibold mb-1 text-fg">{t('settings_delete_account')}</p>
         <p className="text-xs mb-3 text-muted-foreground">{t('settings_delete_irreversible')}</p>
-        <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-red-100 text-red-500 rounded-sm hover:bg-red-200 transition-colors">
+        <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors">
           <Trash2 className="w-4 h-4" /> {t('settings_delete_account')}
         </button>
       </div>
@@ -254,7 +259,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       <p className="text-xs font-semibold mb-3 text-muted-foreground">{t('settings_shortcut_label')}</p>
       {SHORTCUTS.map(s => (
         <button key={s.id} onClick={() => saveShortcut(s.id)}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-sm border transition-all ${shortcut === s.id ? 'bg-fg border-fg' : 'bg-white border-border hover:border-fg/30'}`}>
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all ${shortcut === s.id ? 'bg-fg border-fg' : 'bg-white border-border hover:border-fg/30'}`}>
           <span className={`text-sm font-medium ${shortcut === s.id ? 'text-white' : 'text-fg'}`}>{s.label}</span>
           {shortcut === s.id && <Check className="w-4 h-4 text-white" />}
         </button>
@@ -264,7 +269,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
 
   if (section === 'plan') return (
     <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-      <div className="p-4 border border-border rounded-sm bg-white">
+      <div className="p-4 border border-border rounded-xl bg-white">
         <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Current plan</p>
         <div className="flex items-center justify-between">
           <div>
@@ -273,15 +278,15 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
               {userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free plan'}
             </p>
           </div>
-          <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-sm">
+          <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg">
             {userPlan?.credits_limit} Tensors/mo
           </span>
         </div>
         <div className="flex gap-2 mt-3">
-          <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-sm hover:opacity-90">
+          <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
             {t('settings_manage_plan')} <ChevronRight className="w-3 h-3" />
           </button>
-          <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-sm hover:bg-muted/80">
+          <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
             {t('settings_upgrade')}
           </button>
         </div>
@@ -290,7 +295,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       {userPlan?.price_monthly > 0 && (
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">{t('settings_billing_history')}</p>
-          <div className="border border-border rounded-sm overflow-hidden bg-white">
+          <div className="border border-border rounded-xl overflow-hidden bg-white">
             <div className="flex items-center gap-4 px-4 py-3">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-fg">Plan {userPlan.name}</p>
@@ -299,9 +304,9 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
                 </p>
               </div>
               <span className="text-sm font-bold text-fg">${userPlan.price_monthly}/mo</span>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded-sm">PAID</span>
+              <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded-lg">PAID</span>
               <button onClick={() => requestInvoice(userPlan.name)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-sm transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
                 <Download className="w-3 h-3" />
                 {invoiceRequested[userPlan.name] ? 'Sent!' : 'Invoice'}
               </button>
@@ -314,17 +319,17 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
 
   if (section === 'usage') return (
     <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-      <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-sm">
+      <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-xl">
         <div>
           <p className="text-xs text-white/60">Current plan</p>
           <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
         </div>
-        <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-sm hover:opacity-90">
+        <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg hover:opacity-90">
           Upgrade
         </button>
       </div>
 
-      <div className="p-4 border border-border rounded-sm bg-white">
+      <div className="p-4 border border-border rounded-xl bg-white">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-muted-foreground">{t('settings_tensors_month')}</p>
           <p className={`text-xs font-black ${isHigh ? 'text-coral' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
@@ -335,30 +340,36 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
         <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% used</p>
       </div>
 
-      <div className="p-4 border border-border rounded-sm bg-white">
+      <div className="p-4 border border-border rounded-xl bg-white">
         <p className="text-xs font-semibold mb-4 text-muted-foreground">{t('settings_7days')}</p>
         <ResponsiveContainer width="100%" height={100}>
           <BarChart data={getDailyUsage()} barSize={14}>
             <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ fontSize: 11, border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px' }} />
-            <Bar dataKey="tensors" fill="#0A0A0A" radius={[2, 2, 0, 0]} />
+            <Tooltip contentStyle={{ fontSize: 11, border: '1px solid rgba(0,0,0,0.09)', borderRadius: '8px' }} />
+            <Bar dataKey="tensors" fill="#0A0A0A" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="p-4 border border-border rounded-sm bg-white">
+      <div className="p-4 border border-border rounded-xl bg-white">
         <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">{t('settings_activation_code')}</p>
         <p className="text-xs mb-3 text-muted-foreground">Enter a code received by email to activate a subscription.</p>
         <div className="flex gap-2">
           <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
-            placeholder="Ex: 4F7K9M2X1R8P" maxLength={12}
-            className="flex-1 px-3 py-2.5 text-sm font-mono border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-fg"
+            placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
+            className={`flex-1 px-3 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`}
             onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
           <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
-            className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-sm disabled:opacity-40 hover:opacity-90">
+            className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
             {codeLoading ? '...' : t('settings_activate')}
           </button>
         </div>
+        {codeError && (
+          <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+            <span className="text-red-500 text-sm">✗</span>
+            <p className="text-xs text-red-600 leading-snug">{codeError}</p>
+          </div>
+        )}
       </div>
     </div>
   );

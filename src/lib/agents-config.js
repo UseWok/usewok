@@ -15,6 +15,34 @@ FORMATTING RULES — ABSOLUTE AND NON-NEGOTIABLE:
 7. These rules apply to EVERY response, regardless of topic, length, or language.
 `;
 
+export const AGENT_TONE_OPTIONS = [
+  { value: 'auto', label: 'Auto (default)' },
+  { value: 'formal', label: 'Formal & Professional' },
+  { value: 'casual', label: 'Casual & Friendly' },
+  { value: 'empathetic', label: 'Empathetic & Supportive' },
+  { value: 'direct', label: 'Direct & Concise' },
+];
+
+export const AGENT_LENGTH_OPTIONS = [
+  { value: 'auto', label: 'Auto (default)' },
+  { value: 'short', label: 'Short — 1–2 paragraphs' },
+  { value: 'medium', label: 'Medium — 3–4 paragraphs' },
+  { value: 'detailed', label: 'Detailed — full analysis' },
+];
+
+export const AGENT_LANGUAGE_OPTIONS = [
+  { value: 'auto', label: 'Auto (user language)' },
+  { value: 'fr', label: 'French only' },
+  { value: 'en', label: 'English only' },
+];
+
+export const AGENT_EMOJI_OPTIONS = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'none', label: 'No emojis' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'rich', label: 'Rich' },
+];
+
 export const DEFAULTS = [
   {
     id: 'global',
@@ -22,6 +50,11 @@ export const DEFAULTS = [
     instructions: `You are a versatile and supportive AI financial coach. Help users with all their requests with clarity and precision. Respond in the same language as the user.${FORMATTING_RULES}`,
     knowledge: '',
     enabled: true,
+    tone: 'auto',
+    response_length: 'auto',
+    language: 'auto',
+    emoji_usage: 'auto',
+    focus_areas: '',
   },
   {
     id: 'emotions-depenses',
@@ -29,6 +62,11 @@ export const DEFAULTS = [
     instructions: `You are a coach specialized in the relationship between emotions and spending habits. You help users understand their emotional patterns related to money and develop a healthier relationship with their finances. Respond with empathy in the same language as the user.${FORMATTING_RULES}`,
     knowledge: '',
     enabled: true,
+    tone: 'empathetic',
+    response_length: 'medium',
+    language: 'auto',
+    emoji_usage: 'moderate',
+    focus_areas: '',
   },
   {
     id: 'wealth-strategy',
@@ -36,6 +74,11 @@ export const DEFAULTS = [
     instructions: `You are a wealth strategy and investment advisor. You help users build and optimize their financial wealth with concrete and personalized strategies. Respond with expertise in the same language as the user.${FORMATTING_RULES}`,
     knowledge: '',
     enabled: true,
+    tone: 'direct',
+    response_length: 'detailed',
+    language: 'auto',
+    emoji_usage: 'none',
+    focus_areas: '',
   },
 ];
 
