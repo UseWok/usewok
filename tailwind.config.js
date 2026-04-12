@@ -14,8 +14,12 @@ module.exports = {
   			sm: '1px'
   		},
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
+  				// Brand tokens
+  				fg:    '#0A0A0A',
+  				yuzu:  '#DDFF00',
+  				coral: '#FF4F00',
+  				background: 'hsl(var(--background))',
+  				foreground: 'hsl(var(--foreground))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
