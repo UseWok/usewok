@@ -13,6 +13,7 @@ import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
 import { getUserPlan } from '@/lib/plans-config';
 import { useIsMobile } from '@/hooks/use-mobile';
+import DarkModeToggle from './DarkModeToggle';
 import { onCreditsUpdate } from '@/lib/credits-events';
 
 export const COLLAPSED_W = 64;
@@ -246,6 +247,9 @@ export default function Sidebar({ expanded, setExpanded }) {
             </div>
             {expanded && <p className="text-xs font-semibold text-zinc-500">Invite & Earn</p>}
           </button>
+
+          {/* Dark mode */}
+          <DarkModeToggle collapsed={!expanded} />
 
           {/* Profile / Lang / Bell row */}
           <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
