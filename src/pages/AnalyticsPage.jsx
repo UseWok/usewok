@@ -80,8 +80,8 @@ export default function AnalyticsPage() {
 
   // Time calculations
   const sessionHours = totalMinutes / 60;
-  const moneySavedSession = Math.round(sessionHours * DOLLARS_PER_HOUR);
   const timeSavedMins = Math.round(creditsUsed * MINS_SAVED_PER_MSG);
+  const moneySaved = Math.round((timeSavedMins / 60) * DOLLARS_PER_HOUR);
   const timeSavedHours = Math.floor(timeSavedMins / 60);
   const timeSavedRemMins = timeSavedMins % 60;
   const timeSavedDisplay = timeSavedHours > 0
@@ -157,9 +157,9 @@ export default function AnalyticsPage() {
           />
           <StatCard
             icon={Clock}
-            label="App session savings"
-            value={`~$${moneySavedSession}`}
-            sub={`${Math.round(totalMinutes)} min on app · $${DOLLARS_PER_HOUR}/hr value`}
+            label="Money saved"
+            value={`~$${moneySaved}`}
+            sub={`Time saved × $${DOLLARS_PER_HOUR}/hr coach rate`}
             delay={0.15}
           />
         </div>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
           <p className="text-sm font-black mb-3" style={{ color: FG }}>Time saved vs. a human coach</p>
           <div className="grid grid-cols-3 gap-3 text-center mb-3">
             <div className="p-3" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '2px' }}>
-              <p className="text-lg font-black" style={{ color: FG }}>{creditsUsed}</p>
+              <p className="text-lg font-black" style={{ color: FG }}>{fmtN(creditsUsed)}</p>
               <p className="text-[10px] mt-0.5" style={{ color: '#aaa' }}>AI answers</p>
             </div>
             <div className="p-3 flex flex-col items-center justify-center">
@@ -178,11 +178,11 @@ export default function AnalyticsPage() {
             </div>
             <div className="p-3" style={{ background: YUZU, borderRadius: '2px' }}>
               <p className="text-lg font-black" style={{ color: FG }}>{timeSavedDisplay}</p>
-              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(0,0,0,0.6)' }}>saved total</p>
+              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(0,0,0,0.6)' }}>= ~${moneySaved} saved</p>
             </div>
           </div>
           <p className="text-[11px]" style={{ color: '#bbb' }}>
-            A human coach needs ~18 min to research + answer. AI takes ~1 min. That's {MINS_SAVED_PER_MSG} min saved per message.
+            A human coach needs ~18 min to research + answer. AI takes ~1 min. That's {MINS_SAVED_PER_MSG} min saved per message. {MINS_SAVED_PER_MSG} min = ${(MINS_SAVED_PER_MSG / 60 * DOLLARS_PER_HOUR).toFixed(2)} value.
           </p>
         </div>
 
@@ -256,9 +256,9 @@ export default function AnalyticsPage() {
             </div>
           ) : aiReco ? (
             <p className="text-sm leading-relaxed" style={{ color: '#333' }}>{aiReco}</p>
-          ) : discussions.length === 0 ? (
-            <p className="text-sm" style={{ color: '#aaa' }}>Start a conversation to unlock your personalized recommendation.</p>
-          ) : null}
+          ) : (
+            <p className="text-sm" style={{ color: '#aaa' }}>Start a conversation to get your personalized plan recommendation.</p>
+          )}
           <button onClick={() => navigate('/pricing')}
             className="flex items-center gap-1.5 mt-4 text-xs font-black transition-all hover:opacity-70"
             style={{ color: FG }}>

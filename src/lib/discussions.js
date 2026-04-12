@@ -66,7 +66,9 @@ export async function loadConversationFromCloud(convId) {
 // Get existing title from cloud for a conversation
 export async function loadConversationTitleFromCloud(convId) {
   try {
-    const results = await base44.entities.Conversation.filter({ conv_id: convId });
+    const me = await base44.auth.me();
+    if (!me?.email) return null;
+    const results = await base44.entities.Conversation.filter({ conv_id: convId, created_by: me.email });
     if (results.length > 0 && results[0].title) return results[0].title;
   } catch {}
   return null;

@@ -684,7 +684,7 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
               <p className="text-sm font-bold" style={{ color: FG }}>Stensor</p>
               <span className="text-[10px] px-1.5 py-0.5 font-bold"
                 style={{ background: YUZU, color: FG, borderRadius: '2px' }}>
-                {mode.label} · {fmtN(creditsUsed)}/{fmtN(creditsLimit)}T
+                {mode.label}
               </span>
               {hasInternet && (
                 <span className="text-[10px] px-1.5 py-0.5 font-semibold hidden sm:inline-block"
@@ -1085,7 +1085,7 @@ NEVER write blocks of 5+ lines without a blank line break. Short, punchy, breath
                     <span className="text-xs font-medium" style={{ color: '#444' }}>{f}</span>
                   </div>
                 ))}
-                <button onClick={() => { navigate('/pricing'); setShowUpgradeOverlay(false); }}
+                <button onClick={() => { window.open('/pricing', '_blank'); }}
                   className="w-full mt-4 py-3 font-bold text-sm transition-all"
                   style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
                   {t('see_plans')}
