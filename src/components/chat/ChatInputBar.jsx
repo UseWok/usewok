@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown,
@@ -51,6 +51,29 @@ export default function ChatInputBar({
   const internetMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
+
+  // Close all menus when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      const refs = [modeMenuRef, agentMenuRef, fileMenuRef, internetMenuRef, atMenuRef];
+      if (!refs.some(r => r.current?.contains(e.target))) {
+        setShowModeMenu(false);
+        setShowAgentMenu(false);
+        setShowFileMenu(false);
+        setShowInternetMenu(false);
+        setShowAtMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const closeAllMenus = () => {
+    setShowModeMenu(false);
+    setShowAgentMenu(false);
+    setShowFileMenu(false);
+    setShowInternetMenu(false);
+  };
 
   const AGENTS = [
     { id: 'global', label: "Knowing exactly where I'm going" },
@@ -227,7 +250,7 @@ export default function ChatInputBar({
 
             {/* + File */}
             <div className="relative flex-shrink-0" ref={fileMenuRef}>
-              <button onClick={() => setShowFileMenu(!showFileMenu)}
+              <button onClick={() => { closeAllMenus(); setShowFileMenu(s => !s); }}
                 className="w-7 h-7 rounded-sm flex items-center justify-center transition-colors hover:bg-muted">
                 <Plus className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
@@ -250,7 +273,7 @@ export default function ChatInputBar({
 
             {/* Agent */}
             <div className="relative flex-shrink-0" ref={agentMenuRef}>
-              <button onClick={() => setShowAgentMenu(!showAgentMenu)}
+              <button onClick={() => { closeAllMenus(); setShowAgentMenu(s => !s); }}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
                 <Bot className="w-3 h-3 text-muted-foreground" />
                 <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">
@@ -277,7 +300,7 @@ export default function ChatInputBar({
 
             {/* Mode */}
             <div className="relative flex-shrink-0" ref={modeMenuRef}>
-              <button onClick={() => setShowModeMenu(!showModeMenu)}
+              <button onClick={() => { closeAllMenus(); setShowModeMenu(s => !s); }}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
                 <SlidersHorizontal className="w-3 h-3 text-muted-foreground" />
                 <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">{mode.label}</span>
@@ -318,7 +341,7 @@ export default function ChatInputBar({
 
             {/* Internet */}
             <div className="relative flex-shrink-0" ref={internetMenuRef}>
-              <button onClick={() => setShowInternetMenu(!showInternetMenu)}
+              <button onClick={() => { closeAllMenus(); setShowInternetMenu(s => !s); }}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
                 style={{ background: useWebSearch && hasInternet ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
                 {useWebSearch && hasInternet
