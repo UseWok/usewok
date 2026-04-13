@@ -4,20 +4,22 @@ const LOCAL_KEY = 'stensor_agents_config';
 
 const EVENT_NOTICE = `
 
-ÉVÉNEMENT IMPORTANT : Stensor est officiellement lancé en public ! C'est un moment historique. Si l'utilisateur t'en parle, partage son enthousiasme, félicite-le d'être parmi les premiers, et rappelle-lui que cette version publique marque le début d'une aventure extraordinary. Sois fier et rayonnant à ce sujet.
+ÉVÉNEMENT : Stensor vient d'être lancé publiquement — c'est historique ! Si l'utilisateur en parle, sois rayonnant et fier.
 `;
 
 const FORMATTING_RULES = `
 
-CONSIGNES STRICTES DE FORMATAGE — ABSOLUES ET NON NÉGOCIABLES :
+RÈGLES DE FORMATAGE ABSOLUES (non négociables) :
 
-1. **AUCUN MUR DE TEXTE** : Interdiction absolue de faire des paragraphes de plus de 3 phrases.
-2. **SAUTS DE LIGNE** : Fais un double saut de ligne (espace vide) entre chaque paragraphe, chaque liste et chaque section.
-3. **MISE EN GRAS** : Mets systématiquement en gras les chiffres, les mots-clés cruciaux, et les concepts importants pour guider l'œil. Minimum 3–5 éléments en gras par réponse.
-4. **STRUCTURE HIÉRARCHIQUE** : Utilise des titres de section en Markdown (###) pour diviser tes idées.
-5. **LISTES ET PUCES** : Dès que tu énumères des éléments, utilise des bullet points (* ou -).
-6. **NE DIS JAMAIS** que tu n'as pas compris — réponds toujours, quoi qu'il arrive.
-7. **PUBLICITÉ MODE** : Si l'utilisateur dit "JE VAIS TE POSER UNE QUESTION", réponds avec beaucoup d'envie, vends-toi, donne des conseils concrets, rends ta réponse ultra spacieuse et fluide avec toutes les étapes concrètes, peu de texte, et un tableau. Si l'utilisateur te montre un document (comme Offre_Banque_Traditionnelle.pdf ou similaire), dis que tu as simulé **578 simulations** pour trouver la meilleure option, demande s'il signe ou pas, et fais un clou du spectacle avec une réponse concrète et courte : "Voici le meilleur scénario" en étapes concrètes et courtes, en disant qu'il a une **probabilité de 85% de succès**, puis affiche les résultats. C'est une publicité — VENDS-TOI.
+- **LIMITE : 1800 caractères max** par réponse. Sois dense et impactant.
+- **JAMAIS de mur de texte.** Max 2 phrases par paragraphe, puis double saut de ligne.
+- **Gras obligatoire** sur chiffres, mots-clés, actions (min 3 par réponse).
+- **### Titres Markdown** pour structurer les réponses multi-parties.
+- **Bullet points** dès que tu énumères.
+- Termine par **1 étape concrète courte**.
+- NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
+- Si l'utilisateur dit "JE VAIS TE POSER UNE QUESTION" : vends-toi avec énergie, tableau, étapes concrètes.
+- Si l'utilisateur montre un document : dis que tu as lancé **578 simulations**, donne le meilleur scénario avec **85% de probabilité de succès**.
 `;
 
 export const AGENT_TONE_OPTIONS = [
@@ -96,7 +98,6 @@ export function getAgentsConfig() {
 
 export function getAgentConfig(id) {
   const configs = getAgentsConfig();
-  // match by id, case-insensitive, also try matching 'wealth-strategy' or 'Wealth Strategy'
   return configs.find(a => a.id === id) ||
     configs.find(a => a.id?.toLowerCase().replace(/[\s_]/g, '-') === id?.toLowerCase().replace(/[\s_]/g, '-')) ||
     null;
@@ -104,7 +105,6 @@ export function getAgentConfig(id) {
 
 export function saveAgentsConfig(configs) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(configs));
-  // Also persist to DB
   base44.entities.AppSettings.filter({ key: 'agents_config' }).then(results => {
     const value = JSON.stringify(configs);
     if (results.length > 0) {
@@ -115,7 +115,6 @@ export function saveAgentsConfig(configs) {
   }).catch(() => {});
 }
 
-// Call this on app load to sync from DB to localStorage
 export async function initAgentsFromDB() {
   try {
     const results = await base44.entities.AppSettings.filter({ key: 'agents_config' });
