@@ -273,7 +273,8 @@ export default function ChatInputBar({
 
             {/* Agent */}
             <div className="relative flex-shrink-0" ref={agentMenuRef}>
-              <button onClick={() => { closeAllMenus(); setShowAgentMenu(s => !s); }}
+              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowAgentMenu(s => !s); }}
+                disabled={isLoading}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
                 <Bot className="w-3 h-3 text-muted-foreground" />
                 <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">
@@ -300,7 +301,8 @@ export default function ChatInputBar({
 
             {/* Mode */}
             <div className="relative flex-shrink-0" ref={modeMenuRef}>
-              <button onClick={() => { closeAllMenus(); setShowModeMenu(s => !s); }}
+              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowModeMenu(s => !s); }}
+                disabled={isLoading}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
                 <SlidersHorizontal className="w-3 h-3 text-muted-foreground" />
                 <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">{mode.label}</span>
@@ -341,7 +343,8 @@ export default function ChatInputBar({
 
             {/* Internet */}
             <div className="relative flex-shrink-0" ref={internetMenuRef}>
-              <button onClick={() => { closeAllMenus(); setShowInternetMenu(s => !s); }}
+              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowInternetMenu(s => !s); }}
+                disabled={isLoading}
                 className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
                 style={{ background: useWebSearch && hasInternet ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
                 {useWebSearch && hasInternet

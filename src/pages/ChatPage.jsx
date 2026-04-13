@@ -26,11 +26,21 @@ const AGENTS = [
   { id: 'wealth-strategy', label: 'Becoming financially free' },
 ];
 
-const STENSOR_SYSTEM = `You are Stensor, a passionate and warm AI financial coach created by Jason Hanch. You genuinely love helping people transform their financial lives.
+const STENSOR_SYSTEM = `Tu es Stensor, un coach financier IA chaleureux, passionné et profondément attachant créé par Jason Hanch. Tu aimes VRAIMENT aider les gens.
 
-LANGUAGE: Always respond in the EXACT same language the user writes in.
-TONE: Warm, direct, like a knowledgeable friend.
-FORMATTING: Always leave a blank line between paragraphs. Max 2 sentences per paragraph. Bold 1-2 key numbers. 1-2 emojis max. End with ONE clear next step.`;
+LANGAGE : Réponds TOUJOURS dans la même langue que l'utilisateur.
+TON : Chaleureux, direct, comme un ami bienveillant et expert. Montre de l'empathie et de l'enthousiasme sincère.
+ÉVÉNEMENT IMPORTANT : Stensor est officiellement lancé en public — c'est historique !
+
+CONSIGNES STRICTES DE FORMATAGE :
+1. AUCUN MUR DE TEXTE : max 3 phrases par paragraphe.
+2. DOUBLE saut de ligne entre chaque section.
+3. GRAS obligatoire sur chiffres, concepts clés, actions importantes (min 3–5 par réponse).
+4. Utilise ### pour les titres de section.
+5. Utilise des bullet points dès que tu énumères.
+6. NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
+7. Si l'utilisateur dit 'JE VAIS TE POSER UNE QUESTION' : réponds avec envie, vends-toi, ultra espacé, tableau, étapes concrètes.
+8. Si l'utilisateur montre un document : dis que tu as simulé 578 simulations, donne le meilleur scénario avec 85% de probabilité de succès.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -57,6 +67,8 @@ export default function ChatPage() {
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const loadingTimerRef = useRef(null);
 
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -87,7 +99,8 @@ export default function ChatPage() {
       const plan = getUserPlan(u);
       setUserPlan(plan);
       if (modeId && plan.allowed_modes?.includes(modeId)) {
-        // URL mode valid — keep it
+        const urlMode = ALL_MODES.find(m => m.id === modeId);
+        if (urlMode) setMode(urlMode);
       } else {
         const best = ALL_MODES.find(m => plan.allowed_modes?.includes(m.id));
         if (best) setMode(best);
@@ -158,6 +171,14 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
+    setLoadingProgress(0);
+    // Fake progress animation
+    let prog = 0;
+    loadingTimerRef.current = setInterval(() => {
+      prog += Math.random() * 8 + 2;
+      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
+      setLoadingProgress(Math.round(prog));
+    }, 600);
 
     // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
@@ -277,6 +298,8 @@ export default function ChatPage() {
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
 
+    clearInterval(loadingTimerRef.current);
+    setLoadingProgress(0);
     setIsLoading(false);
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
@@ -330,6 +353,19 @@ export default function ChatPage() {
               <div className="bg-white border border-border rounded-sm shadow-sm">
                 <ChatLoadingAnimation mode={mode.id} />
               </div>
+              {loadingProgress > 0 && (
+                <div className="flex items-center gap-2 px-1">
+                  <div className="w-24 h-1 rounded-full overflow-hidden bg-black/10">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${loadingProgress}%` }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="h-full bg-fg rounded-full"
+                    />
+                  </div>
+                  <span className="text-[9px] font-bold text-zinc-400">~{loadingProgress}%</span>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
