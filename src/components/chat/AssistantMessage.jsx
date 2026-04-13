@@ -39,7 +39,7 @@ export default function AssistantMessage({ content, agent, meta }) {
         style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-2 prose-li:my-0.5"
+          className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-3 prose-p:leading-7 prose-li:my-1 prose-ul:my-3 prose-ol:my-3 prose-h3:mt-5 prose-h3:mb-2 prose-h3:font-bold"
           components={{
             table: ({ children }) => (
               <div className="overflow-x-auto my-3 rounded-lg border border-black/10 shadow-sm">
