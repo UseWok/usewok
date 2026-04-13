@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +11,54 @@ import { useLanguage } from '@/lib/i18n';
 const PENDING_KEY = 'stensor_pending_query';
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
+
+function MiniScoreDemo() {
+  const [score, setScore] = useState(42);
+  const [delta, setDelta] = useState(null);
+
+  useEffect(() => {
+    // animate: show +8 boost
+    const t1 = setTimeout(() => { setDelta('+8'); setScore(50); }, 2000);
+    const t2 = setTimeout(() => { setDelta(null); }, 4000);
+    const t3 = setTimeout(() => { setScore(42); }, 4200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+
+  const color = score >= 60 ? '#22c55e' : score >= 40 ? '#f97316' : '#ef4444';
+  const r = 22;
+  const circ = Math.PI * r;
+  const dashOffset = circ * (1 - Math.min(score / 100, 1));
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative flex-shrink-0" style={{ width: 56, height: 32 }}>
+        <svg width={56} height={30} viewBox="0 0 56 30">
+          <path d={`M 6 28 A ${r} ${r} 0 0 1 50 28`} fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth={5} strokeLinecap="round" />
+          <motion.path
+            d={`M 6 28 A ${r} ${r} 0 0 1 50 28`} fill="none" stroke={color} strokeWidth={5} strokeLinecap="round"
+            strokeDasharray={circ} strokeDashoffset={circ}
+            animate={{ strokeDashoffset: dashOffset }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        </svg>
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+          <span className="text-lg font-black" style={{ color, lineHeight: 1 }}>{score}</span>
+        </div>
+      </div>
+      <div className="text-left">
+        <p className="text-xs font-black" style={{ color: FG }}>Score actuel : {score}/100</p>
+        {delta ? (
+          <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+            className="text-[11px] font-bold" style={{ color: '#22c55e' }}>
+            {delta} aujourd'hui grâce à ton plan dette 🚀
+          </motion.p>
+        ) : (
+          <p className="text-[11px]" style={{ color: 'rgba(0,0,0,0.4)' }}>Mis à jour automatiquement</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function useAuthState() {
   const [isAuth, setIsAuth] = useState(null);
@@ -137,16 +186,39 @@ export default function LandingPage() {
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.05 }}
-          className="font-black tracking-tight leading-[1.02] mb-6 whitespace-pre-line"
+          className="font-black tracking-tight leading-[1.02] mb-4 whitespace-pre-line"
           style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: FG, maxWidth: '800px' }}>
           {hero.title}
         </motion.h1>
 
+        {/* Score tagline */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
+          className="flex items-center gap-2 mb-6">
+          <span className="text-base md:text-lg font-bold" style={{ color: 'rgba(10,10,10,0.45)' }}>+ Ton Stensor Score mis à jour en 1 clic</span>
+        </motion.div>
+
+        {/* Mini score widget */}
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.12 }}
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-8"
+          style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 20px rgba(0,0,0,0.07)' }}>
+          <MiniScoreDemo />
+        </motion.div>
+
         <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-base md:text-lg max-w-xl mx-auto mb-12 leading-relaxed"
+          className="text-base md:text-lg max-w-xl mx-auto mb-8 leading-relaxed"
           style={{ color: 'rgba(10,10,10,0.45)' }}>
           {hero.subtitle}
         </motion.p>
+
+        {/* Main CTA button */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}
+          className="mb-6">
+          <button onClick={handleCta}
+            className="text-sm font-black px-8 py-4 transition-all hover:scale-105 active:scale-95"
+            style={{ background: FG, color: 'white', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+            Voir mon Stensor Score gratuit →
+          </button>
+        </motion.div>
 
         {/* Input */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
@@ -243,6 +315,13 @@ export default function LandingPage() {
                 </button>
               );
             })}
+            {/* Extra topic: Découvrir mon Stensor Score */}
+            <button onClick={handleCta}
+              className="px-4 py-2 text-xs font-black border transition-all"
+              style={{ color: YUZU === '#DDFF00' ? FG : 'white', borderRadius: '6px', background: FG, borderColor: FG }}
+            >
+              🎯 Découvrir mon Stensor Score
+            </button>
           </div>
         </motion.div>
 
@@ -277,6 +356,9 @@ export default function LandingPage() {
           </motion.div>
         )}
       </section>
+
+      {/* STENSOR SCORE ADDICTION SECTION */}
+      <ScoreAddictionSection onCta={handleCta} />
 
       {/* SECTION TITLE */}
       <section className="px-6 py-16 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>

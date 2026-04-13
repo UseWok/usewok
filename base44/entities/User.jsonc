@@ -32,6 +32,35 @@
     },
     "first_message_sent": {
       "type": "boolean"
+    },
+    "stensor_score": {
+      "type": "number"
+    },
+    "stensor_score_pillars": {
+      "type": "object"
+    },
+    "stensor_score_updated_at": {
+      "type": "string"
+    },
+    "stensor_score_badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stensor_score_streak": {
+      "type": "number"
     }
-  }
+  },
+  "required": [
+    "role",
+    "subscription_plan",
+    "credits_used",
+    "credits_limit",
+    "credits_bonus",
+    "is_banned",
+    "ban_until",
+    "daily_credits_limit",
+    "first_message_sent"
+  ]
 }
