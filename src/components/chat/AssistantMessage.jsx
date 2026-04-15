@@ -35,35 +35,35 @@ export default function AssistantMessage({ content, agent, meta }) {
         <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain flex-shrink-0" style={{ opacity: 0.9 }} />
         <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
       </div>
-      <div className="text-sm leading-7 px-4 py-3 w-full break-words overflow-wrap-anywhere"
-        style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+      <div className="w-full break-words"
+        style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '14px 16px' }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:my-3 prose-p:leading-7 prose-li:my-1 prose-ul:my-3 prose-ol:my-3 prose-h3:mt-5 prose-h3:mb-2 prose-h3:font-bold"
           components={{
+            p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '14px', color: '#1a1a1a' }}>{children}</p>,
+            h1: ({ children }) => <h1 style={{ fontSize: '18px', fontWeight: 800, margin: '20px 0 8px', color: '#0A0A0A' }}>{children}</h1>,
+            h2: ({ children }) => <h2 style={{ fontSize: '16px', fontWeight: 800, margin: '18px 0 6px', color: '#0A0A0A' }}>{children}</h2>,
+            h3: ({ children }) => <h3 style={{ fontSize: '14px', fontWeight: 700, margin: '16px 0 6px', color: '#0A0A0A' }}>{children}</h3>,
+            ul: ({ children }) => <ul style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'disc' }}>{children}</ul>,
+            ol: ({ children }) => <ol style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'decimal' }}>{children}</ol>,
+            li: ({ children }) => <li style={{ margin: '4px 0', lineHeight: '1.65', fontSize: '14px', color: '#1a1a1a' }}>{children}</li>,
+            strong: ({ children }) => <strong style={{ fontWeight: 700, color: '#0A0A0A' }}>{children}</strong>,
+            em: ({ children }) => <em style={{ fontStyle: 'italic', color: '#333' }}>{children}</em>,
+            code: ({ inline, children }) => inline
+              ? <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '1px 6px', fontSize: '12px', fontFamily: 'monospace', color: '#0A0A0A' }}>{children}</code>
+              : <pre style={{ background: '#f4f4f4', borderRadius: '8px', padding: '12px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace', color: '#1a1a1a' }}>{children}</code></pre>,
+            blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #DDFF00', paddingLeft: '12px', margin: '10px 0', color: '#555', fontStyle: 'italic' }}>{children}</blockquote>,
+            hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.08)', margin: '16px 0' }} />,
             table: ({ children }) => (
-              <div className="overflow-x-auto my-3 rounded-lg border border-black/10 shadow-sm">
-                <table className="w-full border-collapse text-xs">{children}</table>
+              <div style={{ overflowX: 'auto', margin: '12px 0', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>{children}</table>
               </div>
             ),
             thead: ({ children }) => <thead style={{ background: FG }}>{children}</thead>,
-            th: ({ children }) => (
-              <th className="text-left px-4 py-3 text-white font-bold text-xs tracking-wide whitespace-nowrap"
-                style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}>{children}</th>
-            ),
-            td: ({ children }) => (
-              <td className="px-4 py-2.5 text-xs"
-                style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)', color: '#333' }}>{children}</td>
-            ),
-            tr: ({ children, ...props }) => (
-              <tr className="transition-colors hover:bg-black/[0.02]">{children}</tr>
-            ),
-            a: ({ href, children }) => (
-              <a href={href} target="_blank" rel="noopener noreferrer"
-                className="text-blue-600 font-medium underline hover:opacity-75 transition-opacity">
-                {children}
-              </a>
-            ),
+            th: ({ children }) => <th style={{ textAlign: 'left', padding: '10px 14px', color: 'white', fontWeight: 700, fontSize: '12px', borderRight: '1px solid rgba(255,255,255,0.1)' }}>{children}</th>,
+            td: ({ children }) => <td style={{ padding: '9px 14px', fontSize: '13px', color: '#333', borderBottom: '1px solid rgba(0,0,0,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)' }}>{children}</td>,
+            tr: ({ children }) => <tr style={{ transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(0,0,0,0.02)'} onMouseLeave={e => e.currentTarget.style.background=''}>{children}</tr>,
+            a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'underline' }}>{children}</a>,
           }}>
           {cleanContent}
         </ReactMarkdown>

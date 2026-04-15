@@ -231,6 +231,8 @@ export default function ChatPage() {
       }
     }
 
+    // Always fetch latest agent config from DB before building system prompt
+    await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles attached — use them as context but do not describe their content. Answer directly.' : '';
     const systemContext = agentConfig?.instructions
