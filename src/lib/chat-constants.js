@@ -16,23 +16,23 @@ export const ALL_MODES = [
 export const CHAR_SPEED = 15;
 
 export const GIBBERISH_RESPONSES = [
-  "Je ne comprends pas ce message — pourriez-vous reformuler votre question de façon plus claire ? 😊",
-  "Ce message ne me dit rien, mais je suis là pour vous aider : posez-moi votre vraie question !",
-  "Hmm, je n'arrive pas à interpréter ça — essayez de formuler autrement et je ferai de mon mieux.",
+  "I don't understand this message — could you rephrase your question more clearly? 😊",
+  "This message doesn't tell me anything, but I'm here to help you: ask me your real question!",
+  "Hmm, I can't interpret that — try phrasing it differently and I'll do my best."
 ];
 
+// Filtre ultra-souple : bloque UNIQUEMENT le vrai spam abusé (pas d'espaces, lettres répétées)
 export function isGibberish(text) {
-  const t = text.trim();
-  if (t.length === 0) return false;
-  const letters = t.toLowerCase().replace(/[^a-záàâäéèêëíìîïóòôöúùûü]/g, '');
-  if (letters.length === 0) return false;
-  if (letters.length < 2) return true;
-  const vowels = (letters.match(/[aeiouáàâäéèêëíìîïóòôöúùûü]/g) || []).length;
-  const vowelRatio = vowels / letters.length;
-  const parts = letters.split(/[aeiouáàâäéèêëíìîïóòôöúùûü]/);
-  const maxRun = Math.max(...parts.map(s => s.length));
-  if (letters.length >= 4 && vowelRatio < 0.05) return true;
-  if (maxRun >= 5) return true;
-  if (/^(.{1,3})\1{3,}$/.test(letters)) return true;
+  if (!text || text.trim().length === 0) return false;
+  
+  const clean = text.trim();
+  
+  // Règle 1 : S'il y a plus de 25 caractères sans AUCUN espace
+  if (clean.length > 25 && !clean.includes(' ')) return true;
+  
+  // Règle 2 : Si c'est juste la même lettre répétée en boucle (ex: "aaaaaaaaaaaaa")
+  if (/^(.)\1{10,}$/.test(clean)) return true;
+  
+  // Pour TOUT le reste, on abaisse la garde et on laisse l'IA gérer !
   return false;
 }
