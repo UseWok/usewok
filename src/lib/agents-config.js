@@ -2,10 +2,7 @@ import { base44 } from '@/api/base44Client';
 
 const LOCAL_KEY = 'stensor_agents_config';
 
-const EVENT_NOTICE = `
-
-ÉVÉNEMENT : Stensor vient d'être lancé publiquement — c'est historique ! Si l'utilisateur en parle, sois rayonnant et fier.
-`;
+const EVENT_NOTICE = ``;
 
 const FORMATTING_RULES = `
 
@@ -26,7 +23,7 @@ LANGUAGE: ALWAYS reply in the same language as the user's message.
 
 const MODEL_NOTE = `
 
-AI MODEL: You are powered by Gemini 3.1 Pro (primary), Claude Sonnet 4.6, and Claude Opus 4.6 (Expert mode). The system automatically selects the best model for each task — always prioritizing Gemini 3.1 Pro.
+RESPONSE QUALITY: Every response is delivered at Advanced level — deep, precise, and actionable. In Expert mode, go even further: multi-angle analysis, edge cases, advanced strategies, more depth and nuance than standard.
 `;
 
 export const AGENT_TONE_OPTIONS = [

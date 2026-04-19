@@ -204,13 +204,12 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Upgrade card — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
             <button onClick={() => navigate('/pricing')}
-              className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
-              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-black/10 rounded-sm">
-                <TrendingUp className="w-3.5 h-3.5 text-fg" />
-              </div>
-              {expanded && (
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-xs font-bold text-fg">Upgrade your plan</p>
+              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
+              {expanded ? (
+                <p className="text-xs font-bold text-fg">Upgrade your plan</p>
+              ) : (
+                <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-[17px] h-[17px] text-fg" />
                 </div>
               )}
             </button>
@@ -219,8 +218,8 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Tensors bar */}
           <button ref={tensorsRef} onClick={() => togglePopover('tensors')}
             className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-md hover:bg-black/5 transition-colors">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm">
-              <Zap className="w-3.5 h-3.5 text-fg" />
+            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm mx-auto">
+              <Zap className="w-[17px] h-[17px] text-fg" />
             </div>
             {expanded && (
               <div className="flex-1 min-w-0 text-left">
@@ -238,16 +237,16 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Profile / Bell row */}
           <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
             <button ref={profileRef} onClick={() => togglePopover('profile')}
-              className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-md hover:opacity-80 transition-opacity"
+              className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md hover:opacity-80 transition-opacity"
               style={{ background: getUserColor(user) }}>
               <span className="text-xs font-bold text-white">{userInitial}</span>
             </button>
             <button ref={notiRef} onClick={() => togglePopover('noti')}
-              className="relative w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-md hover:bg-black/5 transition-colors">
-              <Bell className="w-4 h-4 text-zinc-400" />
+              className="relative w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md hover:bg-black/5 transition-colors">
+              <Bell className="w-[17px] h-[17px] text-zinc-400" />
               {hasUnread && (
                 <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="absolute top-1.5 right-1.5 w-2 h-2 bg-coral rounded-full border-[1.5px] border-white" />
+                  className="absolute top-0.5 right-0.5 w-2 h-2 bg-coral rounded-full border-[1.5px] border-white" />
               )}
             </button>
           </div>

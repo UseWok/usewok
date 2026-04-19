@@ -6,7 +6,6 @@ import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
-import { useLanguage } from '@/lib/i18n';
 
 function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
@@ -14,7 +13,6 @@ function SectionTitle({ children }) {
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState('profile');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
@@ -109,12 +107,12 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: t('settings_profile'), icon: User },
-    { id: 'plan', label: t('settings_plan'), icon: CreditCard },
-    { id: 'usage', label: t('settings_usage'), icon: Zap },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
+    { id: 'usage', label: 'Tensor Usage', icon: Zap },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN };
 
   return (
     <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
@@ -176,7 +174,7 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
-              <SectionTitle>{navItems.find(n => n.id === activeSection)?.label}</SectionTitle>
+              <SectionTitle>{navItems.find(n => n.id === activeSection)?.label || ''}</SectionTitle>
               <SectionContent section={activeSection} {...sharedProps} desktop />
             </motion.div>
           </div>
@@ -192,21 +190,21 @@ export default function SettingsPage() {
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
               className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="px-6 pt-5 pb-4 bg-red-500 flex items-center justify-between">
-                <p className="text-base font-bold text-white">{t('settings_delete_account')}</p>
+                <p className="text-base font-bold text-white">Delete account</p>
                 <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
                   <X className="w-4 h-4 text-white" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-xs font-semibold text-muted-foreground">{t('settings_delete_irreversible')}</p>
+                <p className="text-xs font-semibold text-muted-foreground">This action is irreversible. All your data will be permanently deleted.</p>
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">Email: <strong className="text-fg">{user?.email}</strong></p>
                 </div>
                 <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                  {t('settings_confirm_delete')}
+                  Confirm deletion
                 </button>
                 <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium text-muted-foreground rounded-lg hover:bg-muted transition-colors">
-                  {t('cancel')}
+                  Cancel
                 </button>
               </div>
             </motion.div>
@@ -217,7 +215,7 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN }) {
   if (section === 'profile') return (
     <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
       <div>
@@ -225,20 +223,20 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
         <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm bg-muted border border-border rounded-lg text-muted-foreground cursor-not-allowed" />
       </div>
       <div>
-        <label className="text-xs font-semibold block mb-1 text-muted-foreground">{t('settings_fullname')}</label>
+        <label className="text-xs font-semibold block mb-1 text-muted-foreground">Full name</label>
         <input value={fullName} onChange={e => setFullName(e.target.value)}
           className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all ${profileError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`} />
         {profileError && <p className="text-xs text-red-500 mt-1">⚠ {profileError}</p>}
       </div>
       <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity">
-        <Save className="w-4 h-4" /> {savingProfile ? t('settings_saving') : t('settings_save')}
+        <Save className="w-4 h-4" /> {savingProfile ? 'Saving...' : 'Save'}
       </button>
 
       <div className="p-4 border border-red-200 bg-red-50 rounded-xl mt-4">
-        <p className="text-sm font-semibold mb-1 text-fg">{t('settings_delete_account')}</p>
-        <p className="text-xs mb-3 text-muted-foreground">{t('settings_delete_irreversible')}</p>
+        <p className="text-sm font-semibold mb-1 text-fg">Delete account</p>
+        <p className="text-xs mb-3 text-muted-foreground">This action is irreversible. All your data will be permanently deleted.</p>
         <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors">
-          <Trash2 className="w-4 h-4" /> {t('settings_delete_account')}
+          <Trash2 className="w-4 h-4" /> Delete account
         </button>
       </div>
     </div>
@@ -261,17 +259,17 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
         </div>
         <div className="flex gap-2 mt-3">
           <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
-            {t('settings_manage_plan')} <ChevronRight className="w-3 h-3" />
+            Manage plan <ChevronRight className="w-3 h-3" />
           </button>
           <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
-            {t('settings_upgrade')}
+            Upgrade
           </button>
         </div>
       </div>
 
       {userPlan?.price_monthly > 0 && (
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">{t('settings_billing_history')}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Billing history</p>
           <div className="border border-border rounded-xl overflow-hidden bg-white">
             <div className="flex items-center gap-4 px-4 py-3">
               <div className="flex-1">
@@ -308,7 +306,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
 
       <div className="p-4 border border-border rounded-xl bg-white">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-muted-foreground">{t('settings_tensors_month')}</p>
+          <p className="text-xs font-semibold text-muted-foreground">Tensors this month</p>
           <p className={`text-xs font-black ${isHigh ? 'text-coral' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
         </div>
         <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -318,7 +316,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       </div>
 
       <div className="p-4 border border-border rounded-xl bg-white">
-        <p className="text-xs font-semibold mb-4 text-muted-foreground">{t('settings_7days')}</p>
+        <p className="text-xs font-semibold mb-4 text-muted-foreground">Last 7 days</p>
         <ResponsiveContainer width="100%" height={100}>
           <BarChart data={getDailyUsage()} barSize={14}>
             <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
@@ -338,7 +336,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
             onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
           <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
             className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-            {codeLoading ? '...' : t('settings_activate')}
+            {codeLoading ? '...' : 'Activate'}
           </button>
         </div>
         {codeError && (

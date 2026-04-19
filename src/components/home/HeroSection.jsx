@@ -403,21 +403,21 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                     <button onClick={toggleRecording}
-              aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
-              aria-pressed={isRecording}
-              className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
-                {voiceLoading ?
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-                className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yuzu" /> :
-                isRecording ?
-                <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-                className="w-2.5 h-2.5 rounded-full bg-yuzu" /> :
-                <Mic className="w-3.5 h-3.5 text-zinc-400" />}
-              </button>
-            </div>
+                    aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                    aria-pressed={isRecording}
+                    className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
+                    {voiceLoading ?
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
+                    className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yellow-400" /> :
+                    isRecording ?
+                    <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} /> :
+                    <Mic className="w-3.5 h-3.5 text-zinc-400" />}
+                    </button>
+                    </div>
           </div>
         </div>
       </motion.div>
