@@ -358,8 +358,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           setShowAgentMenu(false);
                         }}
                         aria-pressed={effectiveAgentId === a.id}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}
-                        style={isGlobal && effectiveAgentId === a.id ? { border: '2px solid #0A0A0A' } : isGlobal ? { border: '2px solid #0A0A0A' } : {}}>
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
                             <span className="text-base flex-shrink-0">{meta.emoji || '🤖'}</span>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium leading-tight">{a.label}</p>

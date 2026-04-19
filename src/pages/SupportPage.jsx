@@ -331,17 +331,17 @@ export default function SupportPage() {
                 <p className="text-[10px]" style={{ color: 'rgba(0,0,0,0.45)' }}>Quick answers</p>
               </div>
             </button>
-            <button onClick={() => discordUrl ? window.open(discordUrl, '_blank') : null}
+            <button onClick={() => window.open('https://reddit.com/r/stensor', '_blank')}
               className="flex items-center gap-3 p-4 text-left transition-all"
-              style={{ background: '#5865F2', borderRadius: '12px' }}
+              style={{ background: '#FF4500', borderRadius: '12px' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
                 style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px' }}>
-                <Hash className="w-4 h-4 text-white" />
+                <ExternalLink className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-black text-white">Discord</p>
+                <p className="text-sm font-black text-white">Reddit</p>
                 <p className="text-[10px] text-white/50">Community</p>
               </div>
             </button>
@@ -367,18 +367,7 @@ export default function SupportPage() {
             </button>
           </div>
 
-          {myTickets.length === 0 ? (
-            <div className="flex flex-col items-center py-8 gap-3"
-              style={{ background: 'white', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.07)' }}>
-              <div className="w-12 h-12 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
-                <MessageSquare className="w-6 h-6" style={{ color: '#ccc' }} />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold" style={{ color: '#aaa' }}>No tickets yet</p>
-                <p className="text-xs mt-0.5" style={{ color: '#ccc' }}>Open a ticket if you have an issue</p>
-              </div>
-            </div>
-          ) : (
+          {myTickets.length === 0 ? null : (
             <div className="space-y-2">
               {myTickets.map(ticket => {
                 const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
