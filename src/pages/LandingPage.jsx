@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
 import StickyCardsSection from '../components/landing/StickyCardsSection';
-import VsSection from '../components/landing/VsSection';
+
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -397,8 +397,7 @@ export default function LandingPage() {
       {/* STICKY SCROLL CARDS SECTION */}
       <StickyCardsSection cards={cards} section_title={section_title} onCta={handleCta} />
 
-      {/* VS SECTION — Finance Coach vs Stensor */}
-      <VsSection onCta={handleCta} />
+
 
       {/* PRICING */}
       <section className="px-6 py-24 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
