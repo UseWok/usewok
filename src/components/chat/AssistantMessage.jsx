@@ -83,7 +83,7 @@ export default function AssistantMessage({ content, agent, meta }) {
           {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
           <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
-        {meta?.modelName && (
+        {meta?.modelName && !meta.modelName.toLowerCase().includes('opus') && (
           <div className="flex items-center gap-1 px-2 py-1"
             style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.05)' }}>
             <Cpu className="w-2.5 h-2.5" style={{ color: '#bbb' }} />

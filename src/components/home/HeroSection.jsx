@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff, Lock } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Wifi, WifiOff, Lock, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
@@ -395,16 +395,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
                     <div className="flex items-center gap-1.5">
                     {/* Expert button */}
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                       onClick={() => {
                         if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
                         setMode(mode.id === 'ultimate' ? ALL_MODES.find(m => m.id === 'thinking') : ALL_MODES.find(m => m.id === 'ultimate'));
                       }}
-                      className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
-                      style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
-                      <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
-                      <span className="text-[11px] font-semibold" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
-                    </button>
+                      className="h-7 px-2.5 flex items-center gap-1 rounded-sm transition-all cursor-pointer"
+                      style={{
+                        background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
+                        border: mode.id === 'ultimate' ? '1px solid #0A0A0A' : '1px solid rgba(0,0,0,0.1)',
+                      }}>
+                      <Zap className="w-3 h-3" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#bbb' }} />
+                      <span className="text-[11px] font-bold" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#aaa' }}>Expert</span>
+                    </motion.button>
 
                     <button onClick={toggleRecording}
                     aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
