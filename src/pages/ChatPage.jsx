@@ -240,10 +240,10 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    // Model selection: Expert = Claude Sonnet 4.6, non-Expert = GPT-5 (fast & efficient)
+    // First message: Gemini 3.1 Pro with internet, FREE. Then normal models.
     const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gpt_5';
-    const secretModel = autoModel;
-    const useInternet = useWebSearch && hasInternet;
+    const secretModel = isFirstMessage ? 'gemini_3_1_pro' : autoModel;
+    const useInternet = isFirstMessage ? true : (useWebSearch && hasInternet);
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
@@ -253,11 +253,12 @@ export default function ChatPage() {
     });
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Credit cost - optimized for cheaper models
+    // Credit cost - First message FREE, then normal pricing
     let baseCost;
-    if (mode.id === 'ultimate') { baseCost = 3; } // Claude Sonnet - still powerful but cheaper
-    else { baseCost = 1; } // Gemini Flash - very cheap
-    const costPerMsg = baseCost + (useInternet ? 1 : 0);
+    if (isFirstMessage) { baseCost = 0; } // First message FREE
+    else if (mode.id === 'ultimate') { baseCost = 3; } // Claude Sonnet
+    else { baseCost = 1; } // GPT-5
+    const costPerMsg = baseCost + (useInternet && !isFirstMessage ? 1 : 0);
 
     if (currentUser) {
       const newUsed = (currentUser.credits_used || 0) + costPerMsg;
@@ -273,8 +274,7 @@ export default function ChatPage() {
       }
     }
 
-    const modelDisplayName = secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel === 'gpt_5' ? 'GPT-5' : secretModel;
-    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: modelDisplayName, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+    const msgMeta = { modeName: mode.label, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     let convTitle = text.slice(0, 50);
     try {

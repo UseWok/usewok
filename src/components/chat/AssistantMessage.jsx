@@ -25,10 +25,14 @@ function stripSourceUrls(content) {
 
 export default function AssistantMessage({ content, agent, meta }) {
   const [copied, setCopied] = useState(false);
-  const [showMeta, setShowMeta] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
   const sources = extractSources(content);
-  const cleanContent = sources.length > 0 ? stripSourceUrls(content) : content;
+  // Clean markdown artifacts and format headings
+  const cleanContent = content
+    .replace(/%###%/g, '')
+    .replace(/^###\s+/gm, '**')
+    .replace(/\s+###$/gm, '**')
+    .replace(/###/g, '**');
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -75,7 +79,7 @@ export default function AssistantMessage({ content, agent, meta }) {
         </ReactMarkdown>
       </div>
 
-      {/* Action row: copy + model info */}
+      {/* Action row: copy */}
       <div className="flex items-center gap-1.5 mt-2">
         <button onClick={handleCopy}
           className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all hover:opacity-70"
@@ -83,25 +87,6 @@ export default function AssistantMessage({ content, agent, meta }) {
           {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
           <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
-        {meta?.modelName && !meta.modelName.toLowerCase().includes('opus') && (
-          <div className="flex items-center gap-1 px-2 py-1"
-            style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.05)' }}>
-            <Cpu className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
-            <span className="text-[10px]" style={{ color: '#aaa' }}>{meta.modelName}</span>
-          </div>
-        )}
-        {meta?.usedInternet && (
-          <div className="px-2 py-1"
-            style={{ background: 'rgba(22,163,74,0.08)', borderRadius: '4px', border: '1px solid rgba(22,163,74,0.2)' }}>
-            <span className="text-[10px] font-semibold" style={{ color: '#16a34a' }}>🌐 Web</span>
-          </div>
-        )}
-        {meta?.hasFiles && (
-          <div className="px-2 py-1"
-            style={{ background: 'rgba(59,130,246,0.08)', borderRadius: '4px', border: '1px solid rgba(59,130,246,0.2)' }}>
-            <span className="text-[10px] font-semibold" style={{ color: '#3b82f6' }}>📎 File</span>
-          </div>
-        )}
       </div>
 
       {sources.length > 0 && (
