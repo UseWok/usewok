@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff, Lock } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Zap, Wifi, WifiOff, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
@@ -41,6 +41,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showAtMenu, setShowAtMenu] = useState(false);
+  const [showExpertMenu, setShowExpertMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
@@ -62,6 +63,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const fileMenuRef = useRef(null);
   const agentMenuRef = useRef(null);
   const atMenuRef = useRef(null);
+  const expertMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
@@ -99,6 +101,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
       if (agentMenuRef.current && !agentMenuRef.current.contains(e.target)) setShowAgentMenu(false);
       if (atMenuRef.current && !atMenuRef.current.contains(e.target)) setShowAtMenu(false);
+      if (expertMenuRef.current && !expertMenuRef.current.contains(e.target)) setShowExpertMenu(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -114,16 +117,25 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
-    if (isRecording) {recognitionRef.current?.stop();setIsRecording(false);setVoiceLoading(true);return;}
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      setVoiceLoading(false);
+      return;
+    }
     finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR';rec.continuous = true;rec.interimResults = false;
+    rec.lang = 'fr-FR';
+    rec.continuous = true;
+    rec.interimResults = false;
     rec.onresult = (e) => {
       const finals = Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
     };
+    rec.onerror = () => { setIsRecording(false); setVoiceLoading(false); };
     rec.onend = () => {
-      setIsRecording(false);setVoiceLoading(false);
+      setIsRecording(false);
+      setVoiceLoading(false);
       const raw = finalTranscriptRef.current.trim();
       if (raw) {
         const isQuestion = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
@@ -133,7 +145,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
       }
       finalTranscriptRef.current = '';
     };
-    rec.start();recognitionRef.current = rec;setIsRecording(true);
+    setIsRecording(true);
+    rec.start();
+    recognitionRef.current = rec;
   };
 
   const handleQueryChange = (e) => {
@@ -392,30 +406,89 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </div>
 
                     {/* Expert toggle */}
-                    {userPlan?.allowed_modes?.includes('ultimate') &&
-              <button
-                onClick={() => setMode(mode.id === 'ultimate' ? ALL_MODES.find((m) => m.id === 'thinking') : ALL_MODES.find((m) => m.id === 'ultimate'))}
-                className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
-                style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
-                        <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
-                        <span className="text-[11px] font-semibold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
+                    <div className="relative" ref={expertMenuRef}>
+                      <button
+                        onClick={() => {
+                          if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
+                          if (mode.id === 'ultimate') {
+                            setMode(ALL_MODES.find((m) => m.id === 'thinking'));
+                            setShowExpertMenu(false);
+                          } else {
+                            setShowExpertMenu((s) => !s);
+                          }
+                        }}
+                        className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all"
+                        style={{
+                          background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
+                          border: mode.id === 'ultimate' ? '1.5px solid #0A0A0A' : '1.5px solid rgba(0,0,0,0.1)',
+                        }}>
+                        <Zap className="w-3 h-3" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#bbb' }} />
+                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#aaa' }}>Expert</span>
                       </button>
-              }
+                      <AnimatePresence>
+                        {showExpertMenu && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                            transition={{ duration: 0.1 }}
+                            className="absolute bottom-full mb-2 left-0 bg-white shadow-xl border border-black/10 rounded-md overflow-hidden z-50 min-w-[176px]">
+                            <div className="px-3 py-2 border-b border-black/6">
+                              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Expert Mode</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
+                                setUseWebSearch(true);
+                                setShowExpertMenu(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
+                              <Wifi className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-bold text-fg">Avec internet</p>
+                                <p className="text-[10px] text-zinc-400">Recherche web en direct</p>
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
+                                setUseWebSearch(false);
+                                setShowExpertMenu(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
+                              <WifiOff className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-bold text-fg">Sans internet</p>
+                                <p className="text-[10px] text-zinc-400">Analyse pure, hors ligne</p>
+                              </div>
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                    <button onClick={toggleRecording}
-              aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
-              aria-pressed={isRecording}
-              className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
-                    {voiceLoading ?
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-                className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yellow-400" /> :
-                isRecording ?
-                <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-                className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} /> :
-                <Mic className="w-3.5 h-3.5 text-zinc-400" />}
+                    <button
+                      onClick={toggleRecording}
+                      aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                      aria-pressed={isRecording}
+                      className="relative w-8 h-8 flex items-center justify-center rounded-sm transition-all"
+                      style={{
+                        background: isRecording ? '#0A0A0A' : voiceLoading ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
+                        border: '1.5px solid rgba(0,0,0,0.1)',
+                      }}>
+                      {voiceLoading ? (
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
+                          className="w-3.5 h-3.5 rounded-full border-2"
+                          style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: '#DDFF00' }} />
+                      ) : isRecording ? (
+                        <motion.div animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                          transition={{ repeat: Infinity, duration: 0.9 }}
+                          className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} />
+                      ) : (
+                        <Mic className="w-3.5 h-3.5" style={{ color: '#888' }} />
+                      )}
                     </button>
                     </div>
           </div>
