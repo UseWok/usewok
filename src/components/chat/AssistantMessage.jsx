@@ -42,12 +42,6 @@ export default function AssistantMessage({ content, agent, meta }) {
     setTimeout(() => setCopied(false), 5000);
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   return (
     <div className="flex flex-col gap-1 items-start w-full mb-2">
       <div className="flex items-center gap-1.5 mb-2">
