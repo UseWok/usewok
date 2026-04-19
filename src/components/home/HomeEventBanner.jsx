@@ -67,34 +67,34 @@ export default function HomeEventBanner({ large = false }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 mb-4">
-      <div
-        onClick={() => navigate('/pricing')} className="w-full flex items-center justify-between px-4 py-3 cursor-pointer transition-all hover:opacity-90 hidden"
+      
 
-        style={{
-          background: 'white',
-          border: `1.5px solid ${YUZU}`,
-          borderRadius: '8px',
-          boxShadow: '0 2px 12px rgba(221,255,0,0.12)'
-        }}>
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: YUZU }} />
-          <div>
-            <p className="text-sm font-black" style={{ color: FG }}>
-              Offre de bienvenue — 30% de réduction
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>
-              Plans Advanced, Expert & Supreme annuels
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5 font-black tabular-nums text-lg flex-shrink-0 ml-4" style={{ color: FG }}>
-          <span>{pad(h)}</span>
-          <span style={{ color: '#bbb' }}>:</span>
-          <span>{pad(m)}</span>
-          <span style={{ color: '#bbb' }}>:</span>
-          <span>{pad(s)}</span>
-        </div>
-      </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
     </div>);
 
 }

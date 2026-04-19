@@ -196,14 +196,14 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
-      <motion.div
-        initial={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="inline-flex items-center gap-2 px-3 py-1 mb-5 bg-yuzu rounded-sm hidden">
-        
-        <Zap className="w-3 h-3 text-fg" />
-        <span className="text-[10px] font-black tracking-widest text-fg">{t('hero_badge')}</span>
-      </motion.div>
+      
+
+
+
+
+
+
+      
 
       <motion.h1
         initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
@@ -212,13 +212,13 @@ export default function HeroSection({ agentId, onAgentChange }) {
         className="text-3xl md:text-4xl font-black tracking-tight text-fg">
         Let's build your financial freedom together.
       </motion.h1>
-      <motion.p
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }} className="mt-3 text-sm text-zinc-400 hidden">
-        
-        Your personal AI financial coach — clear answers, real strategies, straight to the point.
-      </motion.p>
+      
+
+
+
+
+
+      
 
       {/* Input card */}
       <motion.div
