@@ -391,19 +391,21 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </AnimatePresence>
                     </div>
 
-                    {/* Expert toggle */}
-                    {userPlan?.allowed_modes?.includes('ultimate') && (
-                      <button
-                        onClick={() => setMode(mode.id === 'ultimate' ? ALL_MODES.find(m => m.id === 'thinking') : ALL_MODES.find(m => m.id === 'ultimate'))}
-                        className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
-                        style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
-                        <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
-                        <span className="text-[11px] font-semibold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
-                      </button>
-                    )}
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                    {/* Expert button */}
+                    <button
+                      onClick={() => {
+                        if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
+                        setMode(mode.id === 'ultimate' ? ALL_MODES.find(m => m.id === 'thinking') : ALL_MODES.find(m => m.id === 'ultimate'));
+                      }}
+                      className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
+                      style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
+                      <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
+                      <span className="text-[11px] font-semibold" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
+                    </button>
+
                     <button onClick={toggleRecording}
                     aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
                     aria-pressed={isRecording}
