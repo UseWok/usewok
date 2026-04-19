@@ -327,7 +327,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     <button onClick={() => {setShowFileMenu(!showFileMenu);setShowAgentMenu(false);}}
                 aria-label="Attach file"
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-                    <Plus className="w-4 h-4 text-zinc-300" />
+                    <Plus className="text-slate-500 lucide lucide-plus w-4 h-4" />
                     </button>
                     <AnimatePresence>
                     {showFileMenu &&
@@ -365,7 +365,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     <div className="relative" ref={agentMenuRef}>
                     <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}} className="text-[hsl(var(--primary-foreground))] px-2.5 rounded-md h-8 flex items-center gap-1.5 hover:bg-black/5 transition-colors">
                   
-                    <Bot className="text-slate-950 lucide lucide-bot w-3.5 h-3.5" />
+                    <Bot className="text-slate-500 lucide lucide-bot w-3.5 h-3.5" />
                     <span className="text-slate-500 text-xs font-medium">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
                     <ChevronDown className="w-3 h-3 text-zinc-300" />
                     </button>
