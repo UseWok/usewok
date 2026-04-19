@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Check, X } from 'lucide-react';
-import { getPlansConfig } from '@/lib/plans-config';
+import ArtCta from '../components/landing/ArtCta';
+import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 
@@ -35,10 +36,16 @@ export default function LandingPricingPage() {
   const navigate = useNavigate();
   const [billing, setBilling] = useState('yearly');
   const [scrolled, setScrolled] = useState(false);
+  const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
   const navData = landingData?.nav || null;
   const { t } = useLanguage();
-  const plans = [...getPlansConfig()].reverse(); // most expensive first (left to right)
+
+  useEffect(() => {
+    loadPlansFromDB().then(p => { if (p) setPlansConfig(p); });
+  }, []);
+
+  const plans = [...plansConfig].reverse(); // most expensive first (left to right)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -50,8 +57,8 @@ export default function LandingPricingPage() {
   const logoUrl = navData?.logo_url || LOGO_URL;
   const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
 
-  const essentialPlan = plans.find(p => p.id === 'expert');
-  const otherPlans = plans.filter(p => p.id !== 'expert').reverse();
+  const essentialPlan = plans.find(p => p.id === 'expert') || plans[0];
+  const otherPlans = plans.filter(p => p.id !== essentialPlan?.id);
 
   return (
     <div className="min-h-screen font-be overflow-x-hidden" style={{ background: 'white' }}>
@@ -122,6 +129,9 @@ export default function LandingPricingPage() {
         </motion.div>
       </section>
 
+      {/* Gradient bridge */}
+      <div style={{ height: 60, background: 'linear-gradient(to bottom, white 0%, #fafaf5 100%)' }} />
+
       {/* ESSENTIAL SPOTLIGHT */}
       {essentialPlan && (
         <section className="px-6 pb-16">
@@ -182,6 +192,9 @@ export default function LandingPricingPage() {
           </div>
         </section>
       )}
+
+      {/* Gradient bridge */}
+      <div style={{ height: 60, background: 'linear-gradient(to bottom, #fafaf5 0%, white 100%)' }} />
 
       {/* ALL PLANS */}
       <section className="px-6 pb-28" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
@@ -266,32 +279,13 @@ export default function LandingPricingPage() {
         </div>
       </section>
 
-      {/* BOTTOM CTA */}
-      <section className="relative px-6 py-28 text-center overflow-hidden" style={{ background: '#06060c' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div animate={{ scale: [1,1.15,1], opacity: [0.5,0.7,0.5] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position:'absolute', width:700, height:700, top:'50%', left:'50%', transform:'translate(-50%,-50%)', background:'radial-gradient(circle, rgba(221,255,0,0.09) 0%, rgba(255,200,60,0.05) 40%, transparent 70%)', filter:'blur(40px)' }} />
-          <motion.div animate={{ x: [0,60,0], y: [0,-40,0] }} transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-            style={{ position:'absolute', width:400, height:400, top:'-80px', right:'-80px', background:'radial-gradient(circle, rgba(180,255,60,0.06) 0%, transparent 65%)', filter:'blur(35px)' }} />
-        </div>
-        <div className="relative z-10">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="font-black tracking-tight text-white mb-8"
-            style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
-            {t('landing_stop_paying_title')}
-          </motion.h2>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            className="text-sm mb-10 max-w-md mx-auto" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            {t('landing_unlimited_sub')}
-          </motion.p>
-          <motion.button initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            transition={{ delay: 0.1 }} onClick={handleCta}
-            className="inline-flex items-center gap-3 font-black text-sm px-10 py-5 hover:scale-105 transition-all"
-            style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: '0 0 50px rgba(221,255,0,0.2)' }}>
-            {t('landing_start_free_cta')} <ArrowRight className="w-4 h-4" />
-          </motion.button>
-        </div>
-      </section>
+      <ArtCta
+        topGradient={true}
+        title={t('landing_stop_paying_title')}
+        subtitle={t('landing_unlimited_sub')}
+        buttonLabel={t('landing_start_free_cta')}
+        onCta={handleCta}
+      />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>

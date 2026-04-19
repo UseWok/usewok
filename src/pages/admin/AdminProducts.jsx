@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe } from 'lucide-react';
+import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe, Plus } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB, AGENT_TONE_OPTIONS, AGENT_LENGTH_OPTIONS, AGENT_LANGUAGE_OPTIONS, AGENT_EMOJI_OPTIONS } from '@/lib/agents-config';
@@ -229,18 +229,58 @@ export default function AdminProducts() {
             </div>
 
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-muted-foreground">Configure each plan. In test mode, activate a plan to test on your account.</p>
-              <button onClick={savePlans} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90">
-                <Save className="w-4 h-4" /> Save
-              </button>
+              <p className="text-sm text-muted-foreground">Configure each plan. Changes save to all users instantly.</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const newPlan = {
+                      id: `plan_${Date.now()}`,
+                      name: 'New Plan',
+                      price_monthly: 0,
+                      price_yearly: 0,
+                      credits_limit: 50,
+                      daily_credits_limit: 0,
+                      can_choose_model: false,
+                      default_model: 'gemini_3_flash',
+                      allowed_modes: ['thinking'],
+                      internet_access: false,
+                      max_discussions: 10,
+                      file_upload: false,
+                      file_upload_extended: false,
+                      ultimate_access: false,
+                      lessons_per_month: 0,
+                      shareable_credits: 0,
+                      premium_support: false,
+                    };
+                    setPlansConfig(prev => [...prev, newPlan]);
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold bg-yuzu text-fg rounded-sm hover:opacity-90">
+                  <Plus className="w-4 h-4" /> Add plan
+                </button>
+                <button onClick={savePlans} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90">
+                  <Save className="w-4 h-4" /> Save all
+                </button>
+              </div>
             </div>
             <div className="space-y-3">
               {plansConfig.map((plan, idx) => (
-                <PlanEditor key={plan.id} plan={plan}
-                  onChange={(updated) => { const u = [...plansConfig]; u[idx] = updated; setPlansConfig(u); }}
-                  onActivate={() => activatePlan(plan.id)}
-                  isCurrentPlan={currentUser?.subscription_plan === plan.id || (!currentUser?.subscription_plan && plan.id === 'free')}
-                />
+                <div key={plan.id} className="relative group">
+                  <PlanEditor plan={plan}
+                    onChange={(updated) => { const u = [...plansConfig]; u[idx] = updated; setPlansConfig(u); }}
+                    onActivate={() => activatePlan(plan.id)}
+                    isCurrentPlan={currentUser?.subscription_plan === plan.id || (!currentUser?.subscription_plan && plan.id === 'free')}
+                  />
+                  {plan.id !== 'free' && (
+                    <button
+                      onClick={() => {
+                        if (!confirm(`Delete plan "${plan.name}"?`)) return;
+                        setPlansConfig(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center bg-red-50 hover:bg-red-100 rounded-sm z-10">
+                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
             <button onClick={() => { savePlansConfig(DEFAULT_PLANS); setPlansConfig(DEFAULT_PLANS); showSaved(); }}

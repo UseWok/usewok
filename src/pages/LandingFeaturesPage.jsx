@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Brain, Globe, Paperclip, MessageSquare, Zap, Crown, BarChart2, Shield, Clock } from 'lucide-react';
+import ArtCta from '../components/landing/ArtCta';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent } from '@/lib/landing-content';
 
@@ -188,28 +189,12 @@ export default function LandingFeaturesPage() {
         </div>
       </section>
 
-      {/* BOTTOM CTA */}
-      <section className="relative px-6 py-28 text-center overflow-hidden" style={{ background: '#06060c' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div animate={{ scale: [1,1.15,1], opacity: [0.5,0.7,0.5] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position:'absolute', width:700, height:700, top:'50%', left:'50%', transform:'translate(-50%,-50%)', background:'radial-gradient(circle, rgba(221,255,0,0.09) 0%, rgba(255,200,60,0.05) 40%, transparent 70%)', filter:'blur(40px)' }} />
-          <motion.div animate={{ x: [0,-50,0], y: [0,40,0] }} transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-            style={{ position:'absolute', width:400, height:400, bottom:'-60px', left:'-60px', background:'radial-gradient(circle, rgba(255,150,200,0.06) 0%, transparent 65%)', filter:'blur(35px)' }} />
-        </div>
-        <div className="relative z-10">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="font-black tracking-tight text-white mb-8"
-            style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
-            {t('landing_features_cta')}
-          </motion.h2>
-          <motion.button initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            transition={{ delay: 0.1 }} onClick={handleCta}
-            className="inline-flex items-center gap-3 font-black text-sm px-10 py-5 hover:scale-105 transition-all"
-            style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: '0 0 50px rgba(221,255,0,0.2)' }}>
-            {t('landing_features_start')} <ArrowRight className="w-4 h-4" />
-          </motion.button>
-        </div>
-      </section>
+      <ArtCta
+        topGradient={true}
+        title={t('landing_features_cta')}
+        buttonLabel={t('landing_features_start')}
+        onCta={handleCta}
+      />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
 import StickyCardsSection from '../components/landing/StickyCardsSection';
+import ArtCta from '../components/landing/ArtCta';
 
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -489,30 +490,12 @@ export default function LandingPage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative px-6 py-32 text-center overflow-hidden" style={{ background: '#050508' }}>
-        {/* Orb background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute rounded-full"
-            style={{ width: 600, height: 600, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: `radial-gradient(circle, rgba(221,255,0,0.08) 0%, transparent 70%)` }}
-          />
-        </div>
-        <div className="relative z-10">
-          <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="font-black tracking-tight mb-10 text-white whitespace-pre-line"
-            style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)' }}>
-            {cta.title}
-          </motion.h2>
-          <motion.button initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.1 }} onClick={handleCta}
-            className="font-black text-base px-10 py-5 transition-all hover:scale-105 hover:opacity-90"
-            style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: `0 0 60px rgba(221,255,0,0.2)` }}>
-            {cta.button}
-          </motion.button>
-        </div>
-      </section>
+      <ArtCta
+        topGradient={true}
+        title={cta.title}
+        buttonLabel={cta.button}
+        onCta={handleCta}
+      />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
