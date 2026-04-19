@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
 import StickyCardsSection from '../components/landing/StickyCardsSection';
 import ArtCta from '../components/landing/ArtCta';
+import FinalCta from '../components/landing/FinalCta';
 
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -490,12 +491,7 @@ export default function LandingPage() {
       </section>
 
       {/* FINAL CTA */}
-      <ArtCta
-        topGradient={true}
-        title={cta.title}
-        buttonLabel={cta.button}
-        onCta={handleCta}
-      />
+      <FinalCta onCta={handleCta} />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>

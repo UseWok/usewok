@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Zap, X, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
+import NeonChart from './NeonChart';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
@@ -15,7 +16,7 @@ const coachCons = [
 
 const stensorPros = [
   { title: 'Strategy in 60 seconds', sub: 'Ask anything, get an expert answer instantly — any time, any day' },
-  { title: 'GPT-4o + Claude + Gemini', sub: 'The three most powerful AIs in the world, fused into one' },
+  { title: 'Gemini 3.1 Pro + Claude Sonnet + Opus 4.6', sub: 'The world\'s three most powerful AIs, fused into one engine' },
   { title: 'Knows your full story', sub: 'Remembers your goals, your income, your context — forever' },
   { title: 'Adapts in real-time', sub: 'Market shifts, life changes — Stensor adjusts your plan live' },
   { title: 'Flat monthly fee', sub: 'Unlimited strategies. No surprises, no invoice shock' },
@@ -25,7 +26,7 @@ const stensorPros = [
 export default function ScoreAddictionSection({ onCta }) {
   return (
     <>
-      {/* Gradient bridge from above section */}
+      {/* Gradient bridge */}
       <div style={{ height: 80, background: 'linear-gradient(to bottom, #f8f8f2 0%, white 100%)' }} />
 
       <section className="relative overflow-hidden px-6 py-24" style={{ background: 'white' }}>
@@ -74,78 +75,86 @@ export default function ScoreAddictionSection({ onCta }) {
             </p>
           </motion.div>
 
-          {/* LVL 100 image */}
-          <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="mb-20 rounded-3xl overflow-hidden relative"
-            style={{ border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 20px 80px rgba(221,255,0,0.14), 0 4px 24px rgba(0,0,0,0.05)' }}>
-            <img
-              src="https://media.base44.com/images/public/69e4a2ce69b2e02735690e23/9077c083f_image.png"
-              alt="LVL 100 — Stensor vs Finance Coach"
-              className="w-full h-auto block"
-            />
-            <div className="absolute bottom-0 left-0 right-0 px-8 py-5"
-              style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 100%)' }}>
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'rgba(10,10,10,0.32)' }}>
-                Financial improvement over 10 months — Stensor users vs Finance Coach clients
-              </p>
-            </div>
-          </motion.div>
+          {/* Neon Chart */}
+          <div className="mb-20">
+            <NeonChart />
+          </div>
 
-          {/* Side-by-side comparison — card layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-20">
+          {/* Premium comparison — immersive cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
 
-            {/* Finance Coach */}
+            {/* Finance Coach card */}
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="rounded-3xl overflow-hidden"
-              style={{ border: '1px solid rgba(239,68,68,0.15)', background: 'rgba(255,250,250,0.8)' }}>
-              <div className="px-8 pt-8 pb-6"
-                style={{ background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid rgba(239,68,68,0.10)' }}>
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1" style={{ color: 'rgba(239,68,68,0.65)' }}>The old way</p>
+              transition={{ duration: 0.7 }}
+              className="relative overflow-hidden"
+              style={{ borderRadius: '24px', background: 'linear-gradient(145deg, #fdfcfc 0%, #fff5f5 100%)', border: '1px solid rgba(239,68,68,0.12)', boxShadow: '0 8px 40px rgba(239,68,68,0.06)' }}>
+
+              {/* Subtle red glow */}
+              <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none"
+                style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.08) 0%, transparent 70%)', filter: 'blur(20px)' }} />
+
+              <div className="relative z-10 px-8 pt-8 pb-5"
+                style={{ borderBottom: '1px solid rgba(239,68,68,0.08)' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
+                  <p className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'rgba(239,68,68,0.65)' }}>The old way</p>
+                </div>
                 <h3 className="text-2xl font-black" style={{ color: FG }}>Finance Coach</h3>
-                <p className="text-sm mt-1" style={{ color: 'rgba(10,10,10,0.38)' }}>Expensive. Slow. Limited.</p>
+                <p className="text-sm mt-1 font-medium" style={{ color: 'rgba(10,10,10,0.38)' }}>Expensive. Slow. Limited by one person's brain.</p>
               </div>
-              <div className="p-8 space-y-5">
+
+              <div className="relative z-10 p-8 space-y-4">
                 {coachCons.map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                    className="flex items-start gap-3">
+                  <motion.div key={i}
+                    initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }} transition={{ delay: i * 0.055 }}
+                    className="flex items-start gap-3.5">
                     <div className="w-5 h-5 flex items-center justify-center rounded-full flex-shrink-0 mt-0.5"
-                      style={{ background: 'rgba(239,68,68,0.10)' }}>
-                      <X className="w-3 h-3" style={{ color: '#ef4444' }} />
+                      style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                      <X className="w-2.5 h-2.5" style={{ color: '#ef4444' }} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold" style={{ color: FG }}>{item.title}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'rgba(10,10,10,0.42)' }}>{item.sub}</p>
+                      <p className="text-sm font-bold leading-tight" style={{ color: FG }}>{item.title}</p>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'rgba(10,10,10,0.40)' }}>{item.sub}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
 
-            {/* Stensor */}
+            {/* Stensor card */}
             <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="rounded-3xl overflow-hidden"
-              style={{ background: FG, border: '1px solid rgba(221,255,0,0.15)' }}>
-              <div className="px-8 pt-8 pb-6" style={{ background: 'rgba(221,255,0,0.05)', borderBottom: '1px solid rgba(221,255,0,0.08)' }}>
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1" style={{ color: YUZU }}>The new standard</p>
+              transition={{ duration: 0.7, delay: 0.08 }}
+              className="relative overflow-hidden"
+              style={{ borderRadius: '24px', background: 'linear-gradient(145deg, #0a0a0a 0%, #111108 100%)', border: '1px solid rgba(221,255,0,0.18)', boxShadow: '0 8px 60px rgba(221,255,0,0.10), 0 20px 80px rgba(0,0,0,0.3)' }}>
+
+              {/* Yuzu top glow */}
+              <div className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
+                style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(221,255,0,0.12) 0%, transparent 70%)' }} />
+
+              <div className="relative z-10 px-8 pt-8 pb-5"
+                style={{ borderBottom: '1px solid rgba(221,255,0,0.08)' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-2 h-2 rounded-full" style={{ background: YUZU, boxShadow: '0 0 8px rgba(221,255,0,0.8)' }} />
+                  <p className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: YUZU }}>The new standard</p>
+                </div>
                 <h3 className="text-2xl font-black text-white">Stensor AI</h3>
-                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.38)' }}>Instant. Intelligent. Yours.</p>
+                <p className="text-sm mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>Instant. Intelligent. Built for you alone.</p>
               </div>
-              <div className="p-8 space-y-5">
+
+              <div className="relative z-10 p-8 space-y-4">
                 {stensorPros.map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }} transition={{ delay: i * 0.06 + 0.1 }}
-                    className="flex items-start gap-3">
+                  <motion.div key={i}
+                    initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }} transition={{ delay: i * 0.055 + 0.08 }}
+                    className="flex items-start gap-3.5">
                     <div className="w-5 h-5 flex items-center justify-center rounded-full flex-shrink-0 mt-0.5"
-                      style={{ background: 'rgba(221,255,0,0.15)' }}>
-                      <Check className="w-3 h-3" style={{ color: YUZU }} />
+                      style={{ background: 'rgba(221,255,0,0.12)', border: '1px solid rgba(221,255,0,0.25)' }}>
+                      <Check className="w-2.5 h-2.5" style={{ color: YUZU }} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white">{item.title}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.40)' }}>{item.sub}</p>
+                      <p className="text-sm font-bold leading-tight text-white">{item.title}</p>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'rgba(255,255,255,0.38)' }}>{item.sub}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -154,14 +163,15 @@ export default function ScoreAddictionSection({ onCta }) {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { value: '60s',  label: 'Strategy ready',  color: '#a08800' },
               { value: '$0',   label: 'Hidden fees',      color: '#22c55e' },
               { value: '3',    label: 'AI models fused',  color: FG },
               { value: '24/7', label: 'Always available', color: '#f97316' },
             ].map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                 className="text-center p-6 rounded-2xl"
                 style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}>
@@ -173,7 +183,6 @@ export default function ScoreAddictionSection({ onCta }) {
 
         </div>
       </section>
-
     </>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Brain, Globe, Paperclip, MessageSquare, Zap, Crown, BarChart2, Shield, Clock } from 'lucide-react';
-import ArtCta from '../components/landing/ArtCta';
+import FinalCta from '../components/landing/FinalCta';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent } from '@/lib/landing-content';
 
@@ -189,12 +189,7 @@ export default function LandingFeaturesPage() {
         </div>
       </section>
 
-      <ArtCta
-        topGradient={true}
-        title={t('landing_features_cta')}
-        buttonLabel={t('landing_features_start')}
-        onCta={handleCta}
-      />
+      <FinalCta onCta={handleCta} />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>

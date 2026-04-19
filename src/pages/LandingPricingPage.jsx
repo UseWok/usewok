@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Check, X } from 'lucide-react';
-import ArtCta from '../components/landing/ArtCta';
+import FinalCta from '../components/landing/FinalCta';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
@@ -279,13 +279,7 @@ export default function LandingPricingPage() {
         </div>
       </section>
 
-      <ArtCta
-        topGradient={true}
-        title={t('landing_stop_paying_title')}
-        subtitle={t('landing_unlimited_sub')}
-        buttonLabel={t('landing_start_free_cta')}
-        onCta={handleCta}
-      />
+      <FinalCta onCta={handleCta} />
 
       {/* FOOTER */}
       <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
