@@ -99,7 +99,8 @@ export default function ChatPage() {
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showLoadingDetails, setShowLoadingDetails] = useState(false);
+  const [loadingSteps, setLoadingSteps] = useState([]);
   const loadingTimerRef = useRef(null);
 
   const messagesEndRef = useRef(null);
@@ -203,14 +204,24 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
-    setLoadingProgress(0);
-    // Fake progress animation
-    let prog = 0;
-    loadingTimerRef.current = setInterval(() => {
-      prog += Math.random() * 8 + 2;
-      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
-      setLoadingProgress(Math.round(prog));
-    }, 600);
+    setShowLoadingDetails(true);
+    setLoadingSteps([
+      { text: 'Analyse de votre question...', time: Date.now() },
+    ]);
+    
+    // Simulation des étapes de réflexion
+    const steps = [
+      { text: 'Recherche du contexte...', delay: 800 },
+      { text: 'Analyse des concepts clés...', delay: 1500 },
+      { text: 'Construction de la réponse...', delay: 2200 },
+      { text: 'Optimisation du format...', delay: 2800 },
+    ];
+    
+    steps.forEach((step, idx) => {
+      setTimeout(() => {
+        setLoadingSteps(prev => [...prev, { text: step.text, time: Date.now() }]);
+      }, step.delay);
+    });
 
     // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
@@ -332,7 +343,8 @@ export default function ChatPage() {
     }
 
     clearInterval(loadingTimerRef.current);
-    setLoadingProgress(0);
+    setLoadingSteps(prev => [...prev, { text: 'Réponse générée avec succès ✓', time: Date.now() }]);
+    setTimeout(() => setShowLoadingDetails(false), 3000);
     setIsLoading(false);
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
@@ -372,7 +384,7 @@ export default function ChatPage() {
         {!isLoadingConversation && messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
+              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => {}} />
               : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
             }
           </motion.div>
@@ -383,25 +395,45 @@ export default function ChatPage() {
             <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
             <div className="flex flex-col gap-1.5 items-start">
               <p className="text-[10px] font-semibold px-1 text-muted-foreground">Stensor</p>
-              <div className="bg-white border border-border rounded-sm shadow-sm">
+              <div 
+                onClick={() => setShowLoadingDetails(s => !s)}
+                className="bg-white border border-border rounded-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow">
                 <ChatLoadingAnimation mode={mode.id} />
               </div>
-              {loadingProgress > 0 && (
-                <div className="flex items-center gap-2 px-1">
-                  <div className="w-24 h-1 rounded-full overflow-hidden bg-black/10">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${loadingProgress}%` }}
-                      transition={{ duration: 0.5, ease: 'easeOut' }}
-                      className="h-full bg-fg rounded-full"
-                    />
-                  </div>
-                  <span className="text-[9px] font-bold text-zinc-400">~{loadingProgress}%</span>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
+
+        {/* Loading details window */}
+        <AnimatePresence>
+          {showLoadingDetails && isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: 10, height: 0 }}
+              className="max-w-3xl mx-auto w-full px-3 md:px-8">
+              <div className="bg-white border border-border rounded-md shadow-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-fg animate-pulse" />
+                  <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Stensor est en train de réfléchir</p>
+                </div>
+                <div className="p-4 space-y-2 max-h-48 overflow-y-auto">
+                  {loadingSteps.map((step, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${idx === loadingSteps.length - 1 ? 'bg-fg animate-pulse' : 'bg-green-500'}`} />
+                      <span className={`text-xs ${idx === loadingSteps.length - 1 ? 'font-semibold text-fg' : 'text-zinc-400'}`}>{step.text}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
 
