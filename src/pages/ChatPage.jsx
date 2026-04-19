@@ -242,23 +242,6 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
-    setShowLoadingDetails(true);
-    setLoadingSteps([
-      { text: 'Understanding your question...', time: Date.now() },
-    ]);
-    
-    // Simulation des étapes de réflexion
-    const steps = [
-      { text: 'Searching for context...', delay: 800 },
-      { text: 'Analyzing key concepts...', delay: 1500 },
-      { text: 'Building your answer...', delay: 2200 },
-    ];
-    
-    steps.forEach((step, idx) => {
-      setTimeout(() => {
-        setLoadingSteps(prev => [...prev, { text: step.text, time: Date.now() }]);
-      }, step.delay);
-    });
 
     // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
@@ -379,9 +362,6 @@ export default function ChatPage() {
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
 
-    clearInterval(loadingTimerRef.current);
-    setLoadingSteps(prev => [...prev, { text: 'Réponse générée avec succès ✓', time: Date.now() }]);
-    setTimeout(() => setShowLoadingDetails(false), 3000);
     setIsLoading(false);
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
@@ -427,56 +407,7 @@ export default function ChatPage() {
           </motion.div>
         ))}
 
-        {isLoading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
-            <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
-            <div className="flex flex-col gap-1.5 items-start">
-              <p className="text-[10px] font-semibold px-1 text-muted-foreground">Stensor</p>
-              <div 
-                onClick={() => setShowLoadingDetails(s => !s)}
-                className="bg-white border border-border rounded-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                <ChatLoadingAnimation mode={mode.id} />
-              </div>
-            </div>
-          </motion.div>
-        )}
 
-        {/* Loading details window */}
-        <AnimatePresence>
-          {showLoadingDetails && isLoading && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="max-w-3xl mx-auto w-full px-3 md:px-8">
-              <div className="bg-white border border-border rounded-lg shadow-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-                    className="w-4 h-4 rounded-full border-2"
-                    style={{ borderColor: 'rgba(0,0,0,0.1)', borderTopColor: '#DDFF00' }}
-                  />
-                  <p className="text-sm font-bold text-fg">AI is thinking</p>
-                </div>
-                <div className="p-5 space-y-3">
-                  {loadingSteps.map((step, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${idx === loadingSteps.length - 1 ? 'bg-[#DDFF00] animate-pulse' : 'bg-green-500'}`} />
-                      <span className={`text-sm ${idx === loadingSteps.length - 1 ? 'font-bold text-fg' : 'text-zinc-500'}`}>{step.text}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
 
