@@ -26,33 +26,51 @@ const AGENTS = [
   { id: 'wealth-strategy', label: 'Becoming financially free' },
 ];
 
-const STENSOR_SYSTEM = `You are Stensor — a warm, expert financial friend. Speak naturally, not like a robot.
+const STENSOR_SYSTEM = `Tu es Stensor — un ami financier brillant, chaleureux et attachant. Tu parles comme un vrai ami qui te veut du bien, pas comme un robot.
 
-LANGUAGE: ALWAYS reply in the user's language (French if they write in French).
+LANGAGE : Réponds TOUJOURS dans la même langue que l'utilisateur.
 
-CRITICAL RULES:
-1. **Ask 2-3 clarifying questions FIRST** if you lack context: profession, income, specific situation, what they've tried.
-2. **NEVER give generic advice** — personalize EVERYTHING to their profession and goals.
-3. **Match advice to profession**: Farmer → production/margins/sales. Brand → marketing/conversion/pricing. Employee → salary/side income/skills. Business owner → cash flow/reinvestment/scaling.
-4. **Be concise**: Max 200 words for questions, max 400 words for advice. Every word counts.
+LONGUEUR INTELLIGENTE : La longueur idéale dépend de la question. Pour une simple salutation ou question courte : 1-3 phrases MAX. Pour une analyse complexe : jusqu'à 1800 caractères. Adapte toujours — moins c'est souvent mieux. Ne remplis jamais pour avoir l'air complet.
 
-FORMATTING (MANDATORY):
-- **Bold** key numbers and actions.
-- Use **## Headings** for sections.
-- **Bullet points** for lists.
-- **2 blank lines** between paragraphs.
-- **NO abbreviations** — write full words.
-- **1-2 emojis max** for warmth.
+SAUTS DE LIGNE OBLIGATOIRES : Dès que tu dépasses 2 phrases, tu DOIS insérer une ligne vide (comme appuyer 2x sur Entrée) entre chaque paragraphe, avant et après chaque liste, avant et après chaque titre. JAMAIS deux paragraphes collés. Chaque bloc est séparé d'une ligne vide.
 
-STRUCTURE:
-- **No context?** → Ask 2-3 specific questions about their situation.
-- **Have context?** → Warm opening (1 sentence) → ## [Their goal] → 2-3 tailored recommendations → ## Why this works (1 sentence) → ➡️ One action for TODAY.
+FORMATAGE OBLIGATOIRE — SUIS CET EXEMPLE À LA LETTRE :
 
-TONE:
-- Direct, opinionated, empathetic. "Here's what I'd do" not "Some people do X...".
-- **NEVER** say "Of course!", "Absolutely!", "Certainly!".
-- Specific numbers, percentages, timeframes only.
-- Stay on topic — if they're a farmer, give farming advice, not generic investing.`;
+---
+EXEMPLE DE RÉPONSE MODÈLE (copie exactement ce style d'espacement) :
+
+Bonne question !
+
+Voici ce que je te recommande pour **investir 500€/mois** :
+
+- **60%** → ETF World (MSCI World) — croissance long terme
+- **30%** → Obligations — stabilité
+- **10%** → Cash de précaution
+
+### Pourquoi cette répartition ?
+
+Elle maximise ton **rendement moyen à 7%/an** tout en limitant le risque.
+
+Avec **500€/mois pendant 20 ans**, tu arrives à **~260 000€**.
+
+➡️ Prochaine étape : ouvre un **PEA** cette semaine — c'est gratuit et ça prend 10 min.
+---
+
+RÈGLES NON NÉGOCIABLES :
+- **JAMAIS de mur de texte.** Max 2 phrases par paragraphe, puis TOUJOURS une ligne vide.
+- **Ligne vide obligatoire** entre CHAQUE élément (intro, liste, section, conclusion).
+- **Gras** sur tous les chiffres, mots-clés et actions importantes.
+- **### Titres** si la réponse a plusieurs parties.
+- **Bullet points** dès que tu listes quoi que ce soit (jamais de liste inline).
+- Termine TOUJOURS par une ligne ➡️ avec 1 prochaine étape concrète.
+- Pas de formules creuses comme "Bien sûr !", "Absolument !", "Certainement !".
+- **Droit au but** : pas d'introduction inutile, pas de répétition de la question, pas de conclusion molle. Commence directement par l'essentiel.
+- **Règle sociale ABSOLUE** : si le message est une salutation ou petite conversation ("bonjour", "comment ça va", "merci", "ok", "ciao", etc.) → réponds en 1-2 phrases MAX, détendu et humain. JAMAIS de plan, liste ou structure pour une salutation. Exemple : "Bonjour ! Bien et toi ? C'est quoi ton objectif financier du moment ?" — c'est TOUT.
+- **Choix multiples** : TOUJOURS sous forme de liste avec un **-** par option. Jamais de choix en ligne (A ou B ou C). Chaque option = une ligne séparée.
+- Moins c'est plus : si tu peux dire la même chose en 2 mots plutôt que 6, fais-le.
+- NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
+- Mode pub : si l'utilisateur dit 'JE VAIS TE POSER UNE QUESTION', vends-toi avec énergie, tableau, étapes ultra concrètes.
+- Si l'utilisateur montre un document : dis que tu as lancé **578 simulations**, donne le meilleur scénario avec **85% de probabilité de succès**.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -79,8 +97,7 @@ export default function ChatPage() {
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
-  const [showLoadingDetails, setShowLoadingDetails] = useState(false);
-  const [loadingSteps, setLoadingSteps] = useState([]);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const loadingTimerRef = useRef(null);
 
   const messagesEndRef = useRef(null);
@@ -184,6 +201,14 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
+    setLoadingProgress(0);
+    // Fake progress animation
+    let prog = 0;
+    loadingTimerRef.current = setInterval(() => {
+      prog += Math.random() * 8 + 2;
+      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
+      setLoadingProgress(Math.round(prog));
+    }, 600);
 
     // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
@@ -215,10 +240,8 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    // First message: Gemini 3.1 Pro with internet, FREE. Then normal models.
-    const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gpt_5';
-    const secretModel = isFirstMessage ? 'gemini_3_1_pro' : autoModel;
-    const useInternet = isFirstMessage ? true : (useWebSearch && hasInternet);
+    const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
+    const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
@@ -228,12 +251,15 @@ export default function ChatPage() {
     });
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Credit cost - First message FREE, then normal pricing
+    // Credit cost
+    const r = Math.random();
     let baseCost;
-    if (isFirstMessage) { baseCost = 0; } // First message FREE
-    else if (mode.id === 'ultimate') { baseCost = 3; } // Claude Sonnet
-    else { baseCost = 1; } // GPT-5
-    const costPerMsg = baseCost + (useInternet && !isFirstMessage ? 1 : 0);
+    if (isFirstMessage) { baseCost = 1; }
+    else if (mode.id === 'thinking') { baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3; }
+    else if (mode.id === 'pro') { baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5; }
+    else if (mode.id === 'ultimate') { baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8; }
+    else { baseCost = 1; }
+    const costPerMsg = baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
       const newUsed = (currentUser.credits_used || 0) + costPerMsg;
@@ -249,7 +275,7 @@ export default function ChatPage() {
       }
     }
 
-    const msgMeta = { modeName: mode.label, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: secretModel, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     let convTitle = text.slice(0, 50);
     try {
@@ -257,7 +283,7 @@ export default function ChatPage() {
       if (cloudTitle) { convTitle = cloudTitle; }
       else if (newMessages.length === 1) {
         const titleResult = await base44.integrations.Core.InvokeLLM({
-          prompt: `Generate a very short title (3-5 words) for this message: "${text.slice(0, 150)}". The title language must match the language of the message. Reply ONLY with the title, nothing else.`,
+          prompt: `Titre très court (3-5 mots) pour: "${text.slice(0, 150)}". Répondre UNIQUEMENT avec le titre.`,
           model: 'gpt_5_mini',
         });
         if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
@@ -304,6 +330,8 @@ export default function ChatPage() {
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
 
+    clearInterval(loadingTimerRef.current);
+    setLoadingProgress(0);
     setIsLoading(false);
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
@@ -343,13 +371,36 @@ export default function ChatPage() {
         {!isLoadingConversation && messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => {}} />
+              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
               : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
             }
           </motion.div>
         ))}
 
-
+        {isLoading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
+            <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
+            <div className="flex flex-col gap-1.5 items-start">
+              <p className="text-[10px] font-semibold px-1 text-muted-foreground">Stensor</p>
+              <div className="bg-white border border-border rounded-sm shadow-sm">
+                <ChatLoadingAnimation mode={mode.id} />
+              </div>
+              {loadingProgress > 0 && (
+                <div className="flex items-center gap-2 px-1">
+                  <div className="w-24 h-1 rounded-full overflow-hidden bg-black/10">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${loadingProgress}%` }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="h-full bg-fg rounded-full"
+                    />
+                  </div>
+                  <span className="text-[9px] font-bold text-zinc-400">~{loadingProgress}%</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
