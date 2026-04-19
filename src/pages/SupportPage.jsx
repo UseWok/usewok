@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Book, Headphones, ChevronRight, X, Plus, RefreshCw, Clock, Check, Loader } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronRight, X, Plus, RefreshCw, Clock, Check, Loader, Upload, Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const FG = '#0A0A0A';
@@ -147,71 +147,70 @@ export default function SupportPage() {
 
 function LandingPage({ onNavigate }) {
   return (
-    <div className="min-h-screen font-be bg-white">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be bg-white">
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="text-center mb-12">
           <h1 className="text-5xl font-black mb-3" style={{ color: FG }}>Aide & Support</h1>
           <p className="text-base" style={{ color: '#666' }}>
             Obtenez l'aide dont vous avez besoin pour créer des applications extraordinaires avec BASE44
           </p>
-        </div>
+        </motion.div>
 
-        {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mb-12">
-          {[
-            { icon: '📖', title: 'Documentation', desc: 'Explorez des guides complets, des tutoriels, des FAQ et les meilleures pratiques pour developer avec Base44.', color: '#FF7A3D' },
-            { icon: '👥', title: 'Communauté Discord', desc: 'Connectez-vous avec d\'autres développeurs et obtenez une aide instantanée de notre communauté active.', color: '#1ABC9C' },
-            { icon: '🎧', title: 'Ouvrir un ticket de support', desc: 'Soumettez un ticket de support détaillé et obtenez une assistance personnalisée.', color: '#2C3E50' }
-          ].map((item, i) => (
-            <motion.button key={i}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-              onClick={() => i === 2 && onNavigate()}
-              className="p-6 rounded-lg text-left text-white transition-all hover:scale-105 relative overflow-hidden group"
-              style={{ background: item.color, minHeight: '240px' }}>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-10" style={{ background: 'white' }} />
-              <div className="relative z-10">
-                <p className="text-3xl mb-3">{item.icon}</p>
-                <h3 className="text-lg font-black mb-2">{item.title}</h3>
-                <p className="text-sm opacity-90 mb-4">{item.desc}</p>
-                <span className="text-xs font-bold flex items-center gap-1">
-                  Commencer <ChevronRight className="w-3 h-3" />
-                </span>
-              </div>
-            </motion.button>
-          ))}
-        </div>
+        {/* Card - Open ticket only */}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
+          className="max-w-md mx-auto mb-16">
+          <motion.button onClick={onNavigate}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="w-full p-8 rounded-lg text-left text-white transition-all relative overflow-hidden group"
+            style={{ background: '#2C3E50', minHeight: '260px' }}>
+            <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-10" style={{ background: 'white' }} />
+            <motion.div className="relative z-10">
+              <motion.p className="text-5xl mb-4">🎧</motion.p>
+              <h3 className="text-2xl font-black mb-3">Ouvrir un ticket de support</h3>
+              <p className="text-sm opacity-90 mb-6">Soumettez un ticket de support détaillé et obtenez une assistance personnalisée.</p>
+              <motion.span className="text-xs font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
+                Commencer <ChevronRight className="w-4 h-4" />
+              </motion.span>
+            </motion.div>
+          </motion.button>
+        </motion.div>
 
         {/* Quick actions */}
-        <div className="bg-gray-50 rounded-lg p-8">
-          <h2 className="text-xl font-black mb-6" style={{ color: FG }}>Quick Actions</h2>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="bg-gray-50 rounded-lg p-8">
+          <h2 className="text-xl font-black mb-6" style={{ color: FG }}>Actions rapides</h2>
+          <p className="text-xs mb-4" style={{ color: '#aaa' }}>Gérez votre expérience de support</p>
           <div className="grid md:grid-cols-2 gap-4">
-            <button onClick={onNavigate}
-              className="p-4 text-left rounded-lg transition-all hover:bg-opacity-80"
+            <motion.button onClick={onNavigate}
+              whileHover={{ scale: 1.02 }}
+              className="p-4 text-left rounded-lg transition-all"
               style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3">
                 <MessageSquare className="w-5 h-5" style={{ color: FG }} />
                 <div>
-                  <p className="font-semibold" style={{ color: FG }}>My support tickets</p>
-                  <p className="text-xs" style={{ color: '#aaa' }}>View and manage your tickets</p>
+                  <p className="font-semibold" style={{ color: FG }}>Mes tickets de support</p>
+                  <p className="text-xs" style={{ color: '#aaa' }}>Afficher et gérer vos tickets</p>
                 </div>
               </div>
-            </button>
-            <a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
-              className="p-4 text-left rounded-lg transition-all hover:bg-opacity-80"
+            </motion.button>
+            <motion.a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
+              whileHover={{ scale: 1.02 }}
+              className="p-4 text-left rounded-lg transition-all"
               style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
               <div className="flex items-center gap-3">
                 <ChevronRight className="w-5 h-5" style={{ color: FG }} />
                 <div>
-                  <p className="font-semibold" style={{ color: FG }}>Community Forum</p>
-                  <p className="text-xs" style={{ color: '#aaa' }}>Our new Reddit community</p>
+                  <p className="font-semibold" style={{ color: FG }}>Forum communautaire</p>
+                  <p className="text-xs" style={{ color: '#aaa' }}>Notre nouvelle communauté Reddit</p>
                 </div>
               </div>
-            </a>
+            </motion.a>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -335,6 +334,11 @@ function TicketDetailPage({ ticket, user, onBack, onUpdate }) {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [ticketStatus, setTicketStatus] = useState(ticket.status);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -360,84 +364,103 @@ function TicketDetailPage({ ticket, user, onBack, onUpdate }) {
   const s = STATUS_CONFIG[ticketStatus];
 
   return (
-    <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
-      <div className="max-w-2xl mx-auto px-4 py-4 pb-20">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be" style={{ background: '#f5f5f5' }}>
+      <div className="max-w-2xl mx-auto px-4 py-4 pb-32">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={onBack} className="w-9 h-9 flex items-center justify-center"
-            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '8px' }}>
+        <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          className="flex items-center justify-between mb-4 sticky top-0 z-20 bg-white/80 backdrop-blur-sm py-2"
+          style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+          <motion.button onClick={onBack} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: FG }} />
-          </button>
-          <h1 className="text-lg font-black flex-1 text-center" style={{ color: FG }}>Support Ticket</h1>
-          <div className="w-9 h-9" />
-        </div>
+          </motion.button>
+          <p className="text-sm font-black" style={{ color: FG }}>{ticket.id.slice(0, 8)}</p>
+          <motion.button onClick={onBack} className="w-9 h-9 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+            <X className="w-4 h-4" style={{ color: FG }} />
+          </motion.button>
+        </motion.div>
 
         {/* Ticket info */}
-        <div className="mb-4 p-4 rounded-lg" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold line-clamp-2" style={{ color: FG }}>{ticket.description}</p>
-            <span className="text-[10px] font-black px-2 py-1 flex-shrink-0" style={{ background: s.bg, color: s.color, borderRadius: '6px' }}>
+        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }}
+          className="mb-4 p-4 rounded-lg" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex-1">
+              <p className="text-sm font-semibold line-clamp-2" style={{ color: FG }}>{ticket.description}</p>
+              <p className="text-xs mt-2" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleString()}</p>
+            </div>
+            <motion.span whileHover={{ scale: 1.05 }} className="text-[10px] font-black px-2.5 py-1 flex-shrink-0 rounded-md"
+              style={{ background: s.bg, color: s.color }}>
               {s.label}
-            </span>
+            </motion.span>
           </div>
-          <p className="text-xs" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString()}</p>
-        </div>
+          {user?.role === 'admin' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+              <p className="text-xs font-black uppercase mb-2" style={{ color: '#aaa' }}>Change status</p>
+              <div className="flex gap-2 flex-wrap">
+                {Object.keys(STATUS_CONFIG).map(st => (
+                  <motion.button key={st} onClick={() => handleStatusChange(st)}
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all capitalize"
+                    style={{
+                      background: ticketStatus === st ? FG : 'rgba(0,0,0,0.05)',
+                      color: ticketStatus === st ? 'white' : '#666'
+                    }}>
+                    {st}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+
+        <p className="text-xs text-center mb-4" style={{ color: '#999' }}>Support hours online, response in 48h</p>
 
         {/* Messages */}
-        <div className="space-y-3 mb-6">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className="max-w-xs p-3 rounded-lg"
-                style={{
-                  background: msg.author === 'user' ? FG : 'white',
-                  color: msg.author === 'user' ? 'white' : FG,
-                  border: msg.author === 'user' ? 'none' : '1px solid rgba(0,0,0,0.07)',
-                  borderRadius: msg.author === 'user' ? '12px 4px 12px 12px' : '4px 12px 12px 12px'
-                }}>
-                <p className="text-sm">{msg.text}</p>
-                <p className="text-xs mt-1" style={{ opacity: 0.6 }}>
-                  {new Date(msg.created_at).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Status selector (admin only) */}
-        {user?.role === 'admin' && (
-          <div className="mb-4 p-4 rounded-lg" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <p className="text-xs font-black uppercase mb-2" style={{ color: '#aaa' }}>Admin: Change Status</p>
-            <div className="flex gap-2">
-              {Object.keys(STATUS_CONFIG).map(st => (
-                <button key={st} onClick={() => handleStatusChange(st)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all capitalize"
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-3 mb-6">
+          {messages.length === 0 ? (
+            <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
+          ) : (
+            messages.map((msg, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <motion.div whileHover={{ scale: 1.02 }} className="max-w-xs px-4 py-3 rounded-lg shadow-sm"
                   style={{
-                    background: ticketStatus === st ? FG : 'rgba(0,0,0,0.05)',
-                    color: ticketStatus === st ? 'white' : '#666'
+                    background: msg.author === 'user' ? FG : 'white',
+                    color: msg.author === 'user' ? 'white' : FG,
+                    border: msg.author === 'user' ? 'none' : '1px solid rgba(0,0,0,0.07)',
+                    borderRadius: msg.author === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px'
                   }}>
-                  {st}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <p className="text-xs mt-2" style={{ opacity: 0.5 }}>
+                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </motion.div>
+              </motion.div>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </motion.div>
 
         {/* Message input */}
-        <div className="fixed bottom-0 left-0 right-0 p-4" style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
+          className="fixed bottom-0 left-0 right-0 p-4" style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
           <div className="max-w-2xl mx-auto flex gap-2">
             <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-              placeholder="Type your message…"
+              placeholder="Tapez votre message…"
               className="flex-1 px-4 py-3 text-sm focus:outline-none"
-              style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: '8px' }} />
-            <button onClick={handleSendMessage} disabled={!newMessage.trim() || sending}
-              className="px-4 py-3 text-sm font-black transition-all disabled:opacity-30"
-              style={{ background: FG, color: 'white', borderRadius: '8px' }}>
-              Send
-            </button>
+              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '24px', background: 'rgba(0,0,0,0.02)' }} />
+            <motion.button onClick={handleSendMessage} disabled={!newMessage.trim() || sending}
+              whileHover={newMessage.trim() && !sending ? { scale: 1.05 } : {}}
+              whileTap={newMessage.trim() && !sending ? { scale: 0.95 } : {}}
+              className="w-10 h-10 flex items-center justify-center flex-shrink-0 text-sm font-black transition-all disabled:opacity-30"
+              style={{ background: newMessage.trim() && !sending ? FG : 'rgba(0,0,0,0.05)', color: newMessage.trim() && !sending ? 'white' : '#999', borderRadius: '50%' }}>
+              <Send className="w-4 h-4" />
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

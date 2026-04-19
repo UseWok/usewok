@@ -130,12 +130,12 @@ export default function ManagePlanPage() {
   };
 
   const submitCancel = async () => {
-    if (!user) return;
+    if (!user || !cancelNote.trim()) return;
     setCancelLoading(true);
     const ratingsText = SURVEY_CRITERIA.map(c => `${c.label}: ${ratings[c.id] || 0}/5`).join(' | ');
     await base44.entities.Notification.create({
       title: `Annulation — ${user.full_name || user.email}`,
-      message: `Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote || '-'} | Avis: ${ratingsText}`,
+      message: `Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote} | Avis: ${ratingsText}`,
     });
     setCancelLoading(false);
     setCancelSent(true);
@@ -363,29 +363,32 @@ export default function ManagePlanPage() {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-sm" style={{ color: '#555' }}>Optional comment</p>
-                <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
-                  placeholder="Comment..."
-                  rows={2}
-                  className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                  style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
                 <div>
-                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email used for payment *</label>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: FG }}>Comment *</label>
+                  <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
+                    placeholder="Tell us why you're cancelling..."
+                    rows={3}
+                    className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
+                    style={{ border: `1.5px solid ${cancelNote ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px', transition: 'border-color 0.2s' }} />
+                  <p className="text-[10px] mt-1" style={{ color: '#aaa' }}>Required — helps us improve</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email used for payment</label>
                   <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)}
                     placeholder="your-email@example.com"
                     className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }} />
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '6px' }} />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={submitCancel} disabled={cancelLoading || !cancelEmail.trim()}
-                    className="flex-1 py-2.5 text-sm font-bold disabled:opacity-50"
-                    style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
+                  <button onClick={submitCancel} disabled={cancelLoading || !cancelNote.trim() || !cancelEmail.trim()}
+                    className="flex-1 py-3 text-sm font-bold transition-all disabled:opacity-40"
+                    style={{ background: '#DC2626', color: 'white', borderRadius: '6px', cursor: (cancelNote.trim() && cancelEmail.trim()) ? 'pointer' : 'not-allowed' }}>
                     {cancelLoading ? 'Sending...' : 'Send request'}
                   </button>
                   <button onClick={() => setShowCancelForm(false)}
-                    className="px-3 py-2.5 text-xs font-medium"
-                    style={{ background: 'white', color: '#999', border: '1px solid #ddd', borderRadius: '4px' }}>
-                    No
+                    className="px-4 py-3 text-sm font-medium transition-all hover:bg-opacity-60"
+                    style={{ background: 'rgba(0,0,0,0.05)', color: '#666', borderRadius: '6px' }}>
+                    Cancel
                   </button>
                 </div>
               </div>
