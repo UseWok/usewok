@@ -204,11 +204,14 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Upgrade — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
             <button onClick={() => navigate('/pricing')}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-black/5 transition-colors">
-              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm">
-                <TrendingUp className="w-[17px] h-[17px] text-fg" />
-              </div>
-              {expanded && <span className="text-sm font-bold text-fg whitespace-nowrap">Upgrade your plan</span>}
+              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
+              {expanded ? (
+                <p className="text-xs font-bold text-fg">Upgrade your plan</p>
+              ) : (
+                <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-[17px] h-[17px] text-fg" />
+                </div>
+              )}
             </button>
           )}
 
@@ -264,7 +267,7 @@ function NavItem({ icon: Icon, label, onClick, active, expanded }) {
       className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-150 ${active ? 'bg-yuzu text-fg' : 'text-zinc-500 hover:bg-black/5'}`}>
       <Icon className={`w-[17px] h-[17px] flex-shrink-0 ${active ? 'text-fg' : 'text-zinc-400'}`} />
       {expanded && <span className="flex-1 text-left whitespace-nowrap truncate text-sm">{label}</span>}
-      {expanded && active && <div className="w-1.5 h-1.5 flex-shrink-0 bg-fg rounded-none" />}
+      {expanded && active && <div className="w-1.5 h-1.5 flex-shrink-0 bg-fg" />}
     </button>
   );
 }
