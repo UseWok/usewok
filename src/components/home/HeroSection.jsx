@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
@@ -324,7 +324,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     <div className="flex items-center gap-1">
                     {/* + file */}
                     <div className="relative" ref={fileMenuRef}>
-                    <button onClick={() => {setShowFileMenu(!showFileMenu);setShowAgentMenu(false);setShowModeMenu(false);}}
+                    <button onClick={() => {setShowFileMenu(!showFileMenu);setShowAgentMenu(false);}}
                 aria-label="Attach file"
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
                     <Plus className="w-4 h-4 text-zinc-300" />
@@ -363,7 +363,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
                     {/* Agent button */}
                     <div className="relative" ref={agentMenuRef}>
-                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);setShowModeMenu(false);}}
+                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}}
                 className="h-8 px-2.5 flex items-center gap-1.5 rounded-md hover:bg-black/5 transition-colors">
                     <Bot className="w-3.5 h-3.5 text-zinc-300" />
                     <span className="text-xs font-medium text-zinc-300">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
