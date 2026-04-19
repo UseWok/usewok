@@ -209,32 +209,43 @@ export default function LandingPricingPage() {
               style={{ gridTemplateColumns: `repeat(${plans.length}, 1fr)` }}>
               {plans.map((plan, i) => {
                 const p = price(plan);
-                const isEssential = plan.id === 'expert';
+                const isHero = plan.id === 'expert'; // dark card
+                const glowColor = isHero
+                  ? 'rgba(221,255,0,0.18)'
+                  : plan.id === 'supreme'
+                  ? 'rgba(180,120,255,0.14)'
+                  : plan.id === 'advanced'
+                  ? 'rgba(99,210,255,0.13)'
+                  : 'rgba(0,0,0,0.04)';
                 return (
                   <motion.div key={plan.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.06 }}
-                    className="flex flex-col p-6 flex-shrink-0 md:flex-shrink"
+                    className="flex flex-col p-6 flex-shrink-0 md:flex-shrink relative overflow-hidden"
                     style={{
                       width: '200px',
-                      background: isEssential ? FG : 'white',
-                      border: isEssential ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                      background: isHero ? FG : 'white',
+                      border: isHero ? '1px solid rgba(221,255,0,0.25)' : '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: `0 0 40px ${glowColor}, 0 4px 20px rgba(0,0,0,0.06)`,
                     }}>
-                    {isEssential && (
+                    {/* Top glow streak */}
+                    <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+                      style={{ background: isHero ? 'linear-gradient(90deg, transparent, rgba(221,255,0,0.6), transparent)' : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)' }} />
+                    {isHero && (
                       <div className="inline-block mb-3 px-2 py-1 text-[9px] font-black uppercase tracking-wider self-start"
                         style={{ background: YUZU, color: FG }}>{t('landing_best_value')}</div>
                     )}
                     <p className="text-[10px] font-black uppercase tracking-widest mb-2"
-                      style={{ color: isEssential ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.4)' }}>
+                      style={{ color: isHero ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.4)' }}>
                       {plan.name}
                     </p>
-                    <p className="font-black mb-1" style={{ fontSize: '2rem', color: isEssential ? 'white' : FG }}>
+                    <p className="font-black mb-1" style={{ fontSize: '2rem', color: isHero ? 'white' : FG }}>
                       {p === 0 ? 'Free' : `$${p}`}
                     </p>
                     {p > 0 && (
-                      <p className="text-xs mb-5" style={{ color: isEssential ? 'rgba(255,255,255,0.3)' : 'rgba(10,10,10,0.35)' }}>
+                      <p className="text-xs mb-5" style={{ color: isHero ? 'rgba(255,255,255,0.3)' : 'rgba(10,10,10,0.35)' }}>
                         /mo{billing === 'yearly' ? ' yearly' : ''}
                       </p>
                     )}
@@ -245,15 +256,15 @@ export default function LandingPricingPage() {
                         const isBool = typeof plan[row.key] === 'boolean';
                         return (
                           <div key={row.label} className="flex items-center justify-between gap-2">
-                            <span className="text-xs" style={{ color: isEssential ? 'rgba(255,255,255,0.35)' : 'rgba(10,10,10,0.45)' }}>
+                            <span className="text-xs" style={{ color: isHero ? 'rgba(255,255,255,0.35)' : 'rgba(10,10,10,0.45)' }}>
                               {row.label}
                             </span>
                             {isBool ? (
                               plan[row.key]
-                                ? <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isEssential ? YUZU : FG }} />
+                                ? <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isHero ? YUZU : FG }} />
                                 : <X className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(10,10,10,0.15)' }} />
                             ) : (
-                              <span className="text-xs font-bold flex-shrink-0" style={{ color: isEssential ? 'white' : FG }}>{val}</span>
+                              <span className="text-xs font-bold flex-shrink-0" style={{ color: isHero ? 'white' : FG }}>{val}</span>
                             )}
                           </div>
                         );
@@ -266,9 +277,9 @@ export default function LandingPricingPage() {
                       }}
                       className="w-full py-3 font-black text-xs transition-all hover:opacity-80"
                       style={{
-                        background: isEssential ? YUZU : 'transparent',
-                        color: isEssential ? FG : FG,
-                        border: isEssential ? 'none' : '1px solid rgba(0,0,0,0.12)',
+                        background: isHero ? YUZU : 'transparent',
+                        color: FG,
+                        border: isHero ? 'none' : '1px solid rgba(0,0,0,0.12)',
                       }}>
                         {plan.id === 'free' ? 'Start free' : 'Choose plan'}
                       </button>
