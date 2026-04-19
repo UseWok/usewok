@@ -256,12 +256,13 @@ function LandingPage({ onNavigate }) {
 }
 
 function NewTicketModal({ onClose, user }) {
-  const [step, setStep] = useState(0); // 0: description, 1: analyzing, 2: category
+  const [step, setStep] = useState(0);
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [files, setFiles] = useState([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [suggestedCategory, setSuggestedCategory] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleAnalyze = async () => {
     if (!description.trim()) return;
@@ -334,14 +335,39 @@ function NewTicketModal({ onClose, user }) {
                 <label className="text-xs font-black uppercase mb-2 block" style={{ color: '#aaa' }}>Describe your issue</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)}
                   placeholder="Explain the problem in detail..."
-                  rows={5} className="w-full px-3 py-3 text-sm focus:outline-none resize-none"
-                  style={{ border: `1.5px solid ${description ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '8px', transition: 'border-color 0.15s' }} />
+                  rows={4} className="w-full px-4 py-3 text-sm focus:outline-none resize-none"
+                  style={{ border: `1.5px solid ${description ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '8px', transition: 'border-color 0.2s' }} />
               </div>
-              <button onClick={handleAnalyze} disabled={!description.trim()}
-                className="w-full py-3 text-sm font-black transition-all disabled:opacity-30"
+              <div>
+                <label className="text-xs font-black uppercase mb-2 block" style={{ color: '#aaa' }}>Attach files (optional)</label>
+                <input ref={fileInputRef} type="file" multiple className="hidden"
+                  onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
+                <motion.button onClick={() => fileInputRef.current?.click()}
+                  whileHover={{ scale: 1.02 }}
+                  className="w-full flex items-center justify-center gap-2 py-3 text-sm transition-all"
+                  style={{ border: '1.5px dashed rgba(0,0,0,0.12)', borderRadius: '8px', color: '#999' }}>
+                  <Upload className="w-4 h-4" /> Attach files
+                </motion.button>
+                {files.length > 0 && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 mt-3">
+                    {files.map((f, i) => (
+                      <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '6px' }}>
+                        <span className="text-[11px] max-w-[80px] truncate" style={{ color: '#555' }}>{f.name}</span>
+                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
+                          <X className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
+                        </button>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+              <motion.button onClick={handleAnalyze} disabled={!description.trim()}
+                whileHover={description.trim() ? { scale: 1.01 } : {}}
+                whileTap={description.trim() ? { scale: 0.99 } : {}}
+                className="w-full py-3.5 text-sm font-black transition-all disabled:opacity-30"
                 style={{ background: FG, color: 'white', borderRadius: '8px' }}>
                 Continue →
-              </button>
+              </motion.button>
             </div>
           )}
 
@@ -351,7 +377,7 @@ function NewTicketModal({ onClose, user }) {
                 className="w-10 h-10 rounded-full" style={{ border: '3px solid rgba(0,0,0,0.08)', borderTopColor: FG }} />
               <div className="text-center">
                 <p className="font-black text-sm" style={{ color: FG }}>Analyzing…</p>
-                <p className="text-xs mt-1" style={{ color: '#aaa' }}>Using GPT 5 MINI to categorize</p>
+                <p className="text-xs mt-1" style={{ color: '#aaa' }}>Processing your request</p>
               </div>
             </div>
           )}
