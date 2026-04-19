@@ -274,7 +274,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           }
 
                     <div className="px-4 pt-4 pb-1">
-                    <textarea ref={textareaRef} value={query} onChange={handleQueryChange}
+                    <textarea ref={textareaRef} value={query} onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();if (!isBlocked) handleCommencer();}}}
             placeholder={isBlocked ?
             dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue' :
