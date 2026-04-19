@@ -94,14 +94,21 @@ export default function ChatInputBar({
 
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(true); return; }
+    if (!SR) {
+      toast.error('Voice input not supported on this browser');
+      return;
+    }
+    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(false); return; }
     finalTranscriptRef.current = '';
     const rec = new SR();
     rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = false;
     rec.onresult = (e) => {
       const finals = Array.from(e.results).filter(r => r.isFinal).map(r => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
+    };
+    rec.onerror = (e) => {
+      console.error('Speech recognition error:', e.error);
+      setIsRecording(false); setVoiceLoading(false);
     };
     rec.onend = () => {
       setIsRecording(false); setVoiceLoading(false);
@@ -114,7 +121,12 @@ export default function ChatInputBar({
       }
       finalTranscriptRef.current = '';
     };
-    rec.start(); recognitionRef.current = rec; setIsRecording(true);
+    try {
+      rec.start(); recognitionRef.current = rec; setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      setIsRecording(false);
+    }
   };
 
   return (

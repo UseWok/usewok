@@ -260,16 +260,23 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     <div className="bg-white border border-black rounded-lg shadow-md overflow-visible" style={{ borderWidth: '1px' }}>
                     {files.length > 0 &&
           <div className="flex gap-2 flex-wrap p-4 pb-0">
-                    {files.map((file, idx) =>
+                    {files.map((file, idx) => {
+                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+                      return (
             <div key={idx} className="relative flex items-center gap-2 px-3 py-2 group bg-black/5 border border-black/8 rounded-md">
-                    <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                      {isImage ? (
+                        <img src={URL.createObjectURL(file)} alt={file.name} className="w-5 h-5 object-cover rounded-sm flex-shrink-0" />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
+                      )}
                     <span className="text-[10px] font-medium max-w-[80px] truncate text-zinc-600">{file.name}</span>
                     <button onClick={() => removeFile(idx)}
               className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-sm">
                     <X className="w-2 h-2" />
                     </button>
                     </div>
-            )}
+                      );
+                    })}
                     </div>
           }
 
@@ -375,10 +382,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         }}
                         className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
                         style={{
-                          background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
-                          border: '1px solid rgba(0,0,0,0.15)',
+                          background: mode.id === 'ultimate' ? '#DDFF00' : 'white',
+                          border: '1px solid #0A0A0A',
                         }}>
-                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#555' }}>Expert</span>
+                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#0A0A0A' }}>Expert</span>
                       </button>
                       <AnimatePresence>
                         {showExpertMenu && (
@@ -473,7 +480,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
         onClick={handleCommencer} 
         disabled={isBlocked}
         aria-label="Start conversation"
-        className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all border ${hasText && !isBlocked ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-black/8 text-zinc-400 cursor-not-allowed'}`}
+        className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all border ${hasText && !isBlocked ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-white text-zinc-400 cursor-not-allowed'}`}
         style={{ borderColor: '#0A0A0A', borderWidth: '1px' }}>
         {t('hero_start')}
       </motion.button>
