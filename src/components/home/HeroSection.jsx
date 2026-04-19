@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Bot, ChevronDown, Wifi, WifiOff, Lock, Zap } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
@@ -341,20 +341,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
                       }
                       </button>
                       <button
-                        onClick={() => {
-                          if (!hasInternet) { setUpsellFeature('internet'); setShowFileMenu(false); return; }
-                          setUseWebSearch(w => !w); setShowFileMenu(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${hasInternet ? (useWebSearch ? 'text-green-600' : 'text-zinc-600') : 'text-zinc-300'}`}>
+                      onClick={() => {
+                        if (!hasInternet) {setUpsellFeature('internet');setShowFileMenu(false);return;}
+                        setUseWebSearch((w) => !w);setShowFileMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${hasInternet ? useWebSearch ? 'text-green-600' : 'text-zinc-600' : 'text-zinc-300'}`}>
                         {useWebSearch && hasInternet ? <Wifi className="w-3.5 h-3.5 text-green-600" /> : <WifiOff className={`w-3.5 h-3.5 ${hasInternet ? 'text-zinc-400' : 'text-zinc-300'}`} />}
                         Web Search
                         {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-muted text-zinc-400 rounded-sm">Advanced+</span>}
-                        {hasInternet && (
-                          <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center"
-                            style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
+                        {hasInternet &&
+                      <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center"
+                      style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
                             {useWebSearch && <span className="text-white text-[8px]">✓</span>}
                           </span>
-                        )}
+                      }
                       </button>
                     </motion.div>
                   }
@@ -363,10 +363,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
                     {/* Agent button */}
                     <div className="relative" ref={agentMenuRef}>
-                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}}
-                className="h-8 px-2.5 flex items-center gap-1.5 rounded-md hover:bg-black/5 transition-colors">
-                    <Bot className="w-3.5 h-3.5 text-zinc-300" />
-                    <span className="text-xs font-medium text-zinc-300">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
+                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}} className="text-[hsl(var(--primary-foreground))] px-2.5 rounded-md h-8 flex items-center gap-1.5 hover:bg-black/5 transition-colors">
+                  
+                    <Bot className="text-slate-950 lucide lucide-bot w-3.5 h-3.5" />
+                    <span className="text-slate-950 text-xs font-medium">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
                     <ChevronDown className="w-3 h-3 text-zinc-300" />
                     </button>
                     <AnimatePresence>
@@ -391,37 +391,31 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </AnimatePresence>
                     </div>
 
+                    {/* Expert toggle */}
+                    {userPlan?.allowed_modes?.includes('ultimate') &&
+              <button
+                onClick={() => setMode(mode.id === 'ultimate' ? ALL_MODES.find((m) => m.id === 'thinking') : ALL_MODES.find((m) => m.id === 'ultimate'))}
+                className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
+                style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
+                        <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
+                        <span className="text-[11px] font-semibold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
+                      </button>
+              }
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                    {/* Expert button */}
-                    <motion.button
-                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                      onClick={() => {
-                        if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
-                        setMode(mode.id === 'ultimate' ? ALL_MODES.find(m => m.id === 'thinking') : ALL_MODES.find(m => m.id === 'ultimate'));
-                      }}
-                      className="h-7 px-2.5 flex items-center gap-1 rounded-sm transition-all cursor-pointer"
-                      style={{
-                        background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
-                        border: mode.id === 'ultimate' ? '1px solid #0A0A0A' : '1px solid rgba(0,0,0,0.1)',
-                      }}>
-                      <Zap className="w-3 h-3" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#bbb' }} />
-                      <span className="text-[11px] font-bold" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#aaa' }}>Expert</span>
-                    </motion.button>
-
                     <button onClick={toggleRecording}
-                    aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
-                    aria-pressed={isRecording}
-                    className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
+              aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+              aria-pressed={isRecording}
+              className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>
                     {voiceLoading ?
-                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-                    className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yellow-400" /> :
-                    isRecording ?
-                    <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                    transition={{ repeat: Infinity, duration: 1 }}
-                    className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} /> :
-                    <Mic className="w-3.5 h-3.5 text-zinc-400" />}
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
+                className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-yellow-400" /> :
+                isRecording ?
+                <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+                className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} /> :
+                <Mic className="w-3.5 h-3.5 text-zinc-400" />}
                     </button>
                     </div>
           </div>
