@@ -7,17 +7,12 @@ const FG = '#0A0A0A';
 
 export default function ArtCta({ title, subtitle, buttonLabel, onCta, topGradient = false }) {
   return (
-    <section className="relative overflow-hidden px-6 py-16 text-center"
+    <section className="relative overflow-hidden px-6 py-32 text-center"
       style={topGradient ? {
-        background: 'linear-gradient(to bottom, white 0%, #fefff0 5%, #04040a 14%)',
+        background: 'linear-gradient(to bottom, white 0%, #fefff0 8%, #04040a 18%)',
       } : {
         background: '#04040a',
       }}>
-
-      {/* Subtle yuzu glow under button */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div style={{ width: 600, height: 300, background: 'radial-gradient(ellipse, rgba(221,255,0,0.08) 0%, transparent 70%)', filter: 'blur(40px)' }} />
-      </div>
 
 
       {/* Content */}
