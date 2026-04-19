@@ -9,7 +9,7 @@ export const LOGO_URL = 'https://media.base44.com/images/public/69cfdd9989086942
 
 export const ALL_MODES = [
   { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_sonnet_4_6', desc: 'Most powerful', requiredPlan: 'expert', credit_cost: 3, credit_max: 3 },
-  { id: 'thinking', label: 'Auto',   icon: Brain, model: 'gemini_3_flash',  desc: 'Smart & cheap', requiredPlan: null,        credit_cost: 1, credit_max: 1 },
+  { id: 'thinking', label: 'Auto',   icon: Brain, model: 'gpt_5',  desc: 'Fast & efficient', requiredPlan: null,        credit_cost: 1, credit_max: 1 },
 ];
 
 export const CHAR_SPEED = 15;

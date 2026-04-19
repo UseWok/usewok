@@ -240,8 +240,8 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    // Model selection: Expert = Claude Sonnet 4.6 (cheaper), non-Expert = Gemini 3.1 Flash (very cheap)
-    const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gemini_3_flash';
+    // Model selection: Expert = Claude Sonnet 4.6, non-Expert = GPT-5 (fast & efficient)
+    const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gpt_5';
     const secretModel = autoModel;
     const useInternet = useWebSearch && hasInternet;
 
@@ -273,7 +273,7 @@ export default function ChatPage() {
       }
     }
 
-    const modelDisplayName = secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel === 'gemini_3_flash' ? 'Gemini 3 Flash' : secretModel;
+    const modelDisplayName = secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel === 'gpt_5' ? 'GPT-5' : secretModel;
     const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: modelDisplayName, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     let convTitle = text.slice(0, 50);
