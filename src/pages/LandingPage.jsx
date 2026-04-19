@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
 import StickyCardsSection from '../components/landing/StickyCardsSection';
-import ArtCta from '../components/landing/ArtCta';
 import FinalCta from '../components/landing/FinalCta';
+import LandingFooter from '../components/landing/LandingFooter';
 
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -407,51 +407,68 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-center mb-16">
             <h2 className="font-black text-4xl md:text-5xl mb-4" style={{ color: FG }}>{pricing.title}</h2>
-            <p className="text-sm" style={{ color: 'rgba(10,10,10,0.4)' }}>{pricing.subtitle}</p>
+            <p className="text-sm font-medium" style={{ color: 'rgba(10,10,10,0.60)' }}>{pricing.subtitle}</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-            {/* Free */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Free — glass reflex card */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="p-10 border border-black/08" style={{ borderRadius: '4px' }}>
+              className="relative overflow-hidden p-10"
+              style={{
+                borderRadius: '24px',
+                background: 'linear-gradient(145deg, #fafaf5 0%, #f0f5e0 100%)',
+                border: '1px solid rgba(180,220,0,0.18)',
+                boxShadow: '0 4px 30px rgba(180,220,0,0.08)',
+              }}>
+              {/* Reflex shimmer top */}
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(221,255,0,0.6) 50%, transparent 100%)' }} />
+              <div className="absolute top-0 left-0 w-40 h-40 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(221,255,0,0.15) 0%, transparent 70%)', filter: 'blur(20px)' }} />
               <h3 className="text-xl font-black mb-2" style={{ color: FG }}>{pricing.free_title}</h3>
               <p className="text-3xl font-black mb-6" style={{ color: FG }}>{pricing.free_price}</p>
               <div className="space-y-3 mb-8">
                 {pricing.free_features.map(f => (
-                  <div key={f} className="flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 bg-black" style={{ borderRadius: '4px' }}>
-                      <span className="text-[10px] font-black text-white">✓</span>
+                  <div key={f} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 rounded-full" style={{ background: 'rgba(10,10,10,0.08)' }}>
+                      <span className="text-[10px] font-black" style={{ color: FG }}>✓</span>
                     </div>
-                    <span className="text-sm" style={{ color: 'rgba(10,10,10,0.6)' }}>{f}</span>
+                    <span className="text-sm font-medium" style={{ color: FG }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={handleCta}
-                className="w-full py-3.5 font-black text-sm transition-colors"
-                style={{ background: FG, color: 'white', borderRadius: '4px' }}>
+                className="w-full py-3.5 font-black text-sm transition-all hover:scale-[1.02]"
+                style={{ background: FG, color: 'white', borderRadius: '12px' }}>
                 {pricing.free_cta}
               </button>
             </motion.div>
-            {/* Paid */}
+            {/* Paid — vivid yuzu reflex card */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.08 }}
-              className="p-10 bg-black" style={{ borderRadius: '4px' }}>
-              <h3 className="text-xl font-black mb-2 text-white">{pricing.paid_title}</h3>
-              <p className="font-black mb-1 text-white" style={{ fontSize: '2.5rem' }}>
-                {pricing.paid_price} <span className="text-lg font-semibold opacity-40">{pricing.paid_currency}</span>
+              className="relative overflow-hidden p-10"
+              style={{
+                borderRadius: '24px',
+                background: 'linear-gradient(145deg, #DDFF00 0%, #c8ee00 40%, #FFB800 100%)',
+                boxShadow: '0 8px 50px rgba(221,255,0,0.30), 0 20px 60px rgba(180,220,0,0.15)',
+              }}>
+              {/* Glass reflex stripe */}
+              <div className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, transparent 100%)', borderRadius: '24px 24px 0 0' }} />
+              <div className="absolute top-3 left-6 right-6 h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%)' }} />
+              <h3 className="text-xl font-black mb-2 relative z-10" style={{ color: FG }}>{pricing.paid_title}</h3>
+              <p className="font-black mb-1 relative z-10" style={{ fontSize: '2.5rem', color: FG }}>
+                {pricing.paid_price} <span className="text-lg font-semibold" style={{ color: 'rgba(10,10,10,0.5)' }}>{pricing.paid_currency}</span>
               </p>
-              <div className="space-y-3 mb-8 mt-4">
+              <div className="space-y-3 mb-8 mt-4 relative z-10">
                 {pricing.paid_features.map(f => (
-                  <div key={f} className="flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: YUZU, borderRadius: '4px' }}>
-                      <span className="text-[10px] font-black text-black">✓</span>
+                  <div key={f} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 rounded-full" style={{ background: 'rgba(10,10,10,0.12)' }}>
+                      <span className="text-[10px] font-black" style={{ color: FG }}>✓</span>
                     </div>
-                    <span className="text-sm text-white/60">{f}</span>
+                    <span className="text-sm font-semibold" style={{ color: FG }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={() => navigate(pricing.paid_url)}
-                className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
-                style={{ background: YUZU, color: FG, borderRadius: '4px' }}>
+                className="w-full py-3.5 font-black text-sm transition-all hover:scale-[1.02] relative z-10"
+                style={{ background: FG, color: YUZU, borderRadius: '12px' }}>
                 {pricing.paid_cta}
               </button>
             </motion.div>
@@ -480,7 +497,7 @@ export default function LandingPage() {
                   {openFaq === i && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
-                      <p className="pb-5 text-sm leading-relaxed" style={{ color: 'rgba(10,10,10,0.5)' }}>{item.a}</p>
+                      <p className="pb-5 text-sm leading-relaxed font-medium" style={{ color: 'rgba(10,10,10,0.65)' }}>{item.a}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -493,21 +510,7 @@ export default function LandingPage() {
       {/* FINAL CTA */}
       <FinalCta onCta={handleCta} />
 
-      {/* FOOTER */}
-      <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src={nav.logo_url} alt="" className="w-5 h-5 object-contain opacity-30" />
-            <span className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.3)' }}>Stensor 2026</span>
-          </div>
-          <div className="flex gap-6 flex-wrap justify-center">
-            {footer.links.map(l => (
-              <a key={l.label} href={l.url} className="text-xs hover:text-black transition-colors" style={{ color: 'rgba(10,10,10,0.35)' }}>{l.label}</a>
-            ))}
-          </div>
-          <p className="text-xs" style={{ color: 'rgba(10,10,10,0.2)' }}>{footer.disclaimer}</p>
-        </div>
-      </footer>
+      <LandingFooter logoUrl={nav.logo_url} footerLinks={footer.links} disclaimer={footer.disclaimer} />
     </div>
   );
 }

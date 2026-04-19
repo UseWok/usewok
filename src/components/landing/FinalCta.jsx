@@ -1,148 +1,109 @@
-// Cinematic closing CTA — "The only choice" energy
+// Final CTA — vivid yuzu/coral background + floating cream card, Base44-style
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap, Shield, Clock } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
-const pills = [
-  { icon: Zap, label: 'Instant strategy' },
-  { icon: Shield, label: 'Fully private' },
-  { icon: Clock, label: '24/7 available' },
-];
-
 export default function FinalCta({ onCta }) {
   return (
-    <section className="relative overflow-hidden" style={{ background: '#05050c' }}>
+    <section className="relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #DDFF00 0%, #aacc00 30%, #FFB800 65%, #FF6B00 100%)',
+        padding: '100px 24px 120px',
+      }}>
 
-      {/* Top gradient bridge */}
-      <div className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, white 0%, #05050c 100%)' }} />
-
-      {/* Ambient light show */}
+      {/* Animated soft orb blobs for depth */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Central yuzu halo */}
         <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.18, 0.32, 0.18] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ x: [0, 60, -30, 0], y: [0, -50, 30, 0], scale: [1, 1.15, 0.95, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            position: 'absolute', width: 1000, height: 1000,
-            top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
-            background: 'radial-gradient(circle, rgba(221,255,0,0.18) 0%, rgba(180,230,0,0.06) 35%, transparent 65%)',
-            filter: 'blur(60px)',
+            position: 'absolute', borderRadius: '50%',
+            width: 700, height: 700, top: '-200px', left: '-180px',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 65%)',
+            filter: 'blur(30px)',
           }}
         />
-        {/* Left teal */}
         <motion.div
-          animate={{ x: [0, 60, -20, 0], y: [0, -40, 30, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          animate={{ x: [0, -80, 40, 0], y: [0, 60, -40, 0], scale: [1, 1.1, 0.9, 1] }}
+          transition={{ duration: 26, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
           style={{
-            position: 'absolute', width: 700, height: 700,
-            top: '-100px', left: '-150px',
-            background: 'radial-gradient(circle, rgba(0,210,180,0.12) 0%, transparent 65%)',
-            filter: 'blur(60px)',
+            position: 'absolute', borderRadius: '50%',
+            width: 800, height: 800, bottom: '-250px', right: '-200px',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 65%)',
+            filter: 'blur(40px)',
           }}
         />
-        {/* Right violet */}
         <motion.div
-          animate={{ x: [0, -50, 20, 0], y: [0, 50, -30, 0] }}
-          transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut', delay: 7 }}
+          animate={{ x: [0, 40, -20, 0], y: [0, -30, 50, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 8 }}
           style={{
-            position: 'absolute', width: 700, height: 700,
-            top: '-80px', right: '-150px',
-            background: 'radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 65%)',
-            filter: 'blur(60px)',
+            position: 'absolute', borderRadius: '50%',
+            width: 500, height: 500, top: '10%', right: '15%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 65%)',
+            filter: 'blur(35px)',
           }}
         />
-        {/* Bottom coral */}
-        <motion.div
-          animate={{ x: [0, 30, -40, 0], y: [0, -30, 20, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-          style={{
-            position: 'absolute', width: 600, height: 600,
-            bottom: '-100px', left: '25%',
-            background: 'radial-gradient(circle, rgba(255,100,60,0.10) 0%, transparent 65%)',
-            filter: 'blur(50px)',
-          }}
-        />
-        {/* Soft stars pattern */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-52 pb-36 text-center">
-
-        {/* Eyebrow */}
+      {/* Central cream card */}
+      <div className="relative z-10 flex items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-full"
-          style={{ background: 'rgba(221,255,0,0.08)', border: '1px solid rgba(221,255,0,0.20)' }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: YUZU }} />
-          <span className="text-[10px] font-black tracking-[0.3em] uppercase" style={{ color: YUZU }}>
-            The only choice
-          </span>
-        </motion.div>
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="relative overflow-hidden text-center"
+          style={{
+            background: '#FEFDF5',
+            borderRadius: '28px',
+            padding: '64px 80px 72px',
+            maxWidth: '560px',
+            width: '100%',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.10)',
+          }}>
 
-        {/* Headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.05 }}
-          className="font-black leading-[1.0] tracking-tight text-white mb-8 whitespace-pre-line"
-          style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}>
-          {"Your wealth.\nYour rules.\nYour AI."}
-        </motion.h2>
+          {/* Subtle inner reflex */}
+          <div className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+            style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, transparent 100%)' }} />
 
-        {/* Sub */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="text-lg max-w-xl mx-auto mb-14 leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.38)' }}>
-          Stop outsourcing your financial future to someone who doesn't know you.
-          Stensor is the last financial tool you'll ever need.
-        </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="font-black leading-tight mb-10"
+            style={{ fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', color: FG, letterSpacing: '-0.02em' }}>
+            So, what shall we<br />build together?
+          </motion.h2>
 
-        {/* Pills */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.14 }}
-          className="flex flex-wrap justify-center gap-3 mb-14">
-          {pills.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2 px-4 py-2 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Icon className="w-3.5 h-3.5" style={{ color: YUZU }} />
-              <span className="text-xs font-bold text-white">{label}</span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.18 }}
-          className="flex flex-col items-center gap-4">
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.18 }}
             onClick={onCta}
-            className="group relative inline-flex items-center gap-3 font-black text-lg px-14 py-6 overflow-hidden"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-3 font-black text-sm px-8 py-4 rounded-full"
             style={{
-              background: YUZU,
-              color: FG,
-              borderRadius: '16px',
-              boxShadow: '0 0 40px rgba(221,255,0,0.35), 0 0 80px rgba(221,255,0,0.15)',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 60px rgba(221,255,0,0.55), 0 0 120px rgba(221,255,0,0.25)'; e.currentTarget.style.transform = 'scale(1.04)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 0 40px rgba(221,255,0,0.35), 0 0 80px rgba(221,255,0,0.15)'; e.currentTarget.style.transform = 'scale(1)'; }}>
-            Start free — no credit card
-            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </button>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.20)' }}>
-            Join 12,000+ people already building wealth with Stensor
-          </p>
-        </motion.div>
+              background: FG,
+              color: YUZU,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.22)',
+              letterSpacing: '-0.01em',
+            }}>
+            Start building free
+            <span className="w-7 h-7 flex items-center justify-center rounded-full flex-shrink-0"
+              style={{ background: YUZU }}>
+              <ArrowRight className="w-3.5 h-3.5" style={{ color: FG }} />
+            </span>
+          </motion.button>
 
+          <motion.p
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            transition={{ delay: 0.26 }}
+            className="mt-6 text-xs font-semibold"
+            style={{ color: 'rgba(10,10,10,0.38)' }}>
+            No credit card · Cancel anytime
+          </motion.p>
+        </motion.div>
       </div>
     </section>
   );

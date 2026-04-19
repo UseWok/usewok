@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Brain, Globe, Paperclip, MessageSquare, Zap, Crown, BarChart2, Shield, Clock } from 'lucide-react';
 import FinalCta from '../components/landing/FinalCta';
+import LandingFooter from '../components/landing/LandingFooter';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent } from '@/lib/landing-content';
 
@@ -153,35 +154,43 @@ export default function LandingFeaturesPage() {
       </section>
 
       {/* FEATURES GRID */}
-      <section className="px-6 pb-28" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px"
-          style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.08)' }}>
+      <section className="px-6 pb-28">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
+            // Alternate vivid card styles
+            const styles = [
+              { bg: 'linear-gradient(145deg,#fafaf5 0%,#f0f5e0 100%)', border: 'rgba(180,220,0,0.18)', iconBg: 'rgba(221,255,0,0.18)', iconColor: FG, tagBg: 'rgba(10,10,10,0.07)', tagColor: FG, titleColor: FG, descColor: 'rgba(10,10,10,0.55)', shimmer: 'rgba(221,255,0,0.5)' },
+              { bg: 'linear-gradient(145deg,#0a0a0a 0%,#141400 100%)', border: 'rgba(221,255,0,0.20)', iconBg: 'rgba(221,255,0,0.12)', iconColor: YUZU, tagBg: 'rgba(255,255,255,0.08)', tagColor: 'rgba(255,255,255,0.6)', titleColor: 'white', descColor: 'rgba(255,255,255,0.48)', shimmer: 'rgba(221,255,0,0.6)' },
+              { bg: 'linear-gradient(145deg,#fff9e6 0%,#fff3c0 100%)', border: 'rgba(255,184,0,0.22)', iconBg: 'rgba(255,184,0,0.18)', iconColor: FG, tagBg: 'rgba(10,10,10,0.07)', tagColor: FG, titleColor: FG, descColor: 'rgba(10,10,10,0.55)', shimmer: 'rgba(255,184,0,0.7)' },
+            ];
+            const s = styles[i % 3];
             return (
               <motion.div key={f.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.4, delay: (i % 3) * 0.07 }}
-                className="p-8 flex flex-col gap-5"
-                style={{ background: f.dark ? FG : 'white' }}>
-                <div className="flex items-start justify-between">
-                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0"
-                    style={{ background: f.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}>
-                    <Icon className="w-5 h-5" style={{ color: f.dark ? YUZU : FG }} />
+                transition={{ duration: 0.45, delay: (i % 3) * 0.07 }}
+                className="relative overflow-hidden p-8 flex flex-col gap-5"
+                style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+                {/* Top reflex shimmer */}
+                <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+                  style={{ background: `linear-gradient(90deg, transparent 0%, ${s.shimmer} 50%, transparent 100%)` }} />
+                <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none"
+                  style={{ background: `radial-gradient(circle, ${s.iconBg} 0%, transparent 70%)`, filter: 'blur(16px)' }} />
+                <div className="flex items-start justify-between relative z-10">
+                  <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 rounded-xl"
+                    style={{ background: s.iconBg }}>
+                    <Icon className="w-5 h-5" style={{ color: s.iconColor }} />
                   </div>
-                  <span className="text-[9px] font-black px-2 py-1 uppercase tracking-wider"
-                    style={{
-                      background: f.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                      color: f.dark ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.35)',
-                    }}>
+                  <span className="text-[9px] font-black px-2.5 py-1 uppercase tracking-wider rounded-full"
+                    style={{ background: s.tagBg, color: s.tagColor }}>
                     {f.tag}
                   </span>
                 </div>
-                <div>
-                  <h3 className="text-base font-black mb-2" style={{ color: f.dark ? 'white' : FG }}>{f.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: f.dark ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.5)' }}>{f.desc}</p>
+                <div className="relative z-10">
+                  <h3 className="text-base font-black mb-2" style={{ color: s.titleColor }}>{f.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: s.descColor }}>{f.desc}</p>
                 </div>
               </motion.div>
             );
@@ -191,16 +200,7 @@ export default function LandingFeaturesPage() {
 
       <FinalCta onCta={handleCta} />
 
-      {/* FOOTER */}
-      <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src={logoUrl} alt="" className="w-5 h-5 object-contain opacity-30" />
-            <span className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.3)' }}>Stensor 2026</span>
-          </div>
-          <button onClick={() => navigate('/')} className="text-xs hover:text-black transition-colors" style={{ color: 'rgba(10,10,10,0.35)' }}>← Back to home</button>
-        </div>
-      </footer>
+      <LandingFooter logoUrl={logoUrl} />
     </div>
   );
 }

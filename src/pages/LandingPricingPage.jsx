@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Check, X } from 'lucide-react';
 import FinalCta from '../components/landing/FinalCta';
+import LandingFooter from '../components/landing/LandingFooter';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
@@ -281,16 +282,7 @@ export default function LandingPricingPage() {
 
       <FinalCta onCta={handleCta} />
 
-      {/* FOOTER */}
-      <footer className="px-6 md:px-10 py-8 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src={logoUrl} alt="" className="w-5 h-5 object-contain opacity-30" />
-            <span className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.3)' }}>Stensor 2026</span>
-          </div>
-          <button onClick={() => navigate('/')} className="text-xs hover:text-black transition-colors" style={{ color: 'rgba(10,10,10,0.35)' }}>← Back to home</button>
-        </div>
-      </footer>
+      <LandingFooter logoUrl={logoUrl} />
     </div>
   );
 }
