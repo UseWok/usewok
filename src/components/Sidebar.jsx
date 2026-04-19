@@ -203,7 +203,7 @@ export default function Sidebar({ expanded, setExpanded }) {
         <div className="flex-shrink-0 px-2 pb-4 flex flex-col items-center gap-1">
           {/* Upgrade — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
-            {expanded ? (
+            expanded ? (
               <button onClick={() => navigate('/pricing')}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-yuzu rounded-sm hover:opacity-80 transition-opacity mb-1">
                 <TrendingUp className="w-[14px] h-[14px] text-fg flex-shrink-0" />
@@ -216,7 +216,7 @@ export default function Sidebar({ expanded, setExpanded }) {
                   <TrendingUp className="w-[17px] h-[17px] text-fg" />
                 </div>
               </button>
-            )}
+            )
           )}
 
           {/* Tensors */}
