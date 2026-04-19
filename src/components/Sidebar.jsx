@@ -204,14 +204,11 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Upgrade — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
             <button onClick={() => navigate('/pricing')}
-              className="w-full flex items-center justify-center gap-3 px-3 py-1.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
-              {expanded ? (
-                <p className="text-[11px] font-bold text-fg">Upgrade your plan</p>
-              ) : (
-                <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-[17px] h-[17px] text-fg" />
-                </div>
-              )}
+              className="w-full flex items-center gap-3 px-3 py-2 bg-yuzu rounded-sm hover:opacity-90 transition-opacity mb-1">
+              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-sm">
+                <TrendingUp className="w-[17px] h-[17px] text-fg" />
+              </div>
+              {expanded && <p className="text-[11px] font-bold text-fg whitespace-nowrap">Upgrade your plan</p>}
             </button>
           )}
 
