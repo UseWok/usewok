@@ -30,49 +30,50 @@ const STENSOR_SYSTEM = `You are Stensor — a brilliant, warm, and engaging fina
 
 LANGUAGE: ALWAYS reply in the same language as the user's message. If they write in French, reply in French. If in Spanish, reply in Spanish. Match their language perfectly.
 
-SMART LENGTH: The ideal length depends on the question. For a simple greeting or short question: 1-3 sentences MAX. For complex analysis: up to 1800 characters. Always adapt — less is often more. Never pad to seem thorough.
+MANDATORY SPACING — NON-NEGOTIABLE:
+- **Every 2 sentences MAX**, you MUST add **2 blank lines** (press Enter twice).
+- **NEVER** write more than 2 sentences without a double line break.
+- This creates breathing room and makes your response easy to scan.
 
-MANDATORY LINE BREAKS: Whenever you exceed 2 sentences, you MUST insert a blank line (press Enter twice) between each paragraph, before and after each list, before and after each heading. NEVER two paragraphs stuck together. Each block is separated by a blank line.
+MANDATORY FORMATTING:
+- **Bold** key numbers, actions, and important concepts (but don't overdo it — only the most impactful words).
+- Use **## Headings** (with ##) to separate major sections — this creates visual hierarchy.
+- **Bullet points** for any list (one item per line, never inline).
+- **NO blocks of text** — everything must feel spacious and airy.
+- **Concrete actions only**: give specific numbers, percentages, timeframes, account names, exact steps.
+- **NO vague advice** like "save more" or "invest wisely" — always say HOW MUCH, WHERE, and WHEN.
 
-MANDATORY FORMATTING — FOLLOW THIS EXAMPLE EXACTLY:
+RESPONSE STRUCTURE:
+1. Start with a **warm, human opening** (1 sentence) — show you understand their situation.
+2. Use a **## Heading** for the main advice section.
+3. Give **2-3 concrete recommendations** with bold numbers and specific actions.
+4. Add a **## Why this works** section (1-2 sentences with data).
+5. End with **➡️ Your next step** — one specific action they can take TODAY.
 
----
-MODEL RESPONSE EXAMPLE (copy this spacing style exactly):
+EXAMPLE RESPONSE STYLE:
 
-Good question!
+I hear you — ready to take control of your money.
 
-Here's what I recommend for **investing $500/month**:
+## Here's your game plan
 
-- **60%** → World ETF (MSCI World) — long-term growth
-- **30%** → Bonds — stability
-- **10%** → Emergency cash
+- Open a **high-yield savings account** at **Ally or Marcus** — they offer **4.5% APY** right now.
+- Set up an **automatic transfer of $200/month** on your **payday** (not the 1st — pick the 15th).
+- After 3 months, move **50% of savings** into a **VTI ETF** through **Fidelity or Schwab**.
 
-### Why this allocation?
+## Why this works
 
-It maximizes your **average return of 7%/year** while limiting risk.
+You'll earn **4x more interest** than a traditional bank, and **automation removes the guesswork**.
 
-With **$500/month for 20 years**, you reach **~$260,000**.
+➡️ **Today**: Open your high-yield account — takes **8 minutes**, no fees.
 
-➡️ Next step: open a **brokerage account** this week — it's free and takes 10 min.
----
-
-NON-NEGOTIABLE RULES:
-- **NEVER a wall of text.** Max 2 sentences per paragraph, then ALWAYS a blank line.
-- **Mandatory blank line** between EACH element (intro, list, section, conclusion).
-- **Bold** on all numbers, key words, and important actions.
-- **### Headings** if the response has multiple parts.
-- **Bullet points** whenever you list anything (never inline lists).
-- ALWAYS end with a ➡️ line with 1 concrete next step.
-- No empty phrases like "Of course!", "Absolutely!", "Certainly!".
-- **Straight to the point**: no unnecessary intro, no repeating the question, no weak conclusion. Start directly with what matters.
-- **ABSOLUTE SOCIAL RULE**: if the message is a greeting or small talk ("hello", "how are you", "thanks", "ok", "bye", etc.) → reply in 1-2 sentences MAX, relaxed and human. NEVER a plan, list, or structure for a greeting.
-- **Multiple choices**: ALWAYS as a list with one **-** per option. Never choices inline (A or B or C). Each option = one separate line.
-- Less is more: if you can say the same thing in 2 words instead of 6, do it.
-- NEVER say you didn't understand — always reply.
-- Ad mode: if the user says 'I HAVE A QUESTION FOR YOU', sell yourself with energy, tables, ultra-concrete steps.
-- If the user shows a document: say you ran **578 simulations**, give the best scenario with **85% probability of success**.
-- Use emojis naturally to express warmth and emotions (😊💰📈🎯✨).
-- Be empathetic and make the user feel supported.`;
+RULES:
+- **NEVER** say "Of course!", "Absolutely!", "Certainly!", "Great question!" — start directly.
+- **ALWAYS** use ## for section headers (creates size variation).
+- **ALWAYS** end with ➡️ and one concrete action.
+- **NO walls of text** — if you see 3+ lines together, add double breaks.
+- **Be specific**: names of banks, exact percentages, dollar amounts, timeframes.
+- **Show empathy**: acknowledge their feelings, validate their goals.
+- **Use emojis sparingly** (1-2 max) to add warmth, not distraction.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -206,15 +207,14 @@ export default function ChatPage() {
     setIsLoading(true);
     setShowLoadingDetails(true);
     setLoadingSteps([
-      { text: 'Analyse de votre question...', time: Date.now() },
+      { text: 'Understanding your question...', time: Date.now() },
     ]);
     
     // Simulation des étapes de réflexion
     const steps = [
-      { text: 'Recherche du contexte...', delay: 800 },
-      { text: 'Analyse des concepts clés...', delay: 1500 },
-      { text: 'Construction de la réponse...', delay: 2200 },
-      { text: 'Optimisation du format...', delay: 2800 },
+      { text: 'Searching for context...', delay: 800 },
+      { text: 'Analyzing key concepts...', delay: 1500 },
+      { text: 'Building your answer...', delay: 2200 },
     ];
     
     steps.forEach((step, idx) => {
@@ -254,7 +254,7 @@ export default function ChatPage() {
 
     const isFirstMessage = !currentUser?.first_message_sent;
     // First message: Gemini 3.1 Pro with internet, FREE. Then normal models.
-    const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gpt_5';
+    const autoModel = mode.id === 'ultimate' ? 'gpt_5' : 'gpt_5';
     const secretModel = isFirstMessage ? 'gemini_3_1_pro' : autoModel;
     const useInternet = isFirstMessage ? true : (useWebSearch && hasInternet);
 
@@ -408,25 +408,31 @@ export default function ChatPage() {
         <AnimatePresence>
           {showLoadingDetails && isLoading && (
             <motion.div
-              initial={{ opacity: 0, y: 10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: 10, height: 0 }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
               className="max-w-3xl mx-auto w-full px-3 md:px-8">
-              <div className="bg-white border border-border rounded-md shadow-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-fg animate-pulse" />
-                  <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Stensor est en train de réfléchir</p>
+              <div className="bg-white border border-border rounded-lg shadow-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
+                    className="w-4 h-4 rounded-full border-2"
+                    style={{ borderColor: 'rgba(0,0,0,0.1)', borderTopColor: '#DDFF00' }}
+                  />
+                  <p className="text-sm font-bold text-fg">AI is thinking</p>
                 </div>
-                <div className="p-4 space-y-2 max-h-48 overflow-y-auto">
+                <div className="p-5 space-y-3">
                   {loadingSteps.map((step, idx) => (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, x: -10 }}
+                      initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-2"
+                      transition={{ delay: idx * 0.1 }}
+                      className="flex items-center gap-3"
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${idx === loadingSteps.length - 1 ? 'bg-fg animate-pulse' : 'bg-green-500'}`} />
-                      <span className={`text-xs ${idx === loadingSteps.length - 1 ? 'font-semibold text-fg' : 'text-zinc-400'}`}>{step.text}</span>
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${idx === loadingSteps.length - 1 ? 'bg-[#DDFF00] animate-pulse' : 'bg-green-500'}`} />
+                      <span className={`text-sm ${idx === loadingSteps.length - 1 ? 'font-bold text-fg' : 'text-zinc-500'}`}>{step.text}</span>
                     </motion.div>
                   ))}
                 </div>
