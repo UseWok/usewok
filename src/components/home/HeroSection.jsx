@@ -186,7 +186,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const isBlocked = creditsUsed >= creditsTotal || dailyBlocked;
 
   return (
-    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden">
+    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(221,255,0,0.08) 0%, white 40%, white 100%)',
+      }}>
       {/* Yuzu light glow effect - bottom right to top left */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
@@ -203,7 +206,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
             height: 800,
             bottom: '-300px',
             right: '-300px',
-            background: 'radial-gradient(circle, rgba(221,255,0,0.15) 0%, rgba(221,255,0,0.05) 40%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(221,255,0,0.2) 0%, rgba(221,255,0,0.08) 40%, transparent 70%)',
             filter: 'blur(60px)',
           }}
         />
@@ -369,85 +372,44 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </div>
 
                     {/* Expert toggle */}
-                    <div className="relative" ref={expertMenuRef}>
-                      <button
-                        onClick={() => {
-                          if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
-                          if (mode.id === 'ultimate') {
-                            setMode(ALL_MODES.find((m) => m.id === 'thinking'));
-                            setShowExpertMenu(false);
-                          } else {
-                            setShowExpertMenu((s) => !s);
-                          }
-                        }}
-                        className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
-                        style={{
-                          background: mode.id === 'ultimate' ? '#DDFF00' : 'white',
-                          border: '1px solid #0A0A0A',
-                        }}>
-                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#0A0A0A' }}>Expert</span>
-                      </button>
-                      <AnimatePresence>
-                        {showExpertMenu && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -4, scale: 0.97 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                            transition={{ duration: 0.1 }}
-                            className="absolute bottom-full mb-2 left-0 bg-white shadow-xl border border-black/10 rounded-md overflow-hidden z-50 min-w-[176px]">
-                            <button
-                              onClick={() => {
-                                setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
-                                setUseWebSearch(true);
-                                setShowExpertMenu(false);
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
-                              <div>
-                                <p className="text-xs font-bold text-fg">Avec internet</p>
-                                <p className="text-[10px] text-zinc-400">Recherche web en direct</p>
-                              </div>
-                            </button>
-                            <button
-                              onClick={() => {
-                                setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
-                                setUseWebSearch(false);
-                                setShowExpertMenu(false);
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
-                              <div>
-                                <p className="text-xs font-bold text-fg">Sans internet</p>
-                                <p className="text-[10px] text-zinc-400">Analyse pure, hors ligne</p>
-                              </div>
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    <button
+                      onClick={() => {
+                        if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
+                        if (mode.id === 'ultimate') {
+                          setMode(ALL_MODES.find((m) => m.id === 'thinking'));
+                        } else {
+                          setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
+                        }
+                      }}
+                      className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
+                      style={{
+                        background: mode.id === 'ultimate' ? '#DDFF00' : 'white',
+                        border: '1px solid #0A0A0A',
+                      }}>
+                      <span className="text-[11px] font-bold hidden sm:block" style={{ color: '#0A0A0A' }}>Expert</span>
+                    </button>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
                     <button
                       onClick={toggleRecording}
                       aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
                       aria-pressed={isRecording}
-                      className="relative w-8 h-8 flex items-center justify-center rounded-sm transition-all cursor-pointer z-20 pointer-events-auto"
+                      className="relative w-7 h-9 flex items-center justify-center rounded-sm transition-all cursor-pointer z-20 pointer-events-auto"
                       style={{
-                        background: isRecording ? '#0A0A0A' : voiceLoading ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
-                        border: '1.5px solid rgba(0,0,0,0.1)',
+                        border: '1.5px solid #0A0A0A',
                       }}>
                       {voiceLoading ? (
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
                           className="w-3.5 h-3.5 rounded-full border-2"
-                          style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: '#DDFF00' }} />
+                          style={{ borderColor: 'rgba(0,0,0,0.2)', borderTopColor: '#DDFF00' }} />
                       ) : isRecording ? (
                         <motion.div animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
                           transition={{ repeat: Infinity, duration: 0.9 }}
                           className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} />
                       ) : (
-                        <Mic className="w-3.5 h-3.5" style={{ color: '#888' }} />
+                        <Mic className="w-4 h-4" style={{ color: '#0A0A0A' }} />
                       )}
                     </button>
-                    </div>
           </div>
         </div>
       </motion.div>

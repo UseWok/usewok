@@ -66,7 +66,7 @@ export default function RecentApps({ agentId }) {
     const matchSearch = !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.preview?.toLowerCase().includes(search.toLowerCase());
     const matchAgent = agentId ? (d.agent === agentId) : true;
     return matchSearch && matchAgent;
-  }).slice(0, 5);
+  }).slice(0, 3);
 
   useEffect(() => {
     const h = (e) => { if (contextRef.current && !contextRef.current.contains(e.target)) setContextMenu(null); };
