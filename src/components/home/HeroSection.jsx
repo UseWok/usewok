@@ -42,7 +42,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showExpertMenu, setShowExpertMenu] = useState(false);
-  const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
+  const [mode, setMode] = useState(ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const finalTranscriptRef = useRef('');
@@ -350,6 +350,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                   <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[220px] z-50 border border-black/10 rounded-md">
                       {AGENTS.map((a) => {
                       const meta = AGENT_META[a.id] || {};
+                      const isGlobal = a.id === 'global';
                       return (
                         <button key={a.id} onClick={() => {
                           localStorage.setItem('stensor_selected_agent', a.id);
@@ -357,7 +358,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           setShowAgentMenu(false);
                         }}
                         aria-pressed={effectiveAgentId === a.id}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}
+                        style={isGlobal && effectiveAgentId === a.id ? { border: '2px solid #0A0A0A' } : isGlobal ? { border: '2px solid #0A0A0A' } : {}}>
                             <span className="text-base flex-shrink-0">{meta.emoji || '🤖'}</span>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium leading-tight">{a.label}</p>
