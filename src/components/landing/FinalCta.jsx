@@ -9,7 +9,7 @@ export default function FinalCta({ onCta }) {
   return (
     <section className="relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #DDFF00 0%, #aacc00 30%, #FFB800 65%, #FF6B00 100%)',
+        background: 'linear-gradient(135deg, #eeff55 0%, #DDFF00 45%, #ccee00 100%)',
         padding: '100px 24px 120px',
       }}>
 
@@ -56,12 +56,12 @@ export default function FinalCta({ onCta }) {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="relative overflow-hidden text-center"
           style={{
-            background: '#FEFDF5',
-            borderRadius: '28px',
+            background: '#FEFFF0',
+            borderRadius: '12px',
             padding: '64px 80px 72px',
             maxWidth: '560px',
             width: '100%',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.10)',
+            boxShadow: '0 24px 70px rgba(0,0,0,0.14), 0 6px 20px rgba(0,0,0,0.08)',
           }}>
 
           {/* Subtle inner reflex */}
@@ -96,13 +96,7 @@ export default function FinalCta({ onCta }) {
             </span>
           </motion.button>
 
-          <motion.p
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            transition={{ delay: 0.26 }}
-            className="mt-6 text-xs font-semibold"
-            style={{ color: 'rgba(10,10,10,0.38)' }}>
-            No credit card · Cancel anytime
-          </motion.p>
+
         </motion.div>
       </div>
     </section>
