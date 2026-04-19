@@ -218,9 +218,9 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Tensors bar */}
           <button ref={tensorsRef} onClick={() => togglePopover('tensors')}
             className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-md hover:bg-black/5 transition-colors">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm mx-auto">
-              <Zap className="w-[17px] h-[17px] text-fg" />
-            </div>
+            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-white border border-black/10 rounded-sm mx-auto">
+                  <span className="text-[11px] font-black text-fg">T</span>
+                </div>
             {expanded && (
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center justify-between mb-1">
