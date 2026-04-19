@@ -108,5 +108,6 @@ export default function AssistantMessage({ content, agent, meta }) {
           </div>
         )}
       </div>
+    </div>
   );
 }
