@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ExternalLink, Bot, MoreHorizontal } from 'lucide-react';
+import { ExternalLink, Copy, Check, Cpu } from 'lucide-react';
 import { useState } from 'react';
 import { AGENTS } from '@/components/Sidebar';
 
@@ -24,15 +24,21 @@ function stripSourceUrls(content) {
 }
 
 export default function AssistantMessage({ content, agent, meta }) {
-  const [showAgent, setShowAgent] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showMeta, setShowMeta] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
   const sources = extractSources(content);
   const cleanContent = sources.length > 0 ? stripSourceUrls(content) : content;
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
     <div className="flex flex-col gap-1 items-start w-full mb-2">
       <div className="flex items-center gap-1.5 mb-2">
-        <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain flex-shrink-0" style={{ opacity: 0.9 }} />
         <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
       </div>
       <div className="w-full break-words"
@@ -69,44 +75,31 @@ export default function AssistantMessage({ content, agent, meta }) {
         </ReactMarkdown>
       </div>
 
-      {/* Info button */}
-      <div className="flex items-center gap-2 mt-2">
-        <button onClick={() => setShowAgent(s => !s)}
-          className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
+      {/* Action row: copy + model info */}
+      <div className="flex items-center gap-1.5 mt-2">
+        <button onClick={handleCopy}
+          className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all hover:opacity-70"
           style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', color: '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
-          <MoreHorizontal className="w-3 h-3" />
+          {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+          <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
-        {showAgent && (
-          <div className="flex items-center flex-wrap gap-1.5">
-            <div className="flex items-center gap-1 px-2 py-1"
-              style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <Bot className="w-3 h-3" style={{ color: '#888' }} />
-              <span className="text-[10px] font-semibold" style={{ color: '#555' }}>{agentLabel}</span>
-            </div>
-            {meta?.modeName && (
-              <div className="flex items-center gap-1 px-2 py-1"
-                style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <span className="text-[10px] font-semibold" style={{ color: '#555' }}>Mode: {meta.modeName}</span>
-              </div>
-            )}
-            {meta?.modelName && (
-              <div className="px-2 py-1"
-                style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <span className="text-[10px]" style={{ color: '#888' }}>{meta.modelName}</span>
-              </div>
-            )}
-            {meta?.usedInternet && (
-              <div className="px-2 py-1"
-                style={{ background: 'rgba(22,163,74,0.08)', borderRadius: '4px', border: '1px solid rgba(22,163,74,0.2)' }}>
-                <span className="text-[10px] font-semibold" style={{ color: '#16a34a' }}>🌐 Web</span>
-              </div>
-            )}
-            {meta?.hasFiles && (
-              <div className="px-2 py-1"
-                style={{ background: 'rgba(59,130,246,0.08)', borderRadius: '4px', border: '1px solid rgba(59,130,246,0.2)' }}>
-                <span className="text-[10px] font-semibold" style={{ color: '#3b82f6' }}>📎 File read</span>
-              </div>
-            )}
+        {meta?.modelName && (
+          <div className="flex items-center gap-1 px-2 py-1"
+            style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.05)' }}>
+            <Cpu className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
+            <span className="text-[10px]" style={{ color: '#aaa' }}>{meta.modelName}</span>
+          </div>
+        )}
+        {meta?.usedInternet && (
+          <div className="px-2 py-1"
+            style={{ background: 'rgba(22,163,74,0.08)', borderRadius: '4px', border: '1px solid rgba(22,163,74,0.2)' }}>
+            <span className="text-[10px] font-semibold" style={{ color: '#16a34a' }}>🌐 Web</span>
+          </div>
+        )}
+        {meta?.hasFiles && (
+          <div className="px-2 py-1"
+            style={{ background: 'rgba(59,130,246,0.08)', borderRadius: '4px', border: '1px solid rgba(59,130,246,0.2)' }}>
+            <span className="text-[10px] font-semibold" style={{ color: '#3b82f6' }}>📎 File</span>
           </div>
         )}
       </div>

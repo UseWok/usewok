@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown, Zap, Brain, Star, Crown, Lock, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Crown, Wifi, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
+import { ALL_MODES as CHAT_ALL_MODES } from '@/lib/chat-constants';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
 const AGENT_META = {
@@ -16,10 +17,7 @@ const AGENT_META = {
 };
 const AGENT_LABEL_KEYS = { global: 'global_agent', 'emotions-depenses': 'emotions_agent', 'wealth-strategy': 'wealth_agent' };
 
-const ALL_MODES = [
-{ id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Le plus puissant', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
-{ id: 'pro', label: 'Avancé', icon: Star, model: 'gemini_3_1_pro', desc: 'Analyse avancée', requiredPlan: 'essential', credit_cost: 2, credit_max: 5 },
-{ id: 'thinking', label: 'Standard', icon: Brain, model: 'gemini_3_1_pro', desc: 'Mode standard', requiredPlan: null, credit_cost: 1, credit_max: 3 }];
+const ALL_MODES = CHAT_ALL_MODES;
 
 
 const POWER_TOPICS = [
@@ -42,7 +40,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [files, setFiles] = useState([]);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
-  const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAtMenu, setShowAtMenu] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
@@ -64,7 +61,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const fileInputRef = useRef(null);
   const fileMenuRef = useRef(null);
   const agentMenuRef = useRef(null);
-  const modeMenuRef = useRef(null);
   const atMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
@@ -102,7 +98,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
     const handler = (e) => {
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
       if (agentMenuRef.current && !agentMenuRef.current.contains(e.target)) setShowAgentMenu(false);
-      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) setShowModeMenu(false);
       if (atMenuRef.current && !atMenuRef.current.contains(e.target)) setShowAtMenu(false);
     };
     document.addEventListener('mousedown', handler);
@@ -195,7 +190,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const isBlocked = creditsUsed >= creditsTotal || dailyBlocked;
 
   return (
-    <section className="max-w-2xl mx-auto text-center px-4 mt-20 md:mt-28">
+    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36">
       
 
 
@@ -205,13 +200,29 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
       
 
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.02 }}
+        className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 text-[10px] font-black tracking-[0.2em] uppercase"
+        style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+        AI Financial Coach
+      </motion.div>
       <motion.h1
         initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-        className="text-3xl md:text-4xl font-black tracking-tight text-fg">
-        Let's build your financial freedom together.
+        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-fg mb-5 leading-[1.05]">
+        Build your financial<br />freedom, today.
       </motion.h1>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.12 }}
+        className="text-base mb-10"
+        style={{ color: 'rgba(10,10,10,0.4)' }}>
+        Ask anything. Get expert-grade answers, instantly.
+      </motion.p>
       
 
 
@@ -320,14 +331,30 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </button>
                     <AnimatePresence>
                     {showFileMenu &&
-                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50 border border-black/10 rounded-md">
+                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-md">
                       <button onClick={handleFileAttach}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
                         <FileText className={`w-3.5 h-3.5 ${canUpload ? 'text-fg' : 'text-zinc-300'}`} />
-                        Joindre un fichier
+                        Attach file
                         {!canUpload &&
                       <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-sm">Essential+</span>
                       }
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!hasInternet) { setUpsellFeature('internet'); setShowFileMenu(false); return; }
+                          setUseWebSearch(w => !w); setShowFileMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${hasInternet ? (useWebSearch ? 'text-green-600' : 'text-zinc-600') : 'text-zinc-300'}`}>
+                        {useWebSearch && hasInternet ? <Wifi className="w-3.5 h-3.5 text-green-600" /> : <WifiOff className={`w-3.5 h-3.5 ${hasInternet ? 'text-zinc-400' : 'text-zinc-300'}`} />}
+                        Web Search
+                        {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-muted text-zinc-400 rounded-sm">Advanced+</span>}
+                        {hasInternet && (
+                          <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center"
+                            style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
+                            {useWebSearch && <span className="text-white text-[8px]">✓</span>}
+                          </span>
+                        )}
                       </button>
                     </motion.div>
                   }
@@ -364,52 +391,20 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </AnimatePresence>
                     </div>
 
-                    {/* Mode button */}
-                    <div className="relative" ref={modeMenuRef}>
-                    <button onClick={() => {setShowModeMenu(!showModeMenu);setShowFileMenu(false);setShowAgentMenu(false);}}
-                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-300" />
-                    </button>
-                    <AnimatePresence>
-                    {showModeMenu &&
-                  <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-md">
-                      {ALL_MODES.map((m) => {
-                      const Icon = m.icon;
-                      const isAllowed = userPlan?.allowed_modes.includes(m.id);
-                      return (
-                        <button key={m.id} onClick={() => {if (!isAllowed) return;setMode(m);setShowModeMenu(false);}}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left mb-0.5 ${mode.id === m.id ? 'bg-yuzu' : isAllowed ? 'hover:bg-black/5' : 'opacity-40'}`}>
-                            <Icon className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
-                            <div className="flex-1">
-                              <p className={`text-sm font-medium ${mode.id === m.id ? 'text-fg' : 'text-zinc-600'}`}>{m.label}</p>
-                              <p className="text-[10px] text-zinc-400">{m.desc}</p>
-                            </div>
-                            {isAllowed ?
-                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 bg-black/8 text-zinc-500 rounded-sm">{m.credit_cost}T</span> :
-                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap bg-purple-100 text-purple-700 rounded-sm">{m.requiredPlan ? m.requiredPlan.charAt(0).toUpperCase() + m.requiredPlan.slice(1) + '+' : ''}</span>
-                          }
-                          </button>);
-
-                    })}
-                    </motion.div>
-                  }
-                    </AnimatePresence>
-                    </div>
+                    {/* Expert toggle */}
+                    {userPlan?.allowed_modes?.includes('ultimate') && (
+                      <button
+                        onClick={() => setMode(mode.id === 'ultimate' ? ALL_MODES.find(m => m.id === 'thinking') : ALL_MODES.find(m => m.id === 'ultimate'))}
+                        className="h-8 px-2.5 flex items-center gap-1.5 rounded-md transition-colors hover:bg-black/5"
+                        style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
+                        <Crown className="w-3.5 h-3.5" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }} />
+                        <span className="text-[11px] font-semibold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#0A0A0A' : '#d4d4d4' }}>Expert</span>
+                      </button>
+                    )}
                     </div>
 
                     <div className="flex items-center gap-2">
-              <button
-                onClick={() => {if (!hasInternet) {setUpsellFeature('internet');return;}setUseWebSearch((w) => !w);}}
-                className={`h-8 px-2 flex items-center gap-1.5 rounded-md transition-colors ${useWebSearch ? 'bg-green-100' : 'bg-black/5'}`}>
-                {useWebSearch ?
-                <Wifi className="w-3.5 h-3.5 text-green-600" /> :
-                <WifiOff className="w-3.5 h-3.5 text-zinc-300" />}
-                <span className={`text-[11px] font-semibold hidden sm:block ${useWebSearch ? 'text-green-600' : 'text-zinc-300'}`}>Web</span>
-                {!hasInternet && <span className="text-[9px] font-bold ml-1 text-zinc-300">Advanced+</span>}
-              </button>
-              <span className="text-xs font-semibold hidden sm:block text-zinc-300">{mode.label}</span>
-              <span className="text-[9px] font-black hidden sm:block px-1 py-0.5 bg-black/8 text-zinc-400 rounded-sm">{mode.credit_cost}-{mode.credit_max}T</span>
-              <button onClick={toggleRecording}
+                    <button onClick={toggleRecording}
               aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
               aria-pressed={isRecording}
               className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-all ${isRecording || voiceLoading ? 'bg-fg' : 'bg-black/5'}`}>

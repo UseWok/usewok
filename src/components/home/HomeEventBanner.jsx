@@ -19,25 +19,7 @@ function useCountdown(targetMs) {
 }
 
 export default function HomeEventBanner({ large = false }) {
-  const [show, setShow] = useState(null); // null=loading, true=show, false=hide
-  const [expiryMs, setExpiryMs] = useState(0);
-  const navigate = useNavigate();
-  const rem = useCountdown(expiryMs);
-
-  useEffect(() => {
-    base44.auth.me().then((u) => {
-      if (isOfferActive(u)) {
-        setExpiryMs(getOfferExpiry(u));
-        setShow(true);
-      } else {
-        setShow(false);
-      }
-    }).catch(() => {setShow(false);});
-  }, []);
-
-  // Reserve space while loading to prevent layout shift
-  if (show === null) return <div className={large ? 'h-16 mb-4' : 'max-w-2xl mx-auto px-4 mb-4'} style={large ? {} : {}}><div className={large ? 'h-16' : 'h-14'} /></div>;
-  if (!show || rem <= 0) return null;
+  return null;
 
   const h = Math.floor(rem / 3600000);
   const m = Math.floor(rem % 3600000 / 60000);

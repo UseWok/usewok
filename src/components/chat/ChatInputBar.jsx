@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, SlidersHorizontal, Mic, X, FileText, Bot, ChevronDown,
-  Star, Crown, Brain, Lock, Wifi, WifiOff, Send
+  Plus, Mic, X, FileText, Bot, ChevronDown,
+  Crown, Wifi, WifiOff, Send
 } from 'lucide-react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
@@ -30,11 +30,9 @@ export default function ChatInputBar({
   onUpgradeRequest,
 }) {
   const { t } = useLanguage();
-  const [showModeMenu, setShowModeMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAtMenu, setShowAtMenu] = useState(false);
-  const [showInternetMenu, setShowInternetMenu] = useState(false);
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [atQuery, setAtQuery] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -44,23 +42,19 @@ export default function ChatInputBar({
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const modeMenuRef = useRef(null);
   const agentMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
   const atMenuRef = useRef(null);
-  const internetMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
   // Close all menus when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      const refs = [modeMenuRef, agentMenuRef, fileMenuRef, internetMenuRef, atMenuRef];
+      const refs = [agentMenuRef, fileMenuRef, atMenuRef];
       if (!refs.some(r => r.current?.contains(e.target))) {
-        setShowModeMenu(false);
         setShowAgentMenu(false);
         setShowFileMenu(false);
-        setShowInternetMenu(false);
         setShowAtMenu(false);
       }
     };
@@ -69,10 +63,8 @@ export default function ChatInputBar({
   }, []);
 
   const closeAllMenus = () => {
-    setShowModeMenu(false);
     setShowAgentMenu(false);
     setShowFileMenu(false);
-    setShowInternetMenu(false);
   };
 
   const AGENTS = [
@@ -248,7 +240,7 @@ export default function ChatInputBar({
         <div className="flex items-center justify-between px-3 pb-3 gap-2">
           <div className="flex items-center gap-0.5">
 
-            {/* + File */}
+            {/* + File / Internet menu */}
             <div className="relative flex-shrink-0" ref={fileMenuRef}>
               <button onClick={() => { closeAllMenus(); setShowFileMenu(s => !s); }}
                 className="w-7 h-7 rounded-sm flex items-center justify-center transition-colors hover:bg-muted">
@@ -256,7 +248,8 @@ export default function ChatInputBar({
               </button>
               <AnimatePresence>
                 {showFileMenu && (
-                  <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[160px] z-[300] bg-white rounded-sm border border-border">
+                  <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-[300] bg-white rounded-sm border border-border">
+                    {/* Attach file */}
                     <button onClick={handleFileAttach}
                       className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm hover:bg-muted"
                       style={{ color: canUploadFiles ? '#444' : '#bbb' }}>
@@ -264,6 +257,25 @@ export default function ChatInputBar({
                       <span>Attach file</span>
                       {!canUploadFiles && (
                         <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088' }}>Essential+</span>
+                      )}
+                    </button>
+                    {/* Web search toggle */}
+                    <button onClick={() => {
+                      if (!hasInternet) { onUpgradeRequest('Internet Search'); setShowFileMenu(false); return; }
+                      setUseWebSearch(w => !w); setShowFileMenu(false);
+                    }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm hover:bg-muted"
+                      style={{ color: hasInternet ? (useWebSearch ? '#16a34a' : '#444') : '#bbb' }}>
+                      {useWebSearch && hasInternet
+                        ? <Wifi className="w-3.5 h-3.5" style={{ color: '#16a34a' }} />
+                        : <WifiOff className="w-3.5 h-3.5" style={{ color: hasInternet ? '#888' : '#ddd' }} />}
+                      <span>Web Search</span>
+                      {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">Advanced+</span>}
+                      {hasInternet && (
+                        <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0"
+                          style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
+                          {useWebSearch && <span className="text-white text-[8px]">✓</span>}
+                        </span>
                       )}
                     </button>
                   </motion.div>
@@ -299,89 +311,21 @@ export default function ChatInputBar({
               </AnimatePresence>
             </div>
 
-            {/* Mode */}
-            <div className="relative flex-shrink-0" ref={modeMenuRef}>
-              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowModeMenu(s => !s); }}
+            {/* Expert mode toggle */}
+            {userPlan?.allowed_modes?.includes('ultimate') && (
+              <button
+                onClick={() => {
+                  const expertMode = ALL_MODES.find(m => m.id === 'ultimate');
+                  const autoMode = ALL_MODES.find(m => m.id === 'thinking');
+                  setMode(mode.id === 'ultimate' ? autoMode : expertMode);
+                }}
                 disabled={isLoading}
-                className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
-                <SlidersHorizontal className="w-3 h-3 text-muted-foreground" />
-                <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">{mode.label}</span>
-                <span className="text-[9px] font-black px-1 py-0.5 rounded-sm bg-muted text-muted-foreground">{mode.credit_cost}-{mode.credit_max}T</span>
+                className="h-7 px-2 rounded-sm flex items-center gap-1.5 transition-colors hover:bg-muted"
+                style={{ background: mode.id === 'ultimate' ? 'rgba(221,255,0,0.15)' : 'transparent' }}>
+                <Crown className="w-3 h-3" style={{ color: mode.id === 'ultimate' ? FG : '#bbb' }} />
+                <span className="text-[11px] font-semibold hidden sm:block" style={{ color: mode.id === 'ultimate' ? FG : '#bbb' }}>Expert</span>
               </button>
-              <AnimatePresence>
-                {showModeMenu && (
-                  <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[180px] z-[300] bg-white rounded-sm border border-border">
-                    {ALL_MODES.map(m => {
-                      const Icon = m.icon;
-                      const isAllowed = userPlan?.allowed_modes?.includes(m.id);
-                      return (
-                        <button key={m.id}
-                          onClick={() => {
-                            if (!isAllowed) { onUpgradeRequest(`Mode ${m.label}`); setShowModeMenu(false); return; }
-                            setMode(m); setShowModeMenu(false);
-                          }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors text-left rounded-sm"
-                          style={{ color: mode.id === m.id ? FG : isAllowed ? '#444' : '#ccc', background: mode.id === m.id ? YUZU : 'transparent', opacity: isAllowed ? 1 : 0.5 }}
-                          onMouseEnter={e => { if (mode.id !== m.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                          onMouseLeave={e => { if (mode.id !== m.id) e.currentTarget.style.background = mode.id === m.id ? YUZU : 'transparent'; }}>
-                          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="font-semibold">{m.label}</p>
-                            <p className="text-[9px] opacity-60">{m.desc}</p>
-                          </div>
-                          {isAllowed
-                            ? <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 rounded-sm bg-black/7 text-muted-foreground">{m.credit_cost}-{m.credit_max}T</span>
-                            : <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 rounded-sm bg-muted text-muted-foreground whitespace-nowrap">{m.requiredPlan === 'expert' ? 'Expert' : 'Essential'}+</span>
-                          }
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Internet */}
-            <div className="relative flex-shrink-0" ref={internetMenuRef}>
-              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowInternetMenu(s => !s); }}
-                disabled={isLoading}
-                className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
-                style={{ background: useWebSearch && hasInternet ? 'rgba(22,163,74,0.08)' : 'transparent' }}>
-                {useWebSearch && hasInternet
-                  ? <Wifi className="w-3 h-3" style={{ color: '#16a34a' }} />
-                  : <WifiOff className="w-3 h-3 text-muted-foreground" />}
-                <span className="text-[11px] font-medium hidden sm:block" style={{ color: useWebSearch && hasInternet ? '#16a34a' : undefined }}>Web</span>
-              </button>
-              <AnimatePresence>
-                {showInternetMenu && (
-                  <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl z-[300] bg-white overflow-hidden rounded-md border border-border" style={{ minWidth: '190px' }}>
-                    <div className="px-3 py-2 border-b border-border">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Web Search</p>
-                    </div>
-                    <div className="p-1">
-                      <button onClick={() => { setUseWebSearch(false); setShowInternetMenu(false); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left rounded-sm transition-colors hover:bg-muted text-foreground"
-                        style={{ background: !useWebSearch ? 'rgba(0,0,0,0.04)' : 'transparent' }}>
-                        <WifiOff className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
-                        <span className="font-medium flex-1">Without Web</span>
-                        {!useWebSearch && <div className="w-1.5 h-1.5 rounded-full" style={{ background: FG }} />}
-                      </button>
-                      <button onClick={() => {
-                        if (!hasInternet) { onUpgradeRequest('Internet'); setShowInternetMenu(false); return; }
-                        setUseWebSearch(true); setShowInternetMenu(false);
-                      }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left rounded-sm transition-colors hover:bg-muted"
-                        style={{ background: useWebSearch ? 'rgba(22,163,74,0.06)' : 'transparent', color: hasInternet ? FG : '#bbb' }}>
-                        <Wifi className="w-3.5 h-3.5 flex-shrink-0" style={{ color: hasInternet ? '#16a34a' : '#ddd' }} />
-                        <span className="font-medium flex-1">With Web Search</span>
-                        {!hasInternet && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">Advanced+</span>}
-                        {useWebSearch && hasInternet && <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#16a34a' }} />}
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            )}
           </div>
 
           {/* Right: mic + send */}

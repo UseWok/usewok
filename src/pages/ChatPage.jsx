@@ -240,8 +240,10 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
-    const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
+    // Auto-select best model: prioritize Gemini 3.1 Pro, use Claude for Expert mode
+    const autoModel = mode.id === 'ultimate' ? 'claude_opus_4_6' : 'gemini_3_1_pro';
+    const secretModel = isFirstMessage ? 'claude_opus_4_6' : autoModel;
+    const useInternet = useWebSearch && hasInternet;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
@@ -275,7 +277,8 @@ export default function ChatPage() {
       }
     }
 
-    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: secretModel, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+    const modelDisplayName = secretModel === 'claude_opus_4_6' ? 'Claude Opus 4.6' : secretModel === 'gemini_3_1_pro' ? 'Gemini 3.1 Pro' : secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel;
+    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: modelDisplayName, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     let convTitle = text.slice(0, 50);
     try {
