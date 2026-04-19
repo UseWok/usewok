@@ -93,7 +93,7 @@ export default function LandingFeaturesPage() {
   const logoUrl = navData?.logo_url || LOGO_URL;
 
   return (
-    <div className="min-h-screen font-be bg-white overflow-x-hidden">
+    <div className="min-h-screen font-be overflow-x-hidden" style={{ background: 'white' }}>
 
       {/* NAV */}
       <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
@@ -126,8 +126,17 @@ export default function LandingFeaturesPage() {
       </div>
 
       {/* HERO */}
-      <section className="pt-44 pb-24 px-6 text-center bg-white">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <section className="relative pt-44 pb-24 px-6 text-center overflow-hidden" style={{ background: 'white' }}>
+        {/* Joyful light orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div animate={{ x: [0,40,-10,0], y: [0,-30,20,0] }} transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ position:'absolute', width:700, height:700, top:'-200px', left:'-150px', background:'radial-gradient(circle, rgba(221,255,0,0.30) 0%, rgba(221,255,0,0.06) 45%, transparent 70%)', filter:'blur(55px)' }} />
+          <motion.div animate={{ x: [0,-50,20,0], y: [0,30,-40,0] }} transition={{ duration: 26, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+            style={{ position:'absolute', width:600, height:600, top:'-100px', right:'-150px', background:'radial-gradient(circle, rgba(255,200,80,0.24) 0%, rgba(255,160,50,0.07) 45%, transparent 70%)', filter:'blur(50px)' }} />
+          <motion.div animate={{ x: [0,30,-25,0], y: [0,-20,35,0] }} transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut', delay: 10 }}
+            style={{ position:'absolute', width:500, height:500, bottom:'-80px', left:'30%', background:'radial-gradient(circle, rgba(255,150,200,0.15) 0%, transparent 65%)', filter:'blur(45px)' }} />
+        </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
             style={{ background: YUZU, color: FG }}>
             {t('landing_features_badge')}
@@ -180,18 +189,26 @@ export default function LandingFeaturesPage() {
       </section>
 
       {/* BOTTOM CTA */}
-      <section className="px-6 py-28 bg-black text-center">
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="font-black tracking-tight text-white mb-8"
-          style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
-          {t('landing_features_cta')}
-        </motion.h2>
-        <motion.button initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          transition={{ delay: 0.1 }} onClick={handleCta}
-          className="inline-flex items-center gap-3 font-black text-sm px-10 py-5 hover:opacity-85 transition-opacity"
-          style={{ background: YUZU, color: FG }}>
-          {t('landing_features_start')} <ArrowRight className="w-4 h-4" />
-        </motion.button>
+      <section className="relative px-6 py-28 text-center overflow-hidden" style={{ background: '#06060c' }}>
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div animate={{ scale: [1,1.15,1], opacity: [0.5,0.7,0.5] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ position:'absolute', width:700, height:700, top:'50%', left:'50%', transform:'translate(-50%,-50%)', background:'radial-gradient(circle, rgba(221,255,0,0.09) 0%, rgba(255,200,60,0.05) 40%, transparent 70%)', filter:'blur(40px)' }} />
+          <motion.div animate={{ x: [0,-50,0], y: [0,40,0] }} transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+            style={{ position:'absolute', width:400, height:400, bottom:'-60px', left:'-60px', background:'radial-gradient(circle, rgba(255,150,200,0.06) 0%, transparent 65%)', filter:'blur(35px)' }} />
+        </div>
+        <div className="relative z-10">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="font-black tracking-tight text-white mb-8"
+            style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
+            {t('landing_features_cta')}
+          </motion.h2>
+          <motion.button initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            transition={{ delay: 0.1 }} onClick={handleCta}
+            className="inline-flex items-center gap-3 font-black text-sm px-10 py-5 hover:scale-105 transition-all"
+            style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: '0 0 50px rgba(221,255,0,0.2)' }}>
+            {t('landing_features_start')} <ArrowRight className="w-4 h-4" />
+          </motion.button>
+        </div>
       </section>
 
       {/* FOOTER */}
