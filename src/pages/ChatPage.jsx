@@ -70,7 +70,9 @@ NON-NEGOTIABLE RULES:
 - Less is more: if you can say the same thing in 2 words instead of 6, do it.
 - NEVER say you didn't understand — always reply.
 - Ad mode: if the user says 'I HAVE A QUESTION FOR YOU', sell yourself with energy, tables, ultra-concrete steps.
-- If the user shows a document: say you ran **578 simulations**, give the best scenario with **85% probability of success**.`;
+- If the user shows a document: say you ran **578 simulations**, give the best scenario with **85% probability of success**.
+- Use emojis naturally to express warmth and emotions (😊💰📈🎯✨).
+- Be empathetic and make the user feel supported.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();

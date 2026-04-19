@@ -25,6 +25,7 @@ function stripSourceUrls(content) {
 
 export default function AssistantMessage({ content, agent, meta }) {
   const [copied, setCopied] = useState(false);
+  const [showCopy, setShowCopy] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
   const sources = extractSources(content);
   // Clean markdown artifacts and format headings
@@ -33,6 +34,13 @@ export default function AssistantMessage({ content, agent, meta }) {
     .replace(/^###\s+/gm, '**')
     .replace(/\s+###$/gm, '**')
     .replace(/###/g, '**');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setShowCopy(false);
+    setTimeout(() => setCopied(false), 5000);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -47,47 +55,51 @@ export default function AssistantMessage({ content, agent, meta }) {
       </div>
       <div className="w-full break-words"
         style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '14px 16px' }}>
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '14px', color: '#1a1a1a' }}>{children}</p>,
-            h1: ({ children }) => <h1 style={{ fontSize: '18px', fontWeight: 800, margin: '20px 0 8px', color: '#0A0A0A' }}>{children}</h1>,
-            h2: ({ children }) => <h2 style={{ fontSize: '16px', fontWeight: 800, margin: '18px 0 6px', color: '#0A0A0A' }}>{children}</h2>,
-            h3: ({ children }) => <h3 style={{ fontSize: '14px', fontWeight: 700, margin: '16px 0 6px', color: '#0A0A0A' }}>{children}</h3>,
-            ul: ({ children }) => <ul style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'disc' }}>{children}</ul>,
-            ol: ({ children }) => <ol style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'decimal' }}>{children}</ol>,
-            li: ({ children }) => <li style={{ margin: '4px 0', lineHeight: '1.65', fontSize: '14px', color: '#1a1a1a' }}>{children}</li>,
-            strong: ({ children }) => <strong style={{ fontWeight: 700, color: '#0A0A0A' }}>{children}</strong>,
-            em: ({ children }) => <em style={{ fontStyle: 'italic', color: '#333' }}>{children}</em>,
-            code: ({ inline, children }) => inline
-              ? <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '1px 6px', fontSize: '12px', fontFamily: 'monospace', color: '#0A0A0A' }}>{children}</code>
-              : <pre style={{ background: '#f4f4f4', borderRadius: '8px', padding: '12px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace', color: '#1a1a1a' }}>{children}</code></pre>,
-            blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #DDFF00', paddingLeft: '12px', margin: '10px 0', color: '#555', fontStyle: 'italic' }}>{children}</blockquote>,
-            hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.08)', margin: '16px 0' }} />,
-            table: ({ children }) => (
-              <div style={{ overflowX: 'auto', margin: '12px 0', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>{children}</table>
-              </div>
-            ),
-            thead: ({ children }) => <thead style={{ background: FG }}>{children}</thead>,
-            th: ({ children }) => <th style={{ textAlign: 'left', padding: '10px 14px', color: 'white', fontWeight: 700, fontSize: '12px', borderRight: '1px solid rgba(255,255,255,0.1)' }}>{children}</th>,
-            td: ({ children }) => <td style={{ padding: '9px 14px', fontSize: '13px', color: '#333', borderBottom: '1px solid rgba(0,0,0,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)' }}>{children}</td>,
-            tr: ({ children }) => <tr style={{ transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(0,0,0,0.02)'} onMouseLeave={e => e.currentTarget.style.background=''}>{children}</tr>,
-            a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'underline' }}>{children}</a>,
-          }}>
-          {cleanContent}
-        </ReactMarkdown>
-      </div>
+        <div onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); }}
+          className="cursor-pointer">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '15px', color: '#1a1a1a' }}>{children}</p>,
+              h1: ({ children }) => <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '20px 0 8px', color: '#0A0A0A' }}>{children}</h1>,
+              h2: ({ children }) => <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '18px 0 6px', color: '#0A0A0A' }}>{children}</h2>,
+              h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '16px 0 6px', color: '#0A0A0A' }}>{children}</h3>,
+              ul: ({ children }) => <ul style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'disc' }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ margin: '8px 0 12px', paddingLeft: '20px', listStyleType: 'decimal' }}>{children}</ol>,
+              li: ({ children }) => <li style={{ margin: '4px 0', lineHeight: '1.65', fontSize: '15px', color: '#1a1a1a' }}>{children}</li>,
+              strong: ({ children }) => <strong style={{ fontWeight: 700, color: '#0A0A0A' }}>{children}</strong>,
+              em: ({ children }) => <em style={{ fontStyle: 'italic', color: '#333' }}>{children}</em>,
+              code: ({ inline, children }) => inline
+                ? <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '1px 6px', fontSize: '13px', fontFamily: 'monospace', color: '#0A0A0A' }}>{children}</code>
+                : <pre style={{ background: '#f4f4f4', borderRadius: '8px', padding: '12px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '13px', fontFamily: 'monospace', color: '#1a1a1a' }}>{children}</code></pre>,
+              blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #DDFF00', paddingLeft: '12px', margin: '10px 0', color: '#555', fontStyle: 'italic' }}>{children}</blockquote>,
+              hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.08)', margin: '16px 0' }} />,
+              table: ({ children }) => (
+                <div style={{ overflowX: 'auto', margin: '12px 0', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>{children}</table>
+                </div>
+              ),
+              thead: ({ children }) => <thead style={{ background: FG }}>{children}</thead>,
+              th: ({ children }) => <th style={{ textAlign: 'left', padding: '10px 14px', color: 'white', fontWeight: 700, fontSize: '13px', borderRight: '1px solid rgba(255,255,255,0.1)' }}>{children}</th>,
+              td: ({ children }) => <td style={{ padding: '9px 14px', fontSize: '14px', color: '#333', borderBottom: '1px solid rgba(0,0,0,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)' }}>{children}</td>,
+              tr: ({ children }) => <tr style={{ transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(0,0,0,0.02)'} onMouseLeave={e => e.currentTarget.style.background=''}>{children}</tr>,
+              a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'underline' }}>{children}</a>,
+            }}>
+            {cleanContent}
+          </ReactMarkdown>
+        </div>
 
-      {/* Action row: copy */}
-      <div className="flex items-center gap-1.5 mt-2">
-        <button onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all hover:opacity-70"
-          style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '4px', color: '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
-          {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
-        </button>
-      </div>
+      {/* Copy button - appears on click, disappears after 5s */}
+      {(showCopy || copied) && (
+        <div className="flex items-center gap-1.5 mt-2">
+          <button onClick={handleCopy}
+            className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
+            style={{ background: copied ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.04)', borderRadius: '4px', color: copied ? '#16a34a' : '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
+            {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
+      )}
 
       {sources.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-1 max-w-full">
