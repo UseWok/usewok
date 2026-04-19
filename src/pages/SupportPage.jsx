@@ -44,6 +44,18 @@ export default function SupportPage() {
     if (user) loadTickets(user);
   }, [user]);
 
+  // Listen for new ticket creation to open chat
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail) {
+        setChatTicket(e.detail);
+        setShowChatPanel(true);
+      }
+    };
+    window.addEventListener('open-support-chat', handler);
+    return () => window.removeEventListener('open-support-chat', handler);
+  }, []);
+
   // Poll for new messages on open tickets
   useEffect(() => {
     if (!user || !showChatPanel || !chatTicket) return;
@@ -55,6 +67,10 @@ export default function SupportPage() {
             setChatTicket(updated);
           }
           if (updated.status === 'closed' && chatTicket.status !== 'closed') {
+            // Messages saved for 24h only after closed
+            setTimeout(() => {
+              base44.entities.SupportTicket.update(chatTicket.id, { messages_json: JSON.stringify([]) });
+            }, 24 * 60 * 60 * 1000);
             setShowChatPanel(false);
             setChatTicket(null);
             loadTickets(user);
@@ -254,30 +270,41 @@ function NewTicketModal({ onClose, user }) {
 
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analyze this support ticket and suggest a category. Respond with ONLY one word: "bug_report", "chat_issue", or "other". Ticket: ${description}`,
+        prompt: `Analyze this support ticket. Reply with ONE word: "bug" if technical issue, "money" if payment/billing/subscription related, or "other". Ticket: ${description}`,
         model: 'gpt_5_mini',
       });
-      setSuggestedCategory(result.toLowerCase().includes('bug') ? 'bug_report' : result.toLowerCase().includes('chat') ? 'chat_issue' : 'other');
+      const r = result.toLowerCase();
+      setSuggestedCategory(r.includes('bug') ? 'bug' : r.includes('money') || r.includes('payment') || r.includes('billing') || r.includes('subscription') ? 'money' : 'other');
     } catch (e) {
       setSuggestedCategory('other');
     }
 
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 1200));
     setStep(2);
     setAnalyzing(false);
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await base44.entities.SupportTicket.create({
+    let file_urls = [];
+    for (const f of files) {
+      try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
+    }
+    const initialMsg = { author: 'user', text: description, file_urls, created_at: new Date().toISOString() };
+    const ticket = await base44.entities.SupportTicket.create({
       description,
-      category: category || suggestedCategory || 'other',
+      category: suggestedCategory || 'other',
       status: 'open',
       user_email: user?.email || '',
-      file_urls: [],
+      file_urls,
+      messages_json: JSON.stringify([initialMsg]),
     });
     setSubmitting(false);
     onClose();
+    // Open chat panel directly
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket }));
+    }, 300);
   };
 
   return (
@@ -335,7 +362,7 @@ function NewTicketModal({ onClose, user }) {
                 <p className="text-sm font-black mb-3" style={{ color: FG }}>Suggested Category</p>
                 <div className="p-3 rounded-lg" style={{ background: 'rgba(221,255,0,0.1)', border: `1px solid ${YUZU}` }}>
                   <p className="text-sm font-semibold" style={{ color: FG }}>
-                    {suggestedCategory === 'bug_report' ? '🐛 Bug Report' : suggestedCategory === 'chat_issue' ? '💬 Chat Issue' : '❓ Other'}
+                    {suggestedCategory === 'bug' ? '🐛 Bug' : suggestedCategory === 'money' ? '💰 Argent / Paiement' : '❓ Other'}
                   </p>
                 </div>
               </div>
