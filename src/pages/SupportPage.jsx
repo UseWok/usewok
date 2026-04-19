@@ -253,7 +253,7 @@ function TicketWizard({ onClose, user }) {
 
 export default function SupportPage() {
   const navigate = useNavigate();
-  const [openFaq, setOpenFaq] = useState(null);
+
   const [showTicket, setShowTicket] = useState(false);
   const [user, setUser] = useState(null);
   const [discordUrl, setDiscordUrl] = useState('');
@@ -300,7 +300,7 @@ export default function SupportPage() {
         </div>
 
         {/* Action cards */}
-        <div className="mb-6 space-y-3">
+        <div className="mb-6">
           <button onClick={() => setShowTicket(true)}
             className="w-full flex items-center gap-4 p-5 text-left transition-all"
             style={{ background: FG, borderRadius: '14px' }}
@@ -316,36 +316,6 @@ export default function SupportPage() {
             </div>
             <ChevronRight className="w-5 h-5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }} />
           </button>
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex items-center gap-3 p-4 text-left transition-all"
-              style={{ background: YUZU, borderRadius: '12px' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
-                <Book className="w-4 h-4" style={{ color: FG }} />
-              </div>
-              <div>
-                <p className="text-sm font-black" style={{ color: FG }}>FAQ</p>
-                <p className="text-[10px]" style={{ color: 'rgba(0,0,0,0.45)' }}>Quick answers</p>
-              </div>
-            </button>
-            <button onClick={() => window.open('https://reddit.com/r/stensor', '_blank')}
-              className="flex items-center gap-3 p-4 text-left transition-all"
-              style={{ background: '#FF4500', borderRadius: '12px' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              <div className="w-9 h-9 flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px' }}>
-                <ExternalLink className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-black text-white">Reddit</p>
-                <p className="text-[10px] text-white/50">Community</p>
-              </div>
-            </button>
-          </div>
         </div>
 
         {/* My Tickets */}
@@ -401,42 +371,37 @@ export default function SupportPage() {
           )}
         </div>
 
-        {/* FAQ */}
-        <div id="faq-section">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 flex items-center justify-center" style={{ background: YUZU, borderRadius: '6px' }}>
-                <Book className="w-3.5 h-3.5" style={{ color: FG }} />
-              </div>
-              <h2 className="text-sm font-black" style={{ color: FG }}>Frequently Asked Questions</h2>
-            </div>
-            <span className="text-[10px] font-bold px-2 py-1" style={{ background: 'rgba(0,0,0,0.05)', color: '#aaa', borderRadius: '5px' }}>
-              {FAQS.length} questions
-            </span>
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <div className="mb-4">
+            <h2 className="text-sm font-black mb-1" style={{ color: FG }}>Quick Actions</h2>
+            <p className="text-xs" style={{ color: '#aaa' }}>Manage your support experience</p>
           </div>
-          <div className="space-y-2">
-            {FAQS.map((faq, i) => (
-              <div key={i} style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-4 py-4 text-left transition-colors"
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.01)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <span className="text-sm font-semibold pr-3" style={{ color: FG }}>{faq.q}</span>
-                  <ChevronDown className="w-4 h-4 flex-shrink-0 transition-transform"
-                    style={{ color: '#bbb', transform: openFaq === i ? 'rotate(180deg)' : 'none' }} />
-                </button>
-                <AnimatePresence>
-                  {openFaq === i && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-                      transition={{ duration: 0.18 }} className="overflow-hidden">
-                      <p className="px-4 pb-4 text-sm leading-relaxed" style={{ color: '#666', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                        {faq.a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => setShowTicket(true)}
+              className="flex flex-col items-start gap-2 p-4 text-left transition-all"
+              style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.01)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}>
+              <MessageSquare className="w-4 h-4" style={{ color: FG }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: FG }}>My support tickets</p>
+                <p className="text-[10px] mt-0.5" style={{ color: '#aaa' }}>View and manage your tickets</p>
               </div>
-            ))}
+              <ChevronRight className="w-3.5 h-3.5 mt-auto" style={{ color: '#ccc' }} />
+            </button>
+            <button onClick={() => window.open('https://reddit.com/r/stensor', '_blank')}
+              className="flex flex-col items-start gap-2 p-4 text-left transition-all"
+              style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.01)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}>
+              <ExternalLink className="w-4 h-4" style={{ color: FG }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: FG }}>Community Forum</p>
+                <p className="text-[10px] mt-0.5" style={{ color: '#aaa' }}>Our new Reddit community</p>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 mt-auto" style={{ color: '#ccc' }} />
+            </button>
           </div>
         </div>
       </div>
