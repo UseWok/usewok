@@ -8,32 +8,32 @@ const FG = '#0A0A0A';
 const WHY_SCORE = [
   {
     icon: Eye,
-    title: 'Voir la réalité en face',
-    desc: 'Arrête de deviner. Ton score te dit exactement où tu en es financièrement — sans te mentir.',
+    title: 'Face reality head-on',
+    desc: 'Stop guessing. Your score tells you exactly where you stand financially — no sugarcoating.',
     color: '#3b82f6',
   },
   {
     icon: TrendingUp,
-    title: 'Mesurer tes progrès',
-    desc: 'Chaque action compte. Rembourse une dette → ton score monte. Épargne 50€ → ton score monte.',
+    title: 'Measure your progress',
+    desc: 'Every action counts. Pay off debt → score rises. Save $50 → score rises. See it happen live.',
     color: '#22c55e',
   },
   {
     icon: BarChart3,
-    title: 'Prioriser ce qui compte',
-    desc: 'Plutôt que de tout faire en même temps, le score t\'indique le pilier qui impactera le plus ta vie.',
+    title: 'Prioritize what matters',
+    desc: 'Instead of doing everything at once, the score shows the one pillar that\'ll change your life the most.',
     color: '#a855f7',
   },
   {
     icon: RefreshCw,
-    title: 'Mis à jour automatiquement',
-    desc: 'Chaque jour à 5H, ton score se recalcule. Même si tu changes d\'appareil — tout est dans le cloud.',
+    title: 'Automatically updated',
+    desc: 'Every day at 5AM, your score recalculates. Switch devices anytime — everything lives in the cloud.',
     color: '#f97316',
   },
   {
     icon: Award,
-    title: 'L\'addiction positive',
-    desc: 'Débloque des badges, maintiens ta série. Voir 68 là où il y avait 42 = la meilleure sensation.',
+    title: 'The positive addiction',
+    desc: 'Unlock badges, maintain your streak. Seeing 68 where there was 42 = the best feeling of the day.',
     color: YUZU,
     dark: true,
   },
@@ -93,11 +93,11 @@ export default function ScoreAddictionSection({ onCta }) {
             <Zap className="w-3 h-3" /> Stensor Score
           </div>
           <h2 className="font-black text-4xl md:text-6xl text-white mb-5 leading-tight tracking-tight">
-            Un chiffre qui change<br />
-            <span style={{ color: YUZU }}>tout.</span>
+            One number that changes<br />
+            <span style={{ color: YUZU }}>everything.</span>
           </h2>
           <p className="text-base md:text-lg max-w-lg mx-auto leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Ton score financier de 0 à 100. Calculé par l'IA. Mis à jour chaque jour. Synchronisé sur tous tes appareils.
+            Your financial score from 0 to 100. Calculated by AI. Updated every day. Synced across all your devices.
           </p>
         </motion.div>
 
@@ -109,10 +109,10 @@ export default function ScoreAddictionSection({ onCta }) {
           {/* Today */}
           <div className="flex-1 max-w-xs p-8 rounded-3xl flex flex-col items-center"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-[10px] font-black uppercase tracking-widest mb-6" style={{ color: 'rgba(255,255,255,0.3)' }}>Aujourd'hui</p>
+            <p className="text-[10px] font-black uppercase tracking-widest mb-6" style={{ color: 'rgba(255,255,255,0.3)' }}>Today</p>
             <AnimatedScoreArc score={42} color="#f97316" delay={0.3} />
             <div className="mt-5 w-full space-y-2">
-              {[['Épargne', 35, '#3b82f6'], ['Investissement', 20, '#22c55e'], ['Dettes', 55, '#f97316']].map(([label, v, c]) => (
+              {[['Savings', 35, '#3b82f6'], ['Investment', 20, '#22c55e'], ['Debt', 55, '#f97316']].map(([label, v, c]) => (
                 <div key={label} className="flex items-center gap-2">
                   <span className="text-xs w-24 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</span>
                   <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -135,7 +135,7 @@ export default function ScoreAddictionSection({ onCta }) {
                 style={{ background: YUZU, color: FG }}>
                 +26 pts
               </div>
-              <p className="text-[10px] text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>en 7 jours<br />avec le plan Stensor</p>
+              <p className="text-[10px] text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>in 7 days<br />with the Stensor plan</p>
             </motion.div>
           </div>
 
@@ -143,11 +143,11 @@ export default function ScoreAddictionSection({ onCta }) {
           <div className="flex-1 max-w-xs p-8 rounded-3xl flex flex-col items-center"
             style={{ background: 'rgba(221,255,0,0.05)', border: `1px solid rgba(221,255,0,0.2)` }}>
             <div className="flex items-center gap-2 mb-6">
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: YUZU }}>Dans 7 jours</p>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: YUZU }}>In 7 days</p>
             </div>
             <AnimatedScoreArc score={68} color="#22c55e" delay={0.6} />
             <div className="mt-5 w-full space-y-2">
-              {[['Épargne', 62, '#3b82f6'], ['Investissement', 55, '#22c55e'], ['Dettes', 78, '#22c55e']].map(([label, v, c]) => (
+              {[['Savings', 62, '#3b82f6'], ['Investment', 55, '#22c55e'], ['Debt', 78, '#22c55e']].map(([label, v, c]) => (
                 <div key={label} className="flex items-center gap-2">
                   <span className="text-xs w-24 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</span>
                   <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -167,7 +167,7 @@ export default function ScoreAddictionSection({ onCta }) {
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-center text-[10px] font-black uppercase tracking-widest mb-10"
             style={{ color: 'rgba(255,255,255,0.25)' }}>
-            Pourquoi un score ?
+            Why a score?
           </motion.p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {WHY_SCORE.map((item, i) => {
@@ -194,16 +194,16 @@ export default function ScoreAddictionSection({ onCta }) {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="text-center mb-14">
           <p className="text-[10px] font-black uppercase tracking-widest mb-6" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            Débloque des insignes en progressant
+            Unlock badges as you grow
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { icon: '⚔️', label: 'Vainqueur de dettes', color: '#f97316' },
-              { icon: '🔥', label: '7 jours consécutifs', color: '#ef4444' },
-              { icon: '🎯', label: 'Retraite en bonne voie', color: '#22c55e' },
-              { icon: '🛡️', label: 'Épargnant élite', color: '#3b82f6' },
-              { icon: '📈', label: 'Investisseur actif', color: '#a855f7' },
-              { icon: '🧠', label: 'Maître financier', color: '#06b6d4' },
+              { icon: '⚔️', label: 'Debt Slayer', color: '#f97316' },
+              { icon: '🔥', label: '7-Day Streak', color: '#ef4444' },
+              { icon: '🎯', label: 'Retirement on Track', color: '#22c55e' },
+              { icon: '🛡️', label: 'Elite Saver', color: '#3b82f6' },
+              { icon: '📈', label: 'Active Investor', color: '#a855f7' },
+              { icon: '🧠', label: 'Finance Master', color: '#06b6d4' },
             ].map((b, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
@@ -224,10 +224,10 @@ export default function ScoreAddictionSection({ onCta }) {
             className="inline-flex items-center gap-2 text-sm font-black px-10 py-5 transition-all hover:scale-105 active:scale-95"
             style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: `0 0 40px ${YUZU}30` }}>
             <Zap className="w-4 h-4" />
-            Simuler mon score maintenant (gratuit)
+            Simulate my score now (free)
           </button>
           <p className="text-xs mt-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Synchronisé sur tous tes appareils · 100/100 = zéro souci financier
+            Synced across all your devices · 100/100 = zero financial worries
           </p>
         </motion.div>
       </div>

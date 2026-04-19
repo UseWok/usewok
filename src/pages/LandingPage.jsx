@@ -1,16 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import ScoreAddictionSection from '../components/landing/ScoreAddictionSection';
+import StickyCardsSection from '../components/landing/StickyCardsSection';
+import VsSection from '../components/landing/VsSection';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowUp, ChevronDown, MoreHorizontal, X, Globe, Tag } from 'lucide-react';
+import { ArrowUp, ChevronDown, MoreHorizontal, X, Globe, Tag, Zap } from 'lucide-react';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 import { useLanguage } from '@/lib/i18n';
 
 const PENDING_KEY = 'stensor_pending_query';
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
+
+const MODES = [
+  { key: 'concise', label: 'Concise', emoji: '⚡', desc: 'Fast, direct answers' },
+  { key: 'learning', label: 'Learning', emoji: '📚', desc: 'Explained step-by-step' },
+  { key: 'mentor', label: 'Mentor', emoji: '🎯', desc: 'Deep personalized coaching' },
+];
 
 function useAuthState() {
   const [isAuth, setIsAuth] = useState(null);
@@ -20,6 +28,62 @@ function useAuthState() {
   return isAuth;
 }
 
+// Animated gradient orbs background (legallio-style)
+function HeroBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Left pink/rose orb */}
+      <motion.div
+        animate={{ x: [0, 20, -10, 0], y: [0, -30, 15, 0], scale: [1, 1.05, 0.97, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute rounded-full"
+        style={{
+          width: 700, height: 700,
+          top: '-200px', left: '-200px',
+          background: 'radial-gradient(circle, rgba(251,113,133,0.18) 0%, rgba(244,63,94,0.08) 40%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+      />
+      {/* Right blue orb */}
+      <motion.div
+        animate={{ x: [0, -25, 10, 0], y: [0, 20, -15, 0], scale: [1, 1.08, 0.95, 1] }}
+        transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+        className="absolute rounded-full"
+        style={{
+          width: 800, height: 800,
+          top: '-250px', right: '-250px',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(59,130,246,0.08) 40%, transparent 70%)',
+          filter: 'blur(50px)',
+        }}
+      />
+      {/* Bottom center green orb */}
+      <motion.div
+        animate={{ x: [0, 30, -20, 0], y: [0, -20, 30, 0] }}
+        transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut', delay: 8 }}
+        className="absolute rounded-full"
+        style={{
+          width: 600, height: 600,
+          bottom: '-150px', left: '30%',
+          background: 'radial-gradient(circle, rgba(221,255,0,0.10) 0%, rgba(34,197,94,0.06) 40%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+      />
+      {/* Small accent peach */}
+      <motion.div
+        animate={{ x: [0, -15, 25, 0], y: [0, 25, -10, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+        className="absolute rounded-full"
+        style={{
+          width: 400, height: 400,
+          top: '40%', left: '15%',
+          background: 'radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%)',
+          filter: 'blur(30px)',
+        }}
+      />
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const isAuth = useAuthState();
@@ -27,11 +91,10 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [activeMode, setActiveMode] = useState('concise');
   const { data } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
   const { lang: mobileLang, setLang: setMobileLang, t } = useLanguage();
   const inputRef = useRef(null);
-
-
 
   useEffect(() => {
     if (isAuth === true) navigate('/app', { replace: true });
@@ -57,7 +120,7 @@ export default function LandingPage() {
     if (!query.trim()) return;
     try {
       const auth = await base44.auth.isAuthenticated();
-      if (auth) navigate(`/chat?q=${encodeURIComponent(query)}`);
+      if (auth) navigate(`/chat?q=${encodeURIComponent(query)}&mode=${activeMode}`);
       else {
         localStorage.setItem(PENDING_KEY, query);
         base44.auth.redirectToLogin('/app');
@@ -68,7 +131,6 @@ export default function LandingPage() {
     }
   };
 
-  // Topics: just set query text, do NOT redirect
   const handleTopicClick = (topic) => {
     const prompt = typeof topic === 'object' ? topic.prompt : topic;
     setQuery(prompt);
@@ -94,10 +156,11 @@ export default function LandingPage() {
           transition={{ duration: 0.4 }}
           className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5"
           style={{
-            background: scrolled ? 'rgba(255,255,255,0.97)' : 'white',
+            background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.88)',
             border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: '10px',
             boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.07)' : '0 2px 12px rgba(0,0,0,0.04)',
+            backdropFilter: 'blur(12px)',
             transition: 'all 0.3s ease',
           }}
         >
@@ -114,14 +177,13 @@ export default function LandingPage() {
               className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
               {nav.login_label}
             </button>
-            {/* Mobile menu dot */}
             <button onClick={() => setShowMobileMenu(true)}
               className="md:hidden w-8 h-8 flex items-center justify-center transition-colors"
               style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '6px' }}>
               <MoreHorizontal className="w-4 h-4" style={{ color: FG }} />
             </button>
             <button onClick={handleCta}
-              className="text-xs font-black px-4 py-2.5 transition-colors"
+              className="text-xs font-black px-4 py-2.5 transition-all hover:scale-105"
               style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
               {nav.cta_label}
             </button>
@@ -130,241 +192,213 @@ export default function LandingPage() {
       </div>
 
       {/* HERO */}
-      <section className="flex flex-col items-center justify-center min-h-screen text-center px-6 pt-36 pb-20 bg-white">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
-          style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
-          {hero.badge}
-        </motion.div>
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-6 pt-36 pb-20 overflow-hidden">
+        {/* Colorful gradient orb background */}
+        <HeroBackground />
 
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.05 }}
-          className="font-black tracking-tight leading-[1.02] mb-6 whitespace-pre-line"
-          style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: FG, maxWidth: '800px' }}>
-          {hero.title}
-        </motion.h1>
+        {/* Content */}
+        <div className="relative z-10 w-full flex flex-col items-center">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
+            style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
+            {hero.badge}
+          </motion.div>
 
-        <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
-          className="text-base md:text-lg max-w-xl mx-auto mb-4 leading-relaxed"
-          style={{ color: 'rgba(10,10,10,0.45)' }}>
-          {hero.subtitle}
-        </motion.p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.05 }}
+            className="font-black tracking-tight leading-[1.02] mb-6 whitespace-pre-line"
+            style={{ fontSize: 'clamp(3rem, 9vw, 6.5rem)', color: FG, maxWidth: '800px' }}>
+            {hero.title}
+          </motion.h1>
 
-        {/* Score tagline */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }}
-          className="flex items-center justify-center gap-2 mb-10">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black"
-            style={{ background: YUZU, color: FG }}>
-            ⚡ Stensor Score — Ton état financier en 1 chiffre
-          </span>
-        </motion.div>
+          <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
+            className="text-base md:text-lg max-w-xl mx-auto mb-4 leading-relaxed"
+            style={{ color: 'rgba(10,10,10,0.45)' }}>
+            {hero.subtitle}
+          </motion.p>
 
-        {/* Input */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
-          className="w-full max-w-2xl mb-8">
-          <div className="relative flex items-end gap-3 p-5 bg-white border border-black/10"
-            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
-            <textarea ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder={hero.placeholder} rows={3}
-              className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
-              style={{ color: FG, minHeight: '72px' }} />
-            <button onClick={handleSend} disabled={!query.trim()}
-              className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all"
-              style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '4px' }}>
-              <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
-            </button>
-          </div>
-        </motion.div>
+          {/* Score tagline */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }}
+            className="flex items-center justify-center gap-2 mb-10">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black"
+              style={{ background: YUZU, color: FG }}>
+              ⚡ Stensor Score — Your financial state in 1 number
+            </span>
+          </motion.div>
 
-        {/* Mobile Menu Drawer */}
-        <AnimatePresence>
-          {showMobileMenu && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[200] flex items-end"
-              style={{ background: 'rgba(0,0,0,0.4)' }}
-              onClick={() => setShowMobileMenu(false)}>
-              <motion.div
-                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className="w-full bg-white p-6 pb-10"
-                style={{ borderRadius: '20px 20px 0 0' }}
-                onClick={e => e.stopPropagation()}>
-                {/* Handle */}
-                <div className="flex justify-center mb-5">
-                  <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
-                </div>
-                {/* Language */}
-                <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Language</p>
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                  {[{ code: 'en', label: '🇬🇧 English' }, { code: 'fr', label: '🇫🇷 Français' }].map(l => (
-                    <button key={l.code} onClick={() => { setMobileLang(l.code); setShowMobileMenu(false); }}
-                      className="py-3 text-sm font-bold transition-all"
-                      style={{
-                        borderRadius: '8px',
-                        background: mobileLang === l.code ? FG : 'rgba(0,0,0,0.05)',
-                        color: mobileLang === l.code ? 'white' : '#555',
-                      }}>
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
-                {/* Links */}
-                <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Navigate</p>
-                <div className="space-y-2">
-                  <a href={nav.features_url}
-                    className="flex items-center gap-3 px-4 py-3.5 w-full"
-                    style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
-                    <Globe className="w-4 h-4" style={{ color: '#888' }} />
-                    <span className="text-sm font-semibold" style={{ color: FG }}>Features</span>
-                  </a>
-                  <a href={nav.pricing_url}
-                    className="flex items-center gap-3 px-4 py-3.5 w-full"
-                    style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
-                    <Tag className="w-4 h-4" style={{ color: '#888' }} />
-                    <span className="text-sm font-semibold" style={{ color: FG }}>Pricing</span>
-                  </a>
-                  <button onClick={() => { setShowMobileMenu(false); handleCta(); }}
-                    className="flex items-center justify-center w-full py-3.5 text-sm font-black"
-                    style={{ background: YUZU, color: FG, borderRadius: '10px' }}>
-                    {nav.cta_label}
+          {/* Input + Mode selector */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
+            className="w-full max-w-2xl mb-8">
+            <div className="bg-white border border-black/10"
+              style={{ boxShadow: '0 4px 40px rgba(0,0,0,0.10)', borderRadius: '14px', overflow: 'hidden' }}>
+
+              {/* Mode selector tabs */}
+              <div className="flex items-center gap-1 px-4 pt-4 pb-2">
+                <span className="text-[10px] font-black uppercase tracking-wider mr-2" style={{ color: 'rgba(10,10,10,0.3)' }}>Mode</span>
+                {MODES.map(m => (
+                  <button key={m.key} onClick={() => setActiveMode(m.key)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all rounded-lg"
+                    style={{
+                      background: activeMode === m.key ? FG : 'rgba(0,0,0,0.04)',
+                      color: activeMode === m.key ? 'white' : 'rgba(10,10,10,0.5)',
+                      transform: activeMode === m.key ? 'scale(1.03)' : 'scale(1)',
+                    }}>
+                    <span>{m.emoji}</span>
+                    <span>{m.label}</span>
                   </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                ))}
+              </div>
 
-        {/* Topics */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          className="flex flex-col items-center gap-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(10,10,10,0.3)' }}>
-            Not sure where to start?
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {(hero.topics || []).map((topic, i) => {
-              const label = typeof topic === 'object' ? topic.label : topic;
-              return (
-                <button key={i} onClick={() => handleTopicClick(topic)}
-                  className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
-                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'white' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = 'rgba(10,10,10,0.6)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
-                  {label}
+              {/* Active mode description */}
+              <div className="px-4 pb-1">
+                <AnimatePresence mode="wait">
+                  <motion.p key={activeMode}
+                    initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-[10px]" style={{ color: 'rgba(10,10,10,0.3)' }}>
+                    {MODES.find(m => m.key === activeMode)?.desc}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+
+              {/* Textarea */}
+              <div className="relative flex items-end gap-3 px-5 pb-5 pt-3">
+                <textarea ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  placeholder={hero.placeholder} rows={3}
+                  className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
+                  style={{ color: FG, minHeight: '72px' }} />
+                <button onClick={handleSend} disabled={!query.trim()}
+                  className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all hover:scale-105"
+                  style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+                  <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
                 </button>
-              );
-            })}
-            {/* Extra topic: Découvrir mon Stensor Score */}
-            <button onClick={handleCta}
-              className="px-4 py-2 text-xs font-black border transition-all"
-              style={{ color: YUZU === '#DDFF00' ? FG : 'white', borderRadius: '6px', background: FG, borderColor: FG }}
-            >
-              🎯 Découvrir mon Stensor Score
-            </button>
-          </div>
-        </motion.div>
-
-        {/* YOUTUBE VIDEO inline */}
-        {youtube_url && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="w-full max-w-2xl mt-10">
-            <div className="overflow-hidden w-full"
-              style={{ borderRadius: '4px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', aspectRatio: '16/9' }}>
-              <iframe
-                src={(() => {
-                  try {
-                    const url = new URL(youtube_url);
-                    let videoId = '';
-                    if (url.hostname.includes('youtu.be')) {
-                      videoId = url.pathname.replace('/', '');
-                    } else {
-                      videoId = url.searchParams.get('v') || '';
-                    }
-                    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
-                  } catch {
-                    return `https://www.youtube.com/embed/${youtube_url}`;
-                  }
-                })()}
-                title="Stensor demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full"
-                style={{ border: 'none' }}
-              />
+              </div>
             </div>
           </motion.div>
-        )}
+
+          {/* Topics */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            className="flex flex-col items-center gap-4">
+            <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(10,10,10,0.3)' }}>
+              Not sure where to start?
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {(hero.topics || []).map((topic, i) => {
+                const label = typeof topic === 'object' ? topic.label : topic;
+                return (
+                  <button key={i} onClick={() => handleTopicClick(topic)}
+                    className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
+                    style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = FG; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = FG; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.7)'; e.currentTarget.style.color = 'rgba(10,10,10,0.6)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}>
+                    {label}
+                  </button>
+                );
+              })}
+              <button onClick={handleCta}
+                className="px-4 py-2 text-xs font-black border transition-all hover:scale-105"
+                style={{ color: FG, borderRadius: '6px', background: YUZU, borderColor: YUZU }}>
+                🎯 Discover my Stensor Score
+              </button>
+            </div>
+          </motion.div>
+
+          {/* YOUTUBE VIDEO */}
+          {youtube_url && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+              className="w-full max-w-2xl mt-10">
+              <div className="overflow-hidden w-full"
+                style={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 60px rgba(0,0,0,0.12)', aspectRatio: '16/9' }}>
+                <iframe
+                  src={(() => {
+                    try {
+                      const url = new URL(youtube_url);
+                      let videoId = '';
+                      if (url.hostname.includes('youtu.be')) {
+                        videoId = url.pathname.replace('/', '');
+                      } else {
+                        videoId = url.searchParams.get('v') || '';
+                      }
+                      return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+                    } catch {
+                      return `https://www.youtube.com/embed/${youtube_url}`;
+                    }
+                  })()}
+                  title="Stensor demo"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                  style={{ border: 'none' }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </div>
       </section>
+
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {showMobileMenu && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-end"
+            style={{ background: 'rgba(0,0,0,0.4)' }}
+            onClick={() => setShowMobileMenu(false)}>
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              className="w-full bg-white p-6 pb-10"
+              style={{ borderRadius: '20px 20px 0 0' }}
+              onClick={e => e.stopPropagation()}>
+              <div className="flex justify-center mb-5">
+                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Language</p>
+              <div className="grid grid-cols-2 gap-2 mb-6">
+                {[{ code: 'en', label: '🇬🇧 English' }, { code: 'fr', label: '🇫🇷 Français' }].map(l => (
+                  <button key={l.code} onClick={() => { setMobileLang(l.code); setShowMobileMenu(false); }}
+                    className="py-3 text-sm font-bold transition-all"
+                    style={{
+                      borderRadius: '8px',
+                      background: mobileLang === l.code ? FG : 'rgba(0,0,0,0.05)',
+                      color: mobileLang === l.code ? 'white' : '#555',
+                    }}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Navigate</p>
+              <div className="space-y-2">
+                <a href={nav.features_url}
+                  className="flex items-center gap-3 px-4 py-3.5 w-full"
+                  style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
+                  <Globe className="w-4 h-4" style={{ color: '#888' }} />
+                  <span className="text-sm font-semibold" style={{ color: FG }}>Features</span>
+                </a>
+                <a href={nav.pricing_url}
+                  className="flex items-center gap-3 px-4 py-3.5 w-full"
+                  style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '10px' }}>
+                  <Tag className="w-4 h-4" style={{ color: '#888' }} />
+                  <span className="text-sm font-semibold" style={{ color: FG }}>Pricing</span>
+                </a>
+                <button onClick={() => { setShowMobileMenu(false); handleCta(); }}
+                  className="flex items-center justify-center w-full py-3.5 text-sm font-black"
+                  style={{ background: YUZU, color: FG, borderRadius: '10px' }}>
+                  {nav.cta_label}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* STENSOR SCORE ADDICTION SECTION */}
       <ScoreAddictionSection onCta={handleCta} />
 
-      {/* SECTION TITLE */}
-      <section className="px-6 py-16 text-center bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="font-black text-4xl md:text-5xl" style={{ color: FG }}>
-          {section_title}
-        </motion.h2>
-      </section>
+      {/* STICKY SCROLL CARDS SECTION */}
+      <StickyCardsSection cards={cards} section_title={section_title} onCta={handleCta} />
 
-      {/* MODERN CARDS */}
-      <section className="px-6 md:px-10 pb-32 bg-white">
-        <div className="max-w-5xl mx-auto space-y-5">
-          {cards.map((card, i) => (
-            <motion.div key={card.num}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.55, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="sticky overflow-hidden"
-              style={{ top: `${80 + i * 16}px`, background: FG, borderRadius: '8px' }}>
-              <div className="flex flex-col md:flex-row">
-                {/* Image */}
-                <div className="md:w-80 h-56 md:h-auto overflow-hidden relative flex-shrink-0">
-                  <img 
-  src={card.image} 
-  alt={card.title} 
-  className="w-full h-full object-cover" 
-  style={{ opacity: 1.00 }} // Suppression du filtre ici
-/>
-                  {/* Card number overlay */}
-                  <div className="absolute bottom-4 left-6">
-                    <span className="text-6xl font-black" style={{ color: 'rgba(255,255,255,0.08)', lineHeight: 1 }}>
-                      {card.num}
-                    </span>
-                  </div>
-                </div>
-                {/* Content */}
-                <div className="flex-1 p-10 md:p-14 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <span className="text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1"
-                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }}>
-                        {card.num} / {card.total}
-                      </span>
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-black leading-tight mb-5 text-white">
-                      {card.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.42)' }}>
-                      {card.desc}
-                    </p>
-                  </div>
-                  {/* N'affiche le bouton QUE si c'est la dernière carte (index 3) */}
-{i === cards.length - 1 && (
-  <div className="mt-8">
-    <button onClick={handleCta}
-      className="text-sm font-black px-6 py-3 transition-all hover:scale-[1.02]"
-      style={{ background: YUZU, color: FG, borderRadius: '6px' }}>
-      Get my strategy →
-    </button>
-  </div>
-)}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* VS SECTION — Finance Coach vs Stensor */}
+      <VsSection onCta={handleCta} />
 
       {/* PRICING */}
       <section className="px-6 py-24 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
@@ -456,18 +490,29 @@ export default function LandingPage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="px-6 py-32 text-center bg-black">
-        <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="font-black tracking-tight mb-10 text-white whitespace-pre-line"
-          style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)' }}>
-          {cta.title}
-        </motion.h2>
-        <motion.button initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ delay: 0.1 }} onClick={handleCta}
-          className="font-black text-base px-10 py-5 transition-all hover:opacity-85"
-          style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
-          {cta.button}
-        </motion.button>
+      <section className="relative px-6 py-32 text-center overflow-hidden" style={{ background: '#050508' }}>
+        {/* Orb background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute rounded-full"
+            style={{ width: 600, height: 600, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: `radial-gradient(circle, rgba(221,255,0,0.08) 0%, transparent 70%)` }}
+          />
+        </div>
+        <div className="relative z-10">
+          <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="font-black tracking-tight mb-10 text-white whitespace-pre-line"
+            style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)' }}>
+            {cta.title}
+          </motion.h2>
+          <motion.button initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.1 }} onClick={handleCta}
+            className="font-black text-base px-10 py-5 transition-all hover:scale-105 hover:opacity-90"
+            style={{ background: YUZU, color: FG, borderRadius: '12px', boxShadow: `0 0 60px rgba(221,255,0,0.2)` }}>
+            {cta.button}
+          </motion.button>
+        </div>
       </section>
 
       {/* FOOTER */}
