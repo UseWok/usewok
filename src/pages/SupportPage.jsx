@@ -322,10 +322,10 @@ export default function SupportPage() {
             style={{ background: YUZU, borderRadius: '12px' }}
             onMouseEnter={(e) => e.currentTarget.style.opacity = '0.88'}
             onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-              <div className="lucide lucide-clock w-4 h-4 hidden"
-              style={{ background: 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
-                <Book className="w-4 h-4" style={{ color: FG }} />
-              </div>
+              
+
+
+              
               <div>
                 <p className="text-sm font-black" style={{ color: FG }}>FAQ</p>
                 <p className="text-[10px]" style={{ color: 'rgba(0,0,0,0.45)' }}>Quick answers</p>
