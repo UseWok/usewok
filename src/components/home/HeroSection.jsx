@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Bot, ChevronDown, Zap, Wifi, WifiOff, Lock } from 'lucide-react';
+import { Plus, Mic, X, FileText, Bot, ChevronDown, Wifi, WifiOff, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 import { ALL_MODES as CHAT_ALL_MODES } from '@/lib/chat-constants';
+import { toast } from 'sonner';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
 const AGENT_META = {
@@ -40,9 +41,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [files, setFiles] = useState([]);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
-  const [showAtMenu, setShowAtMenu] = useState(false);
   const [showExpertMenu, setShowExpertMenu] = useState(false);
-  const [atQuery, setAtQuery] = useState('');
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -74,6 +73,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const canUpload = userPlan?.file_upload || false;
 
   useEffect(() => {
+    const savedAgent = localStorage.getItem('stensor_selected_agent');
+    if (savedAgent && AGENT_IDS.includes(savedAgent)) {
+      onAgentChange(savedAgent);
+    }
     base44.auth.me().then((u) => {
       const plan = getUserPlan(u);
       setUserPlan(plan);
@@ -100,7 +103,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
     const handler = (e) => {
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
       if (agentMenuRef.current && !agentMenuRef.current.contains(e.target)) setShowAgentMenu(false);
-      if (atMenuRef.current && !atMenuRef.current.contains(e.target)) setShowAtMenu(false);
       if (expertMenuRef.current && !expertMenuRef.current.contains(e.target)) setShowExpertMenu(false);
     };
     document.addEventListener('mousedown', handler);
@@ -116,7 +118,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR) {
+      console.warn('Speech Recognition not supported');
+      toast.error('Voice input not supported on this browser');
+      return;
+    }
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
@@ -132,7 +138,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
       const finals = Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
     };
-    rec.onerror = () => { setIsRecording(false); setVoiceLoading(false); };
+    rec.onerror = (e) => {
+      console.error('Speech recognition error:', e.error);
+      setIsRecording(false);
+      setVoiceLoading(false);
+    };
     rec.onend = () => {
       setIsRecording(false);
       setVoiceLoading(false);
@@ -145,43 +155,17 @@ export default function HeroSection({ agentId, onAgentChange }) {
       }
       finalTranscriptRef.current = '';
     };
-    setIsRecording(true);
-    rec.start();
-    recognitionRef.current = rec;
-  };
-
-  const handleQueryChange = (e) => {
-    const val = e.target.value;
-    setQuery(val);
-    const lastAt = val.lastIndexOf('@');
-    if (lastAt !== -1 && (lastAt === val.length - 1 || !val.slice(lastAt + 1).includes(' '))) {
-      setAtQuery(val.slice(lastAt + 1).toLowerCase());
-      setShowAtMenu(true);
-    } else {
-      setShowAtMenu(false);
+    try {
+      setIsRecording(true);
+      rec.start();
+      recognitionRef.current = rec;
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      setIsRecording(false);
     }
   };
 
-  const selectAtAgent = (agent) => {
-    let cleaned = AGENTS.reduce((q, a) => q.replace(new RegExp(`@${a.label}\\s*`, 'g'), ''), query);
-    const lastAt = cleaned.lastIndexOf('@');
-    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
-    setQuery(base + `@${agent.label} `);
-    onAgentChange(agent.id);
-    setShowAtMenu(false);
-    textareaRef.current?.focus();
-  };
 
-  const selectAtMode = (m) => {
-    if (!userPlan?.allowed_modes.includes(m.id)) return;
-    let cleaned = ALL_MODES.reduce((q, md) => q.replace(new RegExp(`@${md.label}\\s*`, 'g'), ''), query);
-    const lastAt = cleaned.lastIndexOf('@');
-    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
-    setQuery(base + `@${m.label} `);
-    setMode(m);
-    setShowAtMenu(false);
-    textareaRef.current?.focus();
-  };
 
   const handleFileAttach = () => {
     if (!canUpload) {setUpsellFeature('files');setShowFileMenu(false);return;}
@@ -198,21 +182,32 @@ export default function HeroSection({ agentId, onAgentChange }) {
     navigate(`/chat?${params.toString()}`);
   };
 
-  const filteredAgents = AGENTS.filter((a) => a.label.toLowerCase().includes(atQuery));
-  const filteredModes = ALL_MODES.filter((m) => m.label.toLowerCase().includes(atQuery));
   const hasText = query.trim().length > 0;
   const isBlocked = creditsUsed >= creditsTotal || dailyBlocked;
 
   return (
-    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36">
-      
-
-
-
-
-
-
-      
+    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden">
+      {/* Yuzu light glow effect - bottom right to top left */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          animate={{ 
+            x: [0, -30, 0], 
+            y: [0, -40, 0],
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute',
+            width: 800,
+            height: 800,
+            bottom: '-300px',
+            right: '-300px',
+            background: 'radial-gradient(circle, rgba(221,255,0,0.15) 0%, rgba(221,255,0,0.05) 40%, transparent 70%)',
+            filter: 'blur(60px)',
+          }}
+        />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -257,56 +252,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
         onDrop={(e) => {e.preventDefault();dragCounterRef.current = 0;setIsDragging(false);const dropped = Array.from(e.dataTransfer.files || []);if (dropped.length === 0) return;if (!canUpload) {setUpsellFeature('files');return;}setFiles((prev) => [...prev, ...dropped]);}}
         className="relative">
 
-        {/* @ menu */}
-        <AnimatePresence>
-          {showAtMenu &&
-          <motion.div ref={atMenuRef} {...popAnim}
-          className="absolute left-0 right-0 bottom-full mb-2 overflow-hidden shadow-lg z-50 bg-white border border-black/10 rounded-md text-left">
-              <div className="px-3 py-2 border-b border-black/8">
-                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">@ Agents & Modes</p>
-              </div>
-              <div className="max-h-52 overflow-y-auto">
-                {filteredAgents.length > 0 &&
-              <div className="px-2 py-1">
-                    {filteredAgents.map((agent) =>
-                <button key={agent.id} onClick={() => selectAtAgent(agent)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left rounded-sm transition-colors ${agentId === agent.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
-                        <Bot className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="font-medium">{agent.label}</span>
-                      </button>
-                )}
-                  </div>
-              }
-                {filteredModes.length > 0 &&
-              <div className="px-2 pb-2">
-                    {filteredModes.map((m) => {
-                  const Icon = m.icon;
-                  const isAllowed = userPlan?.allowed_modes.includes(m.id);
-                  return (
-                    <button key={m.id} onClick={() => selectAtMode(m)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left rounded-sm transition-colors mb-0.5 ${!isAllowed ? 'opacity-40' : 'hover:bg-black/5'}`}>
-                          <Icon className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-fg">{m.label}</p>
-                            <p className="text-[10px] text-zinc-400">{m.desc}</p>
-                          </div>
-                          <span className="text-[9px] font-black px-1.5 py-0.5 flex-shrink-0 bg-black/8 text-zinc-500 rounded-sm">{m.credit_cost}-{m.credit_max}T</span>
-                          {!isAllowed && <Lock className="w-3 h-3 ml-1 flex-shrink-0 text-zinc-300" />}
-                          {mode.id === m.id && isAllowed && <span className="text-[9px] font-bold px-1.5 py-0.5 flex-shrink-0 bg-yuzu text-fg rounded-sm">active</span>}
-                        </button>);
 
-                })}
-                    </div>
-              }
-                    </div>
-                    </motion.div>
-          }
-                    </AnimatePresence>
 
                     <DragDropOverlay visible={isDragging} canUpload={canUpload} />
                     <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
 
-                    <div className="bg-white border border-black/10 rounded-lg shadow-md overflow-visible">
+                    <div className="bg-white border border-black rounded-lg shadow-md overflow-visible" style={{ borderWidth: '1px' }}>
                     {files.length > 0 &&
           <div className="flex gap-2 flex-wrap p-4 pb-0">
                     {files.map((file, idx) =>
@@ -390,7 +341,11 @@ export default function HeroSection({ agentId, onAgentChange }) {
                       {AGENTS.map((a) => {
                       const meta = AGENT_META[a.id] || {};
                       return (
-                        <button key={a.id} onClick={() => {onAgentChange(a.id);setShowAgentMenu(false);}}
+                        <button key={a.id} onClick={() => {
+                          localStorage.setItem('stensor_selected_agent', a.id);
+                          onAgentChange(a.id);
+                          setShowAgentMenu(false);
+                        }}
                         aria-pressed={effectiveAgentId === a.id}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors text-left ${effectiveAgentId === a.id ? 'bg-yuzu text-fg' : 'text-zinc-600 hover:bg-black/5'}`}>
                             <span className="text-base flex-shrink-0">{meta.emoji || '🤖'}</span>
@@ -421,10 +376,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
                         style={{
                           background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
-                          border: mode.id === 'ultimate' ? '1.5px solid #0A0A0A' : '1.5px solid rgba(0,0,0,0.1)',
+                          border: '1px solid rgba(0,0,0,0.15)',
                         }}>
-                        <Zap className="w-3 h-3" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#bbb' }} />
-                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#aaa' }}>Expert</span>
+                        <span className="text-[11px] font-bold hidden sm:block" style={{ color: mode.id === 'ultimate' ? '#DDFF00' : '#555' }}>Expert</span>
                       </button>
                       <AnimatePresence>
                         {showExpertMenu && (
@@ -434,9 +388,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
                             exit={{ opacity: 0, y: -4, scale: 0.97 }}
                             transition={{ duration: 0.1 }}
                             className="absolute bottom-full mb-2 left-0 bg-white shadow-xl border border-black/10 rounded-md overflow-hidden z-50 min-w-[176px]">
-                            <div className="px-3 py-2 border-b border-black/6">
-                              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Expert Mode</p>
-                            </div>
                             <button
                               onClick={() => {
                                 setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
@@ -444,7 +395,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
                                 setShowExpertMenu(false);
                               }}
                               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
-                              <Wifi className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
                               <div>
                                 <p className="text-xs font-bold text-fg">Avec internet</p>
                                 <p className="text-[10px] text-zinc-400">Recherche web en direct</p>
@@ -457,7 +407,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
                                 setShowExpertMenu(false);
                               }}
                               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 transition-colors">
-                              <WifiOff className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
                               <div>
                                 <p className="text-xs font-bold text-fg">Sans internet</p>
                                 <p className="text-[10px] text-zinc-400">Analyse pure, hors ligne</p>
@@ -519,11 +468,13 @@ export default function HeroSection({ agentId, onAgentChange }) {
         initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ delay: 0.25, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        whileHover={!isBlocked && hasText ? { scale: 1.01, y: -1 } : {}}
-        whileTap={!isBlocked && hasText ? { scale: 0.98 } : {}}
-        onClick={handleCommencer} disabled={!hasText || isBlocked}
+        whileHover={hasText && !isBlocked ? { scale: 1.01, y: -1 } : {}}
+        whileTap={hasText && !isBlocked ? { scale: 0.98 } : {}}
+        onClick={handleCommencer} 
+        disabled={isBlocked}
         aria-label="Start conversation"
-        className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all ${hasText ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-black/8 text-zinc-400 cursor-not-allowed'}`}>
+        className={`mt-3 w-full py-3.5 font-black text-sm tracking-wide rounded-md transition-all border ${hasText && !isBlocked ? 'bg-fg text-white hover:opacity-90 cursor-pointer' : 'bg-black/8 text-zinc-400 cursor-not-allowed'}`}
+        style={{ borderColor: '#0A0A0A', borderWidth: '1px' }}>
         {t('hero_start')}
       </motion.button>
 

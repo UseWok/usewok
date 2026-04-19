@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
-import ChatAtMenu from '@/components/chat/ChatAtMenu';
 import { ALL_MODES, FG, YUZU } from '@/lib/chat-constants';
 import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -32,9 +31,7 @@ export default function ChatInputBar({
   const { t } = useLanguage();
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showFileMenu, setShowFileMenu] = useState(false);
-  const [showAtMenu, setShowAtMenu] = useState(false);
   const [showFilePanel, setShowFilePanel] = useState(false);
-  const [atQuery, setAtQuery] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,18 +41,16 @@ export default function ChatInputBar({
   const textareaRef = useRef(null);
   const agentMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
-  const atMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
   // Close all menus when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      const refs = [agentMenuRef, fileMenuRef, atMenuRef];
+      const refs = [agentMenuRef, fileMenuRef];
       if (!refs.some(r => r.current?.contains(e.target))) {
         setShowAgentMenu(false);
         setShowFileMenu(false);
-        setShowAtMenu(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -65,6 +60,10 @@ export default function ChatInputBar({
   const closeAllMenus = () => {
     setShowAgentMenu(false);
     setShowFileMenu(false);
+  };
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
   };
 
   const AGENTS = [
@@ -85,41 +84,7 @@ export default function ChatInputBar({
     ? '.jpg,.jpeg,.png,.gif,.txt,.csv,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp3,.mp4,.json,.html,.xml,.md'
     : '.jpg,.jpeg,.png,.gif,.txt,.csv';
 
-  const handleInputChange = (e) => {
-    const val = e.target.value;
-    setInput(val);
-    const lastAt = val.lastIndexOf('@');
-    if (lastAt !== -1 && (lastAt === val.length - 1 || !val.slice(lastAt + 1).includes(' '))) {
-      setAtQuery(val.slice(lastAt + 1).toLowerCase());
-      setShowAtMenu(true);
-    } else {
-      setShowAtMenu(false);
-    }
-  };
 
-  const selectAtAgent = (agent) => {
-    let cleaned = AGENTS.reduce((q, a) => q.replace(new RegExp(`@${a.label}\\s*`, 'g'), ''), input);
-    const lastAt = cleaned.lastIndexOf('@');
-    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
-    setInput(base + `@${agent.label} `);
-    setCurrentAgent(agent.id);
-    setShowAtMenu(false);
-    textareaRef.current?.focus();
-  };
-
-  const selectAtMode = (m) => {
-    if (!userPlan?.allowed_modes?.includes(m.id)) {
-      onUpgradeRequest(`Mode ${m.label}`);
-      return;
-    }
-    let cleaned = ALL_MODES.reduce((q, md) => q.replace(new RegExp(`@${md.label}\\s*`, 'g'), ''), input);
-    const lastAt = cleaned.lastIndexOf('@');
-    const base = lastAt !== -1 ? cleaned.slice(0, lastAt) : cleaned;
-    setInput(base + `@${m.label} `);
-    setMode(m);
-    setShowAtMenu(false);
-    textareaRef.current?.focus();
-  };
 
   const handleFileAttach = () => {
     if (!canUploadFiles) { onUpgradeRequest(t('attach_file')); setShowFileMenu(false); return; }
@@ -152,9 +117,6 @@ export default function ChatInputBar({
     rec.start(); recognitionRef.current = rec; setIsRecording(true);
   };
 
-  const filteredAgents = AGENTS.filter(a => a.label.toLowerCase().includes(atQuery));
-  const filteredModes = ALL_MODES.filter(m => m.label.toLowerCase().includes(atQuery));
-
   return (
     <div
       className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full"
@@ -183,20 +145,6 @@ export default function ChatInputBar({
           }
           setFiles(p => [...p, ...newFiles]);
         }}
-      />
-
-      {/* @ menu */}
-      <ChatAtMenu
-        open={showAtMenu}
-        atMenuRef={atMenuRef}
-        agents={AGENTS}
-        filteredAgents={filteredAgents}
-        filteredModes={filteredModes}
-        currentAgent={currentAgent}
-        currentMode={mode}
-        userPlan={userPlan}
-        onSelectAgent={selectAtAgent}
-        onSelectMode={selectAtMode}
       />
 
       <DragDropOverlay visible={isDragging} canUpload={canUploadFiles} />
