@@ -6,7 +6,7 @@ import { isOfferActive, getOfferExpiry } from '@/lib/welcome-offer';
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
-function pad(n) { return String(Math.floor(n)).padStart(2, '0'); }
+function pad(n) {return String(Math.floor(n)).padStart(2, '0');}
 
 function useCountdown(targetMs) {
   const [rem, setRem] = useState(() => Math.max(0, targetMs - Date.now()));
@@ -25,14 +25,14 @@ export default function HomeEventBanner({ large = false }) {
   const rem = useCountdown(expiryMs);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then((u) => {
       if (isOfferActive(u)) {
         setExpiryMs(getOfferExpiry(u));
         setShow(true);
       } else {
         setShow(false);
       }
-    }).catch(() => { setShow(false); });
+    }).catch(() => {setShow(false);});
   }, []);
 
   // Reserve space while loading to prevent layout shift
@@ -40,8 +40,8 @@ export default function HomeEventBanner({ large = false }) {
   if (!show || rem <= 0) return null;
 
   const h = Math.floor(rem / 3600000);
-  const m = Math.floor((rem % 3600000) / 60000);
-  const s = Math.floor((rem % 60000) / 1000);
+  const m = Math.floor(rem % 3600000 / 60000);
+  const s = Math.floor(rem % 60000 / 1000);
 
   if (large) {
     // ManagePlanPage variant — more discrete
@@ -61,20 +61,20 @@ export default function HomeEventBanner({ large = false }) {
           <span style={{ color: '#bbb' }}>:</span>
           <span>{pad(s)}</span>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 mb-4">
       <div
-        onClick={() => navigate('/pricing')}
-        className="w-full flex items-center justify-between px-4 py-3 cursor-pointer transition-all hover:opacity-90"
+        onClick={() => navigate('/pricing')} className="w-full flex items-center justify-between px-4 py-3 cursor-pointer transition-all hover:opacity-90 hidden"
+
         style={{
           background: 'white',
           border: `1.5px solid ${YUZU}`,
           borderRadius: '8px',
-          boxShadow: '0 2px 12px rgba(221,255,0,0.12)',
+          boxShadow: '0 2px 12px rgba(221,255,0,0.12)'
         }}>
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: YUZU }} />
@@ -95,6 +95,6 @@ export default function HomeEventBanner({ large = false }) {
           <span>{pad(s)}</span>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
