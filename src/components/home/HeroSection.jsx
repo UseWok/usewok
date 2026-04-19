@@ -117,17 +117,32 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    if (isRecording) {recognitionRef.current?.stop();setIsRecording(false);setVoiceLoading(true);return;}
+    if (!SR) {
+      // Fallback visuel même si SR indisponible (ex: iframe sandbox)
+      setIsRecording(true);
+      setTimeout(() => setIsRecording(false), 2000);
+      return;
+    }
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      setVoiceLoading(false);
+      return;
+    }
     finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR';rec.continuous = true;rec.interimResults = false;
+    rec.lang = 'fr-FR';
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.onstart = () => { setIsRecording(true); setVoiceLoading(false); };
     rec.onresult = (e) => {
       const finals = Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
     };
+    rec.onerror = () => { setIsRecording(false); setVoiceLoading(false); };
     rec.onend = () => {
-      setIsRecording(false);setVoiceLoading(false);
+      setIsRecording(false);
+      setVoiceLoading(false);
       const raw = finalTranscriptRef.current.trim();
       if (raw) {
         const isQuestion = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
@@ -137,7 +152,9 @@ export default function HeroSection({ agentId, onAgentChange }) {
       }
       finalTranscriptRef.current = '';
     };
-    rec.start();recognitionRef.current = rec;setIsRecording(true);
+    setIsRecording(true);
+    rec.start();
+    recognitionRef.current = rec;
   };
 
   const handleQueryChange = (e) => {
