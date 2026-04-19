@@ -17,7 +17,6 @@ function trackSession(userId) {
 export function getTotalMinutes(userId) {
   return parseFloat(localStorage.getItem(`${SESSION_KEY}_${userId}`) || '0');
 }
-import WelcomeOfferBanner from './WelcomeOfferBanner';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
@@ -82,7 +81,6 @@ export default function Layout() {
           </button>
         )}
 
-        <WelcomeOfferBanner />
         <Outlet />
 
       </motion.main>

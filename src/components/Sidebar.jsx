@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, Globe2, MessageSquare, BarChart2, ShoppingBag, TrendingUp, Zap, ChevronRight, X, Award } from 'lucide-react';
+import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, X } from 'lucide-react';
 
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
-import LanguagePopover from './sidebar/LanguagePopover';
 import TensorsPopover from './sidebar/TensorsPopover';
 import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
@@ -64,7 +63,6 @@ export default function Sidebar({ expanded, setExpanded }) {
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const notiRef = useRef(null);
-  const langRef = useRef(null);
   const tensorsRef = useRef(null);
 
   const loadUser = () => {
@@ -112,8 +110,6 @@ export default function Sidebar({ expanded, setExpanded }) {
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: BarChart2, label: 'Analyses', path: '/analytics', active: location.pathname === '/analytics' },
-    { icon: Award, label: 'Stensor Score', path: '/score', active: location.pathname === '/score' },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 
@@ -208,14 +204,13 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Upgrade card — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
             <button onClick={() => navigate('/pricing')}
-              className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 bg-fg rounded-sm hover:opacity-90 transition-opacity">
-              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm">
+              className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
+              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-black/10 rounded-sm">
                 <TrendingUp className="w-3.5 h-3.5 text-fg" />
               </div>
               {expanded && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-xs font-bold text-white">{t('upgrade')}</p>
-                  <p className="text-[10px] text-white/50">{t('more_tensors')}</p>
+                  <p className="text-xs font-bold text-fg">Upgrade your plan</p>
                 </div>
               )}
             </button>
@@ -240,16 +235,12 @@ export default function Sidebar({ expanded, setExpanded }) {
             )}
           </button>
 
-          {/* Profile / Lang / Bell row */}
+          {/* Profile / Bell row */}
           <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
             <button ref={profileRef} onClick={() => togglePopover('profile')}
               className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-md hover:opacity-80 transition-opacity"
               style={{ background: getUserColor(user) }}>
               <span className="text-xs font-bold text-white">{userInitial}</span>
-            </button>
-            <button ref={langRef} onClick={() => togglePopover('lang')}
-              className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-md hover:bg-black/5 transition-colors">
-              <Globe2 className="w-4 h-4 text-zinc-400" />
             </button>
             <button ref={notiRef} onClick={() => togglePopover('noti')}
               className="relative w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-md hover:bg-black/5 transition-colors">
@@ -266,7 +257,6 @@ export default function Sidebar({ expanded, setExpanded }) {
 
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
       <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} user={user} />
-      <LanguagePopover open={activePopover === 'lang'} onClose={() => setActivePopover(null)} anchorRef={langRef} />
       <TensorsPopover open={activePopover === 'tensors'} onClose={() => setActivePopover(null)} anchorRef={tensorsRef} user={user} />
     </>
   );

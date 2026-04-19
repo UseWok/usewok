@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, MessageSquare, CreditCard, Zap, ArrowLeft, Save, Check, Download, ChevronRight, Trash2, X } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/i18n';
-
-const SHORTCUTS = [
-  { id: 'enter', label: 'Enter' },
-  { id: 'shift_enter', label: 'Shift + Enter' },
-  { id: 'ctrl_enter', label: 'Ctrl + Enter' },
-];
 
 function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
@@ -27,7 +21,6 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
-  const [shortcut, setShortcut] = useState(() => localStorage.getItem('stensor_send_shortcut') || 'enter');
   const [activationCode, setActivationCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
   const [codeError, setCodeError] = useState('');
@@ -69,12 +62,6 @@ export default function SettingsPage() {
     await base44.auth.updateMe({ full_name: fullName.trim() });
     setSavingProfile(false);
     toast.success('Profile updated');
-  };
-
-  const saveShortcut = (s) => {
-    setShortcut(s);
-    localStorage.setItem('stensor_send_shortcut', s);
-    toast.success('Shortcut saved');
   };
 
   const activateCode = async () => {
@@ -123,12 +110,11 @@ export default function SettingsPage() {
 
   const navItems = [
     { id: 'profile', label: t('settings_profile'), icon: User },
-    { id: 'chat', label: t('settings_chat'), icon: MessageSquare },
     { id: 'plan', label: t('settings_plan'), icon: CreditCard },
     { id: 'usage', label: t('settings_usage'), icon: Zap },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t };
 
   return (
     <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
@@ -231,7 +217,7 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, shortcut, saveShortcut, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, t }) {
   if (section === 'profile') return (
     <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
       <div>
@@ -255,19 +241,6 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
           <Trash2 className="w-4 h-4" /> {t('settings_delete_account')}
         </button>
       </div>
-    </div>
-  );
-
-  if (section === 'chat') return (
-    <div className={`${desktop ? 'max-w-md' : 'pt-2'} space-y-2`}>
-      <p className="text-xs font-semibold mb-3 text-muted-foreground">{t('settings_shortcut_label')}</p>
-      {SHORTCUTS.map(s => (
-        <button key={s.id} onClick={() => saveShortcut(s.id)}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all ${shortcut === s.id ? 'bg-fg border-fg' : 'bg-white border-border hover:border-fg/30'}`}>
-          <span className={`text-sm font-medium ${shortcut === s.id ? 'text-white' : 'text-fg'}`}>{s.label}</span>
-          {shortcut === s.id && <Check className="w-4 h-4 text-white" />}
-        </button>
-      ))}
     </div>
   );
 
@@ -356,7 +329,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       </div>
 
       <div className="p-4 border border-border rounded-xl bg-white">
-        <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">{t('settings_activation_code')}</p>
+        <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Activation Code</p>
         <p className="text-xs mb-3 text-muted-foreground">Enter a code received by email to activate a subscription.</p>
         <div className="flex gap-2">
           <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}

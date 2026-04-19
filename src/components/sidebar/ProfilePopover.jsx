@@ -57,11 +57,11 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
   const pos = open ? getPosition() : {};
 
   const items = [
-    { icon: Settings, label: 'Paramètres du compte', action: () => navigate('/settings') },
-    { icon: HelpCircle, label: 'Aide et support', action: () => navigate('/support') },
-    { icon: Gift, label: 'Earn Tensors', action: () => setShowReferral(true), accent: true },
+    { icon: Settings, label: 'Account settings', action: () => navigate('/settings') },
+    { icon: HelpCircle, label: 'Help & support', action: () => navigate('/support') },
+    { icon: Gift, label: 'Earn Tensors', action: () => setShowReferral(true) },
     { divider: true },
-    { icon: LogOut, label: 'Se déconnecter', action: () => base44.auth.logout('/') },
+    { icon: LogOut, label: 'Sign out', action: () => base44.auth.logout('/') },
   ];
 
   const handleDeleteClick = () => {
