@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Zap, X, Check } from 'lucide-react';
-import ArtCta from './ArtCta';
 
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
@@ -175,14 +174,6 @@ export default function ScoreAddictionSection({ onCta }) {
         </div>
       </section>
 
-      {/* Art CTA — with gradient bridge */}
-      <ArtCta
-        topGradient={true}
-        title={"Stop paying for mediocrity.\nYour money deserves more."}
-        subtitle="Join thousands who ditched their finance coach and never looked back."
-        buttonLabel="Start free — no credit card"
-        onCta={onCta}
-      />
     </>
   );
 }
