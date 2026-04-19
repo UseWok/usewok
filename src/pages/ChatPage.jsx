@@ -240,9 +240,9 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    // Auto-select best model: prioritize Gemini 3.1 Pro, use Claude for Expert mode
-    const autoModel = mode.id === 'ultimate' ? 'claude_opus_4_6' : 'gemini_3_1_pro';
-    const secretModel = isFirstMessage ? 'claude_opus_4_6' : autoModel;
+    // Model selection: Expert = Claude Sonnet 4.6 (cheaper), non-Expert = Gemini 3.1 Flash (very cheap)
+    const autoModel = mode.id === 'ultimate' ? 'claude_sonnet_4_6' : 'gemini_3_flash';
+    const secretModel = autoModel;
     const useInternet = useWebSearch && hasInternet;
 
     const result = await base44.integrations.Core.InvokeLLM({
@@ -253,14 +253,10 @@ export default function ChatPage() {
     });
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Credit cost
-    const r = Math.random();
+    // Credit cost - optimized for cheaper models
     let baseCost;
-    if (isFirstMessage) { baseCost = 1; }
-    else if (mode.id === 'thinking') { baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3; }
-    else if (mode.id === 'pro') { baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5; }
-    else if (mode.id === 'ultimate') { baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8; }
-    else { baseCost = 1; }
+    if (mode.id === 'ultimate') { baseCost = 3; } // Claude Sonnet - still powerful but cheaper
+    else { baseCost = 1; } // Gemini Flash - very cheap
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
@@ -277,7 +273,7 @@ export default function ChatPage() {
       }
     }
 
-    const modelDisplayName = secretModel === 'claude_opus_4_6' ? 'Claude Opus 4.6' : secretModel === 'gemini_3_1_pro' ? 'Gemini 3.1 Pro' : secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel;
+    const modelDisplayName = secretModel === 'claude_sonnet_4_6' ? 'Claude Sonnet 4.6' : secretModel === 'gemini_3_flash' ? 'Gemini 3 Flash' : secretModel;
     const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: modelDisplayName, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     let convTitle = text.slice(0, 50);

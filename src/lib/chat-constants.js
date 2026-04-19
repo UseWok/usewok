@@ -8,9 +8,8 @@ export const CORAL = '#FF4F00';
 export const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 export const ALL_MODES = [
-  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_opus_4_6', desc: 'Most powerful', requiredPlan: 'expert', credit_cost: 4, credit_max: 8 },
-  { id: 'pro',      label: 'Pro',    icon: Star,  model: 'gemini_3_1_pro',  desc: 'Advanced',      requiredPlan: 'essential', credit_cost: 2, credit_max: 5 },
-  { id: 'thinking', label: 'Auto',   icon: Brain, model: 'gemini_3_1_pro',  desc: 'Smart routing', requiredPlan: null,        credit_cost: 1, credit_max: 3 },
+  { id: 'ultimate', label: 'Expert', icon: Crown, model: 'claude_sonnet_4_6', desc: 'Most powerful', requiredPlan: 'expert', credit_cost: 3, credit_max: 3 },
+  { id: 'thinking', label: 'Auto',   icon: Brain, model: 'gemini_3_flash',  desc: 'Smart & cheap', requiredPlan: null,        credit_cost: 1, credit_max: 1 },
 ];
 
 export const CHAR_SPEED = 15;
