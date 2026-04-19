@@ -254,7 +254,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
         onDragEnter={(e) => {e.preventDefault();dragCounterRef.current++;setIsDragging(true);}}
         onDragLeave={(e) => {e.preventDefault();dragCounterRef.current--;if (dragCounterRef.current <= 0) {dragCounterRef.current = 0;setIsDragging(false);}}}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {e.preventDefault();dragCounterRef.current = 0;setIsDragging(false);const dropped = Array.from(e.dataTransfer.files || []);if (dropped.length === 0) return;if (!canUpload) {setUpsellFeature('files');return;}setFiles((prev) => [...prev, ...dropped]);}}>
+        onDrop={(e) => {e.preventDefault();dragCounterRef.current = 0;setIsDragging(false);const dropped = Array.from(e.dataTransfer.files || []);if (dropped.length === 0) return;if (!canUpload) {setUpsellFeature('files');return;}setFiles((prev) => [...prev, ...dropped]);}}
+        className="relative">
 
         {/* @ menu */}
         <AnimatePresence>
@@ -340,7 +341,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     <div className="relative" ref={fileMenuRef}>
                     <button onClick={() => {setShowFileMenu(!showFileMenu);setShowAgentMenu(false);}}
                 aria-label="Attach file"
-                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
+                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors pointer-events-auto z-20 relative">
                     <Plus className="text-slate-500 lucide lucide-plus w-4 h-4" />
                     </button>
                     <AnimatePresence>
@@ -377,7 +378,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
                     {/* Agent button */}
                     <div className="relative" ref={agentMenuRef}>
-                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}} className="text-[hsl(var(--primary-foreground))] px-2.5 rounded-md h-8 flex items-center gap-1.5 hover:bg-black/5 transition-colors">
+                    <button onClick={() => {setShowAgentMenu(!showAgentMenu);setShowFileMenu(false);}} className="text-[hsl(var(--primary-foreground))] px-2.5 rounded-md h-8 flex items-center gap-1.5 hover:bg-black/5 transition-colors pointer-events-auto z-20 relative">
                   
                     <Bot className="text-slate-500 lucide lucide-bot w-3.5 h-3.5" />
                     <span className="text-slate-500 text-xs font-medium">{lockedAgentLabel ? lockedAgentLabel.split(' ')[0] : t('agent')}</span>
@@ -417,7 +418,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                             setShowExpertMenu((s) => !s);
                           }
                         }}
-                        className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all"
+                        className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
                         style={{
                           background: mode.id === 'ultimate' ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
                           border: mode.id === 'ultimate' ? '1.5px solid #0A0A0A' : '1.5px solid rgba(0,0,0,0.1)',
@@ -473,7 +474,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                       onClick={toggleRecording}
                       aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
                       aria-pressed={isRecording}
-                      className="relative w-8 h-8 flex items-center justify-center rounded-sm transition-all"
+                      className="relative w-8 h-8 flex items-center justify-center rounded-sm transition-all cursor-pointer z-20 pointer-events-auto"
                       style={{
                         background: isRecording ? '#0A0A0A' : voiceLoading ? '#0A0A0A' : 'rgba(0,0,0,0.06)',
                         border: '1.5px solid rgba(0,0,0,0.1)',
