@@ -15,13 +15,15 @@ const STATUS_CONFIG = {
 
 export default function SupportPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState('landing'); // landing | tickets | ticket-detail
+  const [page, setPage] = useState('landing');
   const [user, setUser] = useState(null);
   const [myTickets, setMyTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
-  const [ticketFilter, setTicketFilter] = useState('all'); // all | open | closed
+  const [ticketFilter, setTicketFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [showChatPanel, setShowChatPanel] = useState(false);
+  const [chatTicket, setChatTicket] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => {});
@@ -42,16 +44,37 @@ export default function SupportPage() {
     if (user) loadTickets(user);
   }, [user]);
 
+  // Poll for new messages on open tickets
+  useEffect(() => {
+    if (!user || !showChatPanel || !chatTicket) return;
+    const interval = setInterval(() => {
+      base44.entities.SupportTicket.filter({ id: chatTicket.id }).then(t => {
+        if (t.length > 0) {
+          const updated = t[0];
+          if (updated.messages_json !== chatTicket.messages_json) {
+            setChatTicket(updated);
+          }
+          if (updated.status === 'closed' && chatTicket.status !== 'closed') {
+            setShowChatPanel(false);
+            setChatTicket(null);
+            loadTickets(user);
+          }
+        }
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [user, showChatPanel, chatTicket]);
+
   if (page === 'landing') {
     return <LandingPage onNavigate={() => setPage('tickets')} />;
   }
 
-  if (page === 'ticket-detail' && selectedTicket) {
+  if (showChatPanel && chatTicket) {
     return (
-      <TicketDetailPage
-        ticket={selectedTicket}
+      <ChatPanel
+        ticket={chatTicket}
         user={user}
-        onBack={() => setPage('tickets')}
+        onClose={() => { setShowChatPanel(false); setChatTicket(null); loadTickets(user); }}
         onUpdate={() => loadTickets(user)}
       />
     );
@@ -112,9 +135,11 @@ export default function SupportPage() {
           <div className="space-y-2">
             {filteredTickets.map(ticket => {
               const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
+              const isClosed = ticket.status === 'closed';
               return (
-                <button key={ticket.id} onClick={() => { setSelectedTicket(ticket); setPage('ticket-detail'); }}
-                  className="w-full p-4 text-left transition-all hover:bg-opacity-50"
+                <motion.button key={ticket.id} whileHover={{ scale: 1.01 }}
+                  onClick={() => { if (!isClosed) { setChatTicket(ticket); setShowChatPanel(true); } }}
+                  className={`w-full p-4 text-left transition-all ${isClosed ? 'opacity-50 cursor-default' : 'hover:bg-opacity-50 cursor-pointer'}`}
                   style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)' }}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -129,7 +154,7 @@ export default function SupportPage() {
                       {s.label}
                     </span>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -327,30 +352,57 @@ function NewTicketModal({ onClose, user }) {
   );
 }
 
-function TicketDetailPage({ ticket, user, onBack, onUpdate }) {
+function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const [messages, setMessages] = useState(() => {
     try { return JSON.parse(ticket.messages_json || '[]'); } catch { return []; }
   });
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [ticketStatus, setTicketStatus] = useState(ticket.status);
+  const [files, setFiles] = useState([]);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      base44.entities.SupportTicket.filter({ id: ticket.id }).then(t => {
+        if (t.length > 0) {
+          const updated = t[0];
+          if (updated.messages_json !== ticket.messages_json) {
+            setMessages(JSON.parse(updated.messages_json || '[]'));
+            setTicketStatus(updated.status);
+            if (updated.status === 'closed') {
+              onClose();
+            }
+          }
+        }
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [ticket, onClose]);
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && files.length === 0) return;
     setSending(true);
 
-    const msg = { author: 'user', text: newMessage, created_at: new Date().toISOString() };
+    let file_urls = [];
+    for (const f of files) {
+      try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
+    }
+
+    const msg = { author: 'user', text: newMessage, file_urls, created_at: new Date().toISOString() };
     const updatedMessages = [...messages, msg];
     setMessages(updatedMessages);
     setNewMessage('');
+    setFiles([]);
 
     await base44.entities.SupportTicket.update(ticket.id, {
       messages_json: JSON.stringify(updatedMessages),
+      file_urls: [...(ticket.file_urls || []), ...file_urls],
     });
     setSending(false);
   };
@@ -364,75 +416,60 @@ function TicketDetailPage({ ticket, user, onBack, onUpdate }) {
   const s = STATUS_CONFIG[ticketStatus];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be" style={{ background: '#f5f5f5' }}>
-      <div className="max-w-2xl mx-auto px-4 py-4 pb-32">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[400] flex" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="w-full max-w-md ml-auto h-full flex flex-col"
+        style={{ background: 'white', boxShadow: '-4px 0 24px rgba(0,0,0,0.1)' }}
+        onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          className="flex items-center justify-between mb-4 sticky top-0 z-20 bg-white/80 backdrop-blur-sm py-2"
-          style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-          <motion.button onClick={onBack} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-            className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-            <ArrowLeft className="w-4 h-4" style={{ color: FG }} />
-          </motion.button>
-          <p className="text-sm font-black" style={{ color: FG }}>{ticket.id.slice(0, 8)}</p>
-          <motion.button onClick={onBack} className="w-9 h-9 flex items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-            <X className="w-4 h-4" style={{ color: FG }} />
-          </motion.button>
-        </motion.div>
-
-        {/* Ticket info */}
-        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }}
-          className="mb-4 p-4 rounded-lg" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex-1">
-              <p className="text-sm font-semibold line-clamp-2" style={{ color: FG }}>{ticket.description}</p>
-              <p className="text-xs mt-2" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleString()}</p>
+        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}>
+              <MessageSquare className="w-4 h-4" style={{ color: FG }} />
             </div>
-            <motion.span whileHover={{ scale: 1.05 }} className="text-[10px] font-black px-2.5 py-1 flex-shrink-0 rounded-md"
-              style={{ background: s.bg, color: s.color }}>
+            <div>
+              <p className="text-sm font-black" style={{ color: FG }}>Support</p>
+              <p className="text-[10px]" style={{ color: '#aaa' }}>{ticket.id.slice(0, 8)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <motion.span className="text-[10px] font-black px-2 py-1 rounded-md" style={{ background: s.bg, color: s.color }}>
               {s.label}
             </motion.span>
+            <motion.button onClick={onClose} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}>
+              <X className="w-4 h-4" style={{ color: FG }} />
+            </motion.button>
           </div>
-          {user?.role === 'admin' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-              <p className="text-xs font-black uppercase mb-2" style={{ color: '#aaa' }}>Change status</p>
-              <div className="flex gap-2 flex-wrap">
-                {Object.keys(STATUS_CONFIG).map(st => (
-                  <motion.button key={st} onClick={() => handleStatusChange(st)}
-                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all capitalize"
-                    style={{
-                      background: ticketStatus === st ? FG : 'rgba(0,0,0,0.05)',
-                      color: ticketStatus === st ? 'white' : '#666'
-                    }}>
-                    {st}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+        </div>
 
-        <p className="text-xs text-center mb-4" style={{ color: '#999' }}>Support hours online, response in 48h</p>
-
-        {/* Messages */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-3 mb-6">
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {messages.length === 0 ? (
             <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
           ) : (
             messages.map((msg, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 className={`flex ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <motion.div whileHover={{ scale: 1.02 }} className="max-w-xs px-4 py-3 rounded-lg shadow-sm"
+                <motion.div whileHover={{ scale: 1.02 }} className="max-w-[80%] px-4 py-3 rounded-2xl shadow-sm"
                   style={{
                     background: msg.author === 'user' ? FG : 'white',
                     color: msg.author === 'user' ? 'white' : FG,
                     border: msg.author === 'user' ? 'none' : '1px solid rgba(0,0,0,0.07)',
-                    borderRadius: msg.author === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px'
+                    borderRadius: msg.author === 'user' ? '20px 4px 20px 20px' : '4px 20px 20px 20px'
                   }}>
+                  {msg.file_urls && msg.file_urls.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {msg.file_urls.map((url, j) => (
+                        <a key={j} href={url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs underline" style={{ color: msg.author === 'user' ? 'white' : '#2563eb' }}>
+                          📎 File {j + 1}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   <p className="text-sm leading-relaxed">{msg.text}</p>
-                  <p className="text-xs mt-2" style={{ opacity: 0.5 }}>
+                  <p className="text-xs mt-1.5" style={{ opacity: 0.5 }}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </motion.div>
@@ -440,27 +477,66 @@ function TicketDetailPage({ ticket, user, onBack, onUpdate }) {
             ))
           )}
           <div ref={messagesEndRef} />
-        </motion.div>
+        </div>
+
+        {/* Admin status controls */}
+        {user?.role === 'admin' && (
+          <div className="px-4 py-2 flex-shrink-0" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'rgba(0,0,0,0.02)' }}>
+            <p className="text-[10px] font-black uppercase mb-2" style={{ color: '#aaa' }}>Change status</p>
+            <div className="flex gap-2">
+              {Object.keys(STATUS_CONFIG).map(st => (
+                <motion.button key={st} onClick={() => handleStatusChange(st)}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  className="flex-1 py-1.5 text-xs font-semibold rounded-md capitalize"
+                  style={{
+                    background: ticketStatus === st ? FG : 'rgba(0,0,0,0.05)',
+                    color: ticketStatus === st ? 'white' : '#666'
+                  }}>
+                  {st}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Message input */}
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
-          className="fixed bottom-0 left-0 right-0 p-4" style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
-          <div className="max-w-2xl mx-auto flex gap-2">
+        <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
+          {files.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {files.map((f, i) => (
+                <div key={i} className="flex items-center gap-1.5 px-2 py-1" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
+                  <span className="text-[10px] max-w-[60px] truncate" style={{ color: '#555' }}>{f.name}</span>
+                  <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
+                    <X className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input ref={fileInputRef} type="file" multiple className="hidden"
+              onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
+            <motion.button onClick={() => fileInputRef.current?.click()}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              className="w-9 h-9 flex items-center justify-center rounded-full"
+              style={{ background: 'rgba(0,0,0,0.05)' }}>
+              <Upload className="w-4 h-4" style={{ color: FG }} />
+            </motion.button>
             <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
               placeholder="Tapez votre message…"
-              className="flex-1 px-4 py-3 text-sm focus:outline-none"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '24px', background: 'rgba(0,0,0,0.02)' }} />
-            <motion.button onClick={handleSendMessage} disabled={!newMessage.trim() || sending}
+              className="flex-1 px-4 py-2.5 text-sm focus:outline-none rounded-full"
+              style={{ border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }} />
+            <motion.button onClick={handleSendMessage} disabled={(!newMessage.trim() && files.length === 0) || sending}
               whileHover={newMessage.trim() && !sending ? { scale: 1.05 } : {}}
               whileTap={newMessage.trim() && !sending ? { scale: 0.95 } : {}}
-              className="w-10 h-10 flex items-center justify-center flex-shrink-0 text-sm font-black transition-all disabled:opacity-30"
-              style={{ background: newMessage.trim() && !sending ? FG : 'rgba(0,0,0,0.05)', color: newMessage.trim() && !sending ? 'white' : '#999', borderRadius: '50%' }}>
+              className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 text-sm font-black transition-all disabled:opacity-30"
+              style={{ background: newMessage.trim() && !sending ? FG : 'rgba(0,0,0,0.05)', color: newMessage.trim() && !sending ? 'white' : '#999' }}>
               <Send className="w-4 h-4" />
             </motion.button>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }

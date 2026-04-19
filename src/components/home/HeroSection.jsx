@@ -188,25 +188,25 @@ export default function HeroSection({ agentId, onAgentChange }) {
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, rgba(221,255,0,0.08) 0%, white 40%, white 100%)',
+        background: 'linear-gradient(180deg, rgba(221,255,0,0.08) 0%, rgba(221,255,0,0.04) 40%, white 70%, white 100%)',
       }}>
-      {/* Yuzu light glow effect - bottom right to top left */}
+      {/* Yuzu light glow effect - bottom right to top left, fading */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
           animate={{ 
             x: [0, -30, 0], 
             y: [0, -40, 0],
             scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3]
+            opacity: [0.2, 0.4, 0.2]
           }}
           transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             position: 'absolute',
             width: 800,
             height: 800,
-            bottom: '-300px',
-            right: '-300px',
-            background: 'radial-gradient(circle, rgba(221,255,0,0.2) 0%, rgba(221,255,0,0.08) 40%, transparent 70%)',
+            bottom: '-200px',
+            right: '-200px',
+            background: 'radial-gradient(circle, rgba(221,255,0,0.15) 0%, rgba(221,255,0,0.06) 40%, transparent 75%)',
             filter: 'blur(60px)',
           }}
         />

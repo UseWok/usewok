@@ -118,7 +118,8 @@ export default function Sidebar({ expanded, setExpanded }) {
       <motion.aside
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed left-0 top-0 bottom-0 z-50 flex flex-col overflow-hidden bg-white border-r border-black/15"
+        className="fixed left-0 top-0 bottom-0 z-50 flex flex-col overflow-hidden bg-white border-r"
+        style={{ borderRight: '1px solid rgba(0,0,0,0.97)' }}
       >
         {/* Logo */}
         <div className="flex items-center gap-1 px-4 py-5 flex-shrink-0 select-none">
