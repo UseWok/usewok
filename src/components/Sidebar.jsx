@@ -268,12 +268,11 @@ export default function Sidebar({ expanded, setExpanded }) {
 function NavItem({ icon: Icon, label, onClick, active, expanded }) {
   return (
     <button onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all duration-150 ${active ? 'text-fg' : 'text-zinc-500 hover:bg-black/5'}`}>
-      <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-sm ${active ? 'bg-yuzu' : ''}`}>
+      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all duration-150 ${active && expanded ? 'bg-yuzu text-fg' : active ? 'text-fg' : 'text-zinc-500 hover:bg-black/5'}`}>
+      <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-sm ${active && !expanded ? 'bg-yuzu' : ''}`}>
         <Icon className={`w-[17px] h-[17px] ${active ? 'text-fg' : 'text-zinc-400'}`} />
       </div>
       {expanded && <span className="flex-1 text-left whitespace-nowrap truncate text-sm">{label}</span>}
-      {expanded && active && <div className="w-1.5 h-1.5 flex-shrink-0 bg-fg" />}
     </button>
   );
 }
