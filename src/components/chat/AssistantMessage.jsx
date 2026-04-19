@@ -83,30 +83,30 @@ export default function AssistantMessage({ content, agent, meta }) {
           </ReactMarkdown>
         </div>
 
-      {/* Copy button - appears on click, disappears after 5s */}
-      {(showCopy || copied) && (
-        <div className="flex items-center gap-1.5 mt-2">
-          <button onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
-            style={{ background: copied ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.04)', borderRadius: '4px', color: copied ? '#16a34a' : '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
-            {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-            <span>{copied ? 'Copied!' : 'Copy'}</span>
-          </button>
-        </div>
-      )}
+        {/* Copy button - appears on click, disappears after 5s */}
+        {(showCopy || copied) && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <button onClick={handleCopy}
+              className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all"
+              style={{ background: copied ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.04)', borderRadius: '4px', color: copied ? '#16a34a' : '#888', border: '1px solid rgba(0,0,0,0.06)' }}>
+              {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+              <span>{copied ? 'Copied!' : 'Copy'}</span>
+            </button>
+          </div>
+        )}
 
-      {sources.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-1 max-w-full">
-          {sources.map((s, i) => (
-            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all hover:opacity-80"
-              style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', color: '#555', maxWidth: '180px' }}>
-              <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" style={{ color: '#888' }} />
-              <span className="truncate">{s.label}</span>
-            </a>
-          ))}
-        </div>
-      )}
-    </div>
+        {sources.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-1 max-w-full">
+            {sources.map((s, i) => (
+              <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium transition-all hover:opacity-80"
+                style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', color: '#555', maxWidth: '180px' }}>
+                <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" style={{ color: '#888' }} />
+                <span className="truncate">{s.label}</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
   );
 }
