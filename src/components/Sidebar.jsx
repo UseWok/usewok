@@ -200,27 +200,24 @@ export default function Sidebar({ expanded, setExpanded }) {
         </nav>
 
         {/* Bottom section */}
-        <div className="flex-shrink-0 px-2 pb-4 space-y-1">
-          {/* Upgrade card — free plan only */}
+        <div className="flex-shrink-0 px-2 pb-4 flex flex-col items-center gap-1">
+          {/* Upgrade — free plan only */}
           {userPlan && userPlan.price_monthly === 0 && (
             <button onClick={() => navigate('/pricing')}
-              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 mb-1 bg-yuzu rounded-sm hover:opacity-90 transition-opacity">
-              {expanded ? (
-                <p className="text-xs font-bold text-fg">Upgrade your plan</p>
-              ) : (
-                <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-[17px] h-[17px] text-fg" />
-                </div>
-              )}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-black/5 transition-colors">
+              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-yuzu rounded-sm">
+                <TrendingUp className="w-[17px] h-[17px] text-fg" />
+              </div>
+              {expanded && <span className="text-sm font-bold text-fg whitespace-nowrap">Upgrade your plan</span>}
             </button>
           )}
 
-          {/* Tensors bar */}
+          {/* Tensors */}
           <button ref={tensorsRef} onClick={() => togglePopover('tensors')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-md hover:bg-black/5 transition-colors">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-white border border-black/10 rounded-sm mx-auto">
-                  <span className="text-[11px] font-black text-fg">T</span>
-                </div>
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-black/5 transition-colors">
+            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-white border border-black/10 rounded-sm">
+              <span className="text-[11px] font-black text-fg">T</span>
+            </div>
             {expanded && (
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center justify-between mb-1">
@@ -234,8 +231,8 @@ export default function Sidebar({ expanded, setExpanded }) {
             )}
           </button>
 
-          {/* Profile / Bell row */}
-          <div className={`flex items-center justify-center gap-1.5 px-1 ${!expanded ? 'flex-col gap-1' : ''}`}>
+          {/* Profile + Bell */}
+          <div className="w-full flex items-center gap-3 px-3 py-2">
             <button ref={profileRef} onClick={() => togglePopover('profile')}
               className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md hover:opacity-80 transition-opacity"
               style={{ background: getUserColor(user) }}>
