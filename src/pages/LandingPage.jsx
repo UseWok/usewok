@@ -440,35 +440,36 @@ export default function LandingPage() {
                 {pricing.free_cta}
               </button>
             </motion.div>
-            {/* Paid — vivid yuzu reflex card */}
+            {/* Paid — clean dark card */}
             <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.08 }}
               className="relative overflow-hidden p-10"
               style={{
-                borderRadius: '24px',
-                background: 'linear-gradient(145deg, #DDFF00 0%, #c8ee00 40%, #FFB800 100%)',
-                boxShadow: '0 8px 50px rgba(221,255,0,0.30), 0 20px 60px rgba(180,220,0,0.15)',
+                borderRadius: '12px',
+                background: FG,
+                border: '1px solid rgba(221,255,0,0.15)',
+                boxShadow: '0 0 40px rgba(221,255,0,0.10), 0 8px 32px rgba(0,0,0,0.18)',
               }}>
-              {/* Glass reflex stripe */}
-              <div className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, transparent 100%)', borderRadius: '24px 24px 0 0' }} />
-              <div className="absolute top-3 left-6 right-6 h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%)' }} />
-              <h3 className="text-xl font-black mb-2 relative z-10" style={{ color: FG }}>{pricing.paid_title}</h3>
-              <p className="font-black mb-1 relative z-10" style={{ fontSize: '2.5rem', color: FG }}>
-                {pricing.paid_price} <span className="text-lg font-semibold" style={{ color: 'rgba(10,10,10,0.5)' }}>{pricing.paid_currency}</span>
+              {/* Yuzu top glow line */}
+              <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(221,255,0,0.7), transparent)' }} />
+              <h3 className="text-xl font-black mb-2" style={{ color: 'white' }}>{pricing.paid_title}</h3>
+              <p className="font-black mb-1" style={{ fontSize: '2.5rem', color: 'white' }}>
+                {pricing.paid_price} <span className="text-lg font-semibold" style={{ color: 'rgba(255,255,255,0.35)' }}>{pricing.paid_currency}</span>
               </p>
-              <div className="space-y-3 mb-8 mt-4 relative z-10">
+              <div className="space-y-3 mb-8 mt-4">
                 {pricing.paid_features.map(f => (
                   <div key={f} className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 rounded-full" style={{ background: 'rgba(10,10,10,0.12)' }}>
-                      <span className="text-[10px] font-black" style={{ color: FG }}>✓</span>
+                    <div className="w-4 h-4 flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(221,255,0,0.15)', borderRadius: '3px' }}>
+                      <span className="text-[10px] font-black" style={{ color: YUZU }}>✓</span>
                     </div>
-                    <span className="text-sm font-semibold" style={{ color: FG }}>{f}</span>
+                    <span className="text-sm font-medium text-white">{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={() => navigate(pricing.paid_url)}
-                className="w-full py-3.5 font-black text-sm transition-all hover:scale-[1.02] relative z-10"
-                style={{ background: FG, color: YUZU, borderRadius: '12px' }}>
+                className="w-full py-3.5 font-black text-sm transition-all hover:opacity-85"
+                style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
                 {pricing.paid_cta}
               </button>
             </motion.div>
