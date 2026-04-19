@@ -188,7 +188,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   return (
     <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, rgba(221,255,0,0.08) 0%, rgba(221,255,0,0.04) 40%, white 70%, white 100%)',
+        background: 'linear-gradient(0deg, rgba(221,255,0,0.35) 0%, rgba(221,255,0,0.18) 33%, rgba(221,255,0,0.06) 66%, white 100%)',
       }}>
       {/* Yuzu light glow effect - bottom right to top left, fading */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
