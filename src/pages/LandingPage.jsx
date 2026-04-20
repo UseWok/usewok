@@ -274,15 +274,15 @@ export default function LandingPage() {
           {/* Topics */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="flex flex-col items-center gap-4">
-            <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(10,10,10,0.3)' }}>
+            <p className="text-[11px] font-semibold uppercase tracking-widest hidden" style={{ color: 'rgba(10,10,10,0.3)' }}>
               Not sure where to start?
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {(hero.topics || []).map((topic, i) => {
                 const label = typeof topic === 'object' ? topic.label : topic;
                 return (
-                  <button key={i} onClick={() => handleTopicClick(topic)}
-                  className="px-4 py-2 text-xs font-medium border border-black/10 transition-all"
+                  <button key={i} onClick={() => handleTopicClick(topic)} className="px-4 py-2 text-xs font-medium border border-black/10 transition-all hidden"
+
                   style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
                   onMouseEnter={(e) => {e.currentTarget.style.background = FG;e.currentTarget.style.color = 'white';e.currentTarget.style.borderColor = FG;}}
                   onMouseLeave={(e) => {e.currentTarget.style.background = 'rgba(255,255,255,0.7)';e.currentTarget.style.color = 'rgba(10,10,10,0.6)';e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)';}}>
