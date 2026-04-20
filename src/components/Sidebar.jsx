@@ -38,7 +38,7 @@ const UNLOCKABLE_FEATURES = [
   { label: 'Unlimited Discussions', plan: 'Advanced', planId: 'advanced', icon: '💬' },
 ];
 
-export default function Sidebar({ expanded, setExpanded, onNavClick }) {
+export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDrawer = false }) {
   const [activePopover, setActivePopover] = useState(null);
 
   const [logoHovered, setLogoHovered] = useState(false);
@@ -116,10 +116,12 @@ export default function Sidebar({ expanded, setExpanded, onNavClick }) {
   return (
     <>
       <motion.aside
-        animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
-        transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
+        initial={isMobileDrawer ? { x: -EXPANDED_W } : false}
+        animate={isMobileDrawer ? { x: 0 } : { width: expanded ? EXPANDED_W : COLLAPSED_W }}
+        exit={isMobileDrawer ? { x: -EXPANDED_W } : undefined}
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        style={{ width: isMobileDrawer ? EXPANDED_W : undefined, borderRight: '1px solid rgba(0,0,0,0.97)' }}
         className="fixed left-0 top-0 bottom-0 z-50 flex flex-col overflow-hidden bg-white border-r"
-        style={{ borderRight: '1px solid rgba(0,0,0,0.97)' }}
       >
         {/* Logo */}
         <div className="flex items-center gap-1 px-4 py-5 flex-shrink-0 select-none">
@@ -154,7 +156,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick }) {
               label={item.label || t(item.labelKey)}
               active={item.active}
               expanded={expanded}
-              onClick={() => { if (item.path) navigate(item.path); if (onNavClick) onNavClick(); }}
+              onClick={() => { if (item.path) { navigate(item.path); if (onNavClick) setTimeout(onNavClick, 200); } }}
             />
           ))}
 

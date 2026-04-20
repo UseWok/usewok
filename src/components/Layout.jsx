@@ -54,13 +54,15 @@ export default function Layout() {
           {expanded && (
             <>
               <motion.div
+                key="mobile-backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/40 z-40"
+                transition={{ duration: 0.22 }}
+                className="fixed inset-0 z-40 bg-black/40"
                 onClick={() => setExpanded(false)}
               />
-              <Sidebar expanded={true} setExpanded={setExpanded} onNavClick={() => setExpanded(false)} />
+              <Sidebar expanded={true} setExpanded={setExpanded} onNavClick={() => setExpanded(false)} isMobileDrawer={true} />
             </>
           )}
         </AnimatePresence>
