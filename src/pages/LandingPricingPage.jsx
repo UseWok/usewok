@@ -14,12 +14,28 @@ const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
 const PLAN_FEATURES = {
-  free:      ['10 credits/month', '3 discussions', 'Standard AI mode'],
-  essential: ['50 credits/month', 'Unlimited discussions', 'Standard AI mode'],
+  free:      ['10 credits/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
+  essential: ['50 credits/month', 'Unlimited discussions', 'Standard AI mode', 'File uploads'],
   advanced:  ['150 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
   expert:    ['500 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
-  supreme:   ['1000 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support', 'Shareable credits'],
 };
+
+// Shared grid+blob background
+function PageBg() {
+  return (
+    <>
+      <div className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.045) 1px, transparent 1px)`,
+        backgroundSize: '48px 48px',
+        zIndex: 0,
+      }} />
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div style={{ position:'absolute', width:500, height:500, top:-100, left:-100, background:'radial-gradient(circle, rgba(221,255,0,0.20) 0%, transparent 70%)', filter:'blur(60px)' }} />
+        <div style={{ position:'absolute', width:400, height:400, top:0, right:-80, background:'radial-gradient(circle, rgba(221,255,0,0.10) 0%, transparent 70%)', filter:'blur(55px)' }} />
+      </div>
+    </>
+  );
+}
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
@@ -27,8 +43,7 @@ export default function LandingPricingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
-  const navData = landingData?.nav || null;
-  const logoUrl = navData?.logo_url || LOGO_URL;
+  const logoUrl = landingData?.nav?.logo_url || LOGO_URL;
 
   useEffect(() => { loadPlansFromDB().then(p => { if (p) setPlansConfig(p); }); }, []);
   useEffect(() => {
@@ -40,38 +55,14 @@ export default function LandingPricingPage() {
   const handleCta = () => base44.auth.redirectToLogin('/app');
   const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
 
-  // Show only: free, essential, advanced, expert (skip supreme for cleanliness)
   const visibleIds = ['free', 'essential', 'advanced', 'expert'];
-  const plans = plansConfig.filter(p => visibleIds.includes(p.id));
-  // Sort: free → essential → advanced → expert
-  plans.sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
+  const plans = plansConfig
+    .filter(p => visibleIds.includes(p.id))
+    .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
 
   return (
     <div className="min-h-screen font-be overflow-x-hidden" style={{ background: '#fafaf8' }}>
-
-      {/* Grid background */}
-      <div className="fixed inset-0 pointer-events-none" style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)
-        `,
-        backgroundSize: '48px 48px',
-        zIndex: 0,
-      }} />
-
-      {/* Corner gradient blobs */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div style={{
-          position: 'absolute', width: 500, height: 500, top: -100, left: -100,
-          background: 'radial-gradient(circle, rgba(221,255,0,0.18) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-        }} />
-        <div style={{
-          position: 'absolute', width: 400, height: 400, top: 0, right: -80,
-          background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%)',
-          filter: 'blur(55px)',
-        }} />
-      </div>
+      <PageBg />
 
       {/* NAV */}
       <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
@@ -109,34 +100,21 @@ export default function LandingPricingPage() {
       {/* HERO */}
       <section className="relative z-10 pt-48 pb-12 px-6 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase rounded-md"
-            style={{ background: YUZU, color: FG }}>
-            Pricing
-          </div>
-          <h1 className="font-black tracking-tight mb-5"
-            style={{ fontSize: 'clamp(2.8rem, 7vw, 5rem)', color: FG, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
-            Simple, Transparent<br />Pricing
+          <h1 className="font-black tracking-tight mb-4"
+            style={{ fontSize: 'clamp(2.6rem, 6vw, 4.5rem)', color: FG, letterSpacing: '-0.03em' }}>
+            Simple, Transparent Pricing
           </h1>
-          <p className="text-base max-w-md mx-auto mb-10 font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
-            Choose the plan that fits your ambition. No hidden fees.
+          <p className="text-sm max-w-md mx-auto mb-10 font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
+            Choose the plan that's right for you and start building amazing AI applications today.
           </p>
-
           {/* Billing toggle */}
           <div className="inline-flex items-center p-1 rounded-lg"
-            style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
+            style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)' }}>
             {['monthly', 'yearly'].map(b => (
               <button key={b} onClick={() => setBilling(b)}
                 className="px-5 py-2 text-xs font-black transition-all rounded-md flex items-center gap-2"
-                style={{
-                  background: billing === b ? FG : 'transparent',
-                  color: billing === b ? 'white' : 'rgba(10,10,10,0.45)',
-                }}>
-                {b === 'monthly' ? 'Monthly' : (
-                  <>Yearly <span className="text-[9px] font-black px-1.5 py-0.5 rounded"
-                    style={{ background: billing === 'yearly' ? YUZU : 'rgba(0,0,0,0.1)', color: billing === 'yearly' ? FG : '#888' }}>
-                    −20%
-                  </span></>
-                )}
+                style={{ background: billing === b ? FG : 'transparent', color: billing === b ? 'white' : 'rgba(10,10,10,0.45)' }}>
+                {b === 'monthly' ? 'Monthly' : <>Yearly <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: billing === 'yearly' ? YUZU : 'rgba(0,0,0,0.1)', color: billing === 'yearly' ? FG : '#888' }}>−20%</span></>}
               </button>
             ))}
           </div>
@@ -144,84 +122,71 @@ export default function LandingPricingPage() {
       </section>
 
       {/* PLANS GRID */}
-      <section className="relative z-10 px-6 pb-20">
+      <section className="relative z-10 px-6 pb-16">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 rounded-2xl overflow-hidden"
+            style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
             {plans.map((plan, i) => {
               const p = price(plan);
               const isAdvanced = plan.id === 'advanced';
               const features = PLAN_FEATURES[plan.id] || [];
+              const isLast = i === plans.length - 1;
 
               return (
                 <motion.div key={plan.id}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative flex flex-col"
+                  transition={{ delay: i * 0.07 }}
+                  className="relative flex flex-col p-7"
                   style={{
-                    background: isAdvanced ? FG : 'white',
-                    borderRadius: '16px',
-                    border: isAdvanced ? '1.5px solid rgba(221,255,0,0.2)' : '1px solid rgba(0,0,0,0.09)',
-                    boxShadow: isAdvanced
-                      ? '0 0 0 4px rgba(221,255,0,0.08), 0 16px 48px rgba(0,0,0,0.14)'
-                      : '0 4px 20px rgba(0,0,0,0.05)',
-                    padding: '28px 24px',
-                    // Advanced is slightly taller via padding
-                    ...(isAdvanced ? { paddingTop: 36, paddingBottom: 36 } : {}),
+                    borderRight: isLast ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                    outline: isAdvanced ? `2px solid ${FG}` : 'none',
+                    outlineOffset: '-1px',
+                    zIndex: isAdvanced ? 1 : 0,
+                    background: 'white',
                   }}>
 
-                  {/* Recommended badge */}
+                  {/* Advanced badge */}
                   {isAdvanced && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className="text-[9px] font-black px-3 py-1.5 tracking-widest uppercase rounded-full"
-                        style={{ background: YUZU, color: FG }}>
+                    <div className="absolute -top-px left-1/2 -translate-x-1/2">
+                      <div className="px-3 py-1 text-[9px] font-black uppercase tracking-widest"
+                        style={{ background: FG, color: YUZU }}>
                         Most Popular
-                      </span>
+                      </div>
                     </div>
                   )}
 
-                  {/* Top glow for advanced */}
-                  {isAdvanced && (
-                    <div className="absolute top-0 left-0 right-0 h-px pointer-events-none rounded-t-2xl"
-                      style={{ background: 'linear-gradient(90deg, transparent, rgba(221,255,0,0.5), transparent)' }} />
-                  )}
-
                   {/* Plan name */}
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-3"
-                    style={{ color: isAdvanced ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.4)' }}>
+                  <p className="text-xs font-black uppercase tracking-widest mb-3 text-center"
+                    style={{ color: isAdvanced ? FG : 'rgba(10,10,10,0.45)', marginTop: isAdvanced ? 12 : 0 }}>
                     {plan.name}
                   </p>
 
                   {/* Price */}
-                  <div className="mb-6">
-                    <div className="flex items-end gap-1.5">
-                      <span className="font-black" style={{ fontSize: '2.4rem', lineHeight: 1, color: isAdvanced ? 'white' : FG }}>
-                        {p === 0 ? 'Free' : `$${p}`}
+                  <div className="text-center mb-5">
+                    <div className="flex items-end justify-center gap-1">
+                      <span className="font-black" style={{ fontSize: '2.6rem', lineHeight: 1, color: FG }}>
+                        {p === 0 ? '$0' : `$${p}`}
                       </span>
-                      {p > 0 && (
-                        <span className="text-xs mb-1.5 font-medium" style={{ color: isAdvanced ? 'rgba(255,255,255,0.35)' : 'rgba(10,10,10,0.35)' }}>
-                          /mo
-                        </span>
-                      )}
+                      <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>
+                        /mo
+                      </span>
                     </div>
                     {billing === 'yearly' && p > 0 && (
-                      <p className="text-[10px] mt-1" style={{ color: isAdvanced ? 'rgba(255,255,255,0.25)' : 'rgba(10,10,10,0.3)' }}>
-                        billed yearly
-                      </p>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>billed yearly</p>
                     )}
                   </div>
 
                   {/* Divider */}
-                  <div className="mb-5" style={{ height: 1, background: isAdvanced ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' }} />
+                  <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
 
                   {/* Features */}
-                  <ul className="space-y-2.5 flex-1 mb-7">
+                  <ul className="space-y-3 flex-1 mb-7">
                     {features.map((f, fi) => (
                       <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
-                        <Check className="w-3.5 h-3.5 flex-shrink-0"
-                          style={{ color: isAdvanced ? YUZU : FG }} />
-                        <span style={{ color: isAdvanced ? 'rgba(255,255,255,0.65)' : 'rgba(10,10,10,0.65)' }}>{f}</span>
+                        <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
+                        <span style={{ color: 'rgba(10,10,10,0.65)' }}>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -229,21 +194,41 @@ export default function LandingPricingPage() {
                   {/* CTA */}
                   <button
                     onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
-                    className="w-full py-3 font-black text-xs transition-all hover:opacity-85 rounded-lg"
+                    className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
                     style={{
-                      background: isAdvanced ? YUZU : 'transparent',
-                      color: isAdvanced ? FG : FG,
+                      background: isAdvanced ? FG : 'transparent',
+                      color: isAdvanced ? 'white' : FG,
                       border: isAdvanced ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
                     }}>
-                    {plan.id === 'free' ? 'Start Free' : `Get ${plan.name}`}
+                    {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
                   </button>
                 </motion.div>
               );
             })}
           </div>
 
-          {/* Note */}
-          <p className="text-center text-xs mt-8 font-medium" style={{ color: 'rgba(10,10,10,0.3)' }}>
+          {/* Enterprise */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="mt-4 rounded-2xl p-8 text-center"
+            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+            <p className="font-black text-lg mb-1" style={{ color: FG }}>Enterprise Plan</p>
+            <p className="text-sm mb-4 font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
+              Custom pricing for organizations needing unlimited capacity
+            </p>
+            <div className="flex items-center justify-center gap-6 mb-6 flex-wrap">
+              {['Unlimited credits', 'Dedicated support', 'Custom integrations', 'Premium SLA'].map(f => (
+                <span key={f} className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.5)' }}>• {f}</span>
+              ))}
+            </div>
+            <a href="mailto:contact.stensor@proton.me"
+              className="inline-flex items-center gap-2 px-6 py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
+              style={{ background: FG, color: 'white' }}>
+              Contact Sales
+            </a>
+          </motion.div>
+
+          <p className="text-center text-xs mt-6 font-medium" style={{ color: 'rgba(10,10,10,0.3)' }}>
             Cancel anytime · No hidden fees · Secure payment
           </p>
         </div>

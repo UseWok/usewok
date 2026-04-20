@@ -30,60 +30,22 @@ function useAuthState() {
   return isAuth;
 }
 
-// Animated gradient orbs background (legallio-style)
+// Clean grid + yuzu blobs background
 function HeroBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Left pink/rose orb */}
-      <motion.div
-        animate={{ x: [0, 20, -10, 0], y: [0, -30, 15, 0], scale: [1, 1.05, 0.97, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute rounded-full"
-        style={{
-          width: 700, height: 700,
-          top: '-200px', left: '-200px',
-          background: 'radial-gradient(circle, rgba(251,113,133,0.18) 0%, rgba(244,63,94,0.08) 40%, transparent 70%)',
-          filter: 'blur(40px)'
-        }} />
-      
-      {/* Right blue orb */}
-      <motion.div
-        animate={{ x: [0, -25, 10, 0], y: [0, 20, -15, 0], scale: [1, 1.08, 0.95, 1] }}
-        transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-        className="absolute rounded-full"
-        style={{
-          width: 800, height: 800,
-          top: '-250px', right: '-250px',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(59,130,246,0.08) 40%, transparent 70%)',
-          filter: 'blur(50px)'
-        }} />
-      
-      {/* Bottom center green orb */}
-      <motion.div
-        animate={{ x: [0, 30, -20, 0], y: [0, -20, 30, 0] }}
-        transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut', delay: 8 }}
-        className="absolute rounded-full"
-        style={{
-          width: 600, height: 600,
-          bottom: '-150px', left: '30%',
-          background: 'radial-gradient(circle, rgba(221,255,0,0.10) 0%, rgba(34,197,94,0.06) 40%, transparent 70%)',
-          filter: 'blur(40px)'
-        }} />
-      
-      {/* Small accent peach */}
-      <motion.div
-        animate={{ x: [0, -15, 25, 0], y: [0, 25, -10, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-        className="absolute rounded-full"
-        style={{
-          width: 400, height: 400,
-          top: '40%', left: '15%',
-          background: 'radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%)',
-          filter: 'blur(30px)'
-        }} />
-      
-    </div>);
-
+      {/* Grid */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)`,
+        backgroundSize: '48px 48px',
+      }} />
+      {/* Yuzu left blob */}
+      <div style={{ position:'absolute', width:600, height:600, top:-150, left:-150, background:'radial-gradient(circle, rgba(221,255,0,0.22) 0%, transparent 70%)', filter:'blur(60px)' }} />
+      {/* Yuzu right blob */}
+      <div style={{ position:'absolute', width:500, height:500, top:-100, right:-100, background:'radial-gradient(circle, rgba(221,255,0,0.14) 0%, transparent 70%)', filter:'blur(55px)' }} />
+    </div>
+  );
 }
 
 export default function LandingPage() {
@@ -148,7 +110,7 @@ export default function LandingPage() {
   const { nav, hero, section_title, cards, pricing, faq, cta, footer, youtube_url, youtube_urls } = data;
 
   return (
-    <div className="min-h-screen font-be overflow-x-hidden bg-white">
+    <div className="min-h-screen font-be overflow-x-hidden" style={{ background: '#fafaf8' }}>
 
       {/* NAV */}
       <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
