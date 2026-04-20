@@ -268,25 +268,25 @@ function ComparisonSection() {
 
           {/* Stensor */}
           <div className="rounded-2xl p-8 relative overflow-hidden"
-            style={{ background: FG, border: '1px solid rgba(221,255,0,0.2)' }}>
+            style={{ background: 'linear-gradient(145deg, #f0fdfb 0%, #e6faf6 100%)', border: '1px solid rgba(20,184,166,0.2)' }}>
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
-              style={{ background: 'radial-gradient(circle, rgba(221,255,0,0.12) 0%, transparent 70%)', filter: 'blur(20px)' }} />
-            <h3 className="font-bold text-lg mb-6 text-white relative z-10">STENSOR</h3>
+              style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 70%)', filter: 'blur(20px)' }} />
+            <h3 className="font-bold text-lg mb-6 relative z-10" style={{ color: FG }}>STENSOR</h3>
             <div className="space-y-4 relative z-10">
               {stensor.map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: 12 }} whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }} transition={{ delay: i * 0.06 }}
                   className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(221,255,0,0.15)' }}>
-                    <Check className="w-3 h-3" style={{ color: YUZU }} />
+                    style={{ background: 'rgba(20,184,166,0.15)' }}>
+                    <Check className="w-3 h-3" style={{ color: '#14b8a6' }} />
                   </div>
-                  <span className="text-sm font-medium text-white">{item}</span>
+                  <span className="text-sm font-medium" style={{ color: FG }}>{item}</span>
                 </motion.div>
               ))}
             </div>
-            <div className="mt-6 pt-5 border-t relative z-10" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-              <p className="text-xs font-semibold" style={{ color: YUZU }}>
+            <div className="mt-6 pt-5 border-t relative z-10" style={{ borderColor: 'rgba(20,184,166,0.15)' }}>
+              <p className="text-xs font-semibold" style={{ color: '#14b8a6' }}>
                 Everything you need, ready to use instantly
               </p>
             </div>
