@@ -39,7 +39,7 @@ function PageBg() {
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
-  const [billing, setBilling] = useState('yearly');
+  const [billing, setBilling] = useState('yearly'); // yearly default
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
@@ -54,6 +54,7 @@ export default function LandingPricingPage() {
 
   const handleCta = () => base44.auth.redirectToLogin('/app');
   const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
+  // yearly prices are per-month equivalent when billed annually
 
   const visibleIds = ['free', 'essential', 'advanced', 'expert'];
   const plans = plansConfig
@@ -173,8 +174,10 @@ export default function LandingPricingPage() {
                         /mo
                       </span>
                     </div>
-                    {billing === 'yearly' && p > 0 && (
-                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>billed yearly</p>
+                    {p > 0 && (
+                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>
+                        {billing === 'yearly' ? `$${p * 12}/year` : 'billed monthly'}
+                      </p>
                     )}
                   </div>
 

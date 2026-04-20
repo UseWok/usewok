@@ -2,19 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ChevronDown, Check, X, ArrowRight } from 'lucide-react';
-import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
+import { ChevronDown, ArrowRight } from 'lucide-react';
+import ScoreAddictionSection from '@/components/landing/ScoreAddictionSection';
 
 const PENDING_KEY = 'stensor_pending_query';
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
-
-const PLAN_FEATURES = {
-  free:      ['10 credits/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
-  essential: ['50 credits/month', 'Unlimited discussions', 'Standard AI mode', 'File uploads'],
-  advanced:  ['150 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
-  expert:    ['500 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
-};
 
 // ── Background ────────────────────────────────────────────────────────────
 function PageBackground() {
@@ -106,17 +99,17 @@ function Hero() {
           lineHeight: 1.1,
           color: FG,
         }}>
-        Build a complete plan for{' '}
+        Stop guessing.{' '}
         <span style={{
           background: `linear-gradient(to right, #a08800, #eab308)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-        }}>anything financial.</span>
+        }}>Start winning financially.</span>
       </motion.h1>
 
       <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="mt-5 text-xl max-w-2xl mx-auto" style={{ color: 'rgba(0,0,0,0.5)' }}>
-        Describe your goal in plain language. Stensor instantly creates a <strong style={{ color: FG }}>complete, actionable strategy</strong> — investing, debt, retirement, taxes, or anything else.
+        Tell Stensor your goal in plain words. Get a <strong style={{ color: FG }}>complete, actionable strategy</strong> in 60 seconds — investing, debt, taxes, retirement. Done.
       </motion.p>
 
       {/* Input box */}
@@ -142,7 +135,7 @@ function Hero() {
                 <button onClick={handleSend}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all hover:opacity-90"
                   style={{ background: FG, color: 'white' }}>
-                  Generate my plan <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -161,182 +154,32 @@ function Hero() {
             </div>
           ))}
         </div>
-        <span className="text-sm" style={{ color: 'rgba(0,0,0,0.5)' }}>
-          Loved by over 1k users worldwide
+        <span className="text-sm font-semibold" style={{ color: 'rgba(0,0,0,0.55)' }}>
+          Joined by <span style={{ color: FG, fontWeight: 800 }}>1,000+ users</span> already building their future
         </span>
       </motion.div>
     </section>
   );
 }
 
-// ── Use Cases (no emojis, strong text) ───────────────────────────────────
-function UseCasesSection({ onCta }) {
-  const cases = [
-    {
-      tag: 'Investing',
-      title: 'Build your investment strategy',
-      desc: 'Get a concrete ETF portfolio, stock allocation or crypto plan tailored to your risk profile and timeline — ready to execute today.',
-    },
-    {
-      tag: 'Debt',
-      title: 'Eliminate your debt fast',
-      desc: 'Stensor runs avalanche vs. snowball scenarios with your exact numbers and hands you a month-by-month repayment calendar.',
-    },
-    {
-      tag: 'Real Estate',
-      title: 'Plan your property purchase',
-      desc: 'Compare renting vs. buying, model mortgage scenarios, and calculate the true cost of ownership in seconds.',
-    },
-    {
-      tag: 'Retirement',
-      title: 'Reach early retirement (FIRE)',
-      desc: 'Calculate your FIRE number, required savings rate, and the exact date you can stop working — based on your actual income.',
-    },
-    {
-      tag: 'Tax',
-      title: 'Legally reduce your tax bill',
-      desc: 'Discover every deduction, account type, and optimization strategy applicable to your situation — no accountant needed.',
-    },
-    {
-      tag: 'Income',
-      title: 'Build passive income streams',
-      desc: 'Model dividends, rental yields, and side businesses with real ROI projections and a step-by-step launch plan.',
-    },
-  ];
-
+// ── Video Section ─────────────────────────────────────────────────────────
+function VideoSection() {
   return (
-    <section className="relative z-10 py-20 px-6">
-      <div className="max-w-6xl mx-auto">
-        <p className="text-center text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(0,0,0,0.35)' }}>
-          What Stensor can do for you
-        </p>
-        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-center mb-4" style={{ color: FG }}>
-          A plan for every goal.
-        </h2>
-        <p className="text-center text-lg mb-14 max-w-xl mx-auto" style={{ color: 'rgba(0,0,0,0.45)' }}>
-          Describe any financial situation in plain language and get a complete, actionable strategy in under 60 seconds.
-        </p>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cases.map((c, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }} transition={{ delay: (i % 3) * 0.08 }}
-              onClick={onCta}
-              className="rounded-2xl p-7 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md"
-              style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-              <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded mb-4"
-                style={{ background: 'rgba(0,0,0,0.05)', color: 'rgba(0,0,0,0.4)' }}>
-                {c.tag}
-              </span>
-              <h3 className="font-bold text-base mb-2" style={{ color: FG }}>{c.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(0,0,0,0.55)' }}>{c.desc}</p>
-            </motion.div>
-          ))}
+    <section className="relative z-10 py-16 px-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="overflow-hidden rounded-2xl shadow-2xl"
+          style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'black' }}>
+          <div style={{ aspectRatio: '16/9' }}>
+            <iframe
+              src="https://www.youtube.com/embed/FXLmWojBELE?rel=0&modestbranding=1"
+              title="Stensor demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+              style={{ border: 'none', display: 'block' }}
+            />
+          </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Pricing Section (yearly only, 4 plans horizontal) ────────────────────
-function PricingSection({ onCta }) {
-  const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
-  useEffect(() => { loadPlansFromDB().then(p => { if (p) setPlansConfig(p); }); }, []);
-
-  const visibleIds = ['free', 'essential', 'advanced', 'expert'];
-  const plans = plansConfig
-    .filter(p => visibleIds.includes(p.id))
-    .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
-
-  return (
-    <section className="relative z-10 py-20 px-6">
-      <div className="max-w-5xl mx-auto">
-        <p className="text-center text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(0,0,0,0.35)' }}>
-          Pricing
-        </p>
-        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-center mb-4" style={{ color: FG }}>
-          Simple, transparent pricing.
-        </h2>
-        <p className="text-center text-lg mb-12 max-w-md mx-auto" style={{ color: 'rgba(0,0,0,0.45)' }}>
-          Start free. Upgrade when you need more power.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 rounded-2xl overflow-hidden"
-          style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
-          {plans.map((plan, i) => {
-            const isAdvanced = plan.id === 'advanced';
-            const isLast = i === plans.length - 1;
-            const features = PLAN_FEATURES[plan.id] || [];
-            const price = plan.price_monthly;
-
-            return (
-              <motion.div key={plan.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07 }}
-                className="relative flex flex-col p-7"
-                style={{
-                  borderRight: isLast ? 'none' : '1px solid rgba(0,0,0,0.08)',
-                  outline: isAdvanced ? `2px solid ${FG}` : 'none',
-                  outlineOffset: '-1px',
-                  zIndex: isAdvanced ? 1 : 0,
-                  background: 'white',
-                }}>
-
-                {isAdvanced && (
-                  <div className="absolute -top-px left-1/2 -translate-x-1/2">
-                    <div className="px-3 py-1 text-[9px] font-black uppercase tracking-widest"
-                      style={{ background: FG, color: '#DDFF00' }}>
-                      Most Popular
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-xs font-black uppercase tracking-widest mb-3 text-center"
-                  style={{ color: isAdvanced ? FG : 'rgba(10,10,10,0.45)', marginTop: isAdvanced ? 12 : 0 }}>
-                  {plan.name}
-                </p>
-
-                <div className="text-center mb-5">
-                  <div className="flex items-end justify-center gap-1">
-                    <span className="font-black" style={{ fontSize: '2.6rem', lineHeight: 1, color: FG }}>
-                      {price === 0 ? '$0' : `$${price}`}
-                    </span>
-                    <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>/mo</span>
-                  </div>
-                </div>
-
-                <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
-
-                <ul className="space-y-3 flex-1 mb-7">
-                  {features.map((f, fi) => (
-                    <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
-                      <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                      <span style={{ color: 'rgba(10,10,10,0.65)' }}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => plan.id === 'free' ? onCta() : base44.auth.redirectToLogin('/manage-plan')}
-                  className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
-                  style={{
-                    background: isAdvanced ? FG : 'transparent',
-                    color: isAdvanced ? 'white' : FG,
-                    border: isAdvanced ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
-                  }}>
-                  {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
-                </button>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        <p className="text-center text-xs mt-5 font-medium" style={{ color: 'rgba(10,10,10,0.3)' }}>
-          Cancel anytime · No hidden fees · Secure payment
-        </p>
       </div>
     </section>
   );
@@ -483,8 +326,8 @@ export default function LandingPage() {
       <Navbar onCta={handleCta} />
       <main className="flex-1 relative">
         <Hero />
-        <UseCasesSection onCta={handleCta} />
-        <PricingSection onCta={handleCta} />
+        <VideoSection />
+        <ScoreAddictionSection onCta={handleCta} />
         <CtaBanner onCta={handleCta} />
         <FaqSection />
       </main>
