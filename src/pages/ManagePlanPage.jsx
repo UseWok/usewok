@@ -25,18 +25,12 @@ function StarRating({ value, onChange }) {
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map(star => (
-        <button
-          key={star}
-          onClick={() => onChange(star)}
-          onMouseEnter={() => setHover(star)}
-          onMouseLeave={() => setHover(0)}
-          className="transition-transform hover:scale-110"
-        >
-          <Star
-            className="w-6 h-6"
+        <button key={star} onClick={() => onChange(star)}
+          onMouseEnter={() => setHover(star)} onMouseLeave={() => setHover(0)}
+          className="transition-transform hover:scale-110">
+          <Star className="w-6 h-6"
             fill={(hover || value) >= star ? '#f59e0b' : 'none'}
-            style={{ color: (hover || value) >= star ? '#f59e0b' : '#ddd' }}
-          />
+            style={{ color: (hover || value) >= star ? '#f59e0b' : '#ddd' }} />
         </button>
       ))}
     </div>
@@ -48,7 +42,6 @@ export default function ManagePlanPage() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
 
-  // Cancel flow steps
   const [showSurvey, setShowSurvey] = useState(false);
   const [showLossAversion, setShowLossAversion] = useState(false);
   const [showDowngradeWarning, setShowDowngradeWarning] = useState(false);
@@ -64,6 +57,7 @@ export default function ManagePlanPage() {
     base44.auth.me().then(u => {
       setUser(u);
       setUserPlan(getUserPlan(u));
+      setCancelEmail(u?.email || '');
     }).catch(() => {});
   }, []);
 
@@ -91,15 +85,7 @@ export default function ManagePlanPage() {
 
   const handleCancelClick = () => setShowSurvey(true);
 
-  const handleSurveyContinue = async () => {
-    // Send ratings to admin
-    if (user) {
-      const ratingsText = SURVEY_CRITERIA.map(c => `${c.label}: ${ratings[c.id] || 0}/5`).join(' | ');
-      base44.entities.Notification.create({
-        title: `Avis départ — ${user.full_name || user.email}`,
-        message: `Plan: ${userPlan?.name} | ${ratingsText}`,
-      }).catch(() => {});
-    }
+  const handleSurveyContinue = () => {
     setShowSurvey(false);
     setShowLossAversion(true);
   };
@@ -130,17 +116,42 @@ export default function ManagePlanPage() {
   };
 
   const submitCancel = async () => {
-    if (!user || !cancelNote.trim()) return;
+    if (!cancelNote.trim() || !cancelEmail.trim()) return;
     setCancelLoading(true);
+
     const ratingsText = SURVEY_CRITERIA.map(c => `${c.label}: ${ratings[c.id] || 0}/5`).join(' | ');
-    await base44.entities.Notification.create({
-      title: `Annulation — ${user.full_name || user.email}`,
-      message: `Plan: ${userPlan?.name || ''} | Email paiement: ${cancelEmail || 'Non fourni'} | Note: ${cancelNote} | Avis: ${ratingsText}`,
+    const planPrice = userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free';
+    const userName = user?.full_name || user?.email?.split('@')[0] || 'Unknown';
+
+    // Build a clear message for admin
+    const msgText = `Name: ${userName}\nEmail: ${cancelEmail}\nPlan: ${userPlan?.name || 'Free'} (${planPrice})\nReason: ${cancelNote}\n\nRatings: ${ratingsText}`;
+
+    const initialMsg = {
+      author: 'user',
+      text: msgText,
+      file_urls: [],
+      created_at: new Date().toISOString(),
+    };
+
+    // Save as a SupportTicket with category 'cancellation'
+    await base44.entities.SupportTicket.create({
+      title: `Cancellation — ${userName}`,
+      description: cancelNote,
+      category: 'cancellation',
+      status: 'open',
+      cancel_status: 'pending',
+      user_email: cancelEmail,
+      user_name: userName,
+      user_plan: userPlan?.name || 'Free',
+      user_plan_price: planPrice,
+      ratings_json: JSON.stringify(ratings),
+      messages_json: JSON.stringify([initialMsg]),
     });
+
     setCancelLoading(false);
     setCancelSent(true);
     closeAll();
-    toast.success('Demande envoyée');
+    toast.success('Request sent');
   };
 
   const setRating = (id, val) => setRatings(prev => ({ ...prev, [id]: val }));
@@ -230,7 +241,7 @@ export default function ManagePlanPage() {
         )}
       </div>
 
-      {/* STEP 1 — Survey modal */}
+      {/* STEP 1 — Survey */}
       <AnimatePresence>
         {showSurvey && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -242,7 +253,7 @@ export default function ManagePlanPage() {
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <p className="font-black text-sm" style={{ color: FG }}>Help us improve by rating your experience</p>
-                <button onClick={() => setShowSurvey(false)} className="w-7 h-7 flex items-center justify-center hover:bg-black/5 transition-colors flex-shrink-0 ml-3" style={{ borderRadius: '4px' }}>
+                <button onClick={() => setShowSurvey(false)} className="w-7 h-7 flex items-center justify-center hover:bg-black/5" style={{ borderRadius: '4px' }}>
                   <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
               </div>
@@ -253,11 +264,9 @@ export default function ManagePlanPage() {
                     <StarRating value={ratings[c.id]} onChange={val => setRating(c.id, val)} />
                   </div>
                 ))}
-                <button
-                  onClick={handleSurveyContinue}
-                  disabled={!surveyComplete}
+                <button onClick={handleSurveyContinue} disabled={!surveyComplete}
                   className="w-full mt-2 py-3 text-sm font-black transition-all disabled:opacity-40"
-                  style={{ background: FG, color: 'white', borderRadius: '5px', cursor: surveyComplete ? 'pointer' : 'not-allowed' }}>
+                  style={{ background: FG, color: 'white', borderRadius: '5px' }}>
                   Continue
                 </button>
               </div>
@@ -266,7 +275,7 @@ export default function ManagePlanPage() {
         )}
       </AnimatePresence>
 
-      {/* STEP 2 — Loss aversion modal */}
+      {/* STEP 2 — Loss aversion */}
       <AnimatePresence>
         {showLossAversion && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -296,7 +305,7 @@ export default function ManagePlanPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setShowLossAversion(false); }}
+                <button onClick={() => setShowLossAversion(false)}
                   className="w-full py-3 text-sm font-black transition-all hover:opacity-90"
                   style={{ background: FG, color: 'white', borderRadius: '4px' }}>
                   Keep my subscription
@@ -312,7 +321,7 @@ export default function ManagePlanPage() {
         )}
       </AnimatePresence>
 
-      {/* Downgrade warning modal */}
+      {/* Downgrade warning */}
       <AnimatePresence>
         {showDowngradeWarning && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -329,16 +338,8 @@ export default function ManagePlanPage() {
               <div className="p-5 space-y-3">
                 <p className="text-sm" style={{ color: '#555' }}>Switching to the Free plan limits you to <strong>10 discussions</strong>. Extra discussions will be permanently deleted.</p>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={confirmDowngrade}
-                    className="flex-1 py-2.5 text-sm font-bold"
-                    style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
-                    Confirm & delete
-                  </button>
-                  <button onClick={() => setShowDowngradeWarning(false)}
-                    className="px-4 py-2.5 text-sm font-medium"
-                    style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '4px' }}>
-                    Cancel
-                  </button>
+                  <button onClick={confirmDowngrade} className="flex-1 py-2.5 text-sm font-bold" style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>Confirm & delete</button>
+                  <button onClick={() => setShowDowngradeWarning(false)} className="px-4 py-2.5 text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#555', borderRadius: '4px' }}>Cancel</button>
                 </div>
               </div>
             </motion.div>
@@ -358,35 +359,39 @@ export default function ManagePlanPage() {
               style={{ borderRadius: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <p className="font-black text-sm" style={{ color: FG }}>Confirm cancellation</p>
-                <button onClick={() => setShowCancelForm(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '3px' }}>
+                <button onClick={() => setShowCancelForm(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5" style={{ borderRadius: '3px' }}>
                   <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <div>
-                  <label className="text-xs font-semibold block mb-1" style={{ color: FG }}>Comment *</label>
-                  <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
-                    placeholder="Tell us why you're cancelling..."
-                    rows={3}
-                    className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-                    style={{ border: `1.5px solid ${cancelNote ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px', transition: 'border-color 0.2s' }} />
-                  <p className="text-[10px] mt-1" style={{ color: '#aaa' }}>Required — helps us improve</p>
+                {/* Plan summary */}
+                <div className="px-3 py-2.5 rounded-md" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
+                  <p className="text-xs font-black" style={{ color: FG }}>{userPlan?.name || 'Free'} plan · ${userPlan?.price_monthly || 0}/mo</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: '#888' }}>{user?.full_name || user?.email}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email used for payment</label>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: FG }}>Why are you cancelling? *</label>
+                  <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
+                    placeholder="Tell us why you're cancelling..."
+                    rows={3} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
+                    style={{ border: `1.5px solid ${cancelNote ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px', transition: 'border-color 0.2s' }} />
+                  <p className="text-[10px] mt-1" style={{ color: '#aaa' }}>Required</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Email used for payment *</label>
                   <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)}
                     placeholder="your-email@example.com"
                     className="w-full px-3 py-2.5 text-sm focus:outline-none"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '6px' }} />
+                    style={{ border: `1.5px solid ${cancelEmail ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px', transition: 'border-color 0.2s' }} />
                 </div>
                 <div className="flex gap-2">
                   <button onClick={submitCancel} disabled={cancelLoading || !cancelNote.trim() || !cancelEmail.trim()}
                     className="flex-1 py-3 text-sm font-bold transition-all disabled:opacity-40"
-                    style={{ background: '#DC2626', color: 'white', borderRadius: '6px', cursor: (cancelNote.trim() && cancelEmail.trim()) ? 'pointer' : 'not-allowed' }}>
+                    style={{ background: '#DC2626', color: 'white', borderRadius: '6px' }}>
                     {cancelLoading ? 'Sending...' : 'Send request'}
                   </button>
                   <button onClick={() => setShowCancelForm(false)}
-                    className="px-4 py-3 text-sm font-medium transition-all hover:bg-opacity-60"
+                    className="px-4 py-3 text-sm font-medium"
                     style={{ background: 'rgba(0,0,0,0.05)', color: '#666', borderRadius: '6px' }}>
                     Cancel
                   </button>

@@ -15,9 +15,9 @@ const STATUS_CONFIG = {
 };
 
 const CATEGORY_CONFIG = {
-  bug:   { label: 'Bug',           icon: Bug,         color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
-  money: { label: 'Money',         icon: DollarSign,  color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-  other: { label: 'Other',         icon: HelpCircle,  color: '#6366f1', bg: 'rgba(99,102,241,0.08)' },
+  bug:   { label: 'Bug',   icon: Bug,         color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+  money: { label: 'Money', icon: DollarSign,  color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+  other: { label: 'Other', icon: HelpCircle,  color: '#6366f1', bg: 'rgba(99,102,241,0.08)' },
 };
 
 function FileAttachment({ url, light = false }) {
@@ -29,7 +29,7 @@ function FileAttachment({ url, light = false }) {
         className="block rounded-lg overflow-hidden mt-1"
         style={{ maxWidth: 160, border: '1px solid rgba(255,255,255,0.15)' }}>
         <img src={url} alt="attachment" className="w-full object-cover" style={{ maxHeight: 100 }} />
-        <p className="text-[9px] px-1.5 py-0.5 truncate" style={{ background: 'rgba(0,0,0,0.35)', color: light ? '#fff' : '#fff' }}>
+        <p className="text-[9px] px-1.5 py-0.5 truncate" style={{ background: 'rgba(0,0,0,0.35)', color: '#fff' }}>
           <ImageIcon className="inline w-2.5 h-2.5 mr-0.5" />{filename.slice(0, 20)}
         </p>
       </a>
@@ -37,7 +37,7 @@ function FileAttachment({ url, light = false }) {
   }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg mt-1 text-xs font-medium underline-offset-2 hover:opacity-80 transition-opacity"
+      className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg mt-1 text-xs font-medium hover:opacity-80 transition-opacity"
       style={{ background: light ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)', color: light ? 'white' : '#333', border: light ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.1)', maxWidth: 180 }}>
       <FileText className="w-3.5 h-3.5 flex-shrink-0" />
       <span className="truncate">{filename.slice(0, 24)}</span>
@@ -48,7 +48,7 @@ function FileAttachment({ url, light = false }) {
 export default function SupportPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState('landing');
-  const [activeTab, setActiveTab] = useState('my'); // 'my' | 'admin'
+  const [activeTab, setActiveTab] = useState('my');
   const [user, setUser] = useState(null);
   const [myTickets, setMyTickets] = useState([]);
   const [adminTickets, setAdminTickets] = useState([]);
@@ -67,13 +67,21 @@ export default function SupportPage() {
     if (!u) return;
     setLoading(true);
     base44.entities.SupportTicket.filter({ user_email: u.email })
-      .then(t => { setMyTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))); setLoading(false); })
+      .then(t => {
+        // Filter out cancellation tickets from support view
+        const support = t.filter(tk => tk.category !== 'cancellation');
+        setMyTickets(support.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
 
   const loadAdminTickets = () => {
-    base44.entities.SupportTicket.filter({ status: 'open' })
-      .then(t => setAdminTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))))
+    base44.entities.SupportTicket.list('-created_date', 200)
+      .then(t => {
+        const support = t.filter(tk => tk.category !== 'cancellation' && tk.status !== 'closed');
+        setAdminTickets(support.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      })
       .catch(() => {});
   };
 
@@ -87,20 +95,6 @@ export default function SupportPage() {
     window.addEventListener('open-support-chat', handler);
     return () => window.removeEventListener('open-support-chat', handler);
   }, []);
-
-  // Poll open chat ticket — use filter by id to only fetch relevant ticket
-  useEffect(() => {
-    if (!chatTicket) return;
-    const ticketId = chatTicket.id;
-    const interval = setInterval(async () => {
-      try {
-        const all = await base44.entities.SupportTicket.list('-updated_date', 200);
-        const updated = all.find(t => t.id === ticketId);
-        if (updated) setChatTicket(updated);
-      } catch {}
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [chatTicket?.id]);
 
   if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
 
@@ -125,7 +119,6 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
       <div className="max-w-2xl mx-auto px-4 py-6 pb-16">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setPage('landing')} className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: FG }} />
@@ -143,7 +136,6 @@ export default function SupportPage() {
           </div>
         </div>
 
-        {/* Tabs (admin only) */}
         {isAdmin && (
           <div className="flex gap-2 mb-4">
             {[{ id: 'my', label: 'My Tickets' }, { id: 'admin', label: `Messages (${adminTickets.length})` }].map(tab => (
@@ -156,7 +148,6 @@ export default function SupportPage() {
           </div>
         )}
 
-        {/* Status filters (only for "my" tab) */}
         {activeTab === 'my' && (
           <div className="flex gap-2 mb-4">
             {['all', 'open', 'closed'].map(f => (
@@ -169,7 +160,6 @@ export default function SupportPage() {
           </div>
         )}
 
-        {/* Ticket list */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="w-5 h-5 animate-spin" style={{ color: FG }} />
@@ -193,21 +183,18 @@ export default function SupportPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold line-clamp-1" style={{ color: FG }}>
-                        {ticket.description?.slice(0, 80)}{ticket.description?.length > 80 ? '…' : ''}
+                        {ticket.title || ticket.user_name || ticket.user_email?.split('@')[0] || 'Ticket'}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <p className="text-xs" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString()}</p>
-                        {/* Plan badge — visible to admin */}
-                        {(isAdmin && ticket.user_plan) && (
+                        {isAdmin && ticket.user_plan && (
                           <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: '#555' }}>
                             {ticket.user_plan}
                           </span>
                         )}
-                        {/* Category badge */}
                         <span className="text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5" style={{ background: cat.bg, color: cat.color }}>
                           <CatIcon className="w-2.5 h-2.5" /> {cat.label}
                         </span>
-                        {/* Email for admin */}
                         {isAdmin && activeTab === 'admin' && (
                           <span className="text-[9px] text-zinc-400 truncate max-w-[120px]">{ticket.user_email}</span>
                         )}
@@ -256,8 +243,6 @@ function LandingPage({ onNavigate }) {
             </motion.div>
           </motion.button>
         </motion.div>
-
-        {/* Quick actions */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
           className="max-w-md mx-auto grid grid-cols-2 gap-4 mb-16">
           <motion.button onClick={onNavigate} whileHover={{ scale: 1.02 }}
@@ -314,33 +299,44 @@ function NewTicketModal({ onClose, user }) {
       setSuggestedCategory('other');
       setSelectedCategory('other');
     }
-    await new Promise(r => setTimeout(r, 900));
+    await new Promise(r => setTimeout(r, 600));
     setStep(2);
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
     setSubmitting(true);
+
+    // Upload files first
     let file_urls = [];
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
-    const initialMsg = { author: 'user', text: description, file_urls, created_at: new Date().toISOString() };
-    // Detect user plan
-    let userPlan = '';
-    try {
-      const plan = getUserPlan(user);
-      userPlan = plan?.name || '';
-    } catch {}
 
+    // Build initial message with description + files
+    const initialMsg = {
+      author: 'user',
+      text: description,
+      file_urls,
+      created_at: new Date().toISOString(),
+    };
+
+    let userPlan = '';
+    try { userPlan = getUserPlan(user)?.name || ''; } catch {}
+
+    // Create ticket with messages_json saved immediately
     const ticket = await base44.entities.SupportTicket.create({
+      title: user?.full_name || user?.email?.split('@')[0] || 'User',
       description,
       category: selectedCategory || 'other',
       status: 'open',
       user_email: user?.email || '',
+      user_name: user?.full_name || '',
       user_plan: userPlan,
       file_urls,
       messages_json: JSON.stringify([initialMsg]),
     });
+
     setSubmitting(false);
     onClose();
     setTimeout(() => window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket })), 300);
@@ -433,10 +429,7 @@ function NewTicketModal({ onClose, user }) {
                       <motion.button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
                         whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                         className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg transition-all relative"
-                        style={{
-                          border: `2px solid ${isSelected ? cat.color : 'rgba(0,0,0,0.09)'}`,
-                          background: isSelected ? `${cat.color}12` : 'white',
-                        }}>
+                        style={{ border: `2px solid ${isSelected ? cat.color : 'rgba(0,0,0,0.09)'}`, background: isSelected ? `${cat.color}12` : 'white' }}>
                         <Icon className="w-5 h-5" style={{ color: cat.color }} />
                         <span className="text-xs font-bold" style={{ color: isSelected ? cat.color : '#666' }}>{cat.label}</span>
                         {isSuggested && (
@@ -478,18 +471,17 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const cat = CATEGORY_CONFIG[currentTicket.category] || CATEGORY_CONFIG.other;
   const CatIcon = cat.icon;
 
-  // Keep ref in sync with state
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Poll for updates — only update if server has MORE messages than local (avoid overwriting optimistic state)
+  // Poll for updates — only update if server has MORE messages than local
   useEffect(() => {
     const id = currentTicket.id;
     const interval = setInterval(async () => {
-      if (sendingRef.current) return; // don't override while sending
+      if (sendingRef.current) return;
       try {
         const all = await base44.entities.SupportTicket.list('-updated_date', 200);
         const updated = all.find(t => t.id === id);
@@ -497,7 +489,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           setCurrentTicket(prev => ({ ...prev, status: updated.status }));
           try {
             const serverMessages = JSON.parse(updated.messages_json || '[]');
-            // Only sync if server has more messages than local
             if (serverMessages.length > messagesRef.current.length) {
               setMessages(serverMessages);
             }
@@ -532,7 +523,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const handleStatusChange = async (newStatus) => {
     if (newStatus === 'closed') {
       const closedMsg = { author: 'system', text: 'This ticket has been resolved. You can no longer send messages.', created_at: new Date().toISOString() };
-      const updatedMessages = [...messages, closedMsg];
+      const updatedMessages = [...messagesRef.current, closedMsg];
       setMessages(updatedMessages);
       await base44.entities.SupportTicket.update(currentTicket.id, { status: 'closed', messages_json: JSON.stringify(updatedMessages) });
     } else {
@@ -550,7 +541,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   };
 
   const handleUserResolve = async () => {
-    if (!window.confirm('Mark this ticket as resolved? You won\'t be able to send more messages.')) return;
+    if (!window.confirm("Mark this ticket as resolved? You won't be able to send more messages.")) return;
     await handleStatusChange('closed');
   };
 
@@ -564,7 +555,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
         style={{ background: 'white', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)' }}
         onClick={e => e.stopPropagation()}>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
           style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
           <div className="flex items-center gap-2 min-w-0">
@@ -574,7 +564,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-black truncate" style={{ color: FG }}>
-                  {isAdmin ? (currentTicket.user_email?.split('@')[0] || 'User') : 'Support Stensor'}
+                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Support Stensor'}
                 </p>
                 <span className="text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
                   <CatIcon className="w-2.5 h-2.5" />{cat.label}
@@ -592,7 +582,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] font-black px-2 py-1 rounded-md" style={{ background: s.bg, color: s.color }}>{s.label}</span>
-            {/* User resolve button */}
             {!isAdmin && !isClosed && (
               <motion.button onClick={handleUserResolve} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
@@ -601,7 +590,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                 <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
               </motion.button>
             )}
-            {/* Admin delete */}
             {isAdmin && (
               <motion.button onClick={handleDelete} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className="w-8 h-8 flex items-center justify-center rounded-full"
@@ -617,7 +605,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Admin status controls */}
         {isAdmin && (
           <div className="px-4 py-2 flex-shrink-0 flex gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.015)' }}>
             {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
@@ -631,12 +618,10 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         )}
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: '#f9f9f9' }}>
           {messages.length === 0 ? (
             <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
           ) : messages.map((msg, i) => {
-            const isUser = msg.author === 'user';
             const isSystem = msg.author === 'system';
             const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
             if (isSystem) {
@@ -654,8 +639,8 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                 className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 {!isMe && (
                   <div className="w-6 h-6 rounded-full flex-shrink-0 mr-2 mt-1 flex items-center justify-center text-[10px] font-black text-white"
-                    style={{ background: isAdmin ? '#6366f1' : FG }}>
-                    {isAdmin ? (msg.author === 'admin' ? 'S' : (currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')) : 'S'}
+                    style={{ background: FG }}>
+                    {msg.author === 'admin' ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
                   </div>
                 )}
                 <div className="max-w-[78%]">
@@ -683,7 +668,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input or resolved notice */}
         {isClosed ? (
           <div className="px-4 py-4 flex-shrink-0 text-center" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
             <p className="text-sm font-semibold" style={{ color: '#aaa' }}>
@@ -711,7 +695,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
               <input ref={fileInputRef} type="file" multiple className="hidden"
                 onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
               <motion.button onClick={() => fileInputRef.current?.click()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors hover:bg-black/8"
+                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors"
                 style={{ background: 'rgba(0,0,0,0.05)' }}>
                 <Upload className="w-4 h-4" style={{ color: FG }} />
               </motion.button>

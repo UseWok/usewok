@@ -2,18 +2,22 @@
   "name": "SupportTicket",
   "type": "object",
   "properties": {
+    "title": {
+      "type": "string"
+    },
     "description": {
       "type": "string"
     },
     "category": {
       "type": "string",
       "enum": [
-        "bug_report",
-        "chat_issue",
-        "other"
+        "bug",
+        "money",
+        "other",
+        "cancellation"
       ]
     },
-    "discussion_id": {
+    "messages_json": {
       "type": "string"
     },
     "file_urls": {
@@ -30,18 +34,67 @@
         "closed"
       ]
     },
+    "cancel_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ]
+    },
+    "cancel_approved_at": {
+      "type": "string"
+    },
     "user_email": {
+      "type": "string"
+    },
+    "user_name": {
       "type": "string"
     },
     "user_plan": {
       "type": "string"
     },
-    "admin_reply": {
+    "user_plan_price": {
+      "type": "string"
+    },
+    "ratings_json": {
       "type": "string"
     }
   },
   "required": [
     "description",
     "category"
-  ]
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

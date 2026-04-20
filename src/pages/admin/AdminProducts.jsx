@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe, Plus } from 'lucide-react';
+import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard, Globe, Plus, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB, AGENT_TONE_OPTIONS, AGENT_LENGTH_OPTIONS, AGENT_LANGUAGE_OPTIONS, AGENT_EMOJI_OPTIONS } from '@/lib/agents-config';
@@ -9,6 +9,7 @@ import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import TicketsTab from '@/components/admin/TicketsTab';
+import CancellationsTab from '@/components/admin/CancellationsTab';
 import LandingEditor from '@/components/admin/LandingEditor';
 import PlanEditor from '@/components/admin/PlanEditor';
 import UserRow from '@/components/admin/UserRow';
@@ -145,6 +146,7 @@ export default function AdminProducts() {
     { id: 'landing', label: 'Landing Page', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'tickets', label: 'Tickets', icon: MessageSquare },
+    { id: 'cancellations', label: 'Cancellations', icon: X },
     { id: 'users', label: 'Users', icon: Users },
   ];
 
@@ -479,6 +481,7 @@ export default function AdminProducts() {
 
         {tab === 'landing' && <LandingEditor />}
         {tab === 'tickets' && <TicketsTab />}
+        {tab === 'cancellations' && <CancellationsTab />}
 
         {/* USERS TAB */}
         {tab === 'users' && (
