@@ -38,7 +38,7 @@ const UNLOCKABLE_FEATURES = [
   { label: 'Unlimited Discussions', plan: 'Advanced', planId: 'advanced', icon: '💬' },
 ];
 
-export default function Sidebar({ expanded, setExpanded }) {
+export default function Sidebar({ expanded, setExpanded, onNavClick }) {
   const [activePopover, setActivePopover] = useState(null);
 
   const [logoHovered, setLogoHovered] = useState(false);
@@ -154,7 +154,7 @@ export default function Sidebar({ expanded, setExpanded }) {
               label={item.label || t(item.labelKey)}
               active={item.active}
               expanded={expanded}
-              onClick={() => { if (item.path) navigate(item.path); }}
+              onClick={() => { if (item.path) navigate(item.path); if (onNavClick) onNavClick(); }}
             />
           ))}
 

@@ -60,7 +60,7 @@ export default function Layout() {
                 className="fixed inset-0 bg-black/40 z-40"
                 onClick={() => setExpanded(false)}
               />
-              <Sidebar expanded={true} setExpanded={setExpanded} />
+              <Sidebar expanded={true} setExpanded={setExpanded} onNavClick={() => setExpanded(false)} />
             </>
           )}
         </AnimatePresence>
