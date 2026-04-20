@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Brain, Globe, Paperclip, MessageSquare, Zap, Crown, BarChart2, Shield, Clock } from 'lucide-react';
+import { Brain, Globe, Paperclip, MessageSquare, Zap, Crown } from 'lucide-react';
 import FinalCta from '../components/landing/FinalCta';
 import LandingFooter from '../components/landing/LandingFooter';
 import { getLandingContent } from '@/lib/landing-content';
@@ -18,9 +18,6 @@ const FEATURES = [
   { icon: Zap,          title: 'Cutting-Edge AI Models',            desc: 'Access GPT-4o, Claude Opus, Gemini. Stensor picks the best model automatically for each question.', tag: 'Expert+' },
   { icon: MessageSquare,title: 'Unlimited Discussions',             desc: 'Build a continuous relationship with your AI coach over months, with contextual memory of your goals.', tag: 'Advanced+' },
   { icon: Crown,        title: 'Expert Mode — Deep Reasoning',      desc: 'Monte Carlo simulation, portfolio optimization, detailed tax analysis. Professional-grade results.', tag: 'Expert+' },
-  { icon: BarChart2,    title: 'Retirement Planner',                desc: 'Calculate your retirement age, capital needed and monthly savings starting from your current situation.', tag: 'All plans' },
-  { icon: Shield,       title: 'Complete Privacy',                  desc: 'Your financial data is never resold. End-to-end encryption on all your conversations.', tag: 'All plans' },
-  { icon: Clock,        title: 'Actionable Plans',                  desc: 'No vague theory. Every answer includes exact steps, accounts to open, amounts to invest — starting today.', tag: 'All plans' },
 ];
 
 export default function LandingFeaturesPage() {

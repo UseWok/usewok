@@ -125,7 +125,7 @@ export default function LandingPricingPage() {
       {/* PLANS GRID */}
       <section className="relative z-10 px-6 pb-16">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 rounded-2xl overflow-hidden"
+          <div className="grid grid-cols-4 gap-0 rounded-2xl overflow-hidden"
             style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
             {plans.map((plan, i) => {
               const p = price(plan);
