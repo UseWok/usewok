@@ -1,143 +1,173 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MessageSquare, ChevronRight, X, Plus, RefreshCw, Clock, Check, Loader, Upload, Send } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronRight, X, Plus, RefreshCw, Loader, Upload, Send, Trash2, CheckCircle, FileText, Image as ImageIcon, Bug, DollarSign, HelpCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getUserPlan } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 
 const STATUS_CONFIG = {
-  open: { label: 'Open', color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+  open:        { label: 'Open',        color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
   in_progress: { label: 'In Progress', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-  closed: { label: 'Resolved', color: '#16a34a', bg: 'rgba(22,163,74,0.08)' },
+  closed:      { label: 'Resolved',    color: '#16a34a', bg: 'rgba(22,163,74,0.08)' },
 };
+
+const CATEGORY_CONFIG = {
+  bug:   { label: 'Bug',           icon: Bug,         color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+  money: { label: 'Money',         icon: DollarSign,  color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+  other: { label: 'Other',         icon: HelpCircle,  color: '#6366f1', bg: 'rgba(99,102,241,0.08)' },
+};
+
+function FileAttachment({ url, light = false }) {
+  const isImage = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url);
+  const filename = url.split('/').pop().split('?')[0] || 'file';
+  if (isImage) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer"
+        className="block rounded-lg overflow-hidden mt-1"
+        style={{ maxWidth: 160, border: '1px solid rgba(255,255,255,0.15)' }}>
+        <img src={url} alt="attachment" className="w-full object-cover" style={{ maxHeight: 100 }} />
+        <p className="text-[9px] px-1.5 py-0.5 truncate" style={{ background: 'rgba(0,0,0,0.35)', color: light ? '#fff' : '#fff' }}>
+          <ImageIcon className="inline w-2.5 h-2.5 mr-0.5" />{filename.slice(0, 20)}
+        </p>
+      </a>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg mt-1 text-xs font-medium underline-offset-2 hover:opacity-80 transition-opacity"
+      style={{ background: light ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)', color: light ? 'white' : '#333', border: light ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.1)', maxWidth: 180 }}>
+      <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+      <span className="truncate">{filename.slice(0, 24)}</span>
+    </a>
+  );
+}
 
 export default function SupportPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState('landing');
+  const [activeTab, setActiveTab] = useState('my'); // 'my' | 'admin'
   const [user, setUser] = useState(null);
   const [myTickets, setMyTickets] = useState([]);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [adminTickets, setAdminTickets] = useState([]);
   const [showNewTicket, setShowNewTicket] = useState(false);
   const [ticketFilter, setTicketFilter] = useState('all');
   const [loading, setLoading] = useState(false);
-  const [showChatPanel, setShowChatPanel] = useState(false);
   const [chatTicket, setChatTicket] = useState(null);
+
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => {});
   }, []);
 
-  const loadTickets = (u) => {
+  const loadMyTickets = (u) => {
     if (!u) return;
     setLoading(true);
     base44.entities.SupportTicket.filter({ user_email: u.email })
-      .then(t => {
-        setMyTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
-        setLoading(false);
-      })
+      .then(t => { setMyTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
+  const loadAdminTickets = () => {
+    base44.entities.SupportTicket.filter({ status: 'open' })
+      .then(t => setAdminTickets(t.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))))
+      .catch(() => {});
+  };
+
   useEffect(() => {
-    if (user) loadTickets(user);
+    if (user) { loadMyTickets(user); if (user.role === 'admin') loadAdminTickets(); }
   }, [user]);
 
-  // Listen for new ticket creation to open chat
+  // Listen for new ticket event
   useEffect(() => {
-    const handler = (e) => {
-      if (e.detail) {
-        setChatTicket(e.detail);
-        setShowChatPanel(true);
-      }
-    };
+    const handler = (e) => { if (e.detail) setChatTicket(e.detail); };
     window.addEventListener('open-support-chat', handler);
     return () => window.removeEventListener('open-support-chat', handler);
   }, []);
 
-  // Poll for new messages on open tickets
+  // Poll open chat ticket
   useEffect(() => {
-    if (!user || !showChatPanel || !chatTicket) return;
+    if (!chatTicket) return;
     const interval = setInterval(() => {
-      base44.entities.SupportTicket.filter({ id: chatTicket.id }).then(t => {
-        if (t.length > 0) {
-          const updated = t[0];
-          if (updated.messages_json !== chatTicket.messages_json) {
-            setChatTicket(updated);
-          }
-          if (updated.status === 'closed' && chatTicket.status !== 'closed') {
-            // Messages saved for 24h only after closed
-            setTimeout(() => {
-              base44.entities.SupportTicket.update(chatTicket.id, { messages_json: JSON.stringify([]) });
-            }, 24 * 60 * 60 * 1000);
-            setShowChatPanel(false);
-            setChatTicket(null);
-            loadTickets(user);
-          }
-        }
+      base44.entities.SupportTicket.list().then(all => {
+        const updated = all.find(t => t.id === chatTicket.id);
+        if (updated && updated.messages_json !== chatTicket.messages_json) setChatTicket(updated);
       });
     }, 3000);
     return () => clearInterval(interval);
-  }, [user, showChatPanel, chatTicket]);
+  }, [chatTicket]);
 
-  if (page === 'landing') {
-    return <LandingPage onNavigate={() => setPage('tickets')} />;
-  }
+  if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
 
-  if (showChatPanel && chatTicket) {
+  if (chatTicket) {
     return (
       <ChatPanel
         ticket={chatTicket}
         user={user}
-        onClose={() => { setShowChatPanel(false); setChatTicket(null); loadTickets(user); }}
-        onUpdate={() => loadTickets(user)}
+        onClose={() => { setChatTicket(null); loadMyTickets(user); if (isAdmin) loadAdminTickets(); }}
+        onUpdate={() => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); }}
       />
     );
   }
 
-  // Tickets list page
+  const currentTickets = activeTab === 'admin' && isAdmin ? adminTickets : myTickets;
   const filteredTickets = ticketFilter === 'all'
-    ? myTickets
-    : myTickets.filter(t => ticketFilter === 'open' ? t.status !== 'closed' : t.status === 'closed');
+    ? currentTickets
+    : currentTickets.filter(t => ticketFilter === 'open' ? t.status !== 'closed' : t.status === 'closed');
+
+  const refresh = () => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); };
 
   return (
     <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
       <div className="max-w-2xl mx-auto px-4 py-6 pb-16">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button onClick={() => setPage('landing')} className="w-9 h-9 flex items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => setPage('landing')} className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
             <ArrowLeft className="w-4 h-4" style={{ color: FG }} />
           </button>
-          <h1 className="text-lg font-black" style={{ color: FG }}>My Support Tickets</h1>
+          <h1 className="text-lg font-black" style={{ color: FG }}>Support</h1>
           <div className="flex gap-2">
-            <button onClick={() => loadTickets(user)} className="w-9 h-9 flex items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+            <button onClick={refresh} className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
               <RefreshCw className="w-4 h-4" style={{ color: FG }} />
             </button>
-            <button onClick={() => setShowNewTicket(true)} className="px-3 h-9 flex items-center gap-1.5 text-xs font-black"
-              style={{ background: FG, color: 'white', borderRadius: '8px' }}>
-              <Plus className="w-3.5 h-3.5" /> New
-            </button>
+            {activeTab === 'my' && (
+              <button onClick={() => setShowNewTicket(true)} className="px-3 h-9 flex items-center gap-1.5 text-xs font-black" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
+                <Plus className="w-3.5 h-3.5" /> New
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-2 mb-4">
-          {['all', 'open', 'closed'].map(f => (
-            <button key={f} onClick={() => setTicketFilter(f)}
-              className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all capitalize"
-              style={{
-                background: ticketFilter === f ? FG : 'rgba(0,0,0,0.05)',
-                color: ticketFilter === f ? 'white' : '#666'
-              }}>
-              {f}
-            </button>
-          ))}
-        </div>
+        {/* Tabs (admin only) */}
+        {isAdmin && (
+          <div className="flex gap-2 mb-4">
+            {[{ id: 'my', label: 'My Tickets' }, { id: 'admin', label: `Messages (${adminTickets.length})` }].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className="px-3 py-1.5 text-xs font-black rounded-md transition-all"
+                style={{ background: activeTab === tab.id ? FG : 'rgba(0,0,0,0.05)', color: activeTab === tab.id ? 'white' : '#666' }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Tickets list */}
+        {/* Status filters (only for "my" tab) */}
+        {activeTab === 'my' && (
+          <div className="flex gap-2 mb-4">
+            {['all', 'open', 'closed'].map(f => (
+              <button key={f} onClick={() => setTicketFilter(f)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-md transition-all capitalize"
+                style={{ background: ticketFilter === f ? FG : 'rgba(0,0,0,0.05)', color: ticketFilter === f ? 'white' : '#666' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Ticket list */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="w-5 h-5 animate-spin" style={{ color: FG }} />
@@ -151,20 +181,35 @@ export default function SupportPage() {
           <div className="space-y-2">
             {filteredTickets.map(ticket => {
               const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
-              const isClosed = ticket.status === 'closed';
+              const cat = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.other;
+              const CatIcon = cat.icon;
               return (
-                <motion.button key={ticket.id} whileHover={{ scale: 1.01 }}
-                  onClick={() => { if (!isClosed) { setChatTicket(ticket); setShowChatPanel(true); } }}
-                  className={`w-full p-4 text-left transition-all ${isClosed ? 'opacity-50 cursor-default' : 'hover:bg-opacity-50 cursor-pointer'}`}
+                <motion.button key={ticket.id} whileHover={{ scale: 1.005 }}
+                  onClick={() => setChatTicket(ticket)}
+                  className="w-full p-4 text-left transition-all cursor-pointer"
                   style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.07)' }}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold line-clamp-1" style={{ color: FG }}>
                         {ticket.description?.slice(0, 80)}{ticket.description?.length > 80 ? '…' : ''}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: '#aaa' }}>
-                        {new Date(ticket.created_date).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString()}</p>
+                        {/* Plan badge — visible to admin */}
+                        {(isAdmin && ticket.user_plan) && (
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: '#555' }}>
+                            {ticket.user_plan}
+                          </span>
+                        )}
+                        {/* Category badge */}
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5" style={{ background: cat.bg, color: cat.color }}>
+                          <CatIcon className="w-2.5 h-2.5" /> {cat.label}
+                        </span>
+                        {/* Email for admin */}
+                        {isAdmin && activeTab === 'admin' && (
+                          <span className="text-[9px] text-zinc-400 truncate max-w-[120px]">{ticket.user_email}</span>
+                        )}
+                      </div>
                     </div>
                     <span className="text-[10px] font-black px-2 py-1 flex-shrink-0" style={{ background: s.bg, color: s.color, borderRadius: '6px' }}>
                       {s.label}
@@ -179,7 +224,7 @@ export default function SupportPage() {
 
       <AnimatePresence>
         {showNewTicket && (
-          <NewTicketModal onClose={() => { setShowNewTicket(false); loadTickets(user); }} user={user} />
+          <NewTicketModal onClose={() => { setShowNewTicket(false); loadMyTickets(user); }} user={user} />
         )}
       </AnimatePresence>
     </div>
@@ -190,20 +235,12 @@ function LandingPage({ onNavigate }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be bg-white">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="text-center mb-12">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-12">
           <h1 className="text-5xl font-black mb-3" style={{ color: FG }}>Aide & Support</h1>
-          <p className="text-base" style={{ color: '#666' }}>
-            Obtenez l'aide dont vous avez besoin pour créer des applications extraordinaires avec BASE44
-          </p>
+          <p className="text-base" style={{ color: '#666' }}>Obtenez l'aide dont vous avez besoin</p>
         </motion.div>
-
-        {/* Card - Open ticket only */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-          className="max-w-md mx-auto mb-16">
-          <motion.button onClick={onNavigate}
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="max-w-md mx-auto mb-16">
+          <motion.button onClick={onNavigate} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
             className="w-full p-8 rounded-lg text-left text-white transition-all relative overflow-hidden group"
             style={{ background: '#2C3E50', minHeight: '260px' }}>
             <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-10" style={{ background: 'white' }} />
@@ -217,39 +254,6 @@ function LandingPage({ onNavigate }) {
             </motion.div>
           </motion.button>
         </motion.div>
-
-        {/* Quick actions */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="bg-gray-50 rounded-lg p-8">
-          <h2 className="text-xl font-black mb-6" style={{ color: FG }}>Actions rapides</h2>
-          <p className="text-xs mb-4" style={{ color: '#aaa' }}>Gérez votre expérience de support</p>
-          <div className="grid md:grid-cols-2 gap-4">
-            <motion.button onClick={onNavigate}
-              whileHover={{ scale: 1.02 }}
-              className="p-4 text-left rounded-lg transition-all"
-              style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-5 h-5" style={{ color: FG }} />
-                <div>
-                  <p className="font-semibold" style={{ color: FG }}>Mes tickets de support</p>
-                  <p className="text-xs" style={{ color: '#aaa' }}>Afficher et gérer vos tickets</p>
-                </div>
-              </div>
-            </motion.button>
-            <motion.a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
-              whileHover={{ scale: 1.02 }}
-              className="p-4 text-left rounded-lg transition-all"
-              style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
-              <div className="flex items-center gap-3">
-                <ChevronRight className="w-5 h-5" style={{ color: FG }} />
-                <div>
-                  <p className="font-semibold" style={{ color: FG }}>Forum communautaire</p>
-                  <p className="text-xs" style={{ color: '#aaa' }}>Notre nouvelle communauté Reddit</p>
-                </div>
-              </div>
-            </motion.a>
-          </div>
-        </motion.div>
       </div>
     </motion.div>
   );
@@ -259,30 +263,29 @@ function NewTicketModal({ onClose, user }) {
   const [step, setStep] = useState(0);
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState([]);
-  const [analyzing, setAnalyzing] = useState(false);
   const [suggestedCategory, setSuggestedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleAnalyze = async () => {
     if (!description.trim()) return;
-    setAnalyzing(true);
     setStep(1);
-
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analyze this support ticket. Reply with ONE word: "bug" if technical issue, "money" if payment/billing/subscription related, or "other". Ticket: ${description}`,
+        prompt: `Analyze this support ticket. Reply with ONE word only: "bug" if technical/app issue, "money" if payment/billing/subscription, or "other". Ticket: ${description}`,
         model: 'gpt_5_mini',
       });
       const r = result.toLowerCase();
-      setSuggestedCategory(r.includes('bug') ? 'bug' : r.includes('money') || r.includes('payment') || r.includes('billing') || r.includes('subscription') ? 'money' : 'other');
-    } catch (e) {
+      const cat = r.includes('bug') ? 'bug' : (r.includes('money') || r.includes('payment') || r.includes('billing')) ? 'money' : 'other';
+      setSuggestedCategory(cat);
+      setSelectedCategory(cat);
+    } catch {
       setSuggestedCategory('other');
+      setSelectedCategory('other');
     }
-
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 900));
     setStep(2);
-    setAnalyzing(false);
   };
 
   const handleSubmit = async () => {
@@ -292,33 +295,42 @@ function NewTicketModal({ onClose, user }) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
     const initialMsg = { author: 'user', text: description, file_urls, created_at: new Date().toISOString() };
+    // Detect user plan
+    let userPlan = '';
+    try {
+      const plan = getUserPlan(user);
+      userPlan = plan?.name || '';
+    } catch {}
+
     const ticket = await base44.entities.SupportTicket.create({
       description,
-      category: suggestedCategory || 'other',
+      category: selectedCategory || 'other',
       status: 'open',
       user_email: user?.email || '',
+      user_plan: userPlan,
       file_urls,
       messages_json: JSON.stringify([initialMsg]),
     });
     setSubmitting(false);
     onClose();
-    // Open chat panel directly
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket }));
-    }, 300);
+    setTimeout(() => window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket })), 300);
   };
+
+  const CATS = [
+    { id: 'bug',   label: 'Bug',   icon: Bug,         color: '#ef4444' },
+    { id: 'money', label: 'Money', icon: DollarSign,  color: '#f59e0b' },
+    { id: 'other', label: 'Other', icon: HelpCircle,  color: '#6366f1' },
+  ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[500] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-        className="w-full max-w-md bg-white rounded-lg overflow-hidden shadow-xl"
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-md bg-white rounded-xl overflow-hidden shadow-xl"
         onClick={e => e.stopPropagation()}>
 
-        {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
           <p className="font-black" style={{ color: FG }}>New Support Ticket</p>
           {step !== 1 && (
@@ -334,7 +346,7 @@ function NewTicketModal({ onClose, user }) {
               <div>
                 <label className="text-xs font-black uppercase mb-2 block" style={{ color: '#aaa' }}>Describe your issue</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)}
-                  placeholder="Explain the problem in detail..."
+                  placeholder="Explain the problem in detail…"
                   rows={4} className="w-full px-4 py-3 text-sm focus:outline-none resize-none"
                   style={{ border: `1.5px solid ${description ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '8px', transition: 'border-color 0.2s' }} />
               </div>
@@ -342,28 +354,24 @@ function NewTicketModal({ onClose, user }) {
                 <label className="text-xs font-black uppercase mb-2 block" style={{ color: '#aaa' }}>Attach files (optional)</label>
                 <input ref={fileInputRef} type="file" multiple className="hidden"
                   onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
-                <motion.button onClick={() => fileInputRef.current?.click()}
-                  whileHover={{ scale: 1.02 }}
+                <motion.button onClick={() => fileInputRef.current?.click()} whileHover={{ scale: 1.01 }}
                   className="w-full flex items-center justify-center gap-2 py-3 text-sm transition-all"
                   style={{ border: '1.5px dashed rgba(0,0,0,0.12)', borderRadius: '8px', color: '#999' }}>
                   <Upload className="w-4 h-4" /> Attach files
                 </motion.button>
                 {files.length > 0 && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {files.map((f, i) => (
                       <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '6px' }}>
+                        <FileText className="w-3 h-3" style={{ color: '#888' }} />
                         <span className="text-[11px] max-w-[80px] truncate" style={{ color: '#555' }}>{f.name}</span>
-                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
-                          <X className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
-                        </button>
+                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}><X className="w-2.5 h-2.5" style={{ color: '#bbb' }} /></button>
                       </div>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
               </div>
-              <motion.button onClick={handleAnalyze} disabled={!description.trim()}
-                whileHover={description.trim() ? { scale: 1.01 } : {}}
-                whileTap={description.trim() ? { scale: 0.99 } : {}}
+              <motion.button onClick={handleAnalyze} disabled={!description.trim()} whileHover={description.trim() ? { scale: 1.01 } : {}}
                 className="w-full py-3.5 text-sm font-black transition-all disabled:opacity-30"
                 style={{ background: FG, color: 'white', borderRadius: '8px' }}>
                 Continue →
@@ -385,18 +393,37 @@ function NewTicketModal({ onClose, user }) {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-black mb-3" style={{ color: FG }}>Suggested Category</p>
-                <div className="p-3 rounded-lg" style={{ background: 'rgba(221,255,0,0.1)', border: `1px solid ${YUZU}` }}>
-                  <p className="text-sm font-semibold" style={{ color: FG }}>
-                    {suggestedCategory === 'bug' ? '🐛 Bug' : suggestedCategory === 'money' ? '💰 Argent / Paiement' : '❓ Other'}
-                  </p>
+                <p className="text-sm font-black mb-3" style={{ color: FG }}>Select Category</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {CATS.map(cat => {
+                    const Icon = cat.icon;
+                    const isSelected = selectedCategory === cat.id;
+                    const isSuggested = suggestedCategory === cat.id;
+                    return (
+                      <motion.button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
+                        whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                        className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg transition-all relative"
+                        style={{
+                          border: `2px solid ${isSelected ? cat.color : 'rgba(0,0,0,0.09)'}`,
+                          background: isSelected ? `${cat.color}12` : 'white',
+                        }}>
+                        <Icon className="w-5 h-5" style={{ color: cat.color }} />
+                        <span className="text-xs font-bold" style={{ color: isSelected ? cat.color : '#666' }}>{cat.label}</span>
+                        {isSuggested && (
+                          <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                            style={{ background: YUZU, color: FG }}>suggested</span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
-              <button onClick={handleSubmit} disabled={submitting}
+              <motion.button onClick={handleSubmit} disabled={submitting || !selectedCategory}
+                whileHover={!submitting ? { scale: 1.01 } : {}}
                 className="w-full py-3 text-sm font-black transition-all disabled:opacity-60"
                 style={{ background: FG, color: 'white', borderRadius: '8px' }}>
                 {submitting ? 'Submitting…' : 'Submit Ticket →'}
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
@@ -406,89 +433,137 @@ function NewTicketModal({ onClose, user }) {
 }
 
 function ChatPanel({ ticket, user, onClose, onUpdate }) {
-  const [messages, setMessages] = useState(() => {
-    try { return JSON.parse(ticket.messages_json || '[]'); } catch { return []; }
-  });
+  const [currentTicket, setCurrentTicket] = useState(ticket);
+  const [messages, setMessages] = useState(() => { try { return JSON.parse(ticket.messages_json || '[]'); } catch { return []; } });
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [ticketStatus, setTicketStatus] = useState(ticket.status);
   const [files, setFiles] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isAdmin = user?.role === 'admin';
+  const isClosed = currentTicket.status === 'closed';
+  const s = STATUS_CONFIG[currentTicket.status] || STATUS_CONFIG.open;
+  const cat = CATEGORY_CONFIG[currentTicket.category] || CATEGORY_CONFIG.other;
+  const CatIcon = cat.icon;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Poll for updates
   useEffect(() => {
     const interval = setInterval(() => {
-      base44.entities.SupportTicket.filter({ id: ticket.id }).then(t => {
-        if (t.length > 0) {
-          const updated = t[0];
-          if (updated.messages_json !== ticket.messages_json) {
-            setMessages(JSON.parse(updated.messages_json || '[]'));
-            setTicketStatus(updated.status);
-            if (updated.status === 'closed') {
-              onClose();
-            }
-          }
+      base44.entities.SupportTicket.list().then(all => {
+        const updated = all.find(t => t.id === currentTicket.id);
+        if (updated) {
+          setCurrentTicket(updated);
+          try { setMessages(JSON.parse(updated.messages_json || '[]')); } catch {}
         }
       });
     }, 3000);
     return () => clearInterval(interval);
-  }, [ticket, onClose]);
+  }, [currentTicket.id]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() && files.length === 0) return;
+    if ((!newMessage.trim() && files.length === 0) || isClosed || sending) return;
     setSending(true);
-
     let file_urls = [];
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
-
-    const msg = { author: 'user', text: newMessage, file_urls, created_at: new Date().toISOString() };
+    const author = isAdmin ? 'admin' : 'user';
+    const msg = { author, text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
     const updatedMessages = [...messages, msg];
     setMessages(updatedMessages);
     setNewMessage('');
     setFiles([]);
-
-    await base44.entities.SupportTicket.update(ticket.id, {
+    await base44.entities.SupportTicket.update(currentTicket.id, {
       messages_json: JSON.stringify(updatedMessages),
-      file_urls: [...(ticket.file_urls || []), ...file_urls],
     });
     setSending(false);
   };
 
   const handleStatusChange = async (newStatus) => {
-    setTicketStatus(newStatus);
-    await base44.entities.SupportTicket.update(ticket.id, { status: newStatus });
+    if (newStatus === 'closed') {
+      const closedMsg = { author: 'system', text: 'This ticket has been resolved. You can no longer send messages.', created_at: new Date().toISOString() };
+      const updatedMessages = [...messages, closedMsg];
+      setMessages(updatedMessages);
+      await base44.entities.SupportTicket.update(currentTicket.id, { status: 'closed', messages_json: JSON.stringify(updatedMessages) });
+    } else {
+      await base44.entities.SupportTicket.update(currentTicket.id, { status: newStatus });
+    }
+    setCurrentTicket(prev => ({ ...prev, status: newStatus }));
     onUpdate();
   };
 
-  const s = STATUS_CONFIG[ticketStatus];
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this ticket?')) return;
+    await base44.entities.SupportTicket.delete(currentTicket.id);
+    onClose();
+    onUpdate();
+  };
+
+  const handleUserResolve = async () => {
+    if (!window.confirm('Mark this ticket as resolved? You won\'t be able to send more messages.')) return;
+    await handleStatusChange('closed');
+  };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[400] flex" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[400] flex"
+      style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 220 }}
         className="w-full max-w-md ml-auto h-full flex flex-col"
-        style={{ background: 'white', boxShadow: '-4px 0 24px rgba(0,0,0,0.1)' }}
+        style={{ background: 'white', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)' }}
         onClick={e => e.stopPropagation()}>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}>
+        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0" style={{ background: 'rgba(0,0,0,0.05)' }}>
               <MessageSquare className="w-4 h-4" style={{ color: FG }} />
             </div>
-            <div>
-              <p className="text-sm font-black" style={{ color: FG }}>Support</p>
-              <p className="text-[10px]" style={{ color: '#aaa' }}>{ticket.id.slice(0, 8)}</p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-black truncate" style={{ color: FG }}>
+                  {isAdmin ? (currentTicket.user_email?.split('@')[0] || 'User') : 'Support Stensor'}
+                </p>
+                <span className="text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
+                  <CatIcon className="w-2.5 h-2.5" />{cat.label}
+                </span>
+              </div>
+              <p className="text-[10px] leading-none mt-0.5" style={{ color: '#aaa' }}>
+                {isAdmin ? currentTicket.user_email : 'Reply within 24-48h'}
+                {isAdmin && currentTicket.user_plan && (
+                  <span className="ml-1.5 text-[9px] font-black px-1 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.06)', color: '#555' }}>
+                    {currentTicket.user_plan}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <motion.span className="text-[10px] font-black px-2 py-1 rounded-md" style={{ background: s.bg, color: s.color }}>
-              {s.label}
-            </motion.span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-[10px] font-black px-2 py-1 rounded-md" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+            {/* User resolve button */}
+            {!isAdmin && !isClosed && (
+              <motion.button onClick={handleUserResolve} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+                title="Mark as resolved"
+                style={{ background: 'rgba(22,163,74,0.08)' }}>
+                <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+              </motion.button>
+            )}
+            {/* Admin delete */}
+            {isAdmin && (
+              <motion.button onClick={handleDelete} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                className="w-8 h-8 flex items-center justify-center rounded-full"
+                title="Delete ticket"
+                style={{ background: 'rgba(239,68,68,0.07)' }}>
+                <Trash2 className="w-4 h-4" style={{ color: '#ef4444' }} />
+              </motion.button>
+            )}
             <motion.button onClick={onClose} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
               className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}>
               <X className="w-4 h-4" style={{ color: FG }} />
@@ -496,99 +571,120 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {messages.length === 0 ? (
-            <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
-          ) : (
-            messages.map((msg, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className={`flex ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <motion.div whileHover={{ scale: 1.02 }} className="max-w-[80%] px-4 py-3 rounded-2xl shadow-sm"
-                  style={{
-                    background: msg.author === 'user' ? FG : 'white',
-                    color: msg.author === 'user' ? 'white' : FG,
-                    border: msg.author === 'user' ? 'none' : '1px solid rgba(0,0,0,0.07)',
-                    borderRadius: msg.author === 'user' ? '20px 4px 20px 20px' : '4px 20px 20px 20px'
-                  }}>
-                  {msg.file_urls && msg.file_urls.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {msg.file_urls.map((url, j) => (
-                        <a key={j} href={url} target="_blank" rel="noopener noreferrer"
-                          className="text-xs underline" style={{ color: msg.author === 'user' ? 'white' : '#2563eb' }}>
-                          📎 File {j + 1}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
-                  <p className="text-xs mt-1.5" style={{ opacity: 0.5 }}>
-                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </motion.div>
-              </motion.div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
         {/* Admin status controls */}
-        {user?.role === 'admin' && (
-          <div className="px-4 py-2 flex-shrink-0" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'rgba(0,0,0,0.02)' }}>
-            <p className="text-[10px] font-black uppercase mb-2" style={{ color: '#aaa' }}>Change status</p>
-            <div className="flex gap-2">
-              {Object.keys(STATUS_CONFIG).map(st => (
-                <motion.button key={st} onClick={() => handleStatusChange(st)}
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  className="flex-1 py-1.5 text-xs font-semibold rounded-md capitalize"
-                  style={{
-                    background: ticketStatus === st ? FG : 'rgba(0,0,0,0.05)',
-                    color: ticketStatus === st ? 'white' : '#666'
-                  }}>
-                  {st}
-                </motion.button>
-              ))}
-            </div>
+        {isAdmin && (
+          <div className="px-4 py-2 flex-shrink-0 flex gap-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.015)' }}>
+            {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
+              <motion.button key={st} onClick={() => handleStatusChange(st)}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                className="flex-1 py-1.5 text-xs font-bold rounded-md capitalize transition-all"
+                style={{ background: currentTicket.status === st ? FG : 'rgba(0,0,0,0.05)', color: currentTicket.status === st ? 'white' : '#666' }}>
+                {cfg.label}
+              </motion.button>
+            ))}
           </div>
         )}
 
-        {/* Message input */}
-        <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
-          {files.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-2">
-              {files.map((f, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2 py-1" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
-                  <span className="text-[10px] max-w-[60px] truncate" style={{ color: '#555' }}>{f.name}</span>
-                  <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
-                    <X className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
-                  </button>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: '#f9f9f9' }}>
+          {messages.length === 0 ? (
+            <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
+          ) : messages.map((msg, i) => {
+            const isUser = msg.author === 'user';
+            const isSystem = msg.author === 'system';
+            const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
+            if (isSystem) {
+              return (
+                <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                    style={{ background: 'rgba(22,163,74,0.08)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.2)' }}>
+                    <CheckCircle className="w-3.5 h-3.5" /> {msg.text}
+                  </div>
+                </motion.div>
+              );
+            }
+            return (
+              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                {!isMe && (
+                  <div className="w-6 h-6 rounded-full flex-shrink-0 mr-2 mt-1 flex items-center justify-center text-[10px] font-black text-white"
+                    style={{ background: isAdmin ? '#6366f1' : FG }}>
+                    {isAdmin ? (msg.author === 'admin' ? 'S' : (currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')) : 'S'}
+                  </div>
+                )}
+                <div className="max-w-[78%]">
+                  <div className="px-4 py-3 shadow-sm"
+                    style={{
+                      background: isMe ? FG : 'white',
+                      color: isMe ? 'white' : FG,
+                      border: isMe ? 'none' : '1px solid rgba(0,0,0,0.07)',
+                      borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                    }}>
+                    {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
+                    {msg.file_urls?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
+                      </div>
+                    )}
+                    <p className="text-[10px] mt-1.5 select-none" style={{ opacity: 0.45 }}>
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <input ref={fileInputRef} type="file" multiple className="hidden"
-              onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
-            <motion.button onClick={() => fileInputRef.current?.click()}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              className="w-9 h-9 flex items-center justify-center rounded-full"
-              style={{ background: 'rgba(0,0,0,0.05)' }}>
-              <Upload className="w-4 h-4" style={{ color: FG }} />
-            </motion.button>
-            <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-              placeholder="Tapez votre message…"
-              className="flex-1 px-4 py-2.5 text-sm focus:outline-none rounded-full"
-              style={{ border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }} />
-            <motion.button onClick={handleSendMessage} disabled={(!newMessage.trim() && files.length === 0) || sending}
-              whileHover={newMessage.trim() && !sending ? { scale: 1.05 } : {}}
-              whileTap={newMessage.trim() && !sending ? { scale: 0.95 } : {}}
-              className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 text-sm font-black transition-all disabled:opacity-30"
-              style={{ background: newMessage.trim() && !sending ? FG : 'rgba(0,0,0,0.05)', color: newMessage.trim() && !sending ? 'white' : '#999' }}>
-              <Send className="w-4 h-4" />
-            </motion.button>
-          </div>
+              </motion.div>
+            );
+          })}
+          <div ref={messagesEndRef} />
         </div>
+
+        {/* Input or resolved notice */}
+        {isClosed ? (
+          <div className="px-4 py-4 flex-shrink-0 text-center" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
+            <p className="text-sm font-semibold" style={{ color: '#aaa' }}>
+              <CheckCircle className="inline w-4 h-4 mr-1.5" style={{ color: '#16a34a' }} />
+              This ticket is resolved
+            </p>
+          </div>
+        ) : (
+          <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(0,0,0,0.07)', background: 'white' }}>
+            {files.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {files.map((f, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg"
+                    style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                    <FileText className="w-3 h-3 flex-shrink-0" style={{ color: '#888' }} />
+                    <span className="text-[11px] max-w-[80px] truncate font-medium" style={{ color: '#555' }}>{f.name}</span>
+                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
+                      <X className="w-2.5 h-2.5" style={{ color: '#bbb' }} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input ref={fileInputRef} type="file" multiple className="hidden"
+                onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
+              <motion.button onClick={() => fileInputRef.current?.click()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors hover:bg-black/8"
+                style={{ background: 'rgba(0,0,0,0.05)' }}>
+                <Upload className="w-4 h-4" style={{ color: FG }} />
+              </motion.button>
+              <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                placeholder="Type your message…"
+                className="flex-1 px-4 py-2.5 text-sm focus:outline-none rounded-full"
+                style={{ border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }} />
+              <motion.button onClick={handleSendMessage}
+                disabled={(!newMessage.trim() && files.length === 0) || sending}
+                whileHover={newMessage.trim() && !sending ? { scale: 1.05 } : {}}
+                whileTap={newMessage.trim() && !sending ? { scale: 0.95 } : {}}
+                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-all disabled:opacity-30"
+                style={{ background: (newMessage.trim() || files.length > 0) && !sending ? FG : 'rgba(0,0,0,0.05)', color: (newMessage.trim() || files.length > 0) && !sending ? 'white' : '#999' }}>
+                <Send className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

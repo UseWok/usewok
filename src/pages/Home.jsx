@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pt-4 pb-12 md:pt-6 md:pb-20 relative overflow-hidden" style={{
-      background: 'linear-gradient(180deg, rgba(221,255,0,0.35) 0%, rgba(221,255,0,0.18) 33%, rgba(221,255,0,0.06) 66%, white 100%)'
+      background: 'linear-gradient(to top, rgba(221,255,0,0.55) 0%, rgba(221,255,0,0.28) 25%, rgba(221,255,0,0.09) 55%, rgba(221,255,0,0.02) 75%, white 100%)'
     }}>
       {/* Subtle gradient mesh background */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 40% at 50% -10%, rgba(221,255,0,0.07), transparent)' }} />
