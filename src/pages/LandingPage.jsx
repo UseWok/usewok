@@ -218,93 +218,15 @@ export default function LandingPage() {
             {hero.subtitle}
           </motion.p>
 
-          <div className="mb-10" />
+          <div className="mb-8" />
 
-          {/* Input + Mode selector */}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
-          className="w-full max-w-2xl mb-8">
-            <div className="bg-white border border-black/10"
-            style={{ boxShadow: '0 4px 40px rgba(0,0,0,0.10)', borderRadius: '14px', overflow: 'hidden' }}>
-
-              {/* Mode selector tabs */}
-              <div className="flex items-center gap-1 px-4 pt-4 pb-2 hidden">
-                <span className="text-[10px] font-black uppercase tracking-wider mr-2 hidden" style={{ color: 'rgba(10,10,10,0.3)' }}>Mode</span>
-                {MODES.map((m) =>
-                <button key={m.key} onClick={() => setActiveMode(m.key)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold transition-all rounded-lg"
-                style={{
-                  background: activeMode === m.key ? FG : 'rgba(0,0,0,0.04)',
-                  color: activeMode === m.key ? 'white' : 'rgba(10,10,10,0.5)',
-                  transform: activeMode === m.key ? 'scale(1.03)' : 'scale(1)'
-                }}>
-                    <span>{m.emoji}</span>
-                    <span>{m.label}</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Active mode description */}
-              <div className="px-4 pb-1">
-                <AnimatePresence mode="wait">
-                  <motion.p key={activeMode}
-                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.15 }} className="text-[10px] hidden"
-                  style={{ color: 'rgba(10,10,10,0.3)' }}>
-                    {MODES.find((m) => m.key === activeMode)?.desc}
-                  </motion.p>
-                </AnimatePresence>
-              </div>
-
-              {/* Textarea */}
-              <div className="relative flex items-end gap-3 px-5 pb-5 pt-3">
-                <textarea ref={inputRef} value={query} onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();handleSend();}}}
-                placeholder={hero.placeholder} rows={3}
-                className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
-                style={{ color: FG, minHeight: '72px' }} />
-                <button onClick={handleSend} disabled={!query.trim()}
-                className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all hover:scale-105"
-                style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
-                  <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Topics */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          className="flex flex-col items-center gap-4">
-            <p className="text-[11px] font-semibold uppercase tracking-widest hidden" style={{ color: 'rgba(10,10,10,0.3)' }}>
-              Not sure where to start?
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {(hero.topics || []).map((topic, i) => {
-                const label = typeof topic === 'object' ? topic.label : topic;
-                return (
-                  <button key={i} onClick={() => handleTopicClick(topic)} className="px-4 py-2 text-xs font-medium border border-black/10 transition-all hidden"
-
-                  style={{ color: 'rgba(10,10,10,0.6)', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
-                  onMouseEnter={(e) => {e.currentTarget.style.background = FG;e.currentTarget.style.color = 'white';e.currentTarget.style.borderColor = FG;}}
-                  onMouseLeave={(e) => {e.currentTarget.style.background = 'rgba(255,255,255,0.7)';e.currentTarget.style.color = 'rgba(10,10,10,0.6)';e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)';}}>
-                    {label}
-                  </button>);
-
-              })}
-              <button onClick={handleCta} className="px-4 py-2 text-xs font-black border transition-all hover:scale-105 hidden"
-
-              style={{ color: FG, borderRadius: '6px', background: YUZU, borderColor: YUZU }}>
-                🎯 Discover my Stensor Score
-              </button>
-            </div>
-          </motion.div>
-
-          {/* YOUTUBE VIDEO */}
+          {/* YOUTUBE VIDEO — avant le champ IA, plus grosse */}
           {youtube_url &&
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="w-full max-w-2xl mt-10">
-              <div className="overflow-hidden w-full"
-            style={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 8px 60px rgba(0,0,0,0.12)', aspectRatio: '16/9' }}>
-                <iframe
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="w-full max-w-3xl mb-10">
+            <div className="overflow-hidden w-full"
+              style={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 16px 80px rgba(0,0,0,0.14)', aspectRatio: '16/9' }}>
+              <iframe
                 src={(() => {
                   try {
                     const url = new URL(youtube_url);
@@ -324,10 +246,29 @@ export default function LandingPage() {
                 allowFullScreen
                 className="w-full h-full"
                 style={{ border: 'none' }} />
-              
-              </div>
-            </motion.div>
+            </div>
+          </motion.div>
           }
+
+          {/* Input */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}
+          className="w-full max-w-2xl mb-4">
+            <div className="bg-white border border-black/10"
+            style={{ boxShadow: '0 4px 40px rgba(0,0,0,0.10)', borderRadius: '14px', overflow: 'hidden' }}>
+              <div className="relative flex items-end gap-3 px-5 pb-5 pt-5">
+                <textarea ref={inputRef} value={query} onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();handleSend();}}}
+                placeholder={hero.placeholder} rows={3}
+                className="flex-1 resize-none bg-transparent text-sm focus:outline-none leading-relaxed"
+                style={{ color: FG, minHeight: '72px' }} />
+                <button onClick={handleSend} disabled={!query.trim()}
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all hover:scale-105"
+                style={{ background: query.trim() ? FG : 'rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+                  <ArrowUp className="w-4 h-4" style={{ color: query.trim() ? 'white' : '#bbb' }} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -346,20 +287,6 @@ export default function LandingPage() {
             onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-center mb-5">
                 <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Language</p>
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                {[{ code: 'en', label: '🇬🇧 English' }, { code: 'fr', label: '🇫🇷 Français' }].map((l) =>
-              <button key={l.code} onClick={() => {setMobileLang(l.code);setShowMobileMenu(false);}}
-              className="py-3 text-sm font-bold transition-all"
-              style={{
-                borderRadius: '8px',
-                background: mobileLang === l.code ? FG : 'rgba(0,0,0,0.05)',
-                color: mobileLang === l.code ? 'white' : '#555'
-              }}>
-                    {l.label}
-                  </button>
-              )}
               </div>
               <p className="text-[10px] font-black uppercase tracking-wider mb-3" style={{ color: '#aaa' }}>Navigate</p>
               <div className="space-y-2">
@@ -397,14 +324,20 @@ export default function LandingPage() {
       {/* PRICING */}
       <section className="px-6 py-24 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center mb-16">
             <h2 className="font-black text-4xl md:text-5xl mb-4" style={{ color: FG }}>{pricing.title}</h2>
             <p className="text-sm font-medium" style={{ color: 'rgba(10,10,10,0.60)' }}>{pricing.subtitle}</p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Free — glass reflex card */}
-            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="relative overflow-hidden p-10"
             style={{
               borderRadius: '24px',
@@ -434,8 +367,10 @@ export default function LandingPage() {
               </button>
             </motion.div>
             {/* Paid — clean dark card */}
-            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.08 }}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             className="relative overflow-hidden p-10"
             style={{
               borderRadius: '12px',
@@ -473,13 +408,20 @@ export default function LandingPage() {
       {/* FAQ */}
       <section className="px-6 py-20 bg-white" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div className="max-w-2xl mx-auto">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="font-black text-4xl md:text-5xl text-center mb-14" style={{ color: FG }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="font-black text-4xl md:text-5xl text-center mb-14" style={{ color: FG }}>
             FAQ
           </motion.h2>
           <div className="space-y-0">
             {faq.map((item, i) =>
-            <div key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20px' }}
+              transition={{ duration: 0.45, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+              style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
               className="w-full flex items-center justify-between px-0 py-5 text-left gap-4">
                   <span className="text-sm font-semibold" style={{ color: FG }}>{item.q}</span>
@@ -495,7 +437,7 @@ export default function LandingPage() {
                     </motion.div>
                 }
                 </AnimatePresence>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
