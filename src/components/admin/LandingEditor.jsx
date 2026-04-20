@@ -166,37 +166,37 @@ export default function LandingEditor() {
         </div>
       </Section>
 
-      {/* YOUTUBE VIDEO */}
-      <Section title="YouTube Video (below hero topics)">
-        <Field label="YouTube URL (full URL or video ID — leave empty to hide)" value={data.youtube_url || ''} onChange={v => set('youtube_url', v)} placeholder="https://www.youtube.com/watch?v=..." />
+      {/* YOUTUBE VIDEO — Hero */}
+      <Section title="YouTube Video (hero section, below input)">
+        <Field label="YouTube URL (leave empty to hide)" value={data.youtube_url || ''} onChange={v => set('youtube_url', v)} placeholder="https://www.youtube.com/watch?v=..." />
       </Section>
 
       {/* SECTION TITLE */}
-      <Section title="Section Title (between hero and cards)">
+      <Section title="Features Section Title">
         <Field label="Title" value={data.section_title} onChange={v => set('section_title', v)} />
       </Section>
 
-      {/* CARDS */}
-      <Section title="Feature Cards (black stacking cards)">
-        {data.cards.map((card, i) => (
-          <div key={i} className="p-4 space-y-3" style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'white' }}>
-            <p className="text-xs font-black" style={{ color: '#888' }}>Card {i + 1}</p>
-            <Field label="Title" value={card.title} onChange={v => {
-              const cards = JSON.parse(JSON.stringify(data.cards));
-              cards[i].title = v;
-              set('cards', cards);
-            }} />
-            <Field label="Description" value={card.desc} onChange={v => {
-              const cards = JSON.parse(JSON.stringify(data.cards));
-              cards[i].desc = v;
-              set('cards', cards);
-            }} multiline />
-            <Field label="Image URL" value={card.image} onChange={v => {
-              const cards = JSON.parse(JSON.stringify(data.cards));
-              cards[i].image = v;
-              set('cards', cards);
-            }} />
-            {card.image && <img src={card.image} alt="" className="h-20 w-auto object-cover opacity-60" />}
+      {/* FEATURE VIDEOS */}
+      <Section title="Feature Videos (4 videos — one per step)">
+        {[
+          { label: '1 — Generate', desc: 'Create plans with the best AIs' },
+          { label: '2 — Mentor', desc: '3 AI agents / mentors' },
+          { label: '3 — Analyze', desc: 'Files, web, extraordinary results' },
+          { label: '4 — Iterate', desc: 'Edit & refine what the AI outputs' },
+        ].map((item, i) => (
+          <div key={i} className="p-4 space-y-2" style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'white' }}>
+            <p className="text-xs font-black" style={{ color: '#555' }}>Step {item.label}</p>
+            <p className="text-[10px]" style={{ color: '#aaa' }}>{item.desc}</p>
+            <Field
+              label="YouTube URL (leave empty to show placeholder)"
+              value={(data.youtube_urls || [])[i] || ''}
+              onChange={v => {
+                const urls = [...(data.youtube_urls || ['', '', '', ''])];
+                urls[i] = v;
+                set('youtube_urls', urls);
+              }}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
           </div>
         ))}
       </Section>

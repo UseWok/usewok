@@ -30,6 +30,7 @@ export const DEFAULT_LANDING = {
     ],
   },
   youtube_url: 'https://youtu.be/FXLmWojBELE?si=MUWhJev6EcedlHlV',
+  youtube_urls: ['', '', '', ''],
   section_title: 'Everything is Possible.',
   cards: [
     {

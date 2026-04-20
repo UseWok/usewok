@@ -145,7 +145,7 @@ export default function LandingPage() {
     </div>);
 
 
-  const { nav, hero, section_title, cards, pricing, faq, cta, footer, youtube_url } = data;
+  const { nav, hero, section_title, cards, pricing, faq, cta, footer, youtube_url, youtube_urls } = data;
 
   return (
     <div className="min-h-screen font-be overflow-x-hidden bg-white">
@@ -317,7 +317,7 @@ export default function LandingPage() {
       <ScoreAddictionSection onCta={handleCta} />
 
       {/* STICKY SCROLL CARDS SECTION */}
-      <StickyCardsSection cards={cards} section_title={section_title} onCta={handleCta} />
+      <StickyCardsSection cards={cards} section_title={section_title} onCta={handleCta} youtube_urls={youtube_urls} />
 
 
 

@@ -33,21 +33,21 @@ const fadeUp = (delay = 0) => ({
 export default function ScoreAddictionSection({ onCta }) {
   return (
     <>
-      <div style={{ height: 60, background: 'linear-gradient(to bottom, #f8f8f2 0%, white 100%)' }} />
+      <div style={{ height: 60, background: 'linear-gradient(to bottom, white 0%, #f8faff 100%)' }} />
 
-      <section className="relative overflow-hidden px-6 py-24" style={{ background: 'white' }}>
+      <section className="relative overflow-hidden px-6 py-24" style={{ background: '#f8faff' }}>
 
-        {/* Background orbs */}
+        {/* Background orbs — light */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
             animate={{ x: [0, 40, -10, 0], y: [0, -30, 20, 0] }}
             transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position: 'absolute', width: 700, height: 700, top: '-200px', left: '-150px', background: 'radial-gradient(circle, rgba(221,255,0,0.22) 0%, transparent 65%)', filter: 'blur(60px)' }}
+            style={{ position: 'absolute', width: 700, height: 700, top: '-200px', left: '-150px', background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 65%)', filter: 'blur(60px)' }}
           />
           <motion.div
             animate={{ x: [0, -40, 20, 0], y: [0, 30, -30, 0] }}
             transition={{ duration: 26, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-            style={{ position: 'absolute', width: 600, height: 600, top: '-100px', right: '-150px', background: 'radial-gradient(circle, rgba(255,200,80,0.18) 0%, transparent 65%)', filter: 'blur(55px)' }}
+            style={{ position: 'absolute', width: 600, height: 600, top: '-100px', right: '-150px', background: 'radial-gradient(circle, rgba(34,197,94,0.07) 0%, transparent 65%)', filter: 'blur(55px)' }}
           />
         </div>
 
