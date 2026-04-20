@@ -62,8 +62,14 @@ export default function ChatInputBar({
     setShowFileMenu(false);
   };
 
+  const isFree = !userPlan || userPlan.price_monthly === 0;
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  const FREE_MOBILE_CHAR_LIMIT = 400;
+
   const handleInputChange = (e) => {
-    setInput(e.target.value);
+    const val = e.target.value;
+    if (isFree && isMobileDevice && val.length > FREE_MOBILE_CHAR_LIMIT) return;
+    setInput(val);
   };
 
   const AGENTS = [
@@ -194,6 +200,11 @@ export default function ChatInputBar({
             disabled={blocked} rows={1}
             className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed break-words text-foreground"
           />
+          {isFree && isMobileDevice && input.length > 350 && (
+            <p className="text-[10px] text-right mt-0.5 px-1" style={{ color: input.length >= FREE_MOBILE_CHAR_LIMIT ? '#ef4444' : '#aaa' }}>
+              {input.length}/{FREE_MOBILE_CHAR_LIMIT}
+            </p>
+          )}
         </div>
 
         {/* Bottom toolbar */}

@@ -286,20 +286,10 @@ function NewTicketModal({ onClose, user }) {
   const handleAnalyze = async () => {
     if (!description.trim()) return;
     setStep(1);
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analyze this support ticket. Reply with ONE word only: "bug" if technical/app issue, "money" if payment/billing/subscription, or "other". Ticket: ${description}`,
-        model: 'gpt_5_mini',
-      });
-      const r = result.toLowerCase();
-      const cat = r.includes('bug') ? 'bug' : (r.includes('money') || r.includes('payment') || r.includes('billing')) ? 'money' : 'other';
-      setSuggestedCategory(cat);
-      setSelectedCategory(cat);
-    } catch {
-      setSuggestedCategory('other');
-      setSelectedCategory('other');
-    }
-    await new Promise(r => setTimeout(r, 600));
+    // Simple loading without AI call
+    await new Promise(r => setTimeout(r, 800));
+    setSuggestedCategory(null);
+    setSelectedCategory('other');
     setStep(2);
   };
 

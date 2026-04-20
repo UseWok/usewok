@@ -95,6 +95,7 @@ export default function ChatPage() {
   const [useWebSearch, setUseWebSearch] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
+  const [showFreeDiscussionLimit, setShowFreeDiscussionLimit] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -183,10 +184,21 @@ export default function ChatPage() {
       try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {}
     }
 
-    // Check discussion limit
-    if (userPlan?.max_discussions > 0) {
+    // Check discussion limit (hard limit of 3 for free plan)
+    const isFree = !userPlan || userPlan.price_monthly === 0;
+    const FREE_DISCUSSION_LIMIT = 3;
+    if (isFree) {
       try {
-        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const stored = getDiscussions();
+        const isExisting = stored.find(d => d.id === convId);
+        if (!isExisting && stored.length >= FREE_DISCUSSION_LIMIT) {
+          setShowFreeDiscussionLimit(true);
+          return;
+        }
+      } catch {}
+    } else if (userPlan?.max_discussions > 0) {
+      try {
+        const stored = getDiscussions();
         if (!stored.find(d => d.id === convId) && stored.length >= userPlan.max_discussions) {
           setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
           setShowUpgrade(true);
@@ -421,6 +433,52 @@ export default function ChatPage() {
         open={showUpgrade} feature={upgradeFeature}
         onClose={() => setShowUpgrade(false)}
       />
+
+      {/* Free plan discussion limit modal */}
+      <AnimatePresence>
+        {showFreeDiscussionLimit && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+            onClick={() => setShowFreeDiscussionLimit(false)}>
+            <motion.div
+              initial={{ y: 40, opacity: 0, scale: 0.97 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0, scale: 0.97 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+              className="w-full max-w-sm bg-white overflow-hidden"
+              style={{ borderRadius: '20px' }}
+              onClick={e => e.stopPropagation()}>
+              {/* Header gradient */}
+              <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}>
+                <div className="text-4xl mb-3">💬</div>
+                <p className="font-black text-xl" style={{ color: FG }}>3 discussions max</p>
+                <p className="text-xs font-medium mt-1.5" style={{ color: 'rgba(10,10,10,0.5)' }}>Plan gratuit</p>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-sm text-center leading-relaxed mb-5" style={{ color: '#555' }}>
+                  Tu as atteint la limite de <strong>3 discussions</strong> sur le plan gratuit.<br />
+                  Supprime une discussion existante ou passe à un plan payant pour continuer.
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }}
+                    className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
+                    style={{ background: FG, color: 'white', borderRadius: '10px' }}>
+                    Voir les plans →
+                  </button>
+                  <button
+                    onClick={() => { setShowFreeDiscussionLimit(false); navigate('/app'); }}
+                    className="w-full py-3 font-medium text-sm transition-all hover:bg-black/5"
+                    style={{ color: '#888', borderRadius: '10px' }}>
+                    Gérer mes discussions
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

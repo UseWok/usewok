@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { isOfferActive, isEligibleForDiscount, getDiscountedPrice } from '@/lib/welcome-offer';
+// welcome-offer imports removed
 import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff, ChevronRight } from 'lucide-react';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
@@ -17,7 +17,6 @@ const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
-  const [offerActive, setOfferActive] = useState(false);
   const [eventCheckoutUrls, setEventCheckoutUrls] = useState({});
   const [savedCart, setSavedCart] = useState(() => { try { return JSON.parse(localStorage.getItem('stensor_cart_v1')); } catch { return null; } });
   const hasValidCart = savedCart && Date.now() - (savedCart.ts || 0) < 24 * 60 * 60 * 1000;
@@ -37,7 +36,6 @@ export default function PricingPage() {
     base44.auth.me().then(u => {
       setUser(u);
       setPurchased(u?.subscription_plan || 'free');
-      setOfferActive(isOfferActive(u));
     }).catch(() => {});
     // Load event checkout URLs
     base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(results => {
@@ -94,7 +92,7 @@ export default function PricingPage() {
                     {!isPaidPlan && (
                       <span className="text-[9px] font-black px-1.5 py-0.5"
                         style={{ background: billing === 'yearly' ? '#DDFF00' : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? '#0A0A0A' : '#888', borderRadius: '2px' }}>
-                        {offerActive ? 'Event -50%' : '-20%'}
+                        -20%
                       </span>
                     )}
                   </>
@@ -119,9 +117,8 @@ export default function PricingPage() {
         <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
           {plans.map((plan, idx) => {
             const Icon = PLAN_ICONS[plan.id] || Star;
-            const hasEventDiscount = offerActive && isEligibleForDiscount(plan.id, billing);
             const basePrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
-            const price = hasEventDiscount ? getDiscountedPrice(basePrice) : basePrice;
+            const price = basePrice;
             const annualTotal = plan.price_yearly * 12;
             const isCurrentPlan = purchased === plan.id;
             const isRecommended = plan.id === 'expert';
@@ -165,23 +162,13 @@ export default function PricingPage() {
                   {/* Price */}
                   <div className="mb-4">
                     <div className="flex items-end gap-2 flex-wrap">
-                      {hasEventDiscount && (
-                        <span className="text-xl font-bold line-through" style={{ color: isRecommended ? 'rgba(255,255,255,0.5)' : '#888' }}>
-                          {basePrice}$
-                        </span>
-                      )}
                       <span className="text-3xl font-black" style={{ color: isRecommended ? 'white' : FG }}>
                         {price}$
                       </span>
                       <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
                         /mois
                       </span>
-                      {hasEventDiscount && (
-                        <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
-                          -30%
-                        </span>
-                      )}
-                      {!hasEventDiscount && !offerActive && billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
+                      {billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
                         <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
                           Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
                         </span>

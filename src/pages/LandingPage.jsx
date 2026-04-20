@@ -218,14 +218,7 @@ export default function LandingPage() {
             {hero.subtitle}
           </motion.p>
 
-          {/* Score tagline */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }}
-            className="flex items-center justify-center gap-2 mb-10">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black"
-              style={{ background: YUZU, color: FG }}>
-              ⚡ Stensor Score — Your financial state in 1 number
-            </span>
-          </motion.div>
+          <div className="mb-10" />
 
           {/* Input + Mode selector */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}

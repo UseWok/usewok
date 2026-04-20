@@ -139,12 +139,25 @@ function TicketRow({ ticket, onRefetch }) {
   );
 }
 
+const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
+
 export default function TicketsTab() {
-  const { data: tickets = [], refetch } = useQuery({
+  const { data: allTickets = [], refetch } = useQuery({
     queryKey: ['support_tickets'],
-    queryFn: () => base44.entities.SupportTicket.list('-created_date', 100),
+    queryFn: async () => {
+      const list = await base44.entities.SupportTicket.list('-created_date', 100);
+      // Auto-delete tickets (non-cancellation) older than 15 days
+      const now = new Date();
+      for (const t of list) {
+        if (t.category !== 'cancellation' && now - new Date(t.created_date) > FIFTEEN_DAYS_MS) {
+          await base44.entities.SupportTicket.delete(t.id).catch(() => {});
+        }
+      }
+      return base44.entities.SupportTicket.list('-created_date', 100);
+    },
   });
 
+  const tickets = allTickets.filter(t => t.category !== 'cancellation');
   const open = tickets.filter(t => t.status === 'open');
   const rest = tickets.filter(t => t.status !== 'open');
 

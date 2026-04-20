@@ -169,15 +169,13 @@ export default function CancellationsTab() {
       const all = await base44.entities.SupportTicket.list('-created_date', 200);
       const cancellations = all.filter(t => t.category === 'cancellation');
 
-      // Auto-delete approved tickets older than 24h
+      // Auto-delete all cancellation tickets older than 15 days
       const now = new Date();
+      const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
       for (const t of cancellations) {
-        if (t.cancel_status === 'approved' && t.cancel_approved_at) {
-          const approvedAt = new Date(t.cancel_approved_at);
-          const msElapsed = now - approvedAt;
-          if (msElapsed > 24 * 60 * 60 * 1000) {
-            await base44.entities.SupportTicket.delete(t.id).catch(() => {});
-          }
+        const createdAt = new Date(t.created_date);
+        if (now - createdAt > FIFTEEN_DAYS_MS) {
+          await base44.entities.SupportTicket.delete(t.id).catch(() => {});
         }
       }
 
