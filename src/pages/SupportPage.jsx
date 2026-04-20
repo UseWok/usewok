@@ -620,50 +620,77 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: '#f9f9f9' }}>
           {messages.length === 0 ? (
-            <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
+          <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
           ) : messages.map((msg, i) => {
-            const isSystem = msg.author === 'system';
-            const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
-            if (isSystem) {
-              return (
-                <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                    style={{ background: 'rgba(22,163,74,0.08)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.2)' }}>
-                    <CheckCircle className="w-3.5 h-3.5" /> {msg.text}
-                  </div>
-                </motion.div>
-              );
-            }
+          const isSystem = msg.author === 'system';
+          // For regular users: their own messages (author='user') are on the right
+          // For admins: their own messages (author='admin') are on the right
+          const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
+
+          if (isSystem) {
             return (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                {!isMe && (
-                  <div className="w-6 h-6 rounded-full flex-shrink-0 mr-2 mt-1 flex items-center justify-center text-[10px] font-black text-white"
-                    style={{ background: FG }}>
-                    {msg.author === 'admin' ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
-                  </div>
-                )}
-                <div className="max-w-[78%]">
-                  <div className="px-4 py-3 shadow-sm"
-                    style={{
-                      background: isMe ? FG : 'white',
-                      color: isMe ? 'white' : FG,
-                      border: isMe ? 'none' : '1px solid rgba(0,0,0,0.07)',
-                      borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
-                    }}>
-                    {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
-                    {msg.file_urls?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
-                      </div>
-                    )}
-                    <p className="text-[10px] mt-1.5 select-none" style={{ opacity: 0.45 }}>
-                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                  style={{ background: 'rgba(22,163,74,0.08)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.2)' }}>
+                  <CheckCircle className="w-3.5 h-3.5" /> {msg.text}
                 </div>
               </motion.div>
             );
+          }
+
+          // Avatar config
+          const isStensor = msg.author === 'admin';
+          const avatarLetter = isStensor
+            ? 'S'
+            : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U');
+          const avatarBg = isStensor ? YUZU : '#6366f1';
+          const avatarColor = isStensor ? FG : 'white';
+
+          return (
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+
+              {/* Left avatar (other person) */}
+              {!isMe && (
+                <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black shadow-sm"
+                  style={{ background: avatarBg, color: avatarColor, border: '1.5px solid rgba(0,0,0,0.08)' }}>
+                  {avatarLetter}
+                </div>
+              )}
+
+              <div className="max-w-[72%]">
+                <div className="px-4 py-3 shadow-sm"
+                  style={{
+                    background: isMe ? FG : 'white',
+                    color: isMe ? 'white' : FG,
+                    border: isMe ? 'none' : '1px solid rgba(0,0,0,0.07)',
+                    borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                  }}>
+                  {msg.text && <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>}
+                  {msg.file_urls?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
+                    </div>
+                  )}
+                  <p className="text-[10px] mt-1.5 select-none" style={{ opacity: 0.45 }}>
+                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right avatar (me) */}
+              {isMe && (
+                <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black shadow-sm"
+                  style={{
+                    background: isAdmin ? YUZU : '#6366f1',
+                    color: isAdmin ? FG : 'white',
+                    border: '1.5px solid rgba(0,0,0,0.08)',
+                  }}>
+                  {isAdmin ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
+                </div>
+              )}
+            </motion.div>
+          );
           })}
           <div ref={messagesEndRef} />
         </div>
