@@ -6,76 +6,54 @@ import { ChevronDown, Check, X } from 'lucide-react';
 
 const PENDING_KEY = 'stensor_pending_query';
 
-// ── Brand colors (base44 palette adapted for Stensor) ─────────────────────
-const ORANGE = '#f97316';   // orange-500
+// ── Brand colors ──────────────────────────────────────────────────────────
+const YELLOW = '#eab308';   // yellow-500
 const TEAL   = '#2dd4bf';   // teal-400
 const FG     = '#0A0A0A';
 
-// ── Animated floating dots ────────────────────────────────────────────────
+// ── Static dots (fixed, not animated) ────────────────────────────────────
 const DOT_CONFIGS = [
-  { top:'44%',left:'93%',color:'rgba(249,115,22,0.2)',delay:0.7,dur:8.9},
-  { top:'21%',left:'7%', color:'rgba(45,212,191,0.2)',delay:4.5,dur:7.1},
-  { top:'58%',left:'57%',color:'rgba(180,180,180,0.2)',delay:0.2,dur:9.7},
-  { top:'12%',left:'49%',color:'rgba(249,115,22,0.2)',delay:3.8,dur:9.0},
-  { top:'79%',left:'61%',color:'rgba(45,212,191,0.2)',delay:2.6,dur:9.7},
-  { top:'15%',left:'97%',color:'rgba(180,180,180,0.2)',delay:2.6,dur:9.0},
-  { top:'30%',left:'88%',color:'rgba(249,115,22,0.2)',delay:4.1,dur:8.0},
-  { top:'47%',left:'50%',color:'rgba(45,212,191,0.2)',delay:4.4,dur:7.3},
-  { top:'60%',left:'17%',color:'rgba(180,180,180,0.2)',delay:1.2,dur:8.6},
-  { top:'30%',left:'90%',color:'rgba(249,115,22,0.2)',delay:2.0,dur:8.9},
-  { top:'65%',left:'41%',color:'rgba(45,212,191,0.2)',delay:0.4,dur:7.5},
-  { top:'33%',left:'19%',color:'rgba(180,180,180,0.2)',delay:0.9,dur:8.4},
-  { top:'55%',left:'12%',color:'rgba(249,115,22,0.2)',delay:2.3,dur:7.9},
-  { top:'60%',left:'48%',color:'rgba(45,212,191,0.2)',delay:2.2,dur:7.1},
-  { top:'11%',left:'91%',color:'rgba(180,180,180,0.2)',delay:3.2,dur:8.2},
-  { top:'93%',left:'92%',color:'rgba(249,115,22,0.2)',delay:2.9,dur:7.9},
-  { top:'8%', left:'57%',color:'rgba(45,212,191,0.2)',delay:0.7,dur:9.3},
-  { top:'13%',left:'40%',color:'rgba(180,180,180,0.2)',delay:2.4,dur:9.4},
-  { top:'71%',left:'11%',color:'rgba(249,115,22,0.2)',delay:1.6,dur:7.8},
-  { top:'20%',left:'77%',color:'rgba(45,212,191,0.2)',delay:4.5,dur:8.7},
-  { top:'21%',left:'7%', color:'rgba(180,180,180,0.2)',delay:1.3,dur:7.7},
-  { top:'14%',left:'74%',color:'rgba(249,115,22,0.2)',delay:4.9,dur:8.3},
-  { top:'54%',left:'53%',color:'rgba(45,212,191,0.2)',delay:2.5,dur:9.7},
-  { top:'25%',left:'12%',color:'rgba(180,180,180,0.2)',delay:3.3,dur:7.3},
-  { top:'94%',left:'25%',color:'rgba(249,115,22,0.2)',delay:1.9,dur:7.3},
-  { top:'29%',left:'71%',color:'rgba(45,212,191,0.2)',delay:1.0,dur:9.7},
-  { top:'63%',left:'58%',color:'rgba(180,180,180,0.2)',delay:3.1,dur:7.2},
-  { top:'17%',left:'23%',color:'rgba(249,115,22,0.2)',delay:3.6,dur:9.2},
-  { top:'73%',left:'43%',color:'rgba(45,212,191,0.2)',delay:4.9,dur:9.7},
-  { top:'39%',left:'62%',color:'rgba(180,180,180,0.2)',delay:1.1,dur:9.5},
+  { top:'44%',left:'93%',color:'rgba(234,179,8,0.12)'},
+  { top:'21%',left:'7%', color:'rgba(45,212,191,0.12)'},
+  { top:'79%',left:'61%',color:'rgba(45,212,191,0.12)'},
+  { top:'15%',left:'97%',color:'rgba(180,180,180,0.1)'},
+  { top:'30%',left:'88%',color:'rgba(234,179,8,0.10)'},
+  { top:'60%',left:'17%',color:'rgba(180,180,180,0.1)'},
+  { top:'65%',left:'41%',color:'rgba(45,212,191,0.10)'},
+  { top:'33%',left:'19%',color:'rgba(180,180,180,0.08)'},
+  { top:'11%',left:'91%',color:'rgba(180,180,180,0.08)'},
+  { top:'93%',left:'92%',color:'rgba(234,179,8,0.10)'},
+  { top:'8%', left:'57%',color:'rgba(45,212,191,0.10)'},
+  { top:'71%',left:'11%',color:'rgba(234,179,8,0.10)'},
+  { top:'20%',left:'77%',color:'rgba(45,212,191,0.12)'},
+  { top:'14%',left:'74%',color:'rgba(234,179,8,0.08)'},
+  { top:'94%',left:'25%',color:'rgba(234,179,8,0.10)'},
+  { top:'29%',left:'71%',color:'rgba(45,212,191,0.10)'},
+  { top:'17%',left:'23%',color:'rgba(234,179,8,0.08)'},
+  { top:'73%',left:'43%',color:'rgba(45,212,191,0.10)'},
+  { top:'39%',left:'62%',color:'rgba(180,180,180,0.07)'},
 ];
 
 function PageBackground() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-      {/* Large gradient blobs */}
-      <motion.div
-        animate={{ x:[0,20,-10,0], y:[0,-30,15,0], scale:[1,1.05,0.97,1] }}
-        transition={{ duration:7, repeat:Infinity, ease:'easeInOut' }}
-        className="absolute rounded-full"
-        style={{ width:600, height:600, top:-160, left:-160,
-          background:'radial-gradient(circle, rgba(249,115,22,0.10) 0%, rgba(244,63,94,0.05) 40%, transparent 70%)',
+      {/* Large gradient blobs — static */}
+      <div className="absolute rounded-full"
+        style={{ width:700, height:700, top:-160, left:-160,
+          background:'radial-gradient(circle, rgba(234,179,8,0.13) 0%, rgba(244,63,94,0.04) 40%, transparent 70%)',
           filter:'blur(40px)' }} />
-      <motion.div
-        animate={{ x:[0,-25,10,0], y:[0,20,-15,0], scale:[1,1.08,0.95,1] }}
-        transition={{ duration:8, repeat:Infinity, ease:'easeInOut', delay:3 }}
-        className="absolute rounded-full"
-        style={{ width:600, height:600, top:'25%', right:-160,
-          background:'radial-gradient(circle, rgba(45,212,191,0.10) 0%, rgba(59,130,246,0.05) 40%, transparent 70%)',
+      <div className="absolute rounded-full"
+        style={{ width:700, height:700, top:'25%', right:-160,
+          background:'radial-gradient(circle, rgba(45,212,191,0.18) 0%, rgba(59,130,246,0.07) 40%, transparent 70%)',
           filter:'blur(50px)' }} />
-      <motion.div
-        animate={{ x:[0,30,-20,0], y:[0,-20,30,0] }}
-        transition={{ duration:9, repeat:Infinity, ease:'easeInOut', delay:8 }}
-        className="absolute rounded-full"
+      <div className="absolute rounded-full"
         style={{ width:600, height:600, bottom:-150, left:'30%',
-          background:'radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 70%)',
+          background:'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)',
           filter:'blur(40px)' }} />
 
-      {/* Floating dots */}
+      {/* Static dots */}
       {DOT_CONFIGS.map((d, i) => (
-        <motion.div key={i}
-          animate={{ y:[0,-18,0], x:[0,6,0] }}
-          transition={{ duration:d.dur, repeat:Infinity, ease:'easeInOut', delay:d.delay }}
+        <div key={i}
           className="absolute w-2 h-2 rounded-full"
           style={{ top:d.top, left:d.left, background:d.color }} />
       ))}
@@ -102,11 +80,11 @@ function Navbar({ onCta }) {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+    <header className="sticky top-0 left-0 right-0 z-50"
       style={{
-        background: scrolled ? 'rgba(255,255,255,0.95)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.07)' : 'none',
+        background: 'rgba(255,255,255,0.97)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(0,0,0,0.07)',
       }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
@@ -172,7 +150,7 @@ function Hero() {
           style={{
             fontSize: 'clamp(2.6rem, 7vw, 4.5rem)',
             lineHeight: 1.1,
-            background: `linear-gradient(to right, ${ORANGE}, #fb923c, ${TEAL})`,
+            background: `linear-gradient(to right, ${YELLOW}, #facc15, ${TEAL})`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}>
@@ -180,7 +158,7 @@ function Hero() {
         </motion.h1>
         {/* horizontal line accent */}
         <div className="absolute -inset-x-20 top-1/2 h-px"
-          style={{ background: `linear-gradient(to right, transparent, rgba(249,115,22,0.2), transparent)` }} />
+          style={{ background: `linear-gradient(to right, transparent, rgba(234,179,8,0.2), transparent)` }} />
       </div>
 
       <motion.p initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.15 }}
@@ -194,7 +172,7 @@ function Hero() {
         <div className="relative group">
           {/* glow ring */}
           <div className="absolute -inset-1 rounded-xl blur-lg transition-all duration-300 group-hover:blur-xl group-hover:-inset-2"
-            style={{ background:`linear-gradient(to right, rgba(249,115,22,0.5), rgba(45,212,191,0.5))` }} />
+            style={{ background:`linear-gradient(to right, rgba(234,179,8,0.4), rgba(45,212,191,0.4))` }} />
           <div className="relative rounded-xl p-2 shadow-xl transition-transform duration-300 group-hover:scale-[1.005]"
             style={{ background:'rgba(255,255,255,0.92)', backdropFilter:'blur(8px)' }}>
             <div className="w-full relative shadow-sm border rounded-lg"
@@ -218,7 +196,7 @@ function Hero() {
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.4 }}
         className="flex items-center justify-center gap-3 mt-6">
         <div className="flex -space-x-2">
-          {[ORANGE, TEAL, '#6366f1'].map((c, i) => (
+          {[YELLOW, TEAL, '#6366f1'].map((c, i) => (
             <div key={i} className="w-8 h-8 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[10px] font-bold text-white"
               style={{ background: c }}>
               {['J','M','A'][i]}
@@ -226,7 +204,7 @@ function Hero() {
           ))}
         </div>
         <span className="text-sm" style={{ color:'rgba(0,0,0,0.5)' }}>
-          Loved by over 10k users worldwide
+          Loved by over 1k users worldwide
         </span>
       </motion.div>
     </section>
@@ -374,10 +352,13 @@ function UseCasesSection({ onCta }) {
               initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }}
               viewport={{ once:true, margin:'-40px' }} transition={{ delay:(i%3)*0.08 }}
               onClick={onCta}
-              className="rounded-2xl p-7 cursor-pointer group transition-all hover:scale-[1.02] hover:shadow-lg"
+              className="rounded-2xl p-8 cursor-pointer group transition-all hover:scale-[1.01] hover:shadow-md text-center"
               style={{ background:'white', border:'1px solid rgba(0,0,0,0.07)', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
-              <div className="text-3xl mb-4">{c.emoji}</div>
-              <h3 className="font-bold text-base mb-2" style={{ color: FG }}>{c.title}</h3>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+                style={{ background:'rgba(0,0,0,0.05)', border:'1px solid rgba(0,0,0,0.08)' }}>
+                <span className="text-2xl">{c.emoji}</span>
+              </div>
+              <h3 className="font-semibold text-base mb-3" style={{ color: FG }}>{c.title}</h3>
               <p className="text-sm leading-relaxed" style={{ color:'rgba(0,0,0,0.5)' }}>{c.desc}</p>
             </motion.div>
           ))}
@@ -390,18 +371,30 @@ function UseCasesSection({ onCta }) {
 // ── CTA ───────────────────────────────────────────────────────────────────
 function CtaBanner({ onCta }) {
   return (
-    <section className="relative z-10 py-20 px-6 text-center">
-      <div className="max-w-2xl mx-auto">
+    <section className="relative z-10 py-24 px-6 text-center overflow-hidden"
+      style={{ background:'linear-gradient(135deg, rgba(254,252,232,0.8) 0%, rgba(240,253,250,0.8) 100%)' }}>
+      {/* Background blobs */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute rounded-full" style={{ width:500, height:500, top:-100, left:-100, background:'radial-gradient(circle, rgba(234,179,8,0.15) 0%, transparent 70%)', filter:'blur(40px)' }} />
+        <div className="absolute rounded-full" style={{ width:500, height:500, bottom:-100, right:-100, background:'radial-gradient(circle, rgba(45,212,191,0.20) 0%, transparent 70%)', filter:'blur(40px)' }} />
+        {/* Grid */}
+        <div className="absolute inset-0" style={{
+          backgroundImage:'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
+          backgroundSize:'48px 48px',
+        }} />
+      </div>
+      <div className="max-w-2xl mx-auto relative z-10">
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4" style={{ color: FG }}>
-            Ready to get started?
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-3">
+            <span style={{ color: YELLOW }}>Ready to get</span>{' '}
+            <span style={{ color: TEAL }}>started?</span>
           </h2>
-          <p className="text-lg mb-8" style={{ color:'rgba(0,0,0,0.45)' }}>
+          <p className="text-lg mb-10" style={{ color:'rgba(0,0,0,0.5)' }}>
             Sign up for free and start building your financial strategy today!
           </p>
           <button onClick={onCta}
-            className="inline-flex items-center gap-2 text-base font-semibold px-8 py-4 rounded-xl transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg"
-            style={{ background: FG, color:'white' }}>
+            className="inline-flex items-center gap-2 text-base font-semibold px-10 py-4 rounded-2xl transition-all hover:scale-[1.02] shadow-xl"
+            style={{ background:'white', color: FG, border:'1px solid rgba(0,0,0,0.1)', boxShadow:'0 8px 30px rgba(0,0,0,0.08)' }}>
             Start Building
           </button>
         </motion.div>
@@ -469,7 +462,7 @@ function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background:'linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(45,212,191,0.15) 100%)' }}>
+                style={{ background:'linear-gradient(135deg, rgba(234,179,8,0.15) 0%, rgba(45,212,191,0.15) 100%)' }}>
                 <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-5 h-5 object-contain" />
               </div>
               <span className="font-bold text-lg" style={{ color: FG }}>Stensor</span>
