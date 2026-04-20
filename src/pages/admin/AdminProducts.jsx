@@ -124,10 +124,15 @@ export default function AdminProducts() {
     qc.invalidateQueries(['notifications']); refetchNotifs();
   };
 
-  const deleteNotif = async (id) => { await base44.entities.Notification.delete(id); refetchNotifs(); };
+  const deleteNotif = async (id) => {
+    try { await base44.entities.Notification.delete(id); } catch {}
+    refetchNotifs();
+  };
   const saveNotif = async () => {
     if (!editingNotif) return;
-    await base44.entities.Notification.update(editingNotif.id, { title: editingNotif.title, message: editingNotif.message, link: editingNotif.link, link_label: editingNotif.link_label });
+    try {
+      await base44.entities.Notification.update(editingNotif.id, { title: editingNotif.title, message: editingNotif.message, link: editingNotif.link, link_label: editingNotif.link_label });
+    } catch {}
     setEditingNotif(null); refetchNotifs();
   };
 
