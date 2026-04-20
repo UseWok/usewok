@@ -465,6 +465,8 @@ function NewTicketModal({ onClose, user }) {
 function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const [currentTicket, setCurrentTicket] = useState(ticket);
   const [messages, setMessages] = useState(() => { try { return JSON.parse(ticket.messages_json || '[]'); } catch { return []; } });
+  const messagesRef = useRef(messages);
+  const sendingRef = useRef(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [files, setFiles] = useState([]);
@@ -476,20 +478,30 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const cat = CATEGORY_CONFIG[currentTicket.category] || CATEGORY_CONFIG.other;
   const CatIcon = cat.icon;
 
+  // Keep ref in sync with state
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Poll for updates
+  // Poll for updates — only update if server has MORE messages than local (avoid overwriting optimistic state)
   useEffect(() => {
     const id = currentTicket.id;
     const interval = setInterval(async () => {
+      if (sendingRef.current) return; // don't override while sending
       try {
         const all = await base44.entities.SupportTicket.list('-updated_date', 200);
         const updated = all.find(t => t.id === id);
         if (updated) {
-          setCurrentTicket(updated);
-          try { setMessages(JSON.parse(updated.messages_json || '[]')); } catch {}
+          setCurrentTicket(prev => ({ ...prev, status: updated.status }));
+          try {
+            const serverMessages = JSON.parse(updated.messages_json || '[]');
+            // Only sync if server has more messages than local
+            if (serverMessages.length > messagesRef.current.length) {
+              setMessages(serverMessages);
+            }
+          } catch {}
         }
       } catch {}
     }, 3000);
@@ -498,6 +510,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
 
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && files.length === 0) || isClosed || sending) return;
+    sendingRef.current = true;
     setSending(true);
     let file_urls = [];
     for (const f of files) {
@@ -505,13 +518,14 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
     }
     const author = isAdmin ? 'admin' : 'user';
     const msg = { author, text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
-    const updatedMessages = [...messages, msg];
+    const updatedMessages = [...messagesRef.current, msg];
     setMessages(updatedMessages);
     setNewMessage('');
     setFiles([]);
     await base44.entities.SupportTicket.update(currentTicket.id, {
       messages_json: JSON.stringify(updatedMessages),
     });
+    sendingRef.current = false;
     setSending(false);
   };
 
