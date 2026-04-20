@@ -27,7 +27,7 @@ export default function LandingFooter({ logoUrl, footerLinks, disclaimer }) {
   ];
 
   return (
-    <footer style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+    <footer style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.07)', position: 'relative', zIndex: 10 }}>
       <div className="max-w-5xl mx-auto px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
 

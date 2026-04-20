@@ -7,8 +7,7 @@ import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 
 const PENDING_KEY = 'stensor_pending_query';
 const FG = '#0A0A0A';
-const YELLOW = '#eab308';
-const TEAL = '#2dd4bf';
+const YELLOW = '#DDFF00';
 
 const PLAN_FEATURES = {
   free:      ['10 credits/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
@@ -17,7 +16,7 @@ const PLAN_FEATURES = {
   expert:    ['500 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
 };
 
-// ── Background (same as pricing page) ────────────────────────────────────
+// ── Background ────────────────────────────────────────────────────────────
 function PageBackground() {
   return (
     <>
@@ -27,67 +26,56 @@ function PageBackground() {
         zIndex: 0,
       }} />
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div style={{ position: 'absolute', width: 500, height: 500, top: -100, left: -100, background: 'radial-gradient(circle, rgba(234,179,8,0.20) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-        <div style={{ position: 'absolute', width: 400, height: 400, top: 0, right: -80, background: 'radial-gradient(circle, rgba(45,212,191,0.15) 0%, transparent 70%)', filter: 'blur(55px)' }} />
-        <div style={{ position: 'absolute', width: 500, height: 500, bottom: -100, left: '30%', background: 'radial-gradient(circle, rgba(234,179,8,0.10) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div style={{ position: 'absolute', width: 500, height: 500, top: -100, left: -100, background: 'radial-gradient(circle, rgba(221,255,0,0.20) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, top: 0, right: -80, background: 'radial-gradient(circle, rgba(221,255,0,0.10) 0%, transparent 70%)', filter: 'blur(55px)' }} />
       </div>
     </>
   );
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────
+// ── Navbar (floating pill — same as LandingPricingPage) ───────────────────
 function Navbar({ onCta }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 10);
+    const h = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-50"
-      style={{
-        background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.90)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(0,0,0,0.07)',
-        transition: 'all 0.3s ease',
-      }}>
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo — large, classic, white bg */}
-        <button onClick={() => navigate('/')} className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm"
-            style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-            <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png"
-              alt="Stensor" className="w-7 h-7 object-contain" />
-          </div>
-          <span className="font-bold text-lg tracking-tight" style={{ color: FG }}>Stensor</span>
+    <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
+      <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5 relative"
+        style={{
+          background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.90)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: '10px',
+          boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.07)' : '0 2px 12px rgba(0,0,0,0.04)',
+          backdropFilter: 'blur(12px)',
+          transition: 'all 0.3s ease',
+        }}>
+        <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
+          <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png"
+            alt="Stensor" className="w-6 h-6 object-contain" />
+          <span className="font-black text-sm tracking-tight" style={{ color: FG }}>Stensor</span>
         </button>
-
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-8">
-          {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs']].map(([label, href]) => (
-            <a key={label} href={href}
-              className="text-sm font-medium transition-colors hover:text-black"
-              style={{ color: 'rgba(0,0,0,0.55)' }}>{label}</a>
-          ))}
-        </nav>
-
-        {/* Actions */}
+        <div className="hidden md:flex items-center gap-8">
+          <a href="/fonctionnalites" className="text-xs font-medium text-gray-500 hover:text-black transition-colors">Features</a>
+          <a href="/tarifs" className="text-xs font-medium text-gray-500 hover:text-black transition-colors">Pricing</a>
+        </div>
         <div className="flex items-center gap-2">
           <button onClick={() => base44.auth.redirectToLogin('/app')}
-            className="text-sm font-semibold px-4 py-2 rounded-lg border transition-all hover:bg-black hover:text-white hover:border-black"
-            style={{ color: FG, borderColor: 'rgba(0,0,0,0.2)', background: 'transparent' }}>
+            className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
             Sign In
           </button>
           <button onClick={onCta}
-            className="text-sm font-semibold px-5 py-2.5 rounded-lg transition-all hover:opacity-90 hover:scale-[1.02]"
-            style={{ background: FG, color: 'white' }}>
-            Start Building
+            className="text-xs font-black px-4 py-2.5 transition-all hover:scale-105"
+            style={{ background: YELLOW, color: FG, borderRadius: '8px' }}>
+            Get Started
           </button>
         </div>
-      </div>
-    </header>
+      </nav>
+    </div>
   );
 }
 
@@ -109,7 +97,7 @@ function Hero() {
   };
 
   return (
-    <section className="relative z-10 pt-36 pb-16 text-center px-6">
+    <section className="relative z-10 pt-48 pb-16 text-center px-6">
       <motion.h1
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
         className="font-bold tracking-tighter"
@@ -120,7 +108,7 @@ function Hero() {
         }}>
         Build a complete plan for{' '}
         <span style={{
-          background: `linear-gradient(to right, ${YELLOW}, #facc15, ${TEAL})`,
+          background: `linear-gradient(to right, #a08800, #eab308)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>anything financial.</span>
@@ -136,7 +124,7 @@ function Hero() {
         className="max-w-3xl mx-auto mt-12 px-4">
         <div className="relative group">
           <div className="absolute -inset-1 rounded-xl blur-lg transition-all duration-300 group-hover:blur-xl group-hover:-inset-2"
-            style={{ background: `linear-gradient(to right, rgba(234,179,8,0.4), rgba(45,212,191,0.4))` }} />
+            style={{ background: `linear-gradient(to right, rgba(221,255,0,0.5), rgba(180,220,0,0.4))` }} />
           <div className="relative rounded-xl p-2 shadow-xl"
             style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)' }}>
             <div className="w-full relative border rounded-lg bg-white"
@@ -166,7 +154,7 @@ function Hero() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
         className="flex items-center justify-center gap-3 mt-6">
         <div className="flex -space-x-2">
-          {[YELLOW, TEAL, '#6366f1'].map((c, i) => (
+          {[FG, '#555', '#888'].map((c, i) => (
             <div key={i} className="w-8 h-8 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[10px] font-bold text-white"
               style={{ background: c }}>
               {['J', 'M', 'A'][i]}
@@ -280,7 +268,7 @@ function PricingSection({ onCta }) {
             const isAdvanced = plan.id === 'advanced';
             const isLast = i === plans.length - 1;
             const features = PLAN_FEATURES[plan.id] || [];
-            const price = plan.price_yearly;
+            const price = plan.price_monthly;
 
             return (
               <motion.div key={plan.id}
@@ -318,9 +306,6 @@ function PricingSection({ onCta }) {
                     </span>
                     <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>/mo</span>
                   </div>
-                  {price > 0 && (
-                    <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>billed yearly</p>
-                  )}
                 </div>
 
                 <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
