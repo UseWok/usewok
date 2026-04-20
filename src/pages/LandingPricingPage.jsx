@@ -3,35 +3,23 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import FinalCta from '../components/landing/FinalCta';
 import LandingFooter from '../components/landing/LandingFooter';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
-import { useLanguage } from '@/lib/i18n';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
-const FEATURE_ROWS = [
-  { label: 'Monthly credits', key: 'credits_limit', format: v => `${v}` },
-  { label: 'Daily quota', key: 'daily_credits_limit', format: v => v === 0 ? 'Unlimited' : `${v}/day` },
-  { label: 'Discussions', key: 'max_discussions', format: v => v === 0 ? 'Unlimited' : `${v} max` },
-  { label: 'Internet Search', key: 'internet_access', format: v => v },
-  { label: 'File Uploads', key: 'file_upload', format: v => v },
-  { label: 'Expert AI Mode', key: 'ultimate_access', format: v => v },
-  { label: 'Premium Support', key: 'premium_support', format: v => v },
-];
-
-// Essential plan upsell points
-const ESSENTIAL_PITCH = [
-  '500 actions per month — More than enough to manage everything',
-  'No daily limit — Chat as much as you want',
-  'Web connected — Real-time market information',
-  'File reading — Analyze your PDFs and statements',
-  'AI in Expert Mode — Our most powerful technology',
-];
+const PLAN_FEATURES = {
+  free:      ['10 credits/month', '3 discussions', 'Standard AI mode'],
+  essential: ['50 credits/month', 'Unlimited discussions', 'Standard AI mode'],
+  advanced:  ['150 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
+  expert:    ['500 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
+  supreme:   ['1000 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support', 'Shareable credits'],
+};
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
@@ -40,14 +28,9 @@ export default function LandingPricingPage() {
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
   const navData = landingData?.nav || null;
-  const { t } = useLanguage();
+  const logoUrl = navData?.logo_url || LOGO_URL;
 
-  useEffect(() => {
-    loadPlansFromDB().then(p => { if (p) setPlansConfig(p); });
-  }, []);
-
-  const plans = [...plansConfig].reverse(); // most expensive first (left to right)
-
+  useEffect(() => { loadPlansFromDB().then(p => { if (p) setPlansConfig(p); }); }, []);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -55,22 +38,50 @@ export default function LandingPricingPage() {
   }, []);
 
   const handleCta = () => base44.auth.redirectToLogin('/app');
-  const logoUrl = navData?.logo_url || LOGO_URL;
   const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
 
-  const essentialPlan = plans.find(p => p.id === 'expert') || plans[0];
-  const otherPlans = plans.filter(p => p.id !== essentialPlan?.id);
+  // Show only: free, essential, advanced, expert (skip supreme for cleanliness)
+  const visibleIds = ['free', 'essential', 'advanced', 'expert'];
+  const plans = plansConfig.filter(p => visibleIds.includes(p.id));
+  // Sort: free → essential → advanced → expert
+  plans.sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
 
   return (
-    <div className="min-h-screen font-be overflow-x-hidden" style={{ background: 'white' }}>
+    <div className="min-h-screen font-be overflow-x-hidden" style={{ background: '#fafaf8' }}>
+
+      {/* Grid background */}
+      <div className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)
+        `,
+        backgroundSize: '48px 48px',
+        zIndex: 0,
+      }} />
+
+      {/* Corner gradient blobs */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div style={{
+          position: 'absolute', width: 500, height: 500, top: -100, left: -100,
+          background: 'radial-gradient(circle, rgba(221,255,0,0.18) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }} />
+        <div style={{
+          position: 'absolute', width: 400, height: 400, top: 0, right: -80,
+          background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%)',
+          filter: 'blur(55px)',
+        }} />
+      </div>
 
       {/* NAV */}
       <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
-        <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5"
+        <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5 relative"
           style={{
-            background: scrolled ? 'rgba(255,255,255,0.97)' : 'white',
+            background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.90)',
             border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: '10px',
             boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.07)' : '0 2px 12px rgba(0,0,0,0.04)',
+            backdropFilter: 'blur(12px)',
             transition: 'all 0.3s ease',
           }}>
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
@@ -84,215 +95,161 @@ export default function LandingPricingPage() {
           <div className="flex items-center gap-2">
             <button onClick={() => base44.auth.redirectToLogin('/app')}
               className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
-              {t('landing_sign_in')}
+              Sign In
             </button>
             <button onClick={handleCta}
-              className="text-xs font-black px-4 py-2.5 bg-black text-white hover:bg-gray-900 transition-colors">
-              {t('landing_get_started')}
+              className="text-xs font-black px-4 py-2.5 transition-all hover:scale-105"
+              style={{ background: YUZU, color: FG, borderRadius: '8px' }}>
+              Get Started
             </button>
           </div>
         </nav>
       </div>
 
       {/* HERO */}
-      <section className="relative pt-44 pb-16 px-6 text-center overflow-hidden" style={{ background: 'white' }}>
-        {/* Joyful light orbs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div animate={{ x: [0,40,-10,0], y: [0,-30,20,0] }} transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position:'absolute', width:700, height:700, top:'-200px', left:'-150px', background:'radial-gradient(circle, rgba(221,255,0,0.30) 0%, rgba(221,255,0,0.06) 45%, transparent 70%)', filter:'blur(55px)' }} />
-          <motion.div animate={{ x: [0,-50,20,0], y: [0,30,-40,0] }} transition={{ duration: 26, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-            style={{ position:'absolute', width:600, height:600, top:'-100px', right:'-150px', background:'radial-gradient(circle, rgba(255,200,80,0.24) 0%, rgba(255,160,50,0.07) 45%, transparent 70%)', filter:'blur(50px)' }} />
-          <motion.div animate={{ x: [0,30,-25,0], y: [0,-20,35,0] }} transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut', delay: 10 }}
-            style={{ position:'absolute', width:500, height:500, bottom:'-80px', left:'30%', background:'radial-gradient(circle, rgba(180,255,60,0.18) 0%, transparent 65%)', filter:'blur(45px)' }} />
-        </div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase"
+      <section className="relative z-10 pt-48 pb-12 px-6 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 text-[10px] font-black tracking-[0.2em] uppercase rounded-md"
             style={{ background: YUZU, color: FG }}>
             Pricing
           </div>
-          <h1 className="font-black tracking-tight leading-[1.02] mb-6"
-            style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', color: FG }}>
-            {t('landing_pricing_title2')}
+          <h1 className="font-black tracking-tight mb-5"
+            style={{ fontSize: 'clamp(2.8rem, 7vw, 5rem)', color: FG, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
+            Simple, Transparent<br />Pricing
           </h1>
-          <p className="text-base max-w-xl mx-auto mb-10" style={{ color: 'rgba(10,10,10,0.4)' }}>
-            {t('landing_pricing_sub2')}
+          <p className="text-base max-w-md mx-auto mb-10 font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
+            Choose the plan that fits your ambition. No hidden fees.
           </p>
+
           {/* Billing toggle */}
-          <div className="inline-flex items-center p-1 border border-black/08">
+          <div className="inline-flex items-center p-1 rounded-lg"
+            style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
             {['monthly', 'yearly'].map(b => (
-            <button key={b} onClick={() => setBilling(b)}
-              className="px-6 py-2.5 text-xs font-black transition-all"
-              style={{ background: billing === b ? FG : 'transparent', color: billing === b ? 'white' : 'rgba(10,10,10,0.4)' }}>
-              {b === 'monthly' ? t('landing_billing_monthly') : t('landing_billing_yearly')}
+              <button key={b} onClick={() => setBilling(b)}
+                className="px-5 py-2 text-xs font-black transition-all rounded-md flex items-center gap-2"
+                style={{
+                  background: billing === b ? FG : 'transparent',
+                  color: billing === b ? 'white' : 'rgba(10,10,10,0.45)',
+                }}>
+                {b === 'monthly' ? 'Monthly' : (
+                  <>Yearly <span className="text-[9px] font-black px-1.5 py-0.5 rounded"
+                    style={{ background: billing === 'yearly' ? YUZU : 'rgba(0,0,0,0.1)', color: billing === 'yearly' ? FG : '#888' }}>
+                    −20%
+                  </span></>
+                )}
               </button>
             ))}
           </div>
         </motion.div>
       </section>
 
-      {/* Gradient bridge */}
-      <div style={{ height: 60, background: 'linear-gradient(to bottom, white 0%, #fafaf5 100%)' }} />
-
-      {/* ESSENTIAL SPOTLIGHT */}
-      {essentialPlan && (
-        <section className="px-6 pb-16">
-          <div className="max-w-5xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="bg-black overflow-hidden"
-              style={{ border: '2px solid #0A0A0A' }}>
-              <div className="flex flex-col lg:flex-row">
-                {/* Left: pitch */}
-                <div className="flex-1 p-10 lg:p-14">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 text-[10px] font-black tracking-[0.2em] uppercase"
-                    style={{ background: YUZU, color: FG }}>
-                    {t('landing_most_popular')}
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
-                    Your ultimate<br />financial weapon.
-                  </h2>
-                  <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {t('landing_coach_desc')}
-                  </p>
-                  <div className="space-y-3 mb-10">
-                    {ESSENTIAL_PITCH.map((point, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0" style={{ background: YUZU }}>
-                          <span className="text-[10px] font-black" style={{ color: FG }}>✓</span>
-                        </div>
-                        <span className="text-sm font-medium text-white">{point}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => base44.auth.redirectToLogin('/manage-plan')}
-                    className="inline-flex items-center gap-3 font-black text-sm px-8 py-4 hover:opacity-85 transition-opacity"
-                    style={{ background: YUZU, color: FG }}>
-                    Start Essential <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-                {/* Right: price */}
-                <div className="lg:w-64 p-10 lg:p-14 flex flex-col justify-center"
-                  style={{ background: 'rgba(255,255,255,0.04)', borderLeft: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    {billing === 'yearly' ? 'Per month, billed yearly' : 'Per month'}
-                  </p>
-                  <p className="font-black text-white mb-1" style={{ fontSize: '3.5rem', lineHeight: 1 }}>
-                    {price(essentialPlan) === 0 ? 'Free' : `$${price(essentialPlan)}`}
-                  </p>
-                  {billing === 'yearly' && (
-                    <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      vs. ${essentialPlan.price_monthly}/mo billed monthly
-                    </p>
-                  )}
-                  <p className="text-sm mt-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    {t('landing_10x_cheaper')}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* Gradient bridge */}
-      <div style={{ height: 60, background: 'linear-gradient(to bottom, #fafaf5 0%, white 100%)' }} />
-
-      {/* ALL PLANS */}
-      <section className="px-6 pb-28" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      {/* PLANS GRID */}
+      <section className="relative z-10 px-6 pb-20">
         <div className="max-w-5xl mx-auto">
-          <motion.h2 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            className="text-center font-black text-2xl mb-10 mt-16" style={{ color: FG }}>
-            {t('landing_compare_plans')}
-          </motion.h2>
-          <div className="overflow-x-auto -mx-6 px-6">
-            <div className="flex gap-4 md:grid min-w-max md:min-w-0"
-              style={{ gridTemplateColumns: `repeat(${plans.length}, 1fr)` }}>
-              {plans.map((plan, i) => {
-                const p = price(plan);
-                const isHero = plan.id === 'expert'; // dark card
-                const glowColor = isHero
-                  ? 'rgba(221,255,0,0.18)'
-                  : plan.id === 'supreme'
-                  ? 'rgba(180,120,255,0.14)'
-                  : plan.id === 'advanced'
-                  ? 'rgba(99,210,255,0.13)'
-                  : 'rgba(0,0,0,0.04)';
-                return (
-                  <motion.div key={plan.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.06 }}
-                    className="flex flex-col p-6 flex-shrink-0 md:flex-shrink relative overflow-hidden"
-                    style={{
-                      width: '200px',
-                      background: isHero ? FG : 'white',
-                      border: isHero ? '1px solid rgba(221,255,0,0.25)' : '1px solid rgba(0,0,0,0.08)',
-                      boxShadow: `0 0 40px ${glowColor}, 0 4px 20px rgba(0,0,0,0.06)`,
-                    }}>
-                    {/* Top glow streak */}
-                    <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-                      style={{ background: isHero ? 'linear-gradient(90deg, transparent, rgba(221,255,0,0.6), transparent)' : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)' }} />
-                    {isHero && (
-                      <div className="inline-block mb-3 px-2 py-1 text-[9px] font-black uppercase tracking-wider self-start"
-                        style={{ background: YUZU, color: FG }}>{t('landing_best_value')}</div>
-                    )}
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2"
-                      style={{ color: isHero ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.4)' }}>
-                      {plan.name}
-                    </p>
-                    <p className="font-black mb-1" style={{ fontSize: '2rem', color: isHero ? 'white' : FG }}>
-                      {p === 0 ? 'Free' : `$${p}`}
-                    </p>
-                    {p > 0 && (
-                      <p className="text-xs mb-5" style={{ color: isHero ? 'rgba(255,255,255,0.3)' : 'rgba(10,10,10,0.35)' }}>
-                        /mo{billing === 'yearly' ? ' yearly' : ''}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {plans.map((plan, i) => {
+              const p = price(plan);
+              const isAdvanced = plan.id === 'advanced';
+              const features = PLAN_FEATURES[plan.id] || [];
+
+              return (
+                <motion.div key={plan.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative flex flex-col"
+                  style={{
+                    background: isAdvanced ? FG : 'white',
+                    borderRadius: '16px',
+                    border: isAdvanced ? '1.5px solid rgba(221,255,0,0.2)' : '1px solid rgba(0,0,0,0.09)',
+                    boxShadow: isAdvanced
+                      ? '0 0 0 4px rgba(221,255,0,0.08), 0 16px 48px rgba(0,0,0,0.14)'
+                      : '0 4px 20px rgba(0,0,0,0.05)',
+                    padding: '28px 24px',
+                    // Advanced is slightly taller via padding
+                    ...(isAdvanced ? { paddingTop: 36, paddingBottom: 36 } : {}),
+                  }}>
+
+                  {/* Recommended badge */}
+                  {isAdvanced && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                      <span className="text-[9px] font-black px-3 py-1.5 tracking-widest uppercase rounded-full"
+                        style={{ background: YUZU, color: FG }}>
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Top glow for advanced */}
+                  {isAdvanced && (
+                    <div className="absolute top-0 left-0 right-0 h-px pointer-events-none rounded-t-2xl"
+                      style={{ background: 'linear-gradient(90deg, transparent, rgba(221,255,0,0.5), transparent)' }} />
+                  )}
+
+                  {/* Plan name */}
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-3"
+                    style={{ color: isAdvanced ? 'rgba(255,255,255,0.4)' : 'rgba(10,10,10,0.4)' }}>
+                    {plan.name}
+                  </p>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    <div className="flex items-end gap-1.5">
+                      <span className="font-black" style={{ fontSize: '2.4rem', lineHeight: 1, color: isAdvanced ? 'white' : FG }}>
+                        {p === 0 ? 'Free' : `$${p}`}
+                      </span>
+                      {p > 0 && (
+                        <span className="text-xs mb-1.5 font-medium" style={{ color: isAdvanced ? 'rgba(255,255,255,0.35)' : 'rgba(10,10,10,0.35)' }}>
+                          /mo
+                        </span>
+                      )}
+                    </div>
+                    {billing === 'yearly' && p > 0 && (
+                      <p className="text-[10px] mt-1" style={{ color: isAdvanced ? 'rgba(255,255,255,0.25)' : 'rgba(10,10,10,0.3)' }}>
+                        billed yearly
                       </p>
                     )}
-                    {p === 0 && <p className="text-xs mb-5" style={{ color: 'rgba(10,10,10,0.35)' }}>To get started</p>}
-                    <div className="space-y-2.5 mb-6 flex-1">
-                      {FEATURE_ROWS.map(row => {
-                        const val = row.format(plan[row.key]);
-                        const isBool = typeof plan[row.key] === 'boolean';
-                        return (
-                          <div key={row.label} className="flex items-center justify-between gap-2">
-                            <span className="text-xs" style={{ color: isHero ? 'rgba(255,255,255,0.35)' : 'rgba(10,10,10,0.45)' }}>
-                              {row.label}
-                            </span>
-                            {isBool ? (
-                              plan[row.key]
-                                ? <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isHero ? YUZU : FG }} />
-                                : <X className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(10,10,10,0.15)' }} />
-                            ) : (
-                              <span className="text-xs font-bold flex-shrink-0" style={{ color: isHero ? 'white' : FG }}>{val}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (plan.id === 'free') { handleCta(); return; }
-                        base44.auth.redirectToLogin('/manage-plan');
-                      }}
-                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80"
-                      style={{
-                        background: isHero ? YUZU : 'transparent',
-                        color: FG,
-                        border: isHero ? 'none' : '1px solid rgba(0,0,0,0.12)',
-                      }}>
-                        {plan.id === 'free' ? 'Start free' : 'Choose plan'}
-                      </button>
-                  </motion.div>
-                );
-              })}
-            </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="mb-5" style={{ height: 1, background: isAdvanced ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' }} />
+
+                  {/* Features */}
+                  <ul className="space-y-2.5 flex-1 mb-7">
+                    {features.map((f, fi) => (
+                      <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
+                        <Check className="w-3.5 h-3.5 flex-shrink-0"
+                          style={{ color: isAdvanced ? YUZU : FG }} />
+                        <span style={{ color: isAdvanced ? 'rgba(255,255,255,0.65)' : 'rgba(10,10,10,0.65)' }}>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
+                    className="w-full py-3 font-black text-xs transition-all hover:opacity-85 rounded-lg"
+                    style={{
+                      background: isAdvanced ? YUZU : 'transparent',
+                      color: isAdvanced ? FG : FG,
+                      border: isAdvanced ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
+                    }}>
+                    {plan.id === 'free' ? 'Start Free' : `Get ${plan.name}`}
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
+
+          {/* Note */}
+          <p className="text-center text-xs mt-8 font-medium" style={{ color: 'rgba(10,10,10,0.3)' }}>
+            Cancel anytime · No hidden fees · Secure payment
+          </p>
         </div>
       </section>
 
       <FinalCta onCta={handleCta} />
-
       <LandingFooter logoUrl={logoUrl} />
     </div>
   );
