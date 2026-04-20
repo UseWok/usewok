@@ -20,13 +20,13 @@ export default function ActivationCodeModal({ open, onClose }) {
     if (!code.trim()) return;
     setLoading(true);
     const user = await base44.auth.me().catch(() => null);
-    if (!user) { toast.error('Connectez-vous d\'abord'); setLoading(false); return; }
+    if (!user) { toast.error('Please sign in first'); setLoading(false); return; }
     const results = await base44.entities.ActivationCode.filter({ code: code.trim().toUpperCase(), used: false });
-    if (results.length === 0) { toast.error('Code invalide ou déjà utilisé'); setLoading(false); return; }
+    if (results.length === 0) { toast.error('Invalid or already used code'); setLoading(false); return; }
     const codeRecord = results[0];
     const plans = getPlansConfig();
     const plan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!plan) { toast.error('Plan introuvable'); setLoading(false); return; }
+    if (!plan) { toast.error('Plan not found'); setLoading(false); return; }
     const billingCycle = codeRecord.billing || 'monthly';
     await base44.auth.updateMe({
       subscription_plan: plan.id,
@@ -88,7 +88,7 @@ export default function ActivationCodeModal({ open, onClose }) {
                   <div className="relative flex justify-between items-start mb-10">
                     <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain" />
                     <div className="text-right">
-                      <p className="text-[10px] font-black tracking-widest text-white/30 uppercase">Valeur</p>
+                      <p className="text-[10px] font-black tracking-widest text-white/30 uppercase">Value</p>
                       <p className="text-2xl font-black" style={{ color: YUZU }}>• • •</p>
                     </div>
                   </div>
@@ -100,7 +100,7 @@ export default function ActivationCodeModal({ open, onClose }) {
                   </div>
 
                   <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    Carte Cadeau Stensor
+                    Stensor Gift Card
                   </p>
                 </div>
 
@@ -113,20 +113,20 @@ export default function ActivationCodeModal({ open, onClose }) {
                         <Check className="w-7 h-7" style={{ color: FG }} />
                       </div>
                       <div>
-                        <p className="font-black text-base" style={{ color: FG }}>Plan {success} activé !</p>
-                        <p className="text-sm mt-1" style={{ color: '#aaa' }}>Profitez de toutes vos fonctionnalités</p>
+                        <p className="font-black text-base" style={{ color: FG }}>Plan {success} activated!</p>
+                        <p className="text-sm mt-1" style={{ color: '#aaa' }}>Enjoy all your features</p>
                       </div>
                       <button onClick={handleClose}
                         className="w-full py-3.5 font-black text-sm transition-all"
                         style={{ background: FG, color: 'white', borderRadius: 12 }}>
-                        Accéder à Stensor →
+                        Go to Stensor →
                       </button>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: '#aaa' }}>
-                          Entrez votre code
+                          Enter your code
                         </p>
                         <input
                           value={code}
@@ -149,8 +149,8 @@ export default function ActivationCodeModal({ open, onClose }) {
                         {loading
                           ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
                               className="w-4 h-4 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white' }} />
-                          : <><Zap className="w-4 h-4" style={{ color: code.length >= 4 ? YUZU : '#bbb' }} /> Activer</>
-                        }
+                          : <><Zap className="w-4 h-4" style={{ color: code.length >= 4 ? YUZU : '#bbb' }} /> Activate</>
+                          }
                       </button>
                     </div>
                   )}

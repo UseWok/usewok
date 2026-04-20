@@ -95,7 +95,7 @@ export default function ChatInputBar({
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      toast.error('Voice input not supported on this browser');
+      toast.error('Voice input requires Chrome on desktop (HTTPS) or a mobile browser');
       return;
     }
     if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(false); return; }

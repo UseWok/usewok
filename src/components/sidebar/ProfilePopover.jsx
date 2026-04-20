@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Settings, HelpCircle, LogOut, Gift } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Gift, Ticket } from 'lucide-react';
 import ReferralModal from '@/components/ReferralModal';
+import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { useNavigate } from 'react-router-dom';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
@@ -11,6 +12,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
   const popoverRef = useRef(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -60,6 +62,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: Settings, label: 'Account settings', action: () => navigate('/settings') },
     { icon: HelpCircle, label: 'Help & support', action: () => navigate('/support') },
     { icon: Gift, label: 'Earn Tensors', action: () => setShowReferral(true) },
+    { icon: Ticket, label: 'I have a code', action: () => setShowCodeModal(true) },
     { divider: true },
     { icon: LogOut, label: 'Sign out', action: () => base44.auth.logout('/') },
   ];
@@ -126,6 +129,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
       )}
       <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} user={user} />
       <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
+      <ActivationCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} />
     </AnimatePresence>
   );
 }

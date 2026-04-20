@@ -42,6 +42,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
   const [showExpertMenu, setShowExpertMenu] = useState(false);
+  // Expert mode is never persisted — always start on standard mode
   const [mode, setMode] = useState(ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -96,6 +97,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
         setHasInternetState(true);
         if (!best || best.model !== 'claude_opus_4_6') setUseWebSearch(true);
       }
+      // Never restore expert mode — always start on standard (thinking)
+      setMode(ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
     }).catch(() => {});
   }, []);
 
@@ -119,8 +122,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const toggleRecording = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      console.warn('Speech Recognition not supported');
-      toast.error('Voice input not supported on this browser');
+      toast.error('Voice input requires Chrome on desktop (HTTPS) or a mobile browser');
       return;
     }
     if (isRecording) {

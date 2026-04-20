@@ -88,17 +88,19 @@ export default function SupportPage() {
     return () => window.removeEventListener('open-support-chat', handler);
   }, []);
 
-  // Poll open chat ticket
+  // Poll open chat ticket — use filter by id to only fetch relevant ticket
   useEffect(() => {
     if (!chatTicket) return;
-    const interval = setInterval(() => {
-      base44.entities.SupportTicket.list().then(all => {
-        const updated = all.find(t => t.id === chatTicket.id);
-        if (updated && updated.messages_json !== chatTicket.messages_json) setChatTicket(updated);
-      });
+    const ticketId = chatTicket.id;
+    const interval = setInterval(async () => {
+      try {
+        const all = await base44.entities.SupportTicket.list('-updated_date', 200);
+        const updated = all.find(t => t.id === ticketId);
+        if (updated) setChatTicket(updated);
+      } catch {}
     }, 3000);
     return () => clearInterval(interval);
-  }, [chatTicket]);
+  }, [chatTicket?.id]);
 
   if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
 
@@ -236,23 +238,51 @@ function LandingPage({ onNavigate }) {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be bg-white">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-12">
-          <h1 className="text-5xl font-black mb-3" style={{ color: FG }}>Aide & Support</h1>
-          <p className="text-base" style={{ color: '#666' }}>Obtenez l'aide dont vous avez besoin</p>
+          <h1 className="text-5xl font-black mb-3" style={{ color: FG }}>Help & Support</h1>
+          <p className="text-base" style={{ color: '#666' }}>Get the help you need</p>
         </motion.div>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="max-w-md mx-auto mb-16">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="max-w-md mx-auto mb-10">
           <motion.button onClick={onNavigate} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
             className="w-full p-8 rounded-lg text-left text-white transition-all relative overflow-hidden group"
-            style={{ background: '#2C3E50', minHeight: '260px' }}>
+            style={{ background: '#2C3E50', minHeight: '220px' }}>
             <motion.div className="absolute inset-0 opacity-0 group-hover:opacity-10" style={{ background: 'white' }} />
             <motion.div className="relative z-10">
               <motion.p className="text-5xl mb-4">🎧</motion.p>
-              <h3 className="text-2xl font-black mb-3">Ouvrir un ticket de support</h3>
-              <p className="text-sm opacity-90 mb-6">Soumettez un ticket de support détaillé et obtenez une assistance personnalisée.</p>
+              <h3 className="text-2xl font-black mb-3">Open a support ticket</h3>
+              <p className="text-sm opacity-90 mb-6">Submit a detailed support ticket and get personalized assistance.</p>
               <motion.span className="text-xs font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-                Commencer <ChevronRight className="w-4 h-4" />
+                Get started <ChevronRight className="w-4 h-4" />
               </motion.span>
             </motion.div>
           </motion.button>
+        </motion.div>
+
+        {/* Quick actions */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="max-w-md mx-auto grid grid-cols-2 gap-4 mb-16">
+          <motion.button onClick={onNavigate} whileHover={{ scale: 1.02 }}
+            className="p-4 text-left rounded-lg transition-all"
+            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-5 h-5" style={{ color: FG }} />
+              <div>
+                <p className="font-semibold text-sm" style={{ color: FG }}>My tickets</p>
+                <p className="text-xs" style={{ color: '#aaa' }}>View & manage</p>
+              </div>
+            </div>
+          </motion.button>
+          <motion.a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
+            whileHover={{ scale: 1.02 }}
+            className="p-4 text-left rounded-lg transition-all"
+            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <div className="flex items-center gap-3">
+              <ChevronRight className="w-5 h-5" style={{ color: FG }} />
+              <div>
+                <p className="font-semibold text-sm" style={{ color: FG }}>Community</p>
+                <p className="text-xs" style={{ color: '#aaa' }}>Reddit community</p>
+              </div>
+            </div>
+          </motion.a>
         </motion.div>
       </div>
     </motion.div>
@@ -452,14 +482,16 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
 
   // Poll for updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      base44.entities.SupportTicket.list().then(all => {
-        const updated = all.find(t => t.id === currentTicket.id);
+    const id = currentTicket.id;
+    const interval = setInterval(async () => {
+      try {
+        const all = await base44.entities.SupportTicket.list('-updated_date', 200);
+        const updated = all.find(t => t.id === id);
         if (updated) {
           setCurrentTicket(updated);
           try { setMessages(JSON.parse(updated.messages_json || '[]')); } catch {}
         }
-      });
+      } catch {}
     }, 3000);
     return () => clearInterval(interval);
   }, [currentTicket.id]);
