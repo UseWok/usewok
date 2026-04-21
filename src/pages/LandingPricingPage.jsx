@@ -14,10 +14,11 @@ const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
 const PLAN_FEATURES = {
-  free:      ['10 credits/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
-  essential: ['50 credits/month', 'Unlimited discussions', 'Standard AI mode', 'File uploads'],
-  advanced:  ['150 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
-  expert:    ['500 credits/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
+  free:      ['10 Tensors/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
+  essential: ['50 Tensors/month', 'Unlimited discussions', 'Standard AI mode', 'File uploads'],
+  advanced:  ['150 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
+  expert:    ['500 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
+  supreme:   ['2000 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support', 'Shareable credits'],
 };
 
 // Shared grid+blob background
@@ -39,7 +40,6 @@ function PageBg() {
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
-  const [billing, setBilling] = useState('yearly'); // yearly default
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0, refetchOnMount: 'always' });
@@ -53,10 +53,8 @@ export default function LandingPricingPage() {
   }, []);
 
   const handleCta = () => base44.auth.redirectToLogin('/app');
-  const price = (plan) => billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
-  // yearly prices are per-month equivalent when billed annually
 
-  const visibleIds = ['free', 'essential', 'advanced', 'expert'];
+  const visibleIds = ['free', 'essential', 'advanced', 'expert', 'supreme'];
   const plans = plansConfig
     .filter(p => visibleIds.includes(p.id))
     .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
@@ -105,109 +103,90 @@ export default function LandingPricingPage() {
             style={{ fontSize: 'clamp(2.6rem, 6vw, 4.5rem)', color: FG, letterSpacing: '-0.03em' }}>
             Simple, Transparent Pricing
           </h1>
-          <p className="text-sm max-w-md mx-auto mb-10 font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
+          <p className="text-sm max-w-md mx-auto font-medium" style={{ color: 'rgba(10,10,10,0.45)' }}>
             Choose the plan that's right for you and start building amazing AI applications today.
           </p>
-          {/* Billing toggle */}
-          <div className="inline-flex items-center p-1 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)' }}>
-            {['monthly', 'yearly'].map(b => (
-              <button key={b} onClick={() => setBilling(b)}
-                className="px-5 py-2 text-xs font-black transition-all rounded-md flex items-center gap-2"
-                style={{ background: billing === b ? FG : 'transparent', color: billing === b ? 'white' : 'rgba(10,10,10,0.45)' }}>
-                {b === 'monthly' ? 'Monthly' : <>Yearly <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: billing === 'yearly' ? YUZU : 'rgba(0,0,0,0.1)', color: billing === 'yearly' ? FG : '#888' }}>−20%</span></>}
-              </button>
-            ))}
-          </div>
         </motion.div>
       </section>
 
       {/* PLANS GRID */}
       <section className="relative z-10 px-6 pb-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-4 gap-0 rounded-2xl overflow-hidden"
-            style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
-            {plans.map((plan, i) => {
-              const p = price(plan);
-              const isAdvanced = plan.id === 'advanced';
-              const features = PLAN_FEATURES[plan.id] || [];
-              const isLast = i === plans.length - 1;
+        <div className="max-w-6xl mx-auto">
+          {/* Horizontal scroll container */}
+          <div className="overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-0 rounded-2xl overflow-hidden"
+              style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)', minWidth: 'max-content' }}>
+              {plans.map((plan, i) => {
+                const p = plan.price_monthly;
+                const features = PLAN_FEATURES[plan.id] || [];
+                const isLast = i === plans.length - 1;
+                const isHighlighted = plan.id === 'advanced';
 
-              return (
-                <motion.div key={plan.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                  className="relative flex flex-col p-7"
-                  style={{
-                    borderRight: isLast ? 'none' : '1px solid rgba(0,0,0,0.08)',
-                    outline: isAdvanced ? `2px solid ${FG}` : 'none',
-                    outlineOffset: '-1px',
-                    zIndex: isAdvanced ? 1 : 0,
-                    background: 'white',
-                  }}>
-
-                  {/* Advanced badge */}
-                  {isAdvanced && (
-                    <div className="absolute -top-px left-1/2 -translate-x-1/2">
-                      <div className="px-3 py-1 text-[9px] font-black uppercase tracking-widest"
-                        style={{ background: FG, color: YUZU }}>
-                        Most Popular
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Plan name */}
-                  <p className="text-xs font-black uppercase tracking-widest mb-3 text-center"
-                    style={{ color: isAdvanced ? FG : 'rgba(10,10,10,0.45)', marginTop: isAdvanced ? 12 : 0 }}>
-                    {plan.name}
-                  </p>
-
-                  {/* Price */}
-                  <div className="text-center mb-5">
-                    <div className="flex items-end justify-center gap-1">
-                      <span className="font-black" style={{ fontSize: '2.6rem', lineHeight: 1, color: FG }}>
-                        {p === 0 ? '$0' : `$${p}`}
-                      </span>
-                      <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>
-                        /mo
-                      </span>
-                    </div>
-                    {p > 0 && (
-                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>
-                        {billing === 'yearly' ? `$${p * 12}/year` : 'billed monthly'}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Divider */}
-                  <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
-
-                  {/* Features */}
-                  <ul className="space-y-3 flex-1 mb-7">
-                    {features.map((f, fi) => (
-                      <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
-                        <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
-                        <span style={{ color: 'rgba(10,10,10,0.65)' }}>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA */}
-                  <button
-                    onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
-                    className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
+                return (
+                  <motion.div key={plan.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="relative flex flex-col p-7"
                     style={{
-                      background: isAdvanced ? FG : 'transparent',
-                      color: isAdvanced ? 'white' : FG,
-                      border: isAdvanced ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
+                      width: 220,
+                      borderRight: isLast ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                      outline: isHighlighted ? `2px solid ${FG}` : 'none',
+                      outlineOffset: '-1px',
+                      zIndex: isHighlighted ? 1 : 0,
+                      background: 'white',
                     }}>
-                    {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
-                  </button>
-                </motion.div>
-              );
-            })}
+
+                    {/* Plan name */}
+                    <p className="text-xs font-black uppercase tracking-widest mb-3 text-center"
+                      style={{ color: FG }}>
+                      {plan.name}
+                    </p>
+
+                    {/* Price */}
+                    <div className="text-center mb-5">
+                      <div className="flex items-end justify-center gap-1">
+                        <span className="font-black" style={{ fontSize: '2.4rem', lineHeight: 1, color: FG }}>
+                          {p === 0 ? '$0' : `$${p}`}
+                        </span>
+                        <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>
+                          /mo
+                        </span>
+                      </div>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>
+                        billed monthly
+                      </p>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
+
+                    {/* Features */}
+                    <ul className="space-y-3 flex-1 mb-7">
+                      {features.map((f, fi) => (
+                        <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
+                          <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
+                          <span style={{ color: 'rgba(10,10,10,0.65)' }}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA */}
+                    <button
+                      onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
+                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
+                      style={{
+                        background: isHighlighted ? FG : 'transparent',
+                        color: isHighlighted ? 'white' : FG,
+                        border: isHighlighted ? 'none' : `1.5px solid ${FG}`,
+                      }}>
+                      {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Enterprise */}
@@ -220,7 +199,7 @@ export default function LandingPricingPage() {
               Custom pricing for organizations needing unlimited capacity
             </p>
             <div className="flex items-center justify-center gap-6 mb-6 flex-wrap">
-              {['Unlimited credits', 'Dedicated support', 'Custom integrations', 'Premium SLA'].map(f => (
+              {['Unlimited Tensors', 'Dedicated support', 'Custom integrations', 'Premium SLA'].map(f => (
                 <span key={f} className="text-xs font-semibold" style={{ color: 'rgba(10,10,10,0.5)' }}>• {f}</span>
               ))}
             </div>
