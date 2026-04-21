@@ -40,9 +40,8 @@ const VALUES = [
 ];
 
 const STATS = [
-  { value: '10,000+', label: 'Active users' },
-  { value: '500K+', label: 'Questions answered' },
-  { value: '4.9★', label: 'Average rating' },
+  { value: '1,000+', label: 'Active users' },
+  { value: '50K+', label: 'Questions answered' },
 ];
 
 export default function AboutPage() {
