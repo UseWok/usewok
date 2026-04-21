@@ -253,8 +253,8 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    const secretModel = isFirstMessage ? 'claude_opus_4_6' : mode.model;
-    const useInternet = useWebSearch && hasInternet && secretModel !== 'claude_opus_4_6';
+    const secretModel = isFirstMessage ? 'gemini_3_1_pro' : mode.model;
+    const useInternet = useWebSearch && hasInternet && secretModel !== 'gemini_3_1_pro';
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
