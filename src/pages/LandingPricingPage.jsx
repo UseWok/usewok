@@ -113,13 +113,11 @@ export default function LandingPricingPage() {
       <section className="relative z-10 px-6 pb-16">
         <div className="max-w-6xl mx-auto">
           {/* Horizontal scroll container */}
-          <div className="overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex gap-0 rounded-2xl overflow-hidden"
-              style={{ border: '1px solid rgba(0,0,0,0.10)', background: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.06)', minWidth: 'max-content' }}>
+          <div className="overflow-x-auto pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-4" style={{ minWidth: 'max-content', padding: '4px 2px' }}>
               {plans.map((plan, i) => {
                 const p = plan.price_monthly;
                 const features = PLAN_FEATURES[plan.id] || [];
-                const isLast = i === plans.length - 1;
                 const isHighlighted = plan.id === 'advanced';
 
                 return (
@@ -128,45 +126,44 @@ export default function LandingPricingPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.07 }}
-                    className="relative flex flex-col p-7"
+                    className="relative flex flex-col"
                     style={{
-                      width: 220,
-                      borderRight: isLast ? 'none' : '1px solid rgba(0,0,0,0.08)',
-                      outline: isHighlighted ? `2px solid ${FG}` : 'none',
-                      outlineOffset: '-1px',
-                      zIndex: isHighlighted ? 1 : 0,
+                      width: 210,
                       background: 'white',
+                      borderRadius: '16px',
+                      border: isHighlighted ? `2px solid ${FG}` : '1px solid rgba(0,0,0,0.10)',
+                      boxShadow: isHighlighted ? '0 8px 32px rgba(0,0,0,0.10)' : '0 2px 12px rgba(0,0,0,0.04)',
+                      padding: '28px 24px',
                     }}>
 
                     {/* Plan name */}
-                    <p className="text-xs font-black uppercase tracking-widest mb-3 text-center"
-                      style={{ color: FG }}>
-                      {plan.name}
-                    </p>
+                    <div className="flex justify-center mb-4">
+                      <span className="text-xs font-black px-3 py-1 rounded-full"
+                        style={{ background: 'rgba(0,0,0,0.06)', color: FG }}>
+                        {plan.name}
+                      </span>
+                    </div>
 
                     {/* Price */}
-                    <div className="text-center mb-5">
-                      <div className="flex items-end justify-center gap-1">
-                        <span className="font-black" style={{ fontSize: '2.4rem', lineHeight: 1, color: FG }}>
+                    <div className="mb-6">
+                      <div className="flex items-end gap-1">
+                        <span className="font-black" style={{ fontSize: '2.6rem', lineHeight: 1, color: FG }}>
                           {p === 0 ? '$0' : `$${p}`}
                         </span>
-                        <span className="text-xs font-medium mb-1.5" style={{ color: 'rgba(10,10,10,0.4)' }}>
+                        <span className="text-sm font-medium mb-1" style={{ color: 'rgba(10,10,10,0.4)' }}>
                           /mo
                         </span>
                       </div>
-                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(10,10,10,0.3)' }}>
-                        billed monthly
-                      </p>
                     </div>
 
                     {/* Divider */}
                     <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
 
                     {/* Features */}
-                    <ul className="space-y-3 flex-1 mb-7">
+                    <ul className="space-y-3 flex-1 mb-8">
                       {features.map((f, fi) => (
-                        <li key={fi} className="flex items-center gap-2.5 text-xs font-medium">
-                          <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: FG }} />
+                        <li key={fi} className="flex items-start gap-2.5 text-xs font-medium">
+                          <Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: FG }} />
                           <span style={{ color: 'rgba(10,10,10,0.65)' }}>{f}</span>
                         </li>
                       ))}
@@ -175,11 +172,10 @@ export default function LandingPricingPage() {
                     {/* CTA */}
                     <button
                       onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
-                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-lg"
+                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-xl"
                       style={{
-                        background: isHighlighted ? FG : 'transparent',
-                        color: isHighlighted ? 'white' : FG,
-                        border: isHighlighted ? 'none' : `1.5px solid ${FG}`,
+                        background: isHighlighted ? FG : FG,
+                        color: 'white',
                       }}>
                       {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
                     </button>
