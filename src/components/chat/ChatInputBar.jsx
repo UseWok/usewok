@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
-import { ALL_MODES, FG, YUZU } from '@/lib/chat-constants';
+import { FG, YUZU } from '@/lib/chat-constants';
+import { ALL_MODES } from '@/lib/modes-config';
 import { useLanguage } from '@/lib/i18n';
 import { toast } from 'sonner';
 

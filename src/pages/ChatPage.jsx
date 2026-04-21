@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-import { ALL_MODES, CHAR_SPEED, LOGO_URL, FG, YUZU, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { CHAR_SPEED, LOGO_URL, FG, YUZU, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { ALL_MODES } from '@/lib/modes-config';
 import { completeReferralOnFirstMessage } from '@/lib/referral';
 import { getUserPlan } from '@/lib/plans-config';
 import { emitCreditsUpdate } from '@/lib/credits-events';
@@ -263,14 +264,12 @@ export default function ChatPage() {
     });
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Credit cost
-    const r = Math.random();
-    let baseCost;
+    // Credit cost — minimum garanti par mode, peut aller jusqu'à credit_max
+    let baseCost = mode.credit_cost;
+    if (mode.credit_max && mode.credit_max > mode.credit_cost) {
+      baseCost = Math.floor(Math.random() * (mode.credit_max - mode.credit_cost + 1)) + mode.credit_cost;
+    }
     if (isFirstMessage) { baseCost = 1; }
-    else if (mode.id === 'thinking') { baseCost = r < 0.6 ? 2 : r < 0.8 ? 1 : 3; }
-    else if (mode.id === 'pro') { baseCost = r < 0.5 ? 3 : r < 0.75 ? 2 : 5; }
-    else if (mode.id === 'ultimate') { baseCost = r < 0.5 ? 6 : r < 0.75 ? 4 : 8; }
-    else { baseCost = 1; }
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
-import { ALL_MODES as CHAT_ALL_MODES } from '@/lib/chat-constants';
+import { ALL_MODES as CHAT_ALL_MODES } from '@/lib/modes-config';
 import { toast } from 'sonner';
 
 const AGENT_IDS = ['global', 'emotions-depenses', 'wealth-strategy'];
