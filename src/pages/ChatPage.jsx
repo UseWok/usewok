@@ -93,7 +93,7 @@ export default function ChatPage() {
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
   const [files, setFiles] = useState([]);
-  const [useWebSearch, setUseWebSearch] = useState(true);
+  const [useWebSearch, setUseWebSearch] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [showFreeDiscussionLimit, setShowFreeDiscussionLimit] = useState(false);
