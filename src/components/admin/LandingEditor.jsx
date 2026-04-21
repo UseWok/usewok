@@ -202,59 +202,69 @@ export default function LandingEditor() {
       </Section>
 
       {/* PRICING */}
-      <Section title="Pricing Section">
+      <Section title="Pricing Plans (edit each plan individually)">
         <Field label="Section Title" value={data.pricing.title} onChange={v => set('pricing.title', v)} />
         <Field label="Section Subtitle" value={data.pricing.subtitle} onChange={v => set('pricing.subtitle', v)} />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Free Card</p>
-            <Field label="Title" value={data.pricing.free_title} onChange={v => set('pricing.free_title', v)} />
-            <Field label="Price Label" value={data.pricing.free_price} onChange={v => set('pricing.free_price', v)} />
-            <Field label="CTA Label" value={data.pricing.free_cta} onChange={v => set('pricing.free_cta', v)} />
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Features</label>
-              {data.pricing.free_features.map((f, i) => (
-                <div key={i} className="flex gap-2 mb-1.5">
-                  <input value={f} onChange={e => {
-                    const arr = [...data.pricing.free_features]; arr[i] = e.target.value;
-                    set('pricing.free_features', arr);
-                  }} className="flex-1 px-2.5 py-1.5 text-xs focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
-                  <button onClick={() => set('pricing.free_features', data.pricing.free_features.filter((_, j) => j !== i))}
-                    className="px-1.5 bg-red-50 text-red-400"><Trash2 className="w-3 h-3" /></button>
-                </div>
-              ))}
-              <button onClick={() => set('pricing.free_features', [...data.pricing.free_features, ''])}
-                className="text-xs px-2.5 py-1.5 mt-1" style={{ border: '1px solid rgba(0,0,0,0.1)', color: '#888' }}>
-                + Add
-              </button>
+
+        <p className="text-[10px] font-black uppercase tracking-wider mt-2" style={{ color: '#aaa' }}>Individual Plans</p>
+        {['free', 'essential', 'advanced', 'expert', 'supreme'].map((planId, pi) => {
+          const key = `pricing.plan_overrides.${planId}`;
+          const overrides = data.pricing?.plan_overrides?.[planId] || {};
+          const features = overrides.features || [];
+          return (
+            <div key={planId} className="p-4 space-y-3" style={{ border: '1px solid rgba(0,0,0,0.09)', background: 'white', borderRadius: '8px' }}>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-black capitalize" style={{ color: FG }}>{planId}</p>
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" style={{ background: 'rgba(0,0,0,0.06)', color: '#666' }}>plan</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Display Name (override)" value={overrides.name || ''} onChange={v => {
+                  const next = JSON.parse(JSON.stringify(data));
+                  if (!next.pricing.plan_overrides) next.pricing.plan_overrides = {};
+                  if (!next.pricing.plan_overrides[planId]) next.pricing.plan_overrides[planId] = {};
+                  next.pricing.plan_overrides[planId].name = v;
+                  setData(next);
+                }} />
+                <Field label="Price label (e.g. $9)" value={overrides.price_label || ''} onChange={v => {
+                  const next = JSON.parse(JSON.stringify(data));
+                  if (!next.pricing.plan_overrides) next.pricing.plan_overrides = {};
+                  if (!next.pricing.plan_overrides[planId]) next.pricing.plan_overrides[planId] = {};
+                  next.pricing.plan_overrides[planId].price_label = v;
+                  setData(next);
+                }} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Features (leave empty to use defaults)</label>
+                {features.map((f, fi) => (
+                  <div key={fi} className="flex gap-2 mb-1.5">
+                    <input value={f} onChange={e => {
+                      const next = JSON.parse(JSON.stringify(data));
+                      if (!next.pricing.plan_overrides) next.pricing.plan_overrides = {};
+                      if (!next.pricing.plan_overrides[planId]) next.pricing.plan_overrides[planId] = {};
+                      next.pricing.plan_overrides[planId].features[fi] = e.target.value;
+                      setData(next);
+                    }} className="flex-1 px-2.5 py-1.5 text-xs focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
+                    <button onClick={() => {
+                      const next = JSON.parse(JSON.stringify(data));
+                      next.pricing.plan_overrides[planId].features = features.filter((_, j) => j !== fi);
+                      setData(next);
+                    }} className="px-1.5 bg-red-50 text-red-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                  </div>
+                ))}
+                <button onClick={() => {
+                  const next = JSON.parse(JSON.stringify(data));
+                  if (!next.pricing.plan_overrides) next.pricing.plan_overrides = {};
+                  if (!next.pricing.plan_overrides[planId]) next.pricing.plan_overrides[planId] = {};
+                  if (!next.pricing.plan_overrides[planId].features) next.pricing.plan_overrides[planId].features = [];
+                  next.pricing.plan_overrides[planId].features.push('');
+                  setData(next);
+                }} className="text-xs px-2.5 py-1.5 mt-1" style={{ border: '1px solid rgba(0,0,0,0.1)', color: '#888' }}>
+                  + Add feature
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Paid Card</p>
-            <Field label="Title" value={data.pricing.paid_title} onChange={v => set('pricing.paid_title', v)} />
-            <Field label="Price" value={data.pricing.paid_price} onChange={v => set('pricing.paid_price', v)} />
-            <Field label="Currency label" value={data.pricing.paid_currency} onChange={v => set('pricing.paid_currency', v)} />
-            <Field label="CTA Label" value={data.pricing.paid_cta} onChange={v => set('pricing.paid_cta', v)} />
-            <Field label="CTA URL" value={data.pricing.paid_url} onChange={v => set('pricing.paid_url', v)} />
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-wider mb-2 block" style={{ color: '#aaa' }}>Features</label>
-              {data.pricing.paid_features.map((f, i) => (
-                <div key={i} className="flex gap-2 mb-1.5">
-                  <input value={f} onChange={e => {
-                    const arr = [...data.pricing.paid_features]; arr[i] = e.target.value;
-                    set('pricing.paid_features', arr);
-                  }} className="flex-1 px-2.5 py-1.5 text-xs focus:outline-none" style={{ border: '1px solid rgba(0,0,0,0.1)' }} />
-                  <button onClick={() => set('pricing.paid_features', data.pricing.paid_features.filter((_, j) => j !== i))}
-                    className="px-1.5 bg-red-50 text-red-400"><Trash2 className="w-3 h-3" /></button>
-                </div>
-              ))}
-              <button onClick={() => set('pricing.paid_features', [...data.pricing.paid_features, ''])}
-                className="text-xs px-2.5 py-1.5 mt-1" style={{ border: '1px solid rgba(0,0,0,0.1)', color: '#888' }}>
-                + Add
-              </button>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </Section>
 
       {/* FAQ */}

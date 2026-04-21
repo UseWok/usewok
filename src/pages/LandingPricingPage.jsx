@@ -55,9 +55,11 @@ export default function LandingPricingPage() {
   const handleCta = () => base44.auth.redirectToLogin('/app');
 
   const visibleIds = ['free', 'essential', 'advanced', 'expert', 'supreme'];
+  const planOverrides = landingData?.pricing?.plan_overrides || {};
   const plans = plansConfig
     .filter(p => visibleIds.includes(p.id))
-    .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
+    .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id))
+    .map(p => ({ ...p, ...planOverrides[p.id] }));
 
   return (
     <div className="min-h-screen font-be overflow-x-hidden" style={{ background: '#fafaf8' }}>
@@ -110,14 +112,14 @@ export default function LandingPricingPage() {
       </section>
 
       {/* PLANS GRID */}
-      <section className="relative z-10 px-6 pb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Horizontal scroll container */}
-          <div className="overflow-x-auto pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex gap-4" style={{ minWidth: 'max-content', padding: '4px 2px' }}>
+      <section className="relative z-10 pb-16" style={{ padding: '0 0 64px 0' }}>
+        <div className="max-w-6xl mx-auto px-4">
+          {/* Horizontal scroll container — no clipping walls */}
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 16, marginLeft: '-16px', marginRight: '-16px', paddingLeft: '16px', paddingRight: '16px' }}>
+            <div className="flex gap-4" style={{ minWidth: 'max-content', paddingRight: '16px' }}>
               {plans.map((plan, i) => {
                 const p = plan.price_monthly;
-                const features = PLAN_FEATURES[plan.id] || [];
+                const features = (plan.features && plan.features.length > 0) ? plan.features : (PLAN_FEATURES[plan.id] || []);
                 const isHighlighted = plan.id === 'advanced';
 
                 return (
@@ -148,7 +150,7 @@ export default function LandingPricingPage() {
                     <div className="mb-6">
                       <div className="flex items-end gap-1">
                         <span className="font-black" style={{ fontSize: '2.6rem', lineHeight: 1, color: FG }}>
-                          {p === 0 ? '$0' : `$${p}`}
+                          {plan.price_label || (p === 0 ? '$0' : `$${p}`)}
                         </span>
                         <span className="text-sm font-medium mb-1" style={{ color: 'rgba(10,10,10,0.4)' }}>
                           /mo
@@ -172,10 +174,11 @@ export default function LandingPricingPage() {
                     {/* CTA */}
                     <button
                       onClick={() => plan.id === 'free' ? handleCta() : base44.auth.redirectToLogin('/manage-plan')}
-                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80 rounded-xl"
+                      className="w-full py-3 font-black text-xs transition-all hover:opacity-80"
                       style={{
-                        background: isHighlighted ? FG : FG,
+                        background: FG,
                         color: 'white',
+                        borderRadius: '6px',
                       }}>
                       {plan.id === 'free' ? 'Get Started Free' : 'Get Started'}
                     </button>
