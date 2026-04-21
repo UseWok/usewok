@@ -14,11 +14,11 @@ const YUZU = '#DDFF00';
 const FG = '#0A0A0A';
 
 const PLAN_FEATURES = {
-  free:      ['10 Tensors/month', '3 discussions max', 'Standard AI mode', 'All knowledge bases'],
-  essential: ['50 Tensors/month', 'Unlimited discussions', 'Standard AI mode', 'File uploads'],
-  advanced:  ['150 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
+  free:      ['10 Tensors/month', '3 discussions max', 'All knowledge bases'],
+  essential: ['50 Tensors/month', '30 discussions max', 'File uploads'],
+  advanced:  ['250 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads'],
   expert:    ['500 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
-  supreme:   ['2000 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support', 'Shareable credits'],
+  supreme:   ['1200 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
 };
 
 // Shared grid+blob background
