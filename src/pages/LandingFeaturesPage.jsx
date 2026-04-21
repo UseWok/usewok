@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: Brain,        title: 'Contextual Financial Intelligence', desc: 'Every answer calibrated for your unique income, goals and risk tolerance — not a generic profile.', tag: 'All plans' },
   { icon: Globe,        title: 'Real-Time Internet Search',         desc: 'Access live market data, interest rates, ETF performance and financial news integrated into your analysis.', tag: 'Advanced+' },
   { icon: Paperclip,    title: 'Document Analysis',                 desc: 'Upload bank statements, pay stubs, insurance contracts. Stensor extracts your real numbers automatically.', tag: 'Essential+' },
-  { icon: Zap,          title: 'Cutting-Edge AI Models',            desc: 'Access GPT-4o, Claude Opus, Gemini. Stensor picks the best model automatically for each question.', tag: 'Expert+' },
+  { icon: Zap,          title: 'Cutting-Edge AI Models',            desc: 'Access GPT-5, Claude Opus and Gemini Pro. Stensor picks the best model automatically for each question.', tag: 'Expert+' },
   { icon: MessageSquare,title: 'Unlimited Discussions',             desc: 'Build a continuous relationship with your AI coach over months, with contextual memory of your goals.', tag: 'Advanced+' },
   { icon: Crown,        title: 'Expert Mode — Deep Reasoning',      desc: 'Monte Carlo simulation, portfolio optimization, detailed tax analysis. Professional-grade results.', tag: 'Expert+' },
 ];
