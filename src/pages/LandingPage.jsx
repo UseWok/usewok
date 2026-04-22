@@ -281,7 +281,7 @@ function Footer() {
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.3)' }}>Legal</p>
             <div className="space-y-3">
-              {[['Privacy Policy', '/privacy'], ['Support', '#']].map(([l, h]) => (
+              {[['Terms of Service', '/terms'], ['Privacy Policy', '/privacy'], ['Support', '#']].map(([l, h]) => (
                 <a key={l} href={h} className="block text-sm transition-colors hover:text-black" style={{ color: 'rgba(0,0,0,0.55)' }}>{l}</a>
               ))}
             </div>

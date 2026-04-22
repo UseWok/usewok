@@ -25,6 +25,7 @@ import DiscussionsPage from './pages/DiscussionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import StensorScore from './pages/StensorScore';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 
 
 function ScrollToTop() {
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
             <Route path="/tarifs" element={<LandingPricingPage />} />
             <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
             <Route path="*" element={<LandingPage />} />
           </Routes>
         </>
