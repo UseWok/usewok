@@ -41,8 +41,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [files, setFiles] = useState([]);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showAgentMenu, setShowAgentMenu] = useState(false);
-  const [showExpertMenu, setShowExpertMenu] = useState(false);
-  // Expert mode is never persisted — always start on standard mode
+  const [showModeMenu, setShowModeMenu] = useState(false);
   const [mode, setMode] = useState(ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -62,8 +61,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const fileInputRef = useRef(null);
   const fileMenuRef = useRef(null);
   const agentMenuRef = useRef(null);
-  const atMenuRef = useRef(null);
-  const expertMenuRef = useRef(null);
+  const modeMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
@@ -110,7 +108,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
     const handler = (e) => {
       if (fileMenuRef.current && !fileMenuRef.current.contains(e.target)) setShowFileMenu(false);
       if (agentMenuRef.current && !agentMenuRef.current.contains(e.target)) setShowAgentMenu(false);
-      if (expertMenuRef.current && !expertMenuRef.current.contains(e.target)) setShowExpertMenu(false);
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) setShowModeMenu(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -376,23 +374,47 @@ export default function HeroSection({ agentId, onAgentChange }) {
                     </AnimatePresence>
                     </div>
 
-                    {/* Expert toggle */}
-                    <button
-                      onClick={() => {
-                        if (!userPlan?.allowed_modes?.includes('ultimate')) { setUpsellFeature('expert'); return; }
-                        if (mode.id === 'ultimate') {
-                          setMode(ALL_MODES.find((m) => m.id === 'thinking'));
-                        } else {
-                          setMode(ALL_MODES.find((m) => m.id === 'ultimate'));
-                        }
-                      }}
-                      className="h-7 px-2.5 flex items-center gap-1.5 rounded-sm transition-all pointer-events-auto z-20 relative"
-                      style={{
-                        background: mode.id === 'ultimate' ? '#DDFF00' : 'white',
-                        border: '1px solid #0A0A0A',
-                      }}>
-                      <span className="text-[11px] font-bold hidden sm:block" style={{ color: '#0A0A0A' }}>Expert</span>
-                    </button>
+                    {/* Mode selector */}
+                    <div className="relative" ref={modeMenuRef}>
+                      <button
+                        onClick={() => { setShowModeMenu(s => !s); setShowFileMenu(false); setShowAgentMenu(false); }}
+                        className="h-7 px-2.5 flex items-center gap-1 rounded-sm transition-all pointer-events-auto z-20 relative"
+                        style={{ background: mode.id !== 'thinking' ? '#DDFF00' : 'white', border: '1px solid #0A0A0A' }}>
+                        <span className="text-[11px] font-bold" style={{ color: '#0A0A0A' }}>
+                          {mode.id === 'thinking' ? 'Standard' : mode.id === 'pro' ? 'Advanced' : 'Expert'}
+                        </span>
+                        <ChevronDown className="w-3 h-3" style={{ color: '#0A0A0A' }} />
+                      </button>
+                      <AnimatePresence>
+                        {showModeMenu && (
+                          <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[160px] z-50 border border-black/10 rounded-md">
+                            {[
+                              { id: 'thinking', label: 'Standard' },
+                              { id: 'pro',      label: 'Advanced' },
+                              { id: 'ultimate', label: 'Expert' },
+                            ].map(m => {
+                              const allowed = userPlan?.allowed_modes?.includes(m.id);
+                              const isActive = mode.id === m.id;
+                              return (
+                                <button key={m.id}
+                                  onClick={() => {
+                                    if (!allowed) { setUpsellFeature('expert'); setShowModeMenu(false); return; }
+                                    setMode(ALL_MODES.find(a => a.id === m.id));
+                                    setShowModeMenu(false);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-sm transition-colors text-left"
+                                  style={{ background: isActive ? '#DDFF00' : 'transparent', color: allowed ? '#0A0A0A' : '#bbb' }}
+                                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
+                                  <span className="font-semibold">{m.label}</span>
+                                  {!allowed && <span className="text-[9px] font-black px-1.5 py-0.5 bg-muted text-zinc-400 rounded-sm">Expert+</span>}
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                     </div>
 
                     <button
