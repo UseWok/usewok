@@ -24,6 +24,7 @@ import LandingFeaturesPage from './pages/LandingFeaturesPage';
 import DiscussionsPage from './pages/DiscussionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import StensorScore from './pages/StensorScore';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 
 function ScrollToTop() {
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/tarifs" element={<LandingPricingPage />} />
             <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="*" element={<LandingPage />} />
           </Routes>
         </>
