@@ -134,8 +134,11 @@ export default function ChatPage() {
         const urlMode = ALL_MODES.find(m => m.id === modeId);
         if (urlMode) setMode(urlMode);
       } else {
-        const best = ALL_MODES.find(m => plan.allowed_modes?.includes(m.id));
-        if (best) setMode(best);
+        const savedDefault = localStorage.getItem('stensor_default_mode');
+        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault)
+          ? ALL_MODES.find(m => m.id === savedDefault)
+          : ALL_MODES.find(m => plan.allowed_modes?.includes(m.id));
+        if (preferred) setMode(preferred);
       }
       const urlWeb = urlParams.get('webSearch');
       if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);

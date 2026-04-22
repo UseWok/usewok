@@ -97,8 +97,12 @@ export default function HeroSection({ agentId, onAgentChange }) {
         setHasInternetState(true);
         if (!best || best.model !== 'claude_opus_4_6') setUseWebSearch(true);
       }
-      // Never restore expert mode — always start on standard (thinking)
-      setMode(ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
+      // Apply user's saved default mode
+      const savedDefault = localStorage.getItem('stensor_default_mode');
+      const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault)
+        ? ALL_MODES.find(m => m.id === savedDefault)
+        : ALL_MODES.find(m => plan.allowed_modes?.includes(m.id));
+      setMode(preferred || ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1]);
     }).catch(() => {});
   }, []);
 

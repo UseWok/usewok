@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Brain } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+
+const AI_MODES = [
+  { id: 'thinking', label: 'Standard', desc: 'Balanced and fast' },
+  { id: 'pro',      label: 'Advanced', desc: 'Deeper analysis' },
+  { id: 'ultimate', label: 'Expert',   desc: 'Maximum intelligence' },
+];
+
+const DEFAULT_MODE_KEY = 'stensor_default_mode';
 
 function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
@@ -24,6 +32,7 @@ export default function SettingsPage() {
   const [codeError, setCodeError] = useState('');
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [defaultMode, setDefaultMode] = useState(() => localStorage.getItem(DEFAULT_MODE_KEY) || 'ultimate');
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -32,6 +41,12 @@ export default function SettingsPage() {
       setUserPlan(getUserPlan(u));
     }).catch(() => {});
   }, []);
+
+  const saveDefaultMode = (modeId) => {
+    setDefaultMode(modeId);
+    localStorage.setItem(DEFAULT_MODE_KEY, modeId);
+    toast.success('Default AI mode saved');
+  };
 
   const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
@@ -110,9 +125,10 @@ export default function SettingsPage() {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
     { id: 'usage', label: 'Tensor Usage', icon: Zap },
+    { id: 'aimode', label: 'AI Mode', icon: Brain },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode };
 
   return (
     <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
@@ -215,7 +231,7 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode }) {
   if (section === 'profile') return (
     <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
       <div>
@@ -345,6 +361,35 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
             <p className="text-xs text-red-600 leading-snug">{codeError}</p>
           </div>
         )}
+      </div>
+    </div>
+  );
+
+  if (section === 'aimode') return (
+    <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
+      <p className="text-xs text-muted-foreground">Choose the AI mode automatically applied to every new conversation.</p>
+      <div className="space-y-2">
+        {AI_MODES.map(mode => {
+          const active = defaultMode === mode.id;
+          return (
+            <button key={mode.id} onClick={() => saveDefaultMode(mode.id)}
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all text-left"
+              style={{
+                background: active ? '#0A0A0A' : 'white',
+                borderColor: active ? '#0A0A0A' : 'rgba(0,0,0,0.1)',
+              }}>
+              <div>
+                <p className="text-sm font-bold" style={{ color: active ? '#DDFF00' : '#0A0A0A' }}>{mode.label}</p>
+                <p className="text-xs mt-0.5" style={{ color: active ? 'rgba(221,255,0,0.6)' : 'rgba(0,0,0,0.4)' }}>{mode.desc}</p>
+              </div>
+              {active && (
+                <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
+                  <span className="text-[10px] font-black text-black">✓</span>
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
