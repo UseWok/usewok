@@ -103,22 +103,36 @@ export default function ChatInputBar({
     setShowFileMenu(false);
   };
 
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
+    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(false); return; }
+
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      toast.error('Voice input requires Chrome on desktop (HTTPS) or a mobile browser');
+      toast.error('Voice input not supported on this browser. Try Chrome or Safari.');
       return;
     }
-    if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); setVoiceLoading(false); return; }
+
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+      } catch {
+        toast.error('Microphone access denied. Please allow it in your browser settings.');
+        return;
+      }
+    }
+
     finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = false;
+    rec.lang = navigator.language || 'fr-FR';
+    rec.continuous = false;
+    rec.interimResults = false;
     rec.onresult = (e) => {
       const finals = Array.from(e.results).filter(r => r.isFinal).map(r => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
     };
     rec.onerror = (e) => {
-      console.error('Speech recognition error:', e.error);
+      if (e.error !== 'aborted') toast.error('Voice error: ' + e.error);
       setIsRecording(false); setVoiceLoading(false);
     };
     rec.onend = () => {
@@ -133,9 +147,11 @@ export default function ChatInputBar({
       finalTranscriptRef.current = '';
     };
     try {
-      rec.start(); recognitionRef.current = rec; setIsRecording(true);
+      setIsRecording(true);
+      rec.start();
+      recognitionRef.current = rec;
     } catch (err) {
-      console.error('Failed to start recording:', err);
+      toast.error('Could not start microphone. Try again.');
       setIsRecording(false);
     }
   };

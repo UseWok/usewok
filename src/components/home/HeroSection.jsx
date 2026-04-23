@@ -121,29 +121,42 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const removeFile = (idx) => setFiles((prev) => prev.filter((_, i) => i !== idx));
 
-  const toggleRecording = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      toast.error('Voice input requires Chrome on desktop (HTTPS) or a mobile browser');
-      return;
-    }
+  const toggleRecording = async () => {
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
       setVoiceLoading(false);
       return;
     }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      toast.error('Voice input not supported on this browser. Try Chrome or Safari.');
+      return;
+    }
+
+    // Request mic permission explicitly for better cross-platform support
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop()); // release immediately, just needed permission
+      } catch {
+        toast.error('Microphone access denied. Please allow it in your browser settings.');
+        return;
+      }
+    }
+
     finalTranscriptRef.current = '';
     const rec = new SR();
-    rec.lang = 'fr-FR';
-    rec.continuous = true;
+    rec.lang = navigator.language || 'fr-FR';
+    rec.continuous = false; // more reliable on iOS/Safari
     rec.interimResults = false;
     rec.onresult = (e) => {
       const finals = Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript.trim()).join(' ');
       if (finals) finalTranscriptRef.current = finals;
     };
     rec.onerror = (e) => {
-      console.error('Speech recognition error:', e.error);
+      if (e.error !== 'aborted') toast.error('Voice error: ' + e.error);
       setIsRecording(false);
       setVoiceLoading(false);
     };
@@ -164,7 +177,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
       rec.start();
       recognitionRef.current = rec;
     } catch (err) {
-      console.error('Failed to start recording:', err);
+      toast.error('Could not start microphone. Try again.');
       setIsRecording(false);
     }
   };
@@ -323,16 +336,16 @@ export default function HeroSection({ agentId, onAgentChange }) {
                         if (!hasInternet) {setUpsellFeature('internet');setShowFileMenu(false);return;}
                         setUseWebSearch((w) => !w);setShowFileMenu(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${hasInternet ? useWebSearch ? 'text-green-600' : 'text-zinc-600' : 'text-zinc-300'}`}>
-                        {useWebSearch && hasInternet ? <Wifi className="w-3.5 h-3.5 text-green-600" /> : <WifiOff className={`w-3.5 h-3.5 ${hasInternet ? 'text-zinc-400' : 'text-zinc-300'}`} />}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs rounded-sm transition-colors text-left hover:bg-black/5 ${hasInternet ? 'text-zinc-600' : 'text-zinc-300'}`}>
+                        <Wifi className={`w-3.5 h-3.5 ${hasInternet ? 'text-zinc-500' : 'text-zinc-300'}`} />
                         Web Search
                         {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-muted text-zinc-400 rounded-sm">Advanced+</span>}
-                        {hasInternet &&
-                      <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center"
-                      style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
-                            {useWebSearch && <span className="text-white text-[8px]">✓</span>}
+                        {hasInternet && (
+                          <span className="ml-auto px-2 py-0.5 text-[9px] font-black rounded-sm transition-colors"
+                            style={{ background: useWebSearch ? '#0A0A0A' : 'rgba(0,0,0,0.07)', color: useWebSearch ? '#DDFF00' : '#999' }}>
+                            {useWebSearch ? 'ON' : 'OFF'}
                           </span>
-                      }
+                        )}
                       </button>
                     </motion.div>
                   }
