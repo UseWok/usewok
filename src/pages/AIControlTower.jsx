@@ -93,7 +93,7 @@ const SECTIONS = [
   {
     id: 'rule',
     field: 'ai_golden_rule',
-    title: 'La Règle d'Or',
+    title: "La Règle d'Or",
     subtitle: 'Votre ligne rouge que Stensor ne franchira jamais.',
     icon: Shield,
     Illustration: IllustrationRule,
@@ -117,8 +117,8 @@ const SECTIONS = [
   {
     id: 'depth',
     field: 'ai_depth',
-    title: 'La Profondeur d'Analyse',
-    subtitle: 'Quelle densité d'information vous convient ?',
+    title: "La Profondeur d'Analyse",
+    subtitle: "Quelle densité d'information vous convient ?",
     icon: Zap,
     Illustration: IllustrationTone,
     type: 'radio',
