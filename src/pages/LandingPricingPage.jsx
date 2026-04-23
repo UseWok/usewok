@@ -15,7 +15,7 @@ const FG = '#0A0A0A';
 
 const PLAN_FEATURES = {
   free:      ['10 Tensors/month', '3 discussions max', 'All knowledge bases'],
-  essential: ['50 Tensors/month', '30 discussions max', 'File uploads'],
+  essential: ['100 Tensors/month', '30 discussions max', 'File uploads'],
   advanced:  ['250 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Advanced AI mode'],
   expert:    ['500 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
   supreme:   ['1200 Tensors/month', 'Unlimited discussions', 'Internet search', 'File uploads', 'Expert AI mode', 'Priority support'],
