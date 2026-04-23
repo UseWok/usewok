@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Trash2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Check, X, Trash2, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { getPlansConfig } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
+
+// Compute the next renewal date from subscription_date and billing_cycle
+function getNextRenewalDate(subscriptionDate, billingCycle) {
+  if (!subscriptionDate) return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const d = new Date(subscriptionDate);
+  const now = new Date();
+  if (billingCycle === 'yearly') {
+    while (d <= now) d.setFullYear(d.getFullYear() + 1);
+  } else {
+    while (d <= now) d.setMonth(d.getMonth() + 1);
+  }
+  return d;
+}
 
 function CancellationCard({ ticket, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
@@ -15,24 +29,33 @@ function CancellationCard({ ticket, onUpdate }) {
   const isRejected = ticket.cancel_status === 'rejected';
   const isPending = !ticket.cancel_status || ticket.cancel_status === 'pending';
 
-  // Check if approved more than 24h ago → show countdown or already deleted
-  const approvedAt = ticket.cancel_approved_at ? new Date(ticket.cancel_approved_at) : null;
-  const deleteAt = approvedAt ? new Date(approvedAt.getTime() + 24 * 60 * 60 * 1000) : null;
-  const now = new Date();
-  const msLeft = deleteAt ? deleteAt - now : null;
-  const hoursLeft = msLeft ? Math.max(0, Math.ceil(msLeft / 3600000)) : null;
-
   const handleApprove = async () => {
     setLoading(true);
-    // Calculate end date = today + remaining days in current period (approx 30 days from now)
-    const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Fetch the actual user to get subscription_date and billing_cycle
+    let endsAt;
+    try {
+      const users = await base44.entities.User.filter({ email: ticket.user_email });
+      if (users.length > 0) {
+        const u = users[0];
+        const renewalDate = getNextRenewalDate(u.subscription_date || u.created_date, u.billing_cycle);
+        endsAt = renewalDate.toISOString();
+        // Mark user subscription as cancelled (will auto-downgrade when ends_at passes)
+        await base44.entities.User.update(u.id, { subscription_cancelled: true, subscription_ends_at: endsAt });
+      } else {
+        endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+    } catch {
+      endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
     await base44.entities.SupportTicket.update(ticket.id, {
       cancel_status: 'approved',
       cancel_approved_at: new Date().toISOString(),
       cancel_ends_at: endsAt,
       status: 'closed',
     });
-    toast.success(`Annulation approuvée — abonnement se termine le ${new Date(endsAt).toLocaleDateString('fr-FR')}`);
+    toast.success(`Cancellation approved — subscription ends on ${new Date(endsAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`);
     setLoading(false);
     onUpdate();
   };
@@ -72,43 +95,48 @@ function CancellationCard({ ticket, onUpdate }) {
           </div>
           <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>{ticket.user_email}</p>
           <p className="text-xs mt-1 line-clamp-2" style={{ color: '#666' }}>{ticket.description}</p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[10px]" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR')}</span>
-          </div>
-          {isApproved && hoursLeft !== null && hoursLeft > 0 && (
+          <span className="text-[10px]" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString('en-US')}</span>
+          {isApproved && ticket.cancel_ends_at && (
             <div className="flex items-center gap-1 mt-1">
-              <Clock className="w-3 h-3" style={{ color: '#f59e0b' }} />
-              <span className="text-[10px] font-semibold" style={{ color: '#f59e0b' }}>Auto-delete in {hoursLeft}h</span>
+              <Calendar className="w-3 h-3" style={{ color: '#16a34a' }} />
+              <span className="text-[10px] font-semibold" style={{ color: '#16a34a' }}>
+                Ends {new Date(ticket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
             </div>
           )}
         </div>
-        <button onClick={() => setExpanded(e => !e)} className="w-7 h-7 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '6px' }}>
-          {expanded ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
-        </button>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button onClick={handleDelete} disabled={loading}
+            className="w-7 h-7 flex items-center justify-center hover:bg-red-50 transition-colors"
+            style={{ borderRadius: '4px' }}>
+            <Trash2 className="w-3.5 h-3.5" style={{ color: '#ef4444' }} />
+          </button>
+          <button onClick={() => setExpanded(e => !e)} className="w-7 h-7 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '6px' }}>
+            {expanded ? <ChevronUp className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
             <div className="px-4 pb-4 space-y-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {/* Full message */}
               <div className="pt-3">
-                <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Raison</p>
+                <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Reason</p>
                 <p className="text-xs leading-relaxed p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.03)', color: '#444' }}>{ticket.description}</p>
               </div>
               {ticket.invoice_email && (
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Email paiement</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Payment email</p>
                   <p className="text-xs" style={{ color: '#444' }}>{ticket.invoice_email}</p>
                 </div>
               )}
               {isApproved && ticket.cancel_ends_at && (
                 <div className="px-3 py-2 rounded-md text-xs font-semibold" style={{ background: 'rgba(22,163,74,0.08)', color: '#16a34a' }}>
-                  Abonnement se termine le {new Date(ticket.cancel_ends_at).toLocaleDateString('fr-FR')}
+                  Subscription ends on {new Date(ticket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2 pt-1">
                 {isPending && (
                   <>
@@ -123,13 +151,6 @@ function CancellationCard({ ticket, onUpdate }) {
                       <X className="w-3.5 h-3.5" /> Reject
                     </button>
                   </>
-                )}
-                {(isApproved || isRejected) && (
-                  <button onClick={handleDelete} disabled={loading}
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all"
-                    style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}>
-                    <Trash2 className="w-3.5 h-3.5" /> Delete now
-                  </button>
                 )}
               </div>
             </div>
@@ -149,21 +170,7 @@ export default function CancellationsTab() {
     setLoading(true);
     try {
       const all = await base44.entities.SupportTicket.list('-created_date', 200);
-      const cancellations = all.filter(t => t.category === 'cancellation');
-
-      // Auto-delete all cancellation tickets older than 15 days
-      const now = new Date();
-      const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
-      for (const t of cancellations) {
-        const createdAt = new Date(t.created_date);
-        if (now - createdAt > FIFTEEN_DAYS_MS) {
-          await base44.entities.SupportTicket.delete(t.id).catch(() => {});
-        }
-      }
-
-      // Reload after potential deletions
-      const fresh = await base44.entities.SupportTicket.list('-created_date', 200);
-      setTickets(fresh.filter(t => t.category === 'cancellation'));
+      setTickets(all.filter(t => t.category === 'cancellation'));
     } catch {}
     setLoading(false);
   };

@@ -412,7 +412,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
                 </div>
                 <span className="text-sm font-bold text-fg">{displayPrice}</span>
                 {isCancelPending && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}>CANCELLATION PENDING</span>}
-                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>ENDS {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
+                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>CANCELLED · ENDS {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
                 {isCancelRejected && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a' }}>ACTIVE</span>}
                 {!cancelTicket && <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded">ACTIVE</span>}
                 <button onClick={() => setShowInvoiceModal(true)}

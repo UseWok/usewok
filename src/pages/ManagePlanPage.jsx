@@ -140,8 +140,11 @@ function ReasonStep({ cancelNote, setCancelNote, cancelEmail, setCancelEmail, ca
         </p>
       </div>
       <div>
-        <label className="text-xs font-semibold block mb-1" style={{ color: FG }}>Reason *</label>
-        <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)}
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs font-semibold" style={{ color: FG }}>Reason *</label>
+          <span className="text-[10px] font-bold" style={{ color: cancelNote.length >= 450 ? '#ef4444' : '#aaa' }}>{cancelNote.length}/500</span>
+        </div>
+        <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value.slice(0, 500))}
           placeholder="Tell us why you're cancelling..."
           rows={3} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
           style={{ border: `1.5px solid ${cancelNote ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px' }} />
@@ -191,8 +194,17 @@ export default function ManagePlanPage() {
 
   useEffect(() => {
     if (!user?.email) return;
-    base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: user.email, cancel_status: 'pending' })
-      .then(res => { if (res.length > 0) setExistingCancel(res[0]); })
+    base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: user.email })
+      .then(res => {
+        if (res.length > 0) {
+          // Prefer approved, then pending
+          const sorted = res.sort((a, b) => {
+            const rank = { approved: 0, pending: 1, rejected: 2 };
+            return (rank[a.cancel_status] ?? 1) - (rank[b.cancel_status] ?? 1);
+          });
+          setExistingCancel(sorted[0]);
+        }
+      })
       .catch(() => {});
   }, [user?.email]);
 
@@ -353,11 +365,16 @@ export default function ManagePlanPage() {
             {cancelSent || existingCancel ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 mt-2" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)' }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-3.5 h-3.5" style={{ color: '#888' }} />
-                  <p className="text-sm font-semibold" style={{ color: FG }}>Cancellation request pending</p>
+                  <Clock className="w-3.5 h-3.5" style={{ color: existingCancel?.cancel_status === 'approved' ? '#16a34a' : '#888' }} />
+                  <p className="text-sm font-semibold" style={{ color: FG }}>
+                    {existingCancel?.cancel_status === 'approved' ? 'Subscription cancelled' : 'Cancellation request pending'}
+                  </p>
                 </div>
                 <p className="text-xs" style={{ color: '#888' }}>
-                  Your request has been received and will be processed within 24 hours. You'll be notified of the exact end date once approved.
+                  {existingCancel?.cancel_status === 'approved' && existingCancel?.cancel_ends_at
+                    ? `Your subscription will remain active until ${new Date(existingCancel.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}, then automatically downgrade to the free plan.`
+                    : "Your request has been received and will be processed within 24 hours. You'll be notified of the exact end date once approved."
+                  }
                 </p>
               </motion.div>
             ) : (
