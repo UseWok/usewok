@@ -57,7 +57,10 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
   });
 
   const lastSeen = parseInt(localStorage.getItem('stensor_notifs_last_seen') || '0');
-  const hasUnread = notifsList.some(n => new Date(n.created_date).getTime() > lastSeen);
+  const hasUnreadNotifs = notifsList.some(n => new Date(n.created_date).getTime() > lastSeen);
+  const dnaSections = ['ai_vision', 'ai_personality', 'ai_golden_rule', 'ai_tone', 'ai_depth', 'ai_context'];
+  const dnaComplete = user ? dnaSections.every(f => user[f] && String(user[f]).trim().length > 0) : true;
+  const hasUnread = hasUnreadNotifs || !dnaComplete;
 
   const location = useLocation();
   const navigate = useNavigate();

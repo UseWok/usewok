@@ -8,6 +8,9 @@ import { useLanguage } from '@/lib/i18n';
 
 const PURPLE = '#3A0088';
 
+const DNA_FIELDS = ['ai_vision', 'ai_personality', 'ai_golden_rule', 'ai_tone', 'ai_depth', 'ai_context'];
+const DNA_TOTAL = DNA_FIELDS.length;
+
 export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin, user }) {
   const popoverRef = useRef(null);
   const navigate = useNavigate();
@@ -60,6 +63,10 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
     if (top < 8) top = 8;
     return { left, top, maxH };
   };
+
+  const dnaFilled = user ? DNA_FIELDS.filter(f => user[f] && String(user[f]).trim().length > 0).length : DNA_TOTAL;
+  const dnaPct = Math.round((dnaFilled / DNA_TOTAL) * 100);
+  const dnaComplete = dnaPct === 100;
 
   const handleNotifClick = (notif) => {
     onClose();
@@ -115,8 +122,38 @@ export default function NotificationsPopover({ open, onClose, anchorRef, isAdmin
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {notifications.length === 0 && (
+            {/* DNA progress card — only for non-admins when incomplete */}
+            {!isAdmin && !dnaComplete && (
+              <div className="mx-3 mt-3 mb-2 p-3 rounded-lg border-2" style={{ borderColor: '#DDFF00', background: '#fffde0' }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs font-black" style={{ color: '#0A0A0A' }}>Complete your Stensor DNA</p>
+                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#0A0A0A', color: '#DDFF00' }}>{dnaPct}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'rgba(0,0,0,0.08)' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${dnaPct}%` }}
+                    transition={{ duration: 0.5 }}
+                    className="h-full rounded-full" style={{ background: '#DDFF00' }} />
+                </div>
+                <p className="text-[10px] mb-2" style={{ color: 'rgba(0,0,0,0.5)' }}>
+                  {DNA_TOTAL - dnaFilled} section{DNA_TOTAL - dnaFilled > 1 ? 's' : ''} left — unlock your personalized AI coach!
+                </p>
+                <button onClick={() => { onClose(); navigate('/ai-dna'); }}
+                  className="w-full py-1.5 text-[11px] font-black rounded-md transition-opacity hover:opacity-80"
+                  style={{ background: '#0A0A0A', color: '#DDFF00' }}>
+                  Complete my DNA →
+                </button>
+              </div>
+            )}
+            {notifications.length === 0 && dnaComplete && (
               <div className="px-4 py-10 text-center">
+                <Bell className="w-8 h-8 mx-auto mb-3 opacity-10" style={{ color: '#333' }} />
+                <p className="text-sm" style={{ color: '#bbb' }}>{t('no_notifications')}</p>
+              </div>
+            )}
+            {notifications.length === 0 && !dnaComplete && isAdmin && (
+              <div className="px-4 py-6 text-center">
                 <Bell className="w-8 h-8 mx-auto mb-3 opacity-10" style={{ color: '#333' }} />
                 <p className="text-sm" style={{ color: '#bbb' }}>{t('no_notifications')}</p>
               </div>

@@ -74,6 +74,21 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div className="md:col-span-2 mb-4 pb-4 border-b border-border">
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Identity</p>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground mb-1 block">Plan name</label>
+                      <input value={plan.name || ''} onChange={e => onChange({ ...plan, name: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-border rounded-sm focus:outline-none" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground mb-1 block">Short description (shown on card)</label>
+                      <input value={plan.description || ''} onChange={e => onChange({ ...plan, description: e.target.value })}
+                        placeholder="e.g. Perfect for beginners" className="w-full px-3 py-2 text-sm border border-border rounded-sm focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Pricing</p>
                   <FieldNumber plan={plan} fieldKey="price_monthly" label="Monthly price ($)" onChange={onChange} />

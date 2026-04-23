@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 // welcome-offer imports removed
-import { Check, Zap, Star, Crown, Shield, Globe, Wifi, WifiOff, ChevronRight } from 'lucide-react';
+import { Check, Zap, Wifi, WifiOff } from 'lucide-react';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +12,6 @@ import { saveCart, clearCart } from './CheckoutPage';
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 const GREEN = '#16a34a';
-
-const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star, supreme: Crown };
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
@@ -116,67 +114,55 @@ export default function PricingPage() {
         {/* Plans grid */}
         <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
           {plans.map((plan, idx) => {
-            const Icon = PLAN_ICONS[plan.id] || Star;
             const basePrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
             const price = basePrice;
-            const annualTotal = plan.price_yearly * 12;
             const isCurrentPlan = purchased === plan.id;
-            const isRecommended = plan.id === 'expert';
+            const isAdvanced = plan.id === 'advanced';
 
             return (
               <motion.div key={plan.id}
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}
                 className="flex flex-col relative flex-shrink-0 w-72 md:w-auto"
                 style={{ scrollSnapAlign: 'start',
-                  background: isRecommended ? FG : 'white',
-                  border: isRecommended ? 'none' : '1px solid rgba(0,0,0,0.09)',
+                  background: 'white',
+                  border: isAdvanced ? '2px solid rgba(0,0,0,0.85)' : '1px solid rgba(0,0,0,0.09)',
                   borderRadius: '5px',
-                  boxShadow: isRecommended ? '0 20px 60px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.03)',
+                  boxShadow: isAdvanced ? '0 4px 20px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.03)',
                 }}>
 
-                {isRecommended && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-[9px] font-black px-3 py-1 tracking-widest"
-                      style={{ background: YUZU, color: FG, borderRadius: '2px' }}>
-                      {t('recommended')}
-                    </span>
-                  </div>
-                )}
-
-
                 <div className="p-5 flex flex-col flex-1">
-                  {/* Icon + Name */}
-                  <div className="flex items-center gap-2.5 mb-4">
-                    <div className="w-8 h-8 flex items-center justify-center"
-                      style={{ background: isRecommended ? 'rgba(221,255,0,0.15)' : 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
-                      <Icon className="w-4 h-4" style={{ color: isRecommended ? YUZU : FG }} />
-                    </div>
-                    <div>
-                      <p className="font-black text-sm" style={{ color: isRecommended ? 'white' : FG }}>{plan.name}</p>
-                      <p className="text-[10px]" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#aaa' }}>
-                        {plan.credits_limit} {t('tensors')}
-                      </p>
-                    </div>
+                  {/* Name */}
+                  <div className="mb-4">
+                    <p className="font-black text-sm" style={{ color: FG }}>{plan.name}</p>
+                    {plan.description && (
+                      <p className="text-[11px] mt-0.5" style={{ color: '#999' }}>{plan.description}</p>
+                    )}
+                  </div>
+
+                  {/* Tensors — prominent */}
+                  <div className="mb-4 px-3 py-2.5 rounded-md" style={{ background: 'rgba(0,0,0,0.03)' }}>
+                    <span className="text-2xl font-black" style={{ color: FG }}>{plan.credits_limit}</span>
+                    <span className="text-xs font-semibold ml-1.5" style={{ color: '#888' }}>{t('tensors')}/mo</span>
                   </div>
 
                   {/* Price */}
                   <div className="mb-4">
                     <div className="flex items-end gap-2 flex-wrap">
-                      <span className="text-3xl font-black" style={{ color: isRecommended ? 'white' : FG }}>
+                      <span className="text-3xl font-black" style={{ color: FG }}>
                         {price}$
                       </span>
-                      <span className="text-xs mb-1" style={{ color: isRecommended ? 'rgba(255,255,255,0.4)' : '#bbb' }}>
-                        /mois
+                      <span className="text-xs mb-1" style={{ color: '#bbb' }}>
+                        /mo
                       </span>
                       {billing === 'yearly' && plan.price_monthly > plan.price_yearly && (
                         <span className="text-[10px] font-black px-2 py-0.5 mb-1" style={{ background: 'rgba(22,163,74,0.15)', color: GREEN, borderRadius: '3px' }}>
-                          Save {(plan.price_monthly - plan.price_yearly) * 12}$/an
+                          Save {(plan.price_monthly - plan.price_yearly) * 12}$/yr
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Internet badge — always shown */}
+                  {/* Internet badge */}
                   <div className="flex items-center gap-2 mb-4 px-2.5 py-2"
                     style={{ background: plan.internet_access ? 'rgba(22,163,74,0.08)' : 'rgba(0,0,0,0.03)', borderRadius: '3px' }}>
                     {plan.internet_access
@@ -197,8 +183,8 @@ export default function PricingPage() {
                       plan.premium_support && t('premium_support_feature'),
                     ].filter(Boolean).map((f, i) => (
                       <li key={i} className="flex items-center gap-2 text-xs">
-                        <Check className="w-3 h-3 flex-shrink-0" style={{ color: isRecommended ? YUZU : FG }} />
-                        <span style={{ color: isRecommended ? 'rgba(255,255,255,0.7)' : '#555' }}>{f}</span>
+                        <Check className="w-3 h-3 flex-shrink-0" style={{ color: FG }} />
+                        <span style={{ color: '#555' }}>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -209,12 +195,12 @@ export default function PricingPage() {
                     className="w-full py-3 text-xs font-black tracking-wide transition-all"
                     style={{
                       borderRadius: '3px',
-                      border: isCurrentPlan ? `2px solid ${isRecommended ? YUZU : FG}` : 'none',
-                      background: isCurrentPlan ? 'transparent' : isRecommended ? YUZU : FG,
-                      color: isCurrentPlan ? (isRecommended ? YUZU : FG) : isRecommended ? FG : 'white',
+                      border: isCurrentPlan ? `2px solid ${FG}` : 'none',
+                      background: isCurrentPlan ? 'transparent' : isAdvanced ? FG : FG,
+                      color: isCurrentPlan ? FG : 'white',
                       cursor: 'pointer',
                     }}>
-                    {isCurrentPlan ? 'Gerer' : t('choose_plan', { name: plan.name })}
+                    {isCurrentPlan ? 'Manage' : t('choose_plan', { name: plan.name })}
                   </button>
                 </div>
               </motion.div>
