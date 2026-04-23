@@ -25,6 +25,7 @@ import DiscussionsPage from './pages/DiscussionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import StensorScore from './pages/StensorScore';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import AIControlTower from './pages/AIControlTower';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 
 
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/score" element={<StensorScore />} />
+          <Route path="/ai-dna" element={<AIControlTower />} />
 
           <Route path="*" element={<PageNotFound />} />
         </Route>

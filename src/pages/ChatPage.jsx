@@ -251,9 +251,24 @@ export default function ChatPage() {
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles attached — use them as context but do not describe their content. Answer directly.' : '';
+
+    // Build AI DNA context from user preferences
+    const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
+    const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
+    const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
+    const DEPTH_MAP = { concise: 'très concis et percutant', balanced: 'équilibré', deep: 'analyse complète et exhaustive' };
+    const dnaLines = [];
+    if (currentUser?.ai_vision) dnaLines.push(`- Vision de vie : ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
+    if (currentUser?.ai_personality) dnaLines.push(`- Ton caractère : ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
+    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or à ne jamais enfreindre : "${currentUser.ai_golden_rule}"`);
+    if (currentUser?.ai_tone) dnaLines.push(`- Style de communication : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
+    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur d'analyse : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
+    if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
+    const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
+
     const systemContext = agentConfig?.instructions
-      ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}\n\n`
-      : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
+      ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n`
+      : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
     const secretModel = isFirstMessage ? 'gemini_3_1_pro' : mode.model;

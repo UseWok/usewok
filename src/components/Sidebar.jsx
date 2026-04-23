@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, X } from 'lucide-react';
+import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, X, Cpu } from 'lucide-react';
 
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
@@ -110,6 +110,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+    { icon: Cpu, label: 'ADN Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];
 
@@ -156,6 +157,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
               label={item.label || t(item.labelKey)}
               active={item.active}
               expanded={expanded}
+              highlight={item.highlight}
               onClick={() => { if (item.path) { navigate(item.path); if (onNavClick) setTimeout(onNavClick, 200); } }}
             />
           ))}
@@ -268,14 +270,20 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
   );
 }
 
-function NavItem({ icon: Icon, label, onClick, active, expanded }) {
+function NavItem({ icon: Icon, label, onClick, active, expanded, highlight }) {
   return (
     <button onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all duration-150 ${active && expanded ? 'bg-yuzu text-fg' : active ? 'text-fg' : 'text-zinc-500 hover:bg-black/5'}`}>
+      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all duration-150 ${active && expanded ? 'bg-yuzu text-fg' : active ? 'text-fg' : 'text-zinc-500 hover:bg-black/5'}`}
+      style={highlight && !active ? { borderLeft: '2px solid #DDFF00' } : {}}>
       <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-sm ${active && !expanded ? 'bg-yuzu' : ''}`}>
-        <Icon className={`w-[17px] h-[17px] ${active ? 'text-fg' : 'text-zinc-400'}`} />
+        <Icon className={`w-[17px] h-[17px] ${active ? 'text-fg' : highlight ? '#0A0A0A' : 'text-zinc-400'}`} />
       </div>
-      {expanded && <span className="flex-1 text-left whitespace-nowrap truncate text-sm">{label}</span>}
+      {expanded && (
+        <span className="flex-1 text-left whitespace-nowrap truncate text-sm flex items-center gap-1.5">
+          {label}
+          {highlight && !active && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#DDFF00', color: '#0A0A0A' }}>NEW</span>}
+        </span>
+      )}
     </button>
   );
 }

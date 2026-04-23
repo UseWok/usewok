@@ -50,6 +50,30 @@
     },
     "stensor_score_streak": {
       "type": "number"
+    },
+    "ai_vision": {
+      "type": "string",
+      "description": "User's financial life vision (fire/heritage/entrepreneur/serenite)"
+    },
+    "ai_personality": {
+      "type": "string",
+      "description": "Preferred AI coach personality (sniper/architect/guardian)"
+    },
+    "ai_golden_rule": {
+      "type": "string",
+      "description": "User's personal financial golden rule (max 120 chars)"
+    },
+    "ai_tone": {
+      "type": "string",
+      "description": "Preferred communication tone (brutal/kind)"
+    },
+    "ai_depth": {
+      "type": "string",
+      "description": "Preferred response depth (concise/balanced/deep)"
+    },
+    "ai_context": {
+      "type": "string",
+      "description": "Free-form personal financial context (max 400 chars)"
     }
   },
   "required": [
