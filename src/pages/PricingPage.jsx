@@ -100,16 +100,6 @@ export default function PricingPage() {
           </motion.div>
         </div>
 
-        {/* Cart resume */}
-        {cartPlan && (
-          <div className="flex items-center justify-between mb-6 px-4 py-3" style={{ background: FG, borderRadius: '5px' }}>
-            <p className="text-sm font-semibold text-white">Resume — {cartPlan.name}</p>
-            <div className="flex gap-2">
-              <button onClick={() => navigate(`/checkout?plan=${cartPlan.id}&billing=${savedCart.billing}`)} className="px-3 py-1.5 text-xs font-bold" style={{ background: YUZU, color: FG, borderRadius: '3px' }}>Resume →</button>
-              <button onClick={dismissCart} className="px-3 py-1.5 text-xs font-medium" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: '3px' }}>Cancel</button>
-            </div>
-          </div>
-        )}
 
         {/* Plans grid */}
         <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible" style={{ scrollSnapType: 'x mandatory' }}>
@@ -137,12 +127,6 @@ export default function PricingPage() {
                     {plan.description && (
                       <p className="text-[11px] mt-0.5" style={{ color: '#999' }}>{plan.description}</p>
                     )}
-                  </div>
-
-                  {/* Tensors — prominent */}
-                  <div className="mb-4 px-3 py-2.5 rounded-md" style={{ background: 'rgba(0,0,0,0.03)' }}>
-                    <span className="text-2xl font-black" style={{ color: FG }}>{plan.credits_limit}</span>
-                    <span className="text-xs font-semibold ml-1.5" style={{ color: '#888' }}>{t('tensors')}/mo</span>
                   </div>
 
                   {/* Price */}
@@ -176,6 +160,7 @@ export default function PricingPage() {
                   {/* Key features */}
                   <ul className="space-y-2 flex-1 mb-5">
                     {[
+                      `${plan.credits_limit} ${t('tensors')}/mo`,
                       plan.ultimate_access && t('mode_ultimate'),
                       plan.file_upload && t('file_upload_feature'),
                       plan.max_discussions === 0 ? t('unlimited_discussions') : null,
@@ -184,7 +169,7 @@ export default function PricingPage() {
                     ].filter(Boolean).map((f, i) => (
                       <li key={i} className="flex items-center gap-2 text-xs">
                         <Check className="w-3 h-3 flex-shrink-0" style={{ color: FG }} />
-                        <span style={{ color: '#555' }}>{f}</span>
+                        <span style={{ color: '#555', fontWeight: i === 0 ? 700 : 400 }}>{f}</span>
                       </li>
                     ))}
                   </ul>
