@@ -157,7 +157,7 @@ export default function TicketsTab() {
     },
   });
 
-  const tickets = allTickets.filter(t => t.category !== 'cancellation');
+  const tickets = allTickets.filter(t => t.category !== 'cancellation' && t.category !== 'invoice');
   const open = tickets.filter(t => t.status === 'open');
   const rest = tickets.filter(t => t.status !== 'open');
 

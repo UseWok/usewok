@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Brain } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Brain, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -32,13 +32,42 @@ export default function SettingsPage() {
   const [codeError, setCodeError] = useState('');
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceEmail, setInvoiceEmail] = useState('');
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [cancelTicket, setCancelTicket] = useState(null);
   const [defaultMode, setDefaultMode] = useState(() => localStorage.getItem(DEFAULT_MODE_KEY) || 'ultimate');
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
       setFullName(u?.full_name || '');
-      setUserPlan(getUserPlan(u));
+      setInvoiceEmail(u?.email || '');
+      const plan = getUserPlan(u);
+      setUserPlan(plan);
+
+      // Auto-downgrade to free if subscription expired (cancel approved + ends_at passed)
+      if (u && plan.price_monthly > 0) {
+        try {
+          const tickets = await base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email, cancel_status: 'approved' });
+          const expiredTicket = tickets.find(t => t.cancel_ends_at && new Date(t.cancel_ends_at) <= new Date());
+          if (expiredTicket) {
+            const freePlans = getPlansConfig();
+            const freePlan = freePlans.find(p => p.id === 'free') || freePlans[0];
+            await base44.auth.updateMe({ subscription_plan: 'free', credits_limit: freePlan.credits_limit, credits_used: 0 });
+            const updated = await base44.auth.me();
+            setUser(updated);
+            setUserPlan(getUserPlan(updated));
+          }
+        } catch {}
+      }
+
+      // Load cancel ticket if any
+      if (u?.email) {
+        base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
+          if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
+        }).catch(() => {});
+      }
     }).catch(() => {});
   }, []);
 
@@ -91,28 +120,54 @@ export default function SettingsPage() {
     }
     const codeRecord = results[0];
     const plans = getPlansConfig();
-    const plan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!plan) { setCodeError('Plan associated with this code no longer exists.'); setCodeLoading(false); return; }
-    await base44.auth.updateMe({
-      subscription_plan: plan.id, credits_limit: plan.credits_limit, credits_used: 0,
-      credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
-    });
+    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
+    if (!newPlan) { setCodeError('Plan associated with this code no longer exists.'); setCodeLoading(false); return; }
+
+    // Keep the best plan: if user already has a higher plan, only add bonus credits
+    const currentPlan = getUserPlan(user);
+    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
+    const newRank = plans.findIndex(p => p.id === newPlan.id);
+    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
+
+    if (keepCurrent) {
+      // Add credits as bonus instead of downgrading
+      const bonusCredits = newPlan.credits_limit;
+      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
+      toast.success(`Code appliqué ! +${bonusCredits} Tensors bonus ajoutés (vous gardez votre plan ${currentPlan.name})`);
+    } else {
+      await base44.auth.updateMe({
+        subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
+        credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
+      });
+      toast.success(`Plan ${newPlan.name} activé !`);
+    }
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
     setActivationCode('');
-    toast.success(`Plan ${plan.name} activated!`);
     const updated = await base44.auth.me();
     setUser(updated); setUserPlan(getUserPlan(updated));
     setCodeLoading(false);
   };
 
-  const requestInvoice = async (planName) => {
-    if (!user) return;
-    await base44.integrations.Core.SendEmail({
-      to: user.email, subject: `Invoice request — ${planName}`,
-      body: `User ${user.full_name || user.email} (${user.email}) requests an invoice for plan ${planName}.`,
+  const requestInvoice = async () => {
+    if (!user || !invoiceEmail.trim()) return;
+    setInvoiceLoading(true);
+    // Notify admin via support ticket
+    await base44.entities.SupportTicket.create({
+      title: `Demande de facture — ${user.full_name || user.email}`,
+      description: `Demande de facture pour le plan ${userPlan?.name}. Email de paiement: ${invoiceEmail.trim()}`,
+      category: 'invoice',
+      status: 'open',
+      user_email: user.email,
+      user_name: user.full_name || user.email,
+      user_plan: userPlan?.name,
+      user_plan_price: userPlan?.price_monthly ? `$${userPlan.price_monthly}/mo` : 'Free',
+      invoice_email: invoiceEmail.trim(),
+      messages_json: JSON.stringify([]),
     });
-    setInvoiceRequested(p => ({ ...p, [planName]: true }));
-    toast.success('Request sent');
+    setInvoiceLoading(false);
+    setShowInvoiceModal(false);
+    setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
+    toast.success('Demande de facture envoyée');
   };
 
   const deleteAccount = async () => {
@@ -128,7 +183,7 @@ export default function SettingsPage() {
     { id: 'aimode', label: 'AI Mode', icon: Brain },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket };
 
   return (
     <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
@@ -197,6 +252,38 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Invoice modal */}
+      <AnimatePresence>
+        {showInvoiceModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+            onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-5 py-4 flex items-center justify-between border-b border-border">
+                <p className="text-sm font-black text-fg">Demande de facture</p>
+                <button onClick={() => setShowInvoiceModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground">Entrez l'email utilisé pour votre paiement. Nous transmettrons votre demande à notre équipe.</p>
+                <div>
+                  <label className="text-xs font-semibold block mb-1 text-muted-foreground">Email d'achat *</label>
+                  <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
+                    placeholder="email@exemple.com"
+                    className="w-full px-3 py-2.5 text-sm border border-border rounded-lg focus:outline-none" />
+                </div>
+                <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
+                  className="w-full py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
+                  {invoiceLoading ? 'Envoi...' : 'Valider la demande'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Delete modal */}
       <AnimatePresence>
         {showDeleteModal && (
@@ -231,7 +318,17 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket }) {
+  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+  function getRenewalDate(u) {
+    const base = u?.subscription_date || u?.created_date;
+    if (!base) return null;
+    const d = new Date(base);
+    const now = new Date();
+    while (d <= now) d.setMonth(d.getMonth() + 1);
+    return d;
+  }
   if (section === 'profile') return (
     <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
       <div>
@@ -258,55 +355,71 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     </div>
   );
 
-  if (section === 'plan') return (
-    <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-      <div className="p-4 border border-border rounded-xl bg-white">
-        <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Current plan</p>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-lg font-black text-fg">{userPlan?.name || 'Free'}</p>
-            <p className="text-xs mt-0.5 text-muted-foreground">
-              {userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free plan'}
-            </p>
-          </div>
-          <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg">
-            {userPlan?.credits_limit} Tensors/mo
-          </span>
-        </div>
-        <div className="flex gap-2 mt-3">
-          <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
-            Manage plan <ChevronRight className="w-3 h-3" />
-          </button>
-          <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
-            Upgrade
-          </button>
-        </div>
-      </div>
-
-      {userPlan?.price_monthly > 0 && (
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Billing history</p>
-          <div className="border border-border rounded-xl overflow-hidden bg-white">
-            <div className="flex items-center gap-4 px-4 py-3">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-fg">Plan {userPlan.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(user?.subscription_date || user?.created_date || Date.now()).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+  if (section === 'plan') {
+    const renewalDate = getRenewalDate(user);
+    const isCancelPending = cancelTicket?.cancel_status === 'pending';
+    const isCancelApproved = cancelTicket?.cancel_status === 'approved';
+    const isCancelRejected = cancelTicket?.cancel_status === 'rejected';
+    return (
+      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
+        <div className="p-4 border border-border rounded-xl bg-white">
+          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Abonnement actuel</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-black text-fg">{userPlan?.name || 'Free'}</p>
+              <p className="text-xs mt-0.5 text-muted-foreground">
+                {userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Plan gratuit'}
+              </p>
+              {renewalDate && userPlan?.price_monthly > 0 && (
+                <p className="text-xs mt-1 text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Renouvellement le {formatDate(renewalDate)}
                 </p>
+              )}
+            </div>
+            <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg">
+              {userPlan?.credits_limit} Tensors/mois
+            </span>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
+              Gérer <ChevronRight className="w-3 h-3" />
+            </button>
+            <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
+              Upgrader
+            </button>
+          </div>
+        </div>
+
+        {userPlan?.price_monthly > 0 && (
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Historique de facturation</p>
+            <div className="border border-border rounded-xl overflow-hidden bg-white">
+              <div className="flex items-center gap-3 px-4 py-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-fg">Plan {userPlan.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Depuis le {formatDate(user?.subscription_date || user?.created_date)}
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-fg">${userPlan.price_monthly}/mo</span>
+                {/* Cancel status badge */}
+                {isCancelPending && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}>ANNULATION EN ATTENTE</span>}
+                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>SE TERMINE LE {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('fr-FR')}</span>}
+                {isCancelRejected && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a' }}>ACTIF</span>}
+                {!cancelTicket && <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded">ACTIF</span>}
+                <button onClick={() => setShowInvoiceModal(true)}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                  <Download className="w-3 h-3" />
+                  {invoiceRequested[userPlan.name] ? 'Envoyée !' : 'Facture'}
+                </button>
               </div>
-              <span className="text-sm font-bold text-fg">${userPlan.price_monthly}/mo</span>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded-lg">PAID</span>
-              <button onClick={() => requestInvoice(userPlan.name)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                <Download className="w-3 h-3" />
-                {invoiceRequested[userPlan.name] ? 'Sent!' : 'Invoice'}
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
+  }
 
   if (section === 'usage') return (
     <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>

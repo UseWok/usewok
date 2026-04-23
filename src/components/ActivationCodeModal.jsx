@@ -25,19 +25,32 @@ export default function ActivationCodeModal({ open, onClose }) {
     if (results.length === 0) { toast.error('Invalid or already used code'); setLoading(false); return; }
     const codeRecord = results[0];
     const plans = getPlansConfig();
-    const plan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!plan) { toast.error('Plan not found'); setLoading(false); return; }
+    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
+    if (!newPlan) { toast.error('Plan not found'); setLoading(false); return; }
     const billingCycle = codeRecord.billing || 'monthly';
-    await base44.auth.updateMe({
-      subscription_plan: plan.id,
-      credits_limit: plan.credits_limit,
-      credits_used: 0,
-      credits_bonus: 0,
-      billing_cycle: billingCycle,
-      subscription_date: new Date().toISOString(),
-    });
+
+    // Keep the best plan: if user already has a higher-tier plan, add as bonus credits
+    const { getUserPlan } = await import('@/lib/plans-config');
+    const currentPlan = getUserPlan(user);
+    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
+    const newRank = plans.findIndex(p => p.id === newPlan.id);
+    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
+
+    if (keepCurrent) {
+      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + newPlan.credits_limit });
+      setSuccess(`${currentPlan.name} + ${newPlan.credits_limit} bonus`);
+    } else {
+      await base44.auth.updateMe({
+        subscription_plan: newPlan.id,
+        credits_limit: newPlan.credits_limit,
+        credits_used: 0,
+        credits_bonus: 0,
+        billing_cycle: billingCycle,
+        subscription_date: new Date().toISOString(),
+      });
+      setSuccess(newPlan.name);
+    }
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
-    setSuccess(plan.name);
     setLoading(false);
   };
 

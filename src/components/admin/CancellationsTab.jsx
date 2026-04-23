@@ -1,31 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Star, Trash2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Check, X, Trash2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 
-const SURVEY_LABELS = ['Overall satisfaction', 'Value for money', 'Ease of use', 'Features offered', 'Support & assistance'];
-const SURVEY_KEYS = ['satisfaction', 'value', 'ease', 'features', 'support'];
-
-function StarDisplay({ value }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(s => (
-        <Star key={s} className="w-3.5 h-3.5" fill={value >= s ? '#f59e0b' : 'none'} style={{ color: value >= s ? '#f59e0b' : '#ddd' }} />
-      ))}
-    </div>
-  );
-}
-
 function CancellationCard({ ticket, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const ratings = (() => { try { return JSON.parse(ticket.ratings_json || '{}'); } catch { return {}; } })();
-  const avgRating = SURVEY_KEYS.reduce((s, k) => s + (ratings[k] || 0), 0) / SURVEY_KEYS.length;
 
   const isApproved = ticket.cancel_status === 'approved';
   const isRejected = ticket.cancel_status === 'rejected';
@@ -40,12 +24,15 @@ function CancellationCard({ ticket, onUpdate }) {
 
   const handleApprove = async () => {
     setLoading(true);
+    // Calculate end date = today + remaining days in current period (approx 30 days from now)
+    const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     await base44.entities.SupportTicket.update(ticket.id, {
       cancel_status: 'approved',
       cancel_approved_at: new Date().toISOString(),
+      cancel_ends_at: endsAt,
       status: 'closed',
     });
-    toast.success('Cancellation approved — ticket will auto-delete in 24h');
+    toast.success(`Annulation approuvée — abonnement se termine le ${new Date(endsAt).toLocaleDateString('fr-FR')}`);
     setLoading(false);
     onUpdate();
   };
@@ -86,10 +73,7 @@ function CancellationCard({ ticket, onUpdate }) {
           <p className="text-xs mt-0.5" style={{ color: '#aaa' }}>{ticket.user_email}</p>
           <p className="text-xs mt-1 line-clamp-2" style={{ color: '#666' }}>{ticket.description}</p>
           <div className="flex items-center gap-2 mt-1.5">
-            <StarDisplay value={Math.round(avgRating)} />
-            <span className="text-[10px]" style={{ color: '#aaa' }}>{avgRating.toFixed(1)}/5 avg</span>
-            <span className="text-[10px]" style={{ color: '#ccc' }}>·</span>
-            <span className="text-[10px]" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString()}</span>
+            <span className="text-[10px]" style={{ color: '#aaa' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR')}</span>
           </div>
           {isApproved && hoursLeft !== null && hoursLeft > 0 && (
             <div className="flex items-center gap-1 mt-1">
@@ -107,24 +91,22 @@ function CancellationCard({ ticket, onUpdate }) {
         {expanded && (
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
             <div className="px-4 pb-4 space-y-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              {/* Detailed ratings */}
-              <div className="pt-3">
-                <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: '#aaa' }}>Ratings</p>
-                <div className="space-y-1.5">
-                  {SURVEY_KEYS.map((k, i) => (
-                    <div key={k} className="flex items-center justify-between">
-                      <span className="text-xs" style={{ color: '#555' }}>{SURVEY_LABELS[i]}</span>
-                      <StarDisplay value={ratings[k] || 0} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Full message */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Reason</p>
+              <div className="pt-3">
+                <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Raison</p>
                 <p className="text-xs leading-relaxed p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.03)', color: '#444' }}>{ticket.description}</p>
               </div>
+              {ticket.invoice_email && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-1" style={{ color: '#aaa' }}>Email paiement</p>
+                  <p className="text-xs" style={{ color: '#444' }}>{ticket.invoice_email}</p>
+                </div>
+              )}
+              {isApproved && ticket.cancel_ends_at && (
+                <div className="px-3 py-2 rounded-md text-xs font-semibold" style={{ background: 'rgba(22,163,74,0.08)', color: '#16a34a' }}>
+                  Abonnement se termine le {new Date(ticket.cancel_ends_at).toLocaleDateString('fr-FR')}
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex gap-2 pt-1">

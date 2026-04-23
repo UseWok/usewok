@@ -10,6 +10,7 @@ import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import TicketsTab from '@/components/admin/TicketsTab';
 import CancellationsTab from '@/components/admin/CancellationsTab';
+import InvoicesTab from '@/components/admin/InvoicesTab';
 import LandingEditor from '@/components/admin/LandingEditor';
 import PlanEditor from '@/components/admin/PlanEditor';
 import UserRow from '@/components/admin/UserRow';
@@ -146,7 +147,8 @@ export default function AdminProducts() {
     { id: 'landing', label: 'Landing Page', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'tickets', label: 'Tickets', icon: MessageSquare },
-    { id: 'cancellations', label: 'Cancellations', icon: X },
+    { id: 'cancellations', label: 'Annulations', icon: X },
+    { id: 'invoices', label: 'Factures', icon: CreditCard },
     { id: 'users', label: 'Users', icon: Users },
   ];
 
@@ -482,6 +484,7 @@ export default function AdminProducts() {
         {tab === 'landing' && <LandingEditor />}
         {tab === 'tickets' && <TicketsTab />}
         {tab === 'cancellations' && <CancellationsTab />}
+        {tab === 'invoices' && <InvoicesTab />}
 
         {/* USERS TAB */}
         {tab === 'users' && (

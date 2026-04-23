@@ -14,7 +14,8 @@
         "bug",
         "money",
         "other",
-        "cancellation"
+        "cancellation",
+        "invoice"
       ]
     },
     "messages_json": {
@@ -45,6 +46,9 @@
     "cancel_approved_at": {
       "type": "string"
     },
+    "cancel_ends_at": {
+      "type": "string"
+    },
     "user_email": {
       "type": "string"
     },
@@ -55,6 +59,9 @@
       "type": "string"
     },
     "user_plan_price": {
+      "type": "string"
+    },
+    "invoice_email": {
       "type": "string"
     },
     "ratings_json": {
