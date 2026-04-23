@@ -123,7 +123,7 @@ const SECTIONS = [
     Illustration: IllustrationTone,
     type: 'radio',
     options: [
-      { value: 'concise', label: 'L'Essentiel', desc: 'Réponses courtes et percutantes. Droit au but.' },
+      { value: 'concise', label: "L'Essentiel", desc: 'Réponses courtes et percutantes. Droit au but.' },
       { value: 'balanced', label: 'Équilibré', desc: 'Clarté et contexte. Ni trop court, ni trop long.' },
       { value: 'deep', label: 'La Vision Complète', desc: 'Analyse exhaustive, détails, scénarios et perspectives.' },
     ],
@@ -136,7 +136,7 @@ const SECTIONS = [
     icon: Sparkles,
     Illustration: IllustrationVision,
     type: 'textarea',
-    placeholder: 'Ex : "Je suis freelance avec revenus variables, 28 ans, aucune dette, 8k€ d'épargne, objectif 50k€ en 3 ans."',
+    placeholder: "Ex : \"Je suis freelance avec revenus variables, 28 ans, aucune dette, 8k€ d'épargne, objectif 50k€ en 3 ans.\"",
     maxLength: 400,
   },
 ];
