@@ -133,13 +133,13 @@ export default function SettingsPage() {
       // Add credits as bonus instead of downgrading
       const bonusCredits = newPlan.credits_limit;
       await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
-      toast.success(`Code appliqué ! +${bonusCredits} Tensors bonus ajoutés (vous gardez votre plan ${currentPlan.name})`);
+      toast.success(`Code applied! +${bonusCredits} bonus Tensors added (your ${currentPlan.name} plan is kept)`);
     } else {
       await base44.auth.updateMe({
         subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
         credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
       });
-      toast.success(`Plan ${newPlan.name} activé !`);
+      toast.success(`${newPlan.name} plan activated!`);
     }
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
     setActivationCode('');
@@ -153,8 +153,8 @@ export default function SettingsPage() {
     setInvoiceLoading(true);
     // Notify admin via support ticket
     await base44.entities.SupportTicket.create({
-      title: `Demande de facture — ${user.full_name || user.email}`,
-      description: `Demande de facture pour le plan ${userPlan?.name}. Email de paiement: ${invoiceEmail.trim()}`,
+      title: `Invoice request — ${user.full_name || user.email}`,
+      description: `Invoice request for the ${userPlan?.name} plan. Payment email: ${invoiceEmail.trim()}`,
       category: 'invoice',
       status: 'open',
       user_email: user.email,
@@ -167,7 +167,7 @@ export default function SettingsPage() {
     setInvoiceLoading(false);
     setShowInvoiceModal(false);
     setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
-    toast.success('Demande de facture envoyée');
+    toast.success('Invoice request sent');
   };
 
   const deleteAccount = async () => {
@@ -261,22 +261,22 @@ export default function SettingsPage() {
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
               className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="px-5 py-4 flex items-center justify-between border-b border-border">
-                <p className="text-sm font-black text-fg">Demande de facture</p>
+                <p className="text-sm font-black text-fg">Request an invoice</p>
                 <button onClick={() => setShowInvoiceModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-xs text-muted-foreground">Entrez l'email utilisé pour votre paiement. Nous transmettrons votre demande à notre équipe.</p>
+                <p className="text-xs text-muted-foreground">Enter the email used for your payment. We'll forward your request to our team.</p>
                 <div>
-                  <label className="text-xs font-semibold block mb-1 text-muted-foreground">Email d'achat *</label>
+                  <label className="text-xs font-semibold block mb-1 text-muted-foreground">Payment email *</label>
                   <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
-                    placeholder="email@exemple.com"
+                    placeholder="email@example.com"
                     className="w-full px-3 py-2.5 text-sm border border-border rounded-lg focus:outline-none" />
                 </div>
                 <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
                   className="w-full py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-                  {invoiceLoading ? 'Envoi...' : 'Valider la demande'}
+                  {invoiceLoading ? 'Sending...' : 'Submit request'}
                 </button>
               </div>
             </motion.div>
@@ -319,14 +319,17 @@ export default function SettingsPage() {
 }
 
 function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket }) {
-  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const isYearly = user?.billing_cycle === 'yearly';
 
   function getRenewalDate(u) {
     const base = u?.subscription_date || u?.created_date;
     if (!base) return null;
     const d = new Date(base);
     const now = new Date();
-    while (d <= now) d.setMonth(d.getMonth() + 1);
+    const yearly = u?.billing_cycle === 'yearly';
+    if (yearly) { while (d <= now) d.setFullYear(d.getFullYear() + 1); }
+    else { while (d <= now) d.setMonth(d.getMonth() + 1); }
     return d;
   }
   if (section === 'profile') return (
@@ -360,58 +363,62 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     const isCancelPending = cancelTicket?.cancel_status === 'pending';
     const isCancelApproved = cancelTicket?.cancel_status === 'approved';
     const isCancelRejected = cancelTicket?.cancel_status === 'rejected';
+    const displayPrice = isYearly
+      ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/year`
+      : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/month` : 'Free';
     return (
       <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
         <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Abonnement actuel</p>
+          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Current subscription</p>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-lg font-black text-fg">{userPlan?.name || 'Free'}</p>
-              <p className="text-xs mt-0.5 text-muted-foreground">
-                {userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Plan gratuit'}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-black text-fg">{userPlan?.name || 'Free'}</p>
+                {isYearly && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-yuzu text-fg">YEARLY</span>}
+              </div>
+              <p className="text-xs mt-0.5 text-muted-foreground">{displayPrice}</p>
               {renewalDate && userPlan?.price_monthly > 0 && (
                 <p className="text-xs mt-1 text-muted-foreground flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  Renouvellement le {formatDate(renewalDate)}
+                  {isYearly ? 'Annual renewal on' : 'Monthly renewal on'} {formatDate(renewalDate)}
                 </p>
               )}
             </div>
             <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg">
-              {userPlan?.credits_limit} Tensors/mois
+              {userPlan?.credits_limit} Tensors/mo
             </span>
           </div>
           <div className="flex gap-2 mt-3">
             <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
-              Gérer <ChevronRight className="w-3 h-3" />
+              Manage <ChevronRight className="w-3 h-3" />
             </button>
             <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
-              Upgrader
+              Upgrade
             </button>
           </div>
         </div>
 
         {userPlan?.price_monthly > 0 && (
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Historique de facturation</p>
+            <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Billing history</p>
             <div className="border border-border rounded-xl overflow-hidden bg-white">
               <div className="flex items-center gap-3 px-4 py-3 flex-wrap">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-fg">Plan {userPlan.name}</p>
+                  <p className="text-sm font-semibold text-fg">{userPlan.name} plan</p>
                   <p className="text-xs text-muted-foreground">
-                    Depuis le {formatDate(user?.subscription_date || user?.created_date)}
+                    Since {formatDate(user?.subscription_date || user?.created_date)}
+                    {isYearly && <span className="ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: 'rgba(221,255,0,0.3)', color: '#555' }}>Annual</span>}
                   </p>
                 </div>
-                <span className="text-sm font-bold text-fg">${userPlan.price_monthly}/mo</span>
-                {/* Cancel status badge */}
-                {isCancelPending && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}>ANNULATION EN ATTENTE</span>}
-                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>SE TERMINE LE {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('fr-FR')}</span>}
-                {isCancelRejected && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a' }}>ACTIF</span>}
-                {!cancelTicket && <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded">ACTIF</span>}
+                <span className="text-sm font-bold text-fg">{displayPrice}</span>
+                {isCancelPending && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}>CANCELLATION PENDING</span>}
+                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>ENDS {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
+                {isCancelRejected && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a' }}>ACTIVE</span>}
+                {!cancelTicket && <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded">ACTIVE</span>}
                 <button onClick={() => setShowInvoiceModal(true)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
                   <Download className="w-3 h-3" />
-                  {invoiceRequested[userPlan.name] ? 'Envoyée !' : 'Facture'}
+                  {invoiceRequested[userPlan.name] ? 'Sent!' : 'Invoice'}
                 </button>
               </div>
             </div>
@@ -483,27 +490,41 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       <p className="text-xs text-muted-foreground">Choose the AI mode automatically applied to every new conversation.</p>
       <div className="space-y-2">
         {AI_MODES.map(mode => {
+          const allowed = userPlan?.allowed_modes?.includes(mode.id) ?? false;
           const active = defaultMode === mode.id;
           return (
-            <button key={mode.id} onClick={() => saveDefaultMode(mode.id)}
+            <button key={mode.id}
+              onClick={() => { if (allowed) saveDefaultMode(mode.id); else navigate('/pricing'); }}
               className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all text-left"
               style={{
-                background: active ? '#0A0A0A' : 'white',
-                borderColor: active ? '#0A0A0A' : 'rgba(0,0,0,0.1)',
+                background: active ? '#0A0A0A' : allowed ? 'white' : 'rgba(0,0,0,0.02)',
+                borderColor: active ? '#0A0A0A' : allowed ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.06)',
+                opacity: allowed ? 1 : 0.6,
               }}>
               <div>
-                <p className="text-sm font-bold" style={{ color: active ? '#DDFF00' : '#0A0A0A' }}>{mode.label}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold" style={{ color: active ? '#DDFF00' : '#0A0A0A' }}>{mode.label}</p>
+                  {!allowed && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">Upgrade required</span>}
+                </div>
                 <p className="text-xs mt-0.5" style={{ color: active ? 'rgba(221,255,0,0.6)' : 'rgba(0,0,0,0.4)' }}>{mode.desc}</p>
               </div>
-              {active && (
+              {active && allowed && (
                 <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
                   <span className="text-[10px] font-black text-black">✓</span>
                 </span>
+              )}
+              {!allowed && (
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               )}
             </button>
           );
         })}
       </div>
+      {!userPlan?.allowed_modes?.includes('ultimate') && (
+        <p className="text-[10px] text-muted-foreground">
+          Expert mode requires an Expert+ plan. <button onClick={() => navigate('/pricing')} className="underline font-semibold">Upgrade →</button>
+        </p>
+      )}
     </div>
   );
 
