@@ -53,7 +53,7 @@ export default function PricingPage() {
   const isPaidPlan = purchased && purchased !== 'free';
 
   return (
-    <div className="min-h-screen font-be bg-white py-14 px-4">
+    <div className="min-h-screen font-open bg-white py-14 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

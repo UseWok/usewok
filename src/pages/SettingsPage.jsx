@@ -186,7 +186,7 @@ export default function SettingsPage() {
   const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket };
 
   return (
-    <div className="min-h-screen font-be" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
+    <div className="min-h-screen font-open" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-black/8 rounded-xl hover:shadow-md transition-all">

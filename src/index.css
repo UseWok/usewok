@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -10,6 +11,7 @@
     /* ── Fonts ─────────────────────────────── */
     --font-inter: 'Inter', sans-serif;
     --font-be: 'Be Vietnam Pro', sans-serif;
+    --font-open: 'Open Sans', sans-serif;
 
     /* ── Type Scale ────────────────────────── */
     --text-xs:   0.75rem;

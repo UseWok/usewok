@@ -370,7 +370,7 @@ export default function ChatPage() {
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
 
   return (
-    <div className="flex flex-col font-be bg-white" style={{ height: '100dvh' }}>
+    <div className="flex flex-col font-open bg-white" style={{ height: '100dvh' }}>
       <ChatTopBar
         user={user} mode={mode} hasInternet={hasInternet && useWebSearch}
         agentLabel={agentLabel} onUpgradeClick={() => handleUpgradeRequest('')}

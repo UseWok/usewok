@@ -97,7 +97,7 @@ export default function DiscussionsPage() {
   // Skeleton loaders
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white font-be">
+      <div className="min-h-screen bg-white font-open">
         <div className="max-w-2xl mx-auto px-4 py-10">
           <div className="mb-8 animate-pulse">
             <div className="h-7 w-40 bg-black/8 rounded-sm mb-2" />
@@ -125,7 +125,7 @@ export default function DiscussionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white font-be">
+    <div className="min-h-screen bg-white font-open">
       <div className="max-w-2xl mx-auto px-4 py-10">
         <motion.div initial={{ opacity: 0, filter: 'blur(10px)', y: 4 }} animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }} transition={{ duration: 0.5, ease: [0.22,1,0.36,1] }} className="mb-10">
           <h1 className="text-3xl font-black mb-1.5" style={{ color: FG }}>Discussions</h1>
