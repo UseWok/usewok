@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ChevronDown, ArrowRight, Check, X, ShoppingCart, Navigation, Zap } from 'lucide-react';
+import { ChevronDown, ArrowRight, Check, X, ShoppingCart, Navigation, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
+const YT_EMBED = 'https://www.youtube.com/embed/NnEe-G3VnIk?autoplay=1&mute=1&loop=1&playlist=NnEe-G3VnIk&controls=0&modestbranding=1&showinfo=0&rel=0&disablekb=1&iv_load_policy=3&fs=0';
 
-// ─── Smooth reveal (bidirectional) ───────────────────────────────────────────
 function Reveal({ children, delay = 0, y = 32, className = '' }) {
   return (
     <motion.div
@@ -47,7 +47,6 @@ function RevealRight({ children, delay = 0, className = '' }) {
   );
 }
 
-// 4 real faces: 2 women, 2 men
 const FACE_AVATARS = [
   { src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face', alt: 'Emma' },
   { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', alt: 'James' },
@@ -99,28 +98,20 @@ function Navbar({ onCta }) {
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function Hero({ onCta }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const yTitle = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
-
   return (
-    <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24"
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-28 pb-16"
       style={{ background: 'white' }}>
-      {/* Subtle grid */}
       <div className="absolute inset-0 pointer-events-none" style={{
         backgroundImage: `linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)`,
         backgroundSize: '52px 52px',
       }} />
-      {/* Glow */}
       <motion.div
         animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.55, 0.35] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute pointer-events-none"
         style={{ width: 800, height: 800, top: '-18%', left: '32%', background: 'radial-gradient(circle, rgba(221,255,0,0.28) 0%, transparent 65%)', filter: 'blur(70px)', zIndex: 0 }} />
 
-      <motion.div style={{ y: yTitle, opacity }} className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-        {/* Badge */}
+      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto w-full">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-full text-xs font-bold"
           style={{ background: YELLOW, color: FG }}>
@@ -128,7 +119,6 @@ function Hero({ onCta }) {
           The only AI that builds wealth around the life you actually love
         </motion.div>
 
-        {/* Headline */}
         {[
           { text: 'Keep Your Pleasures.', color: FG },
           { text: 'Ditch The Guilt.', color: '#bbb' },
@@ -151,15 +141,34 @@ function Hero({ onCta }) {
           </div>
         ))}
 
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-          className="font-open text-lg md:text-xl max-w-2xl mx-auto mt-8 mb-12 leading-relaxed"
+        {/* Social proof — immediately after headline, prominent */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center justify-center gap-4 mt-12 mb-8">
+          <div className="flex -space-x-3">
+            {FACE_AVATARS.map((av, i) => (
+              <img key={i} src={av.src} alt={av.alt}
+                className="w-12 h-12 rounded-full object-cover border-2 border-white"
+                style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.15)' }} />
+            ))}
+          </div>
+          <div className="text-left">
+            <p className="text-base font-black" style={{ color: FG }}>1,000+ users</p>
+            <p className="text-sm text-gray-400">already building their future</p>
+          </div>
+        </motion.div>
+
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38 }}
+          className="font-open text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
           style={{ color: 'rgba(0,0,0,0.4)' }}>
           Your pizza nights. Your Netflix. Your weekend escapes.<br />
           <strong style={{ color: FG }}>Stensor keeps what you love and builds your future — automatically.</strong>
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+          className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <motion.button onClick={onCta} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             className="flex items-center gap-2.5 px-10 py-5 font-black text-base rounded-sm"
             style={{ background: YELLOW, color: FG, boxShadow: '0 8px 32px rgba(221,255,0,0.35)' }}>
@@ -169,25 +178,7 @@ function Hero({ onCta }) {
             Already have an account →
           </button>
         </motion.div>
-
-        {/* Social proof */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.62 }}
-          className="flex items-center justify-center gap-3 pb-16">
-          <div className="flex -space-x-3">
-            {FACE_AVATARS.map((av, i) => (
-              <img key={i} src={av.src} alt={av.alt}
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.13)' }} />
-            ))}
-          </div>
-          <p className="text-sm text-gray-500">
-            Joined by <strong style={{ color: FG }}>1,000+ users</strong> already building their future
-          </p>
-        </motion.div>
-      </motion.div>
+      </div>
 
       <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
@@ -197,7 +188,7 @@ function Hero({ onCta }) {
   );
 }
 
-// ─── Black marquee strip ─────────────────────────────────────────────────────
+// ─── Black marquee strip ──────────────────────────────────────────────────────
 const MARQUEE_ARGS = [
   '✦ Your bank keeps your money stagnant', '✦ ChatGPT optimizes budgets, not lives', '✦ Advisors cost €200/hr for generic advice',
   '✦ Spreadsheets die after 2 weeks', '✦ Zero guilt spending is possible', '✦ Wealth and pleasure are not opposites',
@@ -222,55 +213,136 @@ function BlackMarquee() {
   );
 }
 
-// ─── VS Section — simple 3-column visual ─────────────────────────────────────
-const VS_ROWS = [
-  { pleasure: '🍕 Pizza Friday', chatgpt: 'Reduce your food expenses', stensor: 'Keep the pizza — we found €94 in unused subscriptions instead.' },
-  { pleasure: '📺 Netflix €17/mo', chatgpt: 'Cancel non-essential subscriptions', stensor: 'Netflix stays. That €17 becomes an ETF — your future self thanks you.' },
-  { pleasure: '✈️ €2,000 vacation', chatgpt: 'Your travel budget exceeds recommendations', stensor: 'Trip funded. Here\'s how without touching your investments.' },
-  { pleasure: '📱 New iPhone', chatgpt: 'Avoid impulse purchases', stensor: 'Yes — in 6 weeks with your tech buffer. Here\'s the plan.' },
+// ─── Video Section ────────────────────────────────────────────────────────────
+function VideoSection() {
+  return (
+    <section className="py-16 px-6" style={{ background: 'white' }}>
+      <div className="max-w-5xl mx-auto">
+        <div className="relative w-full overflow-hidden"
+          style={{ borderRadius: '20px', boxShadow: '0 24px 80px rgba(0,0,0,0.12)', aspectRatio: '16/9' }}>
+          {/* Block all YT UI controls via overlay */}
+          <div className="absolute inset-0 z-10" style={{ pointerEvents: 'none' }} />
+          <iframe
+            src={YT_EMBED}
+            className="absolute inset-0 w-full h-full"
+            style={{ border: 'none', pointerEvents: 'none' }}
+            allow="autoplay; encrypted-media"
+            title="Stensor demo"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── VS Section — swipeable carousel ─────────────────────────────────────────
+const VS_CARDS = [
+  {
+    pleasure: '🍕 Pizza Friday',
+    chatgpt: '"Reduce your food expenses — this is above your recommended budget."',
+    stensor: '"Keep the pizza. I found €94/month in forgotten subscriptions you never use."',
+  },
+  {
+    pleasure: '✈️ €2,000 vacation',
+    chatgpt: '"Your travel budget exceeds financial recommendations for your income."',
+    stensor: '"Trip fully funded. Here\'s exactly how — without touching your investment portfolio."',
+  },
+  {
+    pleasure: '📱 New iPhone',
+    chatgpt: '"Avoid impulse purchases. Consider your long-term financial goals."',
+    stensor: '"Yes — in 6 weeks with your tech buffer. Here\'s the day-by-day plan."',
+  },
 ];
 
 function VsSection() {
+  const [current, setCurrent] = useState(0);
+  const total = VS_CARDS.length;
+  const prev = () => setCurrent(c => (c - 1 + total) % total);
+  const next = () => setCurrent(c => (c + 1) % total);
+
   return (
-    <section className="py-24 px-6" style={{ background: 'white' }}>
+    <section className="py-24 px-6 overflow-hidden" style={{ background: '#fafaf8' }}>
       <div className="max-w-4xl mx-auto">
         <Reveal className="text-center mb-16">
-          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">Side by side</p>
+          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">ChatGPT vs Stensor</p>
           <h2 className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', color: FG, lineHeight: 1.05 }}>
             Same question.<br />Very different answer.
           </h2>
           <p className="font-open text-base text-gray-400 max-w-lg mx-auto">
-            Other AI tools optimize your budget by cutting what you love. Stensor finds what you don't need — and keeps everything you do.
+            Other AI cuts what you love. Stensor finds what you don't need.
           </p>
         </Reveal>
 
-        <div className="space-y-3">
-          {VS_ROWS.map((row, i) => (
-            <Reveal key={i} delay={i * 0.07}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {/* Pleasure */}
-                <div className="flex items-center gap-3 px-5 py-4 rounded-sm font-bold text-sm" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', color: FG }}>
-                  {row.pleasure}
-                </div>
-                {/* ChatGPT / Others */}
-                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: '#fafaf8', border: '1px solid rgba(0,0,0,0.07)' }}>
-                  <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'rgba(0,0,0,0.25)' }} />
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-300 mb-1">ChatGPT / Others</p>
-                    <p className="font-open text-sm text-gray-400 italic">"{row.chatgpt}"</p>
-                  </div>
-                </div>
-                {/* Stensor */}
-                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: FG }}>
-                  <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: YELLOW }} />
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: YELLOW }}>Stensor ✦</p>
-                    <p className="font-open text-sm font-semibold text-white">"{row.stensor}"</p>
-                  </div>
-                </div>
+        {/* Swipe hint */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <motion.div
+            animate={{ x: [0, 8, -8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="flex items-center gap-1 text-xs text-gray-300 font-semibold select-none">
+            <ChevronLeft className="w-4 h-4" />
+            <span>swipe</span>
+            <ChevronRight className="w-4 h-4" />
+          </motion.div>
+        </div>
+
+        {/* Card */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.18}
+            onDragEnd={(_, info) => { if (info.offset.x < -50) next(); else if (info.offset.x > 50) prev(); }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="cursor-grab active:cursor-grabbing select-none"
+          >
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center px-6 py-3 font-black text-base rounded-full"
+                style={{ background: YELLOW, color: FG }}>
+                {VS_CARDS[current].pleasure}
               </div>
-            </Reveal>
-          ))}
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="p-8 rounded-2xl" style={{ background: 'white', border: '1.5px solid rgba(0,0,0,0.07)' }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                    <X className="w-3.5 h-3.5 text-gray-400" />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-300">ChatGPT</p>
+                </div>
+                <p className="font-open text-base leading-relaxed text-gray-400 italic">{VS_CARDS[current].chatgpt}</p>
+              </div>
+              <div className="p-8 rounded-2xl" style={{ background: FG }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: YELLOW }}>
+                    <Check className="w-3.5 h-3.5" style={{ color: FG }} />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: YELLOW }}>Stensor</p>
+                </div>
+                <p className="font-open text-base leading-relaxed font-semibold text-white">{VS_CARDS[current].stensor}</p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Dots + arrows */}
+        <div className="flex items-center justify-center gap-6 mt-10">
+          <button onClick={prev} className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center hover:bg-black/5 transition-colors">
+            <ChevronLeft className="w-4 h-4 text-gray-400" />
+          </button>
+          <div className="flex gap-2 items-center">
+            {VS_CARDS.map((_, i) => (
+              <button key={i} onClick={() => setCurrent(i)}
+                className="transition-all rounded-full"
+                style={{ width: current === i ? 24 : 8, height: 8, background: current === i ? FG : 'rgba(0,0,0,0.15)' }} />
+            ))}
+          </div>
+          <button onClick={next} className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center hover:bg-black/5 transition-colors">
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
       </div>
     </section>
@@ -361,33 +433,6 @@ function SkillsSection() {
         </p>
       </Reveal>
       {SKILLS.map((skill, i) => <SkillCard key={skill.id} skill={skill} index={i} />)}
-    </section>
-  );
-}
-
-// ─── Stats on yellow ───────────────────────────────────────────────────────────
-function StatsSection() {
-  const stats = [
-    { n: '1,000+', label: 'Active users', sub: '+312 this month' },
-    { n: '€384', label: 'Saved / month', sub: 'average per user' },
-    { n: '60s', label: 'Full strategy', sub: 'complete & personal' },
-    { n: '94%', label: 'Less anxiety', sub: 'from session one' },
-  ];
-  return (
-    <section className="py-20 px-6" style={{ background: YELLOW }}>
-      <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((s, i) => (
-            <Reveal key={i} delay={i * 0.07} y={20}>
-              <div className="text-center">
-                <p className="font-black mb-1 leading-none" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', color: FG }}>{s.n}</p>
-                <p className="text-sm font-black mb-0.5" style={{ color: FG }}>{s.label}</p>
-                <p className="font-open text-[11px]" style={{ color: 'rgba(0,0,0,0.45)' }}>{s.sub}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
@@ -560,8 +605,7 @@ function FinalCta({ onCta }) {
             Build my financial freedom <ArrowRight className="w-5 h-5" />
           </motion.button>
 
-          {/* Social proof */}
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-4">
             <div className="flex -space-x-3">
               {FACE_AVATARS.map((av, i) => (
                 <img key={i} src={av.src} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-yellow-200"
@@ -641,9 +685,9 @@ export default function LandingPage() {
       <Navbar onCta={() => setShowQuiz(true)} />
       <Hero onCta={() => setShowQuiz(true)} />
       <BlackMarquee />
+      <VideoSection />
       <VsSection />
       <SkillsSection />
-      <StatsSection />
       <HowItWorks />
       <TestimonialsSection />
       <FaqSection />
