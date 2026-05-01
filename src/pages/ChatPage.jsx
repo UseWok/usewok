@@ -88,7 +88,7 @@ export default function ChatPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && getConversationMessages(conversationId).length === 0);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(() => { const saved = localStorage.getItem('stensor_saved_input'); if (saved) { localStorage.removeItem('stensor_saved_input'); return saved; } return ''; });
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
@@ -196,6 +196,7 @@ export default function ChatPage() {
         const stored = getDiscussions();
         const isExisting = stored.find(d => d.id === convId);
         if (!isExisting && stored.length >= FREE_DISCUSSION_LIMIT) {
+          localStorage.setItem('stensor_saved_input', text);
           setShowFreeDiscussionLimit(true);
           return;
         }
@@ -204,6 +205,7 @@ export default function ChatPage() {
       try {
         const stored = getDiscussions();
         if (!stored.find(d => d.id === convId) && stored.length >= userPlan.max_discussions) {
+          localStorage.setItem('stensor_saved_input', text);
           setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
           setShowUpgrade(true);
           return;
@@ -271,8 +273,8 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    const secretModel = isFirstMessage ? 'gemini_3_1_pro' : mode.model;
-    const useInternet = useWebSearch && hasInternet && secretModel !== 'gemini_3_1_pro';
+    const secretModel = 'gemini_3_1_pro';
+    const useInternet = useWebSearch && hasInternet;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
@@ -347,7 +349,7 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
         saveConversationMessages(convId, finalMsgs);
         syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
-        if (isFirstMessage) { const std = ALL_MODES.find(m => m.id === 'thinking'); if (std) setMode(std); }
+
       }
     };
     typeNext();

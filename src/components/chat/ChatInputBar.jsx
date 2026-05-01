@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Mic, X, FileText, Bot, ChevronDown,
-  Wifi, WifiOff, Send
+  Plus, Mic, X, FileText, ChevronDown,
+  Wifi, WifiOff, Send, Zap
 } from 'lucide-react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
@@ -30,7 +30,8 @@ export default function ChatInputBar({
   onUpgradeRequest,
 }) {
   const { t } = useLanguage();
-  const [showAgentMenu, setShowAgentMenu] = useState(false);
+  const [showSkillMenu, setShowSkillMenu] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState(null);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showModeMenu, setShowModeMenu] = useState(false);
   const [showFilePanel, setShowFilePanel] = useState(false);
@@ -41,18 +42,24 @@ export default function ChatInputBar({
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const agentMenuRef = useRef(null);
+  const skillMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
   const modeMenuRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
+  const SKILLS = [
+    { id: 'buy', label: 'Can I buy this?' },
+    { id: 'track', label: 'Am I on track?' },
+    { id: 'move', label: "What's my next move?" },
+  ];
+
   // Close all menus when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      const refs = [agentMenuRef, fileMenuRef, modeMenuRef];
+      const refs = [skillMenuRef, fileMenuRef, modeMenuRef];
       if (!refs.some(r => r.current?.contains(e.target))) {
-        setShowAgentMenu(false);
+        setShowSkillMenu(false);
         setShowFileMenu(false);
         setShowModeMenu(false);
       }
@@ -62,7 +69,7 @@ export default function ChatInputBar({
   }, []);
 
   const closeAllMenus = () => {
-    setShowAgentMenu(false);
+    setShowSkillMenu(false);
     setShowFileMenu(false);
     setShowModeMenu(false);
   };
@@ -77,17 +84,10 @@ export default function ChatInputBar({
     setInput(val);
   };
 
-  const AGENTS = [
-    { id: 'global', label: "Knowing exactly where I'm going" },
-    { id: 'emotions-depenses', label: 'Spend without guilt' },
-    { id: 'wealth-strategy', label: 'Becoming financially free' },
-  ];
-
   const allowedModes = userPlan
     ? ALL_MODES.filter(m => userPlan.allowed_modes?.includes(m.id) || (m.id === 'thinking' && userPlan.allowed_modes?.includes('fast')))
     : [ALL_MODES[ALL_MODES.length - 1]];
 
-  const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label || 'Global Agent';
   const ModeIcon = mode.icon;
   const visibleFiles = files.slice(0, MAX_VISIBLE_FILES);
   const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
@@ -275,27 +275,42 @@ export default function ChatInputBar({
               </AnimatePresence>
             </div>
 
-            {/* Agent */}
-            <div className="relative flex-shrink-0" ref={agentMenuRef}>
-              <button onClick={() => { if (isLoading) return; closeAllMenus(); setShowAgentMenu(s => !s); }}
-                disabled={isLoading}
-                className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted">
-                <Bot className="w-3 h-3 text-muted-foreground" />
-                <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">
-                  {agentLabel?.split(' ')[0] || 'Agent'}
-                </span>
-                <ChevronDown className="w-2.5 h-2.5 text-muted-foreground/60" />
-              </button>
+            {/* Skills */}
+            <div className="relative flex-shrink-0" ref={skillMenuRef}>
+              {selectedSkill ? (
+                <button
+                  onClick={() => setSelectedSkill(null)}
+                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors"
+                  style={{ background: 'rgba(221,255,0,0.25)' }}
+                >
+                  <Zap className="w-3 h-3" style={{ color: '#0A0A0A' }} />
+                  <span className="text-[11px] font-semibold hidden sm:block" style={{ color: '#0A0A0A' }}>
+                    {SKILLS.find(s => s.id === selectedSkill)?.label}
+                  </span>
+                  <X className="w-2.5 h-2.5" style={{ color: '#0A0A0A' }} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => { if (isLoading) return; closeAllMenus(); setShowSkillMenu(s => !s); }}
+                  disabled={isLoading}
+                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
+                >
+                  <Zap className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">Skills</span>
+                  <ChevronDown className="w-2.5 h-2.5 text-muted-foreground/60" />
+                </button>
+              )}
               <AnimatePresence>
-                {showAgentMenu && (
+                {showSkillMenu && (
                   <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-[300] bg-white rounded-sm border border-border">
-                    {AGENTS.map(a => (
-                      <button key={a.id} onClick={() => { setCurrentAgent(a.id); setShowAgentMenu(false); }}
+                    {SKILLS.map(s => (
+                      <button key={s.id} onClick={() => { setSelectedSkill(s.id); setShowSkillMenu(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm"
-                        style={{ color: currentAgent === a.id ? FG : '#666', background: currentAgent === a.id ? YUZU : 'transparent' }}
-                        onMouseEnter={e => { if (currentAgent !== a.id) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                        onMouseLeave={e => { if (currentAgent !== a.id) e.currentTarget.style.background = 'transparent'; }}>
-                        <Bot className="w-3 h-3" /> <span className="font-medium">{a.label}</span>
+                        style={{ color: '#444' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                        <Zap className="w-3 h-3 text-muted-foreground" />
+                        <span className="font-medium">{s.label}</span>
                       </button>
                     ))}
                   </motion.div>

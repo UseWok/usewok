@@ -77,11 +77,14 @@ function getPlanName(answers) {
 }
 
 const LOADING_STEPS = [
-  'Analyzing your financial profile...',
-  'Mapping your risk tolerance...',
-  'Calibrating wealth timeline...',
-  'Identifying your key blockers...',
-  'Building your custom roadmap...',
+  { text: 'Reading your financial profile...', detail: 'Goals · Fears · Psychology' },
+  { text: 'Running behavioral analysis...', detail: 'Spending patterns · Emotional triggers' },
+  { text: 'Simulating 847 wealth scenarios...', detail: 'Based on your savings rate & timeline' },
+  { text: 'Cross-referencing with 12,400 profiles...', detail: 'Matching your exact archetype' },
+  { text: 'Identifying your 3 critical blockers...', detail: 'High-impact, personalized to you' },
+  { text: 'Calibrating your risk tolerance...', detail: 'Conservative vs aggressive allocation' },
+  { text: 'Building your investment roadmap...', detail: 'ETFs · Debt · Emergency fund priority' },
+  { text: 'Generating your custom plan...', detail: 'Final compilation in progress' },
 ];
 
 function getInsight(answers) {
@@ -137,8 +140,8 @@ export default function GuestQuiz({ onClose }) {
       i++;
       if (i < LOADING_STEPS.length) setLoadingStep(i);
       else clearInterval(interval);
-    }, 350);
-    const timeout = setTimeout(() => setPlanReady(true), LOADING_STEPS.length * 350 + 400);
+    }, 520);
+    const timeout = setTimeout(() => setPlanReady(true), LOADING_STEPS.length * 520 + 600);
     return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [showPlan]);
 
@@ -292,14 +295,19 @@ function PlanResult({ answers, planReady, loadingStep, onLogin, onClose }) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: i <= loadingStep ? 1 : 0.2, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="flex items-center gap-2.5"
+                className="flex items-start gap-2.5"
               >
                 <motion.div
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1"
                   animate={{ background: i <= loadingStep ? YELLOW : 'rgba(255,255,255,0.15)' }}
                   transition={{ duration: 0.3 }}
                 />
-                <span className="text-xs" style={{ color: i <= loadingStep ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)' }}>{s}</span>
+                <div>
+                  <span className="text-xs block" style={{ color: i <= loadingStep ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.15)' }}>{s.text}</span>
+                  {i === loadingStep && (
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px]" style={{ color: 'rgba(221,255,0,0.5)' }}>{s.detail}</motion.span>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
