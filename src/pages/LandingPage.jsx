@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import ScoreAddictionSection from '@/components/landing/ScoreAddictionSection';
+import GuestQuiz from '@/components/landing/GuestQuiz';
 
 const PENDING_KEY = 'stensor_pending_query';
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
 
-// ── Background ────────────────────────────────────────────────────────────
 function PageBackground() {
   return (
     <>
@@ -26,7 +26,6 @@ function PageBackground() {
   );
 }
 
-// ── Navbar (floating pill — same as LandingPricingPage) ───────────────────
 function Navbar({ onCta }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -72,39 +71,19 @@ function Navbar({ onCta }) {
   );
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────────
-function Hero() {
-  const [query, setQuery] = useState('');
+function Hero({ onCta }) {
   const inputRef = useRef(null);
-
-  const handleSend = async () => {
-    if (!query.trim()) return;
-    try {
-      const auth = await base44.auth.isAuthenticated();
-      if (auth) window.location.href = `/chat?q=${encodeURIComponent(query)}`;
-      else { localStorage.setItem(PENDING_KEY, query); base44.auth.redirectToLogin('/app'); }
-    } catch {
-      localStorage.setItem(PENDING_KEY, query);
-      base44.auth.redirectToLogin('/app');
-    }
-  };
 
   return (
     <section className="relative z-10 pt-48 pb-16 text-center px-6">
       <motion.h1
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
         className="font-bold tracking-tighter"
-        style={{
-          fontSize: 'clamp(2.6rem, 7vw, 4.5rem)',
-          lineHeight: 1.1,
-          color: FG,
-        }}>
+        style={{ fontSize: 'clamp(2.6rem, 7vw, 4.5rem)', lineHeight: 1.1, color: FG }}>
         Stop guessing.{' '}
-        <span style={{
-          background: `linear-gradient(to right, #a08800, #eab308)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>Start winning financially.</span>
+        <span style={{ background: `linear-gradient(to right, #a08800, #eab308)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Start winning financially.
+        </span>
       </motion.h1>
 
       <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -112,27 +91,23 @@ function Hero() {
         Tell Stensor your goal in plain words. Get a <strong style={{ color: FG }}>complete, actionable strategy</strong> in 60 seconds — investing, debt, taxes, retirement. Done.
       </motion.p>
 
-      {/* Input box */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
         className="max-w-3xl mx-auto mt-12 px-4">
         <div className="relative group">
           <div className="absolute -inset-1 rounded-xl blur-lg transition-all duration-300 group-hover:blur-xl group-hover:-inset-2"
             style={{ background: `linear-gradient(to right, rgba(221,255,0,0.5), rgba(180,220,0,0.4))` }} />
-          <div className="relative rounded-xl p-2 shadow-xl"
-            style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)' }}>
-            <div className="w-full relative border rounded-lg bg-white"
-              style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
-              <textarea
+          <div className="relative rounded-xl p-2 shadow-xl" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)' }}>
+            <div className="w-full relative border rounded-lg bg-white" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+              <div
+                onClick={onCta}
                 ref={inputRef}
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                placeholder="e.g. 'I want to retire at 45 with $2M' or 'Help me pay off $30k debt in 3 years'"
-                className="w-full pl-4 pt-4 pr-4 pb-4 text-sm resize-none focus:outline-none bg-transparent rounded-lg"
-                style={{ minHeight: '80px', color: FG }}
-              />
+                className="w-full pl-4 pt-4 pr-4 pb-4 text-sm cursor-text bg-transparent rounded-lg text-left"
+                style={{ minHeight: '80px', color: 'rgba(0,0,0,0.3)', userSelect: 'none' }}
+              >
+                ex: &apos;Je veux prendre ma retraite a 45 ans&apos; ou &apos;Comment sortir de 30k EUR de dettes&apos;
+              </div>
               <div className="flex justify-end px-3 pb-3">
-                <button onClick={handleSend}
+                <button onClick={onCta}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all hover:opacity-90"
                   style={{ background: FG, color: 'white' }}>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -143,7 +118,6 @@ function Hero() {
         </div>
       </motion.div>
 
-      {/* Social proof */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
         className="flex items-center justify-center gap-3 mt-6">
         <div className="flex -space-x-2">
@@ -162,16 +136,15 @@ function Hero() {
   );
 }
 
-// ── Video Section ─────────────────────────────────────────────────────────
 function VideoSection() {
+  const ytSrc = "https://www.youtube.com/embed/FXLmWojBELE?rel=0&modestbranding=1";
   return (
     <section className="relative z-10 py-16 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="overflow-hidden rounded-2xl shadow-2xl"
-          style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'black' }}>
+        <div className="overflow-hidden rounded-2xl shadow-2xl" style={{ border: '1px solid rgba(0,0,0,0.08)', background: 'black' }}>
           <div style={{ aspectRatio: '16/9' }}>
             <iframe
-              src="https://www.youtube.com/embed/FXLmWojBELE?rel=0&modestbranding=1"
+              src={ytSrc}
               title="Stensor demo"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -185,7 +158,6 @@ function VideoSection() {
   );
 }
 
-// ── FAQ ───────────────────────────────────────────────────────────────────
 const FAQS = [
   { q: 'What is Stensor?', a: "Stensor is an AI-powered financial coaching platform. Describe any goal in plain language and get a complete, actionable strategy — investing, debt, retirement, taxes, or anything else." },
   { q: 'Do I need financial knowledge?', a: 'Not at all. Stensor is built for everyone, from complete beginners to experienced investors. Just describe your situation and get expert-level guidance instantly.' },
@@ -229,7 +201,6 @@ function FaqSection() {
   );
 }
 
-// ── CTA Banner ────────────────────────────────────────────────────────────
 function CtaBanner({ onCta }) {
   return (
     <section className="relative z-10 py-24 px-6 text-center" style={{ background: 'white' }}>
@@ -252,7 +223,6 @@ function CtaBanner({ onCta }) {
   );
 }
 
-// ── Footer (pure white) ───────────────────────────────────────────────────
 function Footer() {
   return (
     <footer className="relative z-10 border-t" style={{ borderColor: 'rgba(0,0,0,0.07)', background: 'white' }}>
@@ -288,7 +258,7 @@ function Footer() {
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-8 border-t" style={{ borderColor: 'rgba(0,0,0,0.07)' }}>
-          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>© 2026 Stensor Inc. All rights reserved.</p>
+          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>2026 Stensor Inc. All rights reserved.</p>
           <p className="text-xs" style={{ color: 'rgba(0,0,0,0.25)' }}>AI responses may contain inaccuracies. Not financial advice.</p>
         </div>
       </div>
@@ -296,10 +266,10 @@ function Footer() {
   );
 }
 
-// ── Root ──────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated()
@@ -307,12 +277,7 @@ export default function LandingPage() {
       .catch(() => setReady(true));
   }, [navigate]);
 
-  const handleCta = async () => {
-    try {
-      const auth = await base44.auth.isAuthenticated();
-      if (auth) navigate('/app'); else base44.auth.redirectToLogin('/app');
-    } catch { base44.auth.redirectToLogin('/app'); }
-  };
+  const handleCta = () => setShowQuiz(true);
 
   if (!ready) return (
     <div className="fixed inset-0 flex items-center justify-center bg-white">
@@ -322,10 +287,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen font-inter overflow-x-hidden" style={{ background: '#fafaf8' }}>
+      <AnimatePresence>
+        {showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}
+      </AnimatePresence>
       <PageBackground />
       <Navbar onCta={handleCta} />
       <main className="flex-1 relative">
-        <Hero />
+        <Hero onCta={handleCta} />
         <VideoSection />
         <ScoreAddictionSection onCta={handleCta} />
         <CtaBanner onCta={handleCta} />
