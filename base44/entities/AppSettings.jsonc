@@ -7,6 +7,10 @@
     },
     "value": {
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
     }
   },
   "required": [
@@ -14,9 +18,21 @@
     "value"
   ],
   "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
     "read": true,
-    "create": false,
-    "update": false,
-    "delete": false
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }

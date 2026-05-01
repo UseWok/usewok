@@ -8,6 +8,10 @@
     "message": {
       "type": "string"
     },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
     "link": {
       "type": "string"
     },
@@ -18,5 +22,23 @@
   "required": [
     "title",
     "message"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": true,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

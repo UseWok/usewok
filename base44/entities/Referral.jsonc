@@ -14,9 +14,38 @@
         "pending",
         "completed"
       ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
     }
   },
   "required": [
     "referrer_id"
-  ]
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.referrer_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
