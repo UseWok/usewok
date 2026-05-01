@@ -7,84 +7,12 @@
       "enum": [
         "admin",
         "user"
-      ]
+      ],
+      "default": "user"
     },
-    "subscription_plan": {
-      "type": "string"
-    },
-    "credits_used": {
-      "type": "number"
-    },
-    "credits_limit": {
-      "type": "number"
-    },
-    "credits_bonus": {
-      "type": "number"
-    },
-    "is_banned": {
-      "type": "boolean"
-    },
-    "ban_until": {
-      "type": "string"
-    },
-    "daily_credits_limit": {
-      "type": "number"
-    },
-    "first_message_sent": {
-      "type": "boolean"
-    },
-    "stensor_score": {
-      "type": "number"
-    },
-    "stensor_score_pillars": {
-      "type": "object"
-    },
-    "stensor_score_updated_at": {
-      "type": "string"
-    },
-    "stensor_score_badges": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "stensor_score_streak": {
-      "type": "number"
-    },
-    "ai_vision": {
-      "type": "string",
-      "description": "User's financial life vision (fire/heritage/entrepreneur/serenite)"
-    },
-    "ai_personality": {
-      "type": "string",
-      "description": "Preferred AI coach personality (sniper/architect/guardian)"
-    },
-    "ai_golden_rule": {
-      "type": "string",
-      "description": "User's personal financial golden rule (max 120 chars)"
-    },
-    "ai_tone": {
-      "type": "string",
-      "description": "Preferred communication tone (brutal/kind)"
-    },
-    "ai_depth": {
-      "type": "string",
-      "description": "Preferred response depth (concise/balanced/deep)"
-    },
-    "ai_context": {
-      "type": "string",
-      "description": "Free-form personal financial context (max 400 chars)"
+    "quiz_answers": {
+      "type": "object",
+      "description": "Guest quiz results stored privately per user"
     }
-  },
-  "required": [
-    "role",
-    "subscription_plan",
-    "credits_used",
-    "credits_limit",
-    "credits_bonus",
-    "is_banned",
-    "ban_until",
-    "daily_credits_limit",
-    "first_message_sent"
-  ]
+  }
 }

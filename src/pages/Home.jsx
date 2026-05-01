@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getStoredQuiz, clearStoredQuiz } from '@/components/landing/GuestQuiz';
 import { useNavigate } from 'react-router-dom';
 import HomeEventBanner from '../components/home/HomeEventBanner';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
@@ -7,6 +8,7 @@ import HeroSection from '../components/home/HeroSection';
 import RecentApps from '../components/home/RecentApps';
 import { AGENTS } from '../components/Sidebar';
 import { useLanguage } from '@/lib/i18n';
+import { base44 } from '@/api/base44Client';
 
 const PENDING_KEY = 'stensor_pending_query';
 
@@ -19,6 +21,17 @@ export default function Home() {
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
 
   useEffect(() => {
+    // Save quiz results to user profile if coming from guest quiz
+    const quizResults = getStoredQuiz();
+    if (quizResults) {
+      base44.auth.me().then(user => {
+        if (user && !user.quiz_answers) {
+          base44.auth.updateMe({ quiz_answers: quizResults });
+        }
+        clearStoredQuiz();
+      }).catch(() => clearStoredQuiz());
+    }
+
     const pending = localStorage.getItem(PENDING_KEY);
     if (pending) {
       localStorage.removeItem(PENDING_KEY);

@@ -1,120 +1,127 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, Sparkles, Lock, TrendingUp, Shield, Zap, Target } from 'lucide-react';
+import { X, ArrowLeft, Sparkles, Lock, TrendingUp, Shield, Zap, Target, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
+const QUIZ_KEY = 'stensor_quiz_results';
 
 const QUESTIONS = [
   {
     id: 'goal',
-    phase: 'Objectif',
-    question: "Si dans 3 ans votre vie financiere etait parfaite, a quoi ressemblerait-elle ?",
-    subtitle: "Choisissez l'ambition qui vous fait vibrer.",
-    type: 'single',
+    phase: '01',
+    question: "In 5 years, what does your ideal financial life look like?",
     options: [
-      { id: 'freedom', label: 'Liberte totale', desc: 'Travailler si je veux, pas parce que je dois', emoji: '🦅' },
-      { id: 'wealth', label: 'Batir un patrimoine', desc: 'Des actifs qui travaillent a ma place', emoji: '🏗️' },
-      { id: 'debt_free', label: 'Zero dette', desc: 'Dormir sans angoisse financiere', emoji: '😮‍💨' },
-      { id: 'retire_early', label: 'Retraite anticipee', desc: 'Arreter avant 50 ans, vraiment', emoji: '🌴' },
-      { id: 'income', label: 'Revenus passifs', desc: "Gagner de l'argent en dormant", emoji: '💸' },
+      { id: 'freedom', label: 'Complete freedom — work only when I choose' },
+      { id: 'wealth', label: 'A self-growing portfolio that outlives me' },
+      { id: 'debt_free', label: 'Zero obligations — owning everything I have' },
+      { id: 'retire_early', label: 'Retired before 50, doing what I love' },
+      { id: 'income', label: 'Multiple income streams running while I sleep' },
     ],
   },
   {
     id: 'pleasure',
-    phase: 'Psychologie',
-    question: "Quelle est la depense plaisir que vous refuseriez de sacrifier, meme en mode economie ?",
-    subtitle: "On ne juge pas. On adapte la strategie a votre vrai vous.",
-    type: 'single',
+    phase: '02',
+    question: "What's the one expense you'd never cut, no matter what?",
     options: [
-      { id: 'travel', label: 'Voyages et experiences', desc: "Les souvenirs ca n'a pas de prix", emoji: '✈️' },
-      { id: 'food', label: 'Restos et gastronomie', desc: "Bien manger, c'est sacre", emoji: '🍽️' },
-      { id: 'tech', label: 'Tech et gadgets', desc: 'Le dernier iPhone, toujours', emoji: '📱' },
-      { id: 'fashion', label: 'Mode et style', desc: "S'habiller, c'est une expression", emoji: '👗' },
-      { id: 'wellness', label: 'Sport et bien-etre', desc: "Salle, coach, spa — c'est de l'investissement", emoji: '🧘' },
-      { id: 'entertainment', label: 'Sorties et loisirs', desc: 'Concerts, cine, musees — la vie quoi', emoji: '🎭' },
+      { id: 'travel', label: 'Travel — the world is too big to stay home' },
+      { id: 'food', label: 'Great food and dining experiences' },
+      { id: 'tech', label: 'The latest tech and tools' },
+      { id: 'fashion', label: 'Style and personal expression' },
+      { id: 'wellness', label: 'Health, fitness, and wellbeing' },
+      { id: 'entertainment', label: 'Culture, shows, and live experiences' },
     ],
   },
   {
     id: 'fear',
-    phase: 'Blocages',
-    question: "Qu'est-ce qui vous empeche de dormir la nuit, financierement ?",
-    subtitle: "Votre peur principale guide toute la strategie.",
-    type: 'single',
+    phase: '03',
+    question: "What financial scenario keeps you up at night?",
     options: [
-      { id: 'lose_job', label: 'Perdre mon emploi', desc: 'Et ne pas pouvoir rebondir', emoji: '💼' },
-      { id: 'never_enough', label: "Ne jamais m'en sortir", desc: "Le sentiment de courir apres l'argent", emoji: '🌀' },
-      { id: 'market_crash', label: 'Un krach financier', desc: "Perdre tout ce que j'ai mis de cote", emoji: '📉' },
-      { id: 'retirement', label: 'La retraite insuffisante', desc: 'Vieillir sans argent', emoji: '🎠' },
-      { id: 'inflation', label: "L'inflation qui devore", desc: "Economiser pour perdre du pouvoir d'achat", emoji: '🔥' },
+      { id: 'lose_job', label: 'Losing my income with no safety net' },
+      { id: 'never_enough', label: 'Working forever and never getting ahead' },
+      { id: 'market_crash', label: 'A market crash erasing my savings' },
+      { id: 'retirement', label: 'Running out of money in retirement' },
+      { id: 'inflation', label: 'Inflation quietly destroying my purchasing power' },
     ],
   },
   {
     id: 'savings',
-    phase: 'Situation',
-    question: "Combien mettez-vous de cote chaque mois, honnetement ?",
-    subtitle: "Pas de jugement. On part de la ou vous en etes.",
-    type: 'single',
+    phase: '04',
+    question: "How much do you actually set aside each month, right now?",
     options: [
-      { id: 'zero', label: 'Rien pour l\'instant', desc: 'Je vis le mois dans le mois', emoji: '😶' },
-      { id: 'small', label: 'Moins de 200 EUR', desc: 'Quelques economies quand possible', emoji: '🌱' },
-      { id: 'medium', label: '200 EUR a 800 EUR', desc: 'Je fais des efforts reguliers', emoji: '📈' },
-      { id: 'good', label: '800 EUR a 2000 EUR', desc: "J'ai de bonnes bases", emoji: '💪' },
-      { id: 'great', label: 'Plus de 2000 EUR', desc: "Je suis pret a accelerer", emoji: '🚀' },
+      { id: 'zero', label: 'Nothing yet — I\'m starting from scratch' },
+      { id: 'small', label: 'Under $200 when I can' },
+      { id: 'medium', label: '$200 to $800 consistently' },
+      { id: 'good', label: '$800 to $2,000 with discipline' },
+      { id: 'great', label: 'Over $2,000 — ready to accelerate' },
     ],
   },
   {
     id: 'emotion',
-    phase: 'Mindset',
-    question: "Comment vous sentez-vous juste apres un gros achat impulsif ?",
-    subtitle: "Votre relation a l'argent en dit plus que vos chiffres.",
-    type: 'single',
+    phase: '05',
+    question: "Honestly — how do you feel right after an impulse purchase?",
     options: [
-      { id: 'guilty', label: 'Coupable, puis resigne', desc: "C'est fait, tant pis...", emoji: '😬' },
-      { id: 'justified', label: 'Je le meritais', desc: "Je travaille dur, j'ai le droit", emoji: '😤' },
-      { id: 'excited', label: 'Excite, mais vite oublie', desc: 'Le bonheur dure 48h', emoji: '🎢' },
-      { id: 'regret', label: 'Regret immediat', desc: "Pourquoi j'ai fait ca...", emoji: '🤦' },
-      { id: 'calm', label: 'Calme et assume', desc: "J'avais prevu ce budget", emoji: '😌' },
+      { id: 'guilty', label: 'Guilty and a bit ashamed' },
+      { id: 'justified', label: 'I earned it — no regrets' },
+      { id: 'excited', label: 'Excited, but it fades fast' },
+      { id: 'regret', label: 'Immediate regret, every time' },
+      { id: 'calm', label: 'Completely calm — I planned for it' },
     ],
   },
 ];
 
 const PLAN_NAMES = {
-  freedom: 'Plan Liberte Financiere',
-  wealth: 'Plan Patrimoine Accelere',
-  debt_free: 'Plan Zero Dette',
-  retire_early: 'Plan FIRE Anticipe',
-  income: 'Plan Revenus Passifs',
+  freedom: 'The Freedom Blueprint',
+  wealth: 'The Wealth Compounding Plan',
+  debt_free: 'The Zero Debt Protocol',
+  retire_early: 'The FIRE Acceleration Plan',
+  income: 'The Passive Income Engine',
 };
 
 function getPlanName(answers) {
-  return PLAN_NAMES[answers.goal] || 'Plan Personnalise Stensor';
+  return PLAN_NAMES[answers.goal] || 'Your Personal Stensor Plan';
 }
 
 function getInsight(answers) {
   const map = {
-    'pleasure_travel': "Votre gout pour les experiences est un atout — les bons plans voyage peuvent coexister avec un patrimoine solide.",
-    'pleasure_tech': "Votre appetit tech peut devenir un levier : investir dans des ETF tech tout en gardant votre budget gadgets.",
-    'fear_lose_job': "Un fonds d'urgence de 6 mois de depenses est votre premiere priorite — avant tout investissement.",
-    'fear_never_enough': "Le cycle 'trop peu' se brise avec une regle simple : payer votre futur vous en premier, automatiquement.",
-    'emotion_guilty': "La culpabilite post-achat revele un budget emotionnel a construire — vous avez besoin d'une enveloppe plaisir assumee.",
-    'emotion_calm': "Votre maitrise emotionnelle est rare. Vous etes pret pour des strategies d'investissement plus audacieuses.",
-    'savings_zero': "Commencer a 50 EUR/mois change tout. L'automatisme prime sur le montant.",
-    'savings_great': "Avec plus de 2000 EUR/mois, l'optimisation fiscale devient votre levier numero 1.",
+    'pleasure_travel': "Your appetite for experiences is actually a strength — the right strategy funds both your adventures and your future.",
+    'pleasure_tech': "Your tech instinct can become a financial edge — channeling it into smart ETF positioning changes everything.",
+    'fear_lose_job': "A 6-month emergency fund is your highest-leverage first move — before any investment.",
+    'fear_never_enough': "The 'never enough' cycle breaks with one rule: pay your future self first, automatically, before anything else.",
+    'emotion_guilty': "Guilt after spending signals a missing 'guilt-free' budget envelope — a strategy that gives you permission.",
+    'emotion_calm': "Your emotional control around money is rare. You're ready for aggressive compounding strategies most people can't handle.",
+    'savings_zero': "Starting at $50/month rewires everything. Automation matters more than the amount.",
+    'savings_great': "At $2,000+/month, tax optimization becomes your #1 leverage point — most people miss this completely.",
+    'fear_market_crash': "Volatility becomes your ally with the right allocation — the crash-proof strategy is simpler than you think.",
   };
-  const keys = [`pleasure_${answers.pleasure}`, `fear_${answers.fear}`, `emotion_${answers.emotion}`, `savings_${answers.savings}`];
+  const keys = [
+    `pleasure_${answers.pleasure}`,
+    `fear_${answers.fear}`,
+    `emotion_${answers.emotion}`,
+    `savings_${answers.savings}`,
+  ];
   for (const k of keys) { if (map[k]) return map[k]; }
-  return "Votre profil unique revele des opportunites que la plupart des gens ignorent completement.";
+  return "Your profile reveals a rare combination of clarity and ambition — the opportunities most people never see are already within your reach.";
+}
+
+export function saveQuizToStorage(answers) {
+  localStorage.setItem(QUIZ_KEY, JSON.stringify(answers));
+}
+
+export function getStoredQuiz() {
+  try { return JSON.parse(localStorage.getItem(QUIZ_KEY) || 'null'); } catch { return null; }
+}
+
+export function clearStoredQuiz() {
+  localStorage.removeItem(QUIZ_KEY);
 }
 
 export default function GuestQuiz({ onClose }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [selected, setSelected] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
   const [planReady, setPlanReady] = useState(false);
-  const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -122,107 +129,67 @@ export default function GuestQuiz({ onClose }) {
   }, []);
 
   const q = QUESTIONS[step];
-  const progress = ((step + 1) / QUESTIONS.length) * 100;
+  const progress = (step / QUESTIONS.length) * 100;
+  const filledProgress = ((step + 1) / QUESTIONS.length) * 100;
 
-  const handleSelect = (optionId) => setSelected(optionId);
-
-  const handleNext = () => {
-    if (!selected) return;
-    const newAnswers = { ...answers, [q.id]: selected };
+  const handleSelect = (optionId) => {
+    const newAnswers = { ...answers, [q.id]: optionId };
     setAnswers(newAnswers);
-    setSelected(null);
-    if (step < QUESTIONS.length - 1) {
-      setStep(s => s + 1);
-      setAnimKey(k => k + 1);
-    } else {
-      setShowPlan(true);
-      setTimeout(() => setPlanReady(true), 1800);
-    }
+
+    setTimeout(() => {
+      if (step < QUESTIONS.length - 1) {
+        setStep(s => s + 1);
+      } else {
+        saveQuizToStorage(newAnswers);
+        setShowPlan(true);
+        setTimeout(() => setPlanReady(true), 1600);
+      }
+    }, 180);
   };
 
   const handleBack = () => {
-    if (step > 0) {
-      setStep(s => s - 1);
-      setSelected(answers[QUESTIONS[step - 1].id] || null);
-      setAnimKey(k => k + 1);
-    }
+    if (step > 0) setStep(s => s - 1);
   };
 
   return (
     <div
       className="fixed inset-0 z-[999] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(20px)' }}
+      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(24px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.93, y: 24 }}
+        initial={{ opacity: 0, scale: 0.92, y: 28 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 10 }}
-        transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-lg bg-white rounded-2xl overflow-hidden shadow-2xl"
-        style={{ maxHeight: '92vh', overflowY: 'auto' }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden"
+        style={{ maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.4)' }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
-          <X className="w-4 h-4 text-zinc-400" />
+        <button onClick={onClose} className="absolute top-5 right-5 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors hover:bg-black/5">
+          <X className="w-4 h-4 text-zinc-300" />
         </button>
 
         <AnimatePresence mode="wait">
           {!showPlan ? (
-            <motion.div key={`q-${animKey}`} initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -32 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
-              <div className="px-7 pt-7 pb-0">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black tracking-[0.2em] uppercase" style={{ color: '#a38f00' }}>{q.phase}</span>
-                  <span className="text-[10px] font-semibold text-zinc-400">{step + 1} / {QUESTIONS.length}</span>
-                </div>
-                <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden mb-6">
-                  <motion.div className="h-full rounded-full" style={{ background: FG }}
-                    initial={{ width: `${(step / QUESTIONS.length) * 100}%` }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }} />
-                </div>
-                <h2 className="text-xl font-black tracking-tight leading-tight mb-2" style={{ color: FG }}>{q.question}</h2>
-                <p className="text-sm text-zinc-400 mb-5">{q.subtitle}</p>
-              </div>
-
-              <div className="px-7 pb-2 space-y-2">
-                {q.options.map((opt) => {
-                  const isActive = selected === opt.id;
-                  return (
-                    <motion.button key={opt.id} onClick={() => handleSelect(opt.id)}
-                      whileHover={{ x: 2 }} whileTap={{ scale: 0.99 }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                      style={{ background: isActive ? FG : 'rgba(0,0,0,0.03)', border: `1.5px solid ${isActive ? FG : 'rgba(0,0,0,0.07)'}`, color: isActive ? 'white' : FG }}>
-                      <span className="text-xl flex-shrink-0">{opt.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold leading-tight">{opt.label}</p>
-                        <p className="text-xs mt-0.5 truncate" style={{ color: isActive ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.4)' }}>{opt.desc}</p>
-                      </div>
-                      {isActive && (
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center" style={{ background: YELLOW }}>
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke={FG} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-
-              <div className="px-7 py-6 flex items-center justify-between">
-                <button onClick={handleBack} disabled={step === 0}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-zinc-600 transition-colors disabled:opacity-0">
-                  <ArrowLeft className="w-3.5 h-3.5" /> Retour
-                </button>
-                <motion.button onClick={handleNext} disabled={!selected}
-                  whileHover={selected ? { scale: 1.02 } : {}} whileTap={selected ? { scale: 0.98 } : {}}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all"
-                  style={{ background: selected ? FG : 'rgba(0,0,0,0.07)', color: selected ? 'white' : 'rgba(0,0,0,0.3)', cursor: selected ? 'pointer' : 'not-allowed' }}>
-                  {step === QUESTIONS.length - 1 ? 'Voir mon plan' : 'Suivant'}
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </motion.button>
-              </div>
-            </motion.div>
+            <QuizStep
+              key={`step-${step}`}
+              q={q}
+              step={step}
+              total={QUESTIONS.length}
+              progress={filledProgress}
+              prevProgress={progress}
+              selected={answers[q.id]}
+              onSelect={handleSelect}
+              onBack={handleBack}
+            />
           ) : (
-            <PlanResult key="plan" answers={answers} planReady={planReady} onLogin={() => base44.auth.redirectToLogin('/app')} onClose={onClose} />
+            <PlanResult
+              key="plan"
+              answers={answers}
+              planReady={planReady}
+              onLogin={() => base44.auth.redirectToLogin('/app')}
+              onClose={onClose}
+            />
           )}
         </AnimatePresence>
       </motion.div>
@@ -230,83 +197,170 @@ export default function GuestQuiz({ onClose }) {
   );
 }
 
+function QuizStep({ q, step, total, progress, prevProgress, selected, onSelect, onBack }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -40 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+    >
+      {/* Header */}
+      <div className="px-8 pt-8 pb-0">
+        {/* Progress bar */}
+        <div className="w-full h-0.5 bg-zinc-100 rounded-full overflow-hidden mb-8">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: FG }}
+            initial={{ width: `${prevProgress}%` }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between mb-5">
+          <span className="text-[10px] font-black tracking-[0.25em] text-zinc-300">{q.phase} / 0{total}</span>
+          {step > 0 && (
+            <button onClick={onBack} className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors">
+              <ArrowLeft className="w-3 h-3" /> Back
+            </button>
+          )}
+        </div>
+
+        <h2 className="text-xl font-black tracking-tight leading-snug mb-7" style={{ color: FG }}>
+          {q.question}
+        </h2>
+      </div>
+
+      {/* Options */}
+      <div className="px-8 pb-8 space-y-2">
+        {q.options.map((opt, i) => {
+          const isActive = selected === opt.id;
+          return (
+            <motion.button
+              key={opt.id}
+              onClick={() => onSelect(opt.id)}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              whileHover={{ x: 3 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-left transition-all"
+              style={{
+                background: isActive ? FG : 'rgba(0,0,0,0.03)',
+                border: `1.5px solid ${isActive ? FG : 'rgba(0,0,0,0.06)'}`,
+              }}
+            >
+              <span className="text-sm font-semibold" style={{ color: isActive ? 'white' : FG }}>
+                {opt.label}
+              </span>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 ml-2" style={{ color: isActive ? YELLOW : 'rgba(0,0,0,0.2)' }} />
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
 function PlanResult({ answers, planReady, onLogin, onClose }) {
   const planName = getPlanName(answers);
   const insight = getInsight(answers);
 
-  const actions = [
-    { icon: Target, text: 'Strategie d\'investissement sur-mesure' },
-    { icon: TrendingUp, text: 'Simulation de patrimoine a 10 ans' },
-    { icon: Shield, text: 'Plan d\'urgence financier personnalise' },
-    { icon: Zap, text: 'Accelerateurs adaptes a votre profil' },
+  const features = [
+    { icon: Target, text: 'Custom investment strategy for your profile' },
+    { icon: TrendingUp, text: '10-year wealth simulation with real numbers' },
+    { icon: Shield, text: 'Personalized emergency fund protocol' },
+    { icon: Zap, text: 'Tax optimization moves most people miss' },
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-      <div className="relative px-7 pt-8 pb-6 overflow-hidden" style={{ background: FG }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      {/* Dark header */}
+      <div className="relative px-8 pt-8 pb-7 overflow-hidden" style={{ background: FG }}>
         <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: `radial-gradient(circle at 15% 50%, rgba(221,255,0,0.15) 0%, transparent 50%), radial-gradient(circle at 85% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`
+          background: 'radial-gradient(circle at 10% 80%, rgba(221,255,0,0.08) 0%, transparent 55%)'
         }} />
+
         {!planReady ? (
-          <div className="relative text-center py-4">
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
-              className="w-10 h-10 rounded-full border-2 mx-auto mb-4" style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: 'white' }} />
-            <p className="text-white font-bold text-sm">Analyse de votre profil en cours...</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Nous construisons votre plan personnalise</p>
+          <div className="relative flex flex-col items-center py-6 gap-4">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+              className="w-8 h-8 rounded-full border-2"
+              style={{ borderColor: 'rgba(255,255,255,0.15)', borderTopColor: 'white' }}
+            />
+            <p className="text-white text-sm font-semibold">Building your plan...</p>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="relative">
-            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, type: 'spring' }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black tracking-widest uppercase mb-3"
-              style={{ background: YELLOW, color: FG }}>
-              ✦ Votre plan
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="relative">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black tracking-[0.2em] uppercase mb-3"
+              style={{ background: YELLOW, color: FG }}
+            >
+              Your Plan
             </motion.div>
-            <h2 className="text-2xl font-black text-white tracking-tight leading-tight mb-1">{planName}</h2>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Genere en fonction de vos 5 reponses</p>
+            <h2 className="text-2xl font-black text-white tracking-tight mb-1">{planName}</h2>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Based on your 5 answers</p>
           </motion.div>
         )}
       </div>
 
       {planReady && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
-          <div className="px-7 py-5 border-b border-zinc-100">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.35 }}>
+          {/* Insight */}
+          <div className="px-8 py-6 border-b border-zinc-100">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-500" />
+              <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: YELLOW === '#DDFF00' ? '#a38f00' : '#a38f00' }} />
               <p className="text-sm leading-relaxed text-zinc-600">{insight}</p>
             </div>
           </div>
 
-          <div className="px-7 py-5">
-            <p className="text-[10px] font-black tracking-[0.15em] uppercase text-zinc-400 mb-3">Ce qui vous attend</p>
+          {/* Locked features */}
+          <div className="px-8 py-5">
+            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-300 mb-3">Unlocked with your account</p>
             <div className="space-y-2">
-              {actions.map((action, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.07 }}
-                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl"
-                  style={{ background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.05)' }}>
-                  <action.icon className="w-4 h-4 flex-shrink-0 text-zinc-400" />
-                  <span className="text-sm font-medium text-zinc-500 flex-1">{action.text}</span>
-                  <Lock className="w-3.5 h-3.5 text-zinc-300" />
+              {features.map((f, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + i * 0.06 }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                  style={{ background: 'rgba(0,0,0,0.025)' }}
+                >
+                  <f.icon className="w-3.5 h-3.5 flex-shrink-0 text-zinc-300" />
+                  <span className="text-xs font-medium text-zinc-500 flex-1">{f.text}</span>
+                  <Lock className="w-3 h-3 text-zinc-200" />
                 </motion.div>
               ))}
             </div>
           </div>
 
-          <div className="px-7 pb-7">
-            <div className="rounded-2xl p-5" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}>
+          {/* CTA */}
+          <div className="px-8 pb-8">
+            <div className="rounded-2xl p-5" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.05)' }}>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-base font-black" style={{ color: FG }}>Sauvegardez votre plan</span>
-                <span className="px-2 py-0.5 text-[9px] font-black rounded-md" style={{ background: YELLOW, color: FG }}>GRATUIT</span>
+                <span className="text-sm font-black" style={{ color: FG }}>Save your plan — it's free</span>
+                <span className="px-1.5 py-0.5 text-[8px] font-black rounded" style={{ background: YELLOW, color: FG }}>FREE</span>
               </div>
-              <p className="text-xs text-zinc-400 mb-4">Sans compte, votre plan sera supprime dans <span className="font-bold text-red-500">24h</span>. Creez un compte gratuit pour l'activer.</p>
-              <motion.button onClick={onLogin}
-                whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all"
-                style={{ background: FG, color: 'white' }}>
-                <Sparkles className="w-4 h-4" style={{ color: YELLOW }} />
-                Creer mon compte et activer mon plan
+              <p className="text-xs text-zinc-400 mb-4">
+                Without an account, this plan disappears in <span className="font-bold text-red-500">24 hours</span>. Your results are stored privately on your account.
+              </p>
+              <motion.button
+                onClick={onLogin}
+                whileHover={{ scale: 1.015, y: -1 }}
+                whileTap={{ scale: 0.985 }}
+                className="w-full py-3.5 rounded-xl text-sm font-black flex items-center justify-center gap-2"
+                style={{ background: FG, color: 'white' }}
+              >
+                Create my account and activate my plan
               </motion.button>
-              <button onClick={onClose} className="w-full mt-2 py-2 text-xs text-zinc-400 hover:text-zinc-600 transition-colors">
-                Continuer sans sauvegarder
+              <button onClick={onClose} className="w-full mt-3 py-1.5 text-[11px] text-zinc-300 hover:text-zinc-500 transition-colors">
+                Continue without saving
               </button>
             </div>
           </div>
