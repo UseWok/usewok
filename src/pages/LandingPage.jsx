@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ChevronDown, ArrowRight, Check, X, ShoppingCart, Navigation, Zap } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
@@ -8,14 +8,14 @@ import GuestQuiz from '@/components/landing/GuestQuiz';
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
 
-// Bidirectional reveal — reverses on scroll up
-function Reveal({ children, delay = 0, y = 40, className = '' }) {
+// ─── Smooth reveal (bidirectional) ───────────────────────────────────────────
+function Reveal({ children, delay = 0, y = 32, className = '' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: false, amount: 0.15 }}
-      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: false, amount: 0.18 }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -26,50 +26,34 @@ function Reveal({ children, delay = 0, y = 40, className = '' }) {
 function RevealLeft({ children, delay = 0, className = '' }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -50 }}
+      initial={{ opacity: 0, x: -40 }}
       whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: false, amount: 0.15 }}
-      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: false, amount: 0.18 }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
-    >
-      {children}
-    </motion.div>
+    >{children}</motion.div>
   );
 }
 
 function RevealRight({ children, delay = 0, className = '' }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
+      initial={{ opacity: 0, x: 40 }}
       whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: false, amount: 0.15 }}
-      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: false, amount: 0.18 }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
-    >
-      {children}
-    </motion.div>
+    >{children}</motion.div>
   );
 }
 
-function MagneticBtn({ children, onClick, style, className }) {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 20 });
-  const sy = useSpring(y, { stiffness: 200, damping: 20 });
-  const handleMove = (e) => {
-    const r = ref.current.getBoundingClientRect();
-    x.set((e.clientX - r.left - r.width / 2) * 0.22);
-    y.set((e.clientY - r.top - r.height / 2) * 0.22);
-  };
-  return (
-    <motion.button ref={ref} style={{ x: sx, y: sy, ...style }} className={className}
-      onMouseMove={handleMove} onMouseLeave={() => { x.set(0); y.set(0); }}
-      onClick={onClick} whileTap={{ scale: 0.96 }}>
-      {children}
-    </motion.button>
-  );
-}
+// 4 real faces: 2 women, 2 men
+const FACE_AVATARS = [
+  { src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face', alt: 'Emma' },
+  { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', alt: 'James' },
+  { src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face', alt: 'Sophia' },
+  { src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', alt: 'Tom' },
+];
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 function Navbar({ onCta }) {
@@ -81,13 +65,13 @@ function Navbar({ onCta }) {
   }, []);
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
-      <motion.nav initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+      <motion.nav initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5"
         style={{
           background: scrolled ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.88)',
-          border: '1px solid rgba(0,0,0,0.07)', borderRadius: '10px',
+          border: '1px solid rgba(0,0,0,0.08)', borderRadius: '10px',
           boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)',
-          backdropFilter: 'blur(20px)', transition: 'all 0.35s ease',
+          backdropFilter: 'blur(20px)', transition: 'all 0.3s ease',
         }}>
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2.5">
           <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-6 h-6 object-contain" />
@@ -99,10 +83,14 @@ function Navbar({ onCta }) {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => base44.auth.redirectToLogin('/app')} className="hidden md:block text-xs font-semibold text-gray-400 hover:text-black transition-colors px-3 py-2">Sign In</button>
-          <MagneticBtn onClick={onCta} className="text-xs font-black px-4 py-2.5" style={{ background: FG, color: 'white', borderRadius: '8px' }}>
+          <button onClick={() => base44.auth.redirectToLogin('/app')} className="hidden md:block text-xs font-semibold text-gray-400 hover:text-black transition-colors px-3 py-2">
+            Sign In
+          </button>
+          <motion.button onClick={onCta} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            className="text-xs font-black px-4 py-2.5 transition-colors"
+            style={{ background: YELLOW, color: FG, borderRadius: '8px' }}>
             Get Started
-          </MagneticBtn>
+          </motion.button>
         </div>
       </motion.nav>
     </div>
@@ -110,58 +98,52 @@ function Navbar({ onCta }) {
 }
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
-// 4 real faces: 2 women, 2 men
-const FACE_AVATARS = [
-  { src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face', alt: 'Emma' },
-  { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', alt: 'James' },
-  { src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face', alt: 'Sophia' },
-  { src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', alt: 'Tom' },
-];
-
 function Hero({ onCta }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const yTitle = useTransform(scrollYProgress, [0, 1], ['0%', '28%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
+  const yTitle = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
-    <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24" style={{ background: 'white' }}>
-      {/* Grid */}
+    <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24"
+      style={{ background: 'white' }}>
+      {/* Subtle grid */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.032) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.032) 1px, transparent 1px)`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)`,
         backgroundSize: '52px 52px',
       }} />
-      {/* Yellow glow */}
-      <motion.div animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0.65, 0.4] }} transition={{ duration: 9, repeat: Infinity }}
+      {/* Glow */}
+      <motion.div
+        animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.55, 0.35] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute pointer-events-none"
-        style={{ width: 800, height: 800, top: '-20%', left: '35%', background: 'radial-gradient(circle, rgba(221,255,0,0.3) 0%, transparent 65%)', filter: 'blur(70px)', zIndex: 0 }} />
+        style={{ width: 800, height: 800, top: '-18%', left: '32%', background: 'radial-gradient(circle, rgba(221,255,0,0.28) 0%, transparent 65%)', filter: 'blur(70px)', zIndex: 0 }} />
 
       <motion.div style={{ y: yTitle, opacity }} className="relative z-10 text-center px-6 max-w-5xl mx-auto">
         {/* Badge */}
-        <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-full text-xs font-bold"
           style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', color: '#555' }}>
-          <motion.span animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1.8 }}
-            className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
+          <span className="w-2 h-2 rounded-full bg-green-500" />
           The only AI that builds wealth around the life you actually love
         </motion.div>
 
-        {/* Stacked headline — each line slides up independently */}
+        {/* Headline */}
         {[
           { text: 'Keep Your Pleasures.', color: FG },
-          { text: 'Ditch The Guilt.', color: '#aaa' },
+          { text: 'Ditch The Guilt.', color: '#bbb' },
           { text: 'Build Real Wealth.', gradient: true },
         ].map((line, i) => (
           <div key={i} className="overflow-hidden mb-2">
             <motion.h1
-              initial={{ y: 110, opacity: 0 }}
+              initial={{ y: 90, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.85, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
               className="font-black tracking-tighter leading-[0.93]"
               style={{
-                fontSize: 'clamp(2.8rem, 8.5vw, 7rem)',
+                fontSize: 'clamp(2.6rem, 8vw, 6.8rem)',
                 ...(line.gradient
-                  ? { background: `linear-gradient(135deg, ${YELLOW} 0%, #a8c400 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 0 28px rgba(221,255,0,0.35))' }
+                  ? { background: `linear-gradient(135deg, ${YELLOW}, #a8c400)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }
                   : { color: line.color }),
               }}>
               {line.text}
@@ -169,35 +151,33 @@ function Hero({ onCta }) {
           </div>
         ))}
 
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="text-lg md:text-xl max-w-2xl mx-auto mt-8 mb-12 leading-relaxed" style={{ color: 'rgba(0,0,0,0.4)' }}>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+          className="font-open text-lg md:text-xl max-w-2xl mx-auto mt-8 mb-12 leading-relaxed"
+          style={{ color: 'rgba(0,0,0,0.4)' }}>
           Your pizza nights. Your Netflix. Your weekend escapes.<br />
           <strong style={{ color: FG }}>Stensor keeps what you love and builds your future — automatically.</strong>
         </motion.p>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
-          <MagneticBtn onClick={onCta}
+          <motion.button onClick={onCta} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             className="flex items-center gap-2.5 px-10 py-5 font-black text-base rounded-sm"
-            style={{ background: FG, color: 'white', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+            style={{ background: YELLOW, color: FG, boxShadow: '0 8px 32px rgba(221,255,0,0.35)' }}>
             Start for free <ArrowRight className="w-4 h-4" />
-          </MagneticBtn>
+          </motion.button>
           <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-sm font-medium text-gray-400 hover:text-black transition-colors">
             Already have an account →
           </button>
         </motion.div>
 
-        {/* Social proof — image style like provided */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.58 }}
+        {/* Social proof */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.58 }}
           className="flex items-center justify-center gap-3">
           <div className="flex -space-x-3">
             {FACE_AVATARS.map((av, i) => (
-              <motion.img key={i} src={av.src} alt={av.alt}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.65 + i * 0.07, type: 'spring', stiffness: 300 }}
+              <img key={i} src={av.src} alt={av.alt}
                 className="w-10 h-10 rounded-full object-cover border-2 border-white"
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.14)' }} />
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.13)' }} />
             ))}
           </div>
           <p className="text-sm text-gray-500">
@@ -206,7 +186,7 @@ function Hero({ onCta }) {
         </motion.div>
       </motion.div>
 
-      <motion.div animate={{ y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 2 }}
+      <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
         <ChevronDown className="w-5 h-5 text-gray-300" />
       </motion.div>
@@ -214,37 +194,11 @@ function Hero({ onCta }) {
   );
 }
 
-// ─── Pleasure Marquee ─────────────────────────────────────────────────────────
-const PLEASURE_ITEMS = [
-  '🍕 Friday pizza', '☕ Morning coffee', '✈️ Summer escape', '📺 Netflix binge',
-  '🎮 New game', '👟 Sneaker drop', '🍣 Sushi night', '🏋️ Gym membership',
-  '🎵 Spotify', '🚗 Road trip', '🍷 Wine Friday', '📱 New phone',
-  '🎬 Cinema date', '🧘 Yoga studio', '🍔 Cheat meal', '🎧 AirPods',
-];
-
-function PleasureMarquee() {
-  return (
-    <div style={{ background: YELLOW, borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }} className="py-4 overflow-hidden">
-      <motion.div
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
-        className="flex w-max gap-0"
-      >
-        {[...PLEASURE_ITEMS, ...PLEASURE_ITEMS].map((item, i) => (
-          <span key={i} className="text-sm font-bold px-8 whitespace-nowrap" style={{ color: FG, borderRight: '1px solid rgba(0,0,0,0.08)' }}>
-            {item}
-          </span>
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
-// ─── Black marquee strip ───────────────────────────────────────────────────────
-const BANK_ARGS = [
+// ─── Black marquee strip (arguments) ─────────────────────────────────────────
+const MARQUEE_ARGS = [
   '✦ Your bank keeps your money stagnant', '✦ ChatGPT optimizes budgets, not lives', '✦ Advisors cost €200/hr for generic advice',
-  '✦ Spreadsheets die after 2 weeks', '✦ Apps track — they don\'t strategize', '✦ Most budgets kill pleasure first',
-  '✦ Zero guilt spending is possible', '✦ Wealth and pleasure are not opposites',
+  '✦ Spreadsheets die after 2 weeks', '✦ Zero guilt spending is possible', '✦ Wealth and pleasure are not opposites',
+  '✦ Most budgets cut pleasure first', '✦ Stensor finds leaks, not pleasures',
 ];
 
 function BlackMarquee() {
@@ -253,9 +207,8 @@ function BlackMarquee() {
       <motion.div
         animate={{ x: ['0%', '-50%'] }}
         transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
-        className="flex w-max"
-      >
-        {[...BANK_ARGS, ...BANK_ARGS].map((item, i) => (
+        className="flex w-max">
+        {[...MARQUEE_ARGS, ...MARQUEE_ARGS].map((item, i) => (
           <span key={i} className="text-[11px] font-bold uppercase tracking-widest mx-6 whitespace-nowrap"
             style={{ color: i % 2 === 0 ? YELLOW : 'rgba(255,255,255,0.35)' }}>
             {item}
@@ -266,53 +219,56 @@ function BlackMarquee() {
   );
 }
 
-// ─── VS Section ───────────────────────────────────────────────────────────────
+// ─── VS Section — simple 3-column visual ─────────────────────────────────────
 const VS_ROWS = [
-  { pleasure: '🍕 Pizza Friday', chatgpt: '"Reduce your food expenses"', stensor: '"Keep the pizza — we found €94 in unused subscriptions instead."' },
-  { pleasure: '📺 Netflix €17/mo', chatgpt: '"Cancel non-essential subscriptions"', stensor: '"Netflix stays. That €17 becomes an ETF — your future self thanks you."' },
-  { pleasure: '✈️ €2,000 vacation', chatgpt: '"Your travel budget exceeds recommendations"', stensor: '"Trip fully funded. Here\'s how without touching your investments."' },
-  { pleasure: '📱 New iPhone', chatgpt: '"Avoid impulse purchases"', stensor: '"Can I buy this? Yes — in 6 weeks with your tech buffer. Here\'s the plan."' },
+  { pleasure: '🍕 Pizza Friday', chatgpt: 'Reduce your food expenses', stensor: 'Keep the pizza — we found €94 in unused subscriptions instead.' },
+  { pleasure: '📺 Netflix €17/mo', chatgpt: 'Cancel non-essential subscriptions', stensor: 'Netflix stays. That €17 becomes an ETF — your future self thanks you.' },
+  { pleasure: '✈️ €2,000 vacation', chatgpt: 'Your travel budget exceeds recommendations', stensor: 'Trip funded. Here\'s how without touching your investments.' },
+  { pleasure: '📱 New iPhone', chatgpt: 'Avoid impulse purchases', stensor: 'Yes — in 6 weeks with your tech buffer. Here\'s the plan.' },
 ];
 
 function VsSection() {
   return (
-    <section className="py-28 px-6" style={{ background: '#fafaf8' }}>
+    <section className="py-24 px-6" style={{ background: '#fafaf8' }}>
       <div className="max-w-4xl mx-auto">
         <Reveal className="text-center mb-16">
-          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-5 text-gray-400">The difference that changes everything</p>
-          <h2 className="font-black tracking-tighter" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.02 }}>
-            Other tools optimize budgets.<br />
-            <span style={{ color: YELLOW, WebkitTextStroke: '1px #a0b800' }}>Stensor optimizes your life.</span>
+          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">Side by side</p>
+          <h2 className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', color: FG, lineHeight: 1.05 }}>
+            Same question.<br />Very different answer.
           </h2>
-          <p className="mt-5 text-lg text-gray-400 max-w-xl mx-auto">Your pleasures are not the problem. They're the whole point.</p>
+          <p className="font-open text-base text-gray-400 max-w-lg mx-auto">
+            Other AI tools optimize your budget by cutting what you love. Stensor finds what you don't need — and keeps everything you do.
+          </p>
         </Reveal>
 
-        <Reveal>
-          <div className="overflow-hidden rounded-sm" style={{ border: '1.5px solid rgba(0,0,0,0.08)', boxShadow: '0 16px 60px rgba(0,0,0,0.07)' }}>
-            <div className="grid grid-cols-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ borderBottom: '1px solid rgba(0,0,0,0.08)', background: '#f5f5f5' }}>
-              <div className="px-6 py-4 text-gray-400">Your Pleasure</div>
-              <div className="px-6 py-4 text-gray-400" style={{ borderLeft: '1px solid rgba(0,0,0,0.06)' }}>Others say</div>
-              <div className="px-6 py-4 font-black" style={{ borderLeft: '1px solid rgba(0,0,0,0.06)', background: YELLOW, color: FG }}>Stensor says ✦</div>
-            </div>
-            {VS_ROWS.map((row, i) => (
-              <motion.div key={i}
-                initial={{ opacity: 0, x: -24 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: false, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="grid grid-cols-3"
-                style={{ borderBottom: i < VS_ROWS.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
-                <div className="px-6 py-5 text-sm font-bold bg-white" style={{ color: FG }}>{row.pleasure}</div>
-                <div className="px-6 py-5 text-sm text-gray-400 italic bg-white" style={{ borderLeft: '1px solid rgba(0,0,0,0.05)' }}>
-                  <span className="flex items-start gap-2"><X className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />{row.chatgpt}</span>
+        <div className="space-y-3">
+          {VS_ROWS.map((row, i) => (
+            <Reveal key={i} delay={i * 0.07}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Pleasure */}
+                <div className="flex items-center gap-3 px-5 py-4 rounded-sm font-bold text-sm" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', color: FG }}>
+                  {row.pleasure}
                 </div>
-                <div className="px-6 py-5 text-sm font-semibold" style={{ borderLeft: '1px solid rgba(0,0,0,0.05)', background: 'rgba(221,255,0,0.07)', color: '#3a4a00' }}>
-                  <span className="flex items-start gap-2"><Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#5a7a00' }} />{row.stensor}</span>
+                {/* ChatGPT */}
+                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: 'rgba(254,226,226,0.4)', border: '1px solid rgba(239,68,68,0.12)' }}>
+                  <X className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-300 mb-1">ChatGPT / Others</p>
+                    <p className="font-open text-sm text-gray-500 italic">"{row.chatgpt}"</p>
+                  </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </Reveal>
+                {/* Stensor */}
+                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: 'rgba(221,255,0,0.12)', border: '1px solid rgba(221,255,0,0.35)' }}>
+                  <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#5a7a00' }} />
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: '#7a9a00' }}>Stensor ✦</p>
+                    <p className="font-open text-sm font-semibold" style={{ color: '#3a4a00' }}>"{row.stensor}"</p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -322,66 +278,68 @@ function VsSection() {
 const SKILLS = [
   {
     id: 'buy', emoji: '🛒', tag: 'Can I buy this?', Icon: ShoppingCart,
-    headline: 'Buy. Or not.\nIn 10 seconds.',
-    why: 'Because anxiety after every purchase is not a financial strategy.',
-    desc: "Stensor reads your real-time financial picture and tells you exactly if you can afford it — and how, if yes. No spreadsheet. No guilt.",
+    headline: 'Buy it. Or not.\nIn 10 seconds.',
+    why: 'Because anxiety after every purchase is not a strategy.',
+    desc: "Stensor reads your real-time financial picture and tells you exactly if you can afford it — and how. No spreadsheet. No guilt. Just clarity.",
     example: '"Can I buy this iPhone 16?" → "Yes — in 3 weeks with your tech buffer. Don\'t touch your investment portfolio."',
-    accent: '#22c55e', bg: '#f0fdf4',
+    accent: '#22c55e', bg: 'white', border: 'rgba(34,197,94,0.15)',
   },
   {
     id: 'track', emoji: '🧭', tag: 'Am I on track?', Icon: Navigation,
-    headline: 'Never drift\nwithout knowing.',
+    headline: 'Never drift\nwithout knowing it.',
     why: 'Most people only discover they\'ve drifted when it\'s too late.',
-    desc: "Stensor checks your trajectory in real time and tells you exactly how to course-correct — before a small drift becomes a big problem.",
+    desc: "Stensor checks your trajectory against your goals and tells you exactly how to course-correct — before a small drift becomes a big problem.",
     example: '"Am I on track?" → "You\'re at 82% of your savings goal. A €87/month adjustment puts you back at 100% this quarter."',
-    accent: '#3b82f6', bg: '#eff6ff',
+    accent: '#3b82f6', bg: '#fafaf8', border: 'rgba(59,130,246,0.15)',
   },
   {
     id: 'move', emoji: '🎯', tag: "What's my next move?", Icon: Zap,
     headline: 'Always know\nwhat to do next.',
     why: 'Financial paralysis kills more wealth than bad investments.',
-    desc: "One concrete, measurable action every week — so you never lose momentum or lose sight of your goals.",
-    example: '"What\'s my next move?" → "Increase your auto-transfer by €50. Impact: +€12,400 at retirement."',
-    accent: '#a855f7', bg: '#fdf4ff',
+    desc: "One concrete, measurable action every week — so you never lose momentum, never lose sight of your goals, never feel stuck.",
+    example: '"What\'s my next move?" → "Increase your auto-transfer by €50 this month. Impact on your retirement: +€12,400."',
+    accent: '#a855f7', bg: 'white', border: 'rgba(168,85,247,0.15)',
   },
 ];
 
 function SkillCard({ skill, index }) {
   const isEven = index % 2 === 0;
   return (
-    <div className="py-20 px-6" style={{ background: skill.bg }}>
+    <div className="py-24 px-6" style={{ background: skill.bg }}>
       <div className="max-w-5xl mx-auto">
-        <div className={`grid md:grid-cols-2 gap-16 items-center ${!isEven ? 'md:direction-rtl' : ''}`}>
-          <RevealLeft delay={0} className={!isEven ? 'md:order-2' : ''}>
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <RevealLeft className={!isEven ? 'md:order-2' : ''}>
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-14 h-14 rounded-sm flex items-center justify-center text-2xl" style={{ background: skill.accent + '20' }}>
+                <div className="w-12 h-12 rounded-sm flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{ background: YELLOW }}>
                   {skill.emoji}
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-sm" style={{ background: skill.accent + '18', color: skill.accent }}>
+                <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-sm"
+                  style={{ background: skill.accent + '18', color: skill.accent }}>
                   {skill.tag}
                 </span>
               </div>
-              <h2 className="font-black tracking-tighter mb-4 whitespace-pre-line" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: FG, lineHeight: 1.05 }}>
+              <h2 className="font-black tracking-tighter mb-3 whitespace-pre-line"
+                style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', color: FG, lineHeight: 1.08 }}>
                 {skill.headline}
               </h2>
-              <p className="text-base font-bold mb-3" style={{ color: skill.accent }}>{skill.why}</p>
-              <p className="text-base leading-relaxed text-gray-500 mb-6">{skill.desc}</p>
+              <p className="text-sm font-black mb-4 uppercase tracking-wide" style={{ color: skill.accent }}>{skill.why}</p>
+              <p className="font-open text-base leading-relaxed text-gray-500">{skill.desc}</p>
             </div>
           </RevealLeft>
-          <RevealRight delay={0.1} className={!isEven ? 'md:order-1' : ''}>
-            <div className="p-8 rounded-sm" style={{ background: 'white', border: `1.5px solid ${skill.accent}25`, boxShadow: `0 20px 60px ${skill.accent}12` }}>
-              <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: skill.accent + '88' }}>Real conversation</p>
-              <div className="p-5 rounded-sm" style={{ background: skill.bg, border: `1px solid ${skill.accent}20` }}>
-                <p className="text-sm leading-relaxed text-gray-700 italic">💬 {skill.example}</p>
-              </div>
-              <div className="mt-5 flex items-center gap-2 pt-5" style={{ borderTop: `1px solid ${skill.accent}15` }}>
+
+          <RevealRight delay={0.08} className={!isEven ? 'md:order-1' : ''}>
+            <div className="p-8 rounded-sm" style={{ background: skill.bg === 'white' ? '#fafaf8' : 'white', border: `1.5px solid ${skill.border}`, boxShadow: '0 8px 40px rgba(0,0,0,0.05)' }}>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: skill.accent }}>Real example</p>
+              <p className="font-open text-sm leading-relaxed text-gray-600 italic mb-6">💬 {skill.example}</p>
+              <div className="flex items-center gap-2 pt-5" style={{ borderTop: `1px solid ${skill.border}` }}>
                 <div className="flex -space-x-2">
                   {FACE_AVATARS.slice(0, 3).map((av, i) => (
                     <img key={i} src={av.src} alt="" className="w-7 h-7 rounded-full border-2 border-white object-cover" />
                   ))}
                 </div>
-                <p className="text-xs text-gray-400">Used daily by <strong style={{ color: FG }}>1,000+ users</strong></p>
+                <p className="font-open text-xs text-gray-400">Used by <strong style={{ color: FG }}>1,000+ users</strong> daily</p>
               </div>
             </div>
           </RevealRight>
@@ -394,19 +352,21 @@ function SkillCard({ skill, index }) {
 function SkillsSection() {
   return (
     <section>
-      <Reveal className="text-center py-20 px-6 bg-white">
-        <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-5 text-gray-400">Three modes. Total serenity.</p>
-        <h2 className="font-black tracking-tighter" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.02 }}>
+      <Reveal className="text-center py-20 px-6" style={{ background: YELLOW }}>
+        <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4" style={{ color: 'rgba(0,0,0,0.4)' }}>Three modes. Total serenity.</p>
+        <h2 className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.02 }}>
           Instant answer.<br />Concrete action. Always.
         </h2>
-        <p className="mt-5 text-base text-gray-400 max-w-lg mx-auto">No more paralysis. No more anxiety. Just one clear answer every time.</p>
+        <p className="font-open text-base max-w-lg mx-auto" style={{ color: 'rgba(0,0,0,0.5)' }}>
+          No more paralysis. No more anxiety. Just one clear answer every time — built around your life, not against it.
+        </p>
       </Reveal>
       {SKILLS.map((skill, i) => <SkillCard key={skill.id} skill={skill} index={i} />)}
     </section>
   );
 }
 
-// ─── Stats ─────────────────────────────────────────────────────────────────────
+// ─── Stats on yellow ───────────────────────────────────────────────────────────
 function StatsSection() {
   const stats = [
     { n: '1,000+', label: 'Active users', sub: '+312 this month' },
@@ -415,15 +375,15 @@ function StatsSection() {
     { n: '94%', label: 'Less anxiety', sub: 'from session one' },
   ];
   return (
-    <section className="py-20 px-6" style={{ background: FG }}>
+    <section className="py-20 px-6" style={{ background: YELLOW }}>
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((s, i) => (
-            <Reveal key={i} delay={i * 0.08} y={16}>
+            <Reveal key={i} delay={i * 0.07} y={20}>
               <div className="text-center">
-                <p className="font-black mb-1 leading-none" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', color: YELLOW }}>{s.n}</p>
-                <p className="text-sm font-black mb-0.5 text-white">{s.label}</p>
-                <p className="text-[11px] text-gray-500">{s.sub}</p>
+                <p className="font-black mb-1 leading-none" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', color: FG }}>{s.n}</p>
+                <p className="text-sm font-black mb-0.5" style={{ color: FG }}>{s.label}</p>
+                <p className="font-open text-[11px]" style={{ color: 'rgba(0,0,0,0.45)' }}>{s.sub}</p>
               </div>
             </Reveal>
           ))}
@@ -436,15 +396,15 @@ function StatsSection() {
 // ─── Testimonials ──────────────────────────────────────────────────────────────
 const TESTIMONIALS = [
   { name: 'Julien M.', role: 'Freelance dev, Paris', quote: "I used to dread thinking about money. Now I ask Stensor and move on with my life. The anxiety is completely gone.", src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Georgia", serif', fontSize: '13px' }, color: '#6366f1' },
-  { name: 'Sarah K.', role: 'Engineer, London', quote: "€640/month found in subscriptions I didn't notice. First conversation. I'm still shocked.", src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontSize: '13px', letterSpacing: '-0.01em' }, color: '#ec4899' },
-  { name: 'Marc D.', role: 'Entrepreneur, Brussels', quote: "It's like having a CFO in your pocket that actually speaks human. Never once asked me to sacrifice a pleasure.", src: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Times New Roman", serif', fontSize: '13px', fontStyle: 'italic' }, color: '#f59e0b' },
+  { name: 'Sarah K.', role: 'Engineer, London', quote: "€640/month found in subscriptions I didn't even notice. First conversation. Still shocked.", src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'var(--font-open), Open Sans, sans-serif', fontSize: '13px' }, color: '#ec4899' },
+  { name: 'Marc D.', role: 'Entrepreneur, Brussels', quote: "It's like having a CFO in your pocket that speaks human. Never asked me to sacrifice a single pleasure.", src: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Times New Roman", serif', fontSize: '13px', fontStyle: 'italic' }, color: '#f59e0b' },
   { name: 'Léa B.', role: 'Doctor, Lyon', quote: '"Can I buy this?" became my superpower. 10 seconds and I know. Zero post-purchase stress.', src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Courier New", monospace', fontSize: '12px' }, color: '#10b981' },
   { name: 'Thomas R.', role: 'Marketing, Bordeaux', quote: "ChatGPT wanted to cancel my morning coffee. Stensor optimized my savings without touching a single pleasure.", src: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px' }, color: '#8b5cf6' },
   { name: 'Camille F.', role: 'Designer, Nice', quote: "My FIRE goal in 8 years. Stensor tells me every week exactly where I stand and what to do next.", src: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Palatino", serif', fontSize: '13px' }, color: '#f43f5e' },
   { name: 'Antoine V.', role: 'Architect, Nantes', quote: '"Am I on track?" saved me from an €8,000 real estate mistake. Stensor caught what I missed.', src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontSize: '12px' }, color: '#0ea5e9' },
   { name: 'Emma C.', role: 'Consultant, Geneva', quote: '"What\'s my next move?" every Monday. 5 minutes. My financial week is planned. Simple, unstoppable.', src: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '13px' }, color: '#a855f7' },
   { name: 'Hugo S.', role: 'Engineer, Strasbourg', quote: "€800/month saved without changing my lifestyle. I just stopped ignoring Stensor.", src: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Courier New", monospace', fontSize: '12px' }, color: '#14b8a6' },
-  { name: 'Sophie M.', role: 'HR, Lille', quote: "My ex told me to make a budget. Stensor tells me how to live AND save. Not the same thing.", src: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Georgia", serif', fontStyle: 'italic', fontSize: '13px' }, color: '#e11d48' },
+  { name: 'Sophie M.', role: 'HR, Lille', quote: "My ex told me to make a budget. Stensor tells me how to live AND save. Not the same thing at all.", src: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Georgia", serif', fontStyle: 'italic', fontSize: '13px' }, color: '#e11d48' },
   { name: 'Lucas B.', role: 'Developer, Montpellier', quote: "It calculated that raising my transfer by €73 gets my home down payment 14 months earlier. Insane precision.", src: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700 }, color: '#2563eb' },
   { name: 'Inès D.', role: 'Lawyer, Paris', quote: "I earned well but had no idea where my money went. Stensor mapped everything in one conversation.", src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=60&h=60&fit=crop&crop=face', style: { fontFamily: '"Palatino", serif', fontSize: '13px' }, color: '#7c3aed' },
   { name: 'Baptiste G.', role: 'Sales, Rennes', quote: "Before: stress with every purchase. After: I live my life and the AI handles the rest.", src: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=60&h=60&fit=crop&crop=face', style: { fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '13px' }, color: '#059669' },
@@ -454,7 +414,7 @@ const TESTIMONIALS = [
 ];
 
 function TestimonialsSection() {
-  function TestimonialRow({ items, reverse = false, speed = 60 }) {
+  function Row({ items, reverse = false, speed = 65 }) {
     return (
       <div className="overflow-hidden" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
         <motion.div
@@ -463,7 +423,7 @@ function TestimonialsSection() {
           className="flex gap-4 w-max py-2">
           {[...items, ...items].map((t, i) => (
             <div key={i} className="flex-shrink-0 w-80 p-6 bg-white rounded-sm"
-              style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
+              style={{ border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
               <p className="leading-relaxed mb-5" style={{ ...t.style, color: '#444' }}>"{t.quote}"</p>
               <div className="flex items-center gap-3">
                 <img src={t.src} alt={t.name} className="w-9 h-9 rounded-sm object-cover flex-shrink-0"
@@ -474,7 +434,7 @@ function TestimonialsSection() {
                 </div>
                 <div className="ml-auto flex gap-0.5">
                   {[...Array(5)].map((_, j) => (
-                    <span key={j} style={{ color: YELLOW, fontSize: '11px', textShadow: '0 0 6px rgba(221,255,0,0.6)' }}>★</span>
+                    <span key={j} style={{ color: '#c9a800', fontSize: '11px' }}>★</span>
                   ))}
                 </div>
               </div>
@@ -484,17 +444,18 @@ function TestimonialsSection() {
       </div>
     );
   }
+
   return (
     <section className="py-28 overflow-hidden" style={{ background: '#fafaf8' }}>
       <Reveal className="text-center mb-14 px-6">
-        <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-5 text-gray-400">Real people, real results</p>
-        <h2 className="font-black tracking-tighter" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.02 }}>
+        <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">Real people, real results</p>
+        <h2 className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', color: FG, lineHeight: 1.05 }}>
           They kept their pleasures.<br />And built real wealth.
         </h2>
       </Reveal>
       <div className="flex flex-col gap-5">
-        <TestimonialRow items={TESTIMONIALS.slice(0, 8)} speed={65} />
-        <TestimonialRow items={TESTIMONIALS.slice(8)} reverse speed={75} />
+        <Row items={TESTIMONIALS.slice(0, 8)} speed={65} />
+        <Row items={TESTIMONIALS.slice(8)} reverse speed={75} />
       </div>
     </section>
   );
@@ -505,27 +466,27 @@ function HowItWorks() {
   const steps = [
     { n: '01', title: 'Tell it your situation', desc: 'No forms. No setup. Just type what\'s on your mind — a goal, a fear, a question. Even "can I afford this vacation?"' },
     { n: '02', title: 'Get a real strategy', desc: 'Stensor builds a concrete, personalized action plan around your life — not a generic checklist that cuts what you love.' },
-    { n: '03', title: 'Execute and grow', desc: 'Follow the steps. Ask follow-ups. Watch your financial clarity compound week after week, effortlessly.' },
+    { n: '03', title: 'Execute and grow', desc: 'Follow the steps. Ask follow-up questions. Watch your financial clarity compound week after week, effortlessly.' },
   ];
   return (
     <section className="py-28 px-6" style={{ background: 'white' }}>
       <div className="max-w-4xl mx-auto">
         <Reveal className="text-center mb-20">
-          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-5 text-gray-400">How it works</p>
-          <h2 className="font-black tracking-tighter" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', color: FG, lineHeight: 1.05 }}>
+          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">How it works</p>
+          <h2 className="font-black tracking-tighter" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: FG, lineHeight: 1.05 }}>
             Three steps to financial autopilot.
           </h2>
         </Reveal>
         <div className="space-y-3">
           {steps.map((s, i) => (
             <Reveal key={i} delay={i * 0.1}>
-              <motion.div whileHover={{ x: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.07)' }} transition={{ duration: 0.2 }}
+              <motion.div whileHover={{ x: 6 }} transition={{ duration: 0.2 }}
                 className="flex items-start gap-8 p-8 rounded-sm"
                 style={{ background: '#fafaf8', border: '1px solid rgba(0,0,0,0.06)' }}>
                 <span className="font-black flex-shrink-0 leading-none" style={{ fontSize: '3rem', color: 'rgba(0,0,0,0.05)' }}>{s.n}</span>
                 <div>
                   <h3 className="text-xl font-black mb-2" style={{ color: FG }}>{s.title}</h3>
-                  <p className="text-sm leading-relaxed text-gray-500">{s.desc}</p>
+                  <p className="font-open text-sm leading-relaxed text-gray-500">{s.desc}</p>
                 </div>
               </motion.div>
             </Reveal>
@@ -538,10 +499,10 @@ function HowItWorks() {
 
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 const FAQS = [
-  { q: "What exactly is Stensor?", a: "The only AI financial coach that builds your wealth around the life you love — not by sacrificing what matters. Describe any goal in plain English and get a complete strategy in 60 seconds." },
-  { q: "How is it different from ChatGPT?", a: "ChatGPT optimizes your budget. Stensor optimizes your life. ChatGPT tells you to cancel Netflix. Stensor keeps Netflix and finds 3 other leaks you didn't notice." },
-  { q: "Do I need financial knowledge?", a: "Zero. Stensor is built for everyone, from total beginners to experienced investors. Just describe your situation in plain language." },
-  { q: "Is my data secure?", a: "Completely. Your conversations are private and encrypted. We never sell or share your data." },
+  { q: "What exactly is Stensor?", a: "The only AI financial coach that builds your wealth around the life you love. Describe any goal in plain English and get a complete strategy in 60 seconds — no sacrifices required." },
+  { q: "How is it different from ChatGPT or other AI finance tools?", a: "ChatGPT optimizes your budget — usually by cutting what you enjoy. Stensor optimizes your life. It finds what you don't need and keeps everything you do. The results feel completely different." },
+  { q: "Do I need financial knowledge?", a: "Zero. Built for everyone from total beginners to experienced investors. Just describe your situation." },
+  { q: "Is my data secure?", a: "Completely. Your conversations are private and encrypted. We never sell or share your personal data." },
   { q: "Can I cancel anytime?", a: "Yes. No conditions, no hidden fees. You keep access until the end of your billing period." },
 ];
 
@@ -565,8 +526,8 @@ function FaqSection() {
               <AnimatePresence initial={false}>
                 {open === i && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
-                    <p className="pb-5 text-sm leading-relaxed text-gray-500">{faq.a}</p>
+                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <p className="font-open pb-5 text-sm leading-relaxed text-gray-500">{faq.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -581,40 +542,36 @@ function FaqSection() {
 // ─── Final CTA ─────────────────────────────────────────────────────────────────
 function FinalCta({ onCta }) {
   return (
-    <section className="relative py-40 px-6 overflow-hidden" style={{ background: 'white' }}>
+    <section className="relative py-36 px-6 overflow-hidden" style={{ background: YELLOW }}>
       <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.028) 1px, transparent 1px)`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
         backgroundSize: '52px 52px',
       }} />
-      <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.55, 0.3] }} transition={{ duration: 7, repeat: Infinity }}
-        className="absolute pointer-events-none inset-0"
-        style={{ background: 'radial-gradient(ellipse 55% 45% at 50% 60%, rgba(221,255,0,0.42), transparent)' }} />
       <div className="max-w-3xl mx-auto text-center relative z-10">
         <Reveal>
-          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-8 text-gray-400">Ready for autopilot?</p>
-          <h2 className="font-black tracking-tighter mb-6" style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', color: FG, lineHeight: 0.95 }}>
-            Your pleasure.<br />Your life.<br />
-            <span style={{ color: '#aaa' }}>Our problem.</span>
+          <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-8" style={{ color: 'rgba(0,0,0,0.4)' }}>Ready for autopilot?</p>
+          <h2 className="font-black tracking-tighter mb-6" style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', color: FG, lineHeight: 0.95 }}>
+            Your pleasure.<br />Your life.<br />Our problem.
           </h2>
-          <p className="text-lg mb-12 text-gray-400">Start free. No credit card. No setup. Just clarity.</p>
+          <p className="font-open text-lg mb-10" style={{ color: 'rgba(0,0,0,0.5)' }}>Start free. No credit card. No setup. Just clarity.</p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <MagneticBtn onClick={onCta}
-              className="inline-flex items-center gap-3 px-12 py-6 font-black text-base rounded-sm"
-              style={{ background: FG, color: 'white', boxShadow: '0 12px 50px rgba(0,0,0,0.18)' }}>
-              Build my financial freedom <ArrowRight className="w-5 h-5" />
-            </MagneticBtn>
-          </div>
+          <motion.button onClick={onCta} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-3 px-12 py-5 font-black text-base rounded-sm mb-10"
+            style={{ background: FG, color: 'white', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
+            Build my financial freedom <ArrowRight className="w-5 h-5" />
+          </motion.button>
 
-          {/* Bottom social proof */}
+          {/* Social proof */}
           <div className="flex items-center justify-center gap-3">
             <div className="flex -space-x-3">
               {FACE_AVATARS.map((av, i) => (
-                <img key={i} src={av.src} alt="" className="w-9 h-9 rounded-full object-cover border-2 border-white"
+                <img key={i} src={av.src} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-yellow-200"
                   style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }} />
               ))}
             </div>
-            <p className="text-sm text-gray-500">Joined by <strong style={{ color: FG }}>1,000+ users</strong> already building their future</p>
+            <p className="text-sm" style={{ color: 'rgba(0,0,0,0.55)' }}>
+              Joined by <strong style={{ color: FG }}>1,000+ users</strong> already building their future
+            </p>
           </div>
         </Reveal>
       </div>
@@ -633,26 +590,26 @@ function Footer() {
               <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-6 h-6 object-contain" />
               <span className="font-black" style={{ color: FG }}>Stensor</span>
             </div>
-            <p className="text-sm max-w-xs text-gray-400">The only AI coach that builds your wealth around the life you love.</p>
+            <p className="font-open text-sm max-w-xs text-gray-400">The only AI coach that builds your wealth around the life you love.</p>
           </div>
           <div className="flex gap-16">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest mb-4 text-gray-300">Product</p>
               {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs']].map(([l, h]) => (
-                <a key={l} href={h} className="block text-sm mb-2 text-gray-400 hover:text-black transition-colors">{l}</a>
+                <a key={l} href={h} className="font-open block text-sm mb-2 text-gray-400 hover:text-black transition-colors">{l}</a>
               ))}
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest mb-4 text-gray-300">Legal</p>
               {[['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
-                <a key={l} href={h} className="block text-sm mb-2 text-gray-400 hover:text-black transition-colors">{l}</a>
+                <a key={l} href={h} className="font-open block text-sm mb-2 text-gray-400 hover:text-black transition-colors">{l}</a>
               ))}
             </div>
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-8" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-          <p className="text-xs text-gray-300">2026 Stensor Inc. All rights reserved.</p>
-          <p className="text-xs text-gray-200">AI responses may contain inaccuracies. Not financial advice.</p>
+          <p className="font-open text-xs text-gray-300">2026 Stensor Inc. All rights reserved.</p>
+          <p className="font-open text-xs text-gray-200">AI responses may contain inaccuracies. Not financial advice.</p>
         </div>
       </div>
     </footer>
@@ -684,7 +641,6 @@ export default function LandingPage() {
       </AnimatePresence>
       <Navbar onCta={() => setShowQuiz(true)} />
       <Hero onCta={() => setShowQuiz(true)} />
-      <PleasureMarquee />
       <BlackMarquee />
       <VsSection />
       <SkillsSection />
