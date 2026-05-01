@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
@@ -8,7 +8,6 @@ import GuestQuiz from '@/components/landing/GuestQuiz';
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
 const YT = 'https://www.youtube.com/embed/NnEe-G3VnIk?autoplay=1&mute=1&loop=1&playlist=NnEe-G3VnIk&controls=0&modestbranding=1&showinfo=0&rel=0&disablekb=1&iv_load_policy=3&fs=0';
-
 const FACES = [
   'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
@@ -16,7 +15,7 @@ const FACES = [
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
 ];
 
-// ─── Shared components ────────────────────────────────────────────────────────
+// ─── Shared ───────────────────────────────────────────────────────────────────
 function Scene({ children, bg = 'white', minH = '100vh', className = '' }) {
   return (
     <section className={`relative w-full flex flex-col items-center justify-center px-6 md:px-8 ${className}`}
@@ -26,11 +25,11 @@ function Scene({ children, bg = 'white', minH = '100vh', className = '' }) {
   );
 }
 
-function SectionLabel({ text, light = false }) {
+function Label({ text, light = false }) {
   return (
     <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
       className="text-[10px] font-black tracking-[0.35em] uppercase mb-20 text-center"
-      style={{ color: light ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }}>
+      style={{ color: light ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)' }}>
       {text}
     </motion.p>
   );
@@ -40,26 +39,25 @@ function SectionLabel({ text, light = false }) {
 function Navbar({ onCta }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 60);
+    const h = () => setScrolled(window.scrollY > 80);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
   return (
-    <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-10 py-6"
-      style={{ background: scrolled ? 'rgba(255,255,255,0.97)' : 'transparent', transition: 'background 0.5s ease' }}>
+    <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.4 }}
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6"
+      style={{ background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', transition: 'all 0.4s ease', borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
       <div className="flex items-center gap-2.5">
         <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-5 h-5 object-contain" />
         <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
       </div>
       <div className="hidden md:flex items-center gap-8">
-        <a href="/fonctionnalites" className="text-xs text-gray-400 hover:text-black transition-colors">Features</a>
-        <a href="/tarifs" className="text-xs text-gray-400 hover:text-black transition-colors">Pricing</a>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
+        <a href="/fonctionnalites" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Features</a>
+        <a href="/tarifs" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Pricing</a>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Sign in</button>
       </div>
       <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-        className="text-xs font-black px-5 py-2.5"
-        style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+        className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
         Start free →
       </motion.button>
     </motion.header>
@@ -71,7 +69,7 @@ function Hero({ onCta }) {
   return (
     <Scene>
       <div className="text-center max-w-4xl mx-auto">
-        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
+        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
           className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
           style={{ color: 'rgba(0,0,0,0.2)' }}>
           AI Financial Coach
@@ -79,27 +77,29 @@ function Hero({ onCta }) {
 
         {['Keep Your Pleasures.', 'Build Real Wealth.'].map((line, i) => (
           <div key={i} className="overflow-hidden">
-            <motion.h1 initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+            <motion.h1 initial={{ y: 110, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1.1, delay: 0.3 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-              className="font-black tracking-tighter leading-[0.9] block"
-              style={{ fontSize: 'clamp(3.5rem, 9vw, 8rem)', color: i === 0 ? FG : YELLOW }}>
+              className="font-black tracking-tighter leading-[0.88] block"
+              style={{ fontSize: 'clamp(3.5rem, 9vw, 8.5rem)', color: i === 0 ? FG : YELLOW }}>
               {line}
             </motion.h1>
           </div>
         ))}
 
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }}
-          className="text-lg leading-relaxed max-w-xl mx-auto mt-16 mb-14"
-          style={{ color: 'rgba(0,0,0,0.35)', fontFamily: 'var(--font-open)' }}>
-          La science prouve que les gens qui gardent leurs plaisirs tiennent <strong style={{ color: FG }}>3× plus longtemps</strong> et atteignent leurs objectifs <strong style={{ color: FG }}>2× plus vite</strong>. Stensor en fait sa stratégie.
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.78 }}
+          className="text-lg leading-relaxed max-w-2xl mx-auto mt-16 mb-14"
+          style={{ color: 'rgba(0,0,0,0.38)', fontFamily: 'var(--font-open)' }}>
+          Science proves it: people who keep their pleasures stay on track{' '}
+          <strong style={{ color: FG }}>3× longer</strong> and reach their goals{' '}
+          <strong style={{ color: FG }}>2× faster</strong>. Stensor makes this its strategy.
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95 }}
           className="flex flex-col items-center gap-6">
           <motion.button onClick={onCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
             className="flex items-center gap-3 px-12 py-5 font-black text-base"
-            style={{ background: YELLOW, color: FG, borderRadius: '8px', boxShadow: '0 12px 48px rgba(221,255,0,0.4)' }}>
-            Découvrir mon plan <ArrowRight className="w-4 h-4" />
+            style={{ background: YELLOW, color: FG, borderRadius: '8px', boxShadow: '0 16px 56px rgba(221,255,0,0.45)' }}>
+            Discover my plan <ArrowRight className="w-4 h-4" />
           </motion.button>
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2.5">
@@ -109,14 +109,15 @@ function Hero({ onCta }) {
               ))}
             </div>
             <p className="text-xs text-gray-400">
-              <strong className="text-black font-black">1 000+ utilisateurs</strong> construisent déjà leur avenir
+              <strong className="text-black font-black">1,000+ users</strong> already building their future
             </p>
           </div>
         </motion.div>
       </div>
-      <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2.5 }}
+
+      <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2.8 }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <div className="w-px h-12" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.15))' }} />
+        <div className="w-px h-14" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.12))' }} />
         <p className="text-[9px] tracking-[0.3em] uppercase text-gray-300">Scroll</p>
       </motion.div>
     </Scene>
@@ -126,13 +127,12 @@ function Hero({ onCta }) {
 // ─── 02 VIDEO ─────────────────────────────────────────────────────────────────
 function VideoScene() {
   return (
-    <Scene bg="#fafaf8">
-      <div className="w-full max-w-5xl mx-auto">
-        <SectionLabel text="Voir en action" />
-        <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.2 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+    <Scene bg="#f7f7f5" minH="auto" className="py-0">
+      <div className="w-full max-w-6xl mx-auto py-24">
+        <motion.div initial={{ opacity: 0, scale: 0.98, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }} transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="relative w-full overflow-hidden"
-          style={{ borderRadius: '16px', boxShadow: '0 32px 80px rgba(0,0,0,0.1)', aspectRatio: '16/9' }}>
+          style={{ borderRadius: '20px', boxShadow: '0 40px 100px rgba(0,0,0,0.12)', aspectRatio: '16/9' }}>
           <div className="absolute inset-0 z-10" style={{ pointerEvents: 'none' }} />
           <iframe src={YT} className="absolute inset-0 w-full h-full"
             style={{ border: 'none', pointerEvents: 'none' }}
@@ -143,146 +143,223 @@ function VideoScene() {
   );
 }
 
-// ─── 03 PLEASURE SIMULATOR ───────────────────────────────────────────────────
+// ─── 03 APPLE-STYLE PLEASURE SHOWCASE ────────────────────────────────────────
 const PLEASURES = [
   {
-    emoji: '🍕', label: 'Soirées pizza',
-    result: { saved: '€94/mois récupérés', how: 'en abonnements oubliés', verdict: '✅ Pizza maintenue à jamais', impact: '+€1 128/an sans rien changer' },
-    chatgpt: '"Réduisez vos dépenses alimentaires de 30%."',
+    id: 'pizza',
+    emoji: '🍕',
+    label: 'Friday Pizza',
+    headline: 'Keep the pizza.',
+    sub: 'Cut the waste.',
+    color: '#FF6B35',
+    colorLight: 'rgba(255,107,53,0.08)',
+    chatgptText: '"Reduce food expenses by 30% — this is well above recommended budget."',
+    stensorText: '"I found €94/month in forgotten subscriptions. Pizza stays. Forever."',
+    metric: '€94/mo recovered',
+    impact: '+€1,128/year · 0 sacrifices',
   },
   {
-    emoji: '✈️', label: 'Voyages',
-    result: { saved: 'Voyage à €2 000', how: 'financé en 11 semaines', verdict: '✅ Départ sans toucher l\'épargne', impact: 'Portfolio intact, rêve accompli' },
-    chatgpt: '"Vos dépenses voyage dépassent les recommandations."',
+    id: 'travel',
+    emoji: '✈️',
+    label: '€2K Vacation',
+    headline: 'Take the trip.',
+    sub: 'Without touching investments.',
+    color: '#0066FF',
+    colorLight: 'rgba(0,102,255,0.08)',
+    chatgptText: '"Your travel budget exceeds the recommended allocation for your income."',
+    stensorText: '"Funded in 11 weeks. Portfolio untouched. Boarding pass: ready."',
+    metric: 'Trip fully funded',
+    impact: 'Portfolio intact · Dream achieved',
   },
   {
-    emoji: '📱', label: 'Dernier iPhone',
-    result: { saved: 'iPhone financé', how: 'via ton buffer tech', verdict: '✅ Achat dans 6 semaines', impact: 'Plan jour par jour fourni' },
-    chatgpt: '"Évitez les achats impulsifs. Pensez long terme."',
+    id: 'iphone',
+    emoji: '📱',
+    label: 'New iPhone',
+    headline: 'Buy the phone.',
+    sub: 'On a plan, not on guilt.',
+    color: '#8B5CF6',
+    colorLight: 'rgba(139,92,246,0.08)',
+    chatgptText: '"Avoid impulse purchases. Consider your long-term financial goals."',
+    stensorText: '"In 6 weeks, via your tech buffer. Day-by-day plan included."',
+    metric: 'Purchased in 6 weeks',
+    impact: 'Guilt-free · Zero debt · Plan enclosed',
   },
   {
-    emoji: '☕', label: 'Café quotidien',
-    result: { saved: '€1 200/an protégés', how: 'leaks trouvés ailleurs', verdict: '✅ Café intact pour toujours', impact: 'Leaks : assurances × 2, SaaS ×3' },
-    chatgpt: '"Supprimez le café du matin. Économisez €400/an."',
+    id: 'coffee',
+    emoji: '☕',
+    label: 'Daily Coffee',
+    headline: 'Keep the ritual.',
+    sub: 'Kill the actual leaks.',
+    color: '#D97706',
+    colorLight: 'rgba(217,119,6,0.08)',
+    chatgptText: '"Cut your daily coffee. That\'s €400/year you could be saving."',
+    stensorText: '"€400 protected. Found €1,200 in doubled insurance and unused SaaS."',
+    metric: '€1,200/yr from real leaks',
+    impact: 'Coffee intact · 3× more savings',
   },
   {
-    emoji: '🎮', label: 'Gaming / Netflix',
-    result: { saved: 'Loisirs préservés à 100%', how: 'optimisation invisible', verdict: '✅ Aucun divertissement touché', impact: '+€187/mois redirigés vers tes objectifs' },
-    chatgpt: '"Limitez vos abonnements de divertissement."',
+    id: 'gaming',
+    emoji: '🎮',
+    label: 'Netflix & Gaming',
+    headline: 'Keep what you love.',
+    sub: 'Redirect what you forgot.',
+    color: '#059669',
+    colorLight: 'rgba(5,150,105,0.08)',
+    chatgptText: '"Limit entertainment subscriptions to one platform maximum."',
+    stensorText: '"All kept. Found €187/month elsewhere. Redirected to your goals."',
+    metric: '€187/mo redirected',
+    impact: '0 entertainment cut · All goals funded',
   },
 ];
 
-function PleasureSimulator({ onCta }) {
-  const [selected, setSelected] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+function PleasureShowcase({ onCta }) {
+  const [active, setActive] = useState(0);
+  const [animating, setAnimating] = useState(false);
 
-  const handleSelect = (i) => {
-    setRevealed(false);
-    setSelected(i);
-    setTimeout(() => setRevealed(true), 300);
+  const go = (idx) => {
+    if (animating || idx === active) return;
+    setAnimating(true);
+    setActive(idx);
+    setTimeout(() => setAnimating(false), 500);
   };
 
-  useEffect(() => {
-    setTimeout(() => setRevealed(true), 600);
-  }, []);
-
-  const p = PLEASURES[selected];
+  const p = PLEASURES[active];
 
   return (
     <Scene bg="white">
-      <div className="w-full max-w-4xl mx-auto">
-        <SectionLabel text="Le simulateur Plaisir" />
+      <div className="w-full max-w-5xl mx-auto">
+        <Label text="The Pleasure Simulator" />
 
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.8 }}
-          className="text-center mb-16">
-          <h2 className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.0 }}>
-            Choisissez votre plaisir.<br />
-            <span style={{ color: YELLOW }}>Regardez Stensor le protéger.</span>
+          className="text-center mb-6">
+          <h2 className="font-black tracking-tighter mb-4"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)', color: FG, lineHeight: 1.0 }}>
+            What others cut,<br />
+            <span style={{ color: YELLOW }}>Stensor protects.</span>
           </h2>
-          <p className="text-sm text-gray-400 max-w-md mx-auto" style={{ fontFamily: 'var(--font-open)' }}>
-            Ce que les autres outils vous demandent de supprimer, Stensor le garde. Et trouve les vraies économies ailleurs.
+          <p className="text-sm text-gray-400 max-w-sm mx-auto" style={{ fontFamily: 'var(--font-open)' }}>
+            Pick a pleasure. Watch Stensor defend it.
           </p>
         </motion.div>
 
-        {/* Pleasure pills */}
-        <div className="flex flex-wrap justify-center gap-2.5 mb-12">
+        {/* Apple-style tab selector */}
+        <div className="flex items-center justify-center gap-2 mb-14 flex-wrap">
           {PLEASURES.map((pl, i) => (
-            <motion.button key={i} onClick={() => handleSelect(i)}
-              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-5 py-3 font-black text-sm transition-all"
+            <motion.button key={pl.id} onClick={() => go(i)}
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              className="relative flex items-center gap-2 px-5 py-3 text-sm font-bold transition-all"
               style={{
-                background: selected === i ? FG : 'rgba(0,0,0,0.04)',
-                color: selected === i ? 'white' : FG,
                 borderRadius: '40px',
-                border: selected === i ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                background: active === i ? FG : 'transparent',
+                color: active === i ? 'white' : 'rgba(0,0,0,0.38)',
+                border: active === i ? 'none' : '1px solid rgba(0,0,0,0.1)',
               }}>
-              <span>{pl.emoji}</span> {pl.label}
+              <span style={{ fontSize: '16px' }}>{pl.emoji}</span>
+              <span className="hidden sm:block">{pl.label}</span>
+              {active === i && (
+                <motion.div layoutId="pill-indicator" className="absolute inset-0 rounded-full -z-10"
+                  style={{ background: FG }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
+              )}
             </motion.button>
           ))}
         </div>
 
-        {/* Result bento */}
+        {/* Main showcase — Apple product comparison style */}
         <AnimatePresence mode="wait">
-          {revealed && (
-            <motion.div key={selected}
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="grid md:grid-cols-2 gap-4">
+          <motion.div key={active}
+            initial={{ opacity: 0, y: 28, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.98 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
 
-              {/* ChatGPT card */}
-              <div className="p-8 flex flex-col gap-5" style={{ background: '#fafaf8', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                    <X className="w-2.5 h-2.5 text-gray-400" />
-                  </div>
-                  <span className="text-[10px] font-black tracking-widest uppercase text-gray-300">ChatGPT répond</span>
+            {/* Header row */}
+            <div className="flex items-center justify-center gap-6 mb-6">
+              <div className="flex items-center gap-3 px-6 py-3 rounded-full"
+                style={{ background: p.colorLight }}>
+                <span style={{ fontSize: '28px' }}>{p.emoji}</span>
+                <div>
+                  <p className="text-sm font-black" style={{ color: FG }}>{p.headline}</p>
+                  <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)', fontFamily: 'var(--font-open)' }}>{p.sub}</p>
                 </div>
-                <p className="text-base text-gray-400 italic" style={{ fontFamily: '"Georgia", serif', lineHeight: 1.65 }}>
-                  {p.chatgpt}
+              </div>
+            </div>
+
+            {/* Two-column comparison */}
+            <div className="grid md:grid-cols-2 gap-3 mb-6">
+              {/* ChatGPT */}
+              <div className="p-8 flex flex-col gap-4" style={{ background: '#fafaf8', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.07)' }}>
+                    <X className="w-3 h-3 text-gray-400" />
+                  </div>
+                  <span className="text-[10px] font-black tracking-widest uppercase text-gray-300">ChatGPT</span>
+                </div>
+                <p className="text-base leading-relaxed" style={{ color: 'rgba(0,0,0,0.38)', fontFamily: '"Georgia", serif', fontStyle: 'italic', lineHeight: 1.7 }}>
+                  {p.chatgptText}
                 </p>
                 <div className="mt-auto pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-300">Résultat : abandon au bout de 3 semaines.</p>
+                  <p className="text-xs text-gray-300 font-medium">Typical result: abandoned in 3 weeks.</p>
                 </div>
               </div>
 
-              {/* Stensor card */}
-              <div className="p-8 flex flex-col gap-5" style={{ background: FG, borderRadius: '12px' }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: YELLOW }}>
-                    <Check className="w-2.5 h-2.5" style={{ color: FG }} />
+              {/* Stensor */}
+              <div className="p-8 flex flex-col gap-4 relative overflow-hidden" style={{ background: FG, borderRadius: '16px' }}>
+                <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 80% 20%, ${p.color}20 0%, transparent 60%)` }} />
+                <div className="flex items-center gap-2.5 mb-2 relative z-10">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: YELLOW }}>
+                    <Check className="w-3 h-3" style={{ color: FG }} />
                   </div>
-                  <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: YELLOW }}>Stensor répond</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: YELLOW }}>Stensor</span>
                 </div>
-
-                <div className="flex flex-col gap-3">
-                  <div className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                    <p className="text-2xl font-black text-white">{p.result.saved}</p>
-                    <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>{p.result.how}</p>
+                <p className="text-base font-semibold text-white leading-relaxed relative z-10"
+                  style={{ fontFamily: 'var(--font-open)', lineHeight: 1.7 }}>
+                  {p.stensorText}
+                </p>
+                <div className="mt-auto pt-4 border-t border-white border-opacity-10 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-lg font-black" style={{ color: YELLOW }}>{p.metric}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-open)' }}>{p.impact}</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.06)' }}>
+                      {p.emoji}
+                    </div>
                   </div>
-                  <div className="p-4 rounded-lg" style={{ background: YELLOW }}>
-                    <p className="text-sm font-black" style={{ color: FG }}>{p.result.verdict}</p>
-                  </div>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-open)' }}>
-                    Impact : {p.result.impact}
-                  </p>
                 </div>
               </div>
-            </motion.div>
-          )}
+            </div>
+
+            {/* Navigation dots */}
+            <div className="flex items-center justify-center gap-3">
+              <button onClick={() => go((active - 1 + PLEASURES.length) % PLEASURES.length)}
+                className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50 transition-colors"
+                style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+                <ChevronLeft className="w-3.5 h-3.5 text-gray-400" />
+              </button>
+              <div className="flex gap-1.5">
+                {PLEASURES.map((_, i) => (
+                  <button key={i} onClick={() => go(i)}
+                    className="rounded-full transition-all"
+                    style={{ width: active === i ? 20 : 6, height: 6, background: active === i ? FG : 'rgba(0,0,0,0.12)' }} />
+                ))}
+              </div>
+              <button onClick={() => go((active + 1) % PLEASURES.length)}
+                className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50 transition-colors"
+                style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+              </button>
+            </div>
+          </motion.div>
         </AnimatePresence>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          transition={{ delay: 0.5 }} className="text-center mt-16">
-          <p className="text-sm text-gray-400 mb-6" style={{ fontFamily: 'var(--font-open)' }}>
-            Ce n'est pas de la magie. C'est de la méthode.
-          </p>
+          transition={{ delay: 0.4 }} className="text-center mt-14">
           <motion.button onClick={onCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-3 px-10 py-4 font-black text-sm mx-auto"
-            style={{ background: YELLOW, color: FG, borderRadius: '8px' }}>
-            Tester avec ma situation <ArrowRight className="w-4 h-4" />
+            className="inline-flex items-center gap-3 px-10 py-4 font-black text-sm mx-auto"
+            style={{ background: YELLOW, color: FG, borderRadius: '8px', boxShadow: '0 8px 32px rgba(221,255,0,0.3)' }}>
+            Test with my situation <ArrowRight className="w-4 h-4" />
           </motion.button>
         </motion.div>
       </div>
@@ -290,24 +367,24 @@ function PleasureSimulator({ onCta }) {
   );
 }
 
-// ─── 04 THE SCIENCE — Why pleasure works ─────────────────────────────────────
+// ─── 04 SCIENCE / PROOF ───────────────────────────────────────────────────────
 function ScienceScene() {
   const stats = [
-    { n: '3×', label: 'plus longtemps en route', desc: 'Les personnes qui gardent leurs plaisirs tiennent 3× plus longtemps sur leur plan financier.' },
-    { n: '2×', label: 'plus vite vers l\'objectif', desc: 'La dopamine du plaisir maintenu booste la discipline sur les autres postes.' },
-    { n: '94%', label: 'd\'abandon en 90 jours', desc: 'Des budgets classiques (restriction totale) sont abandonnés avant 3 mois.' },
+    { n: '3×', label: 'longer on track', desc: 'People who keep their pleasures stay on their financial plan 3× longer than those using restriction-based methods.' },
+    { n: '2×', label: 'faster to goals', desc: 'The dopamine of maintained pleasure boosts discipline across all other areas of your financial life.' },
+    { n: '94%', label: 'quit in 90 days', desc: 'Of all-restriction budgets are abandoned before 3 months. Most people know this. Nobody builds for it. Stensor does.' },
   ];
   return (
     <Scene bg={FG}>
       <div className="w-full max-w-5xl mx-auto">
-        <SectionLabel text="La science derrière Stensor" light />
+        <Label text="The science behind Stensor" light />
 
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} className="text-center mb-20">
           <h2 className="font-black tracking-tighter leading-[0.95]"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.8rem)', color: 'white' }}>
-            La restriction totale ne fonctionne pas.<br />
-            <span style={{ color: YELLOW }}>On le savait. Stensor aussi.</span>
+            Total restriction doesn't work.<br />
+            <span style={{ color: YELLOW }}>We knew it. We built around it.</span>
           </h2>
         </motion.div>
 
@@ -316,24 +393,26 @@ function ScienceScene() {
             <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="p-8 flex flex-col gap-4"
-              style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.07)' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)' }}>
               <p className="font-black" style={{ fontSize: '3.5rem', color: YELLOW, lineHeight: 1 }}>{s.n}</p>
               <p className="text-base font-black text-white">{s.label}</p>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-open)' }}>{s.desc}</p>
+              <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.38)', fontFamily: 'var(--font-open)' }}>{s.desc}</p>
             </motion.div>
           ))}
         </div>
 
+        {/* Quote */}
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ delay: 0.3 }}
-          className="p-8 md:p-12 text-center"
-          style={{ background: 'rgba(221,255,0,0.06)', borderRadius: '16px', border: '1px solid rgba(221,255,0,0.15)' }}>
-          <p className="text-xl md:text-2xl font-black text-white leading-tight max-w-2xl mx-auto">
-            "Le bonheur n'est pas une récompense au bout du chemin.<br />
-            C'est le carburant qui permet d'y arriver."
+          viewport={{ once: true }} transition={{ delay: 0.2 }}
+          className="p-10 md:p-14 text-center"
+          style={{ background: 'rgba(221,255,0,0.05)', borderRadius: '16px', border: '1px solid rgba(221,255,0,0.12)' }}>
+          <p className="font-black text-white leading-tight"
+            style={{ fontSize: 'clamp(1.2rem, 3vw, 2rem)' }}>
+            "Happiness is not the reward at the end of the road.
+            <br />It's the fuel that gets you there."
           </p>
-          <p className="text-sm mt-4" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-open)' }}>
-            — La philosophie Stensor
+          <p className="text-sm mt-5" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-open)' }}>
+            — The Stensor philosophy
           </p>
         </motion.div>
       </div>
@@ -343,9 +422,9 @@ function ScienceScene() {
 
 // ─── 05 CHAT DEMO ─────────────────────────────────────────────────────────────
 const CHAT_DEMOS = [
-  { userMsg: 'Est-ce que je peux acheter le nouvel iPhone 16 ?', aiMsg: "Oui — dans 3 semaines via ton buffer tech. Ne touche pas ton portefeuille d'investissement. Voici le plan jour par jour." },
-  { userMsg: 'Suis-je en bonne voie pour ma retraite anticipée ?', aiMsg: "À 82% de ton objectif. Un ajustement de €87/mois te remet à 100% d'ici Q3. C'est moins d'un repas au restaurant." },
-  { userMsg: 'Quel est mon prochain move financier ?', aiMsg: "Augmente ton virement automatique de €50 ce mois. Impact sur ta retraite : +€12 400. 2 minutes à configurer." },
+  { userMsg: 'Can I buy the new iPhone 16?', aiMsg: 'Yes — in 3 weeks via your tech buffer. Your investment portfolio stays untouched. Here\'s the day-by-day plan.' },
+  { userMsg: 'Am I on track for early retirement?', aiMsg: 'You\'re at 82% of target. A €87/month adjustment gets you to 100% by Q3. That\'s less than one restaurant dinner.' },
+  { userMsg: "What's my next financial move?", aiMsg: 'Increase your auto-transfer by €50 this month. Impact on your retirement: +€12,400. Takes 2 minutes to set up.' },
 ];
 
 function ChatScene() {
@@ -355,32 +434,35 @@ function ChatScene() {
   useEffect(() => {
     setPhase('user');
     const t1 = setTimeout(() => setPhase('typing'), 700);
-    const t2 = setTimeout(() => setPhase('ai'), 2000);
+    const t2 = setTimeout(() => setPhase('ai'), 2100);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [current]);
 
   const demo = CHAT_DEMOS[current];
 
   return (
-    <Scene bg="#fafaf8">
-      <div className="w-full max-w-2xl mx-auto">
-        <SectionLabel text="Conversation en direct" />
-        <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+    <Scene bg="#f7f7f5">
+      <div className="w-full max-w-xl mx-auto">
+        <Label text="Live conversation" />
+        <div className="bg-white rounded-2xl overflow-hidden"
+          style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.05)' }}>
+          {/* Header */}
+          <div className="flex items-center gap-3 px-6 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
             <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-6 h-6 object-contain" />
             <div>
               <p className="text-xs font-black" style={{ color: FG }}>Stensor</p>
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <p className="text-[10px] text-gray-400">En ligne</p>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <p className="text-[10px] text-gray-400">Online</p>
               </div>
             </div>
           </div>
-          <div className="px-6 py-8 flex flex-col gap-5" style={{ minHeight: 200 }}>
+          {/* Messages */}
+          <div className="px-6 py-8 flex flex-col gap-4" style={{ minHeight: 200 }}>
             <AnimatePresence mode="wait">
-              <motion.div key={`u-${current}`} initial={{ opacity: 0, y: 10, x: 20 }} animate={{ opacity: 1, y: 0, x: 0 }}
-                transition={{ duration: 0.35 }} className="self-end px-5 py-3.5 max-w-sm text-sm font-medium"
-                style={{ background: FG, color: 'white', borderRadius: '18px 18px 4px 18px', fontFamily: 'var(--font-open)' }}>
+              <motion.div key={`u-${current}`} initial={{ opacity: 0, y: 10, x: 16 }} animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ duration: 0.35 }} className="self-end px-5 py-3.5 max-w-[78%] text-sm font-medium text-white"
+                style={{ background: FG, borderRadius: '18px 18px 4px 18px', fontFamily: 'var(--font-open)', lineHeight: 1.6 }}>
                 {demo.userMsg}
               </motion.div>
             </AnimatePresence>
@@ -390,83 +472,118 @@ function ChatScene() {
                   className="self-start flex items-center gap-1.5 px-5 py-3.5"
                   style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '18px 18px 18px 4px' }}>
                   {[0, 1, 2].map(i => (
-                    <motion.span key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
-                      transition={{ repeat: Infinity, duration: 1, delay: i * 0.15 }}
+                    <motion.span key={i} animate={{ opacity: [0.25, 1, 0.25], y: [0, -4, 0] }}
+                      transition={{ repeat: Infinity, duration: 0.95, delay: i * 0.15 }}
                       className="w-1.5 h-1.5 rounded-full" style={{ background: FG }} />
                   ))}
                 </motion.div>
               )}
               {phase === 'ai' && (
                 <motion.div key={`a-${current}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35 }} className="self-start px-5 py-3.5 max-w-sm text-sm"
+                  transition={{ duration: 0.35 }} className="self-start px-5 py-3.5 max-w-[80%] text-sm"
                   style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '18px 18px 18px 4px', color: '#1a1a1a', fontFamily: 'var(--font-open)', lineHeight: 1.65 }}>
                   {demo.aiMsg}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-          <div className="flex items-center justify-between px-6 pb-5 pt-1">
+          {/* Nav */}
+          <div className="flex items-center justify-between px-6 pb-5 pt-2">
             <div className="flex gap-1.5">
               {CHAT_DEMOS.map((_, i) => (
-                <button key={i} onClick={() => setCurrent(i)} className="transition-all rounded-full"
-                  style={{ width: current === i ? 20 : 6, height: 6, background: current === i ? FG : 'rgba(0,0,0,0.12)' }} />
+                <button key={i} onClick={() => setCurrent(i)} className="rounded-full transition-all"
+                  style={{ width: current === i ? 20 : 6, height: 6, background: current === i ? FG : 'rgba(0,0,0,0.1)' }} />
               ))}
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <button onClick={() => setCurrent(c => (c - 1 + CHAT_DEMOS.length) % CHAT_DEMOS.length)}
-                className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-gray-50 transition-colors"
+                style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 <ChevronLeft className="w-3.5 h-3.5 text-gray-400" />
               </button>
               <button onClick={() => setCurrent(c => (c + 1) % CHAT_DEMOS.length)}
-                className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-gray-50 transition-colors"
+                style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
               </button>
             </div>
           </div>
         </div>
+
+        {/* Quote under chat */}
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ delay: 0.3 }}
+          className="mt-10 text-center">
+          <p className="text-base font-black" style={{ color: FG }}>
+            "Not a chatbot. A financial partner."
+          </p>
+          <p className="text-xs mt-2 text-gray-400" style={{ fontFamily: 'var(--font-open)' }}>
+            Every answer built around your life — not a generic template.
+          </p>
+        </motion.div>
       </div>
     </Scene>
   );
 }
 
-// ─── 06 RESULTS TICKER — Proof of results ────────────────────────────────────
+// ─── 06 RESULTS ───────────────────────────────────────────────────────────────
 const RESULTS = [
-  { name: 'Sarah K.', result: '€640/mois récupérés', time: '1ère conversation' },
-  { name: 'Julien M.', result: 'Retraite anticipée à 47 ans', time: '6 mois de plan' },
-  { name: 'Marc D.', result: '€0 dette en 14 mois', time: 'sans sacrifier ses sorties' },
-  { name: 'Camille F.', result: 'Premier ETF acheté', time: 'après 10 min de chat' },
-  { name: 'Thomas R.', result: '+€23 000 en 2 ans', time: 'café du matin intact' },
-  { name: 'Léa B.', result: 'Voyage €2 800 financé', time: 'en 8 semaines' },
+  { name: 'Sarah K.', role: 'Engineer · London', result: '€640/month recovered', sub: 'First conversation', src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=60&h=60&fit=crop&crop=face' },
+  { name: 'Julien M.', role: 'Freelance dev · Paris', result: 'Early retirement at 47', sub: '6-month plan', src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face' },
+  { name: 'Marc D.', role: 'Entrepreneur · Brussels', result: '€0 debt in 14 months', sub: 'Without giving up nights out', src: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=60&h=60&fit=crop&crop=face' },
+  { name: 'Camille F.', role: 'Designer · Nice', result: 'First ETF purchased', sub: 'After a 10-min chat', src: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=60&h=60&fit=crop&crop=face' },
+  { name: 'Thomas R.', role: 'Marketing · Bordeaux', result: '+€23,000 in 2 years', sub: 'Morning coffee: intact', src: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=60&h=60&fit=crop&crop=face' },
+  { name: 'Léa B.', role: 'Doctor · Lyon', result: '€2,800 trip funded', sub: 'In 8 weeks', src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face' },
 ];
 
 function ResultsScene() {
   return (
     <Scene bg="white">
       <div className="w-full max-w-5xl mx-auto">
-        <SectionLabel text="Résultats réels" />
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+        <Label text="Real results" />
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} className="text-center mb-16">
           <h2 className="font-black tracking-tighter"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: FG, lineHeight: 1.0 }}>
-            Ils ont gardé leurs plaisirs.<br />
-            <span style={{ color: YELLOW }}>Et construit quelque chose de réel.</span>
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)', color: FG, lineHeight: 1.0 }}>
+            They kept their pleasures.<br />
+            <span style={{ color: YELLOW }}>And built something real.</span>
           </h2>
         </motion.div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {RESULTS.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="p-7 flex flex-col gap-4"
-              style={{ background: '#fafaf8', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
-              <p className="text-xl font-black" style={{ color: FG }}>{r.result}</p>
-              <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-open)' }}>{r.time}</p>
-              <div className="mt-auto pt-3 border-t border-gray-100">
-                <p className="text-xs font-black text-gray-500">{r.name}</p>
+            <motion.div key={i} initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="p-7 flex flex-col gap-5"
+              style={{ background: '#f7f7f5', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div>
+                <p className="text-2xl font-black mb-1" style={{ color: FG }}>{r.result}</p>
+                <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-open)' }}>{r.sub}</p>
+              </div>
+              <div className="mt-auto flex items-center gap-3 pt-4 border-t border-gray-100">
+                <img src={r.src} alt={r.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-black" style={{ color: FG }}>{r.name}</p>
+                  <p className="text-[10px] text-gray-400">{r.role}</p>
+                </div>
+                <div className="ml-auto flex gap-0.5">
+                  {[...Array(5)].map((_, j) => <span key={j} style={{ color: '#c9a800', fontSize: '10px' }}>★</span>)}
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Closing quote */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ delay: 0.3 }}
+          className="mt-20 text-center">
+          <p className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: FG }}>
+            "Your pleasure isn't the problem.
+          </p>
+          <p className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: YELLOW }}>
+            It's the solution."
+          </p>
+        </motion.div>
       </div>
     </Scene>
   );
@@ -480,14 +597,14 @@ function FinalScene({ onCta }) {
         <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
           style={{ color: 'rgba(0,0,0,0.3)' }}>
-          Votre move
+          Your move
         </motion.p>
-        {['Votre plaisir.', 'Notre problème.'].map((line, i) => (
+        {['Your pleasure.', 'Our problem.'].map((line, i) => (
           <div key={i} className="overflow-hidden mb-2">
             <motion.h2 initial={{ y: 80, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }}
               transition={{ duration: 1, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
-              style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', color: i === 0 ? FG : 'rgba(0,0,0,0.22)' }}>
+              style={{ fontSize: 'clamp(3rem, 8vw, 7.5rem)', color: i === 0 ? FG : 'rgba(0,0,0,0.2)' }}>
               {line}
             </motion.h2>
           </div>
@@ -496,10 +613,12 @@ function FinalScene({ onCta }) {
           transition={{ delay: 0.3 }} className="flex flex-col items-center gap-5 mt-16">
           <motion.button onClick={onCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
             className="flex items-center gap-3 px-14 py-5 font-black text-base"
-            style={{ background: FG, color: 'white', borderRadius: '8px', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
-            Commencer gratuitement <ArrowRight className="w-4 h-4" />
+            style={{ background: FG, color: 'white', borderRadius: '8px', boxShadow: '0 20px 56px rgba(0,0,0,0.22)' }}>
+            Start for free <ArrowRight className="w-4 h-4" />
           </motion.button>
-          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Sans carte bancaire. Sans configuration. Juste de la clarté.</p>
+          <p className="text-xs" style={{ color: 'rgba(0,0,0,0.38)', fontFamily: 'var(--font-open)' }}>
+            No credit card. No setup. Just clarity.
+          </p>
         </motion.div>
       </div>
     </Scene>
@@ -509,7 +628,7 @@ function FinalScene({ onCta }) {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="px-8 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4"
+    <footer className="px-8 md:px-12 py-10 flex items-center justify-between flex-wrap gap-4"
       style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
       <div className="flex items-center gap-2">
         <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-5 h-5 object-contain" />
@@ -520,7 +639,7 @@ function Footer() {
           <a key={l} href={h} className="text-[11px] text-gray-300 hover:text-black transition-colors">{l}</a>
         ))}
       </div>
-      <p className="text-[10px] text-gray-200">2026 Stensor Inc. · Pas un conseil financier.</p>
+      <p className="text-[10px] text-gray-200">© 2026 Stensor Inc. · Not financial advice.</p>
     </footer>
   );
 }
@@ -551,7 +670,7 @@ export default function LandingPage() {
       <Navbar onCta={openQuiz} />
       <Hero onCta={openQuiz} />
       <VideoScene />
-      <PleasureSimulator onCta={openQuiz} />
+      <PleasureShowcase onCta={openQuiz} />
       <ScienceScene />
       <ChatScene />
       <ResultsScene />
