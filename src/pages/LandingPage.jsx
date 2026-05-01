@@ -123,8 +123,8 @@ function Hero({ onCta }) {
         {/* Badge */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-full text-xs font-bold"
-          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', color: '#555' }}>
-          <span className="w-2 h-2 rounded-full bg-green-500" />
+          style={{ background: YELLOW, color: FG }}>
+          <span className="w-2 h-2 rounded-full" style={{ background: FG }} />
           The only AI that builds wealth around the life you actually love
         </motion.div>
 
@@ -171,8 +171,11 @@ function Hero({ onCta }) {
         </motion.div>
 
         {/* Social proof */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.58 }}
-          className="flex items-center justify-center gap-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.62 }}
+          className="flex items-center justify-center gap-3 pb-16">
           <div className="flex -space-x-3">
             {FACE_AVATARS.map((av, i) => (
               <img key={i} src={av.src} alt={av.alt}
@@ -194,11 +197,11 @@ function Hero({ onCta }) {
   );
 }
 
-// ─── Black marquee strip (arguments) ─────────────────────────────────────────
+// ─── Black marquee strip ─────────────────────────────────────────────────────
 const MARQUEE_ARGS = [
   '✦ Your bank keeps your money stagnant', '✦ ChatGPT optimizes budgets, not lives', '✦ Advisors cost €200/hr for generic advice',
   '✦ Spreadsheets die after 2 weeks', '✦ Zero guilt spending is possible', '✦ Wealth and pleasure are not opposites',
-  '✦ Most budgets cut pleasure first', '✦ Stensor finds leaks, not pleasures',
+  '✦ Most budgets cut pleasure first', '✦ Stensor finds leaks — not pleasures',
 ];
 
 function BlackMarquee() {
@@ -229,7 +232,7 @@ const VS_ROWS = [
 
 function VsSection() {
   return (
-    <section className="py-24 px-6" style={{ background: '#fafaf8' }}>
+    <section className="py-24 px-6" style={{ background: 'white' }}>
       <div className="max-w-4xl mx-auto">
         <Reveal className="text-center mb-16">
           <p className="text-[10px] font-black tracking-[0.3em] uppercase mb-4 text-gray-400">Side by side</p>
@@ -249,20 +252,20 @@ function VsSection() {
                 <div className="flex items-center gap-3 px-5 py-4 rounded-sm font-bold text-sm" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)', color: FG }}>
                   {row.pleasure}
                 </div>
-                {/* ChatGPT */}
-                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: 'rgba(254,226,226,0.4)', border: '1px solid rgba(239,68,68,0.12)' }}>
-                  <X className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                {/* ChatGPT / Others */}
+                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: '#fafaf8', border: '1px solid rgba(0,0,0,0.07)' }}>
+                  <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'rgba(0,0,0,0.25)' }} />
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-red-300 mb-1">ChatGPT / Others</p>
-                    <p className="font-open text-sm text-gray-500 italic">"{row.chatgpt}"</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-300 mb-1">ChatGPT / Others</p>
+                    <p className="font-open text-sm text-gray-400 italic">"{row.chatgpt}"</p>
                   </div>
                 </div>
                 {/* Stensor */}
-                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: 'rgba(221,255,0,0.12)', border: '1px solid rgba(221,255,0,0.35)' }}>
-                  <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#5a7a00' }} />
+                <div className="flex items-start gap-3 px-5 py-4 rounded-sm" style={{ background: FG }}>
+                  <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: YELLOW }} />
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: '#7a9a00' }}>Stensor ✦</p>
-                    <p className="font-open text-sm font-semibold" style={{ color: '#3a4a00' }}>"{row.stensor}"</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: YELLOW }}>Stensor ✦</p>
+                    <p className="font-open text-sm font-semibold text-white">"{row.stensor}"</p>
                   </div>
                 </div>
               </div>
@@ -282,7 +285,7 @@ const SKILLS = [
     why: 'Because anxiety after every purchase is not a strategy.',
     desc: "Stensor reads your real-time financial picture and tells you exactly if you can afford it — and how. No spreadsheet. No guilt. Just clarity.",
     example: '"Can I buy this iPhone 16?" → "Yes — in 3 weeks with your tech buffer. Don\'t touch your investment portfolio."',
-    accent: '#22c55e', bg: 'white', border: 'rgba(34,197,94,0.15)',
+    bg: 'white',
   },
   {
     id: 'track', emoji: '🧭', tag: 'Am I on track?', Icon: Navigation,
@@ -290,7 +293,7 @@ const SKILLS = [
     why: 'Most people only discover they\'ve drifted when it\'s too late.',
     desc: "Stensor checks your trajectory against your goals and tells you exactly how to course-correct — before a small drift becomes a big problem.",
     example: '"Am I on track?" → "You\'re at 82% of your savings goal. A €87/month adjustment puts you back at 100% this quarter."',
-    accent: '#3b82f6', bg: '#fafaf8', border: 'rgba(59,130,246,0.15)',
+    bg: '#fafaf8',
   },
   {
     id: 'move', emoji: '🎯', tag: "What's my next move?", Icon: Zap,
@@ -298,7 +301,7 @@ const SKILLS = [
     why: 'Financial paralysis kills more wealth than bad investments.',
     desc: "One concrete, measurable action every week — so you never lose momentum, never lose sight of your goals, never feel stuck.",
     example: '"What\'s my next move?" → "Increase your auto-transfer by €50 this month. Impact on your retirement: +€12,400."',
-    accent: '#a855f7', bg: 'white', border: 'rgba(168,85,247,0.15)',
+    bg: 'white',
   },
 ];
 
@@ -316,7 +319,7 @@ function SkillCard({ skill, index }) {
                   {skill.emoji}
                 </div>
                 <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-sm"
-                  style={{ background: skill.accent + '18', color: skill.accent }}>
+                  style={{ background: 'rgba(0,0,0,0.06)', color: FG }}>
                   {skill.tag}
                 </span>
               </div>
@@ -324,23 +327,19 @@ function SkillCard({ skill, index }) {
                 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', color: FG, lineHeight: 1.08 }}>
                 {skill.headline}
               </h2>
-              <p className="text-sm font-black mb-4 uppercase tracking-wide" style={{ color: skill.accent }}>{skill.why}</p>
+              <p className="text-sm font-black mb-4 uppercase tracking-wide" style={{ color: FG }}>{skill.why}</p>
               <p className="font-open text-base leading-relaxed text-gray-500">{skill.desc}</p>
             </div>
           </RevealLeft>
 
           <RevealRight delay={0.08} className={!isEven ? 'md:order-1' : ''}>
-            <div className="p-8 rounded-sm" style={{ background: skill.bg === 'white' ? '#fafaf8' : 'white', border: `1.5px solid ${skill.border}`, boxShadow: '0 8px 40px rgba(0,0,0,0.05)' }}>
-              <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: skill.accent }}>Real example</p>
+            <div className="p-8 rounded-sm" style={{
+              background: skill.bg === 'white' ? '#fafaf8' : 'white',
+              border: '1.5px solid rgba(0,0,0,0.07)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.05)'
+            }}>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.3)' }}>Real example</p>
               <p className="font-open text-sm leading-relaxed text-gray-600 italic mb-6">💬 {skill.example}</p>
-              <div className="flex items-center gap-2 pt-5" style={{ borderTop: `1px solid ${skill.border}` }}>
-                <div className="flex -space-x-2">
-                  {FACE_AVATARS.slice(0, 3).map((av, i) => (
-                    <img key={i} src={av.src} alt="" className="w-7 h-7 rounded-full border-2 border-white object-cover" />
-                  ))}
-                </div>
-                <p className="font-open text-xs text-gray-400">Used by <strong style={{ color: FG }}>1,000+ users</strong> daily</p>
-              </div>
             </div>
           </RevealRight>
         </div>
