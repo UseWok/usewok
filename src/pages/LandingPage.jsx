@@ -189,7 +189,11 @@ function PleasureSimulator({ onCta }) {
       if (!el) return;
       const { top, height } = el.getBoundingClientRect();
       const scrolled = -top; // how far we've scrolled into the section
-      if (scrolled < 0 || scrolled > height - window.innerHeight) return;
+      if (scrolled < 0) return;
+      if (scrolled > height - window.innerHeight) {
+        setActive(PLEASURES.length - 1);
+        return;
+      }
       const total = height - window.innerHeight;
       const raw = scrolled / total; // 0→1
       const perItem = 1 / PLEASURES.length;
@@ -207,7 +211,7 @@ function PleasureSimulator({ onCta }) {
   return (
     <div ref={sectionRef} style={{ height: `${PLEASURES.length * 100}vh`, position: 'relative' }}>
       {/* Sticky cinema frame */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', background: '#050505', overflow: 'hidden' }}
+      <div style={{ position: 'sticky', top: 0, height: '100vh', background: '#050505' }}
         className="flex flex-col">
 
         {/* Top label */}
