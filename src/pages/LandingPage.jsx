@@ -549,7 +549,7 @@ export default function LandingPage() {
   const openQuiz = () => setShowQuiz(true);
 
   return (
-    <div className="font-inter overflow-x-hidden bg-white">
+    <div className="font-inter bg-white">
       <AnimatePresence>{showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}</AnimatePresence>
       <Navbar onCta={openQuiz} />
       <Hero onCta={openQuiz} />
