@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -179,116 +179,145 @@ const PLEASURES = [
 ];
 
 function PleasureSimulator({ onCta }) {
+  const sectionRef = useRef(null);
   const [active, setActive] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [progress, setProgress] = useState(0); // 0→1 within current item
 
-  const go = (idx) => {
-    if (animating || idx === active) return;
-    setAnimating(true);
-    setActive(idx);
-    setTimeout(() => setAnimating(false), 400);
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const { top, height } = el.getBoundingClientRect();
+      const scrolled = -top; // how far we've scrolled into the section
+      if (scrolled < 0 || scrolled > height - window.innerHeight) return;
+      const total = height - window.innerHeight;
+      const raw = scrolled / total; // 0→1
+      const perItem = 1 / PLEASURES.length;
+      const idx = Math.min(Math.floor(raw / perItem), PLEASURES.length - 1);
+      const itemProgress = (raw - idx * perItem) / perItem;
+      setActive(idx);
+      setProgress(itemProgress);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const p = PLEASURES[active];
 
   return (
-    <Scene bg="white" minH="100vh">
-      <div className="w-full max-w-5xl mx-auto py-20 flex flex-col justify-center" style={{ minHeight: '100vh' }}>
-        <Label text="The Pleasure Simulator" />
+    <div ref={sectionRef} style={{ height: `${PLEASURES.length * 100}vh`, position: 'relative' }}>
+      {/* Sticky cinema frame */}
+      <div style={{ position: 'sticky', top: 0, height: '100vh', background: '#050505', overflow: 'hidden' }}
+        className="flex flex-col">
 
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ duration: 0.7 }} className="text-center mb-10">
-          <h2 className="font-black tracking-tighter mb-3"
-            style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)', color: FG, lineHeight: 1.0 }}>
-            What others cut,{' '}<span style={{ color: YELLOW }}>Stensor protects.</span>
-          </h2>
-          <p className="text-sm text-gray-400 max-w-xs mx-auto" style={{ fontFamily: 'var(--font-open)' }}>
-            Pick a pleasure. See the difference instantly.
-          </p>
-        </motion.div>
-
-        {/* Pills — horizontally aligned at top */}
-        <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
-          {PLEASURES.map((pl, i) => (
-            <motion.button key={pl.id} onClick={() => go(i)}
-              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all"
-              style={{
-                borderRadius: '40px',
-                background: active === i ? FG : 'transparent',
-                color: active === i ? 'white' : 'rgba(0,0,0,0.4)',
-                border: active === i ? '1.5px solid transparent' : '1.5px solid rgba(0,0,0,0.1)',
-              }}>
-              <span>{pl.emoji}</span>
-              <span className="hidden sm:block">{pl.label}</span>
-            </motion.button>
-          ))}
+        {/* Top label */}
+        <div className="flex items-center justify-between px-8 md:px-16 pt-10 pb-0 flex-shrink-0">
+          <motion.p className="text-[10px] font-black tracking-[0.35em] uppercase"
+            style={{ color: 'rgba(255,255,255,0.18)' }}>
+            The Pleasure Simulator
+          </motion.p>
+          {/* Dots */}
+          <div className="flex gap-2">
+            {PLEASURES.map((_, i) => (
+              <div key={i} className="rounded-full transition-all duration-500"
+                style={{
+                  width: active === i ? 24 : 6,
+                  height: 6,
+                  background: active === i ? YELLOW : 'rgba(255,255,255,0.12)',
+                }} />
+            ))}
+          </div>
         </div>
 
-        {/* Comparison — immediately below pills, no scroll needed */}
-        <AnimatePresence mode="wait">
-          <motion.div key={active}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="grid md:grid-cols-2 gap-3">
+        {/* Main split layout */}
+        <div className="flex-1 grid md:grid-cols-2 gap-0 px-8 md:px-16 py-10 items-center">
 
-            {/* ChatGPT */}
-            <div className="p-8 flex flex-col gap-5" style={{ background: '#f7f7f5', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.05)' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.07)' }}>
-                  <X className="w-2.5 h-2.5 text-gray-400" />
+          {/* LEFT — Pleasure name */}
+          <div className="flex flex-col justify-center pr-0 md:pr-12">
+            <AnimatePresence mode="wait">
+              <motion.div key={active}
+                initial={{ opacity: 0, y: 40, filter: 'blur(12px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -30, filter: 'blur(8px)' }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <p className="text-[11px] font-black tracking-[0.3em] uppercase mb-6"
+                  style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  If you want
+                </p>
+                <p className="font-black tracking-tighter leading-none mb-4"
+                  style={{ fontSize: 'clamp(3rem, 7vw, 6.5rem)', color: 'white' }}>
+                  {p.emoji}
+                </p>
+                <h2 className="font-black tracking-tighter leading-[0.92]"
+                  style={{ fontSize: 'clamp(2.8rem, 6vw, 5.5rem)', color: 'white' }}>
+                  {p.label}
+                </h2>
+                <div className="mt-8 w-12 h-0.5" style={{ background: YELLOW }} />
+                <p className="mt-6 text-sm font-black" style={{ color: YELLOW }}>{p.metric}</p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-open)' }}>{p.impact}</p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* RIGHT — Two cards */}
+          <div className="flex flex-col gap-3 justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div key={`cards-${active}`}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col gap-3">
+
+                {/* Bad card — grey, dull */}
+                <div className="p-6 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                      style={{ background: 'rgba(255,255,255,0.1)' }}>
+                      <X className="w-2 h-2" style={{ color: 'rgba(255,255,255,0.35)' }} />
+                    </div>
+                    <span className="text-[10px] font-black tracking-widest uppercase"
+                      style={{ color: 'rgba(255,255,255,0.2)' }}>Classic advice</span>
+                  </div>
+                  <p className="text-sm leading-relaxed"
+                    style={{ color: 'rgba(255,255,255,0.28)', fontFamily: '"Georgia", serif', fontStyle: 'italic' }}>
+                    {p.chatgptText}
+                  </p>
                 </div>
-                <span className="text-[10px] font-black tracking-widest uppercase text-gray-300">ChatGPT</span>
-              </div>
-              <p className="text-base flex-1 leading-relaxed"
-                style={{ color: 'rgba(0,0,0,0.35)', fontFamily: '"Georgia", serif', fontStyle: 'italic', lineHeight: 1.75 }}>
-                {p.chatgptText}
-              </p>
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-300 font-medium">Typical result: abandoned within 3 weeks.</p>
-              </div>
-            </div>
 
-            {/* Stensor */}
-            <div className="p-8 flex flex-col gap-5 relative overflow-hidden" style={{ background: FG, borderRadius: '16px' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: YELLOW }}>
-                  <Check className="w-2.5 h-2.5" style={{ color: FG }} />
+                {/* Good card — neon yellow border */}
+                <div className="p-6 rounded-2xl relative overflow-hidden"
+                  style={{ background: 'rgba(221,255,0,0.05)', border: `1.5px solid ${YELLOW}` }}>
+                  {/* Neon glow */}
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: 'radial-gradient(ellipse at 0% 50%, rgba(221,255,0,0.12) 0%, transparent 70%)' }} />
+                  <div className="relative flex items-center gap-2 mb-3">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: YELLOW }}>
+                      <Check className="w-2 h-2" style={{ color: FG }} />
+                    </div>
+                    <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: YELLOW }}>Stensor</span>
+                  </div>
+                  <p className="relative text-sm font-semibold leading-relaxed"
+                    style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-open)' }}>
+                    {p.stensorText}
+                  </p>
                 </div>
-                <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: YELLOW }}>Stensor</span>
-              </div>
-              <p className="text-base font-semibold text-white flex-1 leading-relaxed"
-                style={{ fontFamily: 'var(--font-open)', lineHeight: 1.75 }}>
-                {p.stensorText}
-              </p>
-              <div className="pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <p className="text-xl font-black" style={{ color: YELLOW }}>{p.metric}</p>
-                <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-open)' }}>{p.impact}</p>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Dots */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          {PLEASURES.map((_, i) => (
-            <button key={i} onClick={() => go(i)} className="rounded-full transition-all"
-              style={{ width: active === i ? 20 : 6, height: 6, background: active === i ? FG : 'rgba(0,0,0,0.12)' }} />
-          ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          transition={{ delay: 0.4 }} className="text-center mt-12">
-          <motion.button onClick={onCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-3 px-10 py-4 font-black text-sm mx-auto"
-            style={{ background: YELLOW, color: FG, borderRadius: '8px', boxShadow: '0 8px 32px rgba(221,255,0,0.3)' }}>
-            See how it works <ArrowRight className="w-4 h-4" />
-          </motion.button>
-        </motion.div>
+        {/* Scroll hint at bottom */}
+        <div className="flex-shrink-0 flex items-center justify-center pb-8 gap-3">
+          <div className="w-px h-8" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.12))' }} />
+          <p className="text-[9px] tracking-[0.3em] uppercase" style={{ color: 'rgba(255,255,255,0.15)' }}>keep scrolling</p>
+          <div className="w-px h-8" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.12))' }} />
+        </div>
       </div>
-    </Scene>
+    </div>
   );
 }
 
