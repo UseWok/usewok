@@ -84,21 +84,28 @@ function getLoadingSteps(answers) {
   ];
 }
 
-// Generate a realistic wealth curve based on answers
+// Generate a realistic 5-year wealth curve based on answers
 function getWealthData(answers) {
-  const base = { zero: 50, small: 200, medium: 600, great: 1200 }[answers.savings] || 200;
-  const multiplier = { freedom: 1.15, wealth: 1.18, debt_free: 1.1, retire_early: 1.2 }[answers.goal] || 1.12;
-  const years = [0, 2, 4, 6, 8, 10, 12, 15, 20];
+  const monthlyBase = { zero: 50, small: 180, medium: 550, great: 1100 }[answers.savings] || 200;
+  const emotionBoost = { calm: 1.12, justified: 1.0, guilty: 0.92, regret: 0.97 }[answers.emotion] || 1.0;
+  const fearBoost = { lose_job: 1.05, never_enough: 0.95, market_crash: 1.08, retirement: 1.1 }[answers.fear] || 1.0;
+  const pleasureSavings = { travel: 110, food: 65, tech: 85, wellness: 45 }[answers.pleasure] || 70;
+  const annualRate = { freedom: 0.087, wealth: 0.096, debt_free: 0.072, retire_early: 0.105 }[answers.goal] || 0.082;
+  const monthly = monthlyBase * emotionBoost * fearBoost;
+  const years = [0, 1, 2, 3, 4, 5];
   return years.map(y => ({
     year: y,
-    without: Math.round(base * 12 * y * 0.4),
-    with: Math.round(base * 12 * y * Math.pow(multiplier, y) * 0.85),
+    without: Math.round(monthly * 12 * y * 0.6),
+    with: y === 0 ? 0 : Math.round(
+      monthly * 12 * ((Math.pow(1 + annualRate, y) - 1) / annualRate) +
+      pleasureSavings * 12 * y * 0.9
+    ),
   }));
 }
 
 function WealthCurve({ answers }) {
   const data = useMemo(() => getWealthData(answers), [answers]);
-  const maxVal = Math.max(...data.map(d => d.with));
+  const maxVal = Math.max(...data.map(d => d.with)) || 1;
 
   const W = 280, H = 110, PAD = 10;
   const toX = (i) => PAD + (i / (data.length - 1)) * (W - PAD * 2);
@@ -114,11 +121,13 @@ function WealthCurve({ answers }) {
   const formatted = lastWith >= 1000000
     ? `$${(lastWith / 1000000).toFixed(1)}M`
     : `$${Math.round(lastWith / 1000)}k`;
+  const withoutFinal = data[data.length - 1].without;
+  const withoutFormatted = withoutFinal >= 1000 ? `$${Math.round(withoutFinal / 1000)}k` : `$${withoutFinal}`;
 
   return (
     <div className="px-6 pt-4 pb-2">
       <p className="text-[10px] font-black tracking-widest uppercase mb-3" style={{ color: 'rgba(255,255,255,0.25)' }}>
-        Your 20-year wealth projection
+        Your 5-year wealth projection
       </p>
       <div className="relative">
         <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
@@ -145,7 +154,7 @@ function WealthCurve({ answers }) {
         {/* End label */}
         <div className="absolute top-0 right-0 text-right">
           <p className="text-lg font-black" style={{ color: YELLOW }}>{formatted}</p>
-          <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>in 20 years</p>
+          <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>in 5 years</p>
         </div>
 
         {/* Legend */}
@@ -284,6 +293,10 @@ export default function GuestQuiz({ onClose }) {
 function PlanResult({ answers, planReady, loadingStep, onLogin, onClose }) {
   const planName = getPlanName(answers);
   const loadingSteps = useMemo(() => getLoadingSteps(answers), [answers]);
+  // Dynamic 5-year summary
+  const wealthData = useMemo(() => getWealthData(answers), [answers]);
+  const projected5y = wealthData[wealthData.length - 1]?.with || 0;
+  const projFormatted = projected5y >= 1000000 ? `$${(projected5y/1000000).toFixed(1)}M` : `$${Math.round(projected5y/1000)}k`;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>

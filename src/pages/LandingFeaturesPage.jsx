@@ -35,7 +35,7 @@ function Navbar({ scrolled }) {
       </div>
       <motion.button onClick={() => base44.auth.redirectToLogin('/app')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
         className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-        Commencer →
+        Start free →
       </motion.button>
     </motion.header>
   );

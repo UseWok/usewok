@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { ArrowRight, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
 import ScrollingTestimonials from '@/components/landing/ScrollingTestimonials';
+import StackingCards from '@/components/landing/StackingCards';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
@@ -110,7 +111,7 @@ function Hero({ onCta }) {
               ))}
             </div>
             <p className="text-xs text-gray-400">
-              <strong className="text-black font-black">1,000+ users</strong> already building their future
+              <strong className="text-black font-black">1,000+ people</strong> stopped sacrificing — and started building
             </p>
           </div>
         </motion.div>
@@ -129,7 +130,7 @@ function Hero({ onCta }) {
 function VideoScene() {
   return (
     <Scene bg="#f7f7f5" minH="auto" className="py-0">
-      <div className="w-full max-w-6xl mx-auto py-24">
+      <div className="w-full mx-auto py-24" style={{ maxWidth: '92%' }}>
         <motion.div initial={{ opacity: 0, scale: 0.98, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }} transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="relative w-full overflow-hidden"
@@ -558,7 +559,7 @@ export default function LandingPage() {
       <Navbar onCta={openQuiz} />
       <Hero onCta={openQuiz} />
       <VideoScene />
-      <PleasureSimulator onCta={openQuiz} />
+      <StackingCards />
       <ScienceScene />
       <ChatScene />
       <ScrollingTestimonials />
