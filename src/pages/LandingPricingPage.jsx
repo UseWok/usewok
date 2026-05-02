@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Check, ArrowRight } from 'lucide-react';
+import GuestQuiz from '@/components/landing/GuestQuiz';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 import { getLandingContent, LANDING_QUERY_KEY } from '@/lib/landing-content';
 
@@ -52,6 +53,7 @@ function Navbar({ scrolled }) {
 }
 
 export default function LandingPricingPage() {
+  const [showQuiz, setShowQuiz] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const [billing, setBilling] = useState('monthly');
@@ -71,13 +73,11 @@ export default function LandingPricingPage() {
     .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id))
     .map(p => ({ ...p, ...planOverrides[p.id] }));
 
-  const handleCta = (plan) => {
-    if (plan?.id === 'free') base44.auth.redirectToLogin('/app');
-    else base44.auth.redirectToLogin('/manage-plan');
-  };
+  const handleCta = () => setShowQuiz(true);
 
   return (
     <div className="font-inter overflow-x-hidden bg-white">
+      <AnimatePresence>{showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}</AnimatePresence>
       <Navbar scrolled={scrolled} />
 
       {/* HERO */}
@@ -203,14 +203,14 @@ export default function LandingPricingPage() {
                     ))}
                   </ul>
 
-                  <button onClick={() => handleCta(plan)}
+                  <button onClick={handleCta}
                     className="w-full py-3 font-black text-xs transition-all hover:opacity-85"
                     style={{
                       background: isHighlighted ? YELLOW : FG,
                       color: isHighlighted ? FG : 'white',
                       borderRadius: '6px',
                     }}>
-                    {plan.id === 'free' ? 'Commencer' : 'Choisir ce plan'}
+                    Start your engine
                   </button>
                 </motion.div>
               );
@@ -304,11 +304,11 @@ export default function LandingPricingPage() {
           </div>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ delay: 0.3 }} className="flex flex-col items-center gap-4">
-            <motion.button onClick={() => base44.auth.redirectToLogin('/app')}
+            <motion.button onClick={() => setShowQuiz(true)}
               whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
               className="flex items-center gap-3 px-12 py-5 font-black text-base"
               style={{ background: FG, color: 'white', borderRadius: '8px', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
-              Commencer gratuitement <ArrowRight className="w-4 h-4" />
+              Start your engine <ArrowRight className="w-4 h-4" />
             </motion.button>
             <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Sans carte. Résiliation à tout moment.</p>
           </motion.div>

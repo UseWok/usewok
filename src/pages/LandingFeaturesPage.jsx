@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Check } from 'lucide-react';
+import GuestQuiz from '@/components/landing/GuestQuiz';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
@@ -213,6 +214,7 @@ function FeatureDeepDive() {
 
 export default function LandingFeaturesPage() {
   const navigate = useNavigate();
+  const [showQuiz, setShowQuiz] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -221,10 +223,11 @@ export default function LandingFeaturesPage() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  const handleCta = () => base44.auth.redirectToLogin('/app');
+  const handleCta = () => setShowQuiz(true);
 
   return (
     <div className="font-inter overflow-x-hidden bg-white">
+      <AnimatePresence>{showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}</AnimatePresence>
       <Navbar scrolled={scrolled} />
 
       {/* HERO */}

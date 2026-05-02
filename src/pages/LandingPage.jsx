@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
+import ScrollingTestimonials from '@/components/landing/ScrollingTestimonials';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
@@ -443,68 +444,6 @@ function ChatScene() {
   );
 }
 
-// ─── 06 RESULTS ───────────────────────────────────────────────────────────────
-const RESULTS = [
-  { name: 'Sarah K.', role: 'Engineer · London', result: '€640/month recovered', sub: 'First conversation', src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=60&h=60&fit=crop&crop=face' },
-  { name: 'Julien M.', role: 'Freelance dev · Paris', result: 'Early retirement at 47', sub: '6-month plan', src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face' },
-  { name: 'Marc D.', role: 'Entrepreneur · Brussels', result: '€0 debt in 14 months', sub: 'Zero lifestyle cuts', src: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=60&h=60&fit=crop&crop=face' },
-  { name: 'Camille F.', role: 'Designer · Nice', result: 'First ETF purchased', sub: 'After a 10-min chat', src: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=60&h=60&fit=crop&crop=face' },
-  { name: 'Thomas R.', role: 'Marketing · Bordeaux', result: '+€23,000 in 2 years', sub: 'Morning coffee: intact', src: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=60&h=60&fit=crop&crop=face' },
-  { name: 'Léa B.', role: 'Doctor · Lyon', result: '€2,800 trip funded', sub: 'In 8 weeks', src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face' },
-];
-
-function ResultsScene() {
-  return (
-    <Scene bg="white">
-      <div className="w-full max-w-5xl mx-auto">
-        <Label text="Real results" />
-        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} className="text-center mb-16">
-          <h2 className="font-black tracking-tighter"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)', color: FG, lineHeight: 1.0 }}>
-            They kept their pleasures.<br />
-            <span style={{ color: YELLOW }}>And built something real.</span>
-          </h2>
-        </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {RESULTS.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="p-7 flex flex-col gap-5"
-              style={{ background: '#f7f7f5', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.05)' }}>
-              <div>
-                <p className="text-2xl font-black mb-1" style={{ color: FG }}>{r.result}</p>
-                <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-open)' }}>{r.sub}</p>
-              </div>
-              <div className="mt-auto flex items-center gap-3 pt-4 border-t border-gray-100">
-                <img src={r.src} alt={r.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-black" style={{ color: FG }}>{r.name}</p>
-                  <p className="text-[10px] text-gray-400">{r.role}</p>
-                </div>
-                <div className="ml-auto flex gap-0.5">
-                  {[...Array(5)].map((_, j) => <span key={j} style={{ color: '#c9a800', fontSize: '10px' }}>★</span>)}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ delay: 0.3 }}
-          className="mt-24 text-center">
-          <p className="font-black tracking-tight" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.4rem)', color: FG }}>
-            "Your pleasure isn't the problem.
-          </p>
-          <p className="font-black tracking-tight" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.4rem)', color: YELLOW }}>
-            It's the solution."
-          </p>
-        </motion.div>
-      </div>
-    </Scene>
-  );
-}
-
 // ─── 07 FINAL CTA ─────────────────────────────────────────────────────────────
 function FinalScene({ onCta }) {
   return (
@@ -589,7 +528,7 @@ export default function LandingPage() {
       <PleasureSimulator onCta={openQuiz} />
       <ScienceScene />
       <ChatScene />
-      <ResultsScene />
+      <ScrollingTestimonials />
       <FinalScene onCta={openQuiz} />
       <Footer />
     </div>
