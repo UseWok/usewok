@@ -6,6 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import GuestQuiz from '@/components/landing/GuestQuiz';
 import ScrollingTestimonials from '@/components/landing/ScrollingTestimonials';
 import StackingCards from '@/components/landing/StackingCards';
+import WealthChart from '@/components/landing/WealthChart';
 
 const FG = '#0A0A0A';
 const YELLOW = '#DDFF00';
@@ -560,7 +561,7 @@ export default function LandingPage() {
       <Hero onCta={openQuiz} />
       <VideoScene />
       <StackingCards />
-      <ScienceScene />
+      <WealthChart />
       <ChatScene />
       <ScrollingTestimonials />
       <FinalScene onCta={openQuiz} />
