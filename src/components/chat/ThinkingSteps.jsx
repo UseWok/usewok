@@ -174,7 +174,7 @@ function StepRow({ step, status, index }) {
   );
 }
 
-export default function ThinkingSteps({ isLoading, text = '', hasFiles = false }) {
+export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, useWebSearch = false }) {
   const category = detectCategory(text, hasFiles);
   const steps = STEP_POOLS[category];
 
@@ -245,6 +245,24 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false }
             is thinking…
           </motion.span>
         </div>
+
+        {/* Web search badge */}
+        {useWebSearch && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm mb-1.5 w-fit"
+            style={{ background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.2)' }}
+          >
+            <motion.div
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: '#16a34a' }}
+            />
+            <span className="text-[10px] font-bold" style={{ color: '#16a34a' }}>Searching the web…</span>
+          </motion.div>
+        )}
 
         {/* Card — NO left border */}
         <div

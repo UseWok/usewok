@@ -42,7 +42,7 @@ const popAnim = {
 };
 
 export default function HeroSection({ agentId, onAgentChange }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => localStorage.getItem('stensor_home_draft') || '');
   const [files, setFiles] = useState([]);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showSkillMenu, setShowSkillMenu] = useState(false);
@@ -152,6 +152,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const handleSend = () => {
     if (!query.trim() || isBlocked) return;
+    localStorage.removeItem('stensor_home_draft');
     const mode = ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1];
     const skillPrefix = selectedSkill ? SKILLS.find(s => s.id === selectedSkill)?.label + ' — ' : '';
     const params = new URLSearchParams({ q: skillPrefix + query, mode: mode.id, model: mode.model, webSearch: useWebSearch && hasInternet ? '1' : '0' });
@@ -253,7 +254,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
           {/* Textarea */}
           <div className="px-4 pt-4 pb-1">
             <textarea
-              ref={textareaRef} value={query} onChange={(e) => setQuery(e.target.value)}
+              ref={textareaRef} value={query} onChange={(e) => { setQuery(e.target.value); localStorage.setItem('stensor_home_draft', e.target.value); }}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleSend(); } }}
               placeholder={isBlocked ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue') : t('hero_placeholder')}
               disabled={isBlocked}

@@ -104,7 +104,7 @@ export default function ChatInputBar({
   const visibleFiles = files.slice(0, MAX_VISIBLE_FILES);
   const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
   const acceptedFileTypes = canUploadExtended
-    ? '.jpg,.jpeg,.png,.gif,.txt,.csv,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp3,.mp4,.json,.html,.xml,.md'
+    ? '.jpg,.jpeg,.png,.gif,.pdf,.txt,.csv,.xlsx,.docx'
     : '.jpg,.jpeg,.png,.gif,.txt,.csv';
 
 

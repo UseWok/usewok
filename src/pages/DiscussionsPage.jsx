@@ -64,7 +64,7 @@ export default function DiscussionsPage() {
       const corpus = discussions.slice(0, 60).map(d => `ID:${d.id} | Titre: ${d.title} | Aperçu: ${d.preview}`).join('\n');
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Tu es un moteur de recherche intelligent. Voici une liste de discussions:\n${corpus}\n\nThème recherché: "${aiQuery}"\n\nRetourne UNIQUEMENT un JSON avec les IDs des discussions pertinentes. Format: {"ids":["id1","id2"]}. Si aucune ne correspond, retourne {"ids":[]}.`,
-        model: 'gpt_5_mini',
+        model: 'gemini_3_flash',
         response_json_schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } } }
       });
       const ids = result?.ids || [];

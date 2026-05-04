@@ -90,7 +90,15 @@ export default function ChatPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && getConversationMessages(conversationId).length === 0);
-  const [input, setInput] = useState(() => { const saved = localStorage.getItem('stensor_saved_input'); if (saved) { localStorage.removeItem('stensor_saved_input'); return saved; } return ''; });
+  const [input, setInput] = useState(() => {
+    const saved = localStorage.getItem('stensor_saved_input');
+    if (saved) { localStorage.removeItem('stensor_saved_input'); return saved; }
+    if (!conversationId) {
+      const draft = localStorage.getItem('stensor_chat_draft');
+      if (draft) return draft;
+    }
+    return '';
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
@@ -111,6 +119,12 @@ export default function ChatPage() {
   const isMountedRef = useRef(true);
   const typewriterRef = useRef(null);
   const synthPendingRef = useRef(null);
+
+  // Autosave draft
+  useEffect(() => {
+    if (input) localStorage.setItem('stensor_chat_draft', input);
+    else localStorage.removeItem('stensor_chat_draft');
+  }, [input]);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
@@ -147,7 +161,6 @@ export default function ChatPage() {
       const urlWeb = urlParams.get('webSearch');
       if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);
       else if (urlWeb === '0') setUseWebSearch(false);
-      else if (plan.internet_access) setUseWebSearch(true);
       else setUseWebSearch(false);
     }).catch(() => {});
   }, []);
@@ -297,6 +310,7 @@ export default function ChatPage() {
     const userMsg = { role: 'user', content: text, files: files.length > 0 ? files.map(f => f.name) : undefined };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
+    localStorage.removeItem('stensor_chat_draft');
     setInput('');
     setFiles([]);
     setIsLoading(true);
@@ -561,7 +575,7 @@ export default function ChatPage() {
         )}
 
         {isLoading && !synthProgress.active && (
-          <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} />
+          <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
         )}
         <div ref={messagesEndRef} />
       </div>
