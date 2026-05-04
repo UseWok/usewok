@@ -19,6 +19,7 @@ import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import ThinkingSteps from '@/components/chat/ThinkingSteps';
 import SynthesisProposal from '@/components/chat/SynthesisProposal';
 import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
@@ -560,28 +561,7 @@ export default function ChatPage() {
         )}
 
         {isLoading && !synthProgress.active && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
-            <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
-            <div className="flex flex-col gap-1.5 items-start">
-              <p className="text-[10px] font-semibold px-1 text-muted-foreground">Stensor</p>
-              <div className="bg-white border border-border rounded-sm shadow-sm">
-                <ChatLoadingAnimation mode={mode.id} />
-              </div>
-              {loadingProgress > 0 && (
-                <div className="flex items-center gap-2 px-1">
-                  <div className="w-24 h-1 rounded-full overflow-hidden bg-black/10">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${loadingProgress}%` }}
-                      transition={{ duration: 0.5, ease: 'easeOut' }}
-                      className="h-full bg-fg rounded-full"
-                    />
-                  </div>
-                  <span className="text-[9px] font-bold text-zinc-400">~{loadingProgress}%</span>
-                </div>
-              )}
-            </div>
-          </motion.div>
+          <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} />
         )}
         <div ref={messagesEndRef} />
       </div>

@@ -6,6 +6,7 @@ import { AGENTS } from '@/components/Sidebar';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const FG = '#0A0A0A';
+const YUZU = '#DDFF00';
 
 function extractSources(content) {
   const mdLinks = [...content.matchAll(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g)].map(m => ({ label: m[1], url: m[2] }));
@@ -43,10 +44,10 @@ export default function AssistantMessage({ content, agent, meta }) {
   };
 
   return (
-    <div className="flex flex-col gap-1 items-start w-full mb-2">
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
-      </div>
+    <div className="flex gap-3 items-start w-full mb-2">
+      <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain flex-shrink-0 mt-1" style={{ opacity: 0.75 }} />
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+      <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
       <div className="w-full break-words"
         style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '14px 16px' }}>
         <div onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); }}
@@ -107,6 +108,7 @@ export default function AssistantMessage({ content, agent, meta }) {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
