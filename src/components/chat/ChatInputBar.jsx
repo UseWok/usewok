@@ -33,7 +33,7 @@ export default function ChatInputBar({
   const [showSkillMenu, setShowSkillMenu] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [showFileMenu, setShowFileMenu] = useState(false);
-  const [showModeMenu, setShowModeMenu] = useState(false);
+
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function ChatInputBar({
   const textareaRef = useRef(null);
   const skillMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
-  const modeMenuRef = useRef(null);
+
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
@@ -57,11 +57,10 @@ export default function ChatInputBar({
   // Close all menus when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      const refs = [skillMenuRef, fileMenuRef, modeMenuRef];
+      const refs = [skillMenuRef, fileMenuRef];
       if (!refs.some(r => r.current?.contains(e.target))) {
         setShowSkillMenu(false);
         setShowFileMenu(false);
-        setShowModeMenu(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -71,7 +70,6 @@ export default function ChatInputBar({
   const closeAllMenus = () => {
     setShowSkillMenu(false);
     setShowFileMenu(false);
-    setShowModeMenu(false);
   };
 
   const isFree = !userPlan || userPlan.price_monthly === 0;
@@ -331,53 +329,6 @@ export default function ChatInputBar({
               </AnimatePresence>
             </div>
 
-            {/* Mode selector */}
-            <div className="relative flex-shrink-0" ref={modeMenuRef}>
-              <button
-                onClick={() => { if (isLoading) return; closeAllMenus(); setShowModeMenu(s => !s); }}
-                disabled={isLoading}
-                className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
-                style={{ background: mode.id !== 'thinking' ? 'rgba(221,255,0,0.2)' : 'transparent' }}>
-                <span className="text-[11px] font-semibold" style={{ color: FG }}>
-                  {mode.id === 'thinking' ? 'Standard' : mode.id === 'pro' ? 'Advanced' : 'Expert'}
-                </span>
-                <ChevronDown className="w-2.5 h-2.5 text-muted-foreground/60" />
-              </button>
-              <AnimatePresence>
-                {showModeMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.1 }}
-                    className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[150px] z-[300] bg-white rounded-sm border border-border">
-                    {[
-                      { id: 'fast',     label: 'Rapide' },
-                      { id: 'pro',      label: 'Advanced' },
-                      { id: 'ultimate', label: 'Expert' },
-                    ].map(m => {
-                      const allowed = userPlan?.allowed_modes?.includes(m.id);
-                      const isActive = mode.id === m.id;
-                      return (
-                        <button key={m.id}
-                          onClick={() => {
-                            if (!allowed) { onUpgradeRequest(m.label); setShowModeMenu(false); return; }
-                            const found = ALL_MODES.find(a => a.id === m.id);
-                            if (found) setMode(found);
-                            setShowModeMenu(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2.5 text-xs transition-colors text-left rounded-sm"
-                          style={{ background: isActive ? 'rgba(221,255,0,0.25)' : 'transparent', color: allowed ? FG : '#bbb' }}
->
-                          <span className="font-semibold">{m.label}</span>
-                          {!allowed && <span className="text-[9px] font-black px-1 py-0.5 bg-muted text-muted-foreground rounded-sm">Expert+</span>}
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
           {/* Right: mic + send */}

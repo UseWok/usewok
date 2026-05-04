@@ -364,7 +364,19 @@ export default function ChatPage() {
     let routeDecision = '1';
     if (!isFirstMessage) {
       try {
-        const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n1 = Casual chat, greetings, definitions, emotional support, simple expense logging, or any web search.\n2 = Complex multi-step math, debt architecture, tax forecasting, portfolio optimization, or scenarios requiring deep multi-variable analysis.\n\nInput: ${text.slice(0, 400)}`;
+        const routerPrompt = `Role: Router for a financial AI.
+Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
+
+Rules:
+2 = ANY of these:
+- User explicitly asks for: an analysis (analyse, analyser, analyse complète, analysez), a plan (plan, plan d'action, fais-moi un plan), a strategy (stratégie), a simulation, a projection, a comparison (compare, versus), calculations (calcule, chiffre), a roadmap, a diagnosis.
+- Complex multi-step financial math: debt payoff schedules, portfolio optimization, tax forecasting, FIRE calculations, mortgage vs rent analysis, multi-scenario projections.
+- Questions with multiple financial variables that require structured reasoning.
+1 = Everything else: casual chat, greetings, simple definitions, emotional support, quick yes/no questions, simple expense logging, factual lookups.
+
+Bias: When in doubt between 1 and 2, prefer 2.
+
+Input: ${text.slice(0, 400)}`;
         const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
         routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
         if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
