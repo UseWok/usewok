@@ -1,78 +1,116 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Check, RotateCcw } from 'lucide-react';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
+const CORAL = '#FF4F00';
 
-// Contextual step pools
+// ── Step pools by category ───────────────────────────────────────────────────
 const STEP_POOLS = {
   investment: [
-    { label: 'Lecture de l\'intention d\'investissement', type: 'check' },
-    { label: 'Analyse du profil de risque', type: 'check' },
-    { label: 'Simulation des rendements sur 10 ans', type: 'check' },
-    { label: 'Vérification des hypothèses fiscales', type: 'correct' },
-    { label: 'Structuration des recommandations', type: 'check' },
+    { label: 'Parsing your investment intent', type: 'check' },
+    { label: 'Loading market knowledge base', type: 'check' },
+    { label: 'Retrieving historical return data', type: 'check' },
+    { label: 'Profiling your risk tolerance', type: 'check' },
+    { label: 'Selecting optimal asset classes', type: 'check' },
+    { label: 'Cross-checking allocation rules', type: 'correct' },
+    { label: 'Running 10-year compound projections', type: 'check' },
+    { label: 'Stress-testing worst-case scenarios', type: 'check' },
+    { label: 'Adjusting for inflation & tax drag', type: 'correct' },
+    { label: 'Benchmarking against global ETF data', type: 'check' },
+    { label: 'Filtering actionable recommendations', type: 'check' },
+    { label: 'Structuring final response', type: 'check' },
   ],
   budget: [
-    { label: 'Identification des flux financiers', type: 'check' },
-    { label: 'Détection des dépenses compressibles', type: 'check' },
-    { label: 'Recalibrage du budget de plaisir', type: 'correct' },
-    { label: 'Optimisation du taux d\'épargne', type: 'check' },
-    { label: 'Validation du plan mensuel', type: 'check' },
+    { label: 'Reading your financial context', type: 'check' },
+    { label: 'Mapping income vs. expense patterns', type: 'check' },
+    { label: 'Identifying compressible spending', type: 'check' },
+    { label: 'Calculating savings capacity', type: 'check' },
+    { label: 'Checking 50/30/20 rule alignment', type: 'correct' },
+    { label: 'Modeling budget rebalance scenarios', type: 'check' },
+    { label: 'Prioritizing guilt-free spending zones', type: 'check' },
+    { label: 'Validating emergency fund runway', type: 'correct' },
+    { label: 'Generating monthly optimization plan', type: 'check' },
+    { label: 'Formatting actionable next steps', type: 'check' },
   ],
   debt: [
-    { label: 'Cartographie des dettes actives', type: 'check' },
-    { label: 'Calcul du coût total des intérêts', type: 'check' },
-    { label: 'Stratégie avalanche vs boule de neige', type: 'correct' },
-    { label: 'Estimation de la date de liberté', type: 'check' },
-    { label: 'Plan d\'action priorisé', type: 'check' },
+    { label: 'Detecting debt-related signals', type: 'check' },
+    { label: 'Mapping active debt obligations', type: 'check' },
+    { label: 'Computing total interest cost', type: 'check' },
+    { label: 'Running avalanche strategy model', type: 'check' },
+    { label: 'Running snowball strategy model', type: 'check' },
+    { label: 'Comparing payoff timelines', type: 'correct' },
+    { label: 'Estimating financial freedom date', type: 'check' },
+    { label: 'Checking refinancing options', type: 'check' },
+    { label: 'Prioritizing highest-impact actions', type: 'correct' },
+    { label: 'Building personalized debt roadmap', type: 'check' },
+    { label: 'Formatting step-by-step action plan', type: 'check' },
   ],
   realestate: [
-    { label: 'Analyse de la capacité d\'emprunt', type: 'check' },
-    { label: 'Simulation loyer vs achat', type: 'check' },
-    { label: 'Calcul du rendement locatif brut/net', type: 'correct' },
-    { label: 'Évaluation de l\'effet de levier', type: 'check' },
-    { label: 'Recommandation personnalisée', type: 'check' },
-  ],
-  default: [
-    { label: 'Lecture et analyse de ta question', type: 'check' },
-    { label: 'Croisement avec ton profil financier', type: 'check' },
-    { label: 'Vérification des calculs', type: 'correct' },
-    { label: 'Construction de la réponse optimale', type: 'check' },
-  ],
-  greeting: [
-    { label: 'Analyse du message', type: 'check' },
-    { label: 'Formulation de la réponse', type: 'check' },
+    { label: 'Analyzing real estate question', type: 'check' },
+    { label: 'Loading property market benchmarks', type: 'check' },
+    { label: 'Calculating borrowing capacity', type: 'check' },
+    { label: 'Running rent vs. buy comparison', type: 'check' },
+    { label: 'Computing gross & net rental yield', type: 'correct' },
+    { label: 'Assessing leverage effect', type: 'check' },
+    { label: 'Estimating transaction costs & taxes', type: 'check' },
+    { label: 'Projecting 10-year property value', type: 'check' },
+    { label: 'Cross-validating with local data', type: 'correct' },
+    { label: 'Summarizing key decision criteria', type: 'check' },
+    { label: 'Writing personalized recommendation', type: 'check' },
   ],
   document: [
-    { label: 'Lecture du document joint', type: 'check' },
-    { label: 'Lancement de 578 simulations', type: 'check' },
-    { label: 'Détection des opportunités cachées', type: 'correct' },
-    { label: 'Calcul du meilleur scénario (85% succès)', type: 'check' },
-    { label: 'Synthèse et recommandations', type: 'check' },
+    { label: 'Extracting document content', type: 'check' },
+    { label: 'Identifying financial figures', type: 'check' },
+    { label: 'Normalizing data format', type: 'check' },
+    { label: 'Launching 578 parallel simulations', type: 'check' },
+    { label: 'Detecting hidden opportunities', type: 'correct' },
+    { label: 'Validating assumptions (pass 1/3)', type: 'check' },
+    { label: 'Validating assumptions (pass 2/3)', type: 'check' },
+    { label: 'Validating assumptions (pass 3/3)', type: 'check' },
+    { label: 'Computing best-case scenario (85% confidence)', type: 'correct' },
+    { label: 'Isolating top 3 actionable insights', type: 'check' },
+    { label: 'Structuring synthesis', type: 'check' },
+    { label: 'Finalizing answer', type: 'check' },
+  ],
+  greeting: [
+    { label: 'Reading your message', type: 'check' },
+    { label: 'Preparing a warm reply', type: 'check' },
+  ],
+  default: [
+    { label: 'Parsing your message', type: 'check' },
+    { label: 'Loading financial knowledge base', type: 'check' },
+    { label: 'Mapping relevant concepts', type: 'check' },
+    { label: 'Checking data accuracy', type: 'correct' },
+    { label: 'Running cross-validation pass', type: 'check' },
+    { label: 'Identifying key insights', type: 'check' },
+    { label: 'Filtering noise from signal', type: 'check' },
+    { label: 'Structuring optimal response', type: 'correct' },
+    { label: 'Applying personalization layer', type: 'check' },
+    { label: 'Formatting final answer', type: 'check' },
   ],
 };
 
 function detectCategory(text = '', hasFiles = false) {
   if (hasFiles) return 'document';
   const t = text.toLowerCase();
-  if (/investis|etf|bourse|action|crypto|portefeuille|dividende|rendement/.test(t)) return 'investment';
-  if (/budget|dépense|charge|loyer|salaire|revenu|économis|épargn/.test(t)) return 'budget';
-  if (/dette|crédit|remboursement|prêt|intérêt|endett/.test(t)) return 'debt';
-  if (/immobilier|appartement|maison|achat|locatif|emprunt/.test(t)) return 'realestate';
-  if (/bonjour|salut|merci|ok|ciao|hello|ça va|bonne/.test(t)) return 'greeting';
+  if (/investis|etf|bourse|action|crypto|portefeuille|dividende|rendement|invest/.test(t)) return 'investment';
+  if (/budget|dépense|charge|loyer|salaire|revenu|économis|épargn|spend|income|expense/.test(t)) return 'budget';
+  if (/dette|crédit|remboursement|prêt|intérêt|endett|debt|loan/.test(t)) return 'debt';
+  if (/immobilier|appartement|maison|achat|locatif|emprunt|real estate|property/.test(t)) return 'realestate';
+  if (/bonjour|salut|merci|ok|ciao|hello|ça va|bonne|hi |hey /.test(t)) return 'greeting';
   return 'default';
 }
 
-// status: 'pending' | 'active' | 'correcting' | 'done'
+// step status: 'pending' | 'active' | 'correcting' | 'done'
 function StepRow({ step, status, index }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: status === 'pending' ? 0.3 : 1, x: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.25 }}
+      animate={{ opacity: status === 'pending' ? 0.25 : 1, x: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.22 }}
       className="flex items-center gap-2.5 py-[3px]"
     >
       {/* Icon */}
@@ -91,21 +129,21 @@ function StepRow({ step, status, index }) {
         {status === 'active' && (
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 0.75, ease: 'linear' }}
+            transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
             className="w-3.5 h-3.5 rounded-full border-2"
-            style={{ borderColor: 'rgba(0,0,0,0.1)', borderTopColor: FG }}
+            style={{ borderColor: 'rgba(0,0,0,0.08)', borderTopColor: FG }}
           />
         )}
         {status === 'correcting' && (
           <motion.div
-            animate={{ rotate: [0, -20, 20, -20, 0] }}
-            transition={{ repeat: Infinity, duration: 0.5, ease: 'easeInOut' }}
+            animate={{ rotate: [0, -25, 25, -25, 0] }}
+            transition={{ repeat: Infinity, duration: 0.45, ease: 'easeInOut' }}
           >
-            <RotateCcw className="w-3.5 h-3.5" style={{ color: '#FF4F00' }} strokeWidth={2.5} />
+            <RotateCcw className="w-3.5 h-3.5" style={{ color: CORAL }} strokeWidth={2.5} />
           </motion.div>
         )}
         {status === 'pending' && (
-          <div className="w-2 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.15)' }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
         )}
       </div>
 
@@ -113,8 +151,9 @@ function StepRow({ step, status, index }) {
       <span
         className="text-[12px] font-medium leading-tight"
         style={{
-          color: status === 'pending' ? 'rgba(0,0,0,0.3)' :
-                 status === 'correcting' ? '#FF4F00' : FG
+          color: status === 'pending'    ? 'rgba(0,0,0,0.25)'
+               : status === 'correcting' ? CORAL
+               : FG,
         }}
       >
         {step.label}
@@ -126,9 +165,9 @@ function StepRow({ step, status, index }) {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-sm"
-          style={{ background: 'rgba(255,79,0,0.1)', color: '#FF4F00' }}
+          style={{ background: 'rgba(255,79,0,0.1)', color: CORAL }}
         >
-          Correction
+          Re-checking
         </motion.span>
       )}
     </motion.div>
@@ -140,41 +179,41 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false }
   const steps = STEP_POOLS[category];
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [phase, setPhase] = useState('active'); // 'active' | 'correcting'
+  const [phase, setPhase] = useState('active');
   const timerRef = useRef(null);
-  const correctionDoneRef = useRef(false);
+  const correctionLockRef = useRef(false);
 
   useEffect(() => {
     if (!isLoading) return;
     setCurrentStep(0);
     setPhase('active');
-    correctionDoneRef.current = false;
+    correctionLockRef.current = false;
 
-    // Spread steps across time — advance every ~1.4s
-    const interval = 1400;
+    // Advance a step every ~900ms — fast enough to feel busy
     timerRef.current = setInterval(() => {
       setCurrentStep(prev => {
         const next = prev + 1;
         if (next >= steps.length) {
           clearInterval(timerRef.current);
-          return prev; // stay at last active step
+          return prev;
         }
-        // If this step is a 'correct' type, show correcting phase briefly
-        if (steps[prev]?.type === 'correct' && !correctionDoneRef.current) {
-          correctionDoneRef.current = true;
+        // Trigger correction animation on 'correct' type steps
+        if (steps[prev]?.type === 'correct' && !correctionLockRef.current) {
+          correctionLockRef.current = true;
           setPhase('correcting');
           setTimeout(() => {
             setPhase('active');
+            correctionLockRef.current = false;
             setCurrentStep(next);
-          }, 900);
-          return prev; // don't advance yet
+          }, 800);
+          return prev;
         }
         return next;
       });
-    }, interval);
+    }, 900);
 
     return () => clearInterval(timerRef.current);
-  }, [isLoading, text]);
+  }, [isLoading, text, hasFiles]);
 
   if (!isLoading) return null;
 
@@ -194,28 +233,48 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false }
       />
 
       <div className="flex flex-col gap-1.5 max-w-[82%]">
-        <div className="flex items-center gap-1.5">
+        {/* Header label */}
+        <div className="flex items-center gap-1.5 px-1">
           <p className="text-[11px] font-black" style={{ color: FG }}>Stensor</p>
           <motion.span
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+            animate={{ opacity: [0.35, 1, 0.35] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
             className="text-[10px] font-medium"
             style={{ color: 'rgba(0,0,0,0.35)' }}
           >
-            réfléchit…
+            is thinking…
           </motion.span>
         </div>
 
-        {/* Card */}
+        {/* Card — NO left border */}
         <div
           className="bg-white border border-border rounded-sm shadow-sm px-4 py-3"
-          style={{ borderLeft: `3px solid ${FG}`, minWidth: '240px' }}
+          style={{ minWidth: '260px' }}
         >
+          {/* Progress header */}
+          <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.1, ease: 'linear' }}
+              className="w-3 h-3 rounded-full border-2 flex-shrink-0"
+              style={{ borderColor: 'rgba(0,0,0,0.08)', borderTopColor: FG }}
+            />
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'rgba(0,0,0,0.3)' }}>
+              Working hard on your answer
+            </span>
+            <span className="ml-auto text-[10px] font-bold tabular-nums" style={{ color: 'rgba(0,0,0,0.2)' }}>
+              {currentStep}/{steps.length}
+            </span>
+          </div>
+
+          {/* Steps */}
           <div className="space-y-0.5">
             {steps.map((step, i) => {
               let status = 'pending';
               if (i < currentStep) status = 'done';
-              else if (i === currentStep) status = phase === 'correcting' && step.type === 'correct' ? 'correcting' : 'active';
+              else if (i === currentStep) {
+                status = (phase === 'correcting' && step.type === 'correct') ? 'correcting' : 'active';
+              }
               return <StepRow key={i} step={step} status={status} index={i} />;
             })}
           </div>

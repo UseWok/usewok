@@ -22,11 +22,9 @@ import LandingPage from './pages/LandingPage';
 import LandingPricingPage from './pages/LandingPricingPage';
 import LandingFeaturesPage from './pages/LandingFeaturesPage';
 import DiscussionsPage from './pages/DiscussionsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import StensorScore from './pages/StensorScore';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import AIControlTower from './pages/AIControlTower';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 
 function ScrollToTop() {
@@ -84,8 +82,6 @@ const AuthenticatedApp = () => {
           <Route path="/manage-plan" element={<ManagePlanPage />} />
           <Route path="/community" element={<Community />} />
           <Route path="/discussions" element={<DiscussionsPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/score" element={<StensorScore />} />
           <Route path="/ai-dna" element={<AIControlTower />} />
 
           <Route path="*" element={<PageNotFound />} />
