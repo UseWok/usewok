@@ -368,8 +368,7 @@ export default function ChatInputBar({
                           }}
                           className="w-full flex items-center justify-between px-3 py-2.5 text-xs transition-colors text-left rounded-sm"
                           style={{ background: isActive ? 'rgba(221,255,0,0.25)' : 'transparent', color: allowed ? FG : '#bbb' }}
-                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? 'rgba(221,255,0,0.25)' : 'transparent'; }}>
+>
                           <span className="font-semibold">{m.label}</span>
                           {!allowed && <span className="text-[9px] font-black px-1 py-0.5 bg-muted text-muted-foreground rounded-sm">Expert+</span>}
                         </button>
