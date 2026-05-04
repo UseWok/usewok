@@ -36,7 +36,7 @@ function ScrollToTop() {
 }
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -46,24 +46,25 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      return (
-        <>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/tarifs" element={<LandingPricingPage />} />
-            <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
-            <Route path="/privacy" element={<PrivacyPolicyPage />} />
-            <Route path="/terms" element={<TermsOfServicePage />} />
-            <Route path="*" element={<LandingPage />} />
-          </Routes>
-        </>
-      );
-    }
+  // Not authenticated (no token or auth error) → show public landing routes
+  if (!isAuthenticated && (!authError || authError.type === 'auth_required')) {
+    return (
+      <>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/tarifs" element={<LandingPricingPage />} />
+          <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      </>
+    );
+  }
+
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
   }
 
   return (
