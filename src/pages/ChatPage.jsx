@@ -273,8 +273,18 @@ export default function ChatPage() {
       : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
     const isFirstMessage = !currentUser?.first_message_sent;
-    const secretModel = 'gemini_3_1_pro';
     const useInternet = useWebSearch && hasInternet;
+
+    // Smart model routing: gpt_5_mini analyzes complexity → flash (simple) or pro (complex)
+    let secretModel = 'gemini_3_1_pro';
+    try {
+      const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). Do not output any other character.\n\nRules:\n1 = Casual chat, basic definitions, emotional support, or simple expense logging.\n2 = Complex math, debt strategy, tax simulation, or multi-variable financial planning.\n\nInput: ${text.slice(0, 400)}`;
+      const route = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gpt_5_mini' });
+      const routeStr = typeof route === 'string' ? route.trim() : '';
+      secretModel = routeStr === '1' ? 'gemini_3_flash' : 'gemini_3_1_pro';
+    } catch {
+      secretModel = 'gemini_3_1_pro';
+    }
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
