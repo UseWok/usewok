@@ -47,8 +47,10 @@ function Navbar({ onCta }) {
   }, []);
   return (
     <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.4 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6"
-      style={{ background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', transition: 'all 0.4s ease', borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
+      className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+      style={{ paddingTop: 24 }}>
+      <div className="flex items-center justify-between w-full px-6 py-3"
+        style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center gap-2.5">
         <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-5 h-5 object-contain" />
         <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
@@ -62,6 +64,7 @@ function Navbar({ onCta }) {
         className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
         Start free →
       </motion.button>
+      </div>
     </motion.header>
   );
 }
@@ -152,31 +155,31 @@ const PLEASURES = [
     id: 'pizza', emoji: '🍕', label: 'Friday Pizza',
     chatgptText: '"Reduce food expenses by 30% — this is well above the recommended budget allocation."',
     stensorText: '"I found €94/month in forgotten subscriptions you never use. Pizza stays. Forever."',
-    metric: '€94/month recovered', impact: '+€1,128/year · 0 sacrifices',
+    metric: 'Hidden costs recovered', impact: 'Zero sacrifices',
   },
   {
     id: 'travel', emoji: '✈️', label: '€2K Vacation',
     chatgptText: '"Your travel budget exceeds the recommended allocation for your income bracket."',
     stensorText: '"Funded in 11 weeks. Portfolio untouched. Boarding pass: ready."',
-    metric: 'Trip fully funded', impact: 'Portfolio intact · Dream achieved',
+    metric: 'Trip fully funded', impact: 'Portfolio intact',
   },
   {
     id: 'iphone', emoji: '📱', label: 'New iPhone',
     chatgptText: '"Avoid impulse purchases. Consider your long-term financial goals first."',
     stensorText: '"In 6 weeks, via your tech buffer. Day-by-day plan included."',
-    metric: 'Purchased in 6 weeks', impact: 'Guilt-free · Zero debt · Plan enclosed',
+    metric: 'Purchased in 6 weeks', impact: 'Guilt-free · Zero debt',
   },
   {
     id: 'coffee', emoji: '☕', label: 'Daily Coffee',
     chatgptText: '"Cut your daily coffee. That\'s €400/year you could be saving right now."',
     stensorText: '"€400 protected. Found €1,200 in doubled insurance and forgotten SaaS."',
-    metric: '€1,200/yr from real leaks', impact: 'Coffee intact · 3× more savings',
+    metric: 'Real leaks found', impact: 'Coffee intact · More savings',
   },
   {
     id: 'gaming', emoji: '🎮', label: 'Netflix & Gaming',
     chatgptText: '"Limit entertainment subscriptions to a maximum of one platform."',
     stensorText: '"All kept. Found €187/month elsewhere. Redirected straight to your goals."',
-    metric: '€187/mo redirected', impact: '0 entertainment cut · All goals funded',
+    metric: 'Savings redirected', impact: '0 entertainment cut · Goals funded',
   },
 ];
 

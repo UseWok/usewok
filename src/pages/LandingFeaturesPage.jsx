@@ -22,8 +22,10 @@ function Navbar({ scrolled }) {
   const navigate = useNavigate();
   return (
     <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-10 py-6"
-      style={{ background: scrolled ? 'rgba(255,255,255,0.97)' : 'transparent', transition: 'background 0.5s ease' }}>
+      className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+      style={{ paddingTop: 24 }}>
+      <div className="flex items-center justify-between w-full px-6 py-3"
+        style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
       <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
         <img src={LOGO} alt="Stensor" className="w-5 h-5 object-contain" />
         <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
@@ -37,6 +39,7 @@ function Navbar({ scrolled }) {
         className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
         Start free →
       </motion.button>
+      </div>
     </motion.header>
   );
 }

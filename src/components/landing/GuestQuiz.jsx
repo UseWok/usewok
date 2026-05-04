@@ -90,7 +90,7 @@ function getWealthData(answers) {
   const emotionBoost = { calm: 1.12, justified: 1.0, guilty: 0.92, regret: 0.97 }[answers.emotion] || 1.0;
   const fearBoost = { lose_job: 1.05, never_enough: 0.95, market_crash: 1.08, retirement: 1.1 }[answers.fear] || 1.0;
   const pleasureSavings = { travel: 110, food: 65, tech: 85, wellness: 45 }[answers.pleasure] || 70;
-  const annualRate = { freedom: 0.087, wealth: 0.096, debt_free: 0.072, retire_early: 0.105 }[answers.goal] || 0.082;
+  const annualRate = { freedom: 0.08, wealth: 0.09, debt_free: 0.065, retire_early: 0.1 }[answers.goal] || 0.075;
   const monthly = monthlyBase * emotionBoost * fearBoost;
   const years = [0, 1, 2, 3, 4, 5];
   return years.map(y => ({
@@ -142,7 +142,7 @@ function WealthCurve({ answers }) {
           <path d={areaWith} fill="url(#wealthGrad)" />
 
           {/* Without Stensor line */}
-          <path d={pathWithout} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" strokeDasharray="4 3" />
+          <path d={pathWithout} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" strokeDasharray="4 3" />
 
           {/* With Stensor line */}
           <path d={pathWith} fill="none" stroke={YELLOW} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -154,7 +154,6 @@ function WealthCurve({ answers }) {
         {/* End label */}
         <div className="absolute top-0 right-0 text-right">
           <p className="text-lg font-black" style={{ color: YELLOW }}>{formatted}</p>
-          <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>in 5 years</p>
         </div>
 
         {/* Legend */}
@@ -164,8 +163,8 @@ function WealthCurve({ answers }) {
             <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>With Stensor</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-5 border-t border-dashed" style={{ borderColor: 'rgba(255,255,255,0.2)' }} />
-            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Without</span>
+            <div className="w-5 border-t border-dashed" style={{ borderColor: 'rgba(255,255,255,0.35)' }} />
+            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Without</span>
           </div>
         </div>
       </div>

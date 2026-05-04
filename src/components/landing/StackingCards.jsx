@@ -32,7 +32,7 @@ const ROWS = [
   { them: 'Tells you to cut your pleasures',      us: 'Your pleasures are permanently protected' },
   { them: 'Generic advice for everyone',           us: 'Built around your exact situation' },
   { them: 'Ignores your psychology',               us: 'Reads your emotional money patterns' },
-  { them: 'Misses hidden money leaks',             us: 'Recovers avg. 187/mo in forgotten costs' },
+  { them: 'Misses hidden money leaks',             us: 'Finds and recovers your forgotten costs' },
   { them: 'No long-term financial vision',         us: 'Builds your wealth trajectory, now' },
   { them: 'Judges your spending habits',           us: 'Zero judgment. Always on your side' },
   { them: 'Resets every conversation',             us: 'Remembers your full financial story' },
@@ -133,9 +133,7 @@ export default function StackingCards() {
                   Your financial co-pilot
                 </p>
               </div>
-              <div style={{ padding: '3px 9px', background: YELLOW, borderRadius: 99, fontSize: 10, fontWeight: 800, color: FG }}>
-                Winner
-              </div>
+
             </div>
           </div>
           <div style={{ padding: '8px 0', position: 'relative' }}>
