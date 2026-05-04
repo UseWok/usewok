@@ -78,14 +78,26 @@ export default function ChatInputBar({
   const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
   const FREE_MOBILE_CHAR_LIMIT = 400;
 
+  // Auto-expand textarea up to 4 lines
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const lineH = 24;
+    const maxH = lineH * 4;
+    ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px';
+    ta.style.overflowY = ta.scrollHeight > maxH ? 'auto' : 'hidden';
+  }, [input]);
+
   const handleInputChange = (e) => {
     const val = e.target.value;
     if (isFree && isMobileDevice && val.length > FREE_MOBILE_CHAR_LIMIT) return;
     setInput(val);
   };
 
+  // Exclude 'thinking' (Standard) mode from selector
   const allowedModes = userPlan
-    ? ALL_MODES.filter(m => userPlan.allowed_modes?.includes(m.id) || (m.id === 'thinking' && userPlan.allowed_modes?.includes('fast')))
+    ? ALL_MODES.filter(m => m.id !== 'thinking' && (userPlan.allowed_modes?.includes(m.id) || userPlan.allowed_modes?.includes('fast')))
     : [ALL_MODES[ALL_MODES.length - 1]];
 
   const ModeIcon = mode.icon;
@@ -219,7 +231,8 @@ export default function ChatInputBar({
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(input); } }}
             placeholder={blocked ? t('blocked_placeholder') : t('send_message')}
             disabled={blocked} rows={1}
-            className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed break-words text-foreground"
+            style={{ minHeight: '24px', maxHeight: '96px', resize: 'none', overflowY: 'hidden' }}
+            className="w-full bg-transparent text-sm focus:outline-none leading-relaxed break-words text-foreground transition-all"
           />
           {isFree && isMobileDevice && input.length > 350 && (
             <p className="text-[10px] text-right mt-0.5 px-1" style={{ color: input.length >= FREE_MOBILE_CHAR_LIMIT ? '#ef4444' : '#aaa' }}>
@@ -339,7 +352,7 @@ export default function ChatInputBar({
                     transition={{ duration: 0.1 }}
                     className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[150px] z-[300] bg-white rounded-sm border border-border">
                     {[
-                      { id: 'thinking', label: 'Standard' },
+                      { id: 'fast',     label: 'Rapide' },
                       { id: 'pro',      label: 'Advanced' },
                       { id: 'ultimate', label: 'Expert' },
                     ].map(m => {

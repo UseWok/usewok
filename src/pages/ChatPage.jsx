@@ -19,8 +19,9 @@ import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import SynthesisProposal from '@/components/chat/SynthesisProposal';
+import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
-const STORAGE_KEY = 'stensor_discussions';
 const AGENTS = [
   { id: 'global', label: "Knowing exactly where I'm going" },
   { id: 'emotions-depenses', label: 'Spend without guilt' },
@@ -66,7 +67,7 @@ RÈGLES NON NÉGOCIABLES :
 - Termine TOUJOURS par une ligne ➡️ avec 1 prochaine étape concrète.
 - Pas de formules creuses comme "Bien sûr !", "Absolument !", "Certainement !".
 - **Droit au but** : pas d'introduction inutile, pas de répétition de la question, pas de conclusion molle. Commence directement par l'essentiel.
-- **Règle sociale ABSOLUE** : si le message est une salutation ou petite conversation ("bonjour", "comment ça va", "merci", "ok", "ciao", etc.) → réponds en 1-2 phrases MAX, détendu et humain. JAMAIS de plan, liste ou structure pour une salutation. Exemple : "Bonjour ! Bien et toi ? C'est quoi ton objectif financier du moment ?" — c'est TOUT.
+- **Règle sociale ABSOLUE** : si le message est une salutation ou petite conversation ("bonjour", "comment ça va", "merci", "ok", "ciao", etc.) → réponds en 1-2 phrases MAX, détendu et humain. JAMAIS de plan, liste ou structure pour une salutation.
 - **Choix multiples** : TOUJOURS sous forme de liste avec un **-** par option. Jamais de choix en ligne (A ou B ou C). Chaque option = une ligne séparée.
 - Moins c'est plus : si tu peux dire la même chose en 2 mots plutôt que 6, fais-le.
 - NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
@@ -100,13 +101,15 @@ export default function ChatPage() {
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [milestoneShown, setMilestoneShown] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const loadingTimerRef = useRef(null);
+  const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
 
+  const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const userScrolledUpRef = useRef(false);
   const isMountedRef = useRef(true);
   const typewriterRef = useRef(null);
+  const synthPendingRef = useRef(null);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
@@ -180,6 +183,85 @@ export default function ChatPage() {
     if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // ── Typewriter helper ──────────────────────────────────────────────────────
+  const runTypewriter = useCallback((content, newMessages, msgMeta, convTitle, textForSync) => {
+    let i = 0;
+    const typeNext = () => {
+      if (!isMountedRef.current) {
+        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
+        saveConversationMessages(convId, finalMsgs);
+        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
+        return;
+      }
+      if (i < content.length) {
+        i++;
+        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { role: 'assistant', content: content.slice(0, i), meta: msgMeta }; return u; });
+        typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
+      } else {
+        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
+        saveConversationMessages(convId, finalMsgs);
+        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
+      }
+    };
+    typeNext();
+  }, [currentAgent, convId, mode.label]);
+
+  // ── Start fake progress bar ────────────────────────────────────────────────
+  const startProgress = () => {
+    let prog = 0;
+    loadingTimerRef.current = setInterval(() => {
+      prog += Math.random() * 8 + 2;
+      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
+      setLoadingProgress(Math.round(prog));
+    }, 600);
+  };
+
+  const stopProgress = () => {
+    clearInterval(loadingTimerRef.current);
+    setLoadingProgress(0);
+  };
+
+  // ── Build title ────────────────────────────────────────────────────────────
+  const buildTitle = async (text, newMessages) => {
+    let convTitle = text.slice(0, 50);
+    try {
+      const cloudTitle = await loadConversationTitleFromCloud(convId);
+      if (cloudTitle) { convTitle = cloudTitle; }
+      else if (newMessages.length === 1) {
+        const titleResult = await base44.integrations.Core.InvokeLLM({
+          prompt: `Titre très court (3-5 mots) pour: "${text.slice(0, 150)}". Répondre UNIQUEMENT avec le titre.`,
+          model: 'gemini_3_flash',
+        });
+        if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
+      }
+    } catch {}
+    return convTitle;
+  };
+
+  // ── Save to discussions ────────────────────────────────────────────────────
+  const saveToDiscussions = (convTitle, text) => {
+    try {
+      const stored = getDiscussions();
+      const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
+      const idx = stored.findIndex(d => d.id === convId);
+      if (idx >= 0) stored.splice(idx, 1);
+      stored.unshift(disc);
+      saveDiscussions(stored);
+    } catch {}
+  };
+
+  // ── Update credits ─────────────────────────────────────────────────────────
+  const updateCredits = async (currentUser, cost) => {
+    if (!currentUser) return;
+    const newUsed = (currentUser.credits_used || 0) + cost;
+    await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
+    setCreditsUsed(newUsed);
+    setUser(prev => ({ ...prev, credits_used: newUsed }));
+    emitCreditsUpdate(newUsed);
+    incrementDailyUsed();
+  };
+
+  // ── Send message (main) ────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
 
@@ -188,14 +270,12 @@ export default function ChatPage() {
       try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {}
     }
 
-    // Check discussion limit (hard limit of 3 for free plan)
+    // Discussion limit checks
     const isFree = !userPlan || userPlan.price_monthly === 0;
-    const FREE_DISCUSSION_LIMIT = 3;
     if (isFree) {
       try {
         const stored = getDiscussions();
-        const isExisting = stored.find(d => d.id === convId);
-        if (!isExisting && stored.length >= FREE_DISCUSSION_LIMIT) {
+        if (!stored.find(d => d.id === convId) && stored.length >= 3) {
           localStorage.setItem('stensor_saved_input', text);
           setShowFreeDiscussionLimit(true);
           return;
@@ -220,28 +300,19 @@ export default function ChatPage() {
     setFiles([]);
     setIsLoading(true);
     setLoadingProgress(0);
-    // Fake progress animation
-    let prog = 0;
-    loadingTimerRef.current = setInterval(() => {
-      prog += Math.random() * 8 + 2;
-      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
-      setLoadingProgress(Math.round(prog));
-    }, 600);
+    startProgress();
 
     // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
-      if (currentUser) {
-        const newUsed = (currentUser.credits_used || 0) + 1;
-        await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
-        setCreditsUsed(newUsed); setUser(prev => ({ ...prev, credits_used: newUsed }));
-        emitCreditsUpdate(newUsed); incrementDailyUsed();
-      }
+      if (currentUser) await updateCredits(currentUser, 1);
+      stopProgress();
       setIsLoading(false);
       return;
     }
 
+    // Upload files
     let file_urls = [];
     if (files.length > 0 && canUploadFiles) {
       for (const file of files) {
@@ -249,12 +320,11 @@ export default function ChatPage() {
       }
     }
 
-    // Always fetch latest agent config from DB before building system prompt
+    // Agent + system context
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles attached — use them as context but do not describe their content. Answer directly.' : '';
 
-    // Build AI DNA context from user preferences
     const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
     const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
     const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
@@ -275,94 +345,68 @@ export default function ChatPage() {
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    // Smart model routing: gpt_5_mini analyzes complexity → flash (simple) or pro (complex)
-    let secretModel = 'gemini_3_1_pro';
-    try {
-      const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). Do not output any other character.\n\nRules:\n1 = Casual chat, basic definitions, emotional support, or simple expense logging.\n2 = Complex math, debt strategy, tax simulation, or multi-variable financial planning.\n\nInput: ${text.slice(0, 400)}`;
-      const route = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gpt_5_mini' });
-      const routeStr = typeof route === 'string' ? route.trim() : '';
-      secretModel = routeStr === '1' ? 'gemini_3_flash' : 'gemini_3_1_pro';
-    } catch {
-      secretModel = 'gemini_3_1_pro';
+    // ── Cognitive Router ────────────────────────────────────────────────────
+    let routeDecision = '1';
+    if (!isFirstMessage) {
+      try {
+        const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n1 = Casual chat, greetings, definitions, emotional support, simple expense logging, or any web search.\n2 = Complex multi-step math, debt architecture, tax forecasting, portfolio optimization, or scenarios requiring deep multi-variable analysis.\n\nInput: ${text.slice(0, 400)}`;
+        const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
+        routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
+        if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
+      } catch {
+        routeDecision = '1';
+      }
     }
 
+    // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
+    if (routeDecision === '2') {
+      let proposalMsg = "This question deserves a Deep Synthesis — a structured multi-step analysis for a precise, reliable answer.";
+      try {
+        const pRes = await base44.integrations.Core.InvokeLLM({
+          prompt: `You are Stensor, a warm financial AI coach. The user asked: "${text.slice(0, 200)}". Write ONE short confident sentence in English (max 14 words) suggesting a deeper analysis would unlock a more powerful answer. No jargon.`,
+          model: 'gemini_3_flash',
+        });
+        if (typeof pRes === 'string' && pRes.trim()) proposalMsg = pRes.trim().replace(/^"|"$/g, '');
+      } catch {}
+
+      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser };
+      stopProgress();
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
+      return;
+    }
+
+    // ── Route 1: fast direct response ───────────────────────────────────────
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: systemContext + text + fileInstruction,
-      model: secretModel,
+      model: 'gemini_3_flash',
       add_context_from_internet: useInternet,
       ...(file_urls.length > 0 ? { file_urls } : {}),
     });
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Credit cost — minimum garanti par mode, peut aller jusqu'à credit_max
     let baseCost = mode.credit_cost;
-    if (mode.credit_max && mode.credit_max > mode.credit_cost) {
-      baseCost = Math.floor(Math.random() * (mode.credit_max - mode.credit_cost + 1)) + mode.credit_cost;
-    }
-    if (isFirstMessage) { baseCost = 1; }
+    if (isFirstMessage) baseCost = 1;
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
-      const newUsed = (currentUser.credits_used || 0) + costPerMsg;
-      await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
-      setCreditsUsed(newUsed); setUser(prev => ({ ...prev, credits_used: newUsed }));
-      emitCreditsUpdate(newUsed); incrementDailyUsed();
+      await updateCredits(currentUser, costPerMsg);
       if (isFirstMessage) {
         await base44.auth.updateMe({ first_message_sent: true });
         currentUser = { ...currentUser, first_message_sent: true };
         setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
-        // Complete referral and gift Tensors to referrer
         completeReferralOnFirstMessage(currentUser.id).catch(() => {});
       }
     }
 
-    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: secretModel, usedInternet: useInternet, hasFiles: file_urls.length > 0 };
-
-    let convTitle = text.slice(0, 50);
-    try {
-      const cloudTitle = await loadConversationTitleFromCloud(convId);
-      if (cloudTitle) { convTitle = cloudTitle; }
-      else if (newMessages.length === 1) {
-        const titleResult = await base44.integrations.Core.InvokeLLM({
-          prompt: `Titre très court (3-5 mots) pour: "${text.slice(0, 150)}". Répondre UNIQUEMENT avec le titre.`,
-          model: 'gpt_5_mini',
-        });
-        if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
-      }
-    } catch {}
-
-    try {
-      const stored = getDiscussions();
-      const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
-      const idx = stored.findIndex(d => d.id === convId);
-      if (idx >= 0) stored.splice(idx, 1);
-      stored.unshift(disc);
-      saveDiscussions(stored);
-    } catch {}
+    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+    const convTitle = await buildTitle(text, newMessages);
+    saveToDiscussions(convTitle, text);
 
     setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
-
-    // Typewriter
-    let i = 0;
-    const typeNext = () => {
-      if (!isMountedRef.current) {
-        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
-        saveConversationMessages(convId, finalMsgs);
-        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
-        return;
-      }
-      if (i < content.length) {
-        i++;
-        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { role: 'assistant', content: content.slice(0, i), meta: msgMeta }; return u; });
-        typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
-      } else {
-        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
-        saveConversationMessages(convId, finalMsgs);
-        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
-
-      }
-    };
-    typeNext();
+    stopProgress();
+    setIsLoading(false);
+    runTypewriter(content, newMessages, msgMeta, convTitle, text);
 
     // Milestone toast
     const userCount = [...newMessages, { role: 'assistant', content }].filter(m => m.role === 'user').length;
@@ -370,15 +414,91 @@ export default function ChatPage() {
       setMilestoneShown(true);
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
+  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t, runTypewriter]);
 
-    clearInterval(loadingTimerRef.current);
+  // ── Synthesis continuation ─────────────────────────────────────────────────
+  const continueSynthesis = useCallback(async (doDeep) => {
+    const pending = synthPendingRef.current;
+    if (!pending) return;
+    synthPendingRef.current = null;
+
+    const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser } = pending;
+
+    setMessages(newMessages);
+    setIsLoading(true);
     setLoadingProgress(0);
+    startProgress();
+
+    let content = '';
+
+    if (doDeep) {
+      const steps = [
+        { label: 'Reading intent & financial context', param: 'Intent ✓' },
+        { label: 'Mapping your financial parameters', param: null },
+        { label: 'Running multi-scenario projections', param: null },
+        { label: 'Validating assumptions & constraints', param: null },
+        { label: 'Structuring final synthesis', param: null },
+      ];
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+
+      let step = 0;
+      const stepInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) setSynthProgress(p => ({ ...p, currentStep: step }));
+        else clearInterval(stepInterval);
+      }, 700);
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: systemContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
+        model: 'gemini_3_1_pro',
+        add_context_from_internet: useInternet,
+        ...(file_urls.length > 0 ? { file_urls } : {}),
+      });
+      content = typeof result === 'string' ? result : JSON.stringify(result);
+
+      clearInterval(stepInterval);
+      setSynthProgress(p => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise(r => setTimeout(r, 700));
+      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    } else {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: systemContext + text + fileInstruction,
+        model: 'gemini_3_flash',
+        add_context_from_internet: useInternet,
+        ...(file_urls.length > 0 ? { file_urls } : {}),
+      });
+      content = typeof result === 'string' ? result : JSON.stringify(result);
+    }
+
+    const baseCost = doDeep ? (mode.credit_max || mode.credit_cost) : mode.credit_cost;
+    const costPerMsg = baseCost + (useInternet ? 1 : 0);
+    const msgMeta = {
+      modeName: doDeep ? 'Deep Synthesis' : mode.label,
+      modelName: doDeep ? 'Deep Synthesis' : 'Precision',
+      usedInternet: useInternet,
+      hasFiles: file_urls.length > 0,
+    };
+
+    if (currentUser) {
+      await updateCredits(currentUser, costPerMsg);
+      if (isFirstMessage) {
+        await base44.auth.updateMe({ first_message_sent: true });
+        setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
+        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
+      }
+    }
+
+    const convTitle = await buildTitle(text, newMessages);
+    saveToDiscussions(convTitle, text);
+
+    setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
+    stopProgress();
     setIsLoading(false);
-  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
+    runTypewriter(content, newMessages, msgMeta, convTitle, text);
+  }, [mode, currentAgent, convId, runTypewriter]);
 
   const editMessage = (idx) => { setInput(messages[idx].content); setMessages(prev => prev.slice(0, idx)); };
   const copyMessage = (content) => { navigator.clipboard.writeText(content); toast.success(t('copied'), { duration: 1000 }); };
-
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
 
   return (
@@ -411,14 +531,20 @@ export default function ChatPage() {
 
         {!isLoadingConversation && messages.map((msg, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-            {msg.role === 'assistant'
+            {msg.role === 'synthesis_proposal'
+              ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+              : msg.role === 'assistant'
               ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
               : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
             }
           </motion.div>
         ))}
 
-        {isLoading && (
+        {synthProgress.active && (
+          <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+        )}
+
+        {isLoading && !synthProgress.active && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
             <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
             <div className="flex flex-col gap-1.5 items-start">
@@ -458,12 +584,8 @@ export default function ChatPage() {
         onUpgradeRequest={handleUpgradeRequest}
       />
 
-      <ChatUpgradeOverlay
-        open={showUpgrade} feature={upgradeFeature}
-        onClose={() => setShowUpgrade(false)}
-      />
+      <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
 
-      {/* Free plan discussion limit modal */}
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -478,7 +600,6 @@ export default function ChatPage() {
               className="w-full max-w-sm bg-white overflow-hidden"
               style={{ borderRadius: '20px' }}
               onClick={e => e.stopPropagation()}>
-              {/* Header gradient */}
               <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}>
                 <div className="text-4xl mb-3">💬</div>
                 <p className="font-black text-xl" style={{ color: FG }}>3 discussions max</p>
@@ -490,14 +611,12 @@ export default function ChatPage() {
                   Supprime une discussion existante ou passe à un plan payant pour continuer.
                 </p>
                 <div className="space-y-2">
-                  <button
-                    onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }}
+                  <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }}
                     className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
                     style={{ background: FG, color: 'white', borderRadius: '10px' }}>
                     Voir les plans →
                   </button>
-                  <button
-                    onClick={() => { setShowFreeDiscussionLimit(false); navigate('/app'); }}
+                  <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/app'); }}
                     className="w-full py-3 font-medium text-sm transition-all hover:bg-black/5"
                     style={{ color: '#888', borderRadius: '10px' }}>
                     Gérer mes discussions
