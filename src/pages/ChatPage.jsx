@@ -377,12 +377,21 @@ export default function ChatPage() {
     }
 
     // ── Route 1: fast direct response ───────────────────────────────────────
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: systemContext + text + fileInstruction,
-      model: 'gemini_3_flash',
-      add_context_from_internet: useInternet,
-      ...(file_urls.length > 0 ? { file_urls } : {}),
-    });
+    let result;
+    try {
+      result = await base44.integrations.Core.InvokeLLM({
+        prompt: systemContext + text + fileInstruction,
+        model: 'gemini_3_flash',
+        add_context_from_internet: useInternet,
+        ...(file_urls.length > 0 ? { file_urls } : {}),
+      });
+    } catch (err) {
+      stopProgress();
+      setIsLoading(false);
+      const errorMsg = "Je n'ai pas pu traiter ta demande pour le moment. Essaie de nouveau dans quelques secondes.";
+      setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
+      return;
+    }
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     let baseCost = mode.credit_cost;
@@ -448,26 +457,32 @@ export default function ChatPage() {
         else clearInterval(stepInterval);
       }, 700);
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: systemContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
-        model: 'gemini_3_1_pro',
-        add_context_from_internet: useInternet,
-        ...(file_urls.length > 0 ? { file_urls } : {}),
-      });
-      content = typeof result === 'string' ? result : JSON.stringify(result);
+      let deepResult = null;
+      try {
+        deepResult = await base44.integrations.Core.InvokeLLM({
+          prompt: systemContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
+          model: 'gemini_3_1_pro',
+          add_context_from_internet: useInternet,
+          ...(file_urls.length > 0 ? { file_urls } : {}),
+        });
+      } catch {}
+      content = deepResult ? (typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult)) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
 
       clearInterval(stepInterval);
       setSynthProgress(p => ({ ...p, currentStep: steps.length, done: true }));
       await new Promise(r => setTimeout(r, 700));
       setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
     } else {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: systemContext + text + fileInstruction,
-        model: 'gemini_3_flash',
-        add_context_from_internet: useInternet,
-        ...(file_urls.length > 0 ? { file_urls } : {}),
-      });
-      content = typeof result === 'string' ? result : JSON.stringify(result);
+      let quickResult = null;
+      try {
+        quickResult = await base44.integrations.Core.InvokeLLM({
+          prompt: systemContext + text + fileInstruction,
+          model: 'gemini_3_flash',
+          add_context_from_internet: useInternet,
+          ...(file_urls.length > 0 ? { file_urls } : {}),
+        });
+      } catch {}
+      content = quickResult ? (typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult)) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
     }
 
     const baseCost = doDeep ? (mode.credit_max || mode.credit_cost) : mode.credit_cost;
