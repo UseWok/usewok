@@ -27,11 +27,10 @@ const PLEASURE_MAP = {
 };
 
 const POWER_TOPICS = [
-  { label: 'Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week." },
-  { label: 'Crush Debt', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers and give me a realistic monthly plan to become debt-free." },
-  { label: 'Start Investing', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it — give me a real actionable strategy, not generic advice." },
-  { label: 'Side Hustle', prompt: "Give me the 5 best side income strategies that actually work for people aged 18-35 in 2025. For each: realistic monthly earnings, time required, and the exact first step I can take today." },
-  { label: 'Retire Early', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now and give me the exact accounts and investments to prioritize." },
+  { label: '💰 Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week." },
+  { label: '🔥 Crush Debt', prompt: "I want to eliminate all my debt as fast as possible. Compare the avalanche vs snowball method with real numbers and give me a realistic monthly plan to become debt-free." },
+  { label: '📈 Start Investing', prompt: "I have $500/month to invest and I'm in my 20s-30s. Tell me exactly where to put it — give me a real actionable strategy, not generic advice." },
+  { label: '🌴 Retire Early', prompt: "I want to retire early using the FIRE method. Calculate how much I need to save monthly starting now and give me the exact accounts and investments to prioritize." },
 ];
 
 const popAnim = {
@@ -154,7 +153,8 @@ export default function HeroSection({ agentId, onAgentChange }) {
     if (!query.trim() || isBlocked) return;
     localStorage.removeItem('stensor_home_draft');
     const mode = ALL_MODES.find(m => m.id === 'thinking') || ALL_MODES[ALL_MODES.length - 1];
-    const skillPrefix = selectedSkill ? SKILLS.find(s => s.id === selectedSkill)?.label + ' — ' : '';
+    const skill = selectedSkill ? SKILLS.find(s => s.id === selectedSkill) : null;
+    const skillPrefix = skill ? `[Skill: ${skill.label}] ` : '';
     const params = new URLSearchParams({ q: skillPrefix + query, mode: mode.id, model: mode.model, webSearch: useWebSearch && hasInternet ? '1' : '0' });
     if (agentId) params.set('agent', agentId);
     navigate(`/chat?${params.toString()}`);
@@ -391,19 +391,21 @@ export default function HeroSection({ agentId, onAgentChange }) {
         </motion.div>
       )}
 
-      {/* Topic chips */}
+      {/* Topic chips — 4 clean cards */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="mt-6">
-        <p className="text-xs mb-3 text-zinc-300">{t('hero_topics')}</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          {POWER_TOPICS.map((topic) => (
+        <div className="grid grid-cols-2 gap-2">
+          {POWER_TOPICS.map((topic, i) => (
             <motion.button key={topic.label} onClick={() => setQuery(topic.prompt)}
-              whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}
-              className="px-3.5 py-1.5 text-xs font-medium border border-black/10 rounded-full text-zinc-600 bg-white hover:bg-fg hover:text-white hover:border-fg transition-all">
-              {topic.label}
+              whileHover={{ scale: 1.025, y: -2 }} whileTap={{ scale: 0.97 }}
+              className="text-left px-4 py-3.5 bg-white rounded-2xl border transition-all"
+              style={{ borderColor: 'rgba(0,0,0,0.08)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'}>
+              <p className="text-sm font-black" style={{ color: '#0A0A0A' }}>{topic.label}</p>
             </motion.button>
           ))}
         </div>

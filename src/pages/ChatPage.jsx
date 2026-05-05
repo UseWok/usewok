@@ -302,6 +302,56 @@ export default function ChatPage() {
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
 
+    // ── Triple-dot: deep synthesis barrier message, no API ──
+    if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...messages, userMsg];
+      setMessages(newMessages);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      startProgress();
+
+      const steps = [
+        { label: 'Reading intent & financial context', param: 'Intent ✓' },
+        { label: 'Mapping your financial parameters', param: null },
+        { label: 'Running multi-scenario projections', param: null },
+        { label: 'Validating assumptions & constraints', param: null },
+        { label: 'Structuring final synthesis', param: null },
+      ];
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+      let step = 0;
+      const stepInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) setSynthProgress(p => ({ ...p, currentStep: step }));
+        else clearInterval(stepInterval);
+      }, 700);
+
+      await new Promise(r => setTimeout(r, steps.length * 700 + 600));
+      clearInterval(stepInterval);
+      setSynthProgress(p => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise(r => setTimeout(r, 500));
+      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+
+      stopProgress();
+      setIsLoading(false);
+
+      const DEEP_REPLIES = [
+        "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
+        "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
+        "Synthesis engine primed. What’s the question you want to go deep on?",
+        "Analysis framework ready — hit me with the real question.",
+      ];
+      const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {} }
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
+
     // ── Dot-dot mode: message ending with ".." — no API, just consume 1 flash ──
     if (text.trimEnd().endsWith('..')) {
       const userMsg = { role: 'user', content: text };
@@ -389,12 +439,20 @@ export default function ChatPage() {
     const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
     const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
     const DEPTH_MAP = { concise: 'très concis et percutant', balanced: 'équilibré', deep: 'analyse complète et exhaustive' };
+    const VOICE_MAP = { human: 'chaud et empathique comme un ami brillant', robotic: 'précis et data-driven, zéro remplissage', hybrid: 'chaleur + précision — le meilleur des deux' };
+    const STATUS_MAP = { freelancer: 'Freelancer (revenus variables)', employed: 'Salarié (salaire stable)', entrepreneur: 'Entrepreneur (réinvestit ses profits)', student: 'Étudiant (construit les bases)' };
+    const SAVINGS_MAP = { none: 'Début (<5k)', small: 'En construction (5k–20k)', medium: 'Base solide (20k–100k)', large: 'Patrimoine croissant (>100k)' };
+    const AGE_MAP = { young: '18–25 ans', mid: '26–35 ans', mature: '36–45 ans', '46plus': '46+ ans' };
     const dnaLines = [];
     if (currentUser?.ai_vision) dnaLines.push(`- Vision de vie : ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
     if (currentUser?.ai_personality) dnaLines.push(`- Ton caractère : ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
-    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or à ne jamais enfreindre : "${currentUser.ai_golden_rule}"`);
-    if (currentUser?.ai_tone) dnaLines.push(`- Style de communication : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
-    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur d'analyse : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
+    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or : "${currentUser.ai_golden_rule}"`);
+    if (currentUser?.ai_tone) dnaLines.push(`- Style : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
+    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
+    if (currentUser?.ai_voice) dnaLines.push(`- Voix IA : ${VOICE_MAP[currentUser.ai_voice] || currentUser.ai_voice}`);
+    if (currentUser?.ai_status) dnaLines.push(`- Statut professionnel : ${STATUS_MAP[currentUser.ai_status] || currentUser.ai_status}`);
+    if (currentUser?.ai_savings) dnaLines.push(`- Épargne actuelle : ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
+    if (currentUser?.ai_age) dnaLines.push(`- Tranche d'âge : ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
     if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
     const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
 
