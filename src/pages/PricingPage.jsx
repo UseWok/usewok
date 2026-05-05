@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 // welcome-offer imports removed
-import { Check, Zap, Wifi, WifiOff } from 'lucide-react';
+import { Check, Zap, Wifi, WifiOff, ChevronDown } from 'lucide-react';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { getPlansConfig, getUserPlan } from '@/lib/plans-config';
+import { getPlansConfig, getUserPlan, loadPlansFromDB } from '@/lib/plans-config';
 import { useLanguage } from '@/lib/i18n';
 import { saveCart, clearCart } from './CheckoutPage';
 
@@ -20,13 +20,15 @@ export default function PricingPage() {
   const hasValidCart = savedCart && Date.now() - (savedCart.ts || 0) < 24 * 60 * 60 * 1000;
   const cartPlan = hasValidCart ? (() => { const all = getPlansConfig(); return all.find(p => p.id === savedCart.planId); })() : null;
   const dismissCart = () => { clearCart(); setSavedCart(null); }; // eslint-disable-line
-  const [plans] = useState(() => {
+  const [plans, setPlans] = useState(() => {
     const all = getPlansConfig();
     return [...all].filter(p => p.id !== 'free').reverse();
   });
   const [billing, setBilling] = useState('yearly');
   const [purchased, setPurchased] = useState(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [highlightedPlanId, setHighlightedPlanId] = useState('advanced');
+  const [expandedTier, setExpandedTier] = useState(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -35,10 +37,11 @@ export default function PricingPage() {
       setUser(u);
       setPurchased(u?.subscription_plan || 'free');
     }).catch(() => {});
-    // Load event checkout URLs
     base44.entities.AppSettings.filter({ key: 'checkout_urls_event' }).then(results => {
       if (results.length > 0) { try { setEventCheckoutUrls(JSON.parse(results[0].value)); } catch {} }
     }).catch(() => {});
+    loadPlansFromDB().then(p => { if (p) setPlans([...p].filter(pl => pl.id !== 'free').reverse()); }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'highlighted_plan' }).then(r => { if (r.length > 0) setHighlightedPlanId(r[0].value); }).catch(() => {});
   }, []);
 
   const handleChoose = (plan) => {
@@ -107,7 +110,7 @@ export default function PricingPage() {
             const basePrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
             const price = basePrice;
             const isCurrentPlan = purchased === plan.id;
-            const isAdvanced = plan.id === 'advanced';
+            const isHighlighted = plan.id === highlightedPlanId;
 
             return (
               <motion.div key={plan.id}
@@ -115,9 +118,9 @@ export default function PricingPage() {
                 className="flex flex-col relative flex-shrink-0 w-72 md:w-auto"
                 style={{ scrollSnapAlign: 'start',
                   background: 'white',
-                  border: isAdvanced ? '2px solid rgba(0,0,0,0.85)' : '1px solid rgba(0,0,0,0.09)',
+                  border: isHighlighted ? '2px solid rgba(0,0,0,0.85)' : '1px solid rgba(0,0,0,0.09)',
                   borderRadius: '5px',
-                  boxShadow: isAdvanced ? '0 4px 20px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.03)',
+                  boxShadow: isHighlighted ? '0 4px 20px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.03)',
                 }}>
 
                 <div className="p-5 flex flex-col flex-1">
@@ -174,6 +177,25 @@ export default function PricingPage() {
                     ))}
                   </ul>
 
+                  {/* Tier options dropdown */}
+                  {plan.tier_options?.length > 0 && (
+                    <div className="mb-4 rounded-sm overflow-hidden" style={{ border: '1.5px solid rgba(0,0,0,0.85)' }}>
+                      <button onClick={() => setExpandedTier(et => et === plan.id ? null : plan.id)}
+                        className="w-full px-3 py-2.5 flex items-start gap-2 hover:bg-black/[0.02] transition-colors">
+                        <div className="flex-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-left">
+                          {(expandedTier === plan.id ? plan.tier_options : plan.tier_options.slice(0, 2)).map((opt, i) => (
+                            <p key={i} className="text-xs">
+                              <span className="font-semibold" style={{ color: FG }}>{opt.label}</span>
+                              <span className="ml-1" style={{ color: '#bbb' }}>{opt.sublabel}</span>
+                            </p>
+                          ))}
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
+                          style={{ color: '#999', transform: expandedTier === plan.id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      </button>
+                    </div>
+                  )}
+
                   {/* CTA */}
                   <button
                     onClick={() => handleChoose(plan)}
@@ -181,7 +203,7 @@ export default function PricingPage() {
                     style={{
                       borderRadius: '3px',
                       border: isCurrentPlan ? `2px solid ${FG}` : 'none',
-                      background: isCurrentPlan ? 'transparent' : isAdvanced ? FG : FG,
+                      background: isCurrentPlan ? 'transparent' : FG,
                       color: isCurrentPlan ? FG : 'white',
                       cursor: 'pointer',
                     }}>

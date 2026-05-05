@@ -60,9 +60,13 @@ export default function LandingPricingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const [billing, setBilling] = useState('monthly');
+  const [highlightedPlanId, setHighlightedPlanId] = useState('advanced');
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
 
-  useEffect(() => { loadPlansFromDB().then(p => { if (p) setPlansConfig(p); }); }, []);
+  useEffect(() => {
+    loadPlansFromDB().then(p => { if (p) setPlansConfig(p); });
+    base44.entities.AppSettings.filter({ key: 'highlighted_plan' }).then(r => { if (r.length > 0) setHighlightedPlanId(r[0].value); }).catch(() => {});
+  }, []);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', h, { passive: true });
@@ -161,7 +165,7 @@ export default function LandingPricingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             {plans.map((plan, i) => {
               const features = (plan.features?.length > 0) ? plan.features : (PLAN_FEATURES[plan.id] || []);
-              const isHighlighted = plan.id === 'advanced';
+              const isHighlighted = plan.id === highlightedPlanId;
               const price = billing === 'yearly'
                 ? Math.round((plan.price_monthly || 0) * 0.8)
                 : (plan.price_monthly || 0);

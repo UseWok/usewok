@@ -357,6 +357,11 @@ export default function ChatPage() {
       ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n`
       : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
+    // Last 4 messages as context (never full history)
+    const recentMsgs = messages.slice(-4);
+    const historyContext = recentMsgs.length > 0
+      ? '\n\n--- Recent conversation ---\n' + recentMsgs.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 500)}`).join('\n\n') + '\n---\n\n'
+      : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
@@ -396,7 +401,7 @@ Input: ${text.slice(0, 400)}`;
         if (typeof pRes === 'string' && pRes.trim()) proposalMsg = pRes.trim().replace(/^"|"$/g, '');
       } catch {}
 
-      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser };
+      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
       stopProgress();
       setIsLoading(false);
       setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
@@ -407,7 +412,7 @@ Input: ${text.slice(0, 400)}`;
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({
-        prompt: systemContext + text + fileInstruction,
+        prompt: systemContext + historyContext + text + fileInstruction,
         model: 'gemini_3_flash',
         add_context_from_internet: useInternet,
         ...(file_urls.length > 0 ? { file_urls } : {}),
@@ -458,7 +463,7 @@ Input: ${text.slice(0, 400)}`;
     if (!pending) return;
     synthPendingRef.current = null;
 
-    const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser } = pending;
+    const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext = '' } = pending;
 
     setMessages(newMessages);
     setIsLoading(true);
@@ -487,7 +492,7 @@ Input: ${text.slice(0, 400)}`;
       let deepResult = null;
       try {
         deepResult = await base44.integrations.Core.InvokeLLM({
-          prompt: systemContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
+          prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
           model: 'gemini_3_1_pro',
           add_context_from_internet: useInternet,
           ...(file_urls.length > 0 ? { file_urls } : {}),
@@ -503,7 +508,7 @@ Input: ${text.slice(0, 400)}`;
       let quickResult = null;
       try {
         quickResult = await base44.integrations.Core.InvokeLLM({
-          prompt: systemContext + text + fileInstruction,
+          prompt: systemContext + historyContext + text + fileInstruction,
           model: 'gemini_3_flash',
           add_context_from_internet: useInternet,
           ...(file_urls.length > 0 ? { file_urls } : {}),

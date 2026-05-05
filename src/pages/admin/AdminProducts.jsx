@@ -4,7 +4,7 @@ import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard,
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB, AGENT_TONE_OPTIONS, AGENT_LENGTH_OPTIONS, AGENT_LANGUAGE_OPTIONS, AGENT_EMOJI_OPTIONS } from '@/lib/agents-config';
-import { getPlansConfig, savePlansConfig, DEFAULT_PLANS } from '@/lib/plans-config';
+import { getPlansConfig, savePlansConfig, DEFAULT_PLANS, loadPlansFromDB } from '@/lib/plans-config';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
@@ -42,6 +42,7 @@ export default function AdminProducts() {
   const [pageModes, setPageModes] = useState({ parcours: 'live', community: 'live' });
   const [saveTimeouts, setSaveTimeouts] = useState({});
   const [codesInput, setCodesInput] = useState({});
+  const [highlightedPlan, setHighlightedPlan] = useState('advanced');
 
   const qc = useQueryClient();
 
@@ -51,6 +52,8 @@ export default function AdminProducts() {
 
   useEffect(() => {
     initAgentsFromDB().then(configs => setAgentsConfig(configs)).catch(() => {});
+    loadPlansFromDB().then(plans => { if (plans) setPlansConfig(plans); }).catch(() => {});
+    base44.entities.AppSettings.filter({ key: 'highlighted_plan' }).then(r => { if (r.length > 0) setHighlightedPlan(r[0].value); }).catch(() => {});
     base44.entities.ActivationCode.list('-created_date', 8000).then(codes => {
       const grouped = {};
       codes.forEach(code => {
@@ -235,6 +238,20 @@ export default function AdminProducts() {
                 ))}
               </div>
               <button onClick={() => saveAppSetting('community_urls', communityUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-white rounded-sm hover:opacity-90">Save</button>
+            </div>
+
+            {/* Highlighted plan setting */}
+            <div className="mb-6 p-4 border border-border rounded-sm">
+              <p className="text-xs font-black uppercase tracking-wider mb-2 text-muted-foreground">Plan mis en avant (bordure noire)</p>
+              <div className="flex gap-2 flex-wrap mb-3">
+                {plansConfig.map(p => (
+                  <button key={p.id} onClick={() => setHighlightedPlan(p.id)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-sm transition-colors ${highlightedPlan === p.id ? 'bg-fg text-white' : 'bg-muted text-muted-foreground'}`}>
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => saveAppSetting('highlighted_plan', highlightedPlan)} className="px-4 py-2 text-xs font-bold bg-fg text-white rounded-sm hover:opacity-90">Sauvegarder</button>
             </div>
 
             <div className="flex items-center justify-between mb-4">

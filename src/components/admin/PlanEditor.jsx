@@ -134,6 +134,23 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                     </div>
                   ))}
                 </div>
+                <div className="md:col-span-2 mt-3 pt-3 border-t border-border">
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-1 text-muted-foreground">Gammes déroulantes (tier options)</p>
+                  <p className="text-[10px] text-muted-foreground/60 mb-2">Une option par ligne — format: "Label | Sous-label" (ex: 1.2k Crédits | /mois)</p>
+                  <textarea
+                    value={(plan.tier_options || []).map(o => `${o.label} | ${o.sublabel}`).join('\n')}
+                    onChange={e => {
+                      const opts = e.target.value.split('\n').filter(l => l.trim()).map(l => {
+                        const [label = '', sublabel = '/mois'] = l.split('|').map(s => s.trim());
+                        return { label, sublabel };
+                      });
+                      onChange({ ...plan, tier_options: opts });
+                    }}
+                    rows={3}
+                    placeholder={"1.2k Crédits mensuels | /mois\n50k Crédits d'intégration | /mois"}
+                    className="w-full px-3 py-2 text-xs border border-border rounded-sm bg-muted/30 focus:outline-none resize-none"
+                  />
+                </div>
               </div>
             </div>
           </motion.div>
