@@ -22,7 +22,6 @@ export default function SynthesisProposal({ content, onLaunch, onSkip, disabled 
         {/* Message + action inline */}
         <div
           className="px-4 py-3.5 rounded-sm border border-border shadow-sm bg-white"
-          style={{ borderLeft: `3px solid ${YUZU}` }}
         >
           <p className="text-sm leading-relaxed text-fg mb-3">{content}</p>
 
@@ -42,7 +41,7 @@ export default function SynthesisProposal({ content, onLaunch, onSkip, disabled 
               style={{ background: FG, color: YUZU }}
             >
               <Sparkles className="w-3 h-3" />
-              Launch Synthesis
+              Lancer
             </button>
           </div>
         </div>

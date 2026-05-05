@@ -97,9 +97,7 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Features</p>
-                  <FieldToggle plan={plan} fieldKey="can_choose_model" label="Choose AI model" onChange={onChange} />
                   <FieldToggle plan={plan} fieldKey="internet_access" label="Internet search" onChange={onChange} />
-                  <FieldToggle plan={plan} fieldKey="ultimate_access" label="Ultimate mode" onChange={onChange} />
                   <FieldToggle plan={plan} fieldKey="file_upload" label="File upload" onChange={onChange} />
                   <div className="flex items-center justify-between py-2 border-b border-border/50">
                     <span className="text-xs text-muted-foreground">Upload type</span>
@@ -115,24 +113,13 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                   <FieldToggle plan={plan} fieldKey="premium_support" label="Premium support" onChange={onChange} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3 text-muted-foreground">Limits</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3 text-muted-foreground">Consumption</p>
+                  <FieldNumber plan={plan} fieldKey="credits_limit" label="Flash / month" onChange={onChange} min={1} />
+                  <FieldNumber plan={plan} fieldKey="deep_credits_limit" label="Deep Syntheses / month (0=unlimited)" onChange={onChange} />
+                  <FieldNumber plan={plan} fieldKey="flash_cost" label="Flash cost per message" onChange={onChange} min={1} />
+                  <FieldNumber plan={plan} fieldKey="deep_cost" label="Deep Synthesis cost" onChange={onChange} min={1} />
+                  <FieldNumber plan={plan} fieldKey="daily_credits_limit" label="Daily limit (0=unlimited)" onChange={onChange} />
                   <FieldNumber plan={plan} fieldKey="max_discussions" label="Max discussions (0=unlimited)" onChange={onChange} />
-                  <FieldNumber plan={plan} fieldKey="daily_credits_limit" label="AI replies/day (0=unlimited)" onChange={onChange} />
-                  <FieldNumber plan={plan} fieldKey="lessons_per_month" label="Lessons/month" onChange={onChange} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-2 mt-3 text-muted-foreground">Allowed AI modes</p>
-                  {[{ id: 'thinking', label: 'Standard (1T)' }, { id: 'pro', label: 'Advanced (2T)' }, { id: 'ultimate', label: 'Expert (4T)' }].map(({ id: modeId, label: modeLabel }) => (
-                    <div key={modeId} className="flex items-center justify-between py-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground">{modeLabel}</span>
-                      <Toggle
-                        value={plan.allowed_modes?.includes(modeId)}
-                        onChange={v => {
-                          const modes = plan.allowed_modes || [];
-                          onChange({ ...plan, allowed_modes: v ? [...modes, modeId] : modes.filter(m => m !== modeId) });
-                        }} />
-                    </div>
-                  ))}
                 </div>
                 <div className="md:col-span-2 mt-3 pt-3 border-t border-border">
                   <p className="text-[10px] font-black uppercase tracking-wider mb-1 text-muted-foreground">Tier options dropdown</p>

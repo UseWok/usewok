@@ -694,7 +694,13 @@ Input: ${text.slice(0, 400)}`;
             {msg.role === 'synthesis_proposal'
               ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
               : msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} />
+              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} fakeButton={msg._fakeButton} onFakeLaunch={msg._fakeButton ? async () => {
+                  // Remove fake button, run fake deep synthesis
+                  setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
+                  const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
+                  synthPendingRef.current = pending;
+                  await continueSynthesis(true);
+                } : undefined} />
               : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
             }
           </motion.div>

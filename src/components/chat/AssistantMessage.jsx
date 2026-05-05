@@ -24,7 +24,7 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content, agent, meta }) {
+export default function AssistantMessage({ content, agent, meta, fakeButton, onFakeLaunch }) {
   const [copied, setCopied] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
@@ -96,6 +96,16 @@ export default function AssistantMessage({ content, agent, meta }) {
           </div>
         )}
 
+        {fakeButton && (
+          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <button
+              onClick={onFakeLaunch}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
+              style={{ background: FG, color: YUZU }}>
+              <span>⚡</span> Lancer
+            </button>
+          </div>
+        )}
         {sources.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1 max-w-full">
             {sources.map((s, i) => (

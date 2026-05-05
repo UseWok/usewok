@@ -209,21 +209,7 @@ export default function AdminProducts() {
               <button onClick={() => saveAppSetting('checkout_urls', checkoutUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-white rounded-sm hover:opacity-90">Save links</button>
             </div>
 
-            {/* Event checkout URLs */}
-            <div className="mb-6 p-4 border border-yuzu/40 bg-yuzu/5 rounded-sm">
-              <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">🎯 Event offer links — 30% off</p>
-              <p className="text-[10px] mb-3 text-muted-foreground">Advanced, Expert & Supreme yearly only. Active during 48h welcome window.</p>
-              <div className="space-y-3">
-                {['advanced', 'expert', 'supreme'].map(pid => (
-                  <div key={pid} className="flex items-center gap-2">
-                    <span className="text-xs font-bold w-28 flex-shrink-0 capitalize text-fg">{pid} <span className="font-normal text-muted-foreground">yearly -30%</span></span>
-                    <input value={eventCheckoutUrls[`${pid}_yearly_event`] || ''} onChange={e => setEventCheckoutUrls(u => ({ ...u, [`${pid}_yearly_event`]: e.target.value }))}
-                      placeholder="https://buy.stripe.com/..." className="flex-1 px-3 py-2 text-xs border border-border rounded-sm focus:outline-none" />
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => saveAppSetting('checkout_urls_event', eventCheckoutUrls)} className="mt-3 px-4 py-2 text-xs font-bold bg-fg text-yuzu rounded-sm hover:opacity-90">Save event links</button>
-            </div>
+
 
             {/* Community URLs */}
             <div className="mb-6 p-4 border border-border rounded-sm">

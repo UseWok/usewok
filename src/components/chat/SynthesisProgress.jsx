@@ -77,7 +77,6 @@ export default function SynthesisProgress({ steps, currentStep, done }) {
         </p>
         <div
           className="bg-white border border-border rounded-sm shadow-sm px-4 py-3.5"
-          style={{ borderLeft: `3px solid ${FG}` }}
         >
           {/* Header */}
           <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
