@@ -476,8 +476,13 @@ export default function ChatPage() {
 Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
 
 Rules:
-2 = ONLY if ALL of these are true: user EXPLICITLY asks for a deep/full/complete analysis or simulation, AND 3+ distinct financial variables require multi-step math, AND a short answer is clearly insufficient.
-1 = Everything else. Default is always 1. When in doubt: 1.
+2 = ONLY when ALL 3 conditions are met simultaneously:
+  - The question involves genuine multi-step financial calculations (e.g. compound interest over time, debt payoff schedule, retirement projection, portfolio optimization, rent vs buy with numbers)
+  - A complete answer REQUIRES structured reasoning across 3+ financial variables
+  - A short paragraph answer would be clearly insufficient or misleading
+1 = Everything else — simple questions, definitions, advice, emotional support, single-variable questions, market opinions, budget tips, comparisons without math, any greeting or follow-up.
+
+CRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.
 
 Input: ${text.slice(0, 400)}`;
         const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
