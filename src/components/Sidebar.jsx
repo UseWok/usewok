@@ -7,7 +7,7 @@ import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, 
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
 import NotificationsPopover from './sidebar/NotificationsPopover';
-import TensorsPopover from './sidebar/TensorsPopover';
+import FlashUsagePopover from './sidebar/FlashUsagePopover';
 import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
 import { getUserPlan } from '@/lib/plans-config';
@@ -227,21 +227,26 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
             )
           )}
 
-          {/* Tensors */}
+          {/* Flash battery button */}
           <button ref={tensorsRef} onClick={() => togglePopover('tensors')}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-black/5 transition-colors">
-            <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 bg-white border border-black/10 rounded-sm">
-              <span className="text-[11px] font-black text-fg">T</span>
+            {/* Battery icon */}
+            <div className="relative flex-shrink-0" style={{ width: 28, height: 28 }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                {/* Battery body */}
+                <rect x="2" y="8" width="22" height="12" rx="2.5" stroke={pct > 20 ? '#0A0A0A' : '#ef4444'} strokeWidth="1.5" fill="none" />
+                {/* Battery cap */}
+                <rect x="24" y="11" width="2.5" height="6" rx="1" fill={pct > 20 ? '#0A0A0A' : '#ef4444'} />
+                {/* Battery fill */}
+                <rect x="3.5" y="9.5" width={Math.max(0, (100 - pct) > 95 ? 0 : Math.round(19 * (1 - pct / 100)))} height="9" rx="1.5"
+                  fill="transparent" />
+                <rect x="3.5" y="9.5" width={Math.max(0.5, Math.round(19 * (1 - pct / 100)))} height="9" rx="1.5"
+                  fill={pct < 40 ? '#22c55e' : pct < 70 ? '#f59e0b' : '#ef4444'} />
+              </svg>
             </div>
             {expanded && (
               <div className="flex-1 min-w-0 text-left">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-fg">{fmtN(used)}/{fmtN(total)}</span>
-                  <span className="text-[9px] text-zinc-400">{t('tensors')}</span>
-                </div>
-                <div className="w-full h-1 rounded-full overflow-hidden bg-black/10">
-                  <div className="h-full rounded-full bg-fg transition-all" style={{ width: `${pct}%` }} />
-                </div>
+                <span className="text-[11px] font-semibold text-zinc-500">Flash usage</span>
               </div>
             )}
           </button>
@@ -268,7 +273,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
 
       <ProfilePopover open={activePopover === 'profile'} onClose={() => setActivePopover(null)} anchorRef={profileRef} user={user} userInitial={userInitial} />
       <NotificationsPopover open={activePopover === 'noti'} onClose={() => setActivePopover(null)} anchorRef={notiRef} isAdmin={isAdmin} user={user} />
-      <TensorsPopover open={activePopover === 'tensors'} onClose={() => setActivePopover(null)} anchorRef={tensorsRef} user={user} />
+      <FlashUsagePopover open={activePopover === 'tensors'} onClose={() => setActivePopover(null)} anchorRef={tensorsRef} user={user} />
     </>
   );
 }

@@ -93,7 +93,7 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Pricing</p>
                   <FieldNumber plan={plan} fieldKey="price_monthly" label="Monthly price ($)" onChange={onChange} />
                   <FieldNumber plan={plan} fieldKey="price_yearly" label="Yearly price ($)" onChange={onChange} />
-                  <FieldNumber plan={plan} fieldKey="credits_limit" label="Credits / month" onChange={onChange} min={1} />
+                  <FieldNumber plan={plan} fieldKey="credits_limit" label="Flash / month" onChange={onChange} min={1} />
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Features</p>
