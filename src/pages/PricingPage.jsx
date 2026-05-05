@@ -92,13 +92,7 @@ export default function PricingPage() {
                     boxShadow: isHighlighted ? '0 8px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
                   }}>
 
-                  {/* Popular badge */}
-                  {isHighlighted && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-[9px] font-black uppercase tracking-widest rounded-full whitespace-nowrap"
-                      style={{ background: FG, color: YUZU }}>
-                      Le plus populaire
-                    </div>
-                  )}
+
 
                   {/* Plan name */}
                   <p className="text-xl font-black mb-3" style={{ color: FG }}>{plan.name}</p>
@@ -110,17 +104,16 @@ export default function PricingPage() {
                   </div>
 
                   {/* Tier options dropdown */}
-                  {plan.tier_options?.length > 0 && (
+                  {plan.tier_options?.length > 0 && plan.tier_options.filter(o => (typeof o === 'string' ? o : o?.label)?.trim()).length > 0 && (
                     <div className="mb-5 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.12)' }}>
                       <button onClick={() => setExpandedTier(tierExpanded ? null : plan.id)}
                         className="w-full px-3.5 py-3 flex items-start justify-between hover:bg-black/[0.02] transition-colors">
                         <div className="grid grid-cols-1 gap-y-1.5 text-left flex-1">
-                          {(tierExpanded ? plan.tier_options : plan.tier_options.slice(0, 2)).map((opt, i) => (
-                            <p key={i} className="text-sm leading-tight">
-                              <span className="font-semibold" style={{ color: FG }}>{opt.label}</span>
-                              <span className="ml-1 text-xs" style={{ color: '#bbb' }}>{opt.sublabel}</span>
-                            </p>
-                          ))}
+                          {(tierExpanded ? plan.tier_options : plan.tier_options.slice(0, 2)).map((opt, i) => {
+                            const label = typeof opt === 'string' ? opt : opt?.label;
+                            if (!label?.trim()) return null;
+                            return <p key={i} className="text-sm leading-tight" style={{ color: FG }}>{label}</p>;
+                          })}
                         </div>
                         <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2 mt-0.5"
                           style={{ color: '#aaa', transform: tierExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

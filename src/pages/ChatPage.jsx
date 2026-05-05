@@ -9,7 +9,7 @@ import { ALL_MODES } from '@/lib/modes-config';
 import { completeReferralOnFirstMessage } from '@/lib/referral';
 import { getUserPlan } from '@/lib/plans-config';
 import { emitCreditsUpdate } from '@/lib/credits-events';
-import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
 import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
@@ -108,6 +108,7 @@ export default function ChatPage() {
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [showFreeDiscussionLimit, setShowFreeDiscussionLimit] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(0);
+  const [freeDaysLeft, setFreeDaysLeft] = useState(null);
   const [milestoneShown, setMilestoneShown] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
@@ -142,12 +143,34 @@ export default function ChatPage() {
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
+    // Check free plan discussion expiry
+    if (conversationId) {
+      try {
+        const discs = getDiscussions();
+        const disc = discs.find(d => d.id === conversationId);
+        if (disc) {
+          const plan = getUserPlan(null); // will be updated below
+          const d = getDiscussionDaysLeft(disc);
+          setFreeDaysLeft(d);
+        }
+      } catch {}
+    }
     base44.auth.me().then(u => {
       setUser(u);
       if (u?.id) setCurrentUser(u.id);
       setCreditsUsed(u?.credits_used ?? 0);
       const plan = getUserPlan(u);
       setUserPlan(plan);
+      const isFreeUser = !plan || plan.price_monthly === 0;
+      if (isFreeUser && conversationId) {
+        try {
+          const discs = getDiscussions();
+          const disc = discs.find(d => d.id === conversationId);
+          if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
+        } catch {}
+      } else {
+        setFreeDaysLeft(null);
+      }
       if (modeId && plan.allowed_modes?.includes(modeId)) {
         const urlMode = ALL_MODES.find(m => m.id === modeId);
         if (urlMode) setMode(urlMode);
@@ -278,6 +301,28 @@ export default function ChatPage() {
   // ── Send message (main) ────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
+
+    // ── Dot-dot mode: message ending with ".." — no API, just consume 1 flash ──
+    if (text.trimEnd().endsWith('..')) {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...messages, userMsg];
+      setMessages(newMessages);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      startProgress();
+      await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+      stopProgress();
+      setIsLoading(false);
+      const reply = 'b';
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {} }
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
 
     let currentUser = user;
     if (!currentUser) {
@@ -554,6 +599,16 @@ Input: ${text.slice(0, 400)}`;
         user={user} mode={mode} hasInternet={hasInternet && useWebSearch}
         agentLabel={agentLabel} onUpgradeClick={() => handleUpgradeRequest('')}
       />
+
+      {/* Free plan 14-day warning */}
+      {freeDaysLeft !== null && freeDaysLeft <= 7 && (
+        <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <span style={{ color: freeDaysLeft <= 2 ? '#ef4444' : '#92400e' }}>
+            ⏱ This conversation will be deleted in <strong>{freeDaysLeft} day{freeDaysLeft !== 1 ? 's' : ''}</strong> (free plan — 14 day limit)
+          </span>
+          <button onClick={() => navigate('/pricing')} className="ml-3 text-[10px] font-black px-2 py-1 rounded-sm flex-shrink-0" style={{ background: '#0A0A0A', color: 'white' }}>Upgrade</button>
+        </div>
+      )}
 
       {/* Messages area */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 md:px-8 py-4 space-y-4 max-w-3xl mx-auto w-full">

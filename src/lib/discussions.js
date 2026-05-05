@@ -74,6 +74,27 @@ export async function loadConversationTitleFromCloud(convId) {
   return null;
 }
 
+// Auto-purge discussions older than 14 days (free plan)
+export function purgeOldFreeDiscussions() {
+  try {
+    const all = getDiscussions();
+    const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    const kept = all.filter(d => {
+      const t = d.updatedAt || new Date(d.date || 0).getTime();
+      return t > cutoff;
+    });
+    if (kept.length < all.length) saveDiscussions(kept);
+    return kept;
+  } catch { return getDiscussions(); }
+}
+
+export function getDiscussionDaysLeft(disc) {
+  const t = disc.updatedAt || new Date(disc.date || 0).getTime();
+  const elapsed = Date.now() - t;
+  const remaining = 14 * 24 * 60 * 60 * 1000 - elapsed;
+  return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+}
+
 // Load all cloud discussions for sidebar — filtered to current user
 export async function loadDiscussionsFromCloud() {
   try {

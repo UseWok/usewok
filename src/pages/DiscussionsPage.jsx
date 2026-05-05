@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useDiscussions, useDeleteDiscussion, useRenameDiscussion } from '@/lib/useDiscussions';
+import { purgeOldFreeDiscussions, getDiscussionDaysLeft } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
@@ -38,10 +39,14 @@ export default function DiscussionsPage() {
   const contextRef = useRef(null);
   const navigate = useNavigate();
 
+  const isFree = !userPlan || userPlan.price_monthly === 0;
+
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      setUserPlan(getUserPlan(u));
+      const plan = getUserPlan(u);
+      setUserPlan(plan);
+      if (!plan || plan.price_monthly === 0) purgeOldFreeDiscussions();
     }).catch(() => {});
   }, []);
 
@@ -244,6 +249,7 @@ export default function DiscussionsPage() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-[10px]" style={{ color: '#ccc' }}>{formatDate(disc.date)}</span>
+                  {isFree && (() => { const d = getDiscussionDaysLeft(disc); return d <= 7 ? <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}>{d}d left</span> : null; })()}
                   <button onClick={e => { e.stopPropagation(); setContextMenu({ id: disc.id, x: e.clientX, y: e.clientY }); }}
                     className="w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>

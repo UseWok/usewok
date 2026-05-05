@@ -234,14 +234,12 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
             <div className="relative flex-shrink-0" style={{ width: 28, height: 28 }}>
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
                 {/* Battery body */}
-                <rect x="2" y="8" width="22" height="12" rx="2.5" stroke={pct > 20 ? '#0A0A0A' : '#ef4444'} strokeWidth="1.5" fill="none" />
+                <rect x="2" y="8" width="22" height="12" rx="2.5" stroke="#0A0A0A" strokeWidth="1.5" fill="none" />
                 {/* Battery cap */}
-                <rect x="24" y="11" width="2.5" height="6" rx="1" fill={pct > 20 ? '#0A0A0A' : '#ef4444'} />
-                {/* Battery fill */}
-                <rect x="3.5" y="9.5" width={Math.max(0, (100 - pct) > 95 ? 0 : Math.round(19 * (1 - pct / 100)))} height="9" rx="1.5"
-                  fill="transparent" />
+                <rect x="24" y="11" width="2.5" height="6" rx="1" fill="#0A0A0A" />
+                {/* Battery fill — remaining */}
                 <rect x="3.5" y="9.5" width={Math.max(0.5, Math.round(19 * (1 - pct / 100)))} height="9" rx="1.5"
-                  fill={pct < 40 ? '#22c55e' : pct < 70 ? '#f59e0b' : '#ef4444'} />
+                  fill={pct >= 95 ? '#ef4444' : '#22c55e'} />
               </svg>
             </div>
             {expanded && (
