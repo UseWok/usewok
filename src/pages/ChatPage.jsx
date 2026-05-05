@@ -476,13 +476,8 @@ export default function ChatPage() {
 Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
 
 Rules:
-2 = ANY of these:
-- User explicitly asks for: an analysis (analyse, analyser, analyse complète, analysez), a plan (plan, plan d'action, fais-moi un plan), a strategy (stratégie), a simulation, a projection, a comparison (compare, versus), calculations (calcule, chiffre), a roadmap, a diagnosis.
-- Complex multi-step financial math: debt payoff schedules, portfolio optimization, tax forecasting, FIRE calculations, mortgage vs rent analysis, multi-scenario projections.
-- Questions with multiple financial variables that require structured reasoning.
-1 = Everything else: casual chat, greetings, simple definitions, emotional support, quick yes/no questions, simple expense logging, factual lookups.
-
-Bias: When in doubt between 1 and 2, prefer 2.
+2 = ONLY if ALL of these are true: user EXPLICITLY asks for a deep/full/complete analysis or simulation, AND 3+ distinct financial variables require multi-step math, AND a short answer is clearly insufficient.
+1 = Everything else. Default is always 1. When in doubt: 1.
 
 Input: ${text.slice(0, 400)}`;
         const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
@@ -495,14 +490,13 @@ Input: ${text.slice(0, 400)}`;
 
     // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
     if (routeDecision === '2') {
-      let proposalMsg = "This question deserves a Deep Synthesis — a structured multi-step analysis for a precise, reliable answer.";
-      try {
-        const pRes = await base44.integrations.Core.InvokeLLM({
-          prompt: `You are Stensor, a warm financial AI coach. The user asked: "${text.slice(0, 200)}". Write ONE short confident sentence in English (max 14 words) suggesting a deeper analysis would unlock a more powerful answer. No jargon.`,
-          model: 'gemini_3_flash',
-        });
-        if (typeof pRes === 'string' && pRes.trim()) proposalMsg = pRes.trim().replace(/^"|"$/g, '');
-      } catch {}
+      const PROPOSAL_MSGS = [
+        "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
+        "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.",
+        "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.",
+        "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!",
+      ];
+      let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
 
       synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
       stopProgress();

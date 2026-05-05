@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Zap, ChevronRight } from 'lucide-react';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
@@ -19,29 +19,28 @@ export default function SynthesisProposal({ content, onLaunch, onSkip, disabled 
       <div className="flex flex-col gap-2.5 max-w-[82%]">
         <p className="text-[10px] font-semibold px-1 text-muted-foreground">Stensor</p>
 
-        {/* Message + action inline */}
-        <div
-          className="px-4 py-3.5 rounded-sm border border-border shadow-sm bg-white"
-        >
-          <p className="text-sm leading-relaxed text-fg mb-3">{content}</p>
+        <div className="px-4 py-3.5 rounded-sm border border-border shadow-sm bg-white">
+          <p className="text-sm leading-relaxed text-fg mb-4">{content}</p>
 
-          {/* Buttons row */}
-          <div className="flex items-center gap-2 justify-end">
+          {/* Two square-rect buttons side by side */}
+          <div className="flex items-center gap-2">
             <button
               onClick={onSkip}
               disabled={disabled}
-              className="px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-fg hover:bg-muted rounded-md transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-sm border transition-all disabled:opacity-40 hover:bg-muted"
+              style={{ borderColor: 'rgba(0,0,0,0.15)', color: '#444' }}
             >
-              Quick answer
+              <Zap className="w-3 h-3" style={{ color: '#888' }} />
+              Continue Flash
             </button>
             <button
               onClick={onLaunch}
               disabled={disabled}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black rounded-md transition-all disabled:opacity-40 hover:opacity-90"
+              className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-black rounded-sm transition-all disabled:opacity-40 hover:opacity-90"
               style={{ background: FG, color: YUZU }}
             >
               <Sparkles className="w-3 h-3" />
-              Lancer
+              Launch Deep
             </button>
           </div>
         </div>
