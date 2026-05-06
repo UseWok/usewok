@@ -72,10 +72,10 @@ const AuthenticatedApp = () => {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Navigate to="/app" replace />} />
+        <Route path="/chat" element={<ChatPage />} />
         <Route element={<Layout />}>
           <Route path="/app" element={<Home />} />
           <Route path="/projects" element={<AllProjects />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/checkout" element={<CheckoutPage />} />
