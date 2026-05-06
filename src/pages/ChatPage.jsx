@@ -142,6 +142,8 @@ export default function ChatPage() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
   const [convTitleDisplay, setConvTitleDisplay] = useState('');
+  const [ficheContent, setFicheContent] = useState(null);
+  const [fichePending, setFichePending] = useState(false);
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -258,6 +260,8 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
         saveConversationMessages(convId, finalMsgs);
         syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
+        setFicheContent(content);
+        setFichePending(false);
         return;
       }
       if (i < content.length) {
@@ -268,6 +272,8 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
         saveConversationMessages(convId, finalMsgs);
         syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
+        setFicheContent(content);
+        setFichePending(false);
       }
     };
     typeNext();
@@ -590,6 +596,7 @@ Input: ${text.slice(0, 400)}`;
     setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
+    setFichePending(true);
     runTypewriter(content, newMessages, msgMeta, convTitle, text);
 
     // Milestone toast
@@ -684,6 +691,7 @@ Input: ${text.slice(0, 400)}`;
     setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
+    setFichePending(true);
     runTypewriter(content, newMessages, msgMeta, convTitle, text);
   }, [mode, currentAgent, convId, runTypewriter]);
 
@@ -711,10 +719,10 @@ Input: ${text.slice(0, 400)}`;
       )}
 
       {/* Split-screen workspace */}
-      <div className="flex flex-1 overflow-hidden" style={{ padding: '0', gap: '1px', background: 'rgba(0,0,0,0.08)' }}>
+      <div className="flex flex-1 overflow-hidden" style={{ gap: '1px', background: 'rgba(0,0,0,0.06)' }}>
 
         {/* LEFT: Chat — 30% */}
-        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', overflow: 'hidden', background: '#F2F4FB' }}>
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {isLoadingConversation && (
               <div className="flex gap-2 justify-start">
@@ -773,7 +781,7 @@ Input: ${text.slice(0, 400)}`;
 
         {/* RIGHT: Fiche — 70% */}
         <div className="flex-1 overflow-hidden" style={{ background: 'white' }}>
-          <FichePanel messages={messages} />
+          <FichePanel content={ficheContent} loading={fichePending} />
         </div>
 
       </div>

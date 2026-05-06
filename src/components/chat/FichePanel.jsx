@@ -1,19 +1,10 @@
-import { useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Search, BarChart2, Edit3, BookOpen, Layers } from 'lucide-react';
 
 const FG = '#0A0A0A';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
-
-const SIDE_ICONS = [
-  { icon: Search, label: 'Recherche' },
-  { icon: BarChart2, label: 'Graphiques' },
-  { icon: Edit3, label: 'Éditer' },
-  { icon: BookOpen, label: 'Lire' },
-  { icon: Layers, label: 'Sections' },
-];
 
 function FicheContent({ content }) {
   return (
@@ -36,10 +27,10 @@ function FicheContent({ content }) {
           ),
           code: ({ inline, children }) => inline
             ? <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '1px 6px', fontSize: '12px', fontFamily: 'monospace' }}>{children}</code>
-            : <pre style={{ background: '#f6f6f4', borderRadius: '10px', padding: '14px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace' }}>{children}</code></pre>,
+            : <pre style={{ background: '#f6f6f4', borderRadius: '6px', padding: '14px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace' }}>{children}</code></pre>,
           hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.07)', margin: '20px 0' }} />,
           table: ({ children }) => (
-            <div style={{ overflowX: 'auto', margin: '14px 0', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.08)' }}>
+            <div style={{ overflowX: 'auto', margin: '14px 0', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.08)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>{children}</table>
             </div>
           ),
@@ -54,58 +45,71 @@ function FicheContent({ content }) {
   );
 }
 
-export default function FichePanel({ messages = [] }) {
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4 px-10 py-10">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.07)', width: `${60 + i * 10}%` }} />
+          <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.05)', width: `${80 + i * 5}%` }} />
+          <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.04)', width: '70%' }} />
+        </div>
+      ))}
+      <div className="h-px" style={{ background: 'rgba(0,0,0,0.05)' }} />
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.07)', width: `${50 + i * 15}%` }} />
+          <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.05)', width: `${75 + i * 5}%` }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function FichePanel({ content = null, loading = false }) {
   const scrollRef = useRef(null);
 
-  // Extract last substantive assistant message as the fiche
-  const ficheMessages = messages.filter(m => m.role === 'assistant' && m.content?.length > 40);
+  useEffect(() => {
+    if (content && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [content]);
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      {/* Left icon rail */}
-      <div className="w-10 flex-shrink-0 flex flex-col items-center gap-1 py-4"
-        style={{ borderRight: '1px solid rgba(0,0,0,0.05)' }}>
-        {SIDE_ICONS.map(({ icon: Icon, label }) => (
-          <button key={label} title={label}
-            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-black/6"
-            style={{ color: '#bbb' }}>
-            <Icon className="w-3.5 h-3.5" />
-          </button>
-        ))}
-      </div>
-
-      {/* Main fiche content */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-10 py-10">
+    <div className="flex h-full w-full overflow-hidden bg-white">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
-          {ficheMessages.length === 0 ? (
-            <motion.div
-              key="empty"
+          {loading ? (
+            <motion.div key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4"
-              style={{ opacity: 0.15 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}>
+              <LoadingSkeleton />
+            </motion.div>
+          ) : content ? (
+            <motion.div key={content.slice(0, 40)}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="px-10 py-10"
             >
-              <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
-              <p className="text-sm font-semibold" style={{ color: FG }}>
-                La fiche apparaîtra ici
-              </p>
-              <p className="text-xs text-center max-w-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>
-                Posez une question dans le chat pour générer votre analyse financière.
-              </p>
+              <FicheContent content={content} />
             </motion.div>
           ) : (
-            <motion.div
-              key="content"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+            <motion.div key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4"
+              style={{ opacity: 0.12 }}
             >
-              {ficheMessages.map((msg, i) => (
-                <div key={i} className={i < ficheMessages.length - 1 ? 'mb-10 pb-10' : ''}
-                  style={i < ficheMessages.length - 1 ? { borderBottom: '1px solid rgba(0,0,0,0.06)' } : {}}>
-                  <FicheContent content={msg.content} />
-                </div>
-              ))}
+              <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
+              <p className="text-sm font-semibold" style={{ color: FG }}>La réponse apparaîtra ici</p>
+              <p className="text-xs text-center max-w-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>
+                Posez une question pour générer votre analyse.
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
