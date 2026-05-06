@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -13,7 +14,8 @@ import { getDiscussions, saveDiscussions, getConversationMessages, saveConversat
 import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
-import ChatTopBar from '@/components/chat/ChatTopBar';
+import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
+import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
@@ -140,6 +142,7 @@ export default function ChatPage() {
   const [milestoneShown, setMilestoneShown] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
+  const [convTitleDisplay, setConvTitleDisplay] = useState('');
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -584,6 +587,7 @@ Input: ${text.slice(0, 400)}`;
     const convTitle = await buildTitle(text, newMessages);
     saveToDiscussions(convTitle, text);
 
+    setConvTitleDisplay(convTitle);
     setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
@@ -690,9 +694,9 @@ Input: ${text.slice(0, 400)}`;
 
   return (
     <div className="flex flex-col font-open" style={{ height: 'calc(100dvh - 16px)', margin: '8px', borderRadius: '16px', background: 'white', overflow: 'hidden', boxShadow: '0 0 0 1px rgba(0,0,0,0.07)' }}>
-      <ChatTopBar
-        user={user} mode={mode} hasInternet={hasInternet && useWebSearch}
-        agentLabel={agentLabel} onUpgradeClick={() => handleUpgradeRequest('')}
+      <WorkspaceHeader
+        title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
+        conversationId={convId}
       />
 
       {/* Free plan 14-day warning */}
@@ -705,66 +709,73 @@ Input: ${text.slice(0, 400)}`;
         </div>
       )}
 
-      {/* Messages area */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 md:px-8 py-4 space-y-4 max-w-3xl mx-auto w-full">
-        {isLoadingConversation && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
-            <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain opacity-60 flex-shrink-0 mt-1" />
-            <div className="flex flex-col gap-1.5 items-start">
-              <p className="text-[10px] font-semibold px-1 text-muted-foreground">Chargement...</p>
-              <div className="bg-white border border-border rounded-sm shadow-sm">
-                <ChatLoadingAnimation mode={mode.id} />
+      {/* Split-screen workspace */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* LEFT: Chat — 30% */}
+        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', borderRight: '1px solid rgba(0,0,0,0.07)' }}>
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+            {isLoadingConversation && (
+              <div className="flex gap-2 justify-start">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0 mt-1" />
+                <div className="bg-white border border-border rounded-sm shadow-sm">
+                  <ChatLoadingAnimation mode={mode.id} />
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            )}
 
-        {!isLoadingConversation && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-4 opacity-20">
-            <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
-            <p className="text-sm text-muted-foreground">{t('start_conversation')}</p>
+            {!isLoadingConversation && messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20 pt-16">
+                <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain" />
+                <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+              </div>
+            )}
+
+            {!isLoadingConversation && messages.map((msg, idx) => (
+              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal'
+                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                  : msg.role === 'assistant'
+                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} fakeButton={msg._fakeButton} onFakeLaunch={msg._fakeButton ? async () => {
+                      setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
+                      const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
+                      synthPendingRef.current = pending;
+                      await continueSynthesis(true);
+                    } : undefined} />
+                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
+                }
+              </motion.div>
+            ))}
+
+            {synthProgress.active && (
+              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            )}
+            {isLoading && !synthProgress.active && (
+              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            )}
+            <div ref={messagesEndRef} />
           </div>
-        )}
 
-        {!isLoadingConversation && messages.map((msg, idx) => (
-          <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-            {msg.role === 'synthesis_proposal'
-              ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-              : msg.role === 'assistant'
-              ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} fakeButton={msg._fakeButton} onFakeLaunch={msg._fakeButton ? async () => {
-                  // Remove fake button, run fake deep synthesis
-                  setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
-                  const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
-                  synthPendingRef.current = pending;
-                  await continueSynthesis(true);
-                } : undefined} />
-              : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
-            }
-          </motion.div>
-        ))}
+          <ChatInputBar
+            input={input} setInput={setInput} onSend={sendMessage}
+            isLoading={isLoading} blocked={blocked}
+            mode={mode} setMode={setMode}
+            currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
+            userPlan={userPlan}
+            canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
+            hasInternet={hasInternet}
+            useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
+            files={files} setFiles={setFiles}
+            onUpgradeRequest={handleUpgradeRequest}
+          />
+        </div>
 
-        {synthProgress.active && (
-          <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-        )}
+        {/* RIGHT: Fiche — 70% */}
+        <div className="flex-1 overflow-hidden bg-white">
+          <FichePanel messages={messages} />
+        </div>
 
-        {isLoading && !synthProgress.active && (
-          <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-        )}
-        <div ref={messagesEndRef} />
       </div>
-
-      <ChatInputBar
-        input={input} setInput={setInput} onSend={sendMessage}
-        isLoading={isLoading} blocked={blocked}
-        mode={mode} setMode={setMode}
-        currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
-        userPlan={userPlan}
-        canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
-        hasInternet={hasInternet}
-        useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
-        files={files} setFiles={setFiles}
-        onUpgradeRequest={handleUpgradeRequest}
-      />
 
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
 

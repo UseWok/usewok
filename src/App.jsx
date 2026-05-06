@@ -25,6 +25,7 @@ import DiscussionsPage from './pages/DiscussionsPage';
 import AIControlTower from './pages/AIControlTower';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import PublicFiche from './pages/PublicFiche';
 
 
 function ScrollToTop() {
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
           <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
       </>
