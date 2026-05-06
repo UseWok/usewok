@@ -17,14 +17,14 @@ const SIDE_ICONS = [
 
 function FicheContent({ content }) {
   return (
-    <div className="prose prose-sm max-w-none" style={{ fontSize: '14px', lineHeight: '1.8', color: '#1a1a1a' }}>
+    <div className="prose prose-sm max-w-none" style={{ fontSize: '16px', lineHeight: '1.85', color: '#1a1a1a' }}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '24px 0 10px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
           h2: ({ children }) => <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '20px 0 8px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
           h3: ({ children }) => <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '16px 0 6px', color: FG }}>{children}</h3>,
-          p: ({ children }) => <p style={{ margin: '0 0 14px', lineHeight: '1.8' }}>{children}</p>,
+          p: ({ children }) => <p style={{ margin: '0 0 16px', lineHeight: '1.9', fontSize: '16px' }}>{children}</p>,
           ul: ({ children }) => <ul style={{ margin: '8px 0 14px', paddingLeft: '20px', listStyleType: 'disc' }}>{children}</ul>,
           ol: ({ children }) => <ol style={{ margin: '8px 0 14px', paddingLeft: '20px' }}>{children}</ol>,
           li: ({ children }) => <li style={{ margin: '4px 0', lineHeight: '1.7' }}>{children}</li>,

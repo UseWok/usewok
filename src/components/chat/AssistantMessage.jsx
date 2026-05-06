@@ -47,15 +47,15 @@ export default function AssistantMessage({ content, agent, meta, fakeButton, onF
     <div className="flex gap-3 items-start w-full mb-2">
       <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain flex-shrink-0 mt-1" style={{ opacity: 0.75 }} />
       <div className="flex flex-col gap-1 flex-1 min-w-0">
-      <span className="text-[11px] font-black" style={{ color: FG }}>Stensor</span>
+      <span className="text-[11px] font-light" style={{ color: 'rgba(0,0,0,0.35)' }}>Stensor</span>
       <div className="w-full break-words"
-        style={{ background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '4px', borderTopLeftRadius: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '14px 16px' }}>
+        style={{ background: 'transparent', borderRadius: '4px', padding: '6px 0' }}>
         <div onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); }}
           className="cursor-pointer">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '15px', color: '#1a1a1a' }}>{children}</p>,
+              p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '13px', color: '#333', fontWeight: 300 }}>{children}</p>,
               h1: ({ children }) => <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '20px 0 8px', color: '#0A0A0A' }}>{children}</h1>,
               h2: ({ children }) => <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '18px 0 6px', color: '#0A0A0A' }}>{children}</h2>,
               h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '16px 0 6px', color: '#0A0A0A' }}>{children}</h3>,

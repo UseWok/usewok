@@ -48,8 +48,8 @@ export default function UserMessageBubble({ msg, userName, user, onCopy, onEdit 
           </div>
         )}
 
-        <div className="text-sm leading-7 px-4 py-3"
-          style={{ background: FG, color: 'white', borderRadius: '4px', borderTopRightRadius: '2px' }}>
+        <div className="text-sm leading-relaxed px-3 py-2"
+          style={{ background: 'rgba(0,0,0,0.05)', color: FG, borderRadius: '4px', borderTopRightRadius: '2px', fontWeight: 300 }}>
           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
         </div>
 

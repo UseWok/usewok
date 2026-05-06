@@ -125,6 +125,16 @@ function PublishModal({ conversationId }) {
   );
 }
 
+function ProfileAvatar({ user }) {
+  const initial = user?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?';
+  return (
+    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
+      style={{ background: '#E8ECF4', color: '#0A0A0A' }}>
+      {initial}
+    </div>
+  );
+}
+
 export default function WorkspaceHeader({ title, conversationId, user, userPlan }) {
   const [showCredits, setShowCredits] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
@@ -142,8 +152,8 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan 
 
   return (
     <header
-      className="flex items-center justify-between px-4 h-12 flex-shrink-0 bg-white"
-      style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}
+      className="flex items-center justify-between px-4 h-12 flex-shrink-0"
+      style={{ background: '#E8ECF4' }}
     >
       {/* Left: Logo + Title */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -152,7 +162,7 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan 
             onClick={() => setShowCredits(s => !s)}
             className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/5 transition-colors"
           >
-            <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
+            <ProfileAvatar user={user} />
           </button>
           <AnimatePresence>
             {showCredits && (

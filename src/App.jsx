@@ -73,6 +73,7 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/app" replace />} />
         <Route path="/chat" element={<ChatPage />} />
+        <Route path="/p/:id" element={<PublicFiche />} />
         <Route element={<Layout />}>
           <Route path="/app" element={<Home />} />
           <Route path="/projects" element={<AllProjects />} />
