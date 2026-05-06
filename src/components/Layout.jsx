@@ -70,10 +70,9 @@ export default function Layout() {
         </AnimatePresence>
       )}
 
-      <motion.main
-        animate={{ marginLeft: isMobile || isChat ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W) }}
-        transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+      <main
         className="flex-1 min-h-screen overflow-x-hidden relative"
+        style={{ marginLeft: isMobile || isChat ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W), transition: 'margin-left 0.2s ease' }}
       >
         {/* Mobile hamburger */}
         {isMobile && !expanded && (
@@ -87,7 +86,7 @@ export default function Layout() {
 
         <Outlet />
 
-      </motion.main>
+      </main>
     </div>
   );
 }

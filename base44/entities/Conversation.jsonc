@@ -22,6 +22,10 @@
       "type": "string",
       "title": "Agent"
     },
+    "is_public": {
+      "type": "boolean",
+      "title": "Is Public"
+    },
     "messages_json": {
       "type": "string",
       "title": "Messages JSON",
@@ -43,6 +47,9 @@
           "created_by": "{{user.email}}"
         },
         {
+          "data.is_public": true
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -62,18 +69,6 @@
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "write": {
       "$or": [
         {
           "created_by": "{{user.email}}"

@@ -692,7 +692,7 @@ Input: ${text.slice(0, 400)}`;
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
 
   return (
-    <div className="flex flex-col font-open" style={{ height: '100dvh', background: '#E8ECF4', overflow: 'hidden' }}>
+    <div className="flex flex-col font-open" style={{ height: '100dvh', background: '#F2F4FB', overflow: 'hidden' }}>
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
@@ -711,11 +711,11 @@ Input: ${text.slice(0, 400)}`;
       )}
 
       {/* Split-screen workspace */}
-      <div className="flex flex-1 overflow-hidden" style={{ padding: '8px', gap: '8px' }}>
+      <div className="flex flex-1 overflow-hidden" style={{ padding: '0', gap: '1px', background: 'rgba(0,0,0,0.08)' }}>
 
         {/* LEFT: Chat — 30% */}
-        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', background: 'white', borderRadius: '16px', overflow: 'hidden' }}>
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', overflow: 'hidden' }}>
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {isLoadingConversation && (
               <div className="flex gap-2 justify-start">
                 <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0 mt-1" />
@@ -772,7 +772,7 @@ Input: ${text.slice(0, 400)}`;
         </div>
 
         {/* RIGHT: Fiche — 70% */}
-        <div className="flex-1 overflow-hidden" style={{ background: 'white', borderRadius: '16px' }}>
+        <div className="flex-1 overflow-hidden" style={{ background: 'white' }}>
           <FichePanel messages={messages} />
         </div>
 

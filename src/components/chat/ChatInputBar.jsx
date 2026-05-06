@@ -168,7 +168,7 @@ export default function ChatInputBar({
 
   return (
     <div
-      className="px-3 sm:px-4 pb-2 pt-1 flex-shrink-0 relative max-w-3xl mx-auto w-full"
+      className="px-3 sm:px-4 pb-2 pt-0 flex-shrink-0 relative w-full"
       onDragEnter={e => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
       onDragLeave={e => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
       onDragOver={e => e.preventDefault()}
@@ -198,7 +198,7 @@ export default function ChatInputBar({
 
       <DragDropOverlay visible={isDragging} canUpload={canUploadFiles} />
 
-      <div className="bg-white overflow-visible rounded-md border border-border shadow-md">
+      <div className="bg-white overflow-visible" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
         {/* Attached files */}
         {files.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap px-3 pt-3">

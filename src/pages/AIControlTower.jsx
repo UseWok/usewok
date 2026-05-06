@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Check, Zap } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowLeft, Check } from 'lucide-react';
 import { getStoredQuiz } from '@/components/landing/GuestQuiz';
 
 const FG = '#0A0A0A';
@@ -62,7 +60,7 @@ export default function AIControlTower() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [prefs, setPrefs] = useState({});
-  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -80,12 +78,14 @@ export default function AIControlTower() {
     }).catch(() => {});
   }, []);
 
-  const handleSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    await base44.auth.updateMe(prefs);
-    setSaving(false);
-    toast.success('Saved ✓');
+  const handleSelect = async (field, value, isActive) => {
+    const newPrefs = { ...prefs, [field]: isActive ? '' : value };
+    setPrefs(newPrefs);
+    if (user) {
+      await base44.auth.updateMe({ [field]: isActive ? '' : value });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    }
   };
 
   const filled = ALL_FIELDS.filter(f => prefs[f]).length;
@@ -93,20 +93,13 @@ export default function AIControlTower() {
   return (
     <div className="min-h-screen bg-white font-be">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white border-b border-black/8 px-4 h-12 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors">
+      <div className="sticky top-0 z-20 bg-white px-4 h-12 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center hover:bg-black/5">
           <ArrowLeft className="w-4 h-4 text-zinc-400" />
         </button>
         <span className="font-black text-sm flex-1" style={{ color: FG }}>Stensor DNA</span>
         <span className="text-[11px] font-semibold text-zinc-400">{filled}/{ALL_FIELDS.length} set</span>
-        <button onClick={handleSave} disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-black rounded-lg transition-all hover:opacity-90"
-          style={{ background: FG, color: 'white' }}>
-          {saving
-            ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }} className="w-3 h-3 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} />
-            : <><Zap className="w-3 h-3" /> Save</>
-          }
-        </button>
+        {saved && <span className="text-[11px] font-black" style={{ color: '#22c55e' }}>Saved ✓</span>}
       </div>
 
       {/* Hero */}
@@ -114,24 +107,20 @@ export default function AIControlTower() {
         <img src={LOGO} alt="Stensor" className="w-8 h-8 mx-auto mb-4 object-contain opacity-75" />
         <h1 className="text-3xl font-black tracking-tight text-white mb-2">Shape your AI.</h1>
         <p className="text-sm max-w-xs mx-auto" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          5 choices. Injected into every response.
+          5 choices. Auto-saved into every response.
         </p>
       </div>
 
       {/* Sections */}
       <div className="max-w-xl mx-auto px-4 py-8 space-y-10">
-        {SECTIONS.map((section, si) => (
-          <motion.div key={section.field}
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: si * 0.06, duration: 0.3 }}>
+        {SECTIONS.map((section) => (
+          <div key={section.field}>
             <div className="flex items-center gap-2 mb-1">
               <p className="text-xs font-black tracking-widest uppercase" style={{ color: FG }}>{section.title}</p>
               {prefs[section.field] && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                  className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#22c55e' }}>
+                <div className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0" style={{ background: '#22c55e' }}>
                   <Check className="w-2 h-2 text-white" />
-                </motion.div>
+                </div>
               )}
             </div>
             <p className="text-xs text-zinc-400 mb-3">{section.subtitle}</p>
@@ -139,9 +128,9 @@ export default function AIControlTower() {
               {section.options.map(opt => {
                 const active = prefs[section.field] === opt.value;
                 return (
-                  <motion.button key={opt.value} whileTap={{ scale: 0.97 }}
-                    onClick={() => setPrefs(p => ({ ...p, [section.field]: active ? '' : opt.value }))}
-                    className="relative flex items-center gap-2.5 px-4 py-3 text-left border-2 transition-all rounded-lg"
+                  <button key={opt.value}
+                    onClick={() => handleSelect(section.field, opt.value, active)}
+                    className="relative flex items-center gap-2.5 px-4 py-3 text-left border-2 transition-colors"
                     style={{
                       borderColor: active ? FG : 'rgba(0,0,0,0.08)',
                       background: active ? FG : 'white',
@@ -151,25 +140,18 @@ export default function AIControlTower() {
                       {opt.label}
                     </span>
                     {active && (
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                      <div className="absolute top-2 right-2 w-3.5 h-3.5 flex items-center justify-center"
                         style={{ background: YUZU }}>
                         <Check className="w-2 h-2" style={{ color: FG }} />
-                      </motion.div>
+                      </div>
                     )}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         ))}
-
-        <button onClick={handleSave} disabled={saving}
-          className="w-full py-4 font-black text-sm rounded-xl transition-all hover:opacity-90 mt-4"
-          style={{ background: FG, color: 'white' }}>
-          {saving ? 'Saving...' : 'Activate DNA →'}
-        </button>
-        <p className="text-center text-[10px] pb-8" style={{ color: 'rgba(0,0,0,0.25)' }}>Free · No credits · Editable anytime</p>
+        <p className="text-center text-[10px] pb-8" style={{ color: 'rgba(0,0,0,0.25)' }}>Auto-saved · No credits · Editable anytime</p>
       </div>
     </div>
   );

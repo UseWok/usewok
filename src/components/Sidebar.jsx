@@ -124,7 +124,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
         animate={isMobileDrawer ? { x: 0 } : { width: expanded ? EXPANDED_W : COLLAPSED_W }}
         exit={isMobileDrawer ? { x: -EXPANDED_W } : undefined}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-        style={{ width: isMobileDrawer ? EXPANDED_W : undefined, borderRight: '1px solid rgba(0,0,0,0.97)' }}
+        style={{ width: isMobileDrawer ? EXPANDED_W : undefined, borderRight: '1px solid rgba(0,0,0,0.08)' }}
         className="fixed left-0 top-0 bottom-0 z-50 flex flex-col overflow-hidden bg-white border-r"
       >
         {/* Logo */}
