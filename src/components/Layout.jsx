@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const SESSION_KEY = 'stensor_total_minutes';
@@ -31,7 +31,9 @@ export default function Layout() {
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
+  const isChat = location.pathname === '/chat';
 
   useEffect(() => {
     captureReferralFromUrl();
@@ -46,10 +48,10 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-white flex font-be">
       {/* Desktop sidebar */}
-      {!isMobile && <Sidebar expanded={expanded} setExpanded={setExpanded} />}
+      {!isMobile && !isChat && <Sidebar expanded={expanded} setExpanded={setExpanded} />}
 
       {/* Mobile: sidebar drawer */}
-      {isMobile && (
+      {isMobile && !isChat && (
         <AnimatePresence>
           {expanded && (
             <>
@@ -69,7 +71,7 @@ export default function Layout() {
       )}
 
       <motion.main
-        animate={{ marginLeft: isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W) }}
+        animate={{ marginLeft: isMobile || isChat ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W) }}
         transition={{ type: 'spring', stiffness: 500, damping: 38 }}
         className="flex-1 min-h-screen overflow-x-hidden relative"
       >

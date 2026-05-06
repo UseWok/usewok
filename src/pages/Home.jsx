@@ -11,6 +11,8 @@ import { AGENTS } from '../components/Sidebar';
 import { useLanguage } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
+import { useIsMobile } from '@/hooks/use-mobile';
+import DiscussionPanel from '@/components/home/DiscussionPanel';
 
 const PENDING_KEY = 'stensor_pending_query';
 
@@ -23,6 +25,8 @@ export default function Home() {
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [showFreeBanner, setShowFreeBanner] = useState(false);
   const [isFreeUser, setIsFreeUser] = useState(false);
+  const [selectedDiscussion, setSelectedDiscussion] = useState(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Save quiz results to user profile if coming from guest quiz
@@ -57,16 +61,13 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen pt-4 pb-12 md:pt-6 md:pb-20 relative overflow-hidden" style={{
-      background: 'linear-gradient(to top, rgba(221,255,0,0.55) 0%, rgba(221,255,0,0.28) 25%, rgba(221,255,0,0.09) 55%, rgba(221,255,0,0.02) 75%, white 100%)'
-    }}>
-      {/* Subtle gradient mesh background */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 40% at 50% -10%, rgba(221,255,0,0.07), transparent)' }} />
+    <div className="min-h-screen bg-white flex flex-col">
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
-      <HomeEventBanner />
+
       {showFreeBanner && isFreeUser && (
-        <div className="mx-4 mt-2 mb-0 px-4 py-3 rounded-xl flex items-center justify-between gap-3" style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }}>
+        <div className="mx-4 md:mx-8 mt-4 px-4 py-3 rounded-xl flex items-center justify-between gap-3"
+          style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)' }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold" style={{ color: '#92400e' }}>Plan gratuit — tes discussions sont supprimées après 14 jours.</p>
             <p className="text-[11px] mt-0.5" style={{ color: 'rgba(0,0,0,0.4)' }}>Passe à un plan payant pour les conserver indéfiniment.</p>
@@ -80,8 +81,28 @@ export default function Home() {
           </button>
         </div>
       )}
-      <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
-      <RecentApps agentId={selectedAgent} />
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left column */}
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
+          <RecentApps
+            agentId={selectedAgent}
+            onSelect={!isMobile ? setSelectedDiscussion : undefined}
+            selectedId={selectedDiscussion?.id}
+          />
+        </div>
+
+        {/* Right panel — desktop only */}
+        {!isMobile && (
+          <div
+            className="w-[460px] xl:w-[520px] flex-shrink-0 sticky top-0 flex flex-col overflow-hidden"
+            style={{ height: '100vh', borderLeft: '1px solid rgba(0,0,0,0.06)' }}
+          >
+            <DiscussionPanel discussion={selectedDiscussion} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

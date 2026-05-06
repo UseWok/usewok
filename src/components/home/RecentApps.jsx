@@ -53,7 +53,7 @@ function EmptyState({ onNewChat }) {
   );
 }
 
-export default function RecentApps({ agentId }) {
+export default function RecentApps({ agentId, onSelect, selectedId }) {
   const { data: discussions = [], isLoading } = useDiscussions();
   const deleteDiscussion = useDeleteDiscussion();
   const renameDiscussion = useRenameDiscussion();
@@ -83,6 +83,7 @@ export default function RecentApps({ agentId }) {
   const confirmRename = (id) => { renameDiscussion.mutate({ discId: id, title: renameValue }); setRenaming(null); };
 
   const handleOpen = (disc) => {
+    if (onSelect) { onSelect(disc); return; }
     const params = new URLSearchParams({ conversationId: disc.id });
     if (disc.agent) params.set('agent', disc.agent);
     navigate(`/chat?${params.toString()}`);
@@ -123,7 +124,8 @@ export default function RecentApps({ agentId }) {
         </button>
       </div>
 
-      {/* Search */}
+      {/* Search — only shown on full discussions page */}
+      {!onSelect && (
       <div className="flex items-center gap-2 px-3 py-2.5 mb-4 rounded-xl border"
         style={{ background: 'rgba(0,0,0,0.02)', borderColor: 'rgba(0,0,0,0.07)' }}>
         <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.2)' }} />
@@ -133,7 +135,8 @@ export default function RecentApps({ agentId }) {
         {search && (
           <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>✕</button>
         )}
-      </div>
+        </div>
+      )}
 
       {/* List */}
       <div className="space-y-2">
@@ -154,8 +157,8 @@ export default function RecentApps({ agentId }) {
               onContextMenu={e => openCtx(e, disc.id)}
               className="group flex items-center gap-3 p-4 bg-white border rounded-2xl cursor-pointer transition-all"
               style={{
-                borderColor: 'rgba(0,0,0,0.07)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                borderColor: selectedId === disc.id ? '#0A0A0A' : 'rgba(0,0,0,0.07)',
+                boxShadow: selectedId === disc.id ? '0 0 0 2px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.03)',
               }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'}
               onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)'}

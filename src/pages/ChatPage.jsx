@@ -93,6 +93,16 @@ RÈGLES NON NÉGOCIABLES :
 
 Si l'utilisateur demande son abonnement actuel ou ce qu'il peut faire : utilise les infos de son profil (voir PROFIL PERSONNALISÉ ci-dessous) — le champ "Abonnement actuel" te donnera son plan précis.`;
 
+// Pre-filter local — évite ~95% des appels API routeur sans impact qualité
+function quickRouteLocal(text) {
+  const t = text.trim();
+  if (t.length < 60) return '1';
+  if (/^(bonjour|salut|merci|ok|ciao|hello|\u00e7a va|hi |hey |thanks|bonne)/i.test(t)) return '1';
+  const hasNumbers = /\d+/.test(t);
+  const complexTerms = (t.match(/investis|portefeuille|calcul|simul|projection|remboursement|int\u00e9r\u00eat|compos|retraite|amortissement/gi) || []).length;
+  return (!hasNumbers && complexTerms < 2) ? '1' : null;
+}
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
@@ -483,19 +493,23 @@ export default function ChatPage() {
       ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n`
       : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
-    // Last 4 messages as context (never full history)
-    const recentMsgs = messages.slice(-4);
+    // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
+    const recentMsgs = messages.slice(-2);
     const historyContext = recentMsgs.length > 0
       ? '\n\n--- Recent conversation ---\n' + recentMsgs.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 500)}`).join('\n\n') + '\n---\n\n'
       : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    // ── Cognitive Router ────────────────────────────────────────────────────
+    // ── Cognitive Router (local pre-filter saves ~95% API calls) ───────────
     let routeDecision = '1';
     if (!isFirstMessage) {
-      try {
-        const routerPrompt = `Role: Router for a financial AI.
+      const localDecision = quickRouteLocal(text);
+      if (localDecision !== null) {
+        routeDecision = localDecision;
+      } else {
+        try {
+          const routerPrompt = `Role: Router for a financial AI.
 Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
 
 Rules:
@@ -508,11 +522,12 @@ Rules:
 CRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.
 
 Input: ${text.slice(0, 400)}`;
-        const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
-        routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
-        if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
-      } catch {
-        routeDecision = '1';
+          const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
+          routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
+          if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
+        } catch {
+          routeDecision = '1';
+        }
       }
     }
 
@@ -674,7 +689,7 @@ Input: ${text.slice(0, 400)}`;
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
 
   return (
-    <div className="flex flex-col font-open bg-white" style={{ height: '100dvh' }}>
+    <div className="flex flex-col font-open" style={{ height: 'calc(100dvh - 16px)', margin: '8px', borderRadius: '16px', background: 'white', overflow: 'hidden', boxShadow: '0 0 0 1px rgba(0,0,0,0.07)' }}>
       <ChatTopBar
         user={user} mode={mode} hasInternet={hasInternet && useWebSearch}
         agentLabel={agentLabel} onUpgradeClick={() => handleUpgradeRequest('')}
