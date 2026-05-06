@@ -18,109 +18,122 @@ function Scene({ children, bg = 'white', minH = '100vh' }) {
   );
 }
 
-function Navbar({ scrolled }) {
+function Navbar({ scrolled, onCta }) {
   const navigate = useNavigate();
   return (
-    <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center"
-      style={{ paddingTop: 24 }}>
-      <div className="flex items-center justify-between w-full px-6 py-3"
-        style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
-      <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-        <img src={LOGO} alt="Stensor" className="w-5 h-5 object-contain" />
-        <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
-      </button>
-      <div className="hidden md:flex items-center gap-8">
-        <span className="text-xs font-black text-black border-b border-black pb-0.5">Features</span>
-        <a href="/tarifs" className="text-xs text-gray-400 hover:text-black transition-colors">Pricing</a>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
-      </div>
-      <motion.button onClick={() => base44.auth.redirectToLogin('/app')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-        className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-        Start free →
-      </motion.button>
-      </div>
-    </motion.header>
+    <>
+      {/* Desktop top pill navbar */}
+      <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
+        className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+        style={{ paddingTop: 24 }}>
+        <div className="flex items-center justify-between w-full px-6 py-3"
+          style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
+            <img src={LOGO} alt="Stensor" className="w-8 h-8 object-contain" />
+            <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
+          </button>
+          <div className="hidden md:flex items-center gap-8">
+            <span className="text-xs font-black text-black border-b border-black pb-0.5">Features</span>
+            <a href="/tarifs" className="text-xs text-gray-400 hover:text-black transition-colors">Pricing</a>
+            <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
+          </div>
+          <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+            Start free →
+          </motion.button>
+        </div>
+      </motion.header>
+
+      {/* Mobile floating bottom bar */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        className="fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-5 py-3.5 rounded-full"
+        style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+        <span className="text-xs font-black text-white border-b border-white pb-0.5">Features</span>
+        <a href="/tarifs" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Pricing</a>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Sign in</button>
+        <button onClick={onCta} className="text-xs font-black px-4 py-2 rounded-full" style={{ background: YELLOW, color: FG }}>Start →</button>
+      </motion.div>
+    </>
   );
 }
 
 // ─── Feature deep-dive sections ───────────────────────────────────────────────
 const FEATURE_SECTIONS = [
   {
-    tag: '01 — Le Moteur',
-    headline: 'Une IA calibrée sur votre vie.',
-    sub: 'Pas un profil générique. Votre situation exacte.',
-    desc: "Stensor ne connaît pas \"l'utilisateur moyen\". Il connaît vos revenus, vos objectifs, votre tolérance au risque, vos plaisirs intouchables. Chaque réponse est construite pour vous — et uniquement vous.",
+    tag: '01 — The Engine',
+    headline: 'An AI calibrated to your life.',
+    sub: 'Not a generic profile. Your exact situation.',
+    desc: "Stensor doesn't know \"the average user\". It knows your income, goals, risk tolerance, and untouchable pleasures. Every answer is built for you — and only you.",
     proof: [
-      'Contexte cumulé sur des mois de conversation',
-      'Stratégies adaptées à votre psychologie de dépense',
-      'Recommandations qui évoluent avec votre situation',
+      'Cumulative context built over months of conversation',
+      'Strategies adapted to your spending psychology',
+      'Recommendations that evolve with your situation',
     ],
     bg: 'white',
     dark: false,
-    big: '"Ton plan, pas le plan."',
+    big: '"Your plan, not the plan."',
   },
   {
-    tag: '02 — Le Simulateur',
-    headline: 'Testez avant d\'agir.',
-    sub: 'Chaque décision simulée avant d\'être prise.',
-    desc: "\"Si j'investis €200/mois pendant 15 ans, où j'en suis ?\" Stensor simule, calcule, compare — en temps réel. Vous voyez l'impact avant de vous engager. Zéro surprise. Zéro regret.",
+    tag: '02 — The Simulator',
+    headline: 'Test before you act.',
+    sub: 'Every decision simulated before it\'s made.',
+    desc: '"If I invest $200/month for 15 years, where will I be?" Stensor simulates, calculates, compares — in real time. You see the impact before committing. Zero surprises. Zero regrets.',
     proof: [
-      'Simulations Monte Carlo en temps réel',
-      'Comparaison de scénarios côte à côte',
-      'Impact calculé à l\'euro près',
+      'Real-time Monte Carlo simulations',
+      'Side-by-side scenario comparison',
+      'Impact calculated to the dollar',
     ],
     bg: '#fafaf8',
     dark: false,
-    big: '"Simulé. Validé. Exécuté."',
+    big: '"Simulated. Validated. Executed."',
   },
   {
-    tag: '03 — L\'Internet',
-    headline: 'Données de marché en direct.',
-    sub: 'L\'IA qui sait ce qui se passe maintenant.',
-    desc: "Taux d'intérêt du moment, performance des ETF cette semaine, actualités qui impactent votre portefeuille. Stensor connecte l'analyse à la réalité — pas à des données d'il y a 6 mois.",
+    tag: '03 — The Internet',
+    headline: 'Live market data.',
+    sub: 'The AI that knows what\'s happening right now.',
+    desc: "Current interest rates, this week's ETF performance, news impacting your portfolio. Stensor connects analysis to reality — not data from 6 months ago.",
     proof: [
-      'Données boursières et taux en temps réel',
-      'Actualités financières intégrées à l\'analyse',
-      'Alertes contextuelles sur votre situation',
+      'Real-time stock and rate data',
+      'Financial news integrated into analysis',
+      'Contextual alerts for your situation',
     ],
     bg: FG,
     dark: true,
-    big: '"L\'IA qui lit le monde, pas les manuels."',
+    big: '"The AI that reads the world, not textbooks."',
   },
   {
-    tag: '04 — Les Documents',
-    headline: 'Vos vrais chiffres. Pas des estimations.',
-    sub: 'Uploadez. Stensor lit, analyse, optimise.',
-    desc: "Relevés bancaires, fiches de paie, contrats d'assurance. Stensor extrait vos vrais chiffres automatiquement et construit une stratégie basée sur votre réalité financière — pas sur ce que vous pensez qu'elle est.",
+    tag: '04 — Documents',
+    headline: 'Your real numbers. Not estimates.',
+    sub: 'Upload. Stensor reads, analyzes, optimizes.',
+    desc: "Bank statements, pay stubs, insurance contracts. Stensor automatically extracts your real numbers and builds a strategy based on your actual financial reality — not what you think it is.",
     proof: [
-      'Lecture automatique de PDF, Excel, images',
-      'Extraction des postes de dépenses cachés',
-      'Analyse des contrats et assurances',
+      'Automatic reading of PDF, Excel, images',
+      'Detection of hidden spending categories',
+      'Contract and insurance analysis',
     ],
     bg: 'white',
     dark: false,
-    big: '"Vos données, votre vérité."',
+    big: '"Your data, your truth."',
   },
   {
-    tag: '05 — Le Coaching',
-    headline: 'Un coach qui ne vous jugera jamais.',
-    sub: 'Ni votre café du matin, ni vos sorties du vendredi.',
-    desc: "Pas de moralisation. Pas de jugement. Pas de \"vous devriez faire mieux\". Stensor vous guide vers vos objectifs en partant de qui vous êtes — et en gardant intact ce qui vous rend heureux.",
+    tag: '05 — The Coaching',
+    headline: 'A coach who will never judge you.',
+    sub: 'Not your morning coffee. Not your Friday nights out.',
+    desc: "No moralizing. No judgment. No \"you should do better\". Stensor guides you toward your goals starting from who you are — keeping intact what makes you happy.",
     proof: [
-      'Zéro restriction sur vos plaisirs identifiés',
-      'Coaching positif basé sur le renforcement',
-      'Progression mesurable et visible chaque semaine',
+      'Zero restrictions on your identified pleasures',
+      'Positive coaching based on reinforcement',
+      'Measurable progress visible every week',
     ],
     bg: YELLOW,
     dark: false,
-    big: '"Votre bonheur est le plan."',
+    big: '"Your happiness is the plan."',
     yellowBg: true,
   },
 ];
 
 // ─── Interactive Feature Tabs ─────────────────────────────────────────────────
-function FeatureDeepDive() {
+function FeatureDeepDive({ onCta }) {
   const [active, setActive] = useState(0);
   const f = FEATURE_SECTIONS[active];
 
@@ -130,7 +143,7 @@ function FeatureDeepDive() {
         <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           className="text-[10px] font-black tracking-[0.35em] uppercase mb-20 text-center"
           style={{ color: 'rgba(0,0,0,0.2)' }}>
-          Dans les détails
+          Deep dive
         </motion.p>
 
         {/* Tab pills */}
@@ -176,7 +189,7 @@ function FeatureDeepDive() {
                   {f.headline}
                 </h3>
                 <p className="text-sm font-black mb-6"
-                  style={{ color: f.dark ? YELLOW : (f.yellowBg ? FG : FG) }}>
+                  style={{ color: f.dark ? YELLOW : FG }}>
                   {f.sub}
                 </p>
                 <p className="text-sm leading-relaxed"
@@ -193,7 +206,7 @@ function FeatureDeepDive() {
             <div className="p-10 flex flex-col justify-center gap-4"
               style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)' }}>
               <p className="text-[10px] font-black tracking-widest uppercase mb-4" style={{ color: 'rgba(0,0,0,0.25)' }}>
-                Ce que ça change
+                What changes
               </p>
               {f.proof.map((p, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
@@ -229,9 +242,9 @@ export default function LandingFeaturesPage() {
   const handleCta = () => setShowQuiz(true);
 
   return (
-    <div className="font-inter overflow-x-hidden bg-white">
+    <div className="font-inter overflow-x-hidden bg-white pb-20 md:pb-0">
       <AnimatePresence>{showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}</AnimatePresence>
-      <Navbar scrolled={scrolled} />
+      <Navbar scrolled={scrolled} onCta={handleCta} />
 
       {/* HERO */}
       <Scene minH="100vh">
@@ -239,17 +252,17 @@ export default function LandingFeaturesPage() {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
             style={{ color: 'rgba(0,0,0,0.2)' }}>
-            Fonctionnalités
+            Features
           </motion.p>
 
-          {['Ce n\'est pas', 'un budget.', "C'est votre vie."].map((line, i) => (
+          {["Not a budget.", "Your life."].map((line, i) => (
             <div key={i} className="overflow-hidden mb-1">
               <motion.h1 initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 1.0, delay: 0.25 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 className="font-black tracking-tighter leading-[0.9] block"
                 style={{
                   fontSize: 'clamp(3rem, 8vw, 7rem)',
-                  color: i === 2 ? YELLOW : (i === 1 ? 'rgba(0,0,0,0.15)' : FG),
+                  color: i === 1 ? YELLOW : FG,
                 }}>
                 {line}
               </motion.h1>
@@ -259,14 +272,14 @@ export default function LandingFeaturesPage() {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
             className="text-base max-w-lg mx-auto mt-16 mb-14 leading-relaxed"
             style={{ color: 'rgba(0,0,0,0.35)', fontFamily: 'var(--font-open)' }}>
-            Des outils construits sur une seule conviction : votre bonheur n'est pas l'ennemi de votre richesse. C'est son moteur.
+            Tools built on one conviction: your happiness is not the enemy of your wealth. It's its engine.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
             <motion.button onClick={handleCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
               className="flex items-center gap-3 px-12 py-5 font-black text-base mx-auto"
               style={{ background: YELLOW, color: FG, borderRadius: '8px', boxShadow: '0 12px 48px rgba(221,255,0,0.4)' }}>
-              Découvrir gratuitement <ArrowRight className="w-4 h-4" />
+              Explore for free <ArrowRight className="w-4 h-4" />
             </motion.button>
           </motion.div>
         </div>
@@ -274,7 +287,7 @@ export default function LandingFeaturesPage() {
         <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2.5 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <div className="w-px h-12" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.15))' }} />
-          <p className="text-[9px] tracking-[0.3em] uppercase text-gray-300">Explorer</p>
+          <p className="text-[9px] tracking-[0.3em] uppercase text-gray-300">Explore</p>
         </motion.div>
       </Scene>
 
@@ -286,24 +299,24 @@ export default function LandingFeaturesPage() {
             className="text-center mb-16">
             <p className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
               style={{ color: 'rgba(255,255,255,0.2)' }}>
-              La philosophie
+              The philosophy
             </p>
             <p className="font-black tracking-tighter text-white"
               style={{ fontSize: 'clamp(1.6rem, 4vw, 3rem)', lineHeight: 1.15 }}>
-              "Les outils qui vous demandent de souffrir aujourd'hui<br />
-              pour être heureux demain<br />
-              <span style={{ color: YELLOW }}>ne fonctionnent pas.</span>"
+              "Tools that ask you to suffer today<br />
+              to be happy tomorrow<br />
+              <span style={{ color: YELLOW }}>don't work."</span>
             </p>
             <p className="text-sm mt-8" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-open)' }}>
-              Stensor a été construit sur cette vérité.
+              Stensor was built on this truth.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { emoji: '😤', title: 'Restriction totale', desc: 'Abandonnée en 3 semaines. Résultat : 0. Plus de culpabilité qu\'avant.', bad: true },
-              { emoji: '📊', title: 'Tableau Excel', desc: 'Mort au bout de 2 semaines. Les humains ne vivent pas dans des cellules.', bad: true },
-              { emoji: '🌟', title: 'Méthode Stensor', desc: 'Plaisirs gardés. Fuites éliminées. Objectifs atteints. 3× plus longtemps.', bad: false },
+              { emoji: '😤', title: 'Total restriction', desc: 'Abandoned in 3 weeks. Result: 0. More guilt than before.', bad: true },
+              { emoji: '📊', title: 'Excel spreadsheet', desc: 'Dead after 2 weeks. Humans don\'t live in cells.', bad: true },
+              { emoji: '🌟', title: 'The Stensor Method', desc: 'Pleasures kept. Leaks eliminated. Goals reached. 3× longer.', bad: false },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
@@ -323,7 +336,7 @@ export default function LandingFeaturesPage() {
       </Scene>
 
       {/* FEATURE DEEP DIVE */}
-      <FeatureDeepDive />
+      <FeatureDeepDive onCta={handleCta} />
 
       {/* FINAL CTA */}
       <Scene bg={YELLOW} minH="80vh">
@@ -331,14 +344,14 @@ export default function LandingFeaturesPage() {
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
             style={{ color: 'rgba(0,0,0,0.3)' }}>
-            Prêt ?
+            Ready?
           </motion.p>
           <div className="overflow-hidden mb-2">
             <motion.h2 initial={{ y: 60, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
               style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', color: FG }}>
-              Votre bonheur.
+              Your happiness.
             </motion.h2>
           </div>
           <div className="overflow-hidden mb-16">
@@ -346,7 +359,7 @@ export default function LandingFeaturesPage() {
               transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
               style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', color: 'rgba(0,0,0,0.22)' }}>
-              Notre stratégie.
+              Our strategy.
             </motion.h2>
           </div>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -354,9 +367,9 @@ export default function LandingFeaturesPage() {
             <motion.button onClick={handleCta} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
               className="flex items-center gap-3 px-12 py-5 font-black text-base"
               style={{ background: FG, color: 'white', borderRadius: '8px', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
-              Commencer gratuitement <ArrowRight className="w-4 h-4" />
+              Start for free <ArrowRight className="w-4 h-4" />
             </motion.button>
-            <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Sans carte. Résiliation à tout moment.</p>
+            <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>No card. Cancel anytime.</p>
           </motion.div>
         </div>
       </Scene>
@@ -365,7 +378,7 @@ export default function LandingFeaturesPage() {
       <footer className="px-8 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4"
         style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
         <button onClick={() => navigate('/')} className="flex items-center gap-2">
-          <img src={LOGO} alt="Stensor" className="w-5 h-5 object-contain" />
+          <img src={LOGO} alt="Stensor" className="w-7 h-7 object-contain" />
           <span className="text-xs font-black" style={{ color: FG }}>Stensor</span>
         </button>
         <div className="flex items-center gap-6">

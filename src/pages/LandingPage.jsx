@@ -46,26 +46,38 @@ function Navbar({ onCta }) {
     return () => window.removeEventListener('scroll', h);
   }, []);
   return (
-    <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.4 }}
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center"
-      style={{ paddingTop: 24 }}>
-      <div className="flex items-center justify-between w-full px-6 py-3"
-        style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
-      <div className="flex items-center gap-2.5">
-        <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-5 h-5 object-contain" />
-        <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
-      </div>
-      <div className="hidden md:flex items-center gap-8">
-        <a href="/fonctionnalites" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Features</a>
-        <a href="/tarifs" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Pricing</a>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Sign in</button>
-      </div>
-      <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-        className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-        Start free →
-      </motion.button>
-      </div>
-    </motion.header>
+    <>
+      <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.4 }}
+        className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+        style={{ paddingTop: 24 }}>
+        <div className="flex items-center justify-between w-full px-6 py-3"
+          style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
+        <div className="flex items-center gap-2.5">
+          <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" alt="Stensor" className="w-8 h-8 object-contain" />
+          <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8">
+          <a href="/fonctionnalites" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Features</a>
+          <a href="/tarifs" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Pricing</a>
+          <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Sign in</button>
+        </div>
+        <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+          className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+          Start free →
+        </motion.button>
+        </div>
+      </motion.header>
+
+      {/* Mobile floating bottom bar */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        className="fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-5 py-3.5 rounded-full"
+        style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+        <a href="/fonctionnalites" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Features</a>
+        <a href="/tarifs" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Pricing</a>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Sign in</button>
+        <button onClick={onCta} className="text-xs font-black px-4 py-2 rounded-full" style={{ background: YELLOW, color: FG }}>Start →</button>
+      </motion.div>
+    </>
   );
 }
 

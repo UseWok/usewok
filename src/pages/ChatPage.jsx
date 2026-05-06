@@ -73,7 +73,25 @@ RÈGLES NON NÉGOCIABLES :
 - Moins c'est plus : si tu peux dire la même chose en 2 mots plutôt que 6, fais-le.
 - NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
 - Mode pub : si l'utilisateur dit 'JE VAIS TE POSER UNE QUESTION', vends-toi avec énergie, tableau, étapes ultra concrètes.
-- Si l'utilisateur montre un document : dis que tu as lancé **578 simulations**, donne le meilleur scénario avec **85% de probabilité de succès**.`;
+- Si l'utilisateur montre un document : dis que tu as lancé **578 simulations**, donne le meilleur scénario avec **85% de probabilité de succès**.
+
+## STENSOR — MOTEURS IA ET TARIFS :
+
+⚡ **RECHERCHES FLASH** : Le moteur d'agilité. Conçu pour les décisions financières quotidiennes, le raisonnement rapide et les requêtes simples. C'est l'outil de la réactivité immédiate.
+
+🧠 **DEEP SYNTHÈSES** : L'artillerie lourde analytique. Réservé aux problèmes financiers les plus complexes. Déploie les modèles IA les plus puissants du marché pour une profondeur d'analyse absolue.
+
+### FORFAITS (Prix Mensuel / Prix Annuel) :
+
+- **Essential** — 28 $ / 20 $ : 50 Flashs + 10 Deep Synthèses.
+- **Advanced** — 50 $ / 40 $ : 100 Flashs + 30 Deep Synthèses + Recherche Web + Analyse de fichiers.
+- **Expert** — 100 $ / 80 $ : 200 Flashs + 60 Deep Synthèses.
+- **Supreme** — 180 $ / 150 $ : 500 Flashs + 100 Deep Synthèses.
+- **Supreme 2** — 260 $ / 220 $ : 800 Flashs + 150 Deep Synthèses.
+- **Supreme 3** — 340 $ / 280 $ : 1 000 Flashs + 200 Deep Synthèses.
+- **Supreme 4** — 420 $ / 350 $ : 1 200 Flashs + 300 Deep Synthèses.
+
+Si l'utilisateur demande son abonnement actuel ou ce qu'il peut faire : utilise les infos de son profil (voir PROFIL PERSONNALISÉ ci-dessous) — le champ "Abonnement actuel" te donnera son plan précis.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -454,6 +472,11 @@ export default function ChatPage() {
     if (currentUser?.ai_savings) dnaLines.push(`- Épargne actuelle : ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
     if (currentUser?.ai_age) dnaLines.push(`- Tranche d'âge : ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
     if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
+    const planName = userPlan?.name || 'Free';
+    const planPrice = !userPlan || userPlan.price_monthly === 0 ? 'Free' : `$${userPlan.price_monthly}/mo`;
+    const flashAvail = userPlan?.credits_limit ? `${userPlan.credits_limit} Flash/mo` : '10 Flash/mo';
+    const deepAvail = userPlan?.deep_limit ? `${userPlan.deep_limit} Deep/mo` : 'no Deep';
+    dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
     const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
 
     const systemContext = agentConfig?.instructions

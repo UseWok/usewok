@@ -13,11 +13,11 @@ const YELLOW = '#DDFF00';
 const LOGO = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 const PLAN_FEATURES = {
-  free:      ['10 Tensors/mois', '3 discussions max', 'Toutes les bases de connaissance'],
-  essential: ['100 Tensors/mois', '30 discussions max', 'Upload de fichiers'],
-  advanced:  ['250 Tensors/mois', 'Discussions illimitées', 'Recherche Internet', 'Upload de fichiers', 'Mode IA Avancé'],
-  expert:    ['500 Tensors/mois', 'Discussions illimitées', 'Recherche Internet', 'Upload de fichiers', 'Mode IA Expert', 'Support prioritaire'],
-  supreme:   ['1200 Tensors/mois', 'Discussions illimitées', 'Recherche Internet', 'Upload de fichiers', 'Mode IA Expert', 'Support prioritaire'],
+  free:      ['10 Flash searches/mo', '3 discussions max', 'All knowledge bases'],
+  essential: ['50 Flash searches/mo', '10 Deep syntheses/mo', 'File upload'],
+  advanced:  ['100 Flash searches/mo', '30 Deep syntheses/mo', 'Web search', 'File upload', 'Advanced AI mode'],
+  expert:    ['200 Flash searches/mo', '60 Deep syntheses/mo', 'Web search', 'File upload', 'Expert AI mode', 'Priority support'],
+  supreme:   ['500 Flash searches/mo', '100 Deep syntheses/mo', 'Web search', 'File upload', 'Expert AI mode', 'Priority support'],
 };
 
 function Scene({ children, bg = 'white', minH = '100vh' }) {
@@ -29,29 +29,42 @@ function Scene({ children, bg = 'white', minH = '100vh' }) {
   );
 }
 
-function Navbar({ scrolled }) {
+function Navbar({ scrolled, onCta }) {
   const navigate = useNavigate();
   return (
-    <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center"
-      style={{ paddingTop: 24 }}>
-      <div className="flex items-center justify-between w-full px-6 py-3"
-        style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
-      <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-        <img src={LOGO} alt="Stensor" className="w-5 h-5 object-contain" />
-        <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
-      </button>
-      <div className="hidden md:flex items-center gap-8">
-        <a href="/fonctionnalites" className="text-xs text-gray-400 hover:text-black transition-colors">Features</a>
-        <span className="text-xs font-black text-black border-b border-black pb-0.5">Pricing</span>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
-      </div>
-      <motion.button onClick={() => base44.auth.redirectToLogin('/app')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-        className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-        Commencer →
-      </motion.button>
-      </div>
-    </motion.header>
+    <>
+      {/* Desktop top pill navbar */}
+      <motion.header initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }}
+        className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+        style={{ paddingTop: 24 }}>
+        <div className="flex items-center justify-between w-full px-6 py-3"
+          style={{ maxWidth: 850, background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.4s ease', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
+            <img src={LOGO} alt="Stensor" className="w-8 h-8 object-contain" />
+            <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
+          </button>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="/fonctionnalites" className="text-xs text-gray-400 hover:text-black transition-colors">Features</a>
+            <span className="text-xs font-black text-black border-b border-black pb-0.5">Pricing</span>
+            <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
+          </div>
+          <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
+            Start free →
+          </motion.button>
+        </div>
+      </motion.header>
+
+      {/* Mobile floating bottom bar */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        className="fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-5 py-3.5 rounded-full"
+        style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+        <a href="/fonctionnalites" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Features</a>
+        <span className="text-xs font-black text-white border-b border-white pb-0.5">Pricing</span>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Sign in</button>
+        <button onClick={onCta} className="text-xs font-black px-4 py-2 rounded-full" style={{ background: YELLOW, color: FG }}>Start →</button>
+      </motion.div>
+    </>
   );
 }
 
@@ -83,9 +96,9 @@ export default function LandingPricingPage() {
   const handleCta = () => setShowQuiz(true);
 
   return (
-    <div className="font-inter overflow-x-hidden bg-white">
+    <div className="font-inter overflow-x-hidden bg-white pb-20 md:pb-0">
       <AnimatePresence>{showQuiz && <GuestQuiz onClose={() => setShowQuiz(false)} />}</AnimatePresence>
-      <Navbar scrolled={scrolled} />
+      <Navbar scrolled={scrolled} onCta={handleCta} />
 
       {/* HERO */}
       <Scene minH="100vh">
@@ -93,7 +106,7 @@ export default function LandingPricingPage() {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
             style={{ color: 'rgba(0,0,0,0.2)' }}>
-            Tarifs
+            Pricing
           </motion.p>
 
           <div className="overflow-hidden mb-2">
@@ -117,14 +130,14 @@ export default function LandingPricingPage() {
               transition={{ duration: 1, delay: 0.49, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
               style={{ fontSize: 'clamp(3rem, 8vw, 6.5rem)', color: 'rgba(0,0,0,0.15)' }}>
-              Sans surprise.
+              No surprises.
             </motion.h1>
           </div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }}
             className="text-base max-w-md mx-auto mb-12"
             style={{ color: 'rgba(0,0,0,0.35)', fontFamily: 'var(--font-open)' }}>
-            Choisissez le plan qui garde vos plaisirs et construit votre richesse. Commencez gratuitement, sans carte bancaire.
+            Pick the plan that keeps your pleasures and builds your wealth. Start free — no credit card needed.
           </motion.p>
 
           {/* Billing toggle */}
@@ -139,7 +152,7 @@ export default function LandingPricingPage() {
                   color: billing === b ? 'white' : 'rgba(0,0,0,0.4)',
                   borderRadius: '6px',
                 }}>
-                {b === 'monthly' ? 'Mensuel' : 'Annuel'}
+                {b === 'monthly' ? 'Monthly' : 'Yearly'}
                 {b === 'yearly' && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded" style={{ background: YELLOW, color: FG }}>-20%</span>}
               </button>
             ))}
@@ -159,7 +172,7 @@ export default function LandingPricingPage() {
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-20 text-center"
             style={{ color: 'rgba(0,0,0,0.2)' }}>
-            Choisissez votre niveau
+            Choose your tier
           </motion.p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
@@ -183,7 +196,7 @@ export default function LandingPricingPage() {
                   {isHighlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full"
                       style={{ background: YELLOW, color: FG }}>
-                      Populaire
+                      Popular
                     </div>
                   )}
 
@@ -194,9 +207,9 @@ export default function LandingPricingPage() {
 
                   <div className="mb-6">
                     <span className="font-black" style={{ fontSize: '2.2rem', lineHeight: 1, color: isHighlighted ? 'white' : FG }}>
-                      {plan.price_label || (price === 0 ? 'Gratuit' : `$${price}`)}
+                      {plan.price_label || (price === 0 ? 'Free' : `$${price}`)}
                     </span>
-                    {price > 0 && <span className="text-xs ml-1" style={{ color: isHighlighted ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>/mois</span>}
+                    {price > 0 && <span className="text-xs ml-1" style={{ color: isHighlighted ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>/mo</span>}
                   </div>
 
                   <div className="mb-5" style={{ height: 1, background: isHighlighted ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }} />
@@ -227,50 +240,50 @@ export default function LandingPricingPage() {
           {/* Enterprise */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="p-8 text-center" style={{ background: 'white', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)' }}>
-            <p className="font-black text-base mb-2" style={{ color: FG }}>Plan Entreprise</p>
+            <p className="font-black text-base mb-2" style={{ color: FG }}>Enterprise Plan</p>
             <p className="text-xs mb-5" style={{ color: 'rgba(0,0,0,0.4)', fontFamily: 'var(--font-open)' }}>
-              Tarif sur mesure pour les organisations avec des besoins illimités.
+              Custom pricing for organizations with unlimited needs.
             </p>
             <div className="flex items-center justify-center gap-6 mb-6 flex-wrap">
-              {['Tensors illimités', 'Support dédié', 'Intégrations custom', 'SLA Premium'].map(f => (
+              {['Unlimited Flash & Deep', 'Dedicated support', 'Custom integrations', 'Premium SLA'].map(f => (
                 <span key={f} className="text-xs text-gray-400">· {f}</span>
               ))}
             </div>
             <a href="mailto:contact.stensor@proton.me"
               className="inline-flex items-center gap-2 px-8 py-3 font-black text-xs rounded-lg transition-opacity hover:opacity-80"
               style={{ background: FG, color: 'white' }}>
-              Contacter l'équipe <ArrowRight className="w-3.5 h-3.5" />
+              Contact us <ArrowRight className="w-3.5 h-3.5" />
             </a>
           </motion.div>
 
           <p className="text-center text-[11px] mt-6 text-gray-300">
-            Résiliation à tout moment · Aucuns frais cachés · Paiement sécurisé
+            Cancel anytime · No hidden fees · Secure payment
           </p>
         </div>
       </Scene>
 
-      {/* WHY PAY */}
+      {/* WHY INVEST */}
       <Scene bg={FG} minH="80vh">
         <div className="w-full max-w-4xl mx-auto">
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-20 text-center"
             style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Pourquoi investir
+            Why invest
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.8 }}
             className="text-center mb-16">
             <h2 className="font-black tracking-tighter text-white"
               style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.0 }}>
-              €15/mois investis ici<br />
-              <span style={{ color: YELLOW }}>rapportent en moyenne €640/mois.</span>
+              $15/mo invested here<br />
+              <span style={{ color: YELLOW }}>returns an average $640/mo.</span>
             </h2>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { n: '42×', label: 'ROI moyen', desc: 'Pour chaque euro investi dans Stensor, nos utilisateurs récupèrent en moyenne 42× via les optimisations trouvées.' },
-              { n: '3 sem.', label: 'Pour voir les premiers résultats', desc: 'La plupart des utilisateurs identifient leurs premières économies dans les 3 premières semaines.' },
-              { n: '0 sacrifice', label: 'Sur vos plaisirs', desc: 'Notre méthode ne touche jamais à ce qui vous rend heureux. C\'est notre promesse absolue.' },
+              { n: '42×', label: 'Average ROI', desc: 'For every dollar spent on Stensor, our users recover an average 42× through discovered optimizations.' },
+              { n: '3 wks', label: 'To see first results', desc: 'Most users identify their first savings within the first 3 weeks of use.' },
+              { n: '0 sacrifice', label: 'On your pleasures', desc: "Our method never touches what makes you happy. That's our absolute promise." },
             ].map((s, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
@@ -291,14 +304,14 @@ export default function LandingPricingPage() {
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-[10px] font-black tracking-[0.35em] uppercase mb-16"
             style={{ color: 'rgba(0,0,0,0.3)' }}>
-            Commencez maintenant
+            Start now
           </motion.p>
           <div className="overflow-hidden mb-4">
             <motion.h2 initial={{ y: 60, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
               style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', color: FG }}>
-              Votre plaisir intact.
+              Your pleasure intact.
             </motion.h2>
           </div>
           <div className="overflow-hidden mb-16">
@@ -306,7 +319,7 @@ export default function LandingPricingPage() {
               transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="font-black tracking-tighter leading-[0.9]"
               style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', color: 'rgba(0,0,0,0.22)' }}>
-              Votre futur construit.
+              Your future built.
             </motion.h2>
           </div>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -317,7 +330,7 @@ export default function LandingPricingPage() {
               style={{ background: FG, color: 'white', borderRadius: '8px', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
               Start your engine <ArrowRight className="w-4 h-4" />
             </motion.button>
-            <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>Sans carte. Résiliation à tout moment.</p>
+            <p className="text-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>No card. Cancel anytime.</p>
           </motion.div>
         </div>
       </Scene>
@@ -326,7 +339,7 @@ export default function LandingPricingPage() {
       <footer className="px-8 md:px-10 py-10 flex items-center justify-between flex-wrap gap-4"
         style={{ background: 'white', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
         <button onClick={() => window.location.href = '/'} className="flex items-center gap-2">
-          <img src={LOGO} alt="Stensor" className="w-5 h-5 object-contain" />
+          <img src={LOGO} alt="Stensor" className="w-7 h-7 object-contain" />
           <span className="text-xs font-black" style={{ color: FG }}>Stensor</span>
         </button>
         <div className="flex items-center gap-6">
