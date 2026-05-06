@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
 
@@ -9,7 +9,7 @@
 @layer base {
   :root {
     /* ── Fonts ─────────────────────────────── */
-    --font-inter: 'Inter', sans-serif;
+    --font-inter: 'Be Vietnam Pro', sans-serif;
     --font-be: 'Be Vietnam Pro', sans-serif;
     --font-open: 'Open Sans', sans-serif;
 
