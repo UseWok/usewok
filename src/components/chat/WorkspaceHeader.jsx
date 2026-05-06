@@ -1,18 +1,42 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Lock, Copy, Check, LogOut } from 'lucide-react';
+import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 const FG = '#0A0A0A';
+const CORAL = '#FF4F00';
+const BLUE = '#3B82F6';
+
+function UsageBar({ used, total, color }) {
+  const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+  return (
+    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="h-full rounded-full"
+        style={{ background: color }}
+      />
+    </div>
+  );
+}
 
 function CreditsPopover({ user, userPlan, onClose }) {
   const navigate = useNavigate();
-  const creditsUsed = user?.credits_used || 0;
-  const creditsLimit = userPlan ? (userPlan.credits_limit || 10) + (user?.credits_bonus || 0) : 10;
-  const pct = Math.min(100, Math.round((creditsUsed / creditsLimit) * 100));
-  const remaining = Math.max(0, creditsLimit - creditsUsed);
-  const barColor = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : FG;
+  const used = user?.credits_used || 0;
+  const limit = userPlan?.credits_limit || 10;
+  const bonus = user?.credits_bonus || 0;
+  const total = limit + bonus;
+  const now = new Date();
+  const renewal = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const renewalStr = renewal.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const dailyLimit = user?.daily_credits_limit || 0;
+  const dailyData = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); } catch { return {}; } })();
+  const dailyUsed = dailyData[todayKey] || 0;
 
   return (
     <motion.div
@@ -20,40 +44,52 @@ function CreditsPopover({ user, userPlan, onClose }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.12 }}
-      className="absolute top-full mt-2 left-0 bg-white border border-black/8 z-50 w-[220px] overflow-hidden"
-      style={{ borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)' }}
+      className="absolute top-full mt-2 left-0 bg-white z-50 w-[260px] overflow-hidden"
+      style={{ borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}
     >
-      <div className="px-4 pt-4 pb-3">
-        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-3">Flash Usage</p>
-        <div className="flex items-end justify-between mb-2">
-          <span className="text-3xl font-black" style={{ color: FG }}>{remaining}</span>
-          <span className="text-xs text-zinc-400 mb-1">/ {creditsLimit} left</span>
-        </div>
-        <div className="w-full h-1.5 rounded-full overflow-hidden bg-black/8">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="h-full rounded-full"
-            style={{ background: barColor }}
-          />
-        </div>
-        <p className="text-[10px] text-zinc-400 mt-1.5">{pct}% used this month</p>
-        {userPlan?.name && (
-          <p className="text-[10px] font-bold mt-1" style={{ color: FG }}>{userPlan.name}</p>
-        )}
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <span className="text-sm font-bold" style={{ color: FG }}>Usage</span>
+        <button onClick={onClose} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/5">
+          <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
+        </button>
       </div>
 
-      <div className="h-px bg-black/5" />
+      <div className="px-4 py-4 space-y-4">
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold" style={{ color: FG }}>Deep Syntheses</span>
+            <span className="text-xs font-bold" style={{ color: '#888' }}>{used}/{total}{bonus > 0 ? <span style={{ color: CORAL }}> +{bonus}</span> : null}</span>
+          </div>
+          <UsageBar used={used} total={total} color={CORAL} />
+        </div>
+        {dailyLimit > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold" style={{ color: FG }}>Flash (today)</span>
+              <span className="text-xs font-bold" style={{ color: '#888' }}>{dailyUsed}/{dailyLimit}</span>
+            </div>
+            <UsageBar used={dailyUsed} total={dailyLimit} color={BLUE} />
+          </div>
+        )}
+        <p className="text-[10px] font-medium" style={{ color: BLUE }}>Renewal on {renewalStr}</p>
+      </div>
 
-      <button
-        onClick={() => { onClose(); navigate('/app'); }}
-        className="flex items-center gap-2.5 w-full px-4 py-3 text-sm hover:bg-black/4 transition-colors text-left"
-        style={{ color: FG }}
-      >
-        <LogOut className="w-3.5 h-3.5 text-zinc-400" />
-        Back to Home
-      </button>
+      <div className="h-px" style={{ background: 'rgba(0,0,0,0.06)' }} />
+
+      <div className="px-4 py-3 flex flex-col gap-2">
+        <button
+          onClick={() => { onClose(); navigate('/pricing'); }}
+          className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 rounded-lg transition-all hover:opacity-90"
+          style={{ background: FG, color: 'white' }}>
+          <TrendingUp className="w-3 h-3" /> Upgrade →
+        </button>
+        <button
+          onClick={() => { onClose(); navigate('/app'); }}
+          className="w-full py-2 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg transition-all hover:bg-black/5"
+          style={{ color: '#888' }}>
+          <ArrowLeft className="w-3 h-3" /> Back to Home
+        </button>
+      </div>
     </motion.div>
   );
 }
@@ -63,11 +99,26 @@ function PublishModal({ conversationId }) {
   const [copied, setCopied] = useState(false);
   const [visibility, setVisibility] = useState('public');
   const [published, setPublished] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePublish = async () => {
+    setSaving(true);
+    if (conversationId) {
+      try {
+        const convs = await base44.entities.Conversation.filter({ conv_id: conversationId });
+        if (convs.length > 0) {
+          await base44.entities.Conversation.update(convs[0].id, { is_public: visibility === 'public' });
+        }
+      } catch {}
+    }
+    setSaving(false);
+    setPublished(true);
   };
 
   return (
@@ -76,8 +127,8 @@ function PublishModal({ conversationId }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute top-full mt-2 right-0 bg-white border border-black/10 z-50 w-[300px] overflow-hidden"
-      style={{ borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+      className="absolute top-full mt-2 right-0 bg-white z-50 w-[300px] overflow-hidden"
+      style={{ borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.10)' }}
     >
       <div className="px-5 pt-5 pb-4">
         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-3">Public Link</p>
@@ -114,24 +165,15 @@ function PublishModal({ conversationId }) {
 
       <div className="px-5 pb-5">
         <button
-          onClick={() => setPublished(true)}
+          onClick={handlePublish}
+          disabled={saving}
           className="w-full py-3.5 rounded-lg text-sm font-black transition-all hover:opacity-90"
           style={{ background: published ? '#16a34a' : FG, color: 'white' }}
         >
-          {published ? '✓ Published' : 'Publish Now'}
+          {saving ? '...' : published ? '✓ Published' : 'Publish Now'}
         </button>
       </div>
     </motion.div>
-  );
-}
-
-function ProfileAvatar({ user }) {
-  const initial = user?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?';
-  return (
-    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-      style={{ background: '#E8ECF4', color: '#0A0A0A' }}>
-      {initial}
-    </div>
   );
 }
 
@@ -153,16 +195,16 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan 
   return (
     <header
       className="flex items-center justify-between px-4 h-12 flex-shrink-0"
-      style={{ background: '#E8ECF4' }}
+      style={{ background: '#EEF0F7' }}
     >
       {/* Left: Logo + Title */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div ref={creditsRef} className="relative flex-shrink-0">
           <button
             onClick={() => setShowCredits(s => !s)}
-            className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/5 transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/8 transition-colors"
           >
-            <ProfileAvatar user={user} />
+            <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
           </button>
           <AnimatePresence>
             {showCredits && (

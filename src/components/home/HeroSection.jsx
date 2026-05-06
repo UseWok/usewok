@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContextualUpsell from '@/components/upsell/ContextualUpsell';
-import { Plus, Mic, X, FileText, Wifi, Send, Zap, ChevronDown } from 'lucide-react';
+import { Plus, Mic, X, FileText, Wifi, Send, Zap, ChevronDown, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
@@ -18,13 +18,6 @@ const SKILLS = [
   { id: 'track', label: 'Am I on track?', emoji: '📊' },
   { id: 'move', label: "What's my next move?", emoji: '🎯' },
 ];
-
-const PLEASURE_MAP = {
-  travel: { emoji: '✈️', label: 'Travel & experiences' },
-  food: { emoji: '🍽️', label: 'Great food & dining' },
-  tech: { emoji: '📱', label: 'Tech & gadgets' },
-  wellness: { emoji: '🧘', label: 'Health & wellbeing' },
-};
 
 const POWER_TOPICS = [
   { label: '💰 Build Wealth', prompt: "I want to build serious wealth starting now. Give me a concrete 90-day action plan: exact accounts to open, what percentage to save monthly, and the single most impactful step I can take this week." },
@@ -57,9 +50,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const [hasInternetState, setHasInternetState] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [upsellFeature, setUpsellFeature] = useState(null);
-  const [pleasure, setPleasure] = useState(null);
   const dragCounterRef = useRef(0);
-  const inputCardRef = useRef(null);
 
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -72,12 +63,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
   const canUpload = userPlan?.file_upload || false;
 
   useEffect(() => {
-    // Load quiz pleasure from localStorage or user profile
     const stored = getStoredQuiz();
-    if (stored?.pleasure) {
-      setPleasure(stored.pleasure);
-    }
-
     base44.auth.me().then((u) => {
       const plan = getUserPlan(u);
       setUserPlan(plan);
@@ -92,10 +78,6 @@ export default function HeroSection({ agentId, onAgentChange }) {
         if (dailyUsed >= plan.daily_credits_limit) setDailyBlocked(true);
       }
       if (plan.internet_access) setHasInternetState(true);
-
-      // Load pleasure from user profile
-      if (u?.quiz_answers?.pleasure) setPleasure(u.quiz_answers.pleasure);
-      else if (u?.pleasure) setPleasure(u.pleasure);
     }).catch(() => {});
   }, []);
 
@@ -108,11 +90,15 @@ export default function HeroSection({ agentId, onAgentChange }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleFileSelect = (e) => {
-    setFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
-    setShowFileMenu(false);
-  };
+  // Auto-resize textarea
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+  }, [query]);
 
+  const handleFileSelect = (e) => { setFiles((prev) => [...prev, ...Array.from(e.target.files || [])]); setShowFileMenu(false); };
   const removeFile = (idx) => setFiles((prev) => prev.filter((_, i) => i !== idx));
 
   const toggleRecording = async () => {
@@ -162,64 +148,61 @@ export default function HeroSection({ agentId, onAgentChange }) {
 
   const hasText = query.trim().length > 0;
   const isBlocked = creditsUsed >= creditsTotal || dailyBlocked;
-  const pleasureInfo = pleasure ? PLEASURE_MAP[pleasure] : null;
 
   return (
-    <section className="max-w-2xl mx-auto text-center px-4 mt-24 md:mt-36 relative overflow-hidden" style={{ background: 'transparent' }}>
-      {/* Glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{ x: [0, -30, 0], y: [0, -40, 0], scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', width: 800, height: 800, bottom: '-200px', right: '-200px', background: 'radial-gradient(circle, rgba(221,255,0,0.15) 0%, rgba(221,255,0,0.06) 40%, transparent 75%)', filter: 'blur(60px)' }}
-        />
+    <section
+      className="relative flex flex-col items-center px-6"
+      style={{ paddingTop: '10vh', paddingBottom: '6vh', minHeight: '80vh' }}
+    >
+      {/* Ambient glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div style={{ position: 'absolute', width: 700, height: 700, top: -150, left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle, rgba(221,255,0,0.06) 0%, transparent 65%)', filter: 'blur(60px)' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, bottom: 0, right: '10%', background: 'radial-gradient(circle, rgba(0,0,0,0.025) 0%, transparent 70%)', filter: 'blur(40px)' }} />
       </div>
 
-      {/* Personalized pleasure badge OR generic badge */}
+      {/* Badge */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.02 }}
-        className="inline-flex items-center justify-center mb-6"
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-8"
       >
-        {pleasureInfo ? (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-            style={{ background: 'white', border: '1.5px solid rgba(0,0,0,0.08)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', color: '#0A0A0A' }}>
-            <span className="text-base">{pleasureInfo.emoji}</span>
-            <span style={{ color: 'rgba(0,0,0,0.4)', fontSize: '11px', fontWeight: 600 }}>Mon Plaisir Intouchable :</span>
-            <span style={{ fontSize: '12px', fontWeight: 800 }}>{pleasureInfo.label}</span>
-          </div>
-        ) : (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-black tracking-[0.2em] uppercase"
-            style={{ background: '#DDFF00', color: '#0A0A0A' }}>
-            AI Financial Coach
-          </div>
-        )}
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black tracking-wider uppercase"
+          style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+          ✦ AI Financial Coach
+        </div>
       </motion.div>
 
+      {/* Headline */}
       <motion.h1
-        initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+        initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-        className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-fg mb-5 leading-[1.05]">
-        Build your financial<br />freedom, today.
+        transition={{ duration: 0.6, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+        className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-center leading-[1.02] mb-5"
+        style={{ color: '#0A0A0A', maxWidth: '700px' }}
+      >
+        Build your<br />
+        <span style={{ color: 'rgba(0,0,0,0.18)' }}>financial freedom.</span>
       </motion.h1>
 
+      {/* Subtitle */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.12 }}
-        className="text-base mb-10"
-        style={{ color: 'rgba(10,10,10,0.4)' }}>
+        transition={{ duration: 0.5, delay: 0.14 }}
+        className="text-base md:text-lg text-center mb-12 max-w-md"
+        style={{ color: 'rgba(10,10,10,0.38)', lineHeight: 1.6 }}
+      >
         Ask anything. Get expert-grade answers, instantly.
       </motion.p>
 
       {/* Input card */}
       <motion.div
-        initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+        initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.5, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        ref={inputCardRef}
+        transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full relative"
+        style={{ maxWidth: '680px' }}
         onDragEnter={(e) => { e.preventDefault(); dragCounterRef.current++; setIsDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current <= 0) { dragCounterRef.current = 0; setIsDragging(false); } }}
         onDragOver={(e) => e.preventDefault()}
@@ -230,20 +213,21 @@ export default function HeroSection({ agentId, onAgentChange }) {
           if (!canUpload) { setUpsellFeature('files'); return; }
           setFiles((prev) => [...prev, ...dropped]);
         }}
-        className="relative"
       >
         <DragDropOverlay visible={isDragging} canUpload={canUpload} />
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
 
-        <div className="bg-white border border-border rounded-xl shadow-md overflow-visible">
-          {/* Attached files */}
+        <div className="bg-white border overflow-visible"
+          style={{ borderColor: 'rgba(0,0,0,0.09)', borderRadius: '20px', boxShadow: '0 8px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}>
+
+          {/* Files */}
           {files.length > 0 && (
-            <div className="flex gap-2 flex-wrap p-3 pb-0">
+            <div className="flex gap-2 flex-wrap px-4 pt-4">
               {files.map((file, idx) => (
-                <div key={idx} className="relative flex items-center gap-2 px-2.5 py-1.5 group bg-black/5 border border-black/8 rounded-lg">
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0 text-fg" />
-                  <span className="text-[10px] font-medium max-w-[80px] truncate text-zinc-600">{file.name}</span>
-                  <button onClick={() => removeFile(idx)} className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-sm">
+                <div key={idx} className="relative flex items-center gap-2 px-2.5 py-1.5 group bg-black/4 border border-black/7 rounded-lg">
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#0A0A0A' }} />
+                  <span className="text-[10px] font-medium max-w-[80px] truncate" style={{ color: '#444' }}>{file.name}</span>
+                  <button onClick={() => removeFile(idx)} className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <X className="w-2 h-2" />
                   </button>
                 </div>
@@ -252,32 +236,35 @@ export default function HeroSection({ agentId, onAgentChange }) {
           )}
 
           {/* Textarea */}
-          <div className="px-4 pt-4 pb-1">
+          <div className="px-5 pt-5 pb-2">
             <textarea
-              ref={textareaRef} value={query} onChange={(e) => { setQuery(e.target.value); localStorage.setItem('stensor_home_draft', e.target.value); }}
+              ref={textareaRef}
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); localStorage.setItem('stensor_home_draft', e.target.value); }}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleSend(); } }}
-              placeholder={isBlocked ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue') : t('hero_placeholder')}
+              placeholder={isBlocked ? (dailyBlocked ? 'Daily limit reached — come back tomorrow ✨' : 'Monthly limit reached — upgrade to continue') : "Ask me anything about your finances..."}
               disabled={isBlocked}
               rows={3}
-              className="w-full resize-none bg-transparent text-sm focus:outline-none leading-relaxed disabled:opacity-40 disabled:cursor-not-allowed text-fg placeholder:text-zinc-400"
+              className="w-full resize-none bg-transparent focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ fontSize: '16px', lineHeight: '1.65', color: '#0A0A0A', minHeight: '72px' }}
             />
           </div>
 
-          {/* Bottom toolbar */}
-          <div className="flex items-center justify-between px-3 pb-3 gap-2">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-4 pb-4 gap-2">
             <div className="flex items-center gap-0.5">
-
               {/* + file / web search */}
               <div className="relative" ref={fileMenuRef}>
                 <button onClick={() => { setShowFileMenu(!showFileMenu); setShowSkillMenu(false); }}
-                  className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-black/5 transition-colors">
-                  <Plus className="w-3.5 h-3.5 text-muted-foreground" />
+                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-black/5 transition-colors">
+                  <Plus className="w-4 h-4" style={{ color: 'rgba(0,0,0,0.4)' }} />
                 </button>
                 <AnimatePresence>
                   {showFileMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-lg">
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 rounded-xl overflow-hidden"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}>
                       <button onClick={handleFileAttach}
-                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs rounded-md transition-colors text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs rounded-lg transition-colors text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
                         <FileText className={`w-3.5 h-3.5 ${canUpload ? 'text-fg' : 'text-zinc-300'}`} />
                         Attach file
                         {!canUpload && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-sm">Essential+</span>}
@@ -287,7 +274,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
                           if (!hasInternet) { setUpsellFeature('internet'); setShowFileMenu(false); return; }
                           setUseWebSearch(w => !w); setShowFileMenu(false);
                         }}
-                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs rounded-md transition-colors text-left hover:bg-black/5 ${hasInternet ? 'text-zinc-600' : 'text-zinc-300'}`}>
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs rounded-lg transition-colors text-left hover:bg-black/5 ${hasInternet ? 'text-zinc-600' : 'text-zinc-300'}`}>
                         <Wifi className={`w-3.5 h-3.5 ${hasInternet ? 'text-zinc-500' : 'text-zinc-300'}`} />
                         Web Search
                         {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 bg-muted text-zinc-400 rounded-sm">Advanced+</span>}
@@ -307,29 +294,30 @@ export default function HeroSection({ agentId, onAgentChange }) {
               <div className="relative" ref={skillMenuRef}>
                 {selectedSkill ? (
                   <button onClick={() => setSelectedSkill(null)}
-                    className="h-7 px-2 rounded-md flex items-center gap-1 transition-colors"
-                    style={{ background: 'rgba(221,255,0,0.25)' }}>
+                    className="h-8 px-3 rounded-xl flex items-center gap-1.5 transition-colors"
+                    style={{ background: 'rgba(221,255,0,0.2)' }}>
                     <Zap className="w-3 h-3" style={{ color: '#0A0A0A' }} />
-                    <span className="text-[11px] font-semibold hidden sm:block" style={{ color: '#0A0A0A' }}>
+                    <span className="text-xs font-semibold hidden sm:block" style={{ color: '#0A0A0A' }}>
                       {SKILLS.find(s => s.id === selectedSkill)?.label}
                     </span>
-                    <X className="w-2.5 h-2.5" style={{ color: '#0A0A0A' }} />
+                    <X className="w-3 h-3" style={{ color: '#0A0A0A' }} />
                   </button>
                 ) : (
                   <button
                     onClick={() => { setShowSkillMenu(s => !s); setShowFileMenu(false); }}
-                    className="h-7 px-2 rounded-md flex items-center gap-1 transition-colors hover:bg-black/5">
-                    <Zap className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">Skills</span>
-                    <ChevronDown className="w-2.5 h-2.5 text-muted-foreground/60" />
+                    className="h-8 px-3 rounded-xl flex items-center gap-1.5 transition-colors hover:bg-black/5">
+                    <Zap className="w-3 h-3" style={{ color: 'rgba(0,0,0,0.4)' }} />
+                    <span className="text-xs font-medium hidden sm:block" style={{ color: 'rgba(0,0,0,0.4)' }}>Skills</span>
+                    <ChevronDown className="w-3 h-3" style={{ color: 'rgba(0,0,0,0.3)' }} />
                   </button>
                 )}
                 <AnimatePresence>
                   {showSkillMenu && (
-                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 border border-black/10 rounded-lg">
+                    <motion.div {...popAnim} className="absolute bottom-full mb-2 left-0 bg-white shadow-xl p-1.5 min-w-[190px] z-50 rounded-xl overflow-hidden"
+                      style={{ border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}>
                       {SKILLS.map(s => (
                         <button key={s.id} onClick={() => { setSelectedSkill(s.id); setShowSkillMenu(false); }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-md hover:bg-black/5 text-zinc-600">
+                          className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-lg hover:bg-black/5 text-zinc-600">
                           <span>{s.emoji}</span>
                           <span className="font-medium">{s.label}</span>
                         </button>
@@ -341,10 +329,10 @@ export default function HeroSection({ agentId, onAgentChange }) {
             </div>
 
             {/* Right: mic + send */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={toggleRecording}
-                className="w-8 h-8 flex items-center justify-center rounded-md transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
                 style={{ background: isRecording || voiceLoading ? '#0A0A0A' : 'rgba(0,0,0,0.05)' }}>
                 {voiceLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
@@ -353,19 +341,21 @@ export default function HeroSection({ agentId, onAgentChange }) {
                   <motion.div animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 0.9 }}
                     className="w-2.5 h-2.5 rounded-full" style={{ background: '#DDFF00' }} />
                 ) : (
-                  <Mic className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Mic className="w-4 h-4" style={{ color: 'rgba(0,0,0,0.4)' }} />
                 )}
               </button>
 
               <button
                 onClick={handleSend}
                 disabled={!hasText || isBlocked}
-                className="w-8 h-8 flex items-center justify-center rounded-md transition-all"
+                className="h-9 px-5 flex items-center gap-2 rounded-xl transition-all font-black text-sm"
                 style={{
                   background: hasText && !isBlocked ? '#0A0A0A' : 'rgba(0,0,0,0.05)',
+                  color: hasText && !isBlocked ? 'white' : 'rgba(0,0,0,0.2)',
                   cursor: !hasText || isBlocked ? 'not-allowed' : 'pointer',
                 }}>
-                <Send className="w-3.5 h-3.5" style={{ color: hasText && !isBlocked ? 'white' : '#ccc' }} />
+                <span className="hidden sm:block">Send</span>
+                <Send className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -375,7 +365,7 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {/* Contextual upsell */}
       <AnimatePresence>
         {upsellFeature && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="mt-3">
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="mt-4 w-full" style={{ maxWidth: '680px' }}>
             <ContextualUpsell feature={upsellFeature} onDismiss={() => setUpsellFeature(null)} />
           </motion.div>
         )}
@@ -385,26 +375,29 @@ export default function HeroSection({ agentId, onAgentChange }) {
       {isBlocked && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
           onClick={() => navigate('/pricing')}
-          className="mt-3 w-full py-3 flex items-center justify-between px-4 cursor-pointer hover:opacity-90 transition-opacity bg-fg rounded-xl">
+          className="mt-4 w-full py-3.5 flex items-center justify-between px-5 cursor-pointer hover:opacity-90 transition-opacity rounded-2xl"
+          style={{ background: '#0A0A0A', maxWidth: '680px' }}>
           <p className="text-sm font-bold text-white">{dailyBlocked ? 'Daily limit reached 🌙' : 'Monthly limit reached'}</p>
-          <span className="text-xs font-black px-3 py-1 bg-yuzu text-fg rounded-md">Upgrade →</span>
+          <span className="text-xs font-black px-3 py-1.5 rounded-lg" style={{ background: '#DDFF00', color: '#0A0A0A' }}>Upgrade →</span>
         </motion.div>
       )}
 
-      {/* Topic chips — 4 clean cards */}
+      {/* Topic chips */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="mt-6">
-        <div className="grid grid-cols-2 gap-2">
-          {POWER_TOPICS.map((topic, i) => (
+        transition={{ delay: 0.4, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full mt-8"
+        style={{ maxWidth: '680px' }}
+      >
+        <p className="text-[10px] font-black uppercase tracking-widest text-center mb-4" style={{ color: 'rgba(0,0,0,0.2)' }}>Popular topics</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {POWER_TOPICS.map((topic) => (
             <motion.button key={topic.label} onClick={() => setQuery(topic.prompt)}
-              whileHover={{ scale: 1.025, y: -2 }} whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+              whileTap={{ scale: 0.97 }}
               className="text-left px-4 py-3.5 bg-white rounded-2xl border transition-all"
-              style={{ borderColor: 'rgba(0,0,0,0.08)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'}>
+              style={{ borderColor: 'rgba(0,0,0,0.07)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <p className="text-sm font-black" style={{ color: '#0A0A0A' }}>{topic.label}</p>
             </motion.button>
           ))}
