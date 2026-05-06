@@ -12,7 +12,6 @@ import { useLanguage } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 import { useIsMobile } from '@/hooks/use-mobile';
-import DiscussionPanel from '@/components/home/DiscussionPanel';
 
 const PENDING_KEY = 'stensor_pending_query';
 
@@ -25,8 +24,8 @@ export default function Home() {
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [showFreeBanner, setShowFreeBanner] = useState(false);
   const [isFreeUser, setIsFreeUser] = useState(false);
-  const [selectedDiscussion, setSelectedDiscussion] = useState(null);
-  const isMobile = useIsMobile();
+
+  const isMobile = useIsMobile(); // kept for responsive guards if needed
 
   useEffect(() => {
     // Save quiz results to user profile if coming from guest quiz
@@ -83,25 +82,12 @@ export default function Home() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left column */}
         <div className="flex-1 min-w-0 overflow-y-auto">
           <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
           <RecentApps
             agentId={selectedAgent}
-            onSelect={!isMobile ? setSelectedDiscussion : undefined}
-            selectedId={selectedDiscussion?.id}
           />
         </div>
-
-        {/* Right panel — desktop only */}
-        {!isMobile && (
-          <div
-            className="w-[460px] xl:w-[520px] flex-shrink-0 sticky top-0 flex flex-col overflow-hidden"
-            style={{ height: '100vh', borderLeft: '1px solid rgba(0,0,0,0.06)' }}
-          >
-            <DiscussionPanel discussion={selectedDiscussion} />
-          </div>
-        )}
       </div>
     </div>
   );
