@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -49,8 +50,7 @@ function FicheContent({ content }) {
 }
 
 export default function PublicFiche() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const conversationId = urlParams.get('id');
+  const { id: conversationId } = useParams();
 
   const [messages, setMessages] = useState([]);
   const [title, setTitle] = useState('');

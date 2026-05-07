@@ -24,7 +24,7 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content, agent, meta, fakeButton, onFakeLaunch }) {
+export default function AssistantMessage({ content, agent, meta, fakeButton, onFakeLaunch, launchContent, onLaunch }) {
   const [copied, setCopied] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
@@ -96,11 +96,21 @@ export default function AssistantMessage({ content, agent, meta, fakeButton, onF
           </div>
         )}
 
+        {launchContent && onLaunch && (
+          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <button
+              onClick={() => onLaunch(launchContent)}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-sm transition-all hover:opacity-90"
+              style={{ background: FG, color: YUZU }}>
+              <span>⚡</span> Lancer
+            </button>
+          </div>
+        )}
         {fakeButton && (
           <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
             <button
               onClick={onFakeLaunch}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-sm transition-all hover:opacity-90"
               style={{ background: FG, color: YUZU }}>
               <span>⚡</span> Lancer
             </button>

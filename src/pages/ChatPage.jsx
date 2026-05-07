@@ -253,14 +253,14 @@ export default function ChatPage() {
   }, [messages]);
 
   // ── Typewriter helper ──────────────────────────────────────────────────────
-  const runTypewriter = useCallback((content, newMessages, msgMeta, convTitle, textForSync) => {
+  const runTypewriter = useCallback((content, newMessages, msgMeta, convTitle, textForSync, onDone) => {
     let i = 0;
     const typeNext = () => {
       if (!isMountedRef.current) {
         const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
         saveConversationMessages(convId, finalMsgs);
         syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
-        setFicheContent(content);
+        if (onDone) onDone(content);
         setFichePending(false);
         return;
       }
@@ -272,7 +272,7 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
         saveConversationMessages(convId, finalMsgs);
         syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
-        setFicheContent(content);
+        if (onDone) onDone(content);
         setFichePending(false);
       }
     };
@@ -596,11 +596,17 @@ Input: ${text.slice(0, 400)}`;
     setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
-    setFichePending(true);
-    runTypewriter(content, newMessages, msgMeta, convTitle, text);
+    // Store content, show short confirm + launch button
+    const pendingContent = content;
+    setFichePending(false);
+    const shortMsg = '✅ Analyse prête — clique sur **Lancer** pour l\'afficher.';
+    const finalMsgsShort = [...newMessages, { role: 'assistant', content: shortMsg, meta: msgMeta, _launchContent: pendingContent }];
+    setMessages(finalMsgsShort);
+    saveConversationMessages(convId, finalMsgsShort);
+    syncConversationToCloud(convId, finalMsgsShort, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
     // Milestone toast
-    const userCount = [...newMessages, { role: 'assistant', content }].filter(m => m.role === 'user').length;
+    const userCount = [...newMessages, { role: 'assistant', content: shortMsg }].filter(m => m.role === 'user').length;
     if (userCount === 10 && !milestoneShown) {
       setMilestoneShown(true);
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
@@ -688,11 +694,14 @@ Input: ${text.slice(0, 400)}`;
     const convTitle = await buildTitle(text, newMessages);
     saveToDiscussions(convTitle, text);
 
-    setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
-    setFichePending(true);
-    runTypewriter(content, newMessages, msgMeta, convTitle, text);
+    setFichePending(false);
+    const shortMsg = '✅ Analyse prête — clique sur **Lancer** pour l\'afficher.';
+    const finalMsgsShort = [...newMessages, { role: 'assistant', content: shortMsg, meta: msgMeta, _launchContent: content }];
+    setMessages(finalMsgsShort);
+    saveConversationMessages(convId, finalMsgsShort);
+    syncConversationToCloud(convId, finalMsgsShort, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
   }, [mode, currentAgent, convId, runTypewriter]);
 
   const editMessage = (idx) => { setInput(messages[idx].content); setMessages(prev => prev.slice(0, idx)); };
@@ -745,12 +754,20 @@ Input: ${text.slice(0, 400)}`;
                 {msg.role === 'synthesis_proposal'
                   ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
                   : msg.role === 'assistant'
-                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} fakeButton={msg._fakeButton} onFakeLaunch={msg._fakeButton ? async () => {
-                      setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
-                      const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
-                      synthPendingRef.current = pending;
-                      await continueSynthesis(true);
-                    } : undefined} />
+                  ? <AssistantMessage
+                      content={msg.content}
+                      agent={msg.agent || currentAgent}
+                      meta={msg.meta}
+                      launchContent={msg._launchContent}
+                      onLaunch={msg._launchContent ? (c) => { setFicheContent(c); setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _launchContent: undefined } : m)); } : undefined}
+                      fakeButton={msg._fakeButton}
+                      onFakeLaunch={msg._fakeButton ? async () => {
+                        setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
+                        const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
+                        synthPendingRef.current = pending;
+                        await continueSynthesis(true);
+                      } : undefined}
+                    />
                   : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
                 }
               </motion.div>

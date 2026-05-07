@@ -102,14 +102,32 @@ export default function FichePanel({ content = null, loading = false }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4"
-              style={{ opacity: 0.12 }}
+              className="px-10 py-10"
             >
-              <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain" />
-              <p className="text-sm font-semibold" style={{ color: FG }}>La réponse apparaîtra ici</p>
-              <p className="text-xs text-center max-w-xs" style={{ color: 'rgba(0,0,0,0.4)' }}>
-                Posez une question pour générer votre analyse.
-              </p>
+              {/* Builder-style empty template */}
+              <div className="flex items-center gap-3 mb-8">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-30" />
+                <div className="h-3 rounded-sm animate-none" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
+              </div>
+              <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
+              <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
+              <div className="space-y-2 mb-8">
+                <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
+                <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
+                <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
+              </div>
+              <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
+              <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
+              <div className="space-y-2 mb-8">
+                {[100, 88, 94, 72].map((w, i) => (
+                  <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <div className="h-8 rounded-sm" style={{ width: '100px', background: 'rgba(0,0,0,0.07)' }} />
+                <div className="h-8 rounded-sm" style={{ width: '80px', background: 'rgba(0,0,0,0.05)' }} />
+              </div>
+              <p className="text-xs mt-10 text-center" style={{ color: 'rgba(0,0,0,0.18)' }}>Lance une analyse pour afficher le résultat ici</p>
             </motion.div>
           )}
         </AnimatePresence>
