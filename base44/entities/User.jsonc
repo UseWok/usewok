@@ -13,6 +13,12 @@
     "quiz_answers": {
       "type": "object",
       "description": "Guest quiz results stored privately per user"
+    },
+    "deep_credits_used": {
+      "type": "number",
+      "description": "Number of Deep Syntheses used this month",
+      "default": 0
     }
-  }
+  },
+  "required": []
 }

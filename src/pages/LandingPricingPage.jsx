@@ -72,8 +72,9 @@ export default function LandingPricingPage() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
-  const [billing, setBilling] = useState('monthly');
   const [highlightedPlanId, setHighlightedPlanId] = useState('advanced');
+  const [tierModalPlan, setTierModalPlan] = useState(null);
+  const [selectedTiers, setSelectedTiers] = useState({});
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
 
   useEffect(() => {
@@ -140,23 +141,7 @@ export default function LandingPricingPage() {
             Pick the plan that keeps your pleasures and builds your wealth. Start free — no credit card needed.
           </motion.p>
 
-          {/* Billing toggle */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
-            className="inline-flex items-center gap-1 p-1 mb-4"
-            style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-            {['monthly', 'yearly'].map(b => (
-              <button key={b} onClick={() => setBilling(b)}
-                className="px-5 py-2 text-xs font-black transition-all"
-                style={{
-                  background: billing === b ? FG : 'transparent',
-                  color: billing === b ? 'white' : 'rgba(0,0,0,0.4)',
-                  borderRadius: '6px',
-                }}>
-                {b === 'monthly' ? 'Monthly' : 'Yearly'}
-                {b === 'yearly' && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded" style={{ background: YELLOW, color: FG }}>-20%</span>}
-              </button>
-            ))}
-          </motion.div>
+
         </div>
 
         <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2.5 }}
@@ -175,50 +160,58 @@ export default function LandingPricingPage() {
             Choose your tier
           </motion.p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            {plans.map((plan, i) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {plans.filter(p => p.id !== 'free').map((plan, i) => {
               const features = (plan.features?.length > 0) ? plan.features : (PLAN_FEATURES[plan.id] || []);
               const isHighlighted = plan.id === highlightedPlanId;
-              const price = billing === 'yearly'
-                ? Math.round((plan.price_monthly || 0) * 0.8)
-                : (plan.price_monthly || 0);
+              const price = plan.price_monthly || 0;
+              const hasTiers = plan.tier_options?.filter(o => (typeof o === 'string' ? o : o?.label)?.trim()).length > 0;
+              const selIdx = selectedTiers[plan.id];
+              const selOpt = selIdx !== undefined && plan.tier_options?.[selIdx] ? (typeof plan.tier_options[selIdx] === 'object' ? plan.tier_options[selIdx] : null) : null;
+              const displayPrice = selOpt?.price_monthly || price;
 
               return (
                 <motion.div key={plan.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                   className="relative flex flex-col p-6"
                   style={{
-                    background: isHighlighted ? FG : 'white',
-                    borderRadius: '12px',
-                    border: isHighlighted ? 'none' : '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: isHighlighted ? '0 24px 64px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.04)',
+                    background: 'white',
+                    borderRadius: '8px',
+                    border: isHighlighted ? `2px solid ${FG}` : '1px solid rgba(0,0,0,0.08)',
+                    boxShadow: isHighlighted ? '0 8px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
                   }}>
-                  {isHighlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full"
-                      style={{ background: YELLOW, color: FG }}>
-                      Popular
-                    </div>
-                  )}
 
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-4"
-                    style={{ color: isHighlighted ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)' }}>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: 'rgba(0,0,0,0.35)' }}>
                     {plan.name}
                   </p>
 
-                  <div className="mb-6">
-                    <span className="font-black" style={{ fontSize: '2.2rem', lineHeight: 1, color: isHighlighted ? 'white' : FG }}>
-                      {plan.price_label || (price === 0 ? 'Free' : `$${price}`)}
+                  <div className="mb-2">
+                    <span className="font-black" style={{ fontSize: '2.2rem', lineHeight: 1, color: FG }}>
+                      {price === 0 ? 'Free' : `$${displayPrice}`}
                     </span>
-                    {price > 0 && <span className="text-xs ml-1" style={{ color: isHighlighted ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>/mo</span>}
+                    {displayPrice > 0 && <span className="text-xs ml-1" style={{ color: 'rgba(0,0,0,0.3)' }}>/mo</span>}
                   </div>
 
-                  <div className="mb-5" style={{ height: 1, background: isHighlighted ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }} />
+                  {/* Tier selector for plans with options */}
+                  {hasTiers && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => setTierModalPlan(plan.id)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold transition-all"
+                        style={{ background: 'rgba(221,255,0,0.15)', border: '1px solid rgba(221,255,0,0.4)', borderRadius: '6px', color: FG }}>
+                        <span>{selOpt?.label || plan.tier_options.find(o => (typeof o === 'string' ? o : o?.label)?.trim())?.label || 'Choose tier'}</span>
+                        <span style={{ color: 'rgba(0,0,0,0.4)' }}>▾</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.06)' }} />
 
                   <ul className="space-y-2.5 flex-1 mb-7">
                     {features.map((f, fi) => (
                       <li key={fi} className="flex items-start gap-2 text-xs">
-                        <Check className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: isHighlighted ? YELLOW : FG }} />
-                        <span style={{ color: isHighlighted ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>{f}</span>
+                        <Check className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: FG }} />
+                        <span style={{ color: 'rgba(0,0,0,0.6)' }}>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -226,16 +219,62 @@ export default function LandingPricingPage() {
                   <button onClick={handleCta}
                     className="w-full py-3 font-black text-xs transition-all hover:opacity-85"
                     style={{
-                      background: isHighlighted ? YELLOW : FG,
-                      color: isHighlighted ? FG : 'white',
+                      background: isHighlighted ? FG : 'rgba(0,0,0,0.06)',
+                      color: isHighlighted ? 'white' : FG,
                       borderRadius: '6px',
                     }}>
-                    Start your engine
+                    {isHighlighted ? 'Start your engine →' : 'Get started'}
                   </button>
                 </motion.div>
               );
             })}
           </div>
+
+          {/* Tier options modal */}
+          <AnimatePresence>
+            {tierModalPlan && (() => {
+              const plan = plans.find(p => p.id === tierModalPlan);
+              if (!plan) return null;
+              return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+                  style={{ background: 'rgba(0,0,0,0.5)' }}
+                  onClick={() => setTierModalPlan(null)}>
+                  <motion.div initial={{ scale: 0.95, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
+                    className="bg-white w-full max-w-sm overflow-hidden"
+                    style={{ borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                    onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                      <p className="text-sm font-black" style={{ color: FG }}>{plan.name} — Choose a tier</p>
+                      <button onClick={() => setTierModalPlan(null)} className="text-xs text-gray-400 hover:text-black">✕</button>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      {plan.tier_options.map((opt, i) => {
+                        const label = typeof opt === 'string' ? opt : opt?.label;
+                        if (!label?.trim()) return null;
+                        const optObj = typeof opt === 'object' ? opt : null;
+                        const tierPrice = optObj?.price_monthly;
+                        const isSelected = selectedTiers[plan.id] === i;
+                        return (
+                          <button key={i} onClick={() => { setSelectedTiers(s => ({ ...s, [plan.id]: i })); setTierModalPlan(null); }}
+                            className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-left transition-all"
+                            style={{
+                              background: isSelected ? FG : 'rgba(0,0,0,0.03)',
+                              border: `1px solid ${isSelected ? FG : 'rgba(0,0,0,0.08)'}`,
+                              borderRadius: '6px',
+                              color: isSelected ? 'white' : FG,
+                            }}>
+                            <span>{label}</span>
+                            {tierPrice && <span className="font-black" style={{ color: isSelected ? YELLOW : 'rgba(0,0,0,0.5)' }}>${tierPrice}/mo</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              );
+            })()}
+          </AnimatePresence>
 
           {/* Enterprise */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}

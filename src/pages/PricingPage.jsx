@@ -48,18 +48,7 @@ export default function PricingPage() {
           <h1 className="text-3xl font-black mb-2" style={{ color: FG }}>{t('pricing_title')}</h1>
           <p className="text-sm text-muted-foreground">{t('pricing_sub')}</p>
 
-          {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 mt-6 p-1 bg-muted rounded-sm">
-            {['monthly', 'yearly'].map(b => (
-              <button key={b} onClick={() => setBilling(b)}
-                className="px-5 py-2 text-xs font-bold transition-all rounded-sm flex items-center gap-1.5"
-                style={{ background: billing === b ? FG : 'transparent', color: billing === b ? 'white' : '#666' }}>
-                {b === 'monthly' ? t('monthly') : (
-                  <>{t('yearly')} <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: billing === 'yearly' ? YUZU : 'rgba(0,0,0,0.08)', color: billing === 'yearly' ? FG : '#888' }}>-20%</span></>
-                )}
-              </button>
-            ))}
-          </div>
+
         </div>
 
         {/* Plans grid — 2x2 desktop, 1col mobile */}
@@ -185,11 +174,11 @@ export default function PricingPage() {
         {/* Activation code */}
         <div className="max-w-md mx-auto mt-12">
           <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.07)' }} />
-          <p className="text-center text-sm font-semibold mb-3" style={{ color: '#555' }}>Vous avez un code d'activation ?</p>
+          <p className="text-center text-sm font-semibold mb-3" style={{ color: '#555' }}>Have an activation code?</p>
           <button onClick={() => setShowCodeModal(true)}
             className="w-full py-3 text-sm font-bold transition-all hover:opacity-80"
             style={{ border: '1px solid rgba(0,0,0,0.15)', borderRadius: 8, color: FG }}>
-            Entrer un code
+            Enter a code
           </button>
         </div>
 

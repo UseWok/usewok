@@ -28,8 +28,7 @@ function CreditsPopover({ user, userPlan, onClose }) {
   const navigate = useNavigate();
   const flashUsed = user?.credits_used || 0;
   const flashLimit = (userPlan?.credits_limit || 10) + (user?.credits_bonus || 0);
-  const monthKey = new Date().toISOString().slice(0, 7);
-  const deepUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_deep_monthly') || '{}')[monthKey] || 0; } catch { return 0; } })();
+  const deepUsed = user?.deep_credits_used || 0;
   const deepLimit = userPlan?.deep_credits_limit || 0;
   const now = new Date();
   const renewal = new Date(now.getFullYear(), now.getMonth() + 1, 1);

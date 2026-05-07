@@ -418,8 +418,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
   }
 
   if (section === 'usage') {
-    const monthKey = new Date().toISOString().slice(0, 7);
-    const deepUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_deep_monthly') || '{}')[monthKey] || 0; } catch { return 0; } })();
+    const deepUsed = user?.deep_credits_used || 0;
     const deepLimit = userPlan?.deep_credits_limit || 0;
     const deepPct = deepLimit > 0 ? Math.min((deepUsed / deepLimit) * 100, 100) : 0;
     const isDeepHigh = deepLimit > 0 && deepPct >= 90;

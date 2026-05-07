@@ -9,78 +9,78 @@ const QUIZ_KEY = 'stensor_quiz_results';
 
 const QUESTIONS = [
   {
-    id: 'reality', phase: '01 — Vérité',
-    question: "Si rien ne change dans tes habitudes, ton compte dans 6 mois ressemble à quoi ?",
+    id: 'reality', phase: '01 — Truth',
+    question: "Honestly — if nothing changes, what does your bank account look like in 6 months?",
     options: [
-      { id: 'same', label: 'Pareil qu\'aujourd\'hui', emoji: '😶' },
-      { id: 'better', label: 'Un peu mieux, j\'y travaille', emoji: '📈' },
-      { id: 'worse', label: 'Probablement pire', emoji: '📉' },
-      { id: 'unknown', label: 'Je préfère ne pas y penser', emoji: '🙈' },
+      { id: 'same', label: 'Same as today', emoji: '😶' },
+      { id: 'better', label: 'Slightly better, I\'m working on it', emoji: '📈' },
+      { id: 'worse', label: 'Probably worse', emoji: '📉' },
+      { id: 'unknown', label: 'I\'d rather not think about it', emoji: '🙈' },
     ],
   },
   {
-    id: 'block', phase: '02 — Blocage',
-    question: "Ce qui t\'empêche vraiment d\'avancer financièrement, c\'est quoi ?",
+    id: 'block', phase: '02 — Blocker',
+    question: "What\'s the real thing holding you back financially?",
     options: [
-      { id: 'income', label: 'Je ne gagne pas assez', emoji: '💸' },
-      { id: 'start', label: 'Je ne sais pas par où commencer', emoji: '🧭' },
-      { id: 'fear', label: 'La peur de perdre mon argent', emoji: '😰' },
-      { id: 'restart', label: 'Je recommence à zéro chaque mois', emoji: '🔄' },
+      { id: 'income', label: 'I don\'t earn enough', emoji: '💸' },
+      { id: 'start', label: 'I don\'t know where to start', emoji: '🧭' },
+      { id: 'fear', label: 'Fear of losing money', emoji: '😰' },
+      { id: 'restart', label: 'I restart from zero every month', emoji: '🔄' },
     ],
   },
   {
-    id: 'trigger', phase: '03 — Psychologie',
-    question: "Honnêtement, tu dépenses impulsivement quand...",
+    id: 'trigger', phase: '03 — Psychology',
+    question: "Be honest — you spend impulsively when...",
     options: [
-      { id: 'stress', label: 'Je suis stressé ou fatigué', emoji: '😤' },
-      { id: 'bored', label: 'Je m\'ennuie', emoji: '😑' },
-      { id: 'promo', label: 'C\'est en promo ou "bonne affaire"', emoji: '🏷️' },
-      { id: 'never', label: 'Jamais — je contrôle tout', emoji: '😎' },
+      { id: 'stress', label: 'I\'m stressed or exhausted', emoji: '😤' },
+      { id: 'bored', label: 'I\'m bored', emoji: '😑' },
+      { id: 'promo', label: 'It\'s on sale or a "good deal"', emoji: '🏷️' },
+      { id: 'never', label: 'Never — I control everything', emoji: '😎' },
     ],
   },
   {
-    id: 'savings', phase: '04 — Réalité',
-    question: "Combien tu mets réellement de côté chaque mois ?",
+    id: 'savings', phase: '04 — Reality Check',
+    question: "How much do you actually set aside each month?",
     options: [
-      { id: 'zero', label: 'Rien pour l\'instant', emoji: '😶' },
-      { id: 'small', label: 'Moins de 200€', emoji: '🌱' },
-      { id: 'medium', label: '200€ à 1 000€', emoji: '📈' },
-      { id: 'great', label: 'Plus de 1 000€', emoji: '🚀' },
+      { id: 'zero', label: 'Nothing yet', emoji: '😶' },
+      { id: 'small', label: 'Under $200', emoji: '🌱' },
+      { id: 'medium', label: '$200 – $1,000', emoji: '📈' },
+      { id: 'great', label: 'Over $1,000', emoji: '🚀' },
     ],
   },
   {
     id: 'dream', phase: '05 — Vision',
-    question: "Dans 5 ans, c\'est quoi LA victoire pour toi ?",
+    question: "In 5 years — what\'s THE win for you?",
     options: [
-      { id: 'freedom', label: 'Pouvoir démissionner quand je veux', emoji: '🦅' },
-      { id: 'invest', label: 'Vivre de mes investissements', emoji: '💎' },
-      { id: 'retire', label: 'Partir en retraite anticipée', emoji: '🌴' },
-      { id: 'family', label: 'Laisser quelque chose à ma famille', emoji: '🏡' },
+      { id: 'freedom', label: 'Quit my job whenever I want', emoji: '🦅' },
+      { id: 'invest', label: 'Live off my investments', emoji: '💎' },
+      { id: 'retire', label: 'Retire before 50', emoji: '🌴' },
+      { id: 'family', label: 'Leave something for my family', emoji: '🏡' },
     ],
   },
 ];
 
 const PLAN_NAMES = {
-  freedom: 'Le Plan Liberté Totale',
-  invest: 'Le Plan Compounding Wealth',
-  retire: 'Le Plan FIRE Accéléré',
-  family: 'Le Plan Legacy Familial',
+  freedom: 'The Total Freedom Plan',
+  invest: 'The Wealth Compounding Plan',
+  retire: 'The FIRE Acceleration Plan',
+  family: 'The Legacy Family Plan',
 };
 
 function getPlanName(answers) {
-  return PLAN_NAMES[answers.dream] || 'Ton Plan Stensor Personnalisé';
+  return PLAN_NAMES[answers.dream] || 'Your Personal Stensor Plan';
 }
 
 function getLoadingSteps(answers) {
-  const goalLabels = { freedom: 'ta liberté financière', invest: 'ta stratégie d\'investissement', retire: 'ta retraite anticipée', family: 'ton héritage familial' };
-  const goal = goalLabels[answers.dream] || 'tes objectifs';
+  const goalLabels = { freedom: 'financial freedom', invest: 'your investment strategy', retire: 'early retirement', family: 'your family legacy' };
+  const goal = goalLabels[answers.dream] || 'your goals';
   return [
-    { text: 'Lecture de tes 5 réponses...', detail: 'Analyse du profil' },
-    { text: `Cartographie de ta route vers ${goal}...`, detail: 'Alignement stratégique' },
-    { text: 'Lancement de 847 simulations de patrimoine...', detail: 'Calcul des probabilités' },
-    { text: 'Comparaison avec 12 400 profils similaires...', detail: 'Identification des patterns gagnants' },
-    { text: 'Calcul de ta courbe de richesse...', detail: 'Projection 5, 10, 20 ans' },
-    { text: 'Finalisation de ta feuille de route...', detail: 'Tes résultats sont prêts ✦' },
+    { text: 'Reading your 5 answers...', detail: 'Processing profile' },
+    { text: `Mapping your path to ${goal}...`, detail: 'Strategy alignment' },
+    { text: 'Running 847 wealth simulations...', detail: 'Probability calculations' },
+    { text: 'Cross-referencing 12,400 similar profiles...', detail: 'Finding winning patterns' },
+    { text: 'Calculating your wealth curve...', detail: '5, 10, 20 year projection' },
+    { text: 'Finalizing your roadmap...', detail: 'Your results are ready ✦' },
   ];
 }
 
@@ -111,10 +111,19 @@ function WealthCurve({ answers }) {
   const toX = (i) => PAD + (i / (data.length - 1)) * (W - PAD * 2);
   const toY = (v) => H - PAD - (v / maxVal) * (H - PAD * 2);
 
-  const pathWith = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(d.with)}`).join(' ');
-  const pathWithout = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(d.without)}`).join(' ');
+  // Smooth cubic bezier curves
+  const smoothPath = (pts) => pts.map((d, i) => {
+    if (i === 0) return `M ${toX(i)} ${toY(d)}`;
+    const prev = pts[i - 1];
+    const cp1x = toX(i - 1) + (toX(i) - toX(i - 1)) * 0.45;
+    const cp1y = toY(prev);
+    const cp2x = toX(i) - (toX(i) - toX(i - 1)) * 0.45;
+    const cp2y = toY(d);
+    return `C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${toX(i)} ${toY(d)}`;
+  }).join(' ');
 
-  // Area fill for "with Stensor"
+  const pathWith = smoothPath(data.map(d => d.with));
+  const pathWithout = smoothPath(data.map(d => d.without));
   const areaWith = `${pathWith} L ${toX(data.length - 1)} ${H - PAD} L ${PAD} ${H - PAD} Z`;
 
   const lastWith = data[data.length - 1].with;
@@ -343,8 +352,8 @@ function PlanResult({ answers, planReady, loadingStep, onLogin, onClose }) {
               style={{ background: YELLOW, color: FG }}>
               ✦ Your projection is ready
             </motion.div>
-            <h2 className="text-2xl font-black text-white tracking-tight mb-1">{planName}</h2>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Based on your 5 answers</p>
+            <h2 className="text-xl font-black text-white tracking-tight mb-1">{planName}</h2>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Based on your 5 answers — 5-year projection</p>
 
             {/* Wealth curve */}
             <WealthCurve answers={answers} />
@@ -361,10 +370,7 @@ function PlanResult({ answers, planReady, loadingStep, onLogin, onClose }) {
             style={{ background: FG, color: 'white' }}>
             Parler à Stensor →
           </button>
-          <p className="text-center text-xs text-zinc-400 mb-3">Gratuit. Sans carte bancaire.</p>
-          <button onClick={onClose} className="w-full py-2 text-[11px] text-zinc-400 hover:text-zinc-600 transition-colors">
-            Continuer sans compte
-          </button>
+          <p className="text-center text-xs text-zinc-400">Free. No credit card required.</p>
         </motion.div>
       )}
     </motion.div>
