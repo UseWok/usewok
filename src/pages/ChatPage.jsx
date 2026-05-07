@@ -684,9 +684,10 @@ Input: ${text.slice(0, 400)}`;
 
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
+      if (doDeep) {
+        try { const mk = new Date().toISOString().slice(0, 7); const d = JSON.parse(localStorage.getItem('stensor_deep_monthly') || '{}'); d[mk] = (d[mk] || 0) + 1; localStorage.setItem('stensor_deep_monthly', JSON.stringify(d)); } catch {}
+      }
       if (isFirstMessage) {
-        await base44.auth.updateMe({ first_message_sent: true });
-        setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
         completeReferralOnFirstMessage(currentUser.id).catch(() => {});
       }
     }

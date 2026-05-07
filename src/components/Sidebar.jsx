@@ -112,7 +112,7 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
 
   const navItems = [
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+    { icon: MessageSquare, label: 'All Conversations', path: '/discussions', active: location.pathname === '/discussions' },
     { icon: Cpu, label: 'ADN Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
     ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
   ];

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Zap, Shield, Globe, Star, Crown } from 'lucide-react';
+import { ChevronDown, ChevronUp, Zap, Shield, Globe, Star, Crown, Plus, X as XIcon } from 'lucide-react';
 import CodesTab from '@/components/admin/CodesTab';
 
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: Globe, expert: Star, supreme: Crown };
@@ -122,18 +122,57 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                   <FieldNumber plan={plan} fieldKey="max_discussions" label="Max discussions (0=unlimited)" onChange={onChange} />
                 </div>
                 <div className="md:col-span-2 mt-3 pt-3 border-t border-border">
-                  <p className="text-[10px] font-black uppercase tracking-wider mb-1 text-muted-foreground">Tier options dropdown</p>
-                  <p className="text-[10px] text-muted-foreground/60 mb-2">One line per item — write anything you want</p>
-                  <textarea
-                    value={(plan.tier_options || []).join('\n')}
-                    onChange={e => {
-                      const opts = e.target.value.split('\n');
-                      onChange({ ...plan, tier_options: opts });
-                    }}
-                    rows={4}
-                    placeholder={"1.2k Monthly Flash\n50k Integration credits\nUnlimited discussions"}
-                    className="w-full px-3 py-2 text-xs border border-border rounded-sm bg-muted/30 focus:outline-none resize-none"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tier options (prix custom)</p>
+                    <button onClick={() => onChange({ ...plan, tier_options: [...(plan.tier_options || []), { label: '', price_monthly: null, price_yearly: null, checkout_url_monthly: '', checkout_url_yearly: '' }] })}
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold bg-fg text-white rounded-sm hover:opacity-90">
+                      <Plus className="w-3 h-3" /> Ajouter
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/60 mb-3">Chaque tier peut avoir son propre prix et lien checkout. Si vide, utilise le prix de base du plan.</p>
+                  <div className="space-y-3">
+                    {(plan.tier_options || []).map((opt, i) => {
+                      const option = typeof opt === 'string' ? { label: opt } : (opt || {});
+                      const update = (field, val) => { const opts = [...(plan.tier_options || [])]; opts[i] = { ...option, [field]: val }; onChange({ ...plan, tier_options: opts }); };
+                      return (
+                        <div key={i} className="p-3 border border-border rounded-sm bg-muted/20 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input value={option.label || ''} onChange={e => update('label', e.target.value)}
+                              placeholder="Label (ex: 1.2k Flash/mois)" className="flex-1 px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            <button onClick={() => { const opts = (plan.tier_options || []).filter((_, j) => j !== i); onChange({ ...plan, tier_options: opts }); }}
+                              className="w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 rounded-sm flex-shrink-0">
+                              <XIcon className="w-3 h-3 text-red-400" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-muted-foreground mb-1 block">Prix mensuel ($)</label>
+                              <input type="number" value={option.price_monthly || ''} onChange={e => update('price_monthly', parseFloat(e.target.value) || null)}
+                                placeholder="ex: 200" className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground mb-1 block">Prix annuel ($)</label>
+                              <input type="number" value={option.price_yearly || ''} onChange={e => update('price_yearly', parseFloat(e.target.value) || null)}
+                                placeholder="ex: 170" className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-muted-foreground mb-1 block">Checkout URL (mensuel)</label>
+                            <input value={option.checkout_url_monthly || ''} onChange={e => update('checkout_url_monthly', e.target.value)}
+                              placeholder="https://buy.stripe.com/..." className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-muted-foreground mb-1 block">Checkout URL (annuel)</label>
+                            <input value={option.checkout_url_yearly || ''} onChange={e => update('checkout_url_yearly', e.target.value)}
+                              placeholder="https://buy.stripe.com/..." className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(plan.tier_options || []).length === 0 && (
+                      <p className="text-[10px] text-muted-foreground/50 italic">Aucun tier — le plan utilise son prix de base.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

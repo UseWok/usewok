@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Brain, Clock } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
-const AI_MODES = [
-  { id: 'thinking', label: 'Standard', desc: 'Balanced and fast' },
-  { id: 'pro',      label: 'Advanced', desc: 'Deeper analysis' },
-  { id: 'ultimate', label: 'Expert',   desc: 'Maximum intelligence' },
-];
 
-const DEFAULT_MODE_KEY = 'stensor_default_mode';
 
 function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
@@ -36,7 +30,7 @@ export default function SettingsPage() {
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
-  const [defaultMode, setDefaultMode] = useState(() => localStorage.getItem(DEFAULT_MODE_KEY) || 'ultimate');
+
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -71,11 +65,7 @@ export default function SettingsPage() {
     }).catch(() => {});
   }, []);
 
-  const saveDefaultMode = (modeId) => {
-    setDefaultMode(modeId);
-    localStorage.setItem(DEFAULT_MODE_KEY, modeId);
-    toast.success('Default AI mode saved');
-  };
+
 
   const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
@@ -179,11 +169,10 @@ export default function SettingsPage() {
   const navItems = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
-    { id: 'usage', label: 'Tensor Usage', icon: Zap },
-    { id: 'aimode', label: 'AI Mode', icon: Brain },
+    { id: 'usage', label: 'Usage', icon: Zap },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
 
   return (
     <div className="min-h-screen font-open" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
@@ -318,7 +307,7 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, defaultMode, saveDefaultMode, setShowInvoiceModal, cancelTicket }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket }) {
   const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const isYearly = user?.billing_cycle === 'yearly';
 
@@ -428,105 +417,80 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     );
   }
 
-  if (section === 'usage') return (
-    <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-      <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-xl">
-        <div>
-          <p className="text-xs text-white/60">Current plan</p>
-          <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
+  if (section === 'usage') {
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const deepUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_deep_monthly') || '{}')[monthKey] || 0; } catch { return 0; } })();
+    const deepLimit = userPlan?.deep_credits_limit || 0;
+    const deepPct = deepLimit > 0 ? Math.min((deepUsed / deepLimit) * 100, 100) : 0;
+    const isDeepHigh = deepLimit > 0 && deepPct >= 90;
+    return (
+      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
+        <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-xl">
+          <div>
+            <p className="text-xs text-white/60">Plan actuel</p>
+            <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
+          </div>
+          <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg hover:opacity-90">Upgrade</button>
         </div>
-        <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg hover:opacity-90">
-          Upgrade
-        </button>
-      </div>
 
-      <div className="p-4 border border-border rounded-xl bg-white">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-muted-foreground">Tensors this month</p>
-          <p className={`text-xs font-black ${isHigh ? 'text-coral' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
+        <div className="p-4 border border-border rounded-xl bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-muted-foreground">⚡ Flash ce mois-ci</p>
+            <p className={`text-xs font-black ${isHigh ? 'text-red-500' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
+          </div>
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-fg'}`} style={{ width: `${pct}%` }} />
+          </div>
+          <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% utilisé</p>
         </div>
-        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all ${isHigh ? 'bg-coral' : isMid ? 'bg-amber-500' : 'bg-fg'}`} style={{ width: `${pct}%` }} />
-        </div>
-        <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% used</p>
-      </div>
 
-      <div className="p-4 border border-border rounded-xl bg-white">
-        <p className="text-xs font-semibold mb-4 text-muted-foreground">Last 7 days</p>
-        <ResponsiveContainer width="100%" height={100}>
-          <BarChart data={getDailyUsage()} barSize={14}>
-            <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ fontSize: 11, border: '1px solid rgba(0,0,0,0.09)', borderRadius: '8px' }} />
-            <Bar dataKey="tensors" fill="#0A0A0A" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="p-4 border border-border rounded-xl bg-white">
-        <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Activation Code</p>
-        <p className="text-xs mb-3 text-muted-foreground">Enter a code received by email to activate a subscription.</p>
-        <div className="flex gap-2">
-          <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
-            placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
-            className={`flex-1 px-3 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`}
-            onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
-          <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
-            className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-            {codeLoading ? '...' : 'Activate'}
-          </button>
-        </div>
-        {codeError && (
-          <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-            <span className="text-red-500 text-sm">✗</span>
-            <p className="text-xs text-red-600 leading-snug">{codeError}</p>
+        {deepLimit > 0 && (
+          <div className="p-4 border border-border rounded-xl bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-muted-foreground">🧠 Deep Synthèses ce mois-ci</p>
+              <p className={`text-xs font-black ${isDeepHigh ? 'text-red-500' : 'text-fg'}`}>{deepUsed} / {deepLimit}</p>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all ${isDeepHigh ? 'bg-red-500' : 'bg-fg'}`} style={{ width: `${deepPct}%` }} />
+            </div>
+            <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(deepPct)}% utilisé</p>
           </div>
         )}
-      </div>
-    </div>
-  );
 
-  if (section === 'aimode') return (
-    <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
-      <p className="text-xs text-muted-foreground">Choose the AI mode automatically applied to every new conversation.</p>
-      <div className="space-y-2">
-        {AI_MODES.map(mode => {
-          const allowed = userPlan?.allowed_modes?.includes(mode.id) ?? false;
-          const active = defaultMode === mode.id;
-          return (
-            <button key={mode.id}
-              onClick={() => { if (allowed) saveDefaultMode(mode.id); else navigate('/pricing'); }}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all text-left"
-              style={{
-                background: active ? '#0A0A0A' : allowed ? 'white' : 'rgba(0,0,0,0.02)',
-                borderColor: active ? '#0A0A0A' : allowed ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.06)',
-                opacity: allowed ? 1 : 0.6,
-              }}>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold" style={{ color: active ? '#DDFF00' : '#0A0A0A' }}>{mode.label}</p>
-                  {!allowed && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">Upgrade required</span>}
-                </div>
-                <p className="text-xs mt-0.5" style={{ color: active ? 'rgba(221,255,0,0.6)' : 'rgba(0,0,0,0.4)' }}>{mode.desc}</p>
-              </div>
-              {active && allowed && (
-                <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#DDFF00' }}>
-                  <span className="text-[10px] font-black text-black">✓</span>
-                </span>
-              )}
-              {!allowed && (
-                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              )}
+        <div className="p-4 border border-border rounded-xl bg-white">
+          <p className="text-xs font-semibold mb-4 text-muted-foreground">Activité — 7 derniers jours</p>
+          <ResponsiveContainer width="100%" height={90}>
+            <BarChart data={getDailyUsage()} barSize={14}>
+              <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 11, border: '1px solid rgba(0,0,0,0.09)', borderRadius: '8px' }} />
+              <Bar dataKey="tensors" fill="#0A0A0A" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="p-4 border border-border rounded-xl bg-white">
+          <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Code d'activation</p>
+          <p className="text-xs mb-3 text-muted-foreground">Entre un code reçu par email pour activer un abonnement.</p>
+          <div className="flex gap-2">
+            <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
+              placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
+              className={`flex-1 px-3 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`}
+              onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
+            <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
+              className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
+              {codeLoading ? '...' : 'Activer'}
             </button>
-          );
-        })}
+          </div>
+          {codeError && (
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+              <span className="text-red-500 text-sm">✗</span>
+              <p className="text-xs text-red-600 leading-snug">{codeError}</p>
+            </div>
+          )}
+        </div>
       </div>
-      {!userPlan?.allowed_modes?.includes('ultimate') && (
-        <p className="text-[10px] text-muted-foreground">
-          Expert mode requires an Expert+ plan. <button onClick={() => navigate('/pricing')} className="underline font-semibold">Upgrade →</button>
-        </p>
-      )}
-    </div>
-  );
+    );
+  }
 
   return null;
 }

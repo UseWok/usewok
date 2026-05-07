@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, Zap } from 'lucide-react';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ export default function PricingPage() {
   const [purchased, setPurchased] = useState(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [highlightedPlanId, setHighlightedPlanId] = useState('advanced');
-  const [expandedTier, setExpandedTier] = useState(null);
+  const [selectedTiers, setSelectedTiers] = useState({});
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -30,6 +30,11 @@ export default function PricingPage() {
 
   const handleChoose = (plan) => {
     if (purchased === plan.id) { navigate('/manage-plan'); return; }
+    const selIdx = selectedTiers[plan.id];
+    const rawOpt = selIdx !== undefined ? plan.tier_options?.[selIdx] : null;
+    const tierOpt = rawOpt && typeof rawOpt === 'object' ? rawOpt : null;
+    const checkoutUrl = tierOpt ? (billing === 'monthly' ? tierOpt.checkout_url_monthly : tierOpt.checkout_url_yearly) : null;
+    if (checkoutUrl) { window.location.href = checkoutUrl; return; }
     saveCart(plan.id, billing);
     navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
@@ -57,105 +62,124 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Plans — horizontal scroll if needed */}
-        <div className="overflow-x-auto pb-4">
-          <div className="flex gap-5" style={{ minWidth: 'max-content' }}>
-            {plans.map((plan, idx) => {
-              const price = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
-              const isCurrentPlan = purchased === plan.id;
-              const isHighlighted = plan.id === highlightedPlanId;
-              const tierExpanded = expandedTier === plan.id;
+        {/* Plans grid — 2x2 desktop, 1col mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+          {plans.map((plan, idx) => {
+            const selIdx = selectedTiers[plan.id];
+            const rawOpt = selIdx !== undefined ? plan.tier_options?.[selIdx] : null;
+            const tierOpt = rawOpt && typeof rawOpt === 'object' ? rawOpt : null;
+            const price = tierOpt
+              ? (billing === 'yearly' && tierOpt.price_yearly ? tierOpt.price_yearly : tierOpt.price_monthly || (billing === 'yearly' ? plan.price_yearly : plan.price_monthly))
+              : (billing === 'yearly' ? plan.price_yearly : plan.price_monthly);
+            const isCurrentPlan = purchased === plan.id;
+            const isHighlighted = plan.id === highlightedPlanId;
+            const hasTiers = plan.tier_options?.filter(o => (typeof o === 'string' ? o : o?.label)?.trim()).length > 0;
+            const features = [
+              plan.internet_access && 'Recherche Internet',
+              plan.ultimate_access && t('mode_ultimate'),
+              plan.file_upload && t('file_upload_feature'),
+              plan.max_discussions === 0 ? t('unlimited_discussions') : null,
+              billing === 'yearly' && plan.shareable_credits > 0 && t('shareable_credits_feature', { n: plan.shareable_credits }),
+              plan.premium_support && t('premium_support_feature'),
+            ].filter(Boolean);
+            return (
+              <motion.div key={plan.id}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.06 }}
+                className="flex flex-col bg-white relative"
+                style={{
+                  border: isHighlighted ? `2px solid ${FG}` : '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: 16,
+                  padding: '28px 22px',
+                  boxShadow: isHighlighted ? '0 8px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
+                }}>
+                {isHighlighted && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <span className="px-3 py-1 text-[10px] font-black rounded-full whitespace-nowrap" style={{ background: FG, color: YUZU }}>RECOMMANDÉ</span>
+                  </div>
+                )}
 
-              // Build features list
-              const features = [
-                plan.internet_access && 'Recherche Internet',
-                plan.ultimate_access && t('mode_ultimate'),
-                plan.file_upload && t('file_upload_feature'),
-                plan.max_discussions === 0 ? t('unlimited_discussions') : null,
-                billing === 'yearly' && plan.shareable_credits > 0 && t('shareable_credits_feature', { n: plan.shareable_credits }),
-                plan.premium_support && t('premium_support_feature'),
-              ].filter(Boolean);
+                {/* Plan name */}
+                <div className="mb-4">
+                  <p className="text-xl font-black mb-0.5" style={{ color: FG }}>{plan.name}</p>
+                  {plan.description && <p className="text-xs text-muted-foreground">{plan.description}</p>}
+                </div>
 
-              return (
-                <motion.div key={plan.id}
-                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.06 }}
-                  className="flex flex-col"
-                  style={{
-                    width: 240,
-                    flexShrink: 0,
-                    background: 'white',
-                    border: isHighlighted ? `2px solid ${FG}` : '1px solid rgba(0,0,0,0.1)',
-                    borderRadius: 16,
-                    padding: '28px 24px',
-                    position: 'relative',
-                    boxShadow: isHighlighted ? '0 8px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
-                  }}>
-
-
-
-                  {/* Plan name */}
-                  <p className="text-xl font-black mb-3" style={{ color: FG }}>{plan.name}</p>
-
-                  {/* Price */}
-                  <div className="flex items-end gap-1 mb-6">
+                {/* Price */}
+                <div className="mb-5">
+                  <div className="flex items-end gap-1">
                     <span className="text-4xl font-black leading-none" style={{ color: FG }}>${price}</span>
                     <span className="text-sm mb-1 text-muted-foreground">/mois</span>
                   </div>
+                  {billing === 'yearly' && <p className="text-[10px] text-green-600 font-semibold mt-1">-20% — facturé annuellement</p>}
+                </div>
 
-                  {/* Tier options dropdown */}
-                  {plan.tier_options?.length > 0 && plan.tier_options.filter(o => (typeof o === 'string' ? o : o?.label)?.trim()).length > 0 && (
-                    <div className="mb-5 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.12)' }}>
-                      <button onClick={() => setExpandedTier(tierExpanded ? null : plan.id)}
-                        className="w-full px-3.5 py-3 flex items-start justify-between hover:bg-black/[0.02] transition-colors">
-                        <div className="grid grid-cols-1 gap-y-1.5 text-left flex-1">
-                          {(tierExpanded ? plan.tier_options : plan.tier_options.slice(0, 2)).map((opt, i) => {
-                            const label = typeof opt === 'string' ? opt : opt?.label;
-                            if (!label?.trim()) return null;
-                            return <p key={i} className="text-sm leading-tight" style={{ color: FG }}>{label}</p>;
-                          })}
-                        </div>
-                        <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2 mt-0.5"
-                          style={{ color: '#aaa', transform: tierExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                      </button>
+                {/* Tier options — clickable rows */}
+                {hasTiers && (
+                  <div className="mb-5">
+                    <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Choisir un niveau</p>
+                    <div className="space-y-1.5">
+                      {plan.tier_options.map((opt, i) => {
+                        const label = typeof opt === 'string' ? opt : opt?.label;
+                        if (!label?.trim()) return null;
+                        const isSelected = selectedTiers[plan.id] === i;
+                        const optObj = typeof opt === 'object' ? opt : null;
+                        const tierPrice = optObj ? (billing === 'yearly' && optObj.price_yearly ? optObj.price_yearly : optObj.price_monthly) : null;
+                        return (
+                          <button key={i} onClick={() => setSelectedTiers(s => ({ ...s, [plan.id]: isSelected ? undefined : i }))}
+                            className="w-full text-left px-3 py-2.5 text-xs font-semibold transition-all flex items-center justify-between"
+                            style={{
+                              background: isSelected ? FG : 'rgba(0,0,0,0.03)',
+                              border: `1px solid ${isSelected ? FG : 'rgba(0,0,0,0.08)'}`,
+                              borderRadius: 10,
+                              color: isSelected ? 'white' : '#555',
+                            }}>
+                            <span>{label}</span>
+                            {tierPrice && <span className="font-black" style={{ color: isSelected ? YUZU : FG }}>${tierPrice}/mo</span>}
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Credits */}
-                  <p className="text-sm font-semibold mb-5" style={{ color: '#888' }}>
-                    {plan.credits_limit} {t('tensors')}/mois
-                  </p>
+                {/* CTA */}
+                <button onClick={() => handleChoose(plan)}
+                  className="w-full py-3.5 text-sm font-black transition-all mb-5"
+                  style={{
+                    borderRadius: 10,
+                    border: isCurrentPlan ? `2px solid ${FG}` : 'none',
+                    background: isCurrentPlan ? 'transparent' : FG,
+                    color: isCurrentPlan ? FG : 'white',
+                  }}>
+                  {isCurrentPlan ? 'Gérer mon plan' : `Choisir ${plan.name}`}
+                </button>
 
-                  {/* CTA */}
-                  <button onClick={() => handleChoose(plan)}
-                    className="w-full py-3 text-sm font-black transition-all mb-7"
-                    style={{
-                      borderRadius: 10,
-                      border: isCurrentPlan ? `2px solid ${FG}` : 'none',
-                      background: isCurrentPlan ? 'transparent' : isHighlighted ? FG : FG,
-                      color: isCurrentPlan ? FG : 'white',
-                    }}>
-                    {isCurrentPlan ? 'Gérer' : `Obtenir ${plan.name}`}
-                  </button>
+                {/* Credits pill */}
+                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg mb-5" style={{ background: 'rgba(0,0,0,0.04)' }}>
+                  <Zap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {plan.credits_limit} Flash{plan.deep_credits_limit ? ` · ${plan.deep_credits_limit} Deep` : ''}/mois
+                  </span>
+                </div>
 
-                  {/* Features */}
-                  {features.length > 0 && (
-                    <div>
-                      <p className="text-xs font-bold mb-3" style={{ color: '#aaa' }}>Points forts du plan :</p>
-                      <ul className="space-y-2.5">
-                        {features.map((f, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#444' }}>
-                            <Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
+                {/* Features */}
+                {features.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider mb-3 text-muted-foreground">Inclus</p>
+                    <ul className="space-y-2">
+                      {features.map((f, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs" style={{ color: '#444' }}>
+                          <Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Activation code */}

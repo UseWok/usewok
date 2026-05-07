@@ -26,17 +26,14 @@ function UsageBar({ used, total, color }) {
 
 function CreditsPopover({ user, userPlan, onClose }) {
   const navigate = useNavigate();
-  const used = user?.credits_used || 0;
-  const limit = userPlan?.credits_limit || 10;
-  const bonus = user?.credits_bonus || 0;
-  const total = limit + bonus;
+  const flashUsed = user?.credits_used || 0;
+  const flashLimit = (userPlan?.credits_limit || 10) + (user?.credits_bonus || 0);
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const deepUsed = (() => { try { return JSON.parse(localStorage.getItem('stensor_deep_monthly') || '{}')[monthKey] || 0; } catch { return 0; } })();
+  const deepLimit = userPlan?.deep_credits_limit || 0;
   const now = new Date();
   const renewal = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const renewalStr = renewal.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const dailyLimit = user?.daily_credits_limit || 0;
-  const dailyData = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); } catch { return {}; } })();
-  const dailyUsed = dailyData[todayKey] || 0;
+  const renewalStr = renewal.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 
   return (
     <motion.div
@@ -48,7 +45,7 @@ function CreditsPopover({ user, userPlan, onClose }) {
       style={{ borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}
     >
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-        <span className="text-sm font-bold" style={{ color: FG }}>Usage</span>
+        <span className="text-sm font-bold" style={{ color: FG }}>Consommation</span>
         <button onClick={onClose} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/5">
           <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
         </button>
@@ -57,21 +54,20 @@ function CreditsPopover({ user, userPlan, onClose }) {
       <div className="px-4 py-4 space-y-4">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold" style={{ color: FG }}>Deep Syntheses</span>
-            <span className="text-xs font-bold" style={{ color: '#888' }}>{used}/{total}{bonus > 0 ? <span style={{ color: CORAL }}> +{bonus}</span> : null}</span>
+            <span className="text-xs font-semibold" style={{ color: FG }}>⚡ Flash ce mois-ci</span>
+            <span className="text-xs font-bold" style={{ color: '#888' }}>{flashUsed}/{flashLimit}</span>
           </div>
-          <UsageBar used={used} total={total} color={CORAL} />
+          <UsageBar used={flashUsed} total={flashLimit} color={BLUE} />
         </div>
-        {dailyLimit > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold" style={{ color: FG }}>Flash (today)</span>
-              <span className="text-xs font-bold" style={{ color: '#888' }}>{dailyUsed}/{dailyLimit}</span>
-            </div>
-            <UsageBar used={dailyUsed} total={dailyLimit} color={BLUE} />
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold" style={{ color: FG }}>🧠 Deep Synthèses</span>
+            <span className="text-xs font-bold" style={{ color: '#888' }}>{deepUsed}{deepLimit > 0 ? `/${deepLimit}` : ''}</span>
           </div>
-        )}
-        <p className="text-[10px] font-medium" style={{ color: BLUE }}>Renewal on {renewalStr}</p>
+          {deepLimit > 0 && <UsageBar used={deepUsed} total={deepLimit} color={CORAL} />}
+          {deepLimit === 0 && <p className="text-[10px]" style={{ color: '#bbb' }}>Inclus dans votre plan</p>}
+        </div>
+        <p className="text-[10px] font-medium" style={{ color: BLUE }}>Renouvellement le {renewalStr}</p>
       </div>
 
       <div className="h-px" style={{ background: 'rgba(0,0,0,0.06)' }} />
