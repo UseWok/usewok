@@ -24,7 +24,7 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content, agent, meta, fakeButton, onFakeLaunch, launchContent, onLaunch }) {
+export default function AssistantMessage({ content, agent, meta, onClick }) {
   const [copied, setCopied] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
@@ -48,10 +48,10 @@ export default function AssistantMessage({ content, agent, meta, fakeButton, onF
       <img src={LOGO_URL} alt="Stensor" className="w-6 h-6 object-contain flex-shrink-0 mt-1" style={{ opacity: 0.75 }} />
       <div className="flex flex-col gap-1 flex-1 min-w-0">
       <span className="text-[11px] font-light" style={{ color: 'rgba(0,0,0,0.35)' }}>Stensor</span>
-      <div className="w-full break-words"
-        style={{ background: 'transparent', borderRadius: '4px', padding: '6px 0' }}>
-        <div onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); }}
-          className="cursor-pointer">
+      <div className="w-full break-words rounded-lg cursor-pointer transition-colors hover:bg-black/[0.025]"
+        style={{ padding: '8px 10px', margin: '-8px -10px' }}
+        onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); if (onClick) onClick(); }}>
+        <div style={{ maxHeight: '160px', overflow: 'hidden', position: 'relative' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -82,6 +82,9 @@ export default function AssistantMessage({ content, agent, meta, fakeButton, onF
             }}>
             {cleanContent}
           </ReactMarkdown>
+          {content && content.length > 600 && (
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'linear-gradient(transparent, white)', pointerEvents: 'none' }} />
+          )}
         </div>
 
         {/* Copy button - appears on click, disappears after 5s */}
@@ -96,26 +99,7 @@ export default function AssistantMessage({ content, agent, meta, fakeButton, onF
           </div>
         )}
 
-        {launchContent && onLaunch && (
-          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            <button
-              onClick={() => onLaunch(launchContent)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-sm transition-all hover:opacity-90"
-              style={{ background: FG, color: YUZU }}>
-              <span>⚡</span> Lancer
-            </button>
-          </div>
-        )}
-        {fakeButton && (
-          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            <button
-              onClick={onFakeLaunch}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-sm transition-all hover:opacity-90"
-              style={{ background: FG, color: YUZU }}>
-              <span>⚡</span> Lancer
-            </button>
-          </div>
-        )}
+
         {sources.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1 max-w-full">
             {sources.map((s, i) => (

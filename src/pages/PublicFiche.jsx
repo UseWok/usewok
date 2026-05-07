@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -50,7 +50,10 @@ function FicheContent({ content }) {
 }
 
 export default function PublicFiche() {
-  const { id: conversationId } = useParams();
+  const { id } = useParams();
+  const parts = id?.split('--') || [];
+  const conversationId = parts[0];
+  const msgIdx = parts.length > 1 ? parseInt(parts[1]) : null;
 
   const [messages, setMessages] = useState([]);
   const [title, setTitle] = useState('');
@@ -65,7 +68,9 @@ export default function PublicFiche() {
     }).catch(() => setLoading(false));
   }, [conversationId]);
 
-  const ficheMessages = messages.filter(m => m.role === 'assistant' && m.content?.length > 40);
+  const ficheMessages = msgIdx !== null
+    ? messages.filter((m, i) => m.role === 'assistant' && i === msgIdx && m.content?.length > 40)
+    : messages.filter(m => m.role === 'assistant' && m.content?.length > 40);
 
   if (loading) {
     return (
@@ -77,11 +82,7 @@ export default function PublicFiche() {
 
   return (
     <div className="min-h-screen bg-white font-inter">
-      {/* Minimal top bar */}
-      <div className="flex items-center justify-center px-8 py-6"
-        style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-        <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-      </div>
+
 
       {/* Content */}
       <main className="max-w-2xl mx-auto px-6 py-14">
@@ -100,28 +101,19 @@ export default function PublicFiche() {
       </main>
 
       {/* Floating badge */}
-      <AnimatePresence>
-        {showBadge && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed bottom-6 right-6 flex items-center gap-2 px-3.5 py-2.5 rounded-full"
-            style={{ background: FG, boxShadow: '0 8px 32px rgba(0,0,0,0.25)', zIndex: 100 }}
-          >
-            <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain" style={{ filter: 'invert(1)' }} />
-            <a href="/"
-              className="text-xs font-bold text-white whitespace-nowrap hover:opacity-80 transition-opacity">
-              Edit with Stensor
-            </a>
-            <button onClick={() => setShowBadge(false)}
-              className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors ml-0.5">
-              <X className="w-2.5 h-2.5 text-white" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showBadge && (
+        <div
+          className="fixed bottom-6 right-6 flex items-center gap-2 px-3 py-2"
+          style={{ background: FG, borderRadius: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 100 }}>
+          <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain" />
+          <a href="/" className="text-xs font-bold text-white whitespace-nowrap">Edit with Stensor</a>
+          <span className="text-white text-xs font-bold">→</span>
+          <button onClick={() => setShowBadge(false)}
+            className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20">
+            <X className="w-2.5 h-2.5 text-white" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

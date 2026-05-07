@@ -143,14 +143,14 @@ export default function ChatPage() {
   const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
   const [convTitleDisplay, setConvTitleDisplay] = useState('');
   const [ficheContent, setFicheContent] = useState(null);
-  const [fichePending, setFichePending] = useState(false);
+  const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const userScrolledUpRef = useRef(false);
   const isMountedRef = useRef(true);
-  const typewriterRef = useRef(null);
+
   const synthPendingRef = useRef(null);
 
   // Autosave draft
@@ -226,7 +226,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    return () => { isMountedRef.current = false; if (typewriterRef.current) clearTimeout(typewriterRef.current); };
+    return () => { isMountedRef.current = false; };
   }, []);
 
   useEffect(() => {
@@ -252,32 +252,7 @@ export default function ChatPage() {
     if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ── Typewriter helper ──────────────────────────────────────────────────────
-  const runTypewriter = useCallback((content, newMessages, msgMeta, convTitle, textForSync, onDone) => {
-    let i = 0;
-    const typeNext = () => {
-      if (!isMountedRef.current) {
-        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
-        saveConversationMessages(convId, finalMsgs);
-        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
-        if (onDone) onDone(content);
-        setFichePending(false);
-        return;
-      }
-      if (i < content.length) {
-        i++;
-        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { role: 'assistant', content: content.slice(0, i), meta: msgMeta }; return u; });
-        typewriterRef.current = setTimeout(typeNext, CHAR_SPEED);
-      } else {
-        const finalMsgs = [...newMessages, { role: 'assistant', content, agent: currentAgent, meta: msgMeta }];
-        saveConversationMessages(convId, finalMsgs);
-        syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: textForSync, model: mode.label, agent: currentAgent });
-        if (onDone) onDone(content);
-        setFichePending(false);
-      }
-    };
-    typeNext();
-  }, [currentAgent, convId, mode.label]);
+
 
   // ── Start fake progress bar ────────────────────────────────────────────────
   const startProgress = () => {
@@ -593,25 +568,23 @@ Input: ${text.slice(0, 400)}`;
     saveToDiscussions(convTitle, text);
 
     setConvTitleDisplay(convTitle);
-    setMessages([...newMessages, { role: 'assistant', content: '', meta: msgMeta }]);
     stopProgress();
     setIsLoading(false);
-    // Store content, show short confirm + launch button
-    const pendingContent = content;
-    setFichePending(false);
-    const shortMsg = '✅ Analyse prête — clique sur **Lancer** pour l\'afficher.';
-    const finalMsgsShort = [...newMessages, { role: 'assistant', content: shortMsg, meta: msgMeta, _launchContent: pendingContent }];
-    setMessages(finalMsgsShort);
-    saveConversationMessages(convId, finalMsgsShort);
-    syncConversationToCloud(convId, finalMsgsShort, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
+    setFicheContent(content);
+    const msgIdx = newMessages.length;
+    setFicheMsgIdx(msgIdx);
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
+    setMessages(finalMsgs);
+    saveConversationMessages(convId, finalMsgs);
+    syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
     // Milestone toast
-    const userCount = [...newMessages, { role: 'assistant', content: shortMsg }].filter(m => m.role === 'user').length;
+    const userCount = finalMsgs.filter(m => m.role === 'user').length;
     if (userCount === 10 && !milestoneShown) {
       setMilestoneShown(true);
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
-  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t, runTypewriter]);
+  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
   // ── Synthesis continuation ─────────────────────────────────────────────────
   const continueSynthesis = useCallback(async (doDeep) => {
@@ -701,17 +674,23 @@ Input: ${text.slice(0, 400)}`;
 
     stopProgress();
     setIsLoading(false);
-    setFichePending(false);
-    const shortMsg = '✅ Analyse prête — clique sur **Lancer** pour l\'afficher.';
-    const finalMsgsShort = [...newMessages, { role: 'assistant', content: shortMsg, meta: msgMeta, _launchContent: content }];
-    setMessages(finalMsgsShort);
-    saveConversationMessages(convId, finalMsgsShort);
-    syncConversationToCloud(convId, finalMsgsShort, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
-  }, [mode, currentAgent, convId, runTypewriter]);
+    setFicheContent(content);
+    const msgIdx = newMessages.length;
+    setFicheMsgIdx(msgIdx);
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
+    setMessages(finalMsgs);
+    saveConversationMessages(convId, finalMsgs);
+    syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
+  }, [mode, currentAgent, convId]);
 
   const editMessage = (idx) => { setInput(messages[idx].content); setMessages(prev => prev.slice(0, idx)); };
   const copyMessage = (content) => { navigator.clipboard.writeText(content); toast.success(t('copied'), { duration: 1000 }); };
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
+  const handleMessageClick = useCallback((msg, idx) => {
+    if (!msg.content || msg.content.length < 20) return;
+    setFicheContent(msg.content);
+    setFicheMsgIdx(idx);
+  }, []);
 
   return (
     <div className="flex flex-col font-open" style={{ height: '100dvh', background: '#F2F4FB', overflow: 'hidden' }}>
@@ -763,15 +742,7 @@ Input: ${text.slice(0, 400)}`;
                       content={msg.content}
                       agent={msg.agent || currentAgent}
                       meta={msg.meta}
-                      launchContent={msg._launchContent}
-                      onLaunch={msg._launchContent ? (c) => { setFicheContent(c); setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _launchContent: undefined } : m)); } : undefined}
-                      fakeButton={msg._fakeButton}
-                      onFakeLaunch={msg._fakeButton ? async () => {
-                        setMessages(prev => prev.map((m, mi) => mi === idx ? { ...m, _fakeButton: false } : m));
-                        const pending = { text: msg._fakeText || '', file_urls: [], systemContext: '', fileInstruction: '', isFirstMessage: false, useInternet: false, newMessages: messages.slice(0, idx), currentUser: user, historyContext: '' };
-                        synthPendingRef.current = pending;
-                        await continueSynthesis(true);
-                      } : undefined}
+                      onClick={() => handleMessageClick(msg, idx)}
                     />
                   : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
                 }
@@ -803,7 +774,8 @@ Input: ${text.slice(0, 400)}`;
 
         {/* RIGHT: Fiche — 70% */}
         <div className="flex-1 overflow-hidden" style={{ background: 'white' }}>
-          <FichePanel content={ficheContent} loading={fichePending} />
+          <FichePanel content={ficheContent} loading={false}
+          link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
         </div>
 
       </div>

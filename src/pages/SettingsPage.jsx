@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu } from 'lucide-react';
+import AISettingsModal from '@/components/settings/AISettingsModal';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -27,6 +28,7 @@ export default function SettingsPage() {
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showAIDNAModal, setShowAIDNAModal] = useState(false);
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
@@ -170,6 +172,8 @@ export default function SettingsPage() {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
     { id: 'usage', label: 'Usage', icon: Zap },
+    { id: 'ai_skills', label: 'AI Skills', icon: Brain, modal: true },
+    { id: 'ai_control', label: 'AI Control', icon: Cpu, modal: true },
   ];
 
   const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
@@ -191,7 +195,7 @@ export default function SettingsPage() {
             const isOpen = activeSection === item.id;
             return (
               <div key={item.id} className="bg-white overflow-hidden border border-border rounded-xl">
-                <button onClick={() => setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-3 px-4 py-4">
+                <button onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-3 px-4 py-4">
                   <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg ${isOpen ? 'bg-fg' : 'bg-muted'}`}>
                     <Icon className={`w-4 h-4 ${isOpen ? 'text-yuzu' : 'text-muted-foreground'}`} />
                   </div>
@@ -219,7 +223,7 @@ export default function SettingsPage() {
               const Icon = item.icon;
               const active = activeSection === item.id;
               return (
-                <button key={item.id} onClick={() => setActiveSection(item.id)}
+                <button key={item.id} onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(item.id)}
                   className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-xl transition-all duration-200 ${active ? 'bg-yuzu text-fg shadow-sm' : 'text-muted-foreground hover:bg-black/5'}`}>
                 <Icon className="w-4 h-4 flex-shrink-0" />
                 {item.label}
@@ -240,6 +244,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <AISettingsModal open={showAIDNAModal} onClose={() => setShowAIDNAModal(false)} />
 
       {/* Invoice modal */}
       <AnimatePresence>
@@ -426,7 +432,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
       <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
         <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-xl">
           <div>
-            <p className="text-xs text-white/60">Plan actuel</p>
+            <p className="text-xs text-white/60">Current plan</p>
             <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
           </div>
           <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg hover:opacity-90">Upgrade</button>
@@ -434,30 +440,30 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
 
         <div className="p-4 border border-border rounded-xl bg-white">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-muted-foreground">⚡ Flash ce mois-ci</p>
+            <p className="text-xs font-semibold text-muted-foreground">⚡ Flash this month</p>
             <p className={`text-xs font-black ${isHigh ? 'text-red-500' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-fg'}`} style={{ width: `${pct}%` }} />
           </div>
-          <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% utilisé</p>
+          <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% used</p>
         </div>
 
         {deepLimit > 0 && (
           <div className="p-4 border border-border rounded-xl bg-white">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-muted-foreground">🧠 Deep Synthèses ce mois-ci</p>
+              <p className="text-xs font-semibold text-muted-foreground">🧠 Deep Syntheses this month</p>
               <p className={`text-xs font-black ${isDeepHigh ? 'text-red-500' : 'text-fg'}`}>{deepUsed} / {deepLimit}</p>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${isDeepHigh ? 'bg-red-500' : 'bg-fg'}`} style={{ width: `${deepPct}%` }} />
             </div>
-            <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(deepPct)}% utilisé</p>
+            <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(deepPct)}% used</p>
           </div>
         )}
 
         <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-xs font-semibold mb-4 text-muted-foreground">Activité — 7 derniers jours</p>
+          <p className="text-xs font-semibold mb-4 text-muted-foreground">Activity — last 7 days</p>
           <ResponsiveContainer width="100%" height={90}>
             <BarChart data={getDailyUsage()} barSize={14}>
               <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
@@ -468,8 +474,8 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
         </div>
 
         <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Code d'activation</p>
-          <p className="text-xs mb-3 text-muted-foreground">Entre un code reçu par email pour activer un abonnement.</p>
+          <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Activation code</p>
+          <p className="text-xs mb-3 text-muted-foreground">Enter a code received by email to activate a subscription.</p>
           <div className="flex gap-2">
             <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
               placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
@@ -477,7 +483,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
               onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
             <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
               className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-              {codeLoading ? '...' : 'Activer'}
+              {codeLoading ? '...' : 'Activate'}
             </button>
           </div>
           {codeError && (

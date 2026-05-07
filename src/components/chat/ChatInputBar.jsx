@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Mic, X, FileText, ChevronDown,
-  Wifi, WifiOff, Send, Zap
+  Plus, Mic, X, FileText,
+  Wifi, WifiOff, Send, Settings, Pencil, MessageCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
 import { FG, YUZU } from '@/lib/chat-constants';
@@ -30,8 +31,7 @@ export default function ChatInputBar({
   onUpgradeRequest,
 }) {
   const { t } = useLanguage();
-  const [showSkillMenu, setShowSkillMenu] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState(null);
+  const navigate = useNavigate();
   const [showFileMenu, setShowFileMenu] = useState(false);
 
   const [showFilePanel, setShowFilePanel] = useState(false);
@@ -42,24 +42,16 @@ export default function ChatInputBar({
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const skillMenuRef = useRef(null);
   const fileMenuRef = useRef(null);
 
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
-  const SKILLS = [
-    { id: 'buy', label: 'Can I buy this?' },
-    { id: 'track', label: 'Am I on track?' },
-    { id: 'move', label: "What's my next move?" },
-  ];
-
   // Close all menus when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      const refs = [skillMenuRef, fileMenuRef];
+      const refs = [fileMenuRef];
       if (!refs.some(r => r.current?.contains(e.target))) {
-        setShowSkillMenu(false);
         setShowFileMenu(false);
       }
     };
@@ -68,7 +60,6 @@ export default function ChatInputBar({
   }, []);
 
   const closeAllMenus = () => {
-    setShowSkillMenu(false);
     setShowFileMenu(false);
   };
 
@@ -241,7 +232,12 @@ export default function ChatInputBar({
 
         {/* Bottom toolbar */}
         <div className="flex items-center justify-between px-3 pb-3 gap-2">
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
+            {/* Settings */}
+            <button onClick={() => navigate('/settings')}
+              className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-muted">
+              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
 
             {/* + File / Internet menu */}
             <div className="relative flex-shrink-0" ref={fileMenuRef}>
@@ -286,48 +282,23 @@ export default function ChatInputBar({
               </AnimatePresence>
             </div>
 
-            {/* Skills */}
-            <div className="relative flex-shrink-0" ref={skillMenuRef}>
-              {selectedSkill ? (
-                <button
-                  onClick={() => setSelectedSkill(null)}
-                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors"
-                  style={{ background: 'rgba(221,255,0,0.25)' }}
-                >
-                  <Zap className="w-3 h-3" style={{ color: '#0A0A0A' }} />
-                  <span className="text-[11px] font-semibold hidden sm:block" style={{ color: '#0A0A0A' }}>
-                    {SKILLS.find(s => s.id === selectedSkill)?.label}
-                  </span>
-                  <X className="w-2.5 h-2.5" style={{ color: '#0A0A0A' }} />
-                </button>
-              ) : (
-                <button
-                  onClick={() => { if (isLoading) return; closeAllMenus(); setShowSkillMenu(s => !s); }}
-                  disabled={isLoading}
-                  className="h-7 px-2 rounded-sm flex items-center gap-1 transition-colors hover:bg-muted"
-                >
-                  <Zap className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[11px] font-medium hidden sm:block text-muted-foreground">Skills</span>
-                  <ChevronDown className="w-2.5 h-2.5 text-muted-foreground/60" />
-                </button>
-              )}
-              <AnimatePresence>
-                {showSkillMenu && (
-                  <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-[300] bg-white rounded-sm border border-border">
-                    {SKILLS.map(s => (
-                      <button key={s.id} onClick={() => { setSelectedSkill(s.id); setShowSkillMenu(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm"
-                        style={{ color: '#444' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                        <Zap className="w-3 h-3 text-muted-foreground" />
-                        <span className="font-medium">{s.label}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Modify */}
+            <button
+              onClick={() => setInput(prev => prev ? 'Modify: ' + prev : 'Modify: ')}
+              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:bg-muted"
+              style={{ color: '#555' }}>
+              <Pencil className="w-3 h-3" />
+              <span className="hidden sm:inline">Modify</span>
+            </button>
+
+            {/* Discuss */}
+            <button
+              onClick={() => setInput(prev => prev ? 'Discuss: ' + prev : 'Discuss: ')}
+              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:bg-muted"
+              style={{ color: '#555' }}>
+              <MessageCircle className="w-3 h-3" />
+              <span className="hidden sm:inline">Discuss</span>
+            </button>
 
           </div>
 

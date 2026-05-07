@@ -66,7 +66,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function FichePanel({ content = null, loading = false }) {
+export default function FichePanel({ content = null, loading = false, link = null }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -95,6 +95,14 @@ export default function FichePanel({ content = null, loading = false }) {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               className="px-10 py-10"
             >
+              {link && (
+                <div className="flex items-center gap-3 mb-8 pb-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span className="text-[10px] text-zinc-400 truncate flex-1 font-mono">{link}</span>
+                  <button onClick={() => navigator.clipboard.writeText(link)}
+                    className="flex-shrink-0 px-2.5 py-1 text-[10px] font-black rounded-sm transition-all hover:opacity-80"
+                    style={{ background: '#0A0A0A', color: 'white', borderRadius: '4px' }}>Copy link</button>
+                </div>
+              )}
               <FicheContent content={content} />
             </motion.div>
           ) : (
