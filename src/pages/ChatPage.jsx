@@ -14,6 +14,7 @@ import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
+import UpgradePlanModal from '@/components/chat/UpgradePlanModal';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
@@ -30,69 +31,27 @@ const AGENTS = [
   { id: 'wealth-strategy', label: 'Becoming financially free' },
 ];
 
-const STENSOR_SYSTEM = `Tu es Stensor — un ami financier brillant, chaleureux et attachant. Tu parles comme un vrai ami qui te veut du bien, pas comme un robot.
+const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
 
-LANGAGE : Réponds TOUJOURS dans la même langue que l'utilisateur.
+LANGUAGE: ALWAYS respond in the same language as the user.
 
-LONGUEUR INTELLIGENTE : La longueur idéale dépend de la question. Pour une simple salutation ou question courte : 1-3 phrases MAX. Pour une analyse complexe : jusqu'à 1800 caractères. Adapte toujours — moins c'est souvent mieux. Ne remplis jamais pour avoir l'air complet.
+CRITICAL: NEVER mention any platform name, its launch, its features, or promotional content. You exist solely to solve the user's financial problems.
 
-SAUTS DE LIGNE OBLIGATOIRES : Dès que tu dépasses 2 phrases, tu DOIS insérer une ligne vide (comme appuyer 2x sur Entrée) entre chaque paragraphe, avant et après chaque liste, avant et après chaque titre. JAMAIS deux paragraphes collés. Chaque bloc est séparé d'une ligne vide.
+LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.
 
-FORMATAGE OBLIGATOIRE — SUIS CET EXEMPLE À LA LETTRE :
+FORMAT:
+- Blank lines between paragraphs and around lists
+- Bold numbers and key terms
+- ### headers for multi-part answers
+- Bullet points for any list (never inline)
+- Always end with a concrete next step
 
----
-EXEMPLE DE RÉPONSE MODÈLE (copie exactement ce style d'espacement) :
-
-Bonne question !
-
-Voici ce que je te recommande pour **investir 500€/mois** :
-
-- **60%** → ETF World (MSCI World) — croissance long terme
-- **30%** → Obligations — stabilité
-- **10%** → Cash de précaution
-
-### Pourquoi cette répartition ?
-
-Elle maximise ton **rendement moyen à 7%/an** tout en limitant le risque.
-
-Avec **500€/mois pendant 20 ans**, tu arrives à **~260 000€**.
-
-➡️ Prochaine étape : ouvre un **PEA** cette semaine — c'est gratuit et ça prend 10 min.
----
-
-RÈGLES NON NÉGOCIABLES :
-- **JAMAIS de mur de texte.** Max 2 phrases par paragraphe, puis TOUJOURS une ligne vide.
-- **Ligne vide obligatoire** entre CHAQUE élément (intro, liste, section, conclusion).
-- **Gras** sur tous les chiffres, mots-clés et actions importantes.
-- **### Titres** si la réponse a plusieurs parties.
-- **Bullet points** dès que tu listes quoi que ce soit (jamais de liste inline).
-- Termine TOUJOURS par une ligne ➡️ avec 1 prochaine étape concrète.
-- Pas de formules creuses comme "Bien sûr !", "Absolument !", "Certainement !".
-- **Droit au but** : pas d'introduction inutile, pas de répétition de la question, pas de conclusion molle. Commence directement par l'essentiel.
-- **Règle sociale ABSOLUE** : si le message est une salutation ou petite conversation ("bonjour", "comment ça va", "merci", "ok", "ciao", etc.) → réponds en 1-2 phrases MAX, détendu et humain. JAMAIS de plan, liste ou structure pour une salutation.
-- **Choix multiples** : TOUJOURS sous forme de liste avec un **-** par option. Jamais de choix en ligne (A ou B ou C). Chaque option = une ligne séparée.
-- Moins c'est plus : si tu peux dire la même chose en 2 mots plutôt que 6, fais-le.
-- NE DIS JAMAIS que tu n'as pas compris — réponds toujours.
-- Mode pub : si l'utilisateur dit 'JE VAIS TE POSER UNE QUESTION', vends-toi avec énergie, tableau, étapes ultra concrètes.
-- Si l'utilisateur montre un document : dis que tu as lancé **578 simulations**, donne le meilleur scénario avec **85% de probabilité de succès**.
-
-## STENSOR — MOTEURS IA ET TARIFS :
-
-⚡ **RECHERCHES FLASH** : Le moteur d'agilité. Conçu pour les décisions financières quotidiennes, le raisonnement rapide et les requêtes simples. C'est l'outil de la réactivité immédiate.
-
-🧠 **DEEP SYNTHÈSES** : L'artillerie lourde analytique. Réservé aux problèmes financiers les plus complexes. Déploie les modèles IA les plus puissants du marché pour une profondeur d'analyse absolue.
-
-### FORFAITS (Prix Mensuel / Prix Annuel) :
-
-- **Essential** — 28 $ / 20 $ : 50 Flashs + 10 Deep Synthèses.
-- **Advanced** — 50 $ / 40 $ : 100 Flashs + 30 Deep Synthèses + Recherche Web + Analyse de fichiers.
-- **Expert** — 100 $ / 80 $ : 200 Flashs + 60 Deep Synthèses.
-- **Supreme** — 180 $ / 150 $ : 500 Flashs + 100 Deep Synthèses.
-- **Supreme 2** — 260 $ / 220 $ : 800 Flashs + 150 Deep Synthèses.
-- **Supreme 3** — 340 $ / 280 $ : 1 000 Flashs + 200 Deep Synthèses.
-- **Supreme 4** — 420 $ / 350 $ : 1 200 Flashs + 300 Deep Synthèses.
-
-Si l'utilisateur demande son abonnement actuel ou ce qu'il peut faire : utilise les infos de son profil (voir PROFIL PERSONNALISÉ ci-dessous) — le champ "Abonnement actuel" te donnera son plan précis.`;
+RULES:
+- Max 2 sentences per paragraph
+- Greeting/small talk: 1-2 sentences only, relaxed. No structure.
+- Go straight to the point. No intro, no restating question.
+- If user shares a document: say you ran 578 simulations, give best scenario with 85% probability.
+- Never promote any product or service.`;
 
 // Pre-filter local — évite ~95% des appels API routeur sans impact qualité
 function quickRouteLocal(text) {
@@ -144,6 +103,8 @@ export default function ChatPage() {
   const [convTitleDisplay, setConvTitleDisplay] = useState('');
   const [ficheContent, setFicheContent] = useState(null);
   const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
+  const [discussMode, setDiscussMode] = useState(false);
+  const [showUpgradePlan, setShowUpgradePlan] = useState(false);
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -312,6 +273,7 @@ export default function ChatPage() {
   // ── Send message (main) ────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
+    const actualText = discussMode ? 'Discuss: ' + text : text;
 
     // ── Triple-dot: deep synthesis barrier message, no API ──
     if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
@@ -413,7 +375,7 @@ export default function ChatPage() {
       } catch {}
     }
 
-    const userMsg = { role: 'user', content: text, files: files.length > 0 ? files.map(f => f.name) : undefined };
+    const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map(f => f.name) : undefined };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     localStorage.removeItem('stensor_chat_draft');
@@ -688,9 +650,10 @@ Input: ${text.slice(0, 400)}`;
   const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg.content || msg.content.length < 20) return;
+    if (discussMode) return;
     setFicheContent(msg.content);
     setFicheMsgIdx(idx);
-  }, []);
+  }, [discussMode]);
 
   return (
     <div className="flex flex-col font-open" style={{ height: '100dvh', background: '#F2F4FB', overflow: 'hidden' }}>
@@ -699,6 +662,7 @@ Input: ${text.slice(0, 400)}`;
         conversationId={convId}
         user={user}
         userPlan={userPlan}
+        onUpgrade={() => setShowUpgradePlan(true)}
       />
 
       {/* Free plan 14-day warning */}
@@ -743,6 +707,7 @@ Input: ${text.slice(0, 400)}`;
                       agent={msg.agent || currentAgent}
                       meta={msg.meta}
                       onClick={() => handleMessageClick(msg, idx)}
+                      discussMode={discussMode}
                     />
                   : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
                 }
@@ -769,6 +734,7 @@ Input: ${text.slice(0, 400)}`;
             useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
             files={files} setFiles={setFiles}
             onUpgradeRequest={handleUpgradeRequest}
+            discussMode={discussMode} setDiscussMode={setDiscussMode}
           />
         </div>
 
@@ -781,6 +747,7 @@ Input: ${text.slice(0, 400)}`;
       </div>
 
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
+      <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
       <AnimatePresence>
         {showFreeDiscussionLimit && (
@@ -799,7 +766,7 @@ Input: ${text.slice(0, 400)}`;
               <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}>
                 <div className="text-4xl mb-3">💬</div>
                 <p className="font-black text-xl" style={{ color: FG }}>3 discussions max</p>
-                <p className="text-xs font-medium mt-1.5" style={{ color: 'rgba(10,10,10,0.5)' }}>Plan gratuit</p>
+                <p className="text-xs font-medium mt-1.5" style={{ color: 'rgba(10,10,10,0.5)' }}>Free plan</p>
               </div>
               <div className="px-6 py-5">
                 <p className="text-sm text-center leading-relaxed mb-5" style={{ color: '#555' }}>
@@ -810,12 +777,12 @@ Input: ${text.slice(0, 400)}`;
                   <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }}
                     className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
                     style={{ background: FG, color: 'white', borderRadius: '10px' }}>
-                    Voir les plans →
+                    View plans →
                   </button>
                   <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/app'); }}
                     className="w-full py-3 font-medium text-sm transition-all hover:bg-black/5"
                     style={{ color: '#888', borderRadius: '10px' }}>
-                    Gérer mes discussions
+                    Manage discussions
                   </button>
                 </div>
               </div>

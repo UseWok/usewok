@@ -104,38 +104,6 @@ function detectCategory(text = '', hasFiles = false) {
   return 'default';
 }
 
-function LiveDataTicker() {
-  const [vals, setVals] = useState({ sims: '---,---', risk: '0.000', ret: '0.0%', alloc: '0.0%' });
-  useEffect(() => {
-    const iv = setInterval(() => {
-      const a = Math.floor(Math.random() * 900) + 100;
-      const b = Math.floor(Math.random() * 900) + 100;
-      setVals({
-        sims: `${a.toString().padStart(3,'0')},${b.toString().padStart(3,'0')}`,
-        risk: (Math.random() * 0.55 + 0.08).toFixed(3),
-        ret: (Math.random() * 5 + 5.5).toFixed(1) + '%',
-        alloc: (Math.random() * 30 + 55).toFixed(1) + '%',
-      });
-    }, 150);
-    return () => clearInterval(iv);
-  }, []);
-  return (
-    <div className="grid grid-cols-4 gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-      {[
-        { label: 'Simulations', val: vals.sims },
-        { label: 'Risk idx', val: vals.risk },
-        { label: 'Est. return', val: vals.ret },
-        { label: 'Allocation', val: vals.alloc },
-      ].map(({ label, val }) => (
-        <div key={label}>
-          <p className="text-[8px] uppercase tracking-wide" style={{ color: '#bbb' }}>{label}</p>
-          <p className="text-[10px] font-black font-mono" style={{ color: '#0A0A0A' }}>{val}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // step status: 'pending' | 'active' | 'correcting' | 'done'
 function StepRow({ step, status, index }) {
   return (
@@ -328,7 +296,6 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
               return <StepRow key={i} step={step} status={status} index={i} />;
             })}
           </div>
-          <LiveDataTicker />
         </div>
       </div>
     </motion.div>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X } from 'lucide-react';
+import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X, Settings, Zap, Brain } from 'lucide-react';
+import AISettingsModal from '@/components/settings/AISettingsModal';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
@@ -172,16 +173,20 @@ function PublishModal({ conversationId }) {
   );
 }
 
-export default function WorkspaceHeader({ title, conversationId, user, userPlan }) {
+export default function WorkspaceHeader({ title, conversationId, user, userPlan, onUpgrade }) {
   const [showCredits, setShowCredits] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showDNA, setShowDNA] = useState(false);
   const creditsRef = useRef(null);
   const publishRef = useRef(null);
+  const settingsRef = useRef(null);
 
   useEffect(() => {
     const h = (e) => {
       if (creditsRef.current && !creditsRef.current.contains(e.target)) setShowCredits(false);
       if (publishRef.current && !publishRef.current.contains(e.target)) setShowPublish(false);
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -217,20 +222,70 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan 
         </p>
       </div>
 
-      {/* Right: Publish */}
-      <div ref={publishRef} className="relative flex-shrink-0">
+      {/* Right: Settings cog + Upgrade + Publish */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Settings */}
+        <div ref={settingsRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowSettings(s => !s)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/8 transition-colors"
+            style={{ background: showSettings ? 'rgba(0,0,0,0.07)' : 'transparent' }}
+          >
+            <Settings className="w-4 h-4" style={{ color: '#555' }} />
+          </button>
+          <AnimatePresence>
+            {showSettings && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                transition={{ duration: 0.12 }}
+                className="absolute top-full mt-2 right-0 bg-white z-50 w-[200px] overflow-hidden"
+                style={{ borderRadius: '10px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}
+              >
+                <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#aaa' }}>AI Settings</p>
+                </div>
+                <button
+                  onClick={() => { setShowSettings(false); setShowDNA(true); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-black/4 transition-colors"
+                >
+                  <Brain className="w-3.5 h-3.5" style={{ color: '#555' }} />
+                  <span className="text-xs font-semibold" style={{ color: FG }}>AI Control (DNA)</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Upgrade button */}
         <button
-          onClick={() => setShowPublish(s => !s)}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
-          style={{ background: FG, color: 'white' }}
+          onClick={onUpgrade}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg transition-all hover:opacity-90"
+          style={{ background: '#DDFF00', color: '#0A0A0A' }}
         >
-          <Globe className="w-3.5 h-3.5" />
-          Publish
+          <Zap className="w-3 h-3" />
+          Upgrade
         </button>
-        <AnimatePresence>
-          {showPublish && <PublishModal conversationId={conversationId} />}
-        </AnimatePresence>
+
+        {/* Publish */}
+        <div ref={publishRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowPublish(s => !s)}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
+            style={{ background: FG, color: 'white' }}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Publish
+          </button>
+          <AnimatePresence>
+            {showPublish && <PublishModal conversationId={conversationId} />}
+          </AnimatePresence>
+        </div>
       </div>
+
+      {/* DNA Modal */}
+      <AISettingsModal open={showDNA} onClose={() => setShowDNA(false)} />
     </header>
   );
 }

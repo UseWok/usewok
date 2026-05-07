@@ -62,8 +62,8 @@ export const DEFAULT_PLANS = [
   {
     id: 'expert',
     name: 'Expert',
-    price_monthly: 60,
-    price_yearly: 50,
+    price_monthly: 100,
+    price_yearly: 80,
     credits_limit: 500,
     daily_credits_limit: 0,
     can_choose_model: true,
@@ -81,8 +81,8 @@ export const DEFAULT_PLANS = [
   {
     id: 'supreme',
     name: 'Supreme',
-    price_monthly: 140,
-    price_yearly: 120,
+    price_monthly: 180,
+    price_yearly: 150,
     credits_limit: 1200,
     daily_credits_limit: 0,
     can_choose_model: true,

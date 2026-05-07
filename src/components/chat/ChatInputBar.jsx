@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Mic, X, FileText,
-  Wifi, WifiOff, Send, Settings, Pencil, MessageCircle
+  Wifi, WifiOff, Send, Settings, MessageCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DragDropOverlay from '@/components/DragDropOverlay';
@@ -29,6 +29,7 @@ export default function ChatInputBar({
   useWebSearch, setUseWebSearch,
   files, setFiles,
   onUpgradeRequest,
+  discussMode, setDiscussMode,
 }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -282,20 +283,11 @@ export default function ChatInputBar({
               </AnimatePresence>
             </div>
 
-            {/* Modify */}
+            {/* Discuss toggle */}
             <button
-              onClick={() => setInput(prev => prev ? 'Modify: ' + prev : 'Modify: ')}
-              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:bg-muted"
-              style={{ color: '#555' }}>
-              <Pencil className="w-3 h-3" />
-              <span className="hidden sm:inline">Modify</span>
-            </button>
-
-            {/* Discuss */}
-            <button
-              onClick={() => setInput(prev => prev ? 'Discuss: ' + prev : 'Discuss: ')}
-              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:bg-muted"
-              style={{ color: '#555' }}>
+              onClick={() => setDiscussMode && setDiscussMode(d => !d)}
+              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-all"
+              style={{ background: discussMode ? FG : 'transparent', color: discussMode ? YUZU : '#555' }}>
               <MessageCircle className="w-3 h-3" />
               <span className="hidden sm:inline">Discuss</span>
             </button>

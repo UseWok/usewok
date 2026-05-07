@@ -24,7 +24,7 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-export default function AssistantMessage({ content, agent, meta, onClick }) {
+export default function AssistantMessage({ content, agent, meta, onClick, discussMode }) {
   const [copied, setCopied] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
   const agentLabel = AGENTS.find(a => a.id === agent)?.label || agent || 'Global Agent';
@@ -51,7 +51,7 @@ export default function AssistantMessage({ content, agent, meta, onClick }) {
       <div className="w-full break-words rounded-lg cursor-pointer transition-colors hover:bg-black/[0.025]"
         style={{ padding: '8px 10px', margin: '-8px -10px' }}
         onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); if (onClick) onClick(); }}>
-        <div style={{ maxHeight: '160px', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ maxHeight: discussMode ? 'none' : '160px', overflow: discussMode ? 'visible' : 'hidden', position: 'relative' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -82,7 +82,7 @@ export default function AssistantMessage({ content, agent, meta, onClick }) {
             }}>
             {cleanContent}
           </ReactMarkdown>
-          {content && content.length > 600 && (
+          {!discussMode && content && content.length > 600 && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'linear-gradient(transparent, white)', pointerEvents: 'none' }} />
           )}
         </div>
