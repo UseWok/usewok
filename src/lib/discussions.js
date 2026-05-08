@@ -52,17 +52,17 @@ export async function syncConversationToCloud(convId, messages, meta = {}) {
 
 // Load messages from cloud — tries owner first, then public fallback
 export async function loadConversationFromCloud(convId) {
+  let me = null;
+  try { me = await base44.auth.me(); } catch {}
+
   try {
-    // Try as owner first
-    let me = null;
-    try { me = await base44.auth.me(); } catch {}
     if (me?.email) {
       const results = await base44.entities.Conversation.filter({ conv_id: convId, created_by: me.email });
       if (results.length > 0 && results[0].messages_json) {
         return JSON.parse(results[0].messages_json);
       }
     }
-    // Fallback: try public conversation
+    // Fallback: try public conversation (works for unauthenticated users too)
     const pubResults = await base44.entities.Conversation.filter({ conv_id: convId, is_public: true });
     if (pubResults.length > 0 && pubResults[0].messages_json) {
       return JSON.parse(pubResults[0].messages_json);
