@@ -2,9 +2,9 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Mic, X, FileText,
-  Wifi, WifiOff, Send, Settings, MessageCircle
+  Wifi, WifiOff, Send, Brain, MessageCircle
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import AISettingsModal from '@/components/settings/AISettingsModal';
 import DragDropOverlay from '@/components/DragDropOverlay';
 import FilePreviewPanel from '@/components/chat/FilePreviewPanel';
 import { FG, YUZU } from '@/lib/chat-constants';
@@ -32,7 +32,7 @@ export default function ChatInputBar({
   discussMode, setDiscussMode,
 }) {
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  const [showDNA, setShowDNA] = useState(false);
   const [showFileMenu, setShowFileMenu] = useState(false);
 
   const [showFilePanel, setShowFilePanel] = useState(false);
@@ -234,10 +234,11 @@ export default function ChatInputBar({
         {/* Bottom toolbar */}
         <div className="flex items-center justify-between px-3 pb-3 gap-2">
           <div className="flex items-center gap-1">
-            {/* Settings */}
-            <button onClick={() => navigate('/settings')}
-              className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-muted">
-              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+            {/* AI DNA Settings */}
+            <button onClick={() => setShowDNA(true)}
+              className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-muted"
+              title="AI Settings (DNA)">
+              <Brain className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
 
             {/* + File / Internet menu */}
@@ -332,6 +333,7 @@ export default function ChatInputBar({
       />
 
       <p className="text-center mt-1 text-[9px] text-muted-foreground">{t('ai_disclaimer')}</p>
+      <AISettingsModal open={showDNA} onClose={() => setShowDNA(false)} />
     </div>
   );
 }

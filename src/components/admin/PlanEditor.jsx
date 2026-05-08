@@ -166,6 +166,23 @@ export default function PlanEditor({ plan, onChange, onActivate, isCurrentPlan }
                             <input value={option.checkout_url_yearly || ''} onChange={e => update('checkout_url_yearly', e.target.value)}
                               placeholder="https://buy.stripe.com/..." className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
                           </div>
+                          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40 mt-1">
+                            <div>
+                              <label className="text-[10px] text-muted-foreground mb-1 block">Badge promo</label>
+                              <input value={option.discount_badge || ''} onChange={e => update('discount_badge', e.target.value)}
+                                placeholder="-10%" className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground mb-1 block">Flash/mo (0=plan)</label>
+                              <input type="number" value={option.credits_limit || ''} onChange={e => update('credits_limit', parseInt(e.target.value) || 0)}
+                                placeholder="0" className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground mb-1 block">Deep/mo (0=plan)</label>
+                              <input type="number" value={option.deep_credits_limit || ''} onChange={e => update('deep_credits_limit', parseInt(e.target.value) || 0)}
+                                placeholder="0" className="w-full px-2 py-1.5 text-xs border border-border rounded-sm focus:outline-none" />
+                            </div>
+                          </div>
                         </div>
                       );
                     })}

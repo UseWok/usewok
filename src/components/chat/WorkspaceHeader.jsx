@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X, Settings, Zap, Brain } from 'lucide-react';
-import AISettingsModal from '@/components/settings/AISettingsModal';
+import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
@@ -20,9 +19,8 @@ function UsageBar({ used, total, color }) {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="h-full rounded-full"
         style={{ background: color }} />
-      
-    </div>);
-
+    </div>
+  );
 }
 
 function CreditsPopover({ user, userPlan, onClose }) {
@@ -43,14 +41,12 @@ function CreditsPopover({ user, userPlan, onClose }) {
       transition={{ duration: 0.12 }}
       className="absolute top-full mt-2 left-0 bg-white z-50 w-[260px] overflow-hidden"
       style={{ borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}>
-      
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
         <span className="text-sm font-bold" style={{ color: FG }}>Consommation</span>
         <button onClick={onClose} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/5">
           <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
         </button>
       </div>
-
       <div className="px-4 py-4 space-y-4">
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -69,25 +65,21 @@ function CreditsPopover({ user, userPlan, onClose }) {
         </div>
         <p className="text-[10px] font-medium" style={{ color: BLUE }}>Renouvellement le {renewalStr}</p>
       </div>
-
       <div className="h-px" style={{ background: 'rgba(0,0,0,0.06)' }} />
-
       <div className="px-4 py-3 flex flex-col gap-2">
-        <button
-          onClick={() => {onClose();navigate('/pricing');}}
+        <button onClick={() => { onClose(); navigate('/pricing'); }}
           className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 rounded-lg transition-all hover:opacity-90"
           style={{ background: FG, color: 'white' }}>
           <TrendingUp className="w-3 h-3" /> Upgrade →
         </button>
-        <button
-          onClick={() => {onClose();navigate('/app');}}
+        <button onClick={() => { onClose(); navigate('/app'); }}
           className="w-full py-2 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg transition-all hover:bg-black/5"
           style={{ color: '#888' }}>
           <ArrowLeft className="w-3 h-3" /> Back to Home
         </button>
       </div>
-    </motion.div>);
-
+    </motion.div>
+  );
 }
 
 function PublishModal({ conversationId }) {
@@ -125,7 +117,6 @@ function PublishModal({ conversationId }) {
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       className="absolute top-full mt-2 right-0 bg-white z-50 w-[300px] overflow-hidden"
       style={{ borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.10)' }}>
-      
       <div className="px-5 pt-5 pb-4">
         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-3">Public Link</p>
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-black/8 bg-zinc-50">
@@ -136,57 +127,47 @@ function PublishModal({ conversationId }) {
           </button>
         </div>
       </div>
-
       <div className="h-px bg-black/5 mx-5" />
-
       <div className="px-5 py-4">
         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-3">Visibility</p>
         <div className="flex gap-2">
           {[
-          { id: 'public', label: 'Public', icon: Globe },
-          { id: 'private', label: 'Private', icon: Lock }].
-          map(({ id, label, icon: Icon }) =>
-          <button key={id} onClick={() => setVisibility(id)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all border rounded-lg"
-          style={{
-            background: visibility === id ? FG : 'transparent',
-            color: visibility === id ? 'white' : '#999',
-            borderColor: visibility === id ? FG : 'rgba(0,0,0,0.1)'
-          }}>
+            { id: 'public', label: 'Public', icon: Globe },
+            { id: 'private', label: 'Private', icon: Lock },
+          ].map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setVisibility(id)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all border rounded-lg"
+              style={{
+                background: visibility === id ? FG : 'transparent',
+                color: visibility === id ? 'white' : '#999',
+                borderColor: visibility === id ? FG : 'rgba(0,0,0,0.1)',
+              }}>
               <Icon className="w-3.5 h-3.5" /> {label}
             </button>
-          )}
+          ))}
         </div>
       </div>
-
       <div className="px-5 pb-5">
-        <button
-          onClick={handlePublish}
-          disabled={saving}
+        <button onClick={handlePublish} disabled={saving}
           className="w-full py-3.5 rounded-lg text-sm font-black transition-all hover:opacity-90"
           style={{ background: published ? '#16a34a' : FG, color: 'white' }}>
-          
           {saving ? '...' : published ? '✓ Published' : 'Publish Now'}
         </button>
       </div>
-    </motion.div>);
-
+    </motion.div>
+  );
 }
 
 export default function WorkspaceHeader({ title, conversationId, user, userPlan, onUpgrade }) {
   const [showCredits, setShowCredits] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showDNA, setShowDNA] = useState(false);
   const creditsRef = useRef(null);
   const publishRef = useRef(null);
-  const settingsRef = useRef(null);
 
   useEffect(() => {
     const h = (e) => {
       if (creditsRef.current && !creditsRef.current.contains(e.target)) setShowCredits(false);
       if (publishRef.current && !publishRef.current.contains(e.target)) setShowPublish(false);
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -194,87 +175,39 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
 
   return (
     <header
-      className="flex items-center justify-between px-4 h-12 flex-shrink-0 opacity-100"
-      style={{ background: '#F2F4FB', borderBottom: '1px solid rgba(0,0,0,0.07)', borderRadius: '0' }}>
-      
+      className="flex items-center justify-between px-4 h-12 flex-shrink-0"
+      style={{ background: '#F2F4FB', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+
       {/* Left: Logo + Title */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div ref={creditsRef} className="relative flex-shrink-0">
           <button
             onClick={() => setShowCredits((s) => !s)}
             className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/8 transition-colors">
-            
             <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
           </button>
           <AnimatePresence>
-            {showCredits &&
-            <CreditsPopover
-              user={user}
-              userPlan={userPlan}
-              onClose={() => setShowCredits(false)} />
-
-            }
+            {showCredits && <CreditsPopover user={user} userPlan={userPlan} onClose={() => setShowCredits(false)} />}
           </AnimatePresence>
         </div>
-
         <p className="text-sm font-semibold truncate max-w-[360px]" style={{ color: FG }}>
           {title || 'New conversation'}
         </p>
       </div>
 
-      {/* Right: Settings cog + Upgrade + Publish */}
+      {/* Right: Upgrade + Publish */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Settings */}
-        <div ref={settingsRef} className="relative flex-shrink-0">
-          <button
-            onClick={() => setShowSettings((s) => !s)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/8 transition-colors"
-            style={{ background: showSettings ? 'rgba(0,0,0,0.07)' : 'transparent' }}>
-            
-            <Settings className="w-4 h-4" style={{ color: '#555' }} />
-          </button>
-          <AnimatePresence>
-            {showSettings &&
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ duration: 0.12 }}
-              className="absolute top-full mt-2 right-0 bg-white z-50 w-[200px] overflow-hidden"
-              style={{ borderRadius: '10px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}>
-              
-                <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#aaa' }}>AI Settings</p>
-                </div>
-                <button
-                onClick={() => {setShowSettings(false);setShowDNA(true);}}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-black/4 transition-colors">
-                
-                  <Brain className="w-3.5 h-3.5" style={{ color: '#555' }} />
-                  <span className="text-xs font-semibold" style={{ color: FG }}>AI Control (DNA)</span>
-                </button>
-              </motion.div>
-            }
-          </AnimatePresence>
-        </div>
-
-        {/* Upgrade button */}
-        <button
-          onClick={onUpgrade}
+        <button onClick={onUpgrade}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg transition-all hover:opacity-90"
           style={{ background: '#DDFF00', color: '#0A0A0A' }}>
-          
           <Zap className="w-3 h-3" />
           Upgrade
         </button>
 
-        {/* Publish */}
         <div ref={publishRef} className="relative flex-shrink-0">
-          <button
-            onClick={() => setShowPublish((s) => !s)}
+          <button onClick={() => setShowPublish((s) => !s)}
             className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
             style={{ background: FG, color: 'white' }}>
-            
             <Globe className="w-3.5 h-3.5" />
             Publish
           </button>
@@ -283,9 +216,6 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
           </AnimatePresence>
         </div>
       </div>
-
-      {/* DNA Modal */}
-      <AISettingsModal open={showDNA} onClose={() => setShowDNA(false)} />
-    </header>);
-
+    </header>
+  );
 }

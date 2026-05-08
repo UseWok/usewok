@@ -73,8 +73,7 @@ export default function LandingPricingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [plansConfig, setPlansConfig] = useState(() => getPlansConfig());
   const [highlightedPlanId, setHighlightedPlanId] = useState('advanced');
-  const [tierModalPlan, setTierModalPlan] = useState(null);
-  const [selectedTiers, setSelectedTiers] = useState({});
+
   const { data: landingData } = useQuery({ queryKey: LANDING_QUERY_KEY, queryFn: getLandingContent, staleTime: 0 });
 
   useEffect(() => {
@@ -165,10 +164,7 @@ export default function LandingPricingPage() {
               const features = (plan.features?.length > 0) ? plan.features : (PLAN_FEATURES[plan.id] || []);
               const isHighlighted = plan.id === highlightedPlanId;
               const price = plan.price_monthly || 0;
-              const hasTiers = plan.tier_options?.filter(o => (typeof o === 'string' ? o : o?.label)?.trim()).length > 0;
-              const selIdx = selectedTiers[plan.id];
-              const selOpt = selIdx !== undefined && plan.tier_options?.[selIdx] ? (typeof plan.tier_options[selIdx] === 'object' ? plan.tier_options[selIdx] : null) : null;
-              const displayPrice = selOpt?.price_monthly || price;
+
 
               return (
                 <motion.div key={plan.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
@@ -187,23 +183,12 @@ export default function LandingPricingPage() {
 
                   <div className="mb-2">
                     <span className="font-black" style={{ fontSize: '2.2rem', lineHeight: 1, color: FG }}>
-                      {price === 0 ? 'Free' : `$${displayPrice}`}
+                      {price === 0 ? 'Free' : `$${price}`}
                     </span>
-                    {displayPrice > 0 && <span className="text-xs ml-1" style={{ color: 'rgba(0,0,0,0.3)' }}>/mo</span>}
+                    {price > 0 && <span className="text-xs ml-1" style={{ color: 'rgba(0,0,0,0.3)' }}>/mo</span>}
                   </div>
 
-                  {/* Tier selector for plans with options */}
-                  {hasTiers && (
-                    <div className="mb-4">
-                      <button
-                        onClick={() => setTierModalPlan(plan.id)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold transition-all"
-                        style={{ background: 'rgba(221,255,0,0.15)', border: '1px solid rgba(221,255,0,0.4)', borderRadius: '6px', color: FG }}>
-                        <span>{selOpt?.label || plan.tier_options.find(o => (typeof o === 'string' ? o : o?.label)?.trim())?.label || 'Choose tier'}</span>
-                        <span style={{ color: 'rgba(0,0,0,0.4)' }}>▾</span>
-                      </button>
-                    </div>
-                  )}
+
 
                   <div className="mb-5" style={{ height: 1, background: 'rgba(0,0,0,0.06)' }} />
 
@@ -229,52 +214,6 @@ export default function LandingPricingPage() {
               );
             })}
           </div>
-
-          {/* Tier options modal */}
-          <AnimatePresence>
-            {tierModalPlan && (() => {
-              const plan = plans.find(p => p.id === tierModalPlan);
-              if (!plan) return null;
-              return (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-                  style={{ background: 'rgba(0,0,0,0.5)' }}
-                  onClick={() => setTierModalPlan(null)}>
-                  <motion.div initial={{ scale: 0.95, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
-                    className="bg-white w-full max-w-sm overflow-hidden"
-                    style={{ borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
-                    onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-                      <p className="text-sm font-black" style={{ color: FG }}>{plan.name} — Choose a tier</p>
-                      <button onClick={() => setTierModalPlan(null)} className="text-xs text-gray-400 hover:text-black">✕</button>
-                    </div>
-                    <div className="p-4 space-y-2">
-                      {plan.tier_options.map((opt, i) => {
-                        const label = typeof opt === 'string' ? opt : opt?.label;
-                        if (!label?.trim()) return null;
-                        const optObj = typeof opt === 'object' ? opt : null;
-                        const tierPrice = optObj?.price_monthly;
-                        const isSelected = selectedTiers[plan.id] === i;
-                        return (
-                          <button key={i} onClick={() => { setSelectedTiers(s => ({ ...s, [plan.id]: i })); setTierModalPlan(null); }}
-                            className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-left transition-all"
-                            style={{
-                              background: isSelected ? FG : 'rgba(0,0,0,0.03)',
-                              border: `1px solid ${isSelected ? FG : 'rgba(0,0,0,0.08)'}`,
-                              borderRadius: '6px',
-                              color: isSelected ? 'white' : FG,
-                            }}>
-                            <span>{label}</span>
-                            {tierPrice && <span className="font-black" style={{ color: isSelected ? YELLOW : 'rgba(0,0,0,0.5)' }}>${tierPrice}/mo</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                </motion.div>
-              );
-            })()}
-          </AnimatePresence>
 
           {/* Enterprise */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}

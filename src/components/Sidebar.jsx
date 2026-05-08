@@ -280,9 +280,9 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, highlight }) {
   return (
     <button onClick={onClick}
       className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all duration-150 ${active && expanded ? 'bg-yuzu text-fg' : active ? 'text-fg' : 'text-zinc-500 hover:bg-black/5'}`}
-      style={highlight && !active ? { borderLeft: '2px solid #DDFF00' } : {}}>
+      style={highlight && !active && expanded ? { borderLeft: '2px solid #DDFF00' } : {}}>
       <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-sm ${active && !expanded ? 'bg-yuzu' : ''}`}>
-        <Icon className={`w-[17px] h-[17px] ${active ? 'text-fg' : highlight ? '#0A0A0A' : 'text-zinc-400'}`} />
+        <Icon className={`w-[17px] h-[17px] ${active ? 'text-fg' : highlight ? 'text-fg' : 'text-zinc-400'}`} />
       </div>
       {expanded && (
         <span className="flex-1 text-left whitespace-nowrap truncate text-sm flex items-center gap-1.5">
