@@ -8,8 +8,8 @@ export const SEO_CONFIG = {
   description: 'Stensor is an AI personal finance coach that turns financial confusion into real-time, step-by-step action plans. Equip your autonomous agent with 1,000+ custom AI skills to optimize debt and visualize your exact progress. Always know your next move to hit your financial goals—without rigid budgets or sacrificing your daily pleasures.',
 },
   '/tarifs': {
-    title: 'Stensor — Pricing & Plans',
-    description: 'Choose the plan that fits your financial goals. From free to expert-level AI coaching.',
+    title: 'Stensor Pricing: Unlock Your Financial Potential with AI Coaching.',
+    description: 'Discover Stensor\'s flexible plans designed to accelerate your financial journey. Choose the AI-powered personal finance coach that fits your goals, from free access to advanced features for optimizing debt, managing investments, and achieving financial freedom. Real-time action plans, without rigid budgets.',
   },
   '/fonctionnalites': {
     title: 'Stensor Features: Transform Your Finances with AI Power.',
