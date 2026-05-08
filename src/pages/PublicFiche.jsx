@@ -105,7 +105,7 @@ export default function PublicFiche() {
         <div
           className="fixed bottom-6 right-6 flex items-center gap-2 px-3 py-2"
           style={{ background: FG, borderRadius: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 100 }}>
-          <img src={LOGO_URL} alt="Stensor" className="w-7 h-7 object-contain" />
+          <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
           <a href="/" className="text-xs font-bold text-white whitespace-nowrap">Edit with Stensor</a>
           <span className="text-white text-xs font-bold">→</span>
           <button onClick={() => setShowBadge(false)}
