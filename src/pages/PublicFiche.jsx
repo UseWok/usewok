@@ -109,7 +109,7 @@ export default function PublicFiche() {
           <a href="/" className="text-xs font-bold text-white whitespace-nowrap">Edit with Stensor</a>
           <span className="text-white text-xs font-bold hidden">→</span>
           <button onClick={() => setShowBadge(false)}
-        className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20">
+        className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20 text-[hsl(var(--popover))]">
             <X className="w-2.5 h-2.5 text-white" />
           </button>
         </div>
