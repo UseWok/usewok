@@ -190,7 +190,7 @@ export default function ChatInputBar({
 
       <DragDropOverlay visible={isDragging} canUpload={canUploadFiles} />
 
-      <div className="bg-white overflow-visible rounded-[10px]" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+      <div className="bg-white overflow-visible rounded-md" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
         {/* Attached files */}
         {files.length > 0 &&
         <div className="flex items-center gap-2 flex-wrap px-3 pt-3">
