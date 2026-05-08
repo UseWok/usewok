@@ -277,12 +277,12 @@ export default function AdminBlog() {
                 value={form.summary}
                 onChange={e => setForm(f => ({ ...f, summary: e.target.value }))}
                 placeholder="160-char description shown in Google results..."
-                maxLength={300}
+                maxLength={999999}
                 rows={2}
                 className="w-full text-sm border border-black/10 rounded-lg px-3 py-2.5 outline-none focus:border-black/30 resize-none"
                 style={{ fontFamily: 'var(--font-open)' }}
               />
-              <p className="text-[10px] text-gray-300 text-right mt-1">{form.summary.length}/300</p>
+              <p className="text-[10px] text-gray-300 text-right mt-1">{form.summary.length}/999999</p>
             </div>
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Category</label>
