@@ -26,6 +26,7 @@ import AIControlTower from './pages/AIControlTower';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import PublicFiche from './pages/PublicFiche';
+import SEOHead from './components/SEOHead';
 
 
 function ScrollToTop() {
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
     return (
       <>
         <ScrollToTop />
+        <SEOHead />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/tarifs" element={<LandingPricingPage />} />
