@@ -27,6 +27,6 @@ export const SEO_CONFIG = {
 
 /** Fallback pour les routes non listées (ex: /p/:id) */
 export const SEO_DEFAULT = {
-  title: 'Stensor — Your AI Financial Coach',
-  description: 'Get clear answers on savings, investing, debt, and wealth building.',
+  title: 'AI-powered personal finance & goal coach.',
+  description: 'Stensor is an AI personal finance coach that turns financial confusion into real-time, step-by-step action plans. Equip your autonomous agent with 1,000+ custom AI skills to optimize debt and visualize your exact progress. Always know your next move to hit your financial goals—without rigid budgets or sacrificing your daily pleasures.',
 };
