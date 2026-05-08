@@ -103,7 +103,7 @@ export default function PublicFiche() {
       {/* Floating badge */}
       {showBadge &&
       <div
-        className="fixed bottom-6 right-6 flex items-center gap-2 px-3 py-2"
+        className="fixed bottom-6 right-6 flex items-center gap-2 px-3 py-2 rounded-sm"
         style={{ background: FG, borderRadius: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 100 }}>
           <img src={LOGO_URL} alt="Stensor" className="w-4 h-4 object-contain" />
           <a href="/" className="text-xs font-bold text-white whitespace-nowrap">Edit with Stensor</a>
