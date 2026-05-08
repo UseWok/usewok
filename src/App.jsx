@@ -26,6 +26,9 @@ import AIControlTower from './pages/AIControlTower';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import PublicFiche from './pages/PublicFiche';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
+import AdminBlog from './pages/admin/AdminBlog';
 import SEOHead from './components/SEOHead';
 
 
@@ -59,6 +62,8 @@ const AuthenticatedApp = () => {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/p/:id" element={<PublicFiche />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
       </>
@@ -76,6 +81,8 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Navigate to="/app" replace />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/p/:id" element={<PublicFiche />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route element={<Layout />}>
           <Route path="/app" element={<Home />} />
           <Route path="/projects" element={<AllProjects />} />
@@ -88,6 +95,7 @@ const AuthenticatedApp = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/ai-dna" element={<AIControlTower />} />
+          <Route path="/admin/blog" element={<AdminBlog />} />
 
           <Route path="*" element={<PageNotFound />} />
         </Route>

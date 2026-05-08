@@ -59,7 +59,8 @@ function Navbar({ onCta }) {
         <div className="hidden md:flex items-center gap-8">
           <a href="/fonctionnalites" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Features</a>
           <a href="/tarifs" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Pricing</a>
-          <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Sign in</button>
+          <a href="/blog" className="text-xs font-medium text-gray-400 hover:text-black transition-colors">Blog</a>
+          <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-4 py-2 rounded-lg border-2 border-black hover:bg-black hover:text-white transition-all" style={{ color: FG }}>Sign in</button>
         </div>
         <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
           className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
@@ -73,8 +74,8 @@ function Navbar({ onCta }) {
         className="fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-5 py-3.5 rounded-full"
         style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
         <a href="/fonctionnalites" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Features</a>
-        <a href="/tarifs" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Pricing</a>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Sign in</button>
+        <a href="/blog" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Blog</a>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-3 py-1.5 rounded-full border border-white/50" style={{ color: 'white' }}>Sign in</button>
         <button onClick={onCta} className="text-xs font-black px-4 py-2 rounded-full" style={{ background: YELLOW, color: FG }}>Start →</button>
       </motion.div>
     </>
@@ -540,7 +541,7 @@ function Footer() {
         <span className="text-xs font-black" style={{ color: FG }}>Stensor</span>
       </div>
       <div className="flex items-center gap-6">
-        {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
+        {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs'], ['Blog', '/blog'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
           <a key={l} href={h} className="text-[11px] text-gray-300 hover:text-black transition-colors">{l}</a>
         ))}
       </div>

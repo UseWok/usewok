@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, X, Cpu } from 'lucide-react';
+import { Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, ChevronRight, X, Cpu, BookOpen } from 'lucide-react';
 
 import { base44 } from '@/api/base44Client';
 import ProfilePopover from './sidebar/ProfilePopover';
@@ -114,7 +114,10 @@ export default function Sidebar({ expanded, setExpanded, onNavClick, isMobileDra
     { icon: Home, labelKey: 'home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'All Conversations', path: '/discussions', active: location.pathname === '/discussions' },
     { icon: Cpu, label: 'ADN Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
-    ...(isAdmin ? [{ icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') }] : []),
+    ...(isAdmin ? [
+      { icon: ShoppingBag, labelKey: 'administration', path: '/admin/products', active: location.pathname.startsWith('/admin') && !location.pathname.includes('blog') },
+      { icon: BookOpen, label: 'Blog', path: '/admin/blog', active: location.pathname === '/admin/blog' },
+    ] : []),
   ];
 
   return (

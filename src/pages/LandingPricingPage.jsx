@@ -46,7 +46,8 @@ function Navbar({ scrolled, onCta }) {
           <div className="hidden md:flex items-center gap-8">
             <a href="/fonctionnalites" className="text-xs text-gray-400 hover:text-black transition-colors">Features</a>
             <span className="text-xs font-black text-black border-b border-black pb-0.5">Pricing</span>
-            <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs text-gray-400 hover:text-black transition-colors">Sign in</button>
+            <a href="/blog" className="text-xs text-gray-400 hover:text-black transition-colors">Blog</a>
+            <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-4 py-2 rounded-lg border-2 border-black hover:bg-black hover:text-white transition-all">Sign in</button>
           </div>
           <motion.button onClick={onCta} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
             className="text-xs font-black px-5 py-2.5" style={{ background: FG, color: 'white', borderRadius: '6px' }}>
@@ -61,7 +62,8 @@ function Navbar({ scrolled, onCta }) {
         style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
         <a href="/fonctionnalites" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Features</a>
         <span className="text-xs font-black text-white border-b border-white pb-0.5">Pricing</span>
-        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Sign in</button>
+        <a href="/blog" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>Blog</a>
+        <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-3 py-1.5 rounded-full border border-white/50" style={{ color: 'white' }}>Sign in</button>
         <button onClick={onCta} className="text-xs font-black px-4 py-2 rounded-full" style={{ background: YELLOW, color: FG }}>Start →</button>
       </motion.div>
     </>
@@ -321,7 +323,7 @@ export default function LandingPricingPage() {
           <span className="text-xs font-black" style={{ color: FG }}>Stensor</span>
         </button>
         <div className="flex items-center gap-6">
-          {[['Features', '/fonctionnalites'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
+          {[['Features', '/fonctionnalites'], ['Blog', '/blog'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
             <a key={l} href={h} className="text-[11px] text-gray-300 hover:text-black transition-colors">{l}</a>
           ))}
         </div>
