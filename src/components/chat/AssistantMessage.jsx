@@ -51,11 +51,12 @@ export default function AssistantMessage({ content, agent, meta, onClick, discus
       <div className="w-full break-words rounded-lg cursor-pointer transition-colors hover:bg-black/[0.025]"
         style={{ padding: '8px 10px', margin: '-8px -10px' }}
         onClick={() => { setShowCopy(true); setTimeout(() => setShowCopy(false), 5000); if (onClick) onClick(); }}>
+        {/* In discuss mode: full readable text, no preview panel trigger, no truncation */}
         <div style={{ maxHeight: discussMode ? 'none' : '160px', overflow: discussMode ? 'visible' : 'hidden', position: 'relative' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: '1.75', fontSize: '13px', color: '#333', fontWeight: 300 }}>{children}</p>,
+              p: ({ children }) => <p style={{ margin: '0 0 12px 0', lineHeight: discussMode ? '1.9' : '1.75', fontSize: discussMode ? '14px' : '13px', color: '#222', fontWeight: 300 }}>{children}</p>,
               h1: ({ children }) => <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '20px 0 8px', color: '#0A0A0A' }}>{children}</h1>,
               h2: ({ children }) => <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '18px 0 6px', color: '#0A0A0A' }}>{children}</h2>,
               h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '16px 0 6px', color: '#0A0A0A' }}>{children}</h3>,

@@ -187,26 +187,52 @@ export default function AdminBlog() {
             <Plus className="w-4 h-4" style={{ color: FG }} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto p-3">
+          {/* New article card */}
           <button onClick={newPost}
-            className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-black/4 transition-colors ${!selectedId ? 'bg-yuzu/30' : ''}`}>
-            <FileText className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" />
-            <span className="text-xs font-semibold text-gray-400">+ New article</span>
+            className={`w-full flex items-center justify-center gap-2 mb-3 py-3 rounded-xl border-2 border-dashed transition-all hover:border-black/20 hover:bg-black/3 ${!selectedId ? 'border-black/20 bg-black/3' : 'border-black/8'}`}>
+            <Plus className="w-4 h-4 text-gray-400" />
+            <span className="text-xs font-bold text-gray-400">New article</span>
           </button>
-          {posts.map(post => (
-            <button key={post.id} onClick={() => selectPost(post)}
-              className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-black/4 transition-colors ${selectedId === post.id ? 'bg-black/5' : ''}`}>
-              <div className="flex-shrink-0 mt-0.5">
-                {post.published
-                  ? <Eye className="w-3.5 h-3.5" style={{ color: '#16a34a' }} />
-                  : <EyeOff className="w-3.5 h-3.5 text-gray-300" />}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-black truncate" style={{ color: FG }}>{post.title || 'Untitled'}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">/{post.slug}</p>
-              </div>
-            </button>
-          ))}
+
+          {/* Post grid — 2 columns of cards */}
+          <div className="grid grid-cols-1 gap-2">
+            {posts.map(post => (
+              <button key={post.id} onClick={() => selectPost(post)}
+                className={`w-full text-left rounded-xl border overflow-hidden transition-all hover:shadow-md ${
+                  selectedId === post.id
+                    ? 'border-black/20 shadow-md ring-2 ring-black/10'
+                    : 'border-black/8 hover:border-black/15'
+                }`}
+                style={{ background: selectedId === post.id ? '#fafaf9' : 'white' }}>
+                {/* Cover thumbnail */}
+                {post.cover_image ? (
+                  <div className="w-full overflow-hidden" style={{ height: 80 }}>
+                    <img src={post.cover_image} alt={post.title}
+                      className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-full flex items-center justify-center" style={{ height: 60, background: 'rgba(0,0,0,0.03)' }}>
+                    <FileText className="w-5 h-5 text-gray-200" />
+                  </div>
+                )}
+                <div className="px-3 py-2.5">
+                  <p className="text-xs font-black truncate leading-tight mb-1" style={{ color: FG }}>
+                    {post.title || <span className="text-gray-300">Untitled</span>}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    {post.published
+                      ? <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.12)', color: '#16a34a' }}><Eye className="w-2.5 h-2.5" /> Live</span>
+                      : <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.05)', color: '#aaa' }}><EyeOff className="w-2.5 h-2.5" /> Draft</span>
+                    }
+                    {post.category && (
+                      <span className="text-[9px] text-gray-400 truncate">· {post.category}</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

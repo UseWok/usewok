@@ -113,6 +113,8 @@ export default function ChatPage() {
   const isMountedRef = useRef(true);
 
   const synthPendingRef = useRef(null);
+  // Abort flag — set to true by handleStop; checked after every async LLM call
+  const abortedRef = useRef(false);
 
   // Autosave draft
   useEffect(() => {
@@ -229,6 +231,18 @@ export default function ChatPage() {
     clearInterval(loadingTimerRef.current);
     setLoadingProgress(0);
   };
+
+  // ── Stop generation mid-flight ─────────────────────────────────────────────
+  const handleStop = useCallback(() => {
+    abortedRef.current = true;
+    stopProgress();
+    setIsLoading(false);
+    setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: 'Generation interrupted by user.' },
+    ]);
+  }, []);
 
   // ── Build title ────────────────────────────────────────────────────────────
   const buildTitle = async (text, newMessages) => {
@@ -494,6 +508,7 @@ Input: ${text.slice(0, 400)}`;
     }
 
     // ── Route 1: fast direct response ───────────────────────────────────────
+    abortedRef.current = false;
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({
@@ -509,11 +524,14 @@ Input: ${text.slice(0, 400)}`;
       setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
       return;
     }
+    // If user hit Stop while we were awaiting, the handler already cleaned up.
+    if (abortedRef.current) return;
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     let baseCost = mode.credit_cost;
     if (isFirstMessage) baseCost = 1;
-    const costPerMsg = baseCost + (useInternet ? 1 : 0);
+    // Discuss mode costs 1 credit; Flash/Task mode costs 2 (mode.credit_cost).
+    const costPerMsg = discussMode ? 1 : baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
@@ -532,10 +550,13 @@ Input: ${text.slice(0, 400)}`;
     setConvTitleDisplay(convTitle);
     stopProgress();
     setIsLoading(false);
-    setFicheContent(content);
+    // In Discuss mode, the response lives entirely in the chat — no right-panel preview.
+    if (!discussMode) {
+      setFicheContent(content);
+      setFicheMsgIdx(newMessages.length);
+    }
     const msgIdx = newMessages.length;
-    setFicheMsgIdx(msgIdx);
-    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: discussMode ? undefined : msgIdx, meta: msgMeta }];
     setMessages(finalMsgs);
     saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
@@ -724,7 +745,7 @@ Input: ${text.slice(0, 400)}`;
           </div>
 
           <ChatInputBar
-            input={input} setInput={setInput} onSend={sendMessage}
+            input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
             isLoading={isLoading} blocked={blocked}
             mode={mode} setMode={setMode}
             currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}

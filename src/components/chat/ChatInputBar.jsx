@@ -23,7 +23,7 @@ const popUp = {
 };
 
 export default function ChatInputBar({
-  input, setInput, onSend, isLoading, blocked,
+  input, setInput, onSend, onStop, isLoading, blocked,
   mode, setMode, currentAgent, setCurrentAgent,
   userPlan, canUploadFiles, canUploadExtended, hasInternet,
   useWebSearch, setUseWebSearch,
@@ -312,16 +312,26 @@ export default function ChatInputBar({
               )}
             </button>
 
-            <button
-              onClick={() => onSend(input)}
-              disabled={!input.trim() || isLoading || blocked}
-              className="w-8 h-8 flex items-center justify-center rounded-sm transition-all"
-              style={{
-                background: input.trim() && !isLoading && !blocked ? FG : 'rgba(0,0,0,0.05)',
-                cursor: !input.trim() || isLoading || blocked ? 'not-allowed' : 'pointer',
-              }}>
-              <Send className="w-3.5 h-3.5" style={{ color: input.trim() && !isLoading && !blocked ? 'white' : '#ccc' }} />
-            </button>
+            {isLoading ? (
+              <button
+                onClick={onStop}
+                className="w-8 h-8 flex items-center justify-center rounded-sm transition-all hover:opacity-80"
+                style={{ background: '#ef4444', cursor: 'pointer' }}
+                title="Stop generation">
+                <span className="w-3 h-3 rounded-sm bg-white" />
+              </button>
+            ) : (
+              <button
+                onClick={() => onSend(input)}
+                disabled={!input.trim() || blocked}
+                className="w-8 h-8 flex items-center justify-center rounded-sm transition-all"
+                style={{
+                  background: input.trim() && !blocked ? FG : 'rgba(0,0,0,0.05)',
+                  cursor: !input.trim() || blocked ? 'not-allowed' : 'pointer',
+                }}>
+                <Send className="w-3.5 h-3.5" style={{ color: input.trim() && !blocked ? 'white' : '#ccc' }} />
+              </button>
+            )}
           </div>
         </div>
       </div>
