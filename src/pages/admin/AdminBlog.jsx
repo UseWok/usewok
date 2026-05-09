@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; //
 import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Eye, EyeOff, Save, ArrowLeft, Image, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
