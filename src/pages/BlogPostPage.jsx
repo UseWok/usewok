@@ -150,22 +150,27 @@ export default function BlogPostPage() {
           <div className="w-12 h-1 mb-12 rounded-full" style={{ background: YELLOW }} />
 
           {/* Content */}
-          <div
-            className="ql-snow"
-            style={{ paddingBottom: '6rem' }}
-          >
+          <div style={{ paddingBottom: '6rem' }}>
             <div
-              className="ql-editor blog-content"
               dangerouslySetInnerHTML={{ __html: post.content || '' }}
-              style={{
-                padding: 0,
-                fontSize: '17px',
-                lineHeight: '1.85',
-                color: '#1a1a1a',
-                fontFamily: 'var(--font-open)',
-              }}
+              className="blog-render"
             />
           </div>
+          <style>{`
+            .blog-render { font-size: 17px; line-height: 1.85; color: #1a1a1a; font-family: var(--font-open); }
+            .blog-render p { margin: 0 0 1.2em; }
+            .blog-render strong, .blog-render b { font-weight: 700; color: #0A0A0A; }
+            .blog-render h1 { font-size: 1.9rem; font-weight: 800; margin: 1.5em 0 0.5em; color: #0A0A0A; }
+            .blog-render h2 { font-size: 1.4rem; font-weight: 700; margin: 1.4em 0 0.4em; color: #0A0A0A; }
+            .blog-render h3 { font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 0.3em; color: #0A0A0A; }
+            .blog-render ul { list-style: disc; padding-left: 1.4em; margin: 0.5em 0 1em; }
+            .blog-render ol { list-style: decimal; padding-left: 1.4em; margin: 0.5em 0 1em; }
+            .blog-render li { margin: 0.3em 0; }
+            .blog-render blockquote { border-left: 3px solid #DDFF00; padding-left: 1em; margin: 1em 0; color: #555; font-style: italic; }
+            .blog-render img { max-width: 100%; border-radius: 12px; margin: 1em 0; }
+            .blog-render a { color: #2563eb; text-decoration: underline; }
+            .blog-render br { display: block; content: ''; margin: 0.5em 0; }
+          `}</style>
         </motion.div>
       </div>
 

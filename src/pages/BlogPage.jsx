@@ -92,7 +92,8 @@ function PostCard({ post, index }) {
           {post.title}
         </h2>
         {post.summary && (
-          <p className="text-sm leading-relaxed text-gray-500 flex-1 mb-5" style={{ fontFamily: 'var(--font-open)' }}>
+          <p className="text-sm leading-relaxed text-gray-500 mb-5"
+            style={{ fontFamily: 'var(--font-open)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {post.summary}
           </p>
         )}
@@ -165,7 +166,7 @@ export default function BlogPage() {
             <p className="text-sm text-gray-400">Check back soon — great content is coming.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {posts.map((post, i) => (
               <PostCard key={post.id} post={post} index={i} />
             ))}

@@ -315,10 +315,11 @@ export default function ChatInputBar({
             {isLoading ? (
               <button
                 onClick={onStop}
-                className="w-8 h-8 flex items-center justify-center rounded-sm transition-all hover:opacity-80"
-                style={{ background: '#ef4444', cursor: 'pointer' }}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-sm font-black text-xs transition-all hover:opacity-85 animate-pulse"
+                style={{ background: '#ef4444', color: 'white', cursor: 'pointer' }}
                 title="Stop generation">
-                <span className="w-3 h-3 rounded-sm bg-white" />
+                <span className="w-2.5 h-2.5 rounded-sm bg-white flex-shrink-0" />
+                Stop
               </button>
             ) : (
               <button
