@@ -197,13 +197,15 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
 
       {/* Right: Upgrade + Publish */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        {/* BOUTON UPGRADE ALIGNÉ (px-4 py-2, gap-2, icône 3.5) */}
         <button onClick={onUpgrade}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg transition-all hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
           style={{ background: '#DDFF00', color: '#0A0A0A' }}>
-          <Zap className="w-3 h-3" />
+          <Zap className="w-3.5 h-3.5" />
           Upgrade
         </button>
 
+        {/* BOUTON PUBLISH INCHANGÉ */}
         <div ref={publishRef} className="relative flex-shrink-0">
           <button onClick={() => setShowPublish((s) => !s)}
             className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
