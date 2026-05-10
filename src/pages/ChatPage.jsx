@@ -512,7 +512,7 @@ Input: ${text.slice(0, 400)}`;
     } catch (err) {
       stopProgress();
       setIsLoading(false);
-      const errorMsg = "Je n'ai pas pu traiter ta demande pour le moment. Essaie de nouveau dans quelques secondes.";
+      const errorMsg = "I haven't been able to process your request yet. Please try again in a few seconds.";
       setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
       return;
     }
