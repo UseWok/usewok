@@ -1,0 +1,9 @@
+{
+  "name": "AI-powered personal finance & goal coach.",
+  "site": {
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "serveCommand": "npm run dev",
+    "outputDirectory": "./dist"
+  }
+}
