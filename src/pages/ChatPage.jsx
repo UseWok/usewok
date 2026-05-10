@@ -447,7 +447,7 @@ export default function ChatPage() {
     // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
     const recentMsgs = messages.slice(-2);
     const historyContext = recentMsgs.length > 0
-      ? '\n\n--- Recent conversation ---\n' + recentMsgs.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 500)}`).join('\n\n') + '\n---\n\n'
+      ? '\n\n--- Recent conversation ---\n' + recentMsgs.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n'
       : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
