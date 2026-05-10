@@ -176,7 +176,7 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
   return (
     <header
       className="flex items-center justify-between px-4 h-12 flex-shrink-0"
-      style={{ background: '#F2F4FB', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+      style={{ background: '#F8F9FA', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
 
       {/* Left: Logo + Title */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
