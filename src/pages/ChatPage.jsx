@@ -669,8 +669,8 @@ Input: ${text.slice(0, 400)}`;
   }, [discussMode]);
 
   return (
-    /* FOND GLOBAL UNIQUE : Bleu très léger (#F2F4FB) */
-    <div className="flex flex-col font-open h-screen w-full bg-[#F2F4FB] overflow-hidden">
+    /* FOND GLOBAL UNIQUE : Bleu très léger (#F8F9FA) */
+    <div className="flex flex-col font-open h-screen w-full bg-[#F8F9FA] overflow-hidden">
       
       {/* 1. TON HEADER */}
       <WorkspaceHeader
