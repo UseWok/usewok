@@ -343,7 +343,7 @@ export default function ChatInputBar({
         onRemove={(idx) => setFiles((p) => p.filter((_, i) => i !== idx))} />
       
 
-      <p className="text-center mt-1 text-[9px] text-muted-foreground hidden">{t('ai_disclaimer')}</p>
+      
       <AISettingsModal open={showDNA} onClose={() => setShowDNA(false)} />
     </div>);
 
