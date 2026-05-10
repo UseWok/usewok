@@ -412,8 +412,8 @@ export default function ChatPage() {
     // Agent + system context
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
-    const fileInstruction = file_urls.length > 0 ? '\n\nFiles attached — use them as context but do not describe their content. Answer directly.' : '';
-
+    const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
+    
     const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
     const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
     const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
