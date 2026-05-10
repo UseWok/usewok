@@ -669,8 +669,8 @@ Input: ${text.slice(0, 400)}`;
   }, [discussMode]);
 
   return (
-    // FOND GLOBAL GRIS CLAIR
-    <div className="flex flex-col font-open h-screen w-full bg-slate-50 overflow-hidden">
+    /* FOND GLOBAL : background blanc pur, p-1 pour coller aux bords, gap-2 entre panneaux */
+    <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden p-1 gap-2 relative">
       
       {/* 1. TON HEADER (Inchangé) */}
       <WorkspaceHeader
@@ -692,23 +692,24 @@ Input: ${text.slice(0, 400)}`;
       )}
 
       {/* =========================================================
-          3. LA NOUVELLE ZONE FLOTTANTE (C'EST LÀ QUE LA MAGIE OPÈRE)
-          p-4 = espace avec les bords
-          gap-4 = espace entre les deux panneaux
+          3. ZONE VISUELLE PRINCIPALE (p-0 ici car parent a p-1)
           ========================================================= */}
-      <div className="flex flex-1 p-4 gap-4 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative">
 
-        {/* PANNEAU GAUCHE : LE CHAT 
-            w-[400px] + bg-white + rounded-2xl + shadow-sm = L'effet carte flottante */}
-        <div className="w-[400px] flex-shrink-0 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        {/* =========================================================
+            PANNEAU GAUCHE : LE CHAT DIRECT (Style image_1.png/image_7.png)
+            w-[420px] = largeur fixe
+            border-r = La ligne verticale fine qui sépare gauche/droite
+            Inclusion technique des composants dans le flux
+            ========================================================= */}
+        <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-gray-100 overflow-hidden relative">
           
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          {/* Zone de messages (scrollable, direct sur fond) */}
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             {isLoadingConversation && (
-              <div className="flex gap-2 justify-start">
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0 mt-1" />
-                <div className="bg-white border border-border rounded-sm shadow-sm">
-                  <ChatLoadingAnimation mode={mode.id} />
-                </div>
+              <div className="flex gap-2 justify-start items-center">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                <ChatLoadingAnimation mode={mode.id} />
               </div>
             )}
 
@@ -745,25 +746,36 @@ Input: ${text.slice(0, 400)}`;
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Bar incluse dans le panneau arrondi */}
-          <ChatInputBar
-            input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-            isLoading={isLoading} blocked={blocked}
-            mode={mode} setMode={setMode}
-            currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
-            userPlan={userPlan}
-            canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
-            hasInternet={hasInternet}
-            useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
-            files={files} setFiles={setFiles}
-            onUpgradeRequest={handleUpgradeRequest}
-            discussMode={discussMode} setDiscussMode={setDiscussMode}
-          />
+          {/* =========================================================
+              C'EST ICI : LA BARRE DE CHAT VISUELLE (Style image_7.png)
+              bg-white rounded-xl shadow-none = Le bloc flottant sans ombre
+              p-3 = espace interne
+              m-3 = LA CLÉ : crée l'espace autour pour que l'interface "colle sans toucher"
+              ========================================================= */}
+          <div className="p-3 bg-white border border-gray-200 rounded-xl shadow-none m-3 flex gap-1 items-center relative">
+            <ChatInputBar
+              input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+              isLoading={isLoading} blocked={blocked}
+              mode={mode} setMode={setMode}
+              currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
+              userPlan={userPlan}
+              canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
+              hasInternet={hasInternet}
+              useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
+              files={files} setFiles={setFiles}
+              onUpgradeRequest={handleUpgradeRequest}
+              discussMode={discussMode} setDiscussMode={setDiscussMode}
+            />
+          </div>
         </div>
 
-        {/* PANNEAU DROIT : LA FICHE / LE SIMULATEUR 
-            flex-1 + bg-white + rounded-2xl + shadow-sm */}
-        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        {/* =========================================================
+            PANNEAU DROIT : LA PREVIEW (Style image_0.png optimisé)
+            bg-white + border + rounded-2xl = L'effet carte flottante épurée
+            shadow-none = suppression de l'ombre
+            /app header div = SUPPRIMÉE ICI
+            ========================================================= */}
+        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-none overflow-hidden relative">
           <FichePanel 
             content={ficheContent} 
             loading={false}
