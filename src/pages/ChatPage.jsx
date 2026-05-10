@@ -669,10 +669,10 @@ Input: ${text.slice(0, 400)}`;
   }, [discussMode]);
 
   return (
-    /* FOND GLOBAL : background blanc pur, p-1 pour coller aux bords, gap-2 entre panneaux */
-    <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden p-1 gap-2 relative">
+    /* FOND GLOBAL UNIQUE : Bleu très léger (#F2F4FB) qui couvrira tout l'écran, sans ligne sous le header */
+    <div className="flex flex-col font-open h-screen w-full bg-[#F2F4FB] overflow-hidden">
       
-      {/* 1. TON HEADER (Inchangé) */}
+      {/* 1. TON HEADER */}
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
@@ -681,9 +681,9 @@ Input: ${text.slice(0, 400)}`;
         onUpgrade={() => setShowUpgradePlan(true)}
       />
 
-      {/* 2. TON AVERTISSEMENT PLAN GRATUIT (Inchangé) */}
+      {/* 2. TON AVERTISSEMENT PLAN GRATUIT */}
       {freeDaysLeft !== null && freeDaysLeft <= 7 && (
-        <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)' }}>
           <span style={{ color: freeDaysLeft <= 2 ? '#ef4444' : '#92400e' }}>
             ⏱ This conversation will be deleted in <strong>{freeDaysLeft} day{freeDaysLeft !== 1 ? 's' : ''}</strong> (free plan — 14 day limit)
           </span>
@@ -692,20 +692,20 @@ Input: ${text.slice(0, 400)}`;
       )}
 
       {/* =========================================================
-          3. ZONE VISUELLE PRINCIPALE (p-0 ici car parent a p-1)
+          3. ZONE DE TRAVAIL PRINCIPALE (L'ALIGNEMENT PARFAIT)
+          p-5 = Espace symétrique de 20px en bas, à gauche et à droite.
+          gap-5 = Espace parfait de 20px entre le chat et la preview.
           ========================================================= */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 p-5 gap-5 overflow-hidden relative">
 
         {/* =========================================================
-            PANNEAU GAUCHE : LE CHAT DIRECT (Style image_1.png/image_7.png)
-            w-[420px] = largeur fixe
-            border-r = La ligne verticale fine qui sépare gauche/droite
-            Inclusion technique des composants dans le flux
+            PANNEAU GAUCHE : LE CHAT 
+            Translucide (aucun bg-white), il se fond sur le fond bleu.
             ========================================================= */}
-        <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-gray-100 overflow-hidden relative">
+        <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative">
           
-          {/* Zone de messages (scrollable, direct sur fond) */}
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* Zone de messages (scrollable, direct sur le fond) */}
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
             {isLoadingConversation && (
               <div className="flex gap-2 justify-start items-center">
                 <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
@@ -747,12 +747,10 @@ Input: ${text.slice(0, 400)}`;
           </div>
 
           {/* =========================================================
-              C'EST ICI : LA BARRE DE CHAT VISUELLE (Style image_7.png)
-              bg-white rounded-xl shadow-none = Le bloc flottant sans ombre
-              p-3 = espace interne
-              m-3 = LA CLÉ : crée l'espace autour pour que l'interface "colle sans toucher"
+              BARRE DE TEXTE IA (L'INPUT BLANC FLOTTANT)
+              bg-white, bordure fine (border-gray-200), sans l'ancienne ligne du haut
               ========================================================= */}
-          <div className="p-3 bg-white border border-gray-200 rounded-xl shadow-none m-3 flex gap-1 items-center relative">
+          <div className="bg-white border border-gray-200 rounded-2xl p-2 flex-shrink-0 relative">
             <ChatInputBar
               input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
               isLoading={isLoading} blocked={blocked}
@@ -770,12 +768,10 @@ Input: ${text.slice(0, 400)}`;
         </div>
 
         {/* =========================================================
-            PANNEAU DROIT : LA PREVIEW (Style image_0.png optimisé)
-            bg-white + border + rounded-2xl = L'effet carte flottante épurée
-            shadow-none = suppression de l'ombre
-            /app header div = SUPPRIMÉE ICI
+            PANNEAU DROIT : LA PREVIEW
+            Même hauteur globale, fond blanc, bordure fine
             ========================================================= */}
-        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-none overflow-hidden relative">
+        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
           <FichePanel 
             content={ficheContent} 
             loading={false}
