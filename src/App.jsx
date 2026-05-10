@@ -17,7 +17,6 @@ import CheckoutPage from './pages/CheckoutPage';
 import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import ManagePlanPage from './pages/ManagePlanPage';
-import Community from './pages/Community';
 import LandingPage from './pages/LandingPage';
 import LandingPricingPage from './pages/LandingPricingPage';
 import LandingFeaturesPage from './pages/LandingFeaturesPage';
