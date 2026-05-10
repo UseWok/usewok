@@ -669,7 +669,7 @@ Input: ${text.slice(0, 400)}`;
   }, [discussMode]);
 
   return (
-    /* FOND GLOBAL UNIQUE : Bleu très léger (#F2F4FB) qui couvrira tout l'écran, sans ligne sous le header */
+    /* FOND GLOBAL UNIQUE : Bleu très léger (#F2F4FB) */
     <div className="flex flex-col font-open h-screen w-full bg-[#F2F4FB] overflow-hidden">
       
       {/* 1. TON HEADER */}
@@ -692,19 +692,14 @@ Input: ${text.slice(0, 400)}`;
       )}
 
       {/* =========================================================
-          3. ZONE DE TRAVAIL PRINCIPALE (L'ALIGNEMENT PARFAIT)
-          p-5 = Espace symétrique de 20px en bas, à gauche et à droite.
-          gap-5 = Espace parfait de 20px entre le chat et la preview.
+          3. ZONE DE TRAVAIL : PLUS SERRÉE AVEC LES BORDS (p-3 au lieu de p-5)
           ========================================================= */}
-      <div className="flex flex-1 p-5 gap-5 overflow-hidden relative">
+      <div className="flex flex-1 p-3 gap-3 overflow-hidden relative">
 
-        {/* =========================================================
-            PANNEAU GAUCHE : LE CHAT 
-            Translucide (aucun bg-white), il se fond sur le fond bleu.
-            ========================================================= */}
+        {/* PANNEAU GAUCHE : LE CHAT */}
         <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative">
           
-          {/* Zone de messages (scrollable, direct sur le fond) */}
+          {/* Zone de messages */}
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
             {isLoadingConversation && (
               <div className="flex gap-2 justify-start items-center">
@@ -747,10 +742,9 @@ Input: ${text.slice(0, 400)}`;
           </div>
 
           {/* =========================================================
-              BARRE DE TEXTE IA (L'INPUT BLANC FLOTTANT)
-              bg-white, bordure fine (border-gray-200), sans l'ancienne ligne du haut
+              BARRE DE TEXTE IA : BORDURE UN SOUPÇON PLUS FONCÉE (border-gray-300)
               ========================================================= */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-2 flex-shrink-0 relative">
+          <div className="bg-white border border-gray-300 rounded-2xl p-2 flex-shrink-0 relative">
             <ChatInputBar
               input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
               isLoading={isLoading} blocked={blocked}
@@ -765,11 +759,16 @@ Input: ${text.slice(0, 400)}`;
               discussMode={discussMode} setDiscussMode={setDiscussMode}
             />
           </div>
+
+          {/* TEXTE "STENSOR IS AN AI TOOL" PLACÉ DANS LE FOND BLEU */}
+          <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 flex-shrink-0">
+            Stensor is an AI tool · Responses may contain errors
+          </div>
+
         </div>
 
         {/* =========================================================
-            PANNEAU DROIT : LA PREVIEW
-            Même hauteur globale, fond blanc, bordure fine
+            PANNEAU DROIT : LA PREVIEW (BORDURE PLUS CLAIRE : border-gray-200)
             ========================================================= */}
         <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
           <FichePanel 
@@ -781,7 +780,7 @@ Input: ${text.slice(0, 400)}`;
 
       </div>
 
-      {/* 4. MODALES CACHÉES (Inchangées) */}
+      {/* 4. MODALES CACHÉES */}
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
