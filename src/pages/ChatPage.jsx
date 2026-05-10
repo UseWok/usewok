@@ -669,7 +669,10 @@ Input: ${text.slice(0, 400)}`;
   }, [discussMode]);
 
   return (
-    <div className="flex flex-col font-open" style={{ height: '100dvh', background: '#F2F4FB', overflow: 'hidden' }}>
+    // FOND GLOBAL GRIS CLAIR
+    <div className="flex flex-col font-open h-screen w-full bg-slate-50 overflow-hidden">
+      
+      {/* 1. TON HEADER (Inchangé) */}
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
@@ -678,7 +681,7 @@ Input: ${text.slice(0, 400)}`;
         onUpgrade={() => setShowUpgradePlan(true)}
       />
 
-      {/* Free plan 14-day warning */}
+      {/* 2. TON AVERTISSEMENT PLAN GRATUIT (Inchangé) */}
       {freeDaysLeft !== null && freeDaysLeft <= 7 && (
         <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
           <span style={{ color: freeDaysLeft <= 2 ? '#ef4444' : '#92400e' }}>
@@ -688,11 +691,17 @@ Input: ${text.slice(0, 400)}`;
         </div>
       )}
 
-      {/* Split-screen workspace */}
-      <div className="flex flex-1 overflow-hidden" style={{ gap: '1px', background: 'rgba(0,0,0,0.06)' }}>
+      {/* =========================================================
+          3. LA NOUVELLE ZONE FLOTTANTE (C'EST LÀ QUE LA MAGIE OPÈRE)
+          p-4 = espace avec les bords
+          gap-4 = espace entre les deux panneaux
+          ========================================================= */}
+      <div className="flex flex-1 p-4 gap-4 overflow-hidden relative">
 
-        {/* LEFT: Chat — 30% */}
-        <div className="flex flex-col" style={{ width: '30%', minWidth: '260px', overflow: 'hidden', background: '#F2F4FB' }}>
+        {/* PANNEAU GAUCHE : LE CHAT 
+            w-[400px] + bg-white + rounded-2xl + shadow-sm = L'effet carte flottante */}
+        <div className="w-[400px] flex-shrink-0 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {isLoadingConversation && (
               <div className="flex gap-2 justify-start">
@@ -736,6 +745,7 @@ Input: ${text.slice(0, 400)}`;
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Input Bar incluse dans le panneau arrondi */}
           <ChatInputBar
             input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
             isLoading={isLoading} blocked={blocked}
@@ -751,14 +761,19 @@ Input: ${text.slice(0, 400)}`;
           />
         </div>
 
-        {/* RIGHT: Fiche — 70% */}
-        <div className="flex-1 overflow-hidden" style={{ background: 'white' }}>
-          <FichePanel content={ficheContent} loading={false}
-          link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+        {/* PANNEAU DROIT : LA FICHE / LE SIMULATEUR 
+            flex-1 + bg-white + rounded-2xl + shadow-sm */}
+        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <FichePanel 
+            content={ficheContent} 
+            loading={false}
+            link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} 
+          />
         </div>
 
       </div>
 
+      {/* 4. MODALES CACHÉES (Inchangées) */}
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
