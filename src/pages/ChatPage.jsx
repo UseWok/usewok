@@ -246,19 +246,11 @@ export default function ChatPage() {
 
   // ── Build title ────────────────────────────────────────────────────────────
   const buildTitle = async (text, newMessages) => {
-    let convTitle = text.slice(0, 50);
     try {
       const cloudTitle = await loadConversationTitleFromCloud(convId);
-      if (cloudTitle) { convTitle = cloudTitle; }
-      else if (newMessages.length === 1) {
-        const titleResult = await base44.integrations.Core.InvokeLLM({
-          prompt: `Titre très court (3-5 mots) pour: "${text.slice(0, 150)}". Répondre UNIQUEMENT avec le titre.`,
-          model: 'gemini_3_flash',
-        });
-        if (typeof titleResult === 'string' && titleResult.trim()) convTitle = titleResult.trim().slice(0, 60);
-      }
+      if (cloudTitle) return cloudTitle;
     } catch {}
-    return convTitle;
+    return text.slice(0, 30);
   };
 
   // ── Save to discussions ────────────────────────────────────────────────────
