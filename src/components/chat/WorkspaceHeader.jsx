@@ -211,8 +211,8 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
 
       <div className="flex items-center gap-2 flex-shrink-0">
         <button onClick={onUpgrade}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
-          style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+          className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90 border"
+          style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)', borderColor: '#DDFF00', color: '#0A0A0A' }}>
           <span className="text-[14px] leading-none">♦</span>
           Upgrade
         </button>
