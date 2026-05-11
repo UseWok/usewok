@@ -18,9 +18,7 @@ export default function UpgradePlanModal({ open, url, onClose }) {
           <div className="w-full h-full relative bg-[#F9FAFB] overflow-hidden">
             <iframe 
               src={url} 
-              className="absolute top-0 h-full border-none"
-              // Le -260px cache la sidebar, le calc ajuste la largeur pour que le centre soit parfait
-              style={{ width: 'calc(100% + 260px)', left: '-260px' }} 
+              className="absolute inset-0 w-full h-full border-none"
             />
           </div>
         </motion.div>
