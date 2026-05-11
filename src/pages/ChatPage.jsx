@@ -719,7 +719,7 @@ Input: ${text.slice(0, 400)}`;
                       onClick={() => handleMessageClick(msg, idx)}
                       discussMode={discussMode}
                     />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
+:               <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
                 }
               </motion.div>
             ))}
