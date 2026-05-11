@@ -753,9 +753,9 @@ Input: ${text.slice(0, 400)}`;
               
             </div>
             {/* LE TEXTE DE PROTECTION QUI MANQUAIT */}
-            <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 hidden">
-              Stensor is an AI tool · Responses may contain errors
-            </div>
+            
+
+            
           </div>
         </div>
 
