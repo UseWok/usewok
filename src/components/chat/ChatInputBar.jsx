@@ -22,330 +22,62 @@ const popUp = {
   transition: { duration: 0.1 }
 };
 
-export default function ChatInputBar({
-  input, setInput, onSend, onStop, isLoading, blocked,
-  mode, setMode, currentAgent, setCurrentAgent,
-  userPlan, canUploadFiles, canUploadExtended, hasInternet,
-  useWebSearch, setUseWebSearch,
-  files, setFiles,
-  onUpgradeRequest,
-  discussMode, setDiscussMode
-}) {
-  const { t } = useLanguage();
-  const [showDNA, setShowDNA] = useState(false);
-  const [showFileMenu, setShowFileMenu] = useState(false);
-
-  const [showFilePanel, setShowFilePanel] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceLoading, setVoiceLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragCounterRef = useRef(0);
-
-  const fileInputRef = useRef(null);
-  const textareaRef = useRef(null);
-  const fileMenuRef = useRef(null);
-
-  const recognitionRef = useRef(null);
-  const finalTranscriptRef = useRef('');
-
-  // Close all menus when clicking outside
-  useEffect(() => {
-    const handler = (e) => {
-      const refs = [fileMenuRef];
-      if (!refs.some((r) => r.current?.contains(e.target))) {
-        setShowFileMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const closeAllMenus = () => {
-    setShowFileMenu(false);
-  };
-
-  const isFree = !userPlan || userPlan.price_monthly === 0;
-  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
-  const FREE_MOBILE_CHAR_LIMIT = 400;
-
-  // Auto-expand textarea up to 4 lines
-  useEffect(() => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.style.height = 'auto';
-    const lineH = 24;
-    const maxH = lineH * 4;
-    ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px';
-    ta.style.overflowY = ta.scrollHeight > maxH ? 'auto' : 'hidden';
-  }, [input]);
-
-  const handleInputChange = (e) => {
-    const val = e.target.value;
-    if (isFree && isMobileDevice && val.length > FREE_MOBILE_CHAR_LIMIT) return;
-    setInput(val);
-  };
-
-  // Exclude 'thinking' (Standard) mode from selector
-  const allowedModes = userPlan ?
-  ALL_MODES.filter((m) => m.id !== 'thinking' && (userPlan.allowed_modes?.includes(m.id) || userPlan.allowed_modes?.includes('fast'))) :
-  [ALL_MODES[ALL_MODES.length - 1]];
-
-  const ModeIcon = mode.icon;
-  const visibleFiles = files.slice(0, MAX_VISIBLE_FILES);
-  const extraFiles = files.length > MAX_VISIBLE_FILES ? files.length - MAX_VISIBLE_FILES : 0;
-  const acceptedFileTypes = canUploadExtended ?
-  '.jpg,.jpeg,.png,.gif,.pdf,.txt,.csv,.xlsx,.docx' :
-  '.jpg,.jpeg,.png,.gif,.txt,.csv';
-
-
-
-  const handleFileAttach = () => {
-    if (!canUploadFiles) {onUpgradeRequest(t('attach_file'));setShowFileMenu(false);return;}
-    fileInputRef.current?.click();
-    setShowFileMenu(false);
-  };
-
-  const toggleRecording = async () => {
-    if (isRecording) {recognitionRef.current?.stop();setIsRecording(false);setVoiceLoading(false);return;}
-
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      toast.error('Voice input not supported on this browser. Try Chrome or Safari.');
-      return;
-    }
-
-    if (navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((t) => t.stop());
-      } catch {
-        toast.error('Microphone access denied. Please allow it in your browser settings.');
-        return;
-      }
-    }
-
-    finalTranscriptRef.current = '';
-    const rec = new SR();
-    rec.lang = navigator.language || 'fr-FR';
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.onresult = (e) => {
-      const finals = Array.from(e.results).filter((r) => r.isFinal).map((r) => r[0].transcript.trim()).join(' ');
-      if (finals) finalTranscriptRef.current = finals;
-    };
-    rec.onerror = (e) => {
-      if (e.error !== 'aborted') toast.error('Voice error: ' + e.error);
-      setIsRecording(false);setVoiceLoading(false);
-    };
-    rec.onend = () => {
-      setIsRecording(false);setVoiceLoading(false);
-      const raw = finalTranscriptRef.current.trim();
-      if (raw) {
-        const isQ = /^(est-ce|qu'est|pourquoi|comment|quand|où|quel|quelle|combien|qui|que )/i.test(raw);
-        let text = raw.charAt(0).toUpperCase() + raw.slice(1);
-        if (!'.!?'.includes(text[text.length - 1])) text += isQ ? ' ?' : '.';
-        setInput(text);
-      }
-      finalTranscriptRef.current = '';
-    };
-    try {
-      setIsRecording(true);
-      rec.start();
-      recognitionRef.current = rec;
-    } catch (err) {
-      toast.error('Could not start microphone. Try again.');
-      setIsRecording(false);
-    }
+export default function ChatInputBar({ input, setInput, onSend, isLoading, blocked, mode, setMode, currentAgent, setCurrentAgent, userPlan, useWebSearch, setUseWebSearch, files, setFiles, onUpgradeRequest, discussMode, setDiscussMode }) {
+  
+  const handleSendMessage = () => {
+    if (!input.trim() || isLoading || blocked) return;
+    onSend(input);
   };
 
   return (
-    <div
-      // Ajout de rounded-[24px], bg-white, et de la bordure claire
-      className="px-3 sm:px-10 pb-2 pt-0 flex-shrink-0 relative w-full bg-white border border-[#DCE4EC] rounded-[24px]"
-      onDragEnter={(e) => {e.preventDefault();dragCounterRef.current++;setIsDragging(true);}}
-      onDragLeave={(e) => {e.preventDefault();dragCounterRef.current--;if (dragCounterRef.current <= 0) {dragCounterRef.current = 0;setIsDragging(false);}}}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => {
-        e.preventDefault();dragCounterRef.current = 0;setIsDragging(false);
-        const dropped = Array.from(e.dataTransfer.files || []);
-        if (dropped.length === 0) return;
-        if (!canUploadFiles) {onUpgradeRequest('Joindre un fichier');return;}
-        setFiles((p) => [...p, ...dropped]);
-      }}>
+    <div className="flex flex-col w-full bg-white rounded-[24px]">
       
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef} type="file" multiple className="hidden"
-        accept={acceptedFileTypes}
-        onChange={(e) => {
-          const newFiles = Array.from(e.target.files || []);
-          const currentSize = files.reduce((acc, f) => acc + f.size, 0);
-          const newSize = newFiles.reduce((acc, f) => acc + f.size, 0);
-          if (currentSize + newSize > MAX_TOTAL_FILE_SIZE) {
-            toast.error('Total size exceeded (max 5 Mo)');
-            return;
-          }
-          setFiles((p) => [...p, ...newFiles]);
-        }} />
-      
-
-      <DragDropOverlay visible={isDragging} canUpload={canUploadFiles} />
-
-      <div className="bg-white overflow-visible" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-        {/* Attached files */}
-        {files.length > 0 &&
-        <div className="flex items-center gap-2 flex-wrap px-3 pt-3">
-            {visibleFiles.map((file, idx) =>
-          <div key={idx} className="relative flex items-center gap-2 px-2.5 py-1.5 group rounded-sm border border-border bg-muted/50" style={{ maxWidth: '120px' }}>
-                <FileText className="w-3 h-3 flex-shrink-0" style={{ color: FG }} />
-                <span className="text-[10px] font-medium truncate" style={{ color: FG }}>{file.name}</span>
-                <button onClick={() => setFiles((p) => p.filter((_, i) => i !== idx))}
-            className="w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-sm">
-                  <X className="w-2 h-2 text-muted-foreground" />
-                </button>
-              </div>
-          )}
-            {extraFiles > 0 &&
-          <button onClick={() => setShowFilePanel(true)}
-          className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black rounded-sm"
-          style={{ background: FG, color: YUZU }}>
-                ··· +{extraFiles}
-              </button>
-          }
-          </div>
-        }
-
-        {/* Textarea */}
-        <div className="px-4 pt-2 pb-1">
-          <textarea
-            ref={textareaRef} value={input} onChange={handleInputChange}
-            onKeyDown={(e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();onSend(input);}}}
-            placeholder={blocked ? t('blocked_placeholder') : t('send_message')}
-            disabled={blocked} rows={1}
-            style={{ minHeight: '24px', maxHeight: '96px', resize: 'none', overflowY: 'hidden' }}
-            className="w-full bg-transparent text-sm focus:outline-none leading-relaxed break-words text-foreground transition-all" />
-          
-          {isFree && isMobileDevice && input.length > 350 &&
-          <p className="text-[10px] text-right mt-0.5 px-1" style={{ color: input.length >= FREE_MOBILE_CHAR_LIMIT ? '#ef4444' : '#aaa' }}>
-              {input.length}/{FREE_MOBILE_CHAR_LIMIT}
-            </p>
-          }
-        </div>
-
-        {/* Bottom toolbar */}
-        <div className="flex items-center justify-between px-3 pb-3 gap-2">
-          <div className="flex items-center gap-1">
-            {/* AI DNA Settings */}
-            <button onClick={() => setShowDNA(true)}
-            className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-muted"
-            title="AI Settings (DNA)">
-              <Brain className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-
-            {/* + File / Internet menu */}
-            <div className="relative flex-shrink-0" ref={fileMenuRef}>
-              <button onClick={() => {closeAllMenus();setShowFileMenu((s) => !s);}}
-              className="w-7 h-7 rounded-sm flex items-center justify-center transition-colors hover:bg-muted">
-                <Plus className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-              <AnimatePresence>
-                {showFileMenu &&
-                <motion.div {...popUp} className="absolute bottom-full mb-2 left-0 shadow-xl p-1.5 min-w-[190px] z-[300] bg-white rounded-sm border border-border">
-                    {/* Attach file */}
-                    <button onClick={handleFileAttach}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm hover:bg-muted"
-                  style={{ color: canUploadFiles ? '#444' : '#bbb' }}>
-                      <FileText className="w-3.5 h-3.5" style={{ color: canUploadFiles ? FG : '#ddd' }} />
-                      <span>Attach file</span>
-                      {!canUploadFiles &&
-                    <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(58,0,136,0.1)', color: '#3A0088' }}>Essential+</span>
-                    }
-                    </button>
-                    {/* Web search toggle */}
-                    <button onClick={() => {
-                    if (!hasInternet) {onUpgradeRequest('Internet Search');setShowFileMenu(false);return;}
-                    setUseWebSearch((w) => !w);setShowFileMenu(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs transition-colors text-left rounded-sm hover:bg-muted"
-                  style={{ color: hasInternet ? useWebSearch ? '#16a34a' : '#444' : '#bbb' }}>
-                      {useWebSearch && hasInternet ?
-                    <Wifi className="w-3.5 h-3.5" style={{ color: '#16a34a' }} /> :
-                    <WifiOff className="w-3.5 h-3.5" style={{ color: hasInternet ? '#888' : '#ddd' }} />}
-                      <span>Web Search</span>
-                      {!hasInternet && <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">Advanced+</span>}
-                      {hasInternet &&
-                    <span className="ml-auto w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0"
-                    style={{ borderColor: useWebSearch ? '#16a34a' : '#ddd', background: useWebSearch ? '#16a34a' : 'transparent' }}>
-                          {useWebSearch && <span className="text-white text-[8px]">✓</span>}
-                        </span>
-                    }
-                    </button>
-                  </motion.div>
-                }
-              </AnimatePresence>
-            </div>
-
-            {/* Discuss toggle */}
-            <button
-              onClick={() => setDiscussMode && setDiscussMode((d) => !d)}
-              className="h-7 px-2.5 rounded-md flex items-center gap-1.5 text-[11px] font-semibold transition-all"
-              style={{ background: discussMode ? FG : 'transparent', color: discussMode ? YUZU : '#555' }}>
-              <MessageCircle className="w-3 h-3" />
-              <span className="hidden sm:inline">Discuss</span>
-            </button>
-
-          </div>
-
-          {/* Right: mic + send */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={toggleRecording}
-            className="relative w-8 h-8 rounded-sm flex items-center justify-center transition-all"
-            style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)' }}>
-              {voiceLoading ?
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
-              className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: YUZU }} /> :
-              isRecording ?
-              <motion.div animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-              transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
-              className="w-2.5 h-2.5 rounded-full" style={{ background: YUZU }} /> :
-
-              <Mic className="w-3.5 h-3.5 text-muted-foreground" />
-              }
-            </button>
-
-            {isLoading ?
-            <button
-              onClick={onStop}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-sm font-black text-xs transition-all hover:opacity-85 animate-pulse"
-              style={{ background: '#ef4444', color: 'white', cursor: 'pointer' }}
-              title="Stop generation">
-                <span className="w-2.5 h-2.5 rounded-sm bg-white flex-shrink-0" />
-                Stop
-              </button> :
-
-            <button
-              onClick={() => onSend(input)}
-              disabled={!input.trim() || blocked}
-              className="w-8 h-8 flex items-center justify-center rounded-sm transition-all"
-              style={{
-                background: input.trim() && !blocked ? FG : 'rgba(0,0,0,0.05)',
-                cursor: !input.trim() || blocked ? 'not-allowed' : 'pointer'
-              }}>
-                <Send className="w-3.5 h-3.5" style={{ color: input.trim() && !blocked ? 'white' : '#ccc' }} />
-              </button>
-            }
-          </div>
-        </div>
+      {/* TEXTAREA ZONE */}
+      <div className="px-4 pt-3 pb-2 border-b border-gray-50">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+          placeholder="Message..."
+          className="w-full bg-transparent text-sm text-gray-700 focus:outline-none resize-none leading-relaxed"
+          rows={2}
+          style={{ minHeight: '38px', maxHeight: '120px' }}
+        />
       </div>
 
-      <FilePreviewPanel
-        files={files} open={showFilePanel}
-        onClose={() => setShowFilePanel(false)}
-        onRemove={(idx) => setFiles((p) => p.filter((_, i) => i !== idx))} />
-      
+      {/* BUTTONS ZONE */}
+      <div className="flex items-center justify-between px-3 pb-3 pt-1.5 relative">
+        
+        {/* LEFT GROUP */}
+        <div className="flex items-center gap-1.5">
+          <button className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+          <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
+          <button className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-slate-100 text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
+            Edit
+          </button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-gray-500 hover:bg-gray-50 border border-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Discuss
+          </button>
+        </div>
 
-      
-      <AISettingsModal open={showDNA} onClose={() => setShowDNA(false)} />
-    </div>);
-
+        {/* RIGHT GROUP */}
+        <div className="flex items-center gap-2">
+          <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+          </button>
+          <button onClick={handleSendMessage} disabled={!input.trim()} className="flex items-center justify-center w-8 h-8 bg-[#8C98A4] hover:bg-[#7A8590] disabled:opacity-50 text-white rounded-xl transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
