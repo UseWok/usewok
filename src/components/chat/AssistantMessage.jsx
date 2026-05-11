@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ExternalLink, Copy, Check, Cpu } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AGENTS } from '@/components/Sidebar';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
@@ -24,7 +24,6 @@ function stripSourceUrls(content) {
     .replace(/(?<!\()(https?:\/\/[^\s\)\]"'>,]+)/g, '');
 }
 
-import { useState, useEffect } from 'react';
 const CHAR_SPEED = 20;
 export default function AssistantMessage({ content, agent, meta, onClick, discussMode }) {
   const [typedContent, setTypedContent] = useState('');

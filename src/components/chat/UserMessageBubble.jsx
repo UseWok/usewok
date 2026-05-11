@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Image, FileCode, Copy, Pencil, X } from 'lucide-react';
+import { FileText, Image, FileCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getUserColor } from '@/lib/user-color';
 
@@ -13,7 +13,6 @@ function getFileIcon(name = '') {
   return FileText;
 }
 
-import { useState } from 'react';
 export default function UserMessageBubble({ msg, userName, user }) {
   const [copied, setCopied] = useState(false);
   const handleCopyClick = () => {
