@@ -30,7 +30,6 @@ const AGENTS = [
 { id: 'emotions-depenses', label: 'Spend without guilt' },
 { id: 'wealth-strategy', label: 'Becoming financially free' }];
 
-
 const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
 
 LANGUAGE: ALWAYS respond in the same language as the user.
@@ -53,7 +52,6 @@ RULES:
 - If user shares a document: say you ran 578 simulations, give best scenario with 85% probability.
 - Never promote any product or service.`;
 
-// Pre-filter local — évite ~95% des appels API routeur sans impact qualité
 function quickRouteLocal(text) {
   const t = text.trim();
   if (t.length < 60) return '1';
@@ -107,7 +105,6 @@ export default function ChatPage() {
   const [showUpgradePlan, setShowUpgradePlan] = useState(false);
   const [showDNA, setShowDNA] = useState(false);
 
-  // Auto-redirect to home if a specific conversation is empty
   useEffect(() => {
     if (!isLoadingConversation && messages.length === 0 && conversationId) {
       navigate('/');
@@ -121,13 +118,11 @@ export default function ChatPage() {
   const isMountedRef = useRef(true);
 
   const synthPendingRef = useRef(null);
-  // Abort flag — set to true by handleStop; checked after every async LLM call
   const abortedRef = useRef(false);
 
-  // Autosave draft
   useEffect(() => {
-    if (input) localStorage.setItem('stensor_chat_draft', input);else
-    localStorage.removeItem('stensor_chat_draft');
+    if (input) localStorage.setItem('stensor_chat_draft', input);
+    else localStorage.removeItem('stensor_chat_draft');
   }, [input]);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
@@ -146,15 +141,12 @@ export default function ChatPage() {
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
-    // Check free plan discussion expiry
     if (conversationId) {
       try {
         const discs = getDiscussions();
         const disc = discs.find((d) => d.id === conversationId);
         if (disc) {
-          const plan = getUserPlan(null); // will be updated below
-          const d = getDiscussionDaysLeft(disc);
-          setFreeDaysLeft(d);
+          setFreeDaysLeft(getDiscussionDaysLeft(disc));
         }
       } catch {}
     }
@@ -179,15 +171,13 @@ export default function ChatPage() {
         if (urlMode) setMode(urlMode);
       } else {
         const savedDefault = localStorage.getItem('stensor_default_mode');
-        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ?
-        ALL_MODES.find((m) => m.id === savedDefault) :
-        ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
+        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ? ALL_MODES.find((m) => m.id === savedDefault) : ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
         if (preferred) setMode(preferred);
       }
       const urlWeb = urlParams.get('webSearch');
-      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);else
-      if (urlWeb === '0') setUseWebSearch(false);else
-      setUseWebSearch(false);
+      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);
+      else if (urlWeb === '0') setUseWebSearch(false);
+      else setUseWebSearch(false);
     }).catch(() => {});
   }, []);
 
@@ -223,9 +213,6 @@ export default function ChatPage() {
     if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-
-
-  // ── Start fake progress bar ────────────────────────────────────────────────
   const startProgress = () => {
     let prog = 0;
     loadingTimerRef.current = setInterval(() => {
@@ -240,19 +227,13 @@ export default function ChatPage() {
     setLoadingProgress(0);
   };
 
-  // ── Stop generation mid-flight ─────────────────────────────────────────────
   const handleStop = useCallback(() => {
     abortedRef.current = true;
     stopProgress();
     setIsLoading(false);
     setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
-    setMessages((prev) => [
-    ...prev,
-    { role: 'assistant', content: 'Generation interrupted by user.' }]
-    );
   }, []);
 
-  // ── Build title ────────────────────────────────────────────────────────────
   const buildTitle = async (text, newMessages) => {
     try {
       const cloudTitle = await loadConversationTitleFromCloud(convId);
@@ -261,7 +242,6 @@ export default function ChatPage() {
     return text.slice(0, 30);
   };
 
-  // ── Save to discussions ────────────────────────────────────────────────────
   const saveToDiscussions = (convTitle, text) => {
     try {
       const stored = getDiscussions();
@@ -273,7 +253,6 @@ export default function ChatPage() {
     } catch {}
   };
 
-  // ── Update credits ─────────────────────────────────────────────────────────
   const updateCredits = async (currentUser, cost) => {
     if (!currentUser) return;
     const newUsed = (currentUser.credits_used || 0) + cost;
@@ -284,89 +263,15 @@ export default function ChatPage() {
     incrementDailyUsed();
   };
 
-  // ── Send message (main) ────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
-    if (!text?.trim() || isLoading || blocked) return;
+    if ((!text?.trim() && files.length === 0) || isLoading || blocked) return;
     const actualText = discussMode ? 'Discuss: ' + text : text;
-
-    // ── Triple-dot: deep synthesis barrier message, no API ──
-    if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
-      const userMsg = { role: 'user', content: text };
-      const newMessages = [...messages, userMsg];
-      setMessages(newMessages);
-      setInput('');
-      setFiles([]);
-      setIsLoading(true);
-      startProgress();
-
-      const steps = [
-      { label: 'Reading intent & financial context', param: 'Intent ✓' },
-      { label: 'Mapping your financial parameters', param: null },
-      { label: 'Running multi-scenario projections', param: null },
-      { label: 'Validating assumptions & constraints', param: null },
-      { label: 'Structuring final synthesis', param: null }];
-
-      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
-      let step = 0;
-      const stepInterval = setInterval(() => {
-        step++;
-        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
-        clearInterval(stepInterval);
-      }, 700);
-
-      await new Promise((r) => setTimeout(r, steps.length * 700 + 600));
-      clearInterval(stepInterval);
-      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
-      await new Promise((r) => setTimeout(r, 500));
-      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
-
-      stopProgress();
-      setIsLoading(false);
-
-      const DEEP_REPLIES = [
-      "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
-      "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
-      "Synthesis engine primed. What’s the question you want to go deep on?",
-      "Analysis framework ready — hit me with the real question."];
-
-      const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
-      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
-      let currentUser = user;
-      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
-      if (currentUser) await updateCredits(currentUser, 1);
-      return;
-    }
-
-    // ── Dot-dot mode: message ending with ".." — no API, just consume 1 flash ──
-    if (text.trimEnd().endsWith('..')) {
-      const userMsg = { role: 'user', content: text };
-      const newMessages = [...messages, userMsg];
-      setMessages(newMessages);
-      setInput('');
-      setFiles([]);
-      setIsLoading(true);
-      startProgress();
-      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
-      stopProgress();
-      setIsLoading(false);
-      const reply = 'b';
-      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
-      let currentUser = user;
-      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
-      if (currentUser) await updateCredits(currentUser, 1);
-      return;
-    }
 
     let currentUser = user;
     if (!currentUser) {
       try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}
     }
 
-    // Discussion limit checks
     const isFree = !userPlan || userPlan.price_monthly === 0;
     if (isFree) {
       try {
@@ -382,7 +287,7 @@ export default function ChatPage() {
         const stored = getDiscussions();
         if (!stored.find((d) => d.id === convId) && stored.length >= userPlan.max_discussions) {
           localStorage.setItem('stensor_saved_input', text);
-          setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
+          setUpgradeFeature(`more than ${userPlan.max_discussions} discussions`);
           setShowUpgrade(true);
           return;
         }
@@ -396,10 +301,10 @@ export default function ChatPage() {
     setInput('');
     setFiles([]);
     setIsLoading(true);
+    abortedRef.current = false;
     setLoadingProgress(0);
     startProgress();
 
-    // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
@@ -409,7 +314,6 @@ export default function ChatPage() {
       return;
     }
 
-    // Upload files
     let file_urls = [];
     if (files.length > 0 && canUploadFiles) {
       for (const file of files) {
@@ -417,42 +321,42 @@ export default function ChatPage() {
       }
     }
 
-    // Agent + system context
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
 
-    const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
-    const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
-    const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
-    const DEPTH_MAP = { concise: 'très concis et percutant', balanced: 'équilibré', deep: 'analyse complète et exhaustive' };
-    const VOICE_MAP = { human: 'chaud et empathique comme un ami brillant', robotic: 'précis et data-driven, zéro remplissage', hybrid: 'chaleur + précision — le meilleur des deux' };
-    const STATUS_MAP = { freelancer: 'Freelancer (revenus variables)', employed: 'Salarié (salaire stable)', entrepreneur: 'Entrepreneur (réinvestit ses profits)', student: 'Étudiant (construit les bases)' };
-    const SAVINGS_MAP = { none: 'Début (<5k)', small: 'En construction (5k–20k)', medium: 'Base solide (20k–100k)', large: 'Patrimoine croissant (>100k)' };
-    const AGE_MAP = { young: '18–25 ans', mid: '26–35 ans', mature: '36–45 ans', '46plus': '46+ ans' };
+    const VISION_MAP = { fire: 'Total Freedom (FIRE)', heritage: 'Family Real Estate Legacy', entrepreneur: 'Entrepreneurial Impact', serenite: 'Daily Financial Serenity' };
+    const PERSONALITY_MAP = { sniper: 'The Sniper (direct, cold, pure numbers)', architect: "The Architect (pedagogical, visionary)", guardian: 'The Guardian (prudent, protective)' };
+    const TONE_MAP = { brutal: 'unfiltered, direct even if harsh', kind: 'benevolent, celebrates victories' };
+    const DEPTH_MAP = { concise: 'very concise and punchy', balanced: 'balanced', deep: 'complete and exhaustive analysis' };
+    const VOICE_MAP = { human: 'warm and empathetic like a brilliant friend', robotic: 'precise and data-driven, zero fluff', hybrid: 'warmth + precision — best of both' };
+    const STATUS_MAP = { freelancer: 'Freelancer (variable income)', employed: 'Employee (stable salary)', entrepreneur: 'Entrepreneur (reinvests profits)', student: 'Student (building foundations)' };
+    const SAVINGS_MAP = { none: 'Beginner (<5k)', small: 'Building (5k–20k)', medium: 'Solid Base (20k–100k)', large: 'Growing Wealth (>100k)' };
+    const AGE_MAP = { young: '18–25 years', mid: '26–35 years', mature: '36–45 years', '46plus': '46+ years' };
+    
     const dnaLines = [];
-    if (currentUser?.ai_vision) dnaLines.push(`- Vision de vie : ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
-    if (currentUser?.ai_personality) dnaLines.push(`- Ton caractère : ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
-    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or : "${currentUser.ai_golden_rule}"`);
-    if (currentUser?.ai_tone) dnaLines.push(`- Style : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
-    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
-    if (currentUser?.ai_voice) dnaLines.push(`- Voix IA : ${VOICE_MAP[currentUser.ai_voice] || currentUser.ai_voice}`);
-    if (currentUser?.ai_status) dnaLines.push(`- Statut professionnel : ${STATUS_MAP[currentUser.ai_status] || currentUser.ai_status}`);
-    if (currentUser?.ai_savings) dnaLines.push(`- Épargne actuelle : ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
-    if (currentUser?.ai_age) dnaLines.push(`- Tranche d'âge : ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
-    if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
+    if (currentUser?.ai_vision) dnaLines.push(`- Life Vision: ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
+    if (currentUser?.ai_personality) dnaLines.push(`- Personality: ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
+    if (currentUser?.ai_golden_rule) dnaLines.push(`- Golden Rule: "${currentUser.ai_golden_rule}"`);
+    if (currentUser?.ai_tone) dnaLines.push(`- Tone: ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
+    if (currentUser?.ai_depth) dnaLines.push(`- Depth: ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
+    if (currentUser?.ai_voice) dnaLines.push(`- AI Voice: ${VOICE_MAP[currentUser.ai_voice] || currentUser.ai_voice}`);
+    if (currentUser?.ai_status) dnaLines.push(`- Professional Status: ${STATUS_MAP[currentUser.ai_status] || currentUser.ai_status}`);
+    if (currentUser?.ai_savings) dnaLines.push(`- Current Savings: ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
+    if (currentUser?.ai_age) dnaLines.push(`- Age Bracket: ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
+    if (currentUser?.ai_context) dnaLines.push(`- Personal Context: ${currentUser.ai_context}`);
+    
     const planName = userPlan?.name || 'Free';
     const planPrice = !userPlan || userPlan.price_monthly === 0 ? 'Free' : `$${userPlan.price_monthly}/mo`;
     const flashAvail = userPlan?.credits_limit ? `${userPlan.credits_limit} Flash/mo` : '10 Flash/mo';
     const deepAvail = userPlan?.deep_limit ? `${userPlan.deep_limit} Deep/mo` : 'no Deep';
-    dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
-    const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
+    dnaLines.push(`- Current Subscription: **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search included' : ''}${userPlan?.file_upload ? ', File upload included' : ''}`);
+    const dnaBlock = dnaLines.length > 0 ? `\n\n## USER PERSONALIZED PROFILE (ABSOLUTELY RESPECT THESE PREFERENCES):\n${dnaLines.join('\n')}\n` : '';
 
     const systemContext = agentConfig?.instructions ?
     `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` :
     `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
-    // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
     const recentMsgs = messages.slice(-2);
     const historyContext = recentMsgs.length > 0 ?
     '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' :
@@ -460,7 +364,16 @@ export default function ChatPage() {
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    // ── Cognitive Router (local pre-filter saves ~95% API calls) ───────────
+    // --- 5 SECOND THINKING DELAY ---
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    if (abortedRef.current) {
+      stopProgress();
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'assistant', content: "Generation interrupted by user." }]);
+      return;
+    }
+
     let routeDecision = '1';
     if (!isFirstMessage) {
       const localDecision = quickRouteLocal(text);
@@ -468,19 +381,7 @@ export default function ChatPage() {
         routeDecision = localDecision;
       } else {
         try {
-          const routerPrompt = `Role: Router for a financial AI.
-Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
-
-Rules:
-2 = ONLY when ALL 3 conditions are met simultaneously:
-  - The question involves genuine multi-step financial calculations (e.g. compound interest over time, debt payoff schedule, retirement projection, portfolio optimization, rent vs buy with numbers)
-  - A complete answer REQUIRES structured reasoning across 3+ financial variables
-  - A short paragraph answer would be clearly insufficient or misleading
-1 = Everything else — simple questions, definitions, advice, emotional support, single-variable questions, market opinions, budget tips, comparisons without math, any greeting or follow-up.
-
-CRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.
-
-Input: ${text.slice(0, 400)}`;
+          const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n2 = ONLY when ALL 3 conditions are met simultaneously:\n  - The question involves genuine multi-step financial calculations\n  - A complete answer REQUIRES structured reasoning across 3+ financial variables\n  - A short paragraph answer would be clearly insufficient or misleading\n1 = Everything else.\n\nCRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.\n\nInput: ${text.slice(0, 400)}`;
           const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
           routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
           if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
@@ -490,7 +391,6 @@ Input: ${text.slice(0, 400)}`;
       }
     }
 
-    // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
     if (routeDecision === '2') {
       const PROPOSAL_MSGS = [
       "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
@@ -507,8 +407,13 @@ Input: ${text.slice(0, 400)}`;
       return;
     }
 
-    // ── Route 1: fast direct response ───────────────────────────────────────
-    abortedRef.current = false;
+    if (abortedRef.current) {
+      stopProgress();
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'assistant', content: "Generation interrupted by user." }]);
+      return;
+    }
+
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({
@@ -520,17 +425,21 @@ Input: ${text.slice(0, 400)}`;
     } catch (err) {
       stopProgress();
       setIsLoading(false);
-      const errorMsg = "I haven't been able to process your request yet. Please try again in a few seconds.";
-      setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
+      setMessages([...newMessages, { role: 'assistant', content: "I haven't been able to process your request yet. Please try again in a few seconds." }]);
       return;
     }
-    // If user hit Stop while we were awaiting, the handler already cleaned up.
-    if (abortedRef.current) return;
+    
+    if (abortedRef.current) {
+      stopProgress();
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'assistant', content: "Generation interrupted by user." }]);
+      return;
+    }
+    
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     let baseCost = mode.credit_cost;
     if (isFirstMessage) baseCost = 1;
-    // Discuss mode costs 1 credit; Flash/Task mode costs 2 (mode.credit_cost).
     const costPerMsg = discussMode ? 1 : baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
@@ -550,7 +459,7 @@ Input: ${text.slice(0, 400)}`;
     setConvTitleDisplay(convTitle);
     stopProgress();
     setIsLoading(false);
-    // In Discuss mode, the response lives entirely in the chat — no right-panel preview.
+    
     if (!discussMode) {
       setFicheContent(content);
       setFicheMsgIdx(newMessages.length);
@@ -561,22 +470,20 @@ Input: ${text.slice(0, 400)}`;
     saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
-    // Milestone toast
-    const userCount = finalMsgs.filter((m) => m.role === 'user').length;
-    if (userCount === 10 && !milestoneShown) {
-      setMilestoneShown(true);
-      toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
-    }
-  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
+  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles]);
 
-  // ── Synthesis continuation ─────────────────────────────────────────────────
+  const handleMessageClick = useCallback((msg, idx) => {
+    if (!msg.content || msg.content.length < 20) return;
+    if (discussMode) return;
+    setFicheContent(msg.content);
+    setFicheMsgIdx(idx);
+  }, [discussMode]);
+
   const continueSynthesis = useCallback(async (doDeep) => {
     const pending = synthPendingRef.current;
     if (!pending) return;
     synthPendingRef.current = null;
-
     const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext = '' } = pending;
-
     setMessages(newMessages);
     setIsLoading(true);
     setLoadingProgress(0);
@@ -593,12 +500,10 @@ Input: ${text.slice(0, 400)}`;
       { label: 'Structuring final synthesis', param: null }];
 
       setSynthProgress({ active: true, steps, currentStep: 0, done: false });
-
       let step = 0;
       const stepInterval = setInterval(() => {
         step++;
-        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
-        clearInterval(stepInterval);
+        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else clearInterval(stepInterval);
       }, 700);
 
       let deepResult = null;
@@ -610,7 +515,7 @@ Input: ${text.slice(0, 400)}`;
           ...(file_urls.length > 0 ? { file_urls } : {})
         });
       } catch {}
-      content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
+      content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "I couldn't complete the Deep Synthesis. Please try again.";
 
       clearInterval(stepInterval);
       setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
@@ -626,17 +531,12 @@ Input: ${text.slice(0, 400)}`;
           ...(file_urls.length > 0 ? { file_urls } : {})
         });
       } catch {}
-      content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
+      content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "I couldn't process your request. Please try again.";
     }
 
     const baseCost = doDeep ? mode.credit_max || mode.credit_cost : mode.credit_cost;
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
-    const msgMeta = {
-      modeName: doDeep ? 'Deep Synthesis' : mode.label,
-      modelName: doDeep ? 'Deep Synthesis' : 'Precision',
-      usedInternet: useInternet,
-      hasFiles: file_urls.length > 0
-    };
+    const msgMeta = { modeName: doDeep ? 'Deep Synthesis' : mode.label, modelName: doDeep ? 'Deep Synthesis' : 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
@@ -647,9 +547,7 @@ Input: ${text.slice(0, 400)}`;
           setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev);
         } catch {}
       }
-      if (isFirstMessage) {
-        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
-      }
+      if (isFirstMessage) completeReferralOnFirstMessage(currentUser.id).catch(() => {});
     }
 
     const convTitle = await buildTitle(text, newMessages);
@@ -666,18 +564,8 @@ Input: ${text.slice(0, 400)}`;
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
   }, [mode, currentAgent, convId]);
 
-  const editMessage = (idx) => {setInput(messages[idx].content);setMessages((prev) => prev.slice(0, idx));};
-  const copyMessage = (content) => {navigator.clipboard.writeText(content);toast.success(t('copied'), { duration: 1000 });};
-  const handleUpgradeRequest = (feature = '') => {setUpgradeFeature(feature);setShowUpgrade(true);};
-  const handleMessageClick = useCallback((msg, idx) => {
-    if (!msg.content || msg.content.length < 20) return;
-    if (discussMode) return;
-    setFicheContent(msg.content);
-    setFicheMsgIdx(idx);
-  }, [discussMode]);
-
   return (
-    <div className="flex flex-col font-open h-screen w-full bg-[#F9FAFB] overflow-hidden">
+    <div className="flex flex-col font-open h-screen w-full bg-[#F9FAFB] overflow-hidden [&::-webkit-scrollbar]:hidden">
       
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
@@ -690,62 +578,76 @@ Input: ${text.slice(0, 400)}`;
       <div className="flex flex-1 p-2 gap-2 overflow-hidden relative">
 
         <div className="w-[360px] flex-shrink-0 flex flex-col overflow-hidden relative">
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
+          
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
             
-            {isLoadingConversation && (
-              <div className="flex gap-2 justify-start items-center">
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
-                <ChatLoadingAnimation mode={mode.id} />
-              </div>
-            )}
-
-            {/* PLUS DE MESSAGE "START CONVERSATION" VIDE, DIRECTEMENT CLEAN */}
-
             {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
-                {msg.role === 'synthesis_proposal'
-                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                  : msg.role === 'assistant'
-                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
+              <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                {msg.role === 'assistant'
+                  ? <AssistantMessage content={msg.content} isGenerating={false} discussMode={discussMode} onClick={() => handleMessageClick(msg, idx)} />
+                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Me'} />
                 }
               </motion.div>
             ))}
 
-            {synthProgress?.active && (
-              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-            )}
-            
-            {isLoading && !synthProgress?.active && (
-              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            {/* If loading, show a temporary AI bubble (This is the one that shows "Thinking...") */}
+            {isLoading && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                <AssistantMessage content="" isGenerating={true} discussMode={discussMode} onClick={() => {}} />
+              </motion.div>
             )}
             
             <div ref={messagesEndRef} />
           </div>
 
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="flex-shrink-0 flex flex-col mt-1">
+          <div className="flex-shrink-0 flex flex-col mt-1">
             <div className="bg-white border border-[#DCE4EC] rounded-[24px] relative shadow-sm z-20">
               <ChatInputBar
                 input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
-                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onUpgradeRequest={() => setShowUpgradePlan(true)} /* OUVRE LA BOUTIQUE DIRECTEMENT */
+                isLoading={isLoading} blocked={blocked}
                 discussMode={discussMode} setDiscussMode={setDiscussMode} 
+                canUploadFiles={canUploadFiles} hasInternet={hasInternet}
+                onUpgradeRequest={() => setShowUpgradePlan(true)} 
+                onOpenDNA={() => setShowDNA(true)}
               />
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
+        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative [&::-webkit-scrollbar]:hidden">
           <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
         </div>
 
       </div>
 
-      {/* LA GRANDE FENÊTRE DE LA BOUTIQUE */}
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
+
+      <AnimatePresence>
+        {showDNA && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-[#0A0A0A]/80 backdrop-blur-sm"
+            onClick={() => setShowDNA(false)}>
+            <motion.div initial={{ y: 30, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 20, opacity: 0, scale: 0.98 }} 
+              className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col font-open" 
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-900">Stensor DNA</h2>
+                <button onClick={() => setShowDNA(false)} className="text-gray-400 hover:text-gray-700">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <div className="p-6 h-[60vh] overflow-y-auto">
+                <p className="text-gray-600 mb-6">Customize your AI's personality, goals, and rules here.</p>
+                <div className="space-y-4">
+                  <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center h-32">
+                    <span className="text-sm text-gray-400">Settings coming soon...</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
