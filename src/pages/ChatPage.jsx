@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
-import { LOGO_URL } from '@/lib/chat-constants';
 import { getUserPlan } from '@/lib/plans-config';
 import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 
@@ -38,13 +37,14 @@ export default function ChatPage() {
   const [isPreviewFakeLoading, setIsPreviewFakeLoading] = useState(false);
   const [convTitleDisplay, setConvTitleDisplay] = useState('');
   
-  // Generic Modal State (for both Pricing and DNA)
+  // UI States
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const messagesEndRef = useRef(null);
   const abortedRef = useRef(false);
 
-  // Auto-redirect empty chats (only after checking cloud)
+  // Auto-redirect empty chats
   useEffect(() => {
     if (!isLoadingConversation && messages.length === 0 && conversationId) {
       navigate('/');
@@ -72,32 +72,24 @@ export default function ChatPage() {
         setMessages(cloudMsgs);
         saveConversationMessages(conversationId, cloudMsgs);
         
-        // Find the last assistant message to populate the preview
         const lastAsstMsg = [...cloudMsgs].reverse().find(m => m.role === 'assistant');
-        if (lastAsstMsg && !discussMode) {
-          setFicheContent(lastAsstMsg.content);
-        }
+        if (lastAsstMsg) setFicheContent(lastAsstMsg.content);
 
-        // Fetch Title from Cloud
         const title = await loadConversationTitleFromCloud(conversationId);
         if (title) setConvTitleDisplay(title);
         
-        // Trigger fake loading for realism
         setIsPreviewFakeLoading(true);
         setTimeout(() => setIsPreviewFakeLoading(false), 3000);
       }
       setIsLoadingConversation(false);
-    }).catch(() => {
-      setIsLoadingConversation(false);
-    });
-  }, [conversationId, discussMode]);
+    }).catch(() => setIsLoadingConversation(false));
+  }, [conversationId]);
 
   // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // CLOUD SAVE: Helper to sync discussion metadata
   const saveToDiscussions = (title, preview) => {
     try {
       const stored = getDiscussions();
@@ -112,21 +104,15 @@ export default function ChatPage() {
   const sendMessage = useCallback(async (text, pastedImages = []) => {
     if (!text?.trim() && pastedImages.length === 0) return;
     
-    const userMsg = { 
-      role: 'user', 
-      content: text, 
-      files: pastedImages.map(img => img.file.name)
-    };
-    
+    const userMsg = { role: 'user', content: text, files: pastedImages.map(img => img.file.name) };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
     abortedRef.current = false;
 
-    // --- 5 SECOND FAKE THINKING DELAY ---
+    // FAKE 5S AI DELAY
     await new Promise(resolve => setTimeout(resolve, 5000));
-
     if (abortedRef.current) return;
 
     let result;
@@ -146,7 +132,7 @@ export default function ChatPage() {
 
     setIsLoading(false);
     
-    // ONE PREVIEW TO RULE THEM ALL
+    // FAKE PREVIEW LOADING
     if (!discussMode) {
       setIsPreviewFakeLoading(true);
       setTimeout(() => {
@@ -158,7 +144,6 @@ export default function ChatPage() {
     const finalMsgs = [...newMessages, { role: 'assistant', content }];
     setMessages(finalMsgs);
     
-    // CLOUD SYNC: Save everything immediately
     const titleToSave = convTitleDisplay || text.slice(0, 30);
     if (!convTitleDisplay) setConvTitleDisplay(titleToSave);
     
@@ -171,59 +156,71 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col font-open h-screen w-full bg-[#F9FAFB] overflow-hidden [&::-webkit-scrollbar]:hidden">
       
+      {/* HEADER CONNECTÉ AU TOGGLE */}
       <WorkspaceHeader
-        title={convTitleDisplay || 'New Conversation'}
-        conversationId={convId}
         user={user}
         userPlan={userPlan}
         onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       <div className="flex flex-1 p-2 gap-2 overflow-hidden relative">
 
-        <div className="w-[360px] flex-shrink-0 flex flex-col overflow-hidden relative">
-          <div className="flex-1 overflow-y-auto px-2 py-0 pb-4 [&::-webkit-scrollbar]:hidden">
-            
-            {isLoadingConversation && (
-              <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>
-            )}
+        {/* LA SIDEBAR QUI DISPARAIT FLUIDEMENT */}
+        <AnimatePresence initial={false}>
+          {isSidebarOpen && (
+            <motion.div 
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 360, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex-shrink-0 flex flex-col overflow-hidden relative h-full"
+            >
+              <div className="flex-1 overflow-y-auto px-2 py-0 pb-4 [&::-webkit-scrollbar]:hidden">
+                
+                {isLoadingConversation && (
+                  <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>
+                )}
 
-            {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-                {msg.role === 'assistant'
-                  ? <AssistantMessage content={discussMode ? msg.content : "Done. Check the preview window."} isGenerating={false} discussMode={discussMode} />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Me'} />
-                }
-              </motion.div>
-            ))}
+                {!isLoadingConversation && messages.map((msg, idx) => (
+                  <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                    {msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} isGenerating={false} discussMode={discussMode} />
+                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Me'} />
+                    }
+                  </motion.div>
+                ))}
 
-            {isLoading && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-                <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
-              </motion.div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
+                {isLoading && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                    <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
+                  </motion.div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
 
-          <div className="flex-shrink-0 flex flex-col mt-1">
-            <div className="bg-white border border-[#DCE4EC] rounded-[24px] relative shadow-sm z-20">
-              <ChatInputBar
-                input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
-                isLoading={isLoading} 
-                discussMode={discussMode} setDiscussMode={setDiscussMode} 
-                canUploadFiles={userPlan?.file_upload} hasInternet={userPlan?.internet_access}
-                onOpenIframe={(url) => setIframeModal({ open: true, url })}
-              />
-            </div>
-          </div>
-        </div>
+              <div className="flex-shrink-0 flex flex-col mt-1 pr-2">
+                <div className="bg-white border border-[#DCE4EC] rounded-[24px] relative shadow-sm z-20">
+                  <ChatInputBar
+                    input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
+                    isLoading={isLoading} 
+                    discussMode={discussMode} setDiscussMode={setDiscussMode} 
+                    canUploadFiles={userPlan?.file_upload} hasInternet={userPlan?.internet_access}
+                    onOpenIframe={(url) => setIframeModal({ open: true, url })}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative [&::-webkit-scrollbar]:hidden shadow-sm">
-          {/* FAKE PREVIEW LOADER */}
+        {/* LA PREVIEW QUI PREND TOUTE LA PLACE QUAND LE CHAT DISPARAIT */}
+        <motion.div layout className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative shadow-sm">
           <AnimatePresence>
             {isPreviewFakeLoading && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-md">
                  <div className="flex flex-col items-center gap-3">
                    <svg className="w-8 h-8 animate-spin text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                    <span className="text-sm font-medium text-gray-500 font-mono">Generating format...</span>
@@ -232,13 +229,11 @@ export default function ChatPage() {
             )}
           </AnimatePresence>
           
-          {/* THE SINGLE LINK */}
           <FichePanel content={ficheContent} loading={false} link={`${window.location.origin}/p/${convId}`} />
-        </div>
+        </motion.div>
 
       </div>
 
-      {/* THE UNIVERSAL CROPPED IFRAME MODAL */}
       <UpgradePlanModal 
         open={iframeModal.open} 
         url={iframeModal.url} 
