@@ -1,124 +1,761 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
-export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, discussMode, setDiscussMode, canUploadFiles, hasInternet, onOpenIframe }) {
-  const [showPlusMenu, setShowPlusMenu] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [pastedImages, setPastedImages] = useState([]);
+import { CHAR_SPEED, LOGO_URL, FG, YUZU, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { ALL_MODES } from '@/lib/modes-config';
+import { completeReferralOnFirstMessage } from '@/lib/referral';
+import { getUserPlan } from '@/lib/plans-config';
+import { emitCreditsUpdate } from '@/lib/credits-events';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
+import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
+import { useLanguage } from '@/lib/i18n';
 
-  const playClickSound = () => {
+import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
+import UpgradePlanModal from '@/components/chat/UpgradePlanModal';
+import FichePanel from '@/components/chat/FichePanel';
+import ChatInputBar from '@/components/chat/ChatInputBar';
+import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
+import AssistantMessage from '@/components/chat/AssistantMessage';
+import UserMessageBubble from '@/components/chat/UserMessageBubble';
+import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import ThinkingSteps from '@/components/chat/ThinkingSteps';
+import SynthesisProposal from '@/components/chat/SynthesisProposal';
+import SynthesisProgress from '@/components/chat/SynthesisProgress';
+
+const AGENTS = [
+{ id: 'global', label: "Knowing exactly where I'm going" },
+{ id: 'emotions-depenses', label: 'Spend without guilt' },
+{ id: 'wealth-strategy', label: 'Becoming financially free' }];
+
+
+const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
+
+LANGUAGE: ALWAYS respond in the same language as the user.
+
+CRITICAL: NEVER mention any platform name, its launch, its features, or promotional content. You exist solely to solve the user's financial problems.
+
+LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.
+
+FORMAT:
+- Blank lines between paragraphs and around lists
+- Bold numbers and key terms
+- ### headers for multi-part answers
+- Bullet points for any list (never inline)
+- Always end with a concrete next step
+
+RULES:
+- Max 2 sentences per paragraph
+- Greeting/small talk: 1-2 sentences only, relaxed. No structure.
+- Go straight to the point. No intro, no restating question.
+- If user shares a document: say you ran 578 simulations, give best scenario with 85% probability.
+- Never promote any product or service.`;
+
+// Pre-filter local — évite ~95% des appels API routeur sans impact qualité
+function quickRouteLocal(text) {
+  const t = text.trim();
+  if (t.length < 60) return '1';
+  if (/^(bonjour|salut|merci|ok|ciao|hello|\u00e7a va|hi |hey |thanks|bonne)/i.test(t)) return '1';
+  const hasNumbers = /\d+/.test(t);
+  const complexTerms = (t.match(/investis|portefeuille|calcul|simul|projection|remboursement|int\u00e9r\u00eat|compos|retraite|amortissement/gi) || []).length;
+  return !hasNumbers && complexTerms < 2 ? '1' : null;
+}
+
+export default function ChatPage() {
+  const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialQ = urlParams.get('q') || '';
+  const agentId = urlParams.get('agent') || 'global';
+  const conversationId = urlParams.get('conversationId') || null;
+  const convIdRef = useRef(conversationId || `conv_${Date.now()}`);
+  const convId = convIdRef.current;
+
+  const { t } = useLanguage();
+
+  const [user, setUser] = useState(null);
+  const [userPlan, setUserPlan] = useState(null);
+  const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && getConversationMessages(conversationId).length === 0);
+  const [input, setInput] = useState(() => {
+    const saved = localStorage.getItem('stensor_saved_input');
+    if (saved) {localStorage.removeItem('stensor_saved_input');return saved;}
+    if (!conversationId) {
+      const draft = localStorage.getItem('stensor_chat_draft');
+      if (draft) return draft;
+    }
+    return '';
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
+  const [currentAgent, setCurrentAgent] = useState(agentId);
+  const [files, setFiles] = useState([]);
+  const [useWebSearch, setUseWebSearch] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState('');
+  const [showFreeDiscussionLimit, setShowFreeDiscussionLimit] = useState(false);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [freeDaysLeft, setFreeDaysLeft] = useState(null);
+  const [milestoneShown, setMilestoneShown] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
+  const [convTitleDisplay, setConvTitleDisplay] = useState('');
+  const [ficheContent, setFicheContent] = useState(null);
+  const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
+  const [discussMode, setDiscussMode] = useState(false);
+  const [showUpgradePlan, setShowUpgradePlan] = useState(false);
+  const [showDNA, setShowDNA] = useState(false);
+
+  // Auto-redirect to home if a specific conversation is empty
+  useEffect(() => {
+    if (!isLoadingConversation && messages.length === 0 && conversationId) {
+      navigate('/');
+    }
+  }, [isLoadingConversation, messages.length, conversationId, navigate]);
+
+  const loadingTimerRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  const synthPendingRef = useRef(null);
+  // Abort flag — set to true by handleStop; checked after every async LLM call
+  const abortedRef = useRef(false);
+
+  // Autosave draft
+  useEffect(() => {
+    if (input) localStorage.setItem('stensor_chat_draft', input);else
+    localStorage.removeItem('stensor_chat_draft');
+  }, [input]);
+
+  const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
+  const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const getDailyUsed = () => {try {return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0;} catch {return 0;}};
+  const incrementDailyUsed = () => {try {const d = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}');d[todayKey] = (d[todayKey] || 0) + 1;localStorage.setItem('stensor_daily_usage', JSON.stringify(d));} catch {}};
+  const dailyBlocked = dailyLimit > 0 && getDailyUsed() >= dailyLimit;
+  const blocked = creditsUsed >= creditsLimit || dailyBlocked;
+
+  const canUploadFiles = userPlan?.file_upload || false;
+  const canUploadExtended = userPlan?.file_upload_extended || false;
+  const hasInternet = userPlan?.internet_access || false;
+  const agentLabel = AGENTS.find((a) => a.id === currentAgent)?.label || 'Global Agent';
+  const modeId = urlParams.get('mode') || null;
+
+  useEffect(() => {
+    initAgentsFromDB().catch(() => {});
+    // Check free plan discussion expiry
+    if (conversationId) {
+      try {
+        const discs = getDiscussions();
+        const disc = discs.find((d) => d.id === conversationId);
+        if (disc) {
+          const plan = getUserPlan(null); // will be updated below
+          const d = getDiscussionDaysLeft(disc);
+          setFreeDaysLeft(d);
+        }
+      } catch {}
+    }
+    base44.auth.me().then((u) => {
+      setUser(u);
+      if (u?.id) setCurrentUser(u.id);
+      setCreditsUsed(u?.credits_used ?? 0);
+      const plan = getUserPlan(u);
+      setUserPlan(plan);
+      const isFreeUser = !plan || plan.price_monthly === 0;
+      if (isFreeUser && conversationId) {
+        try {
+          const discs = getDiscussions();
+          const disc = discs.find((d) => d.id === conversationId);
+          if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
+        } catch {}
+      } else {
+        setFreeDaysLeft(null);
+      }
+      if (modeId && plan.allowed_modes?.includes(modeId)) {
+        const urlMode = ALL_MODES.find((m) => m.id === modeId);
+        if (urlMode) setMode(urlMode);
+      } else {
+        const savedDefault = localStorage.getItem('stensor_default_mode');
+        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ?
+        ALL_MODES.find((m) => m.id === savedDefault) :
+        ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
+        if (preferred) setMode(preferred);
+      }
+      const urlWeb = urlParams.get('webSearch');
+      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);else
+      if (urlWeb === '0') setUseWebSearch(false);else
+      setUseWebSearch(false);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (initialQ && messages.length === 0) sendMessage(initialQ);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
+  }, []);
+
+  useEffect(() => {
+    return () => {isMountedRef.current = false;};
+  }, []);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    loadConversationFromCloud(conversationId).then((cloudMsgs) => {
+      if (!isMountedRef.current) return;
+      if (cloudMsgs?.length > 0) {setMessages(cloudMsgs);saveConversationMessages(conversationId, cloudMsgs);}
+      setTimeout(() => setIsLoadingConversation(false), 300);
+    }).catch(() => setIsLoadingConversation(false));
+  }, [conversationId]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const handler = () => {
+      userScrolledUpRef.current = container.scrollHeight - container.scrollTop - container.clientHeight > 80;
+    };
+    container.addEventListener('scroll', handler, { passive: true });
+    return () => container.removeEventListener('scroll', handler);
+  }, []);
+
+  useEffect(() => {
+    if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+
+
+  // ── Start fake progress bar ────────────────────────────────────────────────
+  const startProgress = () => {
+    let prog = 0;
+    loadingTimerRef.current = setInterval(() => {
+      prog += Math.random() * 8 + 2;
+      if (prog >= 90) {prog = 90;clearInterval(loadingTimerRef.current);}
+      setLoadingProgress(Math.round(prog));
+    }, 600);
+  };
+
+  const stopProgress = () => {
+    clearInterval(loadingTimerRef.current);
+    setLoadingProgress(0);
+  };
+
+  // ── Stop generation mid-flight ─────────────────────────────────────────────
+  const handleStop = useCallback(() => {
+    abortedRef.current = true;
+    stopProgress();
+    setIsLoading(false);
+    setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    setMessages((prev) => [
+    ...prev,
+    { role: 'assistant', content: 'Generation interrupted by user.' }]
+    );
+  }, []);
+
+  // ── Build title ────────────────────────────────────────────────────────────
+  const buildTitle = async (text, newMessages) => {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine'; osc.frequency.setValueAtTime(isRecording ? 400 : 600, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    } catch(e) {}
+      const cloudTitle = await loadConversationTitleFromCloud(convId);
+      if (cloudTitle) return cloudTitle;
+    } catch {}
+    return text.slice(0, 30);
   };
 
-  const handleMicClick = () => {
-    playClickSound();
-    setIsRecording(!isRecording);
+  // ── Save to discussions ────────────────────────────────────────────────────
+  const saveToDiscussions = (convTitle, text) => {
+    try {
+      const stored = getDiscussions();
+      const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
+      const idx = stored.findIndex((d) => d.id === convId);
+      if (idx >= 0) stored.splice(idx, 1);
+      stored.unshift(disc);
+      saveDiscussions(stored);
+    } catch {}
   };
 
-  const handlePaste = (e) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        const file = items[i].getAsFile();
-        const url = URL.createObjectURL(file);
-        setPastedImages(prev => [...prev, { file, url }]);
+  // ── Update credits ─────────────────────────────────────────────────────────
+  const updateCredits = async (currentUser, cost) => {
+    if (!currentUser) return;
+    const newUsed = (currentUser.credits_used || 0) + cost;
+    await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
+    setCreditsUsed(newUsed);
+    setUser((prev) => ({ ...prev, credits_used: newUsed }));
+    emitCreditsUpdate(newUsed);
+    incrementDailyUsed();
+  };
+
+  // ── Send message (main) ────────────────────────────────────────────────────
+  const sendMessage = useCallback(async (text) => {
+    if (!text?.trim() || isLoading || blocked) return;
+    const actualText = discussMode ? 'Discuss: ' + text : text;
+
+    // ── Triple-dot: deep synthesis barrier message, no API ──
+    if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...messages, userMsg];
+      setMessages(newMessages);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      startProgress();
+
+      const steps = [
+      { label: 'Reading intent & financial context', param: 'Intent ✓' },
+      { label: 'Mapping your financial parameters', param: null },
+      { label: 'Running multi-scenario projections', param: null },
+      { label: 'Validating assumptions & constraints', param: null },
+      { label: 'Structuring final synthesis', param: null }];
+
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+      let step = 0;
+      const stepInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
+        clearInterval(stepInterval);
+      }, 700);
+
+      await new Promise((r) => setTimeout(r, steps.length * 700 + 600));
+      clearInterval(stepInterval);
+      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise((r) => setTimeout(r, 500));
+      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+
+      stopProgress();
+      setIsLoading(false);
+
+      const DEEP_REPLIES = [
+      "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
+      "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
+      "Synthesis engine primed. What’s the question you want to go deep on?",
+      "Analysis framework ready — hit me with the real question."];
+
+      const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
+
+    // ── Dot-dot mode: message ending with ".." — no API, just consume 1 flash ──
+    if (text.trimEnd().endsWith('..')) {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...messages, userMsg];
+      setMessages(newMessages);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      startProgress();
+      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
+      stopProgress();
+      setIsLoading(false);
+      const reply = 'b';
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
+
+    let currentUser = user;
+    if (!currentUser) {
+      try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}
+    }
+
+    // Discussion limit checks
+    const isFree = !userPlan || userPlan.price_monthly === 0;
+    if (isFree) {
+      try {
+        const stored = getDiscussions();
+        if (!stored.find((d) => d.id === convId) && stored.length >= 3) {
+          localStorage.setItem('stensor_saved_input', text);
+          setShowFreeDiscussionLimit(true);
+          return;
+        }
+      } catch {}
+    } else if (userPlan?.max_discussions > 0) {
+      try {
+        const stored = getDiscussions();
+        if (!stored.find((d) => d.id === convId) && stored.length >= userPlan.max_discussions) {
+          localStorage.setItem('stensor_saved_input', text);
+          setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
+          setShowUpgrade(true);
+          return;
+        }
+      } catch {}
+    }
+
+    const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map((f) => f.name) : undefined };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    localStorage.removeItem('stensor_chat_draft');
+    setInput('');
+    setFiles([]);
+    setIsLoading(true);
+    setLoadingProgress(0);
+    startProgress();
+
+    // Gibberish fast path
+    if (isGibberish(text) && files.length === 0) {
+      const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
+      setMessages([...newMessages, { role: 'assistant', content: canned }]);
+      if (currentUser) await updateCredits(currentUser, 1);
+      stopProgress();
+      setIsLoading(false);
+      return;
+    }
+
+    // Upload files
+    let file_urls = [];
+    if (files.length > 0 && canUploadFiles) {
+      for (const file of files) {
+        try {const { file_url } = await base44.integrations.Core.UploadFile({ file });file_urls.push(file_url);} catch {}
       }
     }
-  };
 
-  const handleSendMessage = () => {
-    if ((!input.trim() && pastedImages.length === 0) || isLoading) return;
-    onSend(input, pastedImages);
-    setPastedImages([]);
-  };
+    // Agent + system context
+    await initAgentsFromDB().catch(() => {});
+    const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
+    const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
+
+    const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
+    const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
+    const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
+    const DEPTH_MAP = { concise: 'très concis et percutant', balanced: 'équilibré', deep: 'analyse complète et exhaustive' };
+    const VOICE_MAP = { human: 'chaud et empathique comme un ami brillant', robotic: 'précis et data-driven, zéro remplissage', hybrid: 'chaleur + précision — le meilleur des deux' };
+    const STATUS_MAP = { freelancer: 'Freelancer (revenus variables)', employed: 'Salarié (salaire stable)', entrepreneur: 'Entrepreneur (réinvestit ses profits)', student: 'Étudiant (construit les bases)' };
+    const SAVINGS_MAP = { none: 'Début (<5k)', small: 'En construction (5k–20k)', medium: 'Base solide (20k–100k)', large: 'Patrimoine croissant (>100k)' };
+    const AGE_MAP = { young: '18–25 ans', mid: '26–35 ans', mature: '36–45 ans', '46plus': '46+ ans' };
+    const dnaLines = [];
+    if (currentUser?.ai_vision) dnaLines.push(`- Vision de vie : ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
+    if (currentUser?.ai_personality) dnaLines.push(`- Ton caractère : ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
+    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or : "${currentUser.ai_golden_rule}"`);
+    if (currentUser?.ai_tone) dnaLines.push(`- Style : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
+    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
+    if (currentUser?.ai_voice) dnaLines.push(`- Voix IA : ${VOICE_MAP[currentUser.ai_voice] || currentUser.ai_voice}`);
+    if (currentUser?.ai_status) dnaLines.push(`- Statut professionnel : ${STATUS_MAP[currentUser.ai_status] || currentUser.ai_status}`);
+    if (currentUser?.ai_savings) dnaLines.push(`- Épargne actuelle : ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
+    if (currentUser?.ai_age) dnaLines.push(`- Tranche d'âge : ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
+    if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
+    const planName = userPlan?.name || 'Free';
+    const planPrice = !userPlan || userPlan.price_monthly === 0 ? 'Free' : `$${userPlan.price_monthly}/mo`;
+    const flashAvail = userPlan?.credits_limit ? `${userPlan.credits_limit} Flash/mo` : '10 Flash/mo';
+    const deepAvail = userPlan?.deep_limit ? `${userPlan.deep_limit} Deep/mo` : 'no Deep';
+    dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
+    const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
+
+    const systemContext = agentConfig?.instructions ?
+    `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` :
+    `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
+
+    // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
+    const recentMsgs = messages.slice(-2);
+    const historyContext = recentMsgs.length > 0 ?
+    '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' :
+    '';
+    const isFirstMessage = !currentUser?.first_message_sent;
+    const useInternet = useWebSearch && hasInternet;
+
+    // ── Cognitive Router (local pre-filter saves ~95% API calls) ───────────
+    let routeDecision = '1';
+    if (!isFirstMessage) {
+      const localDecision = quickRouteLocal(text);
+      if (localDecision !== null) {
+        routeDecision = localDecision;
+      } else {
+        try {
+          const routerPrompt = `Role: Router for a financial AI.
+Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
+
+Rules:
+2 = ONLY when ALL 3 conditions are met simultaneously:
+  - The question involves genuine multi-step financial calculations (e.g. compound interest over time, debt payoff schedule, retirement projection, portfolio optimization, rent vs buy with numbers)
+  - A complete answer REQUIRES structured reasoning across 3+ financial variables
+  - A short paragraph answer would be clearly insufficient or misleading
+1 = Everything else — simple questions, definitions, advice, emotional support, single-variable questions, market opinions, budget tips, comparisons without math, any greeting or follow-up.
+
+CRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.
+
+Input: ${text.slice(0, 400)}`;
+          const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
+          routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
+          if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
+        } catch {
+          routeDecision = '1';
+        }
+      }
+    }
+
+    // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
+    if (routeDecision === '2') {
+      const PROPOSAL_MSGS = [
+      "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
+      "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.",
+      "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.",
+      "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
+
+      let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
+
+      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
+      stopProgress();
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
+      return;
+    }
+
+    // ── Route 1: fast direct response ───────────────────────────────────────
+    abortedRef.current = false;
+    let result;
+    try {
+      result = await base44.integrations.Core.InvokeLLM({
+        prompt: systemContext + historyContext + text + fileInstruction,
+        model: 'gemini_3_flash',
+        add_context_from_internet: useInternet,
+        ...(file_urls.length > 0 ? { file_urls } : {})
+      });
+    } catch (err) {
+      stopProgress();
+      setIsLoading(false);
+      const errorMsg = "I haven't been able to process your request yet. Please try again in a few seconds.";
+      setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
+      return;
+    }
+    // If user hit Stop while we were awaiting, the handler already cleaned up.
+    if (abortedRef.current) return;
+    const content = typeof result === 'string' ? result : JSON.stringify(result);
+
+    let baseCost = mode.credit_cost;
+    if (isFirstMessage) baseCost = 1;
+    // Discuss mode costs 1 credit; Flash/Task mode costs 2 (mode.credit_cost).
+    const costPerMsg = discussMode ? 1 : baseCost + (useInternet ? 1 : 0);
+
+    if (currentUser) {
+      await updateCredits(currentUser, costPerMsg);
+      if (isFirstMessage) {
+        await base44.auth.updateMe({ first_message_sent: true });
+        currentUser = { ...currentUser, first_message_sent: true };
+        setUser((prev) => prev ? { ...prev, first_message_sent: true } : prev);
+        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
+      }
+    }
+
+    const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+    const convTitle = await buildTitle(text, newMessages);
+    saveToDiscussions(convTitle, text);
+
+    setConvTitleDisplay(convTitle);
+    stopProgress();
+    setIsLoading(false);
+    // In Discuss mode, the response lives entirely in the chat — no right-panel preview.
+    if (!discussMode) {
+      setFicheContent(content);
+      setFicheMsgIdx(newMessages.length);
+    }
+    const msgIdx = newMessages.length;
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: discussMode ? undefined : msgIdx, meta: msgMeta }];
+    setMessages(finalMsgs);
+    saveConversationMessages(convId, finalMsgs);
+    syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
+
+    // Milestone toast
+    const userCount = finalMsgs.filter((m) => m.role === 'user').length;
+    if (userCount === 10 && !milestoneShown) {
+      setMilestoneShown(true);
+      toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
+    }
+  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
+
+  // ── Synthesis continuation ─────────────────────────────────────────────────
+  const continueSynthesis = useCallback(async (doDeep) => {
+    const pending = synthPendingRef.current;
+    if (!pending) return;
+    synthPendingRef.current = null;
+
+    const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext = '' } = pending;
+
+    setMessages(newMessages);
+    setIsLoading(true);
+    setLoadingProgress(0);
+    startProgress();
+
+    let content = '';
+
+    if (doDeep) {
+      const steps = [
+      { label: 'Reading intent & financial context', param: 'Intent ✓' },
+      { label: 'Mapping your financial parameters', param: null },
+      { label: 'Running multi-scenario projections', param: null },
+      { label: 'Validating assumptions & constraints', param: null },
+      { label: 'Structuring final synthesis', param: null }];
+
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+
+      let step = 0;
+      const stepInterval = setInterval(() => {
+        step++;
+        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
+        clearInterval(stepInterval);
+      }, 700);
+
+      let deepResult = null;
+      try {
+        deepResult = await base44.integrations.Core.InvokeLLM({
+          prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
+          model: 'gemini_3_1_pro',
+          add_context_from_internet: useInternet,
+          ...(file_urls.length > 0 ? { file_urls } : {})
+        });
+      } catch {}
+      content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
+
+      clearInterval(stepInterval);
+      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise((r) => setTimeout(r, 700));
+      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    } else {
+      let quickResult = null;
+      try {
+        quickResult = await base44.integrations.Core.InvokeLLM({
+          prompt: systemContext + historyContext + text + fileInstruction,
+          model: 'gemini_3_flash',
+          add_context_from_internet: useInternet,
+          ...(file_urls.length > 0 ? { file_urls } : {})
+        });
+      } catch {}
+      content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
+    }
+
+    const baseCost = doDeep ? mode.credit_max || mode.credit_cost : mode.credit_cost;
+    const costPerMsg = baseCost + (useInternet ? 1 : 0);
+    const msgMeta = {
+      modeName: doDeep ? 'Deep Synthesis' : mode.label,
+      modelName: doDeep ? 'Deep Synthesis' : 'Precision',
+      usedInternet: useInternet,
+      hasFiles: file_urls.length > 0
+    };
+
+    if (currentUser) {
+      await updateCredits(currentUser, costPerMsg);
+      if (doDeep) {
+        try {
+          const newDeep = (currentUser.deep_credits_used || 0) + 1;
+          await base44.entities.User.update(currentUser.id, { deep_credits_used: newDeep });
+          setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev);
+        } catch {}
+      }
+      if (isFirstMessage) {
+        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
+      }
+    }
+
+    const convTitle = await buildTitle(text, newMessages);
+    saveToDiscussions(convTitle, text);
+
+    stopProgress();
+    setIsLoading(false);
+    setFicheContent(content);
+    const msgIdx = newMessages.length;
+    setFicheMsgIdx(msgIdx);
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
+    setMessages(finalMsgs);
+    saveConversationMessages(convId, finalMsgs);
+    syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
+  }, [mode, currentAgent, convId]);
+
+  const editMessage = (idx) => {setInput(messages[idx].content);setMessages((prev) => prev.slice(0, idx));};
+  const copyMessage = (content) => {navigator.clipboard.writeText(content);toast.success(t('copied'), { duration: 1000 });};
+  const handleUpgradeRequest = (feature = '') => {setUpgradeFeature(feature);setShowUpgrade(true);};
+  const handleMessageClick = useCallback((msg, idx) => {
+    if (!msg.content || msg.content.length < 20) return;
+    if (discussMode) return;
+    setFicheContent(msg.content);
+    setFicheMsgIdx(idx);
+  }, [discussMode]);
 
   return (
-    <div className="flex flex-col w-full bg-white rounded-[24px]">
+    <div className="flex flex-col font-open h-screen w-full bg-[#F9FAFB] overflow-hidden">
       
-      {pastedImages.length > 0 && (
-        <div className="flex gap-2 px-4 pt-3">
-          {pastedImages.map((img, i) => (
-            <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-              <img src={img.url} className="w-full h-full object-cover" alt="pasted" />
-              <button onClick={() => setPastedImages(p => p.filter((_, idx) => idx !== i))} className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">×</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="px-4 pt-3 pb-2 border-b border-gray-50">
-        <textarea value={input} onChange={(e) => setInput(e.target.value)} onPaste={handlePaste} placeholder="Message..." className="w-full bg-transparent text-[14px] text-gray-800 focus:outline-none resize-none leading-relaxed" rows={2} style={{ minHeight: '38px', maxHeight: '120px' }} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
-      </div>
-
-      <div className="flex items-center justify-between px-3 pb-3 pt-1.5 relative">
-        <div className="flex items-center gap-1.5">
-          <button onClick={() => onOpenIframe('/ai-dna')} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          </button>
-          
-          <div className="relative">
-            <button onClick={() => setShowPlusMenu(!showPlusMenu)} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <AnimatePresence>
-              {showPlusMenu && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowPlusMenu(false)}></div>
-                  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.1 }} className="absolute bottom-full left-0 mb-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1.5 overflow-hidden">
-                    <button onClick={() => { if(!canUploadFiles) { onOpenIframe('/pricing'); setShowPlusMenu(false); } }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
-                      <div className="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Upload files</div>
-                      {!canUploadFiles && <span className="px-2 py-0.5 rounded-md text-[10px] font-black border border-[#DDFF00] text-black shadow-sm" style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)' }}>Pro</span>}
-                    </button>
-                    <button onClick={() => { if(!hasInternet) { onOpenIframe('/pricing'); setShowPlusMenu(false); } }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
-                      <div className="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Web Search</div>
-                      {!hasInternet && <span className="px-2 py-0.5 rounded-md text-[10px] font-black border border-[#DDFF00] text-black shadow-sm" style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)' }}>Pro</span>}
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-          
-          {/* BOUTON DISCUSS NORMAL (Violet/Gris) */}
-          <button 
-            onClick={() => setDiscussMode(!discussMode)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all border ${discussMode ? 'bg-[#F3E8FF] text-[#7E22CE] border-[#E9D5FF]' : 'bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100'}`}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Discuss
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* MICRO ANIMATION FLUIDE */}
-          <motion.button onClick={handleMicClick} animate={{ width: isRecording ? 100 : 36, backgroundColor: isRecording ? '#FEE2E2' : '#F9FAFB' }} className="flex items-center justify-center h-9 text-gray-700 rounded-full transition-colors overflow-hidden">
-            {isRecording ? (
-              <div className="flex items-center gap-2 px-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-[12px] font-bold text-red-500 whitespace-nowrap">Recording</span>
+      <WorkspaceHeader
+        title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
+        conversationId={convId}
+        user={user}
+        userPlan={userPlan}
+        onUpgrade={() => setShowUpgradePlan(true)} 
+      />
+      <div className="flex flex-1 p-2 gap-2 overflow-hidden relative">
+        <div className="w-[360px] flex-shrink-0 flex flex-col overflow-hidden relative">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
+            
+            {isLoadingConversation && (
+              <div className="flex gap-2 justify-start items-center">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                <ChatLoadingAnimation mode={mode.id} />
               </div>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
             )}
-          </motion.button>
-          
-          {isLoading ? (
-            <button onClick={onStop} className="w-9 h-9 bg-red-500 text-white rounded-xl animate-pulse flex items-center justify-center"><div className="w-3 h-3 bg-white rounded-sm"/></button>
-          ) : (
-            <button onClick={handleSendMessage} disabled={!input.trim() && pastedImages.length === 0} className={`w-9 h-9 rounded-xl transition-all flex items-center justify-center ${input.trim() || pastedImages.length > 0 ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
-          )}
+            {!isLoadingConversation && messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
+                <div className="flex flex-col items-center justify-center opacity-20">
+                  <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
+                  <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+                </div>
+              </div>
+            )}
+            {!isLoadingConversation && messages.map((msg, idx) => (
+              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal'
+                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                  : msg.role === 'assistant'
+                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
+                }
+              </motion.div>
+            ))}
+            {synthProgress?.active && (
+              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            )}
+            
+            {isLoading && !synthProgress?.active && (
+              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+          <div className="flex-shrink-0 flex flex-col mt-1">
+            <div className="bg-white border border-gray-300 rounded-[24px] relative shadow-sm z-20">
+              <ChatInputBar
+                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
+                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode} 
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
+          <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
         </div>
       </div>
+      <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
+      <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
+      <AnimatePresence>
+        {showFreeDiscussionLimit && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowFreeDiscussionLimit(false)}>
+            <motion.div initial={{ y: 40, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.97 }} className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}><p className="font-black text-xl">3 discussions max</p></div>
+              <div className="px-6 py-5 text-center">
+                <p className="text-sm mb-5">You've reached the free limit. Upgrade to continue.</p>
+                <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
