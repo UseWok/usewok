@@ -110,7 +110,7 @@ export default function WorkspaceHeader({ title, conversationId, onUpgrade }) {
         <button onClick={onUpgrade}
           className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90 border"
           style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)', borderColor: '#DDFF00', color: '#0A0A0A' }}>
-          <span className="text-[14px] leading-none">♦</span>
+          <span className="text-[14px] leading-none"></span>
           Upgrade
         </button>
 
