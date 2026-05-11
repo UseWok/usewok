@@ -82,9 +82,6 @@ function CreditsPopover({ user, userPlan, onClose }) {
   );
 }
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-// (Garde tes autres imports comme base44, LOGO_URL, FG ici en haut de ton fichier)
 
 function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }) {
   const [isSuccess, setIsSuccess] = useState(false);
