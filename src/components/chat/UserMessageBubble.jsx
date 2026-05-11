@@ -19,6 +19,13 @@ export default function UserMessageBubble({ msg, userName, user, onCopy, onEdit 
   const inlineFiles = fileNames.slice(0, MAX_INLINE);
   const extraFiles = fileNames.slice(MAX_INLINE);
   const [showExtra, setShowExtra] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyClick = () => {
+    navigator.clipboard.writeText(msg.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Revient à la normale après 2 secondes
+  };
 
   return (
     <div className="flex gap-3 group justify-end">
@@ -53,17 +60,29 @@ export default function UserMessageBubble({ msg, userName, user, onCopy, onEdit 
           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
         </div>
 
+        {/* BOUTONS D'ACTION (Copie sans animation + Édition) */}
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onCopy(msg.content)}
-            className="w-6 h-6 rounded-sm flex items-center justify-center transition-colors hover:bg-black/6">
-            <Copy className="w-3 h-3" style={{ color: '#bbb' }} />
+          <button 
+            onClick={handleCopyClick}
+            className="w-6 h-6 rounded-sm flex items-center justify-center transition-none hover:bg-black/6"
+          >
+            {copied ? (
+              // Icône Checkmark (Image 4)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            ) : (
+              // Icône Copy carrés (Image 3)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            )}
           </button>
+          
           <button onClick={onEdit}
             className="w-6 h-6 rounded-sm flex items-center justify-center transition-colors hover:bg-black/6">
             <Pencil className="w-3 h-3" style={{ color: '#bbb' }} />
           </button>
         </div>
       </div>
+      
+      {/* AVATAR UTILISATEUR */}
       <div className="w-5 h-5 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 mt-5"
         style={{ background: getUserColor(user) }}>
         {userInitial}
