@@ -742,22 +742,32 @@ Input: ${text.slice(0, 400)}`;
           </div>
 
           {/* =========================================================
-              BARRE DE TEXTE IA : BORDURE UN SOUPÇON PLUS FONCÉE (border-gray-300)
+              BARRE DE TEXTE IA + PHRASE DE PROTECTION
               ========================================================= */}
-          <div className="bg-white border border-gray-300 rounded-2xl p-2 flex-shrink-0 relative">
-            <ChatInputBar
-              input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-              isLoading={isLoading} blocked={blocked}
-              mode={mode} setMode={setMode}
-              currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
-              userPlan={userPlan}
-              canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
-              hasInternet={hasInternet}
-              useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
-              files={files} setFiles={setFiles}
-              onUpgradeRequest={handleUpgradeRequest}
-              discussMode={discussMode} setDiscussMode={setDiscussMode}
-            />
+          <div className="flex-shrink-0 flex flex-col mt-2">
+            
+            {/* La barre blanche : bordure fine, très arrondie, sans padding interne pour laisser l'InputBar gérer l'espace */}
+            <div className="bg-white border border-gray-300 rounded-[24px] overflow-hidden relative shadow-sm">
+              <ChatInputBar
+                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+                isLoading={isLoading} blocked={blocked}
+                mode={mode} setMode={setMode}
+                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent}
+                userPlan={userPlan}
+                canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended}
+                hasInternet={hasInternet}
+                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
+                files={files} setFiles={setFiles}
+                onUpgradeRequest={handleUpgradeRequest}
+                discussMode={discussMode} setDiscussMode={setDiscussMode}
+              />
+            </div>
+
+            {/* Le texte simplement placé en dessous, centré sur le fond bleu */}
+            <div className="text-center text-[10px] text-gray-400 mt-2.5 mb-1">
+              Stensor is an AI tool · Responses may contain errors
+            </div>
+
           </div>
 
           {/* TEXTE "STENSOR IS AN AI TOOL" PLACÉ DANS LE FOND BLEU */}
