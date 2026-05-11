@@ -699,10 +699,10 @@ Input: ${text.slice(0, 400)}`;
               </div>
             )}
 
-            {/* EMPTY STATE UI REMOVED - It will now just look clean and ready to type */}
+            {/* PLUS DE MESSAGE "START CONVERSATION" VIDE, DIRECTEMENT CLEAN */}
 
             {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+              <motion.div key={idx} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
                 {msg.role === 'synthesis_proposal'
                   ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
                   : msg.role === 'assistant'
@@ -723,19 +723,19 @@ Input: ${text.slice(0, 400)}`;
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="flex-shrink-0 flex flex-col mt-1">
-            <div className="bg-white border border-gray-300 rounded-[24px] relative shadow-sm z-20">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="flex-shrink-0 flex flex-col mt-1">
+            <div className="bg-white border border-[#DCE4EC] rounded-[24px] relative shadow-sm z-20">
               <ChatInputBar
                 input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
                 isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
                 currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
                 canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
                 useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode}
-                onOpenDNA={() => setShowDNA(true)} 
+                onUpgradeRequest={() => setShowUpgradePlan(true)} /* OUVRE LA BOUTIQUE DIRECTEMENT */
+                discussMode={discussMode} setDiscussMode={setDiscussMode} 
               />
             </div>
-          </div>
+          </motion.div>
         </div>
 
         <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
@@ -744,55 +744,9 @@ Input: ${text.slice(0, 400)}`;
 
       </div>
 
-      <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
+      {/* LA GRANDE FENÊTRE DE LA BOUTIQUE */}
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
-      {/* NEW: THE STENSOR DNA MODAL (Matching Image 2 styling) */}
-      <AnimatePresence>
-        {showDNA && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowDNA(false)}>
-            <motion.div initial={{ y: 20, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 20, opacity: 0, scale: 0.97 }} 
-              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col font-open" 
-              onClick={e => e.stopPropagation()}>
-              
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-900">Stensor DNA</h2>
-                <button onClick={() => setShowDNA(false)} className="text-gray-400 hover:text-gray-700">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-              </div>
-
-              <div className="p-6 h-[60vh] overflow-y-auto">
-                <p className="text-gray-600 mb-6">Customize your AI's personality, goals, and rules here.</p>
-                
-                {/* DNA Settings Placeholder - You can expand this UI later */}
-                <div className="space-y-4">
-                  <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center h-32">
-                    <span className="text-sm text-gray-400">DNA Settings Fields Go Here</span>
-                  </div>
-                </div>
-
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showFreeDiscussionLimit && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.97 }} className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}><p className="font-black text-xl">3 discussions max</p></div>
-              <div className="px-6 py-5 text-center">
-                <p className="text-sm mb-5">You've reached the free limit. Upgrade to continue.</p>
-                <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
