@@ -698,7 +698,8 @@ Input: ${text.slice(0, 400)}`;
                 currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
                 canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
                 useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode} 
+                onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode}
+                onOpenIframe={(url) => window.open(url, '_blank')} 
               />
             </div>
           </div>
