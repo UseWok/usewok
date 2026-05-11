@@ -144,7 +144,8 @@ function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }
     );
   }
 
-  // VUE 1 : MENU DÉROULANT CLASSIQUE
+
+// VUE 1 : MENU DÉROULANT CLASSIQUE
   return (
     <motion.div
       initial={{ opacity: 0, y: -8, scale: 0.97 }}
@@ -175,6 +176,11 @@ function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }
           'Publish Now'
         )}
       </button>
+
+      {/* LE DISCLAIMER EST MAINTENANT ICI */}
+      <p className="text-center text-[9px] text-gray-400 mt-3">
+        Stensor is an AI tool · Responses may contain errors
+      </p>
     </motion.div>
   );
 }
