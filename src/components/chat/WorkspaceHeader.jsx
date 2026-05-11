@@ -1,253 +1,103 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Lock, Copy, Check, ArrowLeft, TrendingUp, X, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { motion } from 'framer-motion';
 
-const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
-const FG = '#0A0A0A';
-const CORAL = '#FF4F00';
-const BLUE = '#3B82F6';
+// Générateur de couleur dynamique pour l'avatar
+const getAvatarColor = (name) => {
+  const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
+  if (!name) return colors[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
 
-function UsageBar({ used, total, color }) {
-  const pct = total > 0 ? Math.min(used / total * 100, 100) : 0;
-  return (
-    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${pct}%` }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="h-full rounded-full"
-        style={{ background: color }} />
-    </div>
-  );
-}
-
-function CreditsPopover({ user, userPlan, onClose }) {
-  const navigate = useNavigate();
-  const flashUsed = user?.credits_used || 0;
-  const flashLimit = (userPlan?.credits_limit || 10) + (user?.credits_bonus || 0);
-  const deepUsed = user?.deep_credits_used || 0;
-  const deepLimit = userPlan?.deep_credits_limit || 0;
-  const now = new Date();
-  const renewal = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const renewalStr = renewal.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+export default function WorkspaceHeader({ user, onUpgrade, isSidebarOpen, onToggleSidebar }) {
+  const userName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Xihipe6397';
+  const userInitial = userName.charAt(0).toUpperCase();
+  const avatarColor = getAvatarColor(userName);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -6, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      className="absolute top-full mt-2 left-0 bg-white z-50 w-[260px] overflow-hidden"
-      style={{ borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.14)', border: '1px solid rgba(0,0,0,0.09)' }}>
-      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-        <span className="text-sm font-bold" style={{ color: FG }}>Consommation</span>
-        <button onClick={onClose} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/5">
-          <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
-        </button>
-      </div>
-      <div className="px-4 py-4 space-y-4">
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold" style={{ color: FG }}>⚡ Flash ce mois-ci</span>
-            <span className="text-xs font-bold" style={{ color: '#888' }}>{flashUsed}/{flashLimit}</span>
-          </div>
-          <UsageBar used={flashUsed} total={flashLimit} color={BLUE} />
-        </div>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold" style={{ color: FG }}>🧠 Deep Synthèses</span>
-            <span className="text-xs font-bold" style={{ color: '#888' }}>{deepUsed}{deepLimit > 0 ? `/${deepLimit}` : ''}</span>
-          </div>
-          {deepLimit > 0 && <UsageBar used={deepUsed} total={deepLimit} color={CORAL} />}
-          {deepLimit === 0 && <p className="text-[10px]" style={{ color: '#bbb' }}>Inclus dans votre plan</p>}
-        </div>
-        <p className="text-[10px] font-medium" style={{ color: BLUE }}>Renouvellement le {renewalStr}</p>
-      </div>
-      <div className="h-px" style={{ background: 'rgba(0,0,0,0.06)' }} />
-      <div className="px-4 py-3 flex flex-col gap-2">
-        <button onClick={() => { onClose(); navigate('/pricing'); }}
-          className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 rounded-lg transition-all hover:opacity-90"
-          style={{ background: FG, color: 'white' }}>
-          <TrendingUp className="w-3 h-3" /> Upgrade →
-        </button>
-        <button onClick={() => { onClose(); navigate('/app'); }}
-          className="w-full py-2 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg transition-all hover:bg-black/5"
-          style={{ color: '#888' }}>
-          <ArrowLeft className="w-3 h-3" /> Back to Home
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-
-function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }) {
-  const [isSuccess, setIsSuccess] = useState(false);
-  const appLink = `stensor.base44.app/p/${conversationId || 'xyz123'}`;
-  const fullUrl = `https://${appLink}`;
-  const handlePublishClick = async () => {
-    setIsPublishing(true);
-    if (conversationId) {
-      try {
-        const convs = await base44.entities.Conversation.filter({ conv_id: conversationId });
-        if (convs.length > 0) {
-          await base44.entities.Conversation.update(convs[0].id, { is_public: true });
-        }
-      } catch {}
-    }
-    setIsPublishing(false);
-    setIsSuccess(true);
-  };
-  // VIEW 2: SUCCESS MODAL & SOCIAL MEDIA SHARING
-  if (isSuccess) {
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={onClose}>
-        <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col font-open" onClick={(e) => e.stopPropagation()}>
-          
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-[15px] text-gray-900">Your app is published and live online!</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-          <div className="px-5 py-4 border-b border-gray-100">
-            <p className="text-sm text-gray-800 font-medium mb-2">App link.</p>
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
-              <span className="text-[13px] text-gray-800 truncate">{appLink}</span>
-              <div className="flex items-center gap-3 ml-2 text-gray-500">
-                <button onClick={() => navigator.clipboard.writeText(fullUrl)} className="hover:text-gray-900" title="Copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-                <button onClick={() => window.open(fullUrl, '_blank')} className="hover:text-gray-900" title="Open"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
-              </div>
-            </div>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-sm text-gray-800 font-medium mb-3">Sharing options</p>
-            <div className="flex items-center gap-3">
-              <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#1877F2] hover:bg-gray-50 transition-colors">f</button>
-              <button onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#0A66C2] hover:bg-gray-50 transition-colors">in</button>
-              <button onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-black hover:bg-gray-50 transition-colors">𝕏</button>
-              <button onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#25D366] hover:bg-gray-50 transition-colors">W</button>
-              <button onClick={() => window.open(`https://reddit.com/submit?url=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#FF4500] hover:bg-gray-50 transition-colors">R</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  // VIEW 1: DROPDOWN MENU
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.97 }}
-      transition={{ duration: 0.18 }}
-      className="absolute top-full mt-2 right-0 bg-white z-50 w-[300px] p-5"
-      style={{ borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.08)' }}
-    >
-      <h4 className="text-[15px] font-semibold mb-1 text-gray-900">Publish Settings</h4>
-      <p className="text-[13px] text-gray-500 mb-5 leading-snug">Make this conversation public and shareable.</p>
+    <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100 font-open z-30 shadow-sm">
       
-      <button 
-        onClick={handlePublishClick}
-        disabled={isPublishing}
-        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
-          isPublishing ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:opacity-90'
-        }`}
-      >
-        {isPublishing ? (
-          <>
-            <svg className="w-4 h-4 animate-spin text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-            Publishing...
-          </>
-        ) : (
-          'Publish Now'
-        )}
-      </button>
-      {/* Disclaimer cleanly integrated at the bottom */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-center text-[10px] text-gray-400">
-          Stensor is an AI tool · Responses may contain errors
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function WorkspaceHeader({ title, conversationId, user, userPlan, onUpgrade }) {
-  const [showCredits, setShowCredits] = useState(false);
-  const [showPublish, setShowPublish] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const creditsRef = useRef(null);
-  const publishRef = useRef(null);
-
-  useEffect(() => {
-    const h = (e) => {
-      if (creditsRef.current && !creditsRef.current.contains(e.target)) setShowCredits(false);
-      if (publishRef.current && !publishRef.current.contains(e.target) && !isPublishing) setShowPublish(false);
-    };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [isPublishing]);
-
-  return (
-    <header className="flex items-center justify-between px-4 h-12 flex-shrink-0" style={{ background: '#F8F9FA', borderBottom: 'none' }}>
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div ref={creditsRef} className="relative flex-shrink-0">
-          <button
-            onClick={() => setShowCredits((s) => !s)}
-            className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/8 transition-colors">
-            <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-          </button>
-          <AnimatePresence>
-            {showCredits && <CreditsPopover user={user} userPlan={userPlan} onClose={() => setShowCredits(false)} />}
-          </AnimatePresence>
+      {/* LEFT SIDE : Logos, Title & Publish */}
+      <div className="flex items-center gap-3">
+        {/* Orange Logo */}
+        <div className="w-8 h-8 rounded-full bg-[#FF5722] flex items-center justify-center flex-shrink-0 shadow-sm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="16" x2="20" y2="16"/></svg>
         </div>
-        <p className="text-sm font-semibold truncate max-w-[360px]" style={{ color: '#0A0A0A' }}>
-          {title || 'New conversation'}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <button onClick={onUpgrade}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90 border"
-          style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)', borderColor: '#DDFF00', color: '#0A0A0A' }}>
-          <span className="text-[14px] leading-none"></span>
-          Upgrade
-        </button>
-
-        <div ref={publishRef} className="relative flex-shrink-0">
-          <button
-            onClick={() => { if (!isPublishing) setShowPublish((s) => !s); }}
-            disabled={isPublishing}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
-              isPublishing
-                ? 'bg-[#1A1A1A] text-gray-400 cursor-not-allowed'
-                : 'bg-[#0A0A0A] text-white hover:opacity-90'
-            }`}
-          >
-            {isPublishing ? (
-              <>
-                <svg className="w-3.5 h-3.5 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                Publishing...
-              </>
-            ) : (
-              'Publish'
-            )}
-          </button>
-          <AnimatePresence>
-            {showPublish && (
-              <PublishModal
-                conversationId={conversationId}
-                isPublishing={isPublishing}
-                setIsPublishing={setIsPublishing}
-                onClose={() => setShowPublish(false)}
-              />
-            )}
-          </AnimatePresence>
+        
+        <span className="text-gray-200 text-2xl font-light leading-none">/</span>
+        
+        {/* App Icon + Title */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-gray-900 rounded-[10px] flex items-center justify-center shadow-md flex-shrink-0">
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <div className="flex flex-col justify-center">
+            <span className="text-[14px] font-bold text-gray-900 leading-tight truncate max-w-[180px]">AI-powered personal fin...</span>
+            <span className="text-[12px] text-gray-500 leading-none">{userName}'s Workspace Wor...</span>
+          </div>
         </div>
+
+        {/* Publish Button */}
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="ml-2 px-4 py-1.5 bg-[#0F1115] text-white text-[13px] font-semibold rounded-lg shadow-md transition-colors hover:bg-black">
+          Publier
+        </motion.button>
       </div>
-    </header>
+
+      {/* RIGHT SIDE : Tools & Upgrade */}
+      <div className="flex items-center gap-2.5">
+        
+        {/* History Icon */}
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        </motion.button>
+
+        {/* TOGGLE SIDEBAR (|<) */}
+        <motion.button 
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          onClick={onToggleSidebar}
+          className="p-1.5 border border-gray-200 bg-white hover:bg-gray-50 rounded-[10px] transition-colors shadow-sm ml-1"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="2" style={{ transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)' }}>
+             <path d="M19 12H5M12 19l-7-7 7-7M21 5v14"/>
+          </svg>
+        </motion.button>
+
+        {/* Segmented Control */}
+        <div className="flex items-center bg-gray-50 p-1 rounded-[10px] border border-gray-200/60 ml-1 shadow-inner">
+           <button className="px-3 py-1 text-[13px] font-medium bg-white text-gray-800 rounded-md shadow-sm border border-gray-200/50">Aperçu</button>
+           <button className="px-3 py-1 text-[13px] font-medium text-gray-500 hover:text-gray-800 rounded-md transition-colors">Tableau de bord</button>
+        </div>
+
+        {/* Profile Avatars */}
+        <div className="flex items-center ml-2">
+           <div className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-[12px] font-bold z-10 shadow-sm" style={{ backgroundColor: avatarColor }}>
+             {userInitial}
+           </div>
+           <motion.div whileHover={{ scale: 1.1 }} className="w-8 h-8 rounded-full bg-gray-50 border-2 border-white flex items-center justify-center text-gray-500 text-[14px] font-medium -ml-2.5 z-0 hover:bg-gray-100 cursor-pointer shadow-sm">
+             +
+           </motion.div>
+        </div>
+
+        {/* Dots & Github */}
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-1.5 border border-gray-200 bg-white hover:bg-gray-50 rounded-[10px] shadow-sm ml-2 text-gray-600">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </motion.button>
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-1.5 border border-gray-200 bg-white hover:bg-gray-50 rounded-[10px] shadow-sm text-gray-600">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </motion.button>
+
+        {/* Upgrade Button Yuzu */}
+        <motion.button 
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+          onClick={onUpgrade} 
+          className="flex items-center gap-1.5 px-3.5 py-1.5 ml-1 text-[13px] font-bold rounded-[10px] shadow-sm border" 
+          style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)', borderColor: '#DDFF00', color: '#E85D04' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Mettre à niveau
+        </motion.button>
+
+      </div>
+    </div>
   );
 }
