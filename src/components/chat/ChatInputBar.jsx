@@ -160,7 +160,8 @@ export default function ChatInputBar({
 
   return (
     <div
-      className="px-3 sm:px-10 pb-2 pt-0 flex-shrink-0 relative w-full"
+      // Ajout de rounded-[24px], bg-white, et de la bordure claire
+      className="px-3 sm:px-10 pb-2 pt-0 flex-shrink-0 relative w-full bg-white border border-[#DCE4EC] rounded-[24px]"
       onDragEnter={(e) => {e.preventDefault();dragCounterRef.current++;setIsDragging(true);}}
       onDragLeave={(e) => {e.preventDefault();dragCounterRef.current--;if (dragCounterRef.current <= 0) {dragCounterRef.current = 0;setIsDragging(false);}}}
       onDragOver={(e) => e.preventDefault()}
