@@ -692,8 +692,8 @@ Input: ${text.slice(0, 400)}`;
       }
 
       {/* =========================================================
-           3. ZONE DE TRAVAIL : PLUS SERRÉE AVEC LES BORDS (p-3 au lieu de p-5)
-           ========================================================= */}
+             3. ZONE DE TRAVAIL : PLUS SERRÉE AVEC LES BORDS (p-3 au lieu de p-5)
+             ========================================================= */}
       <div className="flex flex-1 p-3 gap-3 overflow-hidden relative">
 
         {/* PANNEAU GAUCHE : LE CHAT */}
@@ -742,8 +742,8 @@ Input: ${text.slice(0, 400)}`;
           </div>
 
           {/* =========================================================
-               BARRE DE TEXTE IA + PHRASE DE PROTECTION
-               ========================================================= */}
+                 BARRE DE TEXTE IA + PHRASE DE PROTECTION
+                 ========================================================= */}
           <div className="flex-shrink-0 flex flex-col mt-2">
             
             {/* La barre blanche : bordure fine, très arrondie, sans padding interne pour laisser l'InputBar gérer l'espace */}
@@ -764,22 +764,22 @@ Input: ${text.slice(0, 400)}`;
             </div>
 
             {/* Le texte simplement placé en dessous, centré sur le fond bleu */}
-            <div className="text-center text-[10px] text-gray-400 mt-2.5 mb-1 hidden">
-              Stensor is an AI tool · Responses may contain errors
-            </div>
+            
+
+            
 
           </div>
 
           {/* TEXTE "STENSOR IS AN AI TOOL" PLACÉ DANS LE FOND BLEU */}
-          <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 flex-shrink-0 hidden">
-            Stensor is an AI tool · Responses may contain errors
-          </div>
+          
+
+          
 
         </div>
 
         {/* =========================================================
-             PANNEAU DROIT : LA PREVIEW (BORDURE PLUS CLAIRE : border-gray-200)
-             ========================================================= */}
+               PANNEAU DROIT : LA PREVIEW (BORDURE PLUS CLAIRE : border-gray-200)
+               ========================================================= */}
         <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
           <FichePanel
             content={ficheContent}
