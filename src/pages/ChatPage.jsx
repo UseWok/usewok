@@ -685,13 +685,54 @@ Input: ${text.slice(0, 400)}`;
         {/* PANNEAU GAUCHE : CHAT AFFINÉ (360px) */}
         <div className="w-[360px] flex-shrink-0 flex flex-col overflow-hidden relative">
           
+{/* ZONE DES MESSAGES (RÉPARÉE) */}
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
-            {/* ... (Tes messages et animations inchangés) ... */}
-            {!isLoadingConversation && messages.map((msg, idx) =>
-            <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                 {/* ... contenu msg ... */}
-               </motion.div>
+            
+            {/* 1. Animation de chargement initial */}
+            {isLoadingConversation && (
+              <div className="flex gap-2 justify-start items-center">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                <ChatLoadingAnimation mode={mode.id} />
+              </div>
             )}
+
+            {/* 2. Écran vide (aucun message) */}
+            {!isLoadingConversation && messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
+                <div className="flex flex-col items-center justify-center opacity-20">
+                  <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
+                  <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+                </div>
+              </div>
+            )}
+
+            {/* 3. AFFICHAGE DES MESSAGES (C'est ça qui manquait !) */}
+            {!isLoadingConversation && messages.map((msg, idx) => (
+              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal'
+                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                  : msg.role === 'assistant'
+                  ? <AssistantMessage
+                      content={msg.content}
+                      agent={msg.agent || currentAgent}
+                      meta={msg.meta}
+                      onClick={() => handleMessageClick(msg, idx)}
+                      discussMode={discussMode}
+                    />
+                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
+                }
+              </motion.div>
+            ))}
+
+            {/* 4. Animations IA en cours de génération */}
+            {synthProgress?.active && (
+              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            )}
+            
+            {isLoading && !synthProgress?.active && (
+              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
 
