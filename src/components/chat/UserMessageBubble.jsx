@@ -13,118 +13,41 @@ function getFileIcon(name = '') {
   return FileText;
 }
 
-export default function UserMessageBubble({ msg, userName, user, onCopy, onEdit }) {
-  const userInitial = user?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?';
-  const fileNames = msg.files || [];
-  const inlineFiles = fileNames.slice(0, MAX_INLINE);
-  const extraFiles = fileNames.slice(MAX_INLINE);
-  const [showExtra, setShowExtra] = useState(false);
+import { useState } from 'react';
+export default function UserMessageBubble({ msg, userName, user }) {
   const [copied, setCopied] = useState(false);
-
   const handleCopyClick = () => {
     navigator.clipboard.writeText(msg.content);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000); // Revient à la normale après 2 secondes
+    setTimeout(() => setCopied(false), 2000);
   };
-
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
   return (
-    <div className="flex gap-3 group justify-end">
-      <div className="flex flex-col gap-1 items-end max-w-[72%]">
-        <p className="text-[10px] font-semibold px-1" style={{ color: '#bbb' }}>{userName}</p>
-
-        {/* File tags */}
-        {fileNames.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 justify-end mb-1">
-            {inlineFiles.map((name, i) => {
-              const Icon = getFileIcon(name);
-              return (
-                <div key={i} className="flex items-center gap-1 px-2 py-1"
-                  style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '4px', maxWidth: '140px' }}>
-                  <Icon className="w-3 h-3 flex-shrink-0" style={{ color: '#888' }} />
-                  <span className="text-[10px] font-medium truncate" style={{ color: '#555' }}>{name}</span>
-                </div>
-              );
-            })}
-            {extraFiles.length > 0 && (
-              <button onClick={() => setShowExtra(true)}
-                className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold"
-                style={{ background: FG, color: '#DDFF00', borderRadius: '4px' }}>
-                +{extraFiles.length} fichiers
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="text-sm leading-relaxed px-3 py-2"
-          style={{ background: 'rgba(0,0,0,0.05)', color: FG, borderRadius: '4px', borderTopRightRadius: '2px', fontWeight: 300 }}>
-          <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-        </div>
-
-        {/* BOUTONS D'ACTION (Copie sans animation + Édition) */}
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button 
-            onClick={handleCopyClick}
-            className="w-6 h-6 rounded-sm flex items-center justify-center transition-none hover:bg-black/6"
-          >
-            {copied ? (
-              // Icône Checkmark (Image 4)
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            ) : (
-              // Icône Copy carrés (Image 3)
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            )}
-          </button>
-          
-          <button onClick={onEdit}
-            className="w-6 h-6 rounded-sm flex items-center justify-center transition-colors hover:bg-black/6">
-            <Pencil className="w-3 h-3" style={{ color: '#bbb' }} />
-          </button>
-        </div>
-      </div>
+    <div className="flex justify-end items-start gap-3 group w-full mb-4">
       
-      {/* AVATAR UTILISATEUR */}
-      <div className="w-5 h-5 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 mt-5"
-        style={{ background: getUserColor(user) }}>
+      {/* HIGHLY CURVED USER BUBBLE (rounded-[24px]) */}
+      <div className="flex flex-col max-w-[85%] rounded-[24px] px-4 pt-3 pb-8 shadow-sm border border-[#DCE4EC] relative" 
+        style={{ background: '#F0F4F8', color: '#000000' }}>
+        
+        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+          {msg.content}
+        </p>
+        {/* COPY BUTTON INSIDE (Bottom right) */}
+        <button 
+          onClick={handleCopyClick}
+          className="absolute bottom-2 right-2 p-1.5 rounded-lg transition-none opacity-0 group-hover:opacity-100 hover:bg-white text-slate-400"
+        >
+          {copied ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          )}
+        </button>
+      </div>
+      {/* TOP-ALIGNED AVATAR */}
+      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-1 bg-slate-800 shadow-sm">
         {userInitial}
       </div>
-
-      {/* Extra files mini window */}
-      <AnimatePresence>
-        {showExtra && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40" onClick={() => setShowExtra(false)}
-              style={{ background: 'rgba(0,0,0,0.3)' }} />
-            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-              className="fixed z-50 bg-white shadow-2xl"
-              style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(360px,90vw)', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.09)' }}>
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#aaa' }}>
-                  {fileNames.length} fichiers joints
-                </p>
-                <button onClick={() => setShowExtra(false)} className="w-6 h-6 flex items-center justify-center hover:bg-black/5"
-                  style={{ borderRadius: '3px' }}>
-                  <X className="w-3.5 h-3.5" style={{ color: '#999' }} />
-                </button>
-              </div>
-              <div className="max-h-64 overflow-y-auto p-2">
-                {fileNames.map((name, i) => {
-                  const Icon = getFileIcon(name);
-                  return (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-                      <div className="w-7 h-7 flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '3px' }}>
-                        <Icon className="w-4 h-4" style={{ color: FG }} />
-                      </div>
-                      <p className="text-xs font-semibold truncate flex-1" style={{ color: FG }}>{name}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
