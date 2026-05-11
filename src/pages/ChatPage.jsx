@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 import { getUserPlan } from '@/lib/plans-config';
 import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
@@ -42,7 +43,6 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
   const abortedRef = useRef(false);
 
-  // --- SON DE FIN DE REPONSE ---
   const playDoneSound = () => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -123,7 +123,7 @@ export default function ChatPage() {
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     setIsLoading(false);
-    playDoneSound(); // SON SATISFAISANT DE FIN
+    playDoneSound();
     
     if (!discussMode) {
       setIsPreviewFakeLoading(true);
@@ -143,29 +143,24 @@ export default function ChatPage() {
   }, [messages, discussMode, convId, convTitleDisplay, isLoading]);
 
   return (
+    // FOND BLANC PUR POUR TOUTE L'APP
     <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
       <WorkspaceHeader user={user} onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex flex-1 p-3 gap-3 overflow-hidden relative bg-[#F9FAFB]">
+      <div className="flex flex-1 p-3 gap-4 overflow-hidden relative">
 
         <AnimatePresence initial={false}>
           {isSidebarOpen && (
             <motion.div 
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 420, opacity: 1 }} // CHAT PLUS LARGE (420px)
+              animate={{ width: 440, opacity: 1 }} 
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 350, damping: 35 }}
-              className="flex-shrink-0 flex flex-col overflow-hidden relative h-full bg-white rounded-[24px] shadow-sm border border-gray-100/50"
+              // LE CHAT EST EN DUR : Pas de bg, pas de border, pas de shadow.
+              className="flex-shrink-0 flex flex-col overflow-hidden relative h-full bg-transparent"
             >
-              {/* APPLE MAC DOTS */}
-              <div className="flex gap-2 px-5 pt-4 pb-1">
-                <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-                <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-                <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-4 py-2 pb-4 [&::-webkit-scrollbar]:hidden">
+              <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 [&::-webkit-scrollbar]:hidden">
                 {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
 
                 {!isLoadingConversation && messages.map((msg, idx) => (
@@ -182,15 +177,16 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="flex-shrink-0 flex flex-col p-3 pt-0">
+              {/* SEULE LA BARRE IA A UNE BORDURE ET UNE OMBRE */}
+              <div className="flex-shrink-0 flex flex-col p-2 pt-0">
                 <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }} isLoading={isLoading} discussMode={discussMode} setDiscussMode={setDiscussMode} onOpenIframe={(url) => setIframeModal({ open: true, url })} />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* PREVIEW FULL SCREEN FLUIDE (Ne touche pas les bords grâce au gap-3 et padding du parent) */}
-        <motion.div layout className="flex-1 flex flex-col bg-white border border-gray-200/60 rounded-[24px] overflow-hidden relative shadow-sm">
+        {/* LA PREVIEW GARDE SON OMBRE ET SA BORDURE (Elle flotte) */}
+        <motion.div layout className="flex-1 flex flex-col bg-white border border-gray-200/80 rounded-[20px] overflow-hidden relative shadow-lg mb-2 mr-2">
           <AnimatePresence>
             {isPreviewFakeLoading && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-md">
