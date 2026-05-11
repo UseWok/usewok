@@ -26,10 +26,10 @@ import SynthesisProposal from '@/components/chat/SynthesisProposal';
 import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
 const AGENTS = [
-  { id: 'global', label: "Knowing exactly where I'm going" },
-  { id: 'emotions-depenses', label: 'Spend without guilt' },
-  { id: 'wealth-strategy', label: 'Becoming financially free' },
-];
+{ id: 'global', label: "Knowing exactly where I'm going" },
+{ id: 'emotions-depenses', label: 'Spend without guilt' },
+{ id: 'wealth-strategy', label: 'Becoming financially free' }];
+
 
 const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
 
@@ -60,7 +60,7 @@ function quickRouteLocal(text) {
   if (/^(bonjour|salut|merci|ok|ciao|hello|\u00e7a va|hi |hey |thanks|bonne)/i.test(t)) return '1';
   const hasNumbers = /\d+/.test(t);
   const complexTerms = (t.match(/investis|portefeuille|calcul|simul|projection|remboursement|int\u00e9r\u00eat|compos|retraite|amortissement/gi) || []).length;
-  return (!hasNumbers && complexTerms < 2) ? '1' : null;
+  return !hasNumbers && complexTerms < 2 ? '1' : null;
 }
 
 export default function ChatPage() {
@@ -80,7 +80,7 @@ export default function ChatPage() {
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && getConversationMessages(conversationId).length === 0);
   const [input, setInput] = useState(() => {
     const saved = localStorage.getItem('stensor_saved_input');
-    if (saved) { localStorage.removeItem('stensor_saved_input'); return saved; }
+    if (saved) {localStorage.removeItem('stensor_saved_input');return saved;}
     if (!conversationId) {
       const draft = localStorage.getItem('stensor_chat_draft');
       if (draft) return draft;
@@ -118,22 +118,22 @@ export default function ChatPage() {
 
   // Autosave draft
   useEffect(() => {
-    if (input) localStorage.setItem('stensor_chat_draft', input);
-    else localStorage.removeItem('stensor_chat_draft');
+    if (input) localStorage.setItem('stensor_chat_draft', input);else
+    localStorage.removeItem('stensor_chat_draft');
   }, [input]);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
   const todayKey = new Date().toISOString().slice(0, 10);
-  const getDailyUsed = () => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0; } catch { return 0; } };
-  const incrementDailyUsed = () => { try { const d = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); d[todayKey] = (d[todayKey] || 0) + 1; localStorage.setItem('stensor_daily_usage', JSON.stringify(d)); } catch {} };
+  const getDailyUsed = () => {try {return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0;} catch {return 0;}};
+  const incrementDailyUsed = () => {try {const d = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}');d[todayKey] = (d[todayKey] || 0) + 1;localStorage.setItem('stensor_daily_usage', JSON.stringify(d));} catch {}};
   const dailyBlocked = dailyLimit > 0 && getDailyUsed() >= dailyLimit;
   const blocked = creditsUsed >= creditsLimit || dailyBlocked;
 
   const canUploadFiles = userPlan?.file_upload || false;
   const canUploadExtended = userPlan?.file_upload_extended || false;
   const hasInternet = userPlan?.internet_access || false;
-  const agentLabel = AGENTS.find(a => a.id === currentAgent)?.label || 'Global Agent';
+  const agentLabel = AGENTS.find((a) => a.id === currentAgent)?.label || 'Global Agent';
   const modeId = urlParams.get('mode') || null;
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export default function ChatPage() {
     if (conversationId) {
       try {
         const discs = getDiscussions();
-        const disc = discs.find(d => d.id === conversationId);
+        const disc = discs.find((d) => d.id === conversationId);
         if (disc) {
           const plan = getUserPlan(null); // will be updated below
           const d = getDiscussionDaysLeft(disc);
@@ -150,7 +150,7 @@ export default function ChatPage() {
         }
       } catch {}
     }
-    base44.auth.me().then(u => {
+    base44.auth.me().then((u) => {
       setUser(u);
       if (u?.id) setCurrentUser(u.id);
       setCreditsUsed(u?.credits_used ?? 0);
@@ -160,26 +160,26 @@ export default function ChatPage() {
       if (isFreeUser && conversationId) {
         try {
           const discs = getDiscussions();
-          const disc = discs.find(d => d.id === conversationId);
+          const disc = discs.find((d) => d.id === conversationId);
           if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
         } catch {}
       } else {
         setFreeDaysLeft(null);
       }
       if (modeId && plan.allowed_modes?.includes(modeId)) {
-        const urlMode = ALL_MODES.find(m => m.id === modeId);
+        const urlMode = ALL_MODES.find((m) => m.id === modeId);
         if (urlMode) setMode(urlMode);
       } else {
         const savedDefault = localStorage.getItem('stensor_default_mode');
-        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault)
-          ? ALL_MODES.find(m => m.id === savedDefault)
-          : ALL_MODES.find(m => plan.allowed_modes?.includes(m.id));
+        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ?
+        ALL_MODES.find((m) => m.id === savedDefault) :
+        ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
         if (preferred) setMode(preferred);
       }
       const urlWeb = urlParams.get('webSearch');
-      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);
-      else if (urlWeb === '0') setUseWebSearch(false);
-      else setUseWebSearch(false);
+      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);else
+      if (urlWeb === '0') setUseWebSearch(false);else
+      setUseWebSearch(false);
     }).catch(() => {});
   }, []);
 
@@ -189,14 +189,14 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    return () => { isMountedRef.current = false; };
+    return () => {isMountedRef.current = false;};
   }, []);
 
   useEffect(() => {
     if (!conversationId) return;
-    loadConversationFromCloud(conversationId).then(cloudMsgs => {
+    loadConversationFromCloud(conversationId).then((cloudMsgs) => {
       if (!isMountedRef.current) return;
-      if (cloudMsgs?.length > 0) { setMessages(cloudMsgs); saveConversationMessages(conversationId, cloudMsgs); }
+      if (cloudMsgs?.length > 0) {setMessages(cloudMsgs);saveConversationMessages(conversationId, cloudMsgs);}
       setTimeout(() => setIsLoadingConversation(false), 300);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
@@ -222,7 +222,7 @@ export default function ChatPage() {
     let prog = 0;
     loadingTimerRef.current = setInterval(() => {
       prog += Math.random() * 8 + 2;
-      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
+      if (prog >= 90) {prog = 90;clearInterval(loadingTimerRef.current);}
       setLoadingProgress(Math.round(prog));
     }, 600);
   };
@@ -238,10 +238,10 @@ export default function ChatPage() {
     stopProgress();
     setIsLoading(false);
     setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: 'Generation interrupted by user.' },
-    ]);
+    setMessages((prev) => [
+    ...prev,
+    { role: 'assistant', content: 'Generation interrupted by user.' }]
+    );
   }, []);
 
   // ── Build title ────────────────────────────────────────────────────────────
@@ -258,7 +258,7 @@ export default function ChatPage() {
     try {
       const stored = getDiscussions();
       const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), model: mode.label, agent: currentAgent };
-      const idx = stored.findIndex(d => d.id === convId);
+      const idx = stored.findIndex((d) => d.id === convId);
       if (idx >= 0) stored.splice(idx, 1);
       stored.unshift(disc);
       saveDiscussions(stored);
@@ -271,7 +271,7 @@ export default function ChatPage() {
     const newUsed = (currentUser.credits_used || 0) + cost;
     await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
     setCreditsUsed(newUsed);
-    setUser(prev => ({ ...prev, credits_used: newUsed }));
+    setUser((prev) => ({ ...prev, credits_used: newUsed }));
     emitCreditsUpdate(newUsed);
     incrementDailyUsed();
   };
@@ -292,41 +292,41 @@ export default function ChatPage() {
       startProgress();
 
       const steps = [
-        { label: 'Reading intent & financial context', param: 'Intent ✓' },
-        { label: 'Mapping your financial parameters', param: null },
-        { label: 'Running multi-scenario projections', param: null },
-        { label: 'Validating assumptions & constraints', param: null },
-        { label: 'Structuring final synthesis', param: null },
-      ];
+      { label: 'Reading intent & financial context', param: 'Intent ✓' },
+      { label: 'Mapping your financial parameters', param: null },
+      { label: 'Running multi-scenario projections', param: null },
+      { label: 'Validating assumptions & constraints', param: null },
+      { label: 'Structuring final synthesis', param: null }];
+
       setSynthProgress({ active: true, steps, currentStep: 0, done: false });
       let step = 0;
       const stepInterval = setInterval(() => {
         step++;
-        if (step < steps.length) setSynthProgress(p => ({ ...p, currentStep: step }));
-        else clearInterval(stepInterval);
+        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
+        clearInterval(stepInterval);
       }, 700);
 
-      await new Promise(r => setTimeout(r, steps.length * 700 + 600));
+      await new Promise((r) => setTimeout(r, steps.length * 700 + 600));
       clearInterval(stepInterval);
-      setSynthProgress(p => ({ ...p, currentStep: steps.length, done: true }));
-      await new Promise(r => setTimeout(r, 500));
+      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise((r) => setTimeout(r, 500));
       setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
 
       stopProgress();
       setIsLoading(false);
 
       const DEEP_REPLIES = [
-        "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
-        "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
-        "Synthesis engine primed. What’s the question you want to go deep on?",
-        "Analysis framework ready — hit me with the real question.",
-      ];
+      "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
+      "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
+      "Synthesis engine primed. What’s the question you want to go deep on?",
+      "Analysis framework ready — hit me with the real question."];
+
       const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
       const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
       let currentUser = user;
-      if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {} }
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
       if (currentUser) await updateCredits(currentUser, 1);
       return;
     }
@@ -340,7 +340,7 @@ export default function ChatPage() {
       setFiles([]);
       setIsLoading(true);
       startProgress();
-      await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
       stopProgress();
       setIsLoading(false);
       const reply = 'b';
@@ -348,14 +348,14 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
       let currentUser = user;
-      if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {} }
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
       if (currentUser) await updateCredits(currentUser, 1);
       return;
     }
 
     let currentUser = user;
     if (!currentUser) {
-      try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {}
+      try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}
     }
 
     // Discussion limit checks
@@ -363,7 +363,7 @@ export default function ChatPage() {
     if (isFree) {
       try {
         const stored = getDiscussions();
-        if (!stored.find(d => d.id === convId) && stored.length >= 3) {
+        if (!stored.find((d) => d.id === convId) && stored.length >= 3) {
           localStorage.setItem('stensor_saved_input', text);
           setShowFreeDiscussionLimit(true);
           return;
@@ -372,7 +372,7 @@ export default function ChatPage() {
     } else if (userPlan?.max_discussions > 0) {
       try {
         const stored = getDiscussions();
-        if (!stored.find(d => d.id === convId) && stored.length >= userPlan.max_discussions) {
+        if (!stored.find((d) => d.id === convId) && stored.length >= userPlan.max_discussions) {
           localStorage.setItem('stensor_saved_input', text);
           setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
           setShowUpgrade(true);
@@ -381,7 +381,7 @@ export default function ChatPage() {
       } catch {}
     }
 
-    const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map(f => f.name) : undefined };
+    const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map((f) => f.name) : undefined };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     localStorage.removeItem('stensor_chat_draft');
@@ -405,7 +405,7 @@ export default function ChatPage() {
     let file_urls = [];
     if (files.length > 0 && canUploadFiles) {
       for (const file of files) {
-        try { const { file_url } = await base44.integrations.Core.UploadFile({ file }); file_urls.push(file_url); } catch {}
+        try {const { file_url } = await base44.integrations.Core.UploadFile({ file });file_urls.push(file_url);} catch {}
       }
     }
 
@@ -413,7 +413,7 @@ export default function ChatPage() {
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
-    
+
     const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
     const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
     const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
@@ -440,15 +440,15 @@ export default function ChatPage() {
     dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
     const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
 
-    const systemContext = agentConfig?.instructions
-      ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n`
-      : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
+    const systemContext = agentConfig?.instructions ?
+    `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` :
+    `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
     // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
     const recentMsgs = messages.slice(-2);
-    const historyContext = recentMsgs.length > 0
-      ? '\n\n--- Recent conversation ---\n' + recentMsgs.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n'
-      : '';
+    const historyContext = recentMsgs.length > 0 ?
+    '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' :
+    '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
@@ -485,11 +485,11 @@ Input: ${text.slice(0, 400)}`;
     // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
     if (routeDecision === '2') {
       const PROPOSAL_MSGS = [
-        "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
-        "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.",
-        "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.",
-        "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!",
-      ];
+      "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
+      "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.",
+      "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.",
+      "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
+
       let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
 
       synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
@@ -507,7 +507,7 @@ Input: ${text.slice(0, 400)}`;
         prompt: systemContext + historyContext + text + fileInstruction,
         model: 'gemini_3_flash',
         add_context_from_internet: useInternet,
-        ...(file_urls.length > 0 ? { file_urls } : {}),
+        ...(file_urls.length > 0 ? { file_urls } : {})
       });
     } catch (err) {
       stopProgress();
@@ -530,7 +530,7 @@ Input: ${text.slice(0, 400)}`;
       if (isFirstMessage) {
         await base44.auth.updateMe({ first_message_sent: true });
         currentUser = { ...currentUser, first_message_sent: true };
-        setUser(prev => prev ? { ...prev, first_message_sent: true } : prev);
+        setUser((prev) => prev ? { ...prev, first_message_sent: true } : prev);
         completeReferralOnFirstMessage(currentUser.id).catch(() => {});
       }
     }
@@ -554,7 +554,7 @@ Input: ${text.slice(0, 400)}`;
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
     // Milestone toast
-    const userCount = finalMsgs.filter(m => m.role === 'user').length;
+    const userCount = finalMsgs.filter((m) => m.role === 'user').length;
     if (userCount === 10 && !milestoneShown) {
       setMilestoneShown(true);
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
@@ -578,19 +578,19 @@ Input: ${text.slice(0, 400)}`;
 
     if (doDeep) {
       const steps = [
-        { label: 'Reading intent & financial context', param: 'Intent ✓' },
-        { label: 'Mapping your financial parameters', param: null },
-        { label: 'Running multi-scenario projections', param: null },
-        { label: 'Validating assumptions & constraints', param: null },
-        { label: 'Structuring final synthesis', param: null },
-      ];
+      { label: 'Reading intent & financial context', param: 'Intent ✓' },
+      { label: 'Mapping your financial parameters', param: null },
+      { label: 'Running multi-scenario projections', param: null },
+      { label: 'Validating assumptions & constraints', param: null },
+      { label: 'Structuring final synthesis', param: null }];
+
       setSynthProgress({ active: true, steps, currentStep: 0, done: false });
 
       let step = 0;
       const stepInterval = setInterval(() => {
         step++;
-        if (step < steps.length) setSynthProgress(p => ({ ...p, currentStep: step }));
-        else clearInterval(stepInterval);
+        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
+        clearInterval(stepInterval);
       }, 700);
 
       let deepResult = null;
@@ -599,14 +599,14 @@ Input: ${text.slice(0, 400)}`;
           prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
           model: 'gemini_3_1_pro',
           add_context_from_internet: useInternet,
-          ...(file_urls.length > 0 ? { file_urls } : {}),
+          ...(file_urls.length > 0 ? { file_urls } : {})
         });
       } catch {}
-      content = deepResult ? (typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult)) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
+      content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
 
       clearInterval(stepInterval);
-      setSynthProgress(p => ({ ...p, currentStep: steps.length, done: true }));
-      await new Promise(r => setTimeout(r, 700));
+      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise((r) => setTimeout(r, 700));
       setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
     } else {
       let quickResult = null;
@@ -615,19 +615,19 @@ Input: ${text.slice(0, 400)}`;
           prompt: systemContext + historyContext + text + fileInstruction,
           model: 'gemini_3_flash',
           add_context_from_internet: useInternet,
-          ...(file_urls.length > 0 ? { file_urls } : {}),
+          ...(file_urls.length > 0 ? { file_urls } : {})
         });
       } catch {}
-      content = quickResult ? (typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult)) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
+      content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
     }
 
-    const baseCost = doDeep ? (mode.credit_max || mode.credit_cost) : mode.credit_cost;
+    const baseCost = doDeep ? mode.credit_max || mode.credit_cost : mode.credit_cost;
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
     const msgMeta = {
       modeName: doDeep ? 'Deep Synthesis' : mode.label,
       modelName: doDeep ? 'Deep Synthesis' : 'Precision',
       usedInternet: useInternet,
-      hasFiles: file_urls.length > 0,
+      hasFiles: file_urls.length > 0
     };
 
     if (currentUser) {
@@ -636,7 +636,7 @@ Input: ${text.slice(0, 400)}`;
         try {
           const newDeep = (currentUser.deep_credits_used || 0) + 1;
           await base44.entities.User.update(currentUser.id, { deep_credits_used: newDeep });
-          setUser(prev => prev ? { ...prev, deep_credits_used: newDeep } : prev);
+          setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev);
         } catch {}
       }
       if (isFirstMessage) {
@@ -658,9 +658,9 @@ Input: ${text.slice(0, 400)}`;
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
   }, [mode, currentAgent, convId]);
 
-  const editMessage = (idx) => { setInput(messages[idx].content); setMessages(prev => prev.slice(0, idx)); };
-  const copyMessage = (content) => { navigator.clipboard.writeText(content); toast.success(t('copied'), { duration: 1000 }); };
-  const handleUpgradeRequest = (feature = '') => { setUpgradeFeature(feature); setShowUpgrade(true); };
+  const editMessage = (idx) => {setInput(messages[idx].content);setMessages((prev) => prev.slice(0, idx));};
+  const copyMessage = (content) => {navigator.clipboard.writeText(content);toast.success(t('copied'), { duration: 1000 });};
+  const handleUpgradeRequest = (feature = '') => {setUpgradeFeature(feature);setShowUpgrade(true);};
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg.content || msg.content.length < 20) return;
     if (discussMode) return;
@@ -674,26 +674,26 @@ Input: ${text.slice(0, 400)}`;
       
       {/* 1. TON HEADER */}
       <WorkspaceHeader
-        title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
+        title={convTitleDisplay || messages.find((m) => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
         user={user}
         userPlan={userPlan}
-        onUpgrade={() => setShowUpgradePlan(true)}
-      />
+        onUpgrade={() => setShowUpgradePlan(true)} />
+      
 
       {/* 2. TON AVERTISSEMENT PLAN GRATUIT */}
-      {freeDaysLeft !== null && freeDaysLeft <= 7 && (
-        <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)' }}>
+      {freeDaysLeft !== null && freeDaysLeft <= 7 &&
+      <div className="flex items-center justify-between px-4 py-2 text-xs" style={{ background: freeDaysLeft <= 2 ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)' }}>
           <span style={{ color: freeDaysLeft <= 2 ? '#ef4444' : '#92400e' }}>
             ⏱ This conversation will be deleted in <strong>{freeDaysLeft} day{freeDaysLeft !== 1 ? 's' : ''}</strong> (free plan — 14 day limit)
           </span>
           <button onClick={() => navigate('/pricing')} className="ml-3 text-[10px] font-black px-2 py-1 rounded-sm flex-shrink-0" style={{ background: '#0A0A0A', color: 'white' }}>Upgrade</button>
         </div>
-      )}
+      }
 
       {/* =========================================================
-          3. ZONE DE TRAVAIL : PLUS SERRÉE AVEC LES BORDS (p-3 au lieu de p-5)
-          ========================================================= */}
+           3. ZONE DE TRAVAIL : PLUS SERRÉE AVEC LES BORDS (p-3 au lieu de p-5)
+           ========================================================= */}
       <div className="flex flex-1 p-3 gap-3 overflow-hidden relative">
 
         {/* PANNEAU GAUCHE : LE CHAT */}
@@ -701,49 +701,49 @@ Input: ${text.slice(0, 400)}`;
           
           {/* Zone de messages */}
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
-            {isLoadingConversation && (
-              <div className="flex gap-2 justify-start items-center">
+            {isLoadingConversation &&
+            <div className="flex gap-2 justify-start items-center">
                 <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
                 <ChatLoadingAnimation mode={mode.id} />
               </div>
-            )}
+            }
 
-            {!isLoadingConversation && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20 pt-16">
+            {!isLoadingConversation && messages.length === 0 &&
+            <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20 pt-16">
                 <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain" />
                 <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
               </div>
-            )}
+            }
 
-            {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                {msg.role === 'synthesis_proposal'
-                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                  : msg.role === 'assistant'
-                  ? <AssistantMessage
-                      content={msg.content}
-                      agent={msg.agent || currentAgent}
-                      meta={msg.meta}
-                      onClick={() => handleMessageClick(msg, idx)}
-                      discussMode={discussMode}
-                    />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
-                }
+            {!isLoadingConversation && messages.map((msg, idx) =>
+            <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal' ?
+              <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} /> :
+              msg.role === 'assistant' ?
+              <AssistantMessage
+                content={msg.content}
+                agent={msg.agent || currentAgent}
+                meta={msg.meta}
+                onClick={() => handleMessageClick(msg, idx)}
+                discussMode={discussMode} /> :
+
+              <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} onCopy={copyMessage} onEdit={() => editMessage(idx)} />
+              }
               </motion.div>
-            ))}
+            )}
 
-            {synthProgress.active && (
-              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-            )}
-            {isLoading && !synthProgress.active && (
-              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-            )}
+            {synthProgress.active &&
+            <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            }
+            {isLoading && !synthProgress.active &&
+            <ThinkingSteps isLoading={isLoading} text={messages.filter((m) => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter((m) => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            }
             <div ref={messagesEndRef} />
           </div>
 
           {/* =========================================================
-              BARRE DE TEXTE IA + PHRASE DE PROTECTION
-              ========================================================= */}
+               BARRE DE TEXTE IA + PHRASE DE PROTECTION
+               ========================================================= */}
           <div className="flex-shrink-0 flex flex-col mt-2">
             
             {/* La barre blanche : bordure fine, très arrondie, sans padding interne pour laisser l'InputBar gérer l'espace */}
@@ -759,33 +759,33 @@ Input: ${text.slice(0, 400)}`;
                 useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
                 files={files} setFiles={setFiles}
                 onUpgradeRequest={handleUpgradeRequest}
-                discussMode={discussMode} setDiscussMode={setDiscussMode}
-              />
+                discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              
             </div>
 
             {/* Le texte simplement placé en dessous, centré sur le fond bleu */}
-            <div className="text-center text-[10px] text-gray-400 mt-2.5 mb-1">
+            <div className="text-center text-[10px] text-gray-400 mt-2.5 mb-1 hidden">
               Stensor is an AI tool · Responses may contain errors
             </div>
 
           </div>
 
           {/* TEXTE "STENSOR IS AN AI TOOL" PLACÉ DANS LE FOND BLEU */}
-          <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 flex-shrink-0">
+          <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 flex-shrink-0 hidden">
             Stensor is an AI tool · Responses may contain errors
           </div>
 
         </div>
 
         {/* =========================================================
-            PANNEAU DROIT : LA PREVIEW (BORDURE PLUS CLAIRE : border-gray-200)
-            ========================================================= */}
+             PANNEAU DROIT : LA PREVIEW (BORDURE PLUS CLAIRE : border-gray-200)
+             ========================================================= */}
         <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
-          <FichePanel 
-            content={ficheContent} 
+          <FichePanel
+            content={ficheContent}
             loading={false}
-            link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} 
-          />
+            link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+          
         </div>
 
       </div>
@@ -795,19 +795,19 @@ Input: ${text.slice(0, 400)}`;
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
       <AnimatePresence>
-        {showFreeDiscussionLimit && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
-            onClick={() => setShowFreeDiscussionLimit(false)}>
+        {showFreeDiscussionLimit &&
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        onClick={() => setShowFreeDiscussionLimit(false)}>
             <motion.div
-              initial={{ y: 40, opacity: 0, scale: 0.97 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 40, opacity: 0, scale: 0.97 }}
-              transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-              className="w-full max-w-sm bg-white overflow-hidden"
-              style={{ borderRadius: '20px' }}
-              onClick={e => e.stopPropagation()}>
+            initial={{ y: 40, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 40, opacity: 0, scale: 0.97 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+            className="w-full max-w-sm bg-white overflow-hidden"
+            style={{ borderRadius: '20px' }}
+            onClick={(e) => e.stopPropagation()}>
               <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}>
                 <div className="text-4xl mb-3">💬</div>
                 <p className="font-black text-xl" style={{ color: FG }}>3 discussions max</p>
@@ -819,22 +819,22 @@ Input: ${text.slice(0, 400)}`;
                   Supprime une discussion existante ou passe à un plan payant pour continuer.
                 </p>
                 <div className="space-y-2">
-                  <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }}
-                    className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
-                    style={{ background: FG, color: 'white', borderRadius: '10px' }}>
+                  <button onClick={() => {setShowFreeDiscussionLimit(false);navigate('/pricing');}}
+                className="w-full py-3.5 font-black text-sm transition-all hover:opacity-90"
+                style={{ background: FG, color: 'white', borderRadius: '10px' }}>
                     View plans →
                   </button>
-                  <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/app'); }}
-                    className="w-full py-3 font-medium text-sm transition-all hover:bg-black/5"
-                    style={{ color: '#888', borderRadius: '10px' }}>
+                  <button onClick={() => {setShowFreeDiscussionLimit(false);navigate('/app');}}
+                className="w-full py-3 font-medium text-sm transition-all hover:bg-black/5"
+                style={{ color: '#888', borderRadius: '10px' }}>
                     Manage discussions
                   </button>
                 </div>
               </div>
             </motion.div>
           </motion.div>
-        )}
+        }
       </AnimatePresence>
-    </div>
-  );
+    </div>);
+
 }
