@@ -105,6 +105,14 @@ export default function ChatPage() {
   const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   const [showUpgradePlan, setShowUpgradePlan] = useState(false);
+  const [showDNA, setShowDNA] = useState(false);
+
+  // Auto-redirect to home if a specific conversation is empty
+  useEffect(() => {
+    if (!isLoadingConversation && messages.length === 0 && conversationId) {
+      navigate('/');
+    }
+  }, [isLoadingConversation, messages.length, conversationId, navigate]);
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
