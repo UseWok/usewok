@@ -160,7 +160,7 @@ export default function ChatInputBar({
 
   return (
     <div
-      className="px-3 sm:px-4 pb-2 pt-0 flex-shrink-0 relative w-full rounded-[20px]"
+      className="px-3 sm:px-4 pb-2 pt-0 flex-shrink-0 relative w-full rounded"
       onDragEnter={(e) => {e.preventDefault();dragCounterRef.current++;setIsDragging(true);}}
       onDragLeave={(e) => {e.preventDefault();dragCounterRef.current--;if (dragCounterRef.current <= 0) {dragCounterRef.current = 0;setIsDragging(false);}}}
       onDragOver={(e) => e.preventDefault()}
