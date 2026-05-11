@@ -88,6 +88,7 @@ function PublishModal({ conversationId }) {
   const [visibility, setVisibility] = useState('public');
   const [published, setPublished] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
@@ -205,15 +206,35 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
           Upgrade
         </button>
 
-        {/* BOUTON PUBLISH (Sans icône) */}
+        {/* BOUTON PUBLISH (En haut à droite) */}
         <div ref={publishRef} className="relative flex-shrink-0">
-          <button onClick={() => setShowPublish((s) => !s)}
-            className="flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-all hover:opacity-90"
-            style={{ background: FG, color: 'white' }}>
-            Publish
+          <button 
+            onClick={() => { if (!isPublishing) setShowPublish((s) => !s); }}
+            disabled={isPublishing}
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+              isPublishing 
+                ? 'bg-[#1A1A1A] text-gray-400 cursor-not-allowed' 
+                : 'bg-[#0A0A0A] text-white hover:opacity-90'
+            }`}
+          >
+            {isPublishing ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                Publishing...
+              </>
+            ) : (
+              'Publish'
+            )}
           </button>
           <AnimatePresence>
-            {showPublish && <PublishModal conversationId={conversationId} />}
+            {showPublish && (
+              <PublishModal 
+                conversationId={conversationId} 
+                isPublishing={isPublishing} 
+                setIsPublishing={setIsPublishing} 
+                onClose={() => setShowPublish(false)} 
+              />
+            )}
           </AnimatePresence>
         </div>
       </div>
