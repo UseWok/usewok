@@ -83,7 +83,7 @@ function CreditsPopover({ user, userPlan, onClose }) {
 }
 
 
- function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }) {
+function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const appLink = `stensor.base44.app/p/${conversationId || 'xyz123'}`;
   const fullUrl = `https://${appLink}`;
@@ -172,5 +172,82 @@ function CreditsPopover({ user, userPlan, onClose }) {
         </p>
       </div>
     </motion.div>
+  );
+}
+
+export default function WorkspaceHeader({ title, conversationId, user, userPlan, onUpgrade }) {
+  const [showCredits, setShowCredits] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const creditsRef = useRef(null);
+  const publishRef = useRef(null);
+
+  useEffect(() => {
+    const h = (e) => {
+      if (creditsRef.current && !creditsRef.current.contains(e.target)) setShowCredits(false);
+      if (publishRef.current && !publishRef.current.contains(e.target) && !isPublishing) setShowPublish(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [isPublishing]);
+
+  return (
+    <header className="flex items-center justify-between px-4 h-12 flex-shrink-0" style={{ background: '#F8F9FA', borderBottom: 'none' }}>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div ref={creditsRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowCredits((s) => !s)}
+            className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-black/8 transition-colors">
+            <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
+          </button>
+          <AnimatePresence>
+            {showCredits && <CreditsPopover user={user} userPlan={userPlan} onClose={() => setShowCredits(false)} />}
+          </AnimatePresence>
+        </div>
+        <p className="text-sm font-semibold truncate max-w-[360px]" style={{ color: '#0A0A0A' }}>
+          {title || 'New conversation'}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <button onClick={onUpgrade}
+          className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
+          style={{ background: '#DDFF00', color: '#0A0A0A' }}>
+          <span className="text-[14px] leading-none">♦</span>
+          Upgrade
+        </button>
+
+        <div ref={publishRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => { if (!isPublishing) setShowPublish((s) => !s); }}
+            disabled={isPublishing}
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+              isPublishing
+                ? 'bg-[#1A1A1A] text-gray-400 cursor-not-allowed'
+                : 'bg-[#0A0A0A] text-white hover:opacity-90'
+            }`}
+          >
+            {isPublishing ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                Publishing...
+              </>
+            ) : (
+              'Publish'
+            )}
+          </button>
+          <AnimatePresence>
+            {showPublish && (
+              <PublishModal
+                conversationId={conversationId}
+                isPublishing={isPublishing}
+                setIsPublishing={setIsPublishing}
+                onClose={() => setShowPublish(false)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </header>
   );
 }
