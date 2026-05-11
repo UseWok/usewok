@@ -22,8 +22,6 @@ const popUp = {
   transition: { duration: 0.1 }
 };
 
-import { useState } from 'react';
-
 export default function ChatInputBar({ input, setInput, onSend, isLoading, blocked, mode, setMode, currentAgent, setCurrentAgent, userPlan, useWebSearch, setUseWebSearch, files, setFiles, onUpgradeRequest, discussMode, setDiscussMode, onOpenDNA, canUploadFiles, hasInternet }) {
   
   const [showPlusMenu, setShowPlusMenu] = useState(false);
