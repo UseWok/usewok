@@ -208,7 +208,7 @@ export default function WorkspaceHeader({ title, conversationId, user, userPlan,
         {/* BOUTON PUBLISH (Sans icône) */}
         <div ref={publishRef} className="relative flex-shrink-0">
           <button onClick={() => setShowPublish((s) => !s)}
-            className="flex items-center px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90"
+            className="flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-all hover:opacity-90"
             style={{ background: FG, color: 'white' }}>
             Publish
           </button>
