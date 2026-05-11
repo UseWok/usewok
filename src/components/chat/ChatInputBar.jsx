@@ -1,14 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
-export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, discussMode, setDiscussMode, canUploadFiles, hasInternet, onUpgradeRequest }) {
+export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, discussMode, setDiscussMode, canUploadFiles, hasInternet, onOpenIframe }) {
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [pastedImages, setPastedImages] = useState([]);
-  const navigate = useNavigate();
 
-  // Play satisfying sound on Mic click
   const playMicSound = () => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -42,26 +39,24 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
 
   const handleSendMessage = () => {
     if ((!input.trim() && pastedImages.length === 0) || isLoading) return;
-    onSend(input);
+    onSend(input, pastedImages);
     setPastedImages([]);
   };
 
   return (
     <div className="flex flex-col w-full bg-white rounded-[24px]">
       
-      {/* PASTED IMAGES PREVIEW */}
       {pastedImages.length > 0 && (
         <div className="flex gap-2 px-4 pt-3">
           {pastedImages.map((img, i) => (
-            <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
+            <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
               <img src={img.url} className="w-full h-full object-cover" alt="pasted" />
-              <button onClick={() => setPastedImages(p => p.filter((_, idx) => idx !== i))} className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">×</button>
+              <button onClick={() => setPastedImages(p => p.filter((_, idx) => idx !== i))} className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">×</button>
             </div>
           ))}
         </div>
       )}
 
-      {/* TEXTAREA */}
       <div className="px-4 pt-3 pb-2 border-b border-gray-50">
         <textarea
           value={input} onChange={(e) => setInput(e.target.value)} onPaste={handlePaste}
@@ -75,15 +70,15 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
       <div className="flex items-center justify-between px-3 pb-3 pt-1.5 relative">
         <div className="flex items-center gap-1.5">
           
-          <button onClick={() => navigate('/ai-dna')} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <button onClick={() => onOpenIframe('/ai-dna')} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           </button>
           
           <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
           
           <div className="relative">
             <button onClick={() => setShowPlusMenu(!showPlusMenu)} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
 
             <AnimatePresence>
@@ -91,16 +86,22 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowPlusMenu(false)}></div>
                   <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.1 }}
-                    className="absolute bottom-full left-0 mb-2 w-52 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1.5 font-open overflow-hidden">
+                    className="absolute bottom-full left-0 mb-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1.5 font-open overflow-hidden">
                     
-                    <button onClick={() => { if(!canUploadFiles) onUpgradeRequest(); setShowPlusMenu(false); }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between transition-colors">
+                    <button onClick={() => { if(!canUploadFiles) { onOpenIframe('/pricing'); setShowPlusMenu(false); } }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                       <div className="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Upload files</div>
-                      {!canUploadFiles && <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-[#DDFF00] via-[#DDFF00]/70 to-white border border-[#DDFF00] text-black">♦ Pro</span>}
+                      {!canUploadFiles && <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-[#DDFF00] to-white border border-[#DDFF00] text-black shadow-sm">Builder+</span>}
                     </button>
 
-                    <button onClick={() => { if(!hasInternet) onUpgradeRequest(); setShowPlusMenu(false); }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between transition-colors">
+                    <button onClick={() => { if(!hasInternet) { onOpenIframe('/pricing'); setShowPlusMenu(false); } }} className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                       <div className="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Web Search</div>
-                      {!hasInternet && <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-[#DDFF00] via-[#DDFF00]/70 to-white border border-[#DDFF00] text-black">♦ Pro</span>}
+                      {!hasInternet ? (
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-[#DDFF00] to-white border border-[#DDFF00] text-black shadow-sm">Pro</span>
+                      ) : (
+                        <div className="w-6 h-3.5 rounded-full relative transition-colors bg-black">
+                          <div className="absolute top-0.5 left-0.5 w-2.5 h-2.5 bg-white rounded-full translate-x-2.5"></div>
+                        </div>
+                      )}
                     </button>
 
                   </motion.div>
@@ -109,45 +110,32 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
             </AnimatePresence>
           </div>
           
-          <button 
-            onClick={() => setDiscussMode(!discussMode)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${discussMode ? 'bg-[#F3E8FF] text-[#7E22CE]' : 'bg-slate-100 text-slate-700'}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <button onClick={() => setDiscussMode(!discussMode)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${discussMode ? 'bg-[#F3E8FF] text-[#7E22CE]' : 'bg-slate-100 text-slate-700'}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             Discuss
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           
-          {/* FLUID MIC ANIMATION */}
-          <motion.button 
-            onClick={handleMicClick} 
-            animate={{ width: isRecording ? 100 : 36, backgroundColor: isRecording ? '#FEE2E2' : 'transparent' }}
-            className="flex items-center justify-center h-9 text-gray-700 hover:bg-gray-100 rounded-full transition-colors overflow-hidden"
-          >
+          <motion.button onClick={handleMicClick} animate={{ width: isRecording ? 100 : 36, backgroundColor: isRecording ? '#FEE2E2' : 'transparent' }} className="flex items-center justify-center h-9 text-gray-700 hover:bg-gray-100 rounded-full transition-colors overflow-hidden">
             {isRecording ? (
                <div className="flex items-center gap-2 px-3">
                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                 <span className="text-[12px] font-medium text-red-600 whitespace-nowrap">Recording...</span>
+                 <span className="text-[12px] font-medium text-red-600 whitespace-nowrap">Recording</span>
                </div>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
             )}
           </motion.button>
           
-          {/* DYNAMIC SEND / STOP BUTTON */}
           {isLoading ? (
             <button onClick={onStop} className="flex items-center justify-center w-9 h-9 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all animate-pulse shadow-md">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>
             </button>
           ) : (
-            <button 
-              onClick={handleSendMessage} 
-              disabled={!input.trim() && pastedImages.length === 0} 
-              className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all ${input.trim() || pastedImages.length > 0 ? 'bg-black text-white shadow-md hover:opacity-80' : 'bg-gray-100 text-gray-400'}`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <button onClick={handleSendMessage} disabled={!input.trim() && pastedImages.length === 0} className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all ${input.trim() || pastedImages.length > 0 ? 'bg-black text-white shadow-md hover:opacity-80' : 'bg-gray-100 text-gray-400'}`}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
           )}
 
