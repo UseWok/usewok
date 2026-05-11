@@ -676,8 +676,8 @@ Input: ${text.slice(0, 400)}`;
         conversationId={convId}
         user={user}
         userPlan={userPlan}
-        onUpgrade={() => setShowUpgradePlan(true)} 
-      />
+        onUpgrade={() => setShowUpgradePlan(true)} />
+      
 
       {/* ZONE DE TRAVAIL */}
       <div className="flex flex-1 p-2 gap-2 overflow-hidden relative">
@@ -688,49 +688,49 @@ Input: ${text.slice(0, 400)}`;
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
             
             {/* Chargement initial */}
-            {isLoadingConversation && (
-              <div className="flex gap-2 justify-start items-center">
+            {isLoadingConversation &&
+            <div className="flex gap-2 justify-start items-center">
                 <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
                 <ChatLoadingAnimation mode={mode.id} />
               </div>
-            )}
+            }
 
             {/* Écran vide */}
-            {!isLoadingConversation && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
+            {!isLoadingConversation && messages.length === 0 &&
+            <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
                 <div className="flex flex-col items-center justify-center opacity-20">
                   <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
                   <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
                 </div>
               </div>
-            )}
+            }
 
             {/* Affichage des messages */}
-            {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                {msg.role === 'synthesis_proposal'
-                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                  : msg.role === 'assistant'
-                  ? <AssistantMessage
-                      content={msg.content}
-                      agent={msg.agent || currentAgent}
-                      meta={msg.meta}
-                      onClick={() => handleMessageClick(msg, idx)}
-                      discussMode={discussMode}
-                    />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
-                }
+            {!isLoadingConversation && messages.map((msg, idx) =>
+            <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal' ?
+              <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} /> :
+              msg.role === 'assistant' ?
+              <AssistantMessage
+                content={msg.content}
+                agent={msg.agent || currentAgent}
+                meta={msg.meta}
+                onClick={() => handleMessageClick(msg, idx)}
+                discussMode={discussMode} /> :
+
+              <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
+              }
               </motion.div>
-            ))}
+            )}
 
             {/* Animations IA */}
-            {synthProgress?.active && (
-              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-            )}
+            {synthProgress?.active &&
+            <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            }
             
-            {isLoading && !synthProgress?.active && (
-              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-            )}
+            {isLoading && !synthProgress?.active &&
+            <ThinkingSteps isLoading={isLoading} text={messages.filter((m) => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter((m) => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            }
             
             <div ref={messagesEndRef} />
           </div>
@@ -749,11 +749,11 @@ Input: ${text.slice(0, 400)}`;
                 useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch}
                 files={files} setFiles={setFiles}
                 onUpgradeRequest={handleUpgradeRequest}
-                discussMode={discussMode} setDiscussMode={setDiscussMode} 
-              />
+                discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              
             </div>
             {/* LE TEXTE DE PROTECTION QUI MANQUAIT */}
-            <div className="text-center text-[10px] text-gray-400 mt-2 mb-1">
+            <div className="text-center text-[10px] text-gray-400 mt-2 mb-1 hidden">
               Stensor is an AI tool · Responses may contain errors
             </div>
           </div>
@@ -764,16 +764,16 @@ Input: ${text.slice(0, 400)}`;
           <FichePanel
             content={ficheContent}
             loading={false}
-            link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} 
-          />
+            link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
           
-          {ficheMsgIdx !== null && (
-            <div className="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+          
+          {ficheMsgIdx !== null &&
+          <div className="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
                <span className="text-[9px] text-gray-300 bg-white/80 px-2 py-0.5 rounded-full">
                  Published with Stensor · AI generated
                </span>
             </div>
-          )}
+          }
         </div>
       </div>
 
@@ -782,23 +782,23 @@ Input: ${text.slice(0, 400)}`;
       <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
 
       <AnimatePresence>
-        {showFreeDiscussionLimit && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
-            onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.97 }} className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden" onClick={e => e.stopPropagation()}>
+        {showFreeDiscussionLimit &&
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        onClick={() => setShowFreeDiscussionLimit(false)}>
+            <motion.div initial={{ y: 40, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.97 }} className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}>
                 <p className="font-black text-xl">3 discussions max</p>
               </div>
               <div className="px-6 py-5 text-center">
                 <p className="text-sm mb-5">You've reached the free limit. Upgrade to continue.</p>
-                <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
+                <button onClick={() => {setShowFreeDiscussionLimit(false);navigate('/pricing');}} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
               </div>
             </motion.div>
           </motion.div>
-        )}
+        }
       </AnimatePresence>
-    </div>
-  );
+    </div>);
+
 }
