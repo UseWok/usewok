@@ -737,7 +737,7 @@ Input: ${text.slice(0, 400)}`;
 
           {/* BARRE DE TEXTE IA */}
           <div className="flex-shrink-0 flex flex-col mt-1">
-            <div className="bg-white border border-gray-300 relative shadow-sm z-20 rounded-2xl">
+            <div className="bg-white border border-gray-300 relative shadow-sm z-20 rounded-[10px]">
               <ChatInputBar
                 input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
                 isLoading={isLoading} blocked={blocked}
