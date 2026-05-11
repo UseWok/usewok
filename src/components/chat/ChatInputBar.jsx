@@ -22,8 +22,12 @@ const popUp = {
   transition: { duration: 0.1 }
 };
 
-export default function ChatInputBar({ input, setInput, onSend, isLoading, blocked, mode, setMode, currentAgent, setCurrentAgent, userPlan, useWebSearch, setUseWebSearch, files, setFiles, onUpgradeRequest, discussMode, setDiscussMode }) {
+import { useState } from 'react';
+
+export default function ChatInputBar({ input, setInput, onSend, isLoading, blocked, mode, setMode, currentAgent, setCurrentAgent, userPlan, useWebSearch, setUseWebSearch, files, setFiles, onUpgradeRequest, discussMode, setDiscussMode, onOpenDNA, canUploadFiles, hasInternet }) {
   
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+
   const handleSendMessage = () => {
     if (!input.trim() || isLoading || blocked) return;
     onSend(input);
@@ -50,13 +54,59 @@ export default function ChatInputBar({ input, setInput, onSend, isLoading, block
         
         {/* LEFT GROUP */}
         <div className="flex items-center gap-1.5">
-          <button className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+          
+          {/* GEAR BUTTON -> Opens DNA Modal */}
+          <button onClick={onOpenDNA} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           </button>
+          
           <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
-          <button className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </button>
+          
+          {/* PLUS BUTTON -> Opens File/Web Menu */}
+          <div className="relative">
+            <button onClick={() => setShowPlusMenu(!showPlusMenu)} className="p-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+
+            {/* PLUS DROPDOWN MENU */}
+            {showPlusMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowPlusMenu(false)}></div>
+                <div className="absolute bottom-full left-0 mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1.5 font-open">
+                  
+                  <label className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Upload file
+                    <input type="file" className="hidden" multiple onChange={(e) => {
+                      const dropped = Array.from(e.target.files || []);
+                      if (dropped.length === 0) return;
+                      if (!canUploadFiles) { onUpgradeRequest('Upload files'); return; }
+                      setFiles(p => [...p, ...dropped]);
+                      setShowPlusMenu(false);
+                    }} />
+                  </label>
+
+                  <button 
+                    onClick={() => {
+                      if (!hasInternet) { onUpgradeRequest('Web search'); return; }
+                      setUseWebSearch(!useWebSearch);
+                      setShowPlusMenu(false);
+                    }} 
+                    className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center justify-between gap-2 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                      Web Search
+                    </div>
+                    <div className={`w-6 h-3.5 rounded-full relative transition-colors ${useWebSearch ? 'bg-black' : 'bg-gray-200'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-2.5 h-2.5 bg-white rounded-full transition-transform ${useWebSearch ? 'translate-x-2.5' : ''}`}></div>
+                    </div>
+                  </button>
+
+                </div>
+              </>
+            )}
+          </div>
           
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-slate-100 text-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
