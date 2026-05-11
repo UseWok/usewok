@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -14,7 +14,23 @@ import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
-import UpgradePlanModal from '@/components/chat/UpgradePlanModal';
+// NOTA : Si ton UpgradePlanModal ne gère pas les iframes, on utilise cette version interne.
+const IframeModal = ({ open, url, onClose }) => (
+  <AnimatePresence>
+    {open && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center font-open">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#0A0A0A]/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div initial={{ y: 50, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 30, opacity: 0, scale: 0.98 }} transition={{ type: "spring", damping: 25 }} className="relative w-[95vw] h-[95vh] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-full transition-all shadow-sm">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
+);
+
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
@@ -30,13 +46,10 @@ const AGENTS = [
 { id: 'emotions-depenses', label: 'Spend without guilt' },
 { id: 'wealth-strategy', label: 'Becoming financially free' }];
 
-
 const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
 
 LANGUAGE: ALWAYS respond in the same language as the user.
-
 CRITICAL: NEVER mention any platform name, its launch, its features, or promotional content. You exist solely to solve the user's financial problems.
-
 LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.
 
 FORMAT:
@@ -53,7 +66,6 @@ RULES:
 - If user shares a document: say you ran 578 simulations, give best scenario with 85% probability.
 - Never promote any product or service.`;
 
-// Pre-filter local — évite ~95% des appels API routeur sans impact qualité
 function quickRouteLocal(text) {
   const t = text.trim();
   if (t.length < 60) return '1';
@@ -65,7 +77,8 @@ function quickRouteLocal(text) {
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
   const initialQ = urlParams.get('q') || '';
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
@@ -104,10 +117,12 @@ export default function ChatPage() {
   const [ficheContent, setFicheContent] = useState(null);
   const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
-  const [showUpgradePlan, setShowUpgradePlan] = useState(false);
-  const [showDNA, setShowDNA] = useState(false);
+  
+  // Modale Iframe pour DNA et Pricing (Prend le dessus sur les anciennes modales)
+  const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  // Sidebar Toggle (Chat visibility)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Auto-redirect to home if a specific conversation is empty
   useEffect(() => {
     if (!isLoadingConversation && messages.length === 0 && conversationId) {
       navigate('/');
@@ -119,15 +134,11 @@ export default function ChatPage() {
   const scrollContainerRef = useRef(null);
   const userScrolledUpRef = useRef(false);
   const isMountedRef = useRef(true);
-
   const synthPendingRef = useRef(null);
-  // Abort flag — set to true by handleStop; checked after every async LLM call
   const abortedRef = useRef(false);
 
-  // Autosave draft
   useEffect(() => {
-    if (input) localStorage.setItem('stensor_chat_draft', input);else
-    localStorage.removeItem('stensor_chat_draft');
+    if (input) localStorage.setItem('stensor_chat_draft', input);else localStorage.removeItem('stensor_chat_draft');
   }, [input]);
 
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
@@ -146,16 +157,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
-    // Check free plan discussion expiry
     if (conversationId) {
       try {
         const discs = getDiscussions();
         const disc = discs.find((d) => d.id === conversationId);
-        if (disc) {
-          const plan = getUserPlan(null); // will be updated below
-          const d = getDiscussionDaysLeft(disc);
-          setFreeDaysLeft(d);
-        }
+        if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
       } catch {}
     }
     base44.auth.me().then((u) => {
@@ -171,23 +177,17 @@ export default function ChatPage() {
           const disc = discs.find((d) => d.id === conversationId);
           if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
         } catch {}
-      } else {
-        setFreeDaysLeft(null);
-      }
+      } else setFreeDaysLeft(null);
       if (modeId && plan.allowed_modes?.includes(modeId)) {
         const urlMode = ALL_MODES.find((m) => m.id === modeId);
         if (urlMode) setMode(urlMode);
       } else {
         const savedDefault = localStorage.getItem('stensor_default_mode');
-        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ?
-        ALL_MODES.find((m) => m.id === savedDefault) :
-        ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
+        const preferred = savedDefault && plan.allowed_modes?.includes(savedDefault) ? ALL_MODES.find((m) => m.id === savedDefault) : ALL_MODES.find((m) => plan.allowed_modes?.includes(m.id));
         if (preferred) setMode(preferred);
       }
       const urlWeb = urlParams.get('webSearch');
-      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);else
-      if (urlWeb === '0') setUseWebSearch(false);else
-      setUseWebSearch(false);
+      if (urlWeb === '1' && plan.internet_access) setUseWebSearch(true);else if (urlWeb === '0') setUseWebSearch(false);else setUseWebSearch(false);
     }).catch(() => {});
   }, []);
 
@@ -196,9 +196,7 @@ export default function ChatPage() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
   }, []);
 
-  useEffect(() => {
-    return () => {isMountedRef.current = false;};
-  }, []);
+  useEffect(() => { return () => {isMountedRef.current = false;}; }, []);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -212,20 +210,13 @@ export default function ChatPage() {
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    const handler = () => {
-      userScrolledUpRef.current = container.scrollHeight - container.scrollTop - container.clientHeight > 80;
-    };
+    const handler = () => { userScrolledUpRef.current = container.scrollHeight - container.scrollTop - container.clientHeight > 80; };
     container.addEventListener('scroll', handler, { passive: true });
     return () => container.removeEventListener('scroll', handler);
   }, []);
 
-  useEffect(() => {
-    if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-
-
-  // ── Start fake progress bar ────────────────────────────────────────────────
   const startProgress = () => {
     let prog = 0;
     loadingTimerRef.current = setInterval(() => {
@@ -235,24 +226,16 @@ export default function ChatPage() {
     }, 600);
   };
 
-  const stopProgress = () => {
-    clearInterval(loadingTimerRef.current);
-    setLoadingProgress(0);
-  };
+  const stopProgress = () => { clearInterval(loadingTimerRef.current); setLoadingProgress(0); };
 
-  // ── Stop generation mid-flight ─────────────────────────────────────────────
   const handleStop = useCallback(() => {
     abortedRef.current = true;
     stopProgress();
     setIsLoading(false);
     setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
-    setMessages((prev) => [
-    ...prev,
-    { role: 'assistant', content: 'Generation interrupted by user.' }]
-    );
+    setMessages((prev) => [...prev, { role: 'assistant', content: 'Generation interrupted by user.' }]);
   }, []);
 
-  // ── Build title ────────────────────────────────────────────────────────────
   const buildTitle = async (text, newMessages) => {
     try {
       const cloudTitle = await loadConversationTitleFromCloud(convId);
@@ -261,7 +244,6 @@ export default function ChatPage() {
     return text.slice(0, 30);
   };
 
-  // ── Save to discussions ────────────────────────────────────────────────────
   const saveToDiscussions = (convTitle, text) => {
     try {
       const stored = getDiscussions();
@@ -273,31 +255,21 @@ export default function ChatPage() {
     } catch {}
   };
 
-  // ── Update credits ─────────────────────────────────────────────────────────
   const updateCredits = async (currentUser, cost) => {
     if (!currentUser) return;
     const newUsed = (currentUser.credits_used || 0) + cost;
     await base44.entities.User.update(currentUser.id, { credits_used: newUsed });
-    setCreditsUsed(newUsed);
-    setUser((prev) => ({ ...prev, credits_used: newUsed }));
-    emitCreditsUpdate(newUsed);
-    incrementDailyUsed();
+    setCreditsUsed(newUsed); setUser((prev) => ({ ...prev, credits_used: newUsed })); emitCreditsUpdate(newUsed); incrementDailyUsed();
   };
 
-  // ── Send message (main) ────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
     const actualText = discussMode ? 'Discuss: ' + text : text;
 
-    // ── Triple-dot: deep synthesis barrier message, no API ──
     if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
       const userMsg = { role: 'user', content: text };
       const newMessages = [...messages, userMsg];
-      setMessages(newMessages);
-      setInput('');
-      setFiles([]);
-      setIsLoading(true);
-      startProgress();
+      setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true); startProgress();
 
       const steps = [
       { label: 'Reading intent & financial context', param: 'Intent ✓' },
@@ -308,11 +280,7 @@ export default function ChatPage() {
 
       setSynthProgress({ active: true, steps, currentStep: 0, done: false });
       let step = 0;
-      const stepInterval = setInterval(() => {
-        step++;
-        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
-        clearInterval(stepInterval);
-      }, 700);
+      const stepInterval = setInterval(() => { step++; if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else clearInterval(stepInterval); }, 700);
 
       await new Promise((r) => setTimeout(r, steps.length * 700 + 600));
       clearInterval(stepInterval);
@@ -320,41 +288,25 @@ export default function ChatPage() {
       await new Promise((r) => setTimeout(r, 500));
       setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
 
-      stopProgress();
-      setIsLoading(false);
-
-      const DEEP_REPLIES = [
-      "Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.",
-      "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.",
-      "Synthesis engine primed. What’s the question you want to go deep on?",
-      "Analysis framework ready — hit me with the real question."];
-
+      stopProgress(); setIsLoading(false);
+      const DEEP_REPLIES = ["Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.", "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.", "Synthesis engine primed. What’s the question you want to go deep on?", "Analysis framework ready — hit me with the real question."];
       const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
       const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
+      setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
       let currentUser = user;
       if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
       if (currentUser) await updateCredits(currentUser, 1);
       return;
     }
 
-    // ── Dot-dot mode: message ending with ".." — no API, just consume 1 flash ──
     if (text.trimEnd().endsWith('..')) {
-      const userMsg = { role: 'user', content: text };
-      const newMessages = [...messages, userMsg];
-      setMessages(newMessages);
-      setInput('');
-      setFiles([]);
-      setIsLoading(true);
-      startProgress();
+      const userMsg = { role: 'user', content: text }; const newMessages = [...messages, userMsg];
+      setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true); startProgress();
       await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
-      stopProgress();
-      setIsLoading(false);
+      stopProgress(); setIsLoading(false);
       const reply = 'b';
       const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
+      setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
       let currentUser = user;
       if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
       if (currentUser) await updateCredits(currentUser, 1);
@@ -362,62 +314,35 @@ export default function ChatPage() {
     }
 
     let currentUser = user;
-    if (!currentUser) {
-      try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}
-    }
+    if (!currentUser) { try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {} }
 
-    // Discussion limit checks
     const isFree = !userPlan || userPlan.price_monthly === 0;
     if (isFree) {
       try {
         const stored = getDiscussions();
-        if (!stored.find((d) => d.id === convId) && stored.length >= 3) {
-          localStorage.setItem('stensor_saved_input', text);
-          setShowFreeDiscussionLimit(true);
-          return;
-        }
+        if (!stored.find((d) => d.id === convId) && stored.length >= 3) { localStorage.setItem('stensor_saved_input', text); setShowFreeDiscussionLimit(true); return; }
       } catch {}
     } else if (userPlan?.max_discussions > 0) {
       try {
         const stored = getDiscussions();
-        if (!stored.find((d) => d.id === convId) && stored.length >= userPlan.max_discussions) {
-          localStorage.setItem('stensor_saved_input', text);
-          setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`);
-          setShowUpgrade(true);
-          return;
-        }
+        if (!stored.find((d) => d.id === convId) && stored.length >= userPlan.max_discussions) { localStorage.setItem('stensor_saved_input', text); setUpgradeFeature(`plus de ${userPlan.max_discussions} discussions`); setShowUpgrade(true); return; }
       } catch {}
     }
 
     const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map((f) => f.name) : undefined };
     const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    localStorage.removeItem('stensor_chat_draft');
-    setInput('');
-    setFiles([]);
-    setIsLoading(true);
-    setLoadingProgress(0);
-    startProgress();
+    setMessages(newMessages); localStorage.removeItem('stensor_chat_draft'); setInput(''); setFiles([]); setIsLoading(true); setLoadingProgress(0); startProgress();
 
-    // Gibberish fast path
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
       if (currentUser) await updateCredits(currentUser, 1);
-      stopProgress();
-      setIsLoading(false);
-      return;
+      stopProgress(); setIsLoading(false); return;
     }
 
-    // Upload files
     let file_urls = [];
-    if (files.length > 0 && canUploadFiles) {
-      for (const file of files) {
-        try {const { file_url } = await base44.integrations.Core.UploadFile({ file });file_urls.push(file_url);} catch {}
-      }
-    }
+    if (files.length > 0 && canUploadFiles) { for (const file of files) { try {const { file_url } = await base44.integrations.Core.UploadFile({ file });file_urls.push(file_url);} catch {} } }
 
-    // Agent + system context
     await initAgentsFromDB().catch(() => {});
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
@@ -448,97 +373,57 @@ export default function ChatPage() {
     dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
     const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
 
-    const systemContext = agentConfig?.instructions ?
-    `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` :
-    `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
+    const systemContext = agentConfig?.instructions ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
-    // Last 2 messages as context — saves ~50% prompt tokens, no quality loss
     const recentMsgs = messages.slice(-2);
-    const historyContext = recentMsgs.length > 0 ?
-    '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' :
-    '';
+    const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    // ── Cognitive Router (local pre-filter saves ~95% API calls) ───────────
     let routeDecision = '1';
     if (!isFirstMessage) {
       const localDecision = quickRouteLocal(text);
-      if (localDecision !== null) {
-        routeDecision = localDecision;
-      } else {
+      if (localDecision !== null) { routeDecision = localDecision; } else {
         try {
-          const routerPrompt = `Role: Router for a financial AI.
-Task: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.
-
-Rules:
-2 = ONLY when ALL 3 conditions are met simultaneously:
-  - The question involves genuine multi-step financial calculations (e.g. compound interest over time, debt payoff schedule, retirement projection, portfolio optimization, rent vs buy with numbers)
-  - A complete answer REQUIRES structured reasoning across 3+ financial variables
-  - A short paragraph answer would be clearly insufficient or misleading
-1 = Everything else — simple questions, definitions, advice, emotional support, single-variable questions, market opinions, budget tips, comparisons without math, any greeting or follow-up.
-
-CRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.
-
-Input: ${text.slice(0, 400)}`;
+          const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n2 = ONLY when ALL 3 conditions are met simultaneously:\n  - The question involves genuine multi-step financial calculations\n  - A complete answer REQUIRES structured reasoning across 3+ financial variables\n  - A short paragraph answer would be clearly insufficient or misleading\n1 = Everything else.\n\nCRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.\n\nInput: ${text.slice(0, 400)}`;
           const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
           routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
           if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
-        } catch {
-          routeDecision = '1';
-        }
+        } catch { routeDecision = '1'; }
       }
     }
 
-    // ── Route 2: propose Deep Synthesis ─────────────────────────────────────
     if (routeDecision === '2') {
-      const PROPOSAL_MSGS = [
-      "Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!",
-      "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.",
-      "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.",
-      "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
-
+      const PROPOSAL_MSGS = ["Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!", "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.", "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.", "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
       let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
-
       synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
-      stopProgress();
-      setIsLoading(false);
+      stopProgress(); setIsLoading(false);
       setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
       return;
     }
 
-    // ── Route 1: fast direct response ───────────────────────────────────────
     abortedRef.current = false;
     let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({
-        prompt: systemContext + historyContext + text + fileInstruction,
-        model: 'gemini_3_flash',
-        add_context_from_internet: useInternet,
-        ...(file_urls.length > 0 ? { file_urls } : {})
-      });
+      result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) });
     } catch (err) {
-      stopProgress();
-      setIsLoading(false);
-      const errorMsg = "I haven't been able to process your request yet. Please try again in a few seconds.";
-      setMessages([...newMessages, { role: 'assistant', content: errorMsg }]);
+      stopProgress(); setIsLoading(false);
+      setMessages([...newMessages, { role: 'assistant', content: "I haven't been able to process your request yet. Please try again in a few seconds." }]);
       return;
     }
-    // If user hit Stop while we were awaiting, the handler already cleaned up.
+    
     if (abortedRef.current) return;
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     let baseCost = mode.credit_cost;
     if (isFirstMessage) baseCost = 1;
-    // Discuss mode costs 1 credit; Flash/Task mode costs 2 (mode.credit_cost).
     const costPerMsg = discussMode ? 1 : baseCost + (useInternet ? 1 : 0);
 
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
       if (isFirstMessage) {
         await base44.auth.updateMe({ first_message_sent: true });
-        currentUser = { ...currentUser, first_message_sent: true };
-        setUser((prev) => prev ? { ...prev, first_message_sent: true } : prev);
+        currentUser = { ...currentUser, first_message_sent: true }; setUser((prev) => prev ? { ...prev, first_message_sent: true } : prev);
         completeReferralOnFirstMessage(currentUser.id).catch(() => {});
       }
     }
@@ -546,22 +431,16 @@ Input: ${text.slice(0, 400)}`;
     const msgMeta = { modeName: isFirstMessage ? 'Expert' : mode.label, modelName: 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
     const convTitle = await buildTitle(text, newMessages);
     saveToDiscussions(convTitle, text);
-
     setConvTitleDisplay(convTitle);
-    stopProgress();
-    setIsLoading(false);
-    // In Discuss mode, the response lives entirely in the chat — no right-panel preview.
-    if (!discussMode) {
-      setFicheContent(content);
-      setFicheMsgIdx(newMessages.length);
-    }
+    stopProgress(); setIsLoading(false);
+    
+    if (!discussMode) { setFicheContent(content); setFicheMsgIdx(newMessages.length); }
     const msgIdx = newMessages.length;
     const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: discussMode ? undefined : msgIdx, meta: msgMeta }];
     setMessages(finalMsgs);
     saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
-    // Milestone toast
     const userCount = finalMsgs.filter((m) => m.role === 'user').length;
     if (userCount === 10 && !milestoneShown) {
       setMilestoneShown(true);
@@ -569,180 +448,154 @@ Input: ${text.slice(0, 400)}`;
     }
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
 
-  // ── Synthesis continuation ─────────────────────────────────────────────────
   const continueSynthesis = useCallback(async (doDeep) => {
     const pending = synthPendingRef.current;
     if (!pending) return;
     synthPendingRef.current = null;
-
     const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext = '' } = pending;
 
-    setMessages(newMessages);
-    setIsLoading(true);
-    setLoadingProgress(0);
-    startProgress();
+    setMessages(newMessages); setIsLoading(true); setLoadingProgress(0); startProgress();
 
     let content = '';
 
     if (doDeep) {
-      const steps = [
-      { label: 'Reading intent & financial context', param: 'Intent ✓' },
-      { label: 'Mapping your financial parameters', param: null },
-      { label: 'Running multi-scenario projections', param: null },
-      { label: 'Validating assumptions & constraints', param: null },
-      { label: 'Structuring final synthesis', param: null }];
-
+      const steps = [ { label: 'Reading intent & financial context', param: 'Intent ✓' }, { label: 'Mapping your financial parameters', param: null }, { label: 'Running multi-scenario projections', param: null }, { label: 'Validating assumptions & constraints', param: null }, { label: 'Structuring final synthesis', param: null } ];
       setSynthProgress({ active: true, steps, currentStep: 0, done: false });
-
       let step = 0;
-      const stepInterval = setInterval(() => {
-        step++;
-        if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else
-        clearInterval(stepInterval);
-      }, 700);
+      const stepInterval = setInterval(() => { step++; if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else clearInterval(stepInterval); }, 700);
 
       let deepResult = null;
-      try {
-        deepResult = await base44.integrations.Core.InvokeLLM({
-          prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.',
-          model: 'gemini_3_1_pro',
-          add_context_from_internet: useInternet,
-          ...(file_urls.length > 0 ? { file_urls } : {})
-        });
-      } catch {}
+      try { deepResult = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.', model: 'gemini_3_1_pro', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) }); } catch {}
       content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
 
-      clearInterval(stepInterval);
-      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
-      await new Promise((r) => setTimeout(r, 700));
-      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+      clearInterval(stepInterval); setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true })); await new Promise((r) => setTimeout(r, 700)); setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
     } else {
       let quickResult = null;
-      try {
-        quickResult = await base44.integrations.Core.InvokeLLM({
-          prompt: systemContext + historyContext + text + fileInstruction,
-          model: 'gemini_3_flash',
-          add_context_from_internet: useInternet,
-          ...(file_urls.length > 0 ? { file_urls } : {})
-        });
-      } catch {}
+      try { quickResult = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) }); } catch {}
       content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
     }
 
     const baseCost = doDeep ? mode.credit_max || mode.credit_cost : mode.credit_cost;
     const costPerMsg = baseCost + (useInternet ? 1 : 0);
-    const msgMeta = {
-      modeName: doDeep ? 'Deep Synthesis' : mode.label,
-      modelName: doDeep ? 'Deep Synthesis' : 'Precision',
-      usedInternet: useInternet,
-      hasFiles: file_urls.length > 0
-    };
+    const msgMeta = { modeName: doDeep ? 'Deep Synthesis' : mode.label, modelName: doDeep ? 'Deep Synthesis' : 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
 
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
-      if (doDeep) {
-        try {
-          const newDeep = (currentUser.deep_credits_used || 0) + 1;
-          await base44.entities.User.update(currentUser.id, { deep_credits_used: newDeep });
-          setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev);
-        } catch {}
-      }
-      if (isFirstMessage) {
-        completeReferralOnFirstMessage(currentUser.id).catch(() => {});
-      }
+      if (doDeep) { try { const newDeep = (currentUser.deep_credits_used || 0) + 1; await base44.entities.User.update(currentUser.id, { deep_credits_used: newDeep }); setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev); } catch {} }
+      if (isFirstMessage) { completeReferralOnFirstMessage(currentUser.id).catch(() => {}); }
     }
 
     const convTitle = await buildTitle(text, newMessages);
     saveToDiscussions(convTitle, text);
-
-    stopProgress();
-    setIsLoading(false);
-    setFicheContent(content);
-    const msgIdx = newMessages.length;
-    setFicheMsgIdx(msgIdx);
+    stopProgress(); setIsLoading(false); setFicheContent(content);
+    const msgIdx = newMessages.length; setFicheMsgIdx(msgIdx);
     const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
-    setMessages(finalMsgs);
-    saveConversationMessages(convId, finalMsgs);
+    setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
   }, [mode, currentAgent, convId]);
 
-  const editMessage = (idx) => {setInput(messages[idx].content);setMessages((prev) => prev.slice(0, idx));};
-  const copyMessage = (content) => {navigator.clipboard.writeText(content);toast.success(t('copied'), { duration: 1000 });};
-  const handleUpgradeRequest = (feature = '') => {setUpgradeFeature(feature);setShowUpgrade(true);};
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg.content || msg.content.length < 20) return;
     if (discussMode) return;
-    setFicheContent(msg.content);
-    setFicheMsgIdx(idx);
+    setFicheContent(msg.content); setFicheMsgIdx(idx);
   }, [discussMode]);
 
   return (
-    <div className="flex flex-col font-open h-screen w-full bg-[#F9FAFB] overflow-hidden">
+    // FOND BLANC PUR (NOTION.COM) - PLUS AUCUNE LIGNE DE DÉLIMITATION GLOBALE
+    <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
+      {/* LE HEADER CONNECTÉ AU TOGGLE SIDEBAR */}
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
         user={user}
         userPlan={userPlan}
-        onUpgrade={() => setShowUpgradePlan(true)} 
+        onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      <div className="flex flex-1 p-2 gap-2 overflow-hidden relative">
-        <div className="w-[360px] flex-shrink-0 flex flex-col overflow-hidden relative">
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-0 space-y-4 pb-4">
-            
-            {isLoadingConversation && (
-              <div className="flex gap-2 justify-start items-center">
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
-                <ChatLoadingAnimation mode={mode.id} />
+
+      <div className="flex flex-1 p-2 gap-4 overflow-hidden relative">
+        
+        {/* LE CHAT QUI PEUT DISPARAÎTRE (TOGGLE) - FLAT DESIGN, NO BORDER */}
+        <AnimatePresence initial={false}>
+          {isSidebarOpen && (
+            <motion.div 
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 380, opacity: 1 }} 
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex-shrink-0 flex flex-col overflow-hidden relative bg-transparent"
+            >
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+                
+                {isLoadingConversation && (
+                  <div className="flex gap-2 justify-start items-center">
+                    <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                    <ChatLoadingAnimation mode={mode.id} />
+                  </div>
+                )}
+                
+                {!isLoadingConversation && messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
+                    <div className="flex flex-col items-center justify-center opacity-20">
+                      <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
+                      <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {!isLoadingConversation && messages.map((msg, idx) => (
+                  <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                    {msg.role === 'synthesis_proposal'
+                      ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                      : msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
+                    }
+                  </motion.div>
+                ))}
+                
+                {synthProgress?.active && (
+                  <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+                )}
+                
+                {isLoading && !synthProgress?.active && (
+                  <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+                )}
+                
+                <div ref={messagesEndRef} />
               </div>
-            )}
-            {!isLoadingConversation && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
-                <div className="flex flex-col items-center justify-center opacity-20">
-                  <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
-                  <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+              
+              <div className="flex-shrink-0 flex flex-col p-2 pt-0">
+                <div className="bg-white border border-gray-200/80 rounded-[24px] relative shadow-sm z-20">
+                  <ChatInputBar
+                    input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
+                    isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                    currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                    canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
+                    useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                    onOpenIframe={(url) => setIframeModal({ open: true, url })} 
+                    discussMode={discussMode} setDiscussMode={setDiscussMode} 
+                  />
                 </div>
               </div>
-            )}
-            {!isLoadingConversation && messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                {msg.role === 'synthesis_proposal'
-                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                  : msg.role === 'assistant'
-                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
-                }
-              </motion.div>
-            ))}
-            {synthProgress?.active && (
-              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-            )}
-            
-            {isLoading && !synthProgress?.active && (
-              <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="flex-shrink-0 flex flex-col mt-1">
-            <div className="bg-white border border-gray-300 rounded-[24px] relative shadow-sm z-20">
-              <ChatInputBar
-                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
-                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode} 
-              />
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden relative">
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* LA PREVIEW PANEL (Flottante, Ombrée) */}
+        <motion.div layout className="flex-1 flex flex-col bg-white border border-gray-200/60 rounded-2xl overflow-hidden relative shadow-sm mb-2 mr-2">
           <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
-        </div>
+        </motion.div>
+
       </div>
+
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
-      <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
+      
+      {/* MODALE 95% POUR ENGRENAGE/DNA/PRICING */}
+      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
+
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowFreeDiscussionLimit(false)}>
