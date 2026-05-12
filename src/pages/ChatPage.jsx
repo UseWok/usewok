@@ -14,17 +14,18 @@ import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
-// NOTA : Si ton UpgradePlanModal ne gère pas les iframes, on utilise cette version interne.
+
+// MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
     {open && (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center font-open">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#0A0A0A]/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div initial={{ y: 50, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 30, opacity: 0, scale: 0.98 }} transition={{ type: "spring", damping: 25 }} className="relative w-[95vw] h-[95vh] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+        <motion.div initial={{ y: 50, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 30, opacity: 0, scale: 0.98 }} transition={{ type: "spring", damping: 25 }} className="relative w-[95vw] h-[95vh] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-gray-200">
           <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-full transition-all shadow-sm">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
+          <iframe src={url} className="w-full h-full border-none bg-white" />
         </motion.div>
       </div>
     )}
@@ -37,7 +38,6 @@ import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
-import ThinkingSteps from '@/components/chat/ThinkingSteps';
 import SynthesisProposal from '@/components/chat/SynthesisProposal';
 import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
@@ -118,9 +118,7 @@ export default function ChatPage() {
   const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   
-  // Modale Iframe pour DNA et Pricing (Prend le dessus sur les anciennes modales)
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
-  // Sidebar Toggle (Chat visibility)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -437,8 +435,7 @@ export default function ChatPage() {
     if (!discussMode) { setFicheContent(content); setFicheMsgIdx(newMessages.length); }
     const msgIdx = newMessages.length;
     const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: discussMode ? undefined : msgIdx, meta: msgMeta }];
-    setMessages(finalMsgs);
-    saveConversationMessages(convId, finalMsgs);
+    setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
     const userCount = finalMsgs.filter((m) => m.role === 'user').length;
@@ -501,33 +498,29 @@ export default function ChatPage() {
   }, [discussMode]);
 
   return (
-    // FOND BLANC PUR (NOTION.COM) - PLUS AUCUNE LIGNE DE DÉLIMITATION GLOBALE
+    // FOND BLANC PUR, EDGE TO EDGE
     <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
-      {/* LE HEADER CONNECTÉ AU TOGGLE SIDEBAR */}
       <WorkspaceHeader
         title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
-        user={user}
-        userPlan={userPlan}
         onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
-      <div className="flex flex-1 p-2 gap-4 overflow-hidden relative">
+      {/* GLOBAL FLEX CONTAINER: NO PADDING, FLUSH TO EDGES */}
+      <div className="flex flex-1 overflow-hidden relative">
         
-        {/* LE CHAT QUI PEUT DISPARAÎTRE (TOGGLE) - FLAT DESIGN, NO BORDER */}
+        {/* LE CHAT QUI PEUT DISPARAÎTRE - BORD À BORD, SÉPARÉ PAR UNE LIGNE */}
         <AnimatePresence initial={false}>
           {isSidebarOpen && (
             <motion.div 
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 380, opacity: 1 }} 
+              animate={{ width: 400, opacity: 1 }} 
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex-shrink-0 flex flex-col overflow-hidden relative bg-transparent"
+              className="flex-shrink-0 flex flex-col overflow-hidden relative bg-white border-r border-gray-200 z-10"
             >
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
                 
                 {isLoadingConversation && (
                   <div className="flex gap-2 justify-start items-center">
@@ -560,32 +553,34 @@ export default function ChatPage() {
                   <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
                 )}
                 
+                {/* L'EFFET WOW REMPLACE LE CHARGEMENT BASIQUE */}
                 {isLoading && !synthProgress?.active && (
-                  <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                    <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
+                  </motion.div>
                 )}
                 
                 <div ref={messagesEndRef} />
               </div>
               
-              <div className="flex-shrink-0 flex flex-col p-2 pt-0">
-                <div className="bg-white border border-gray-200/80 rounded-[24px] relative shadow-sm z-20">
-                  <ChatInputBar
-                    input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
-                    isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                    currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                    canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
-                    useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                    onOpenIframe={(url) => setIframeModal({ open: true, url })} 
-                    discussMode={discussMode} setDiscussMode={setDiscussMode} 
-                  />
-                </div>
+              <div className="flex-shrink-0 flex flex-col p-4 pt-2">
+                 {/* Input sans fond global lourd, s'intégrant au blanc */}
+                <ChatInputBar
+                  input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
+                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                  canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
+                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                  onOpenIframe={(url) => setIframeModal({ open: true, url })} 
+                  discussMode={discussMode} setDiscussMode={setDiscussMode} 
+                />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         
-        {/* LA PREVIEW PANEL (Flottante, Ombrée) */}
-        <motion.div layout className="flex-1 flex flex-col bg-white border border-gray-200/60 rounded-2xl overflow-hidden relative shadow-sm mb-2 mr-2">
+        {/* LA PREVIEW PANEL - PREND 100% DE L'ESPACE, SANS OMBRE NI MARGE EXTERNE */}
+        <motion.div layout className="flex-1 flex flex-col bg-white overflow-hidden relative">
           <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
         </motion.div>
 
