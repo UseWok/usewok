@@ -1,133 +1,121 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
-function PublishModal({ conversationId, isPublishing, setIsPublishing, onClose }) {
-  const [isSuccess, setIsSuccess] = useState(false);
+function PublishPopover({ conversationId, isPublishing, setIsPublishing, onClose }) {
+  const [isPublic, setIsPublic] = useState(false);
   const appLink = `stensor.base44.app/p/${conversationId || 'xyz123'}`;
   const fullUrl = `https://${appLink}`;
-  const handlePublishClick = async () => {
+
+  const togglePublish = async () => {
     setIsPublishing(true);
+    const newState = !isPublic;
     if (conversationId) {
       try {
         const convs = await base44.entities.Conversation.filter({ conv_id: conversationId });
         if (convs.length > 0) {
-          await base44.entities.Conversation.update(convs[0].id, { is_public: true });
+          await base44.entities.Conversation.update(convs[0].id, { is_public: newState });
         }
       } catch {}
     }
+    setIsPublic(newState);
     setIsPublishing(false);
-    setIsSuccess(true);
+    if (newState) toast.success("Live on the web");
   };
-  
-  if (isSuccess) {
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-        <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col font-open" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-[15px] text-gray-900">Your app is published and live online!</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-          <div className="px-5 py-4 border-b border-gray-100">
-            <p className="text-sm text-gray-800 font-medium mb-2">App link.</p>
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
-              <span className="text-[13px] text-gray-800 truncate">{appLink}</span>
-              <div className="flex items-center gap-3 ml-2 text-gray-500">
-                <button onClick={() => navigator.clipboard.writeText(fullUrl)} className="hover:text-gray-900"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-                <button onClick={() => window.open(fullUrl, '_blank')} className="hover:text-gray-900"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
-              </div>
-            </div>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-sm text-gray-800 font-medium mb-3">Sharing options</p>
-            <div className="flex items-center gap-3">
-              <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#1877F2] hover:bg-gray-50 transition-colors">f</button>
-              <button onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#0A66C2] hover:bg-gray-50 transition-colors">in</button>
-              <button onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-black hover:bg-gray-50 transition-colors">𝕏</button>
-              <button onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullUrl)}`, '_blank')} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#25D366] hover:bg-gray-50 transition-colors">W</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.97 }} transition={{ duration: 0.18 }}
-      className="absolute top-full mt-2 right-0 bg-white z-50 w-[300px] p-5"
-      style={{ borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.08)' }}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.97 }} transition={{ duration: 0.15, ease: "easeOut" }}
+      className="absolute top-full mt-2 right-0 bg-white z-50 w-[320px] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden font-open"
     >
-      <h4 className="text-[15px] font-semibold mb-1 text-gray-900">Publish Settings</h4>
-      <p className="text-[13px] text-gray-500 mb-5 leading-snug">Make this conversation public and shareable.</p>
-      <button 
-        onClick={handlePublishClick} disabled={isPublishing}
-        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${isPublishing ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:opacity-90'}`}
-      >
-        {isPublishing ? (
-          <><svg className="w-4 h-4 animate-spin text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Publishing...</>
-        ) : 'Publish Now'}
-      </button>
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-center text-[10px] text-gray-400">Stensor is an AI tool · Responses may contain errors</p>
+      <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="text-[14px] font-semibold text-gray-900">Share to web</h4>
+          <button 
+            onClick={togglePublish} disabled={isPublishing}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isPublic ? 'bg-[#0A0A0A]' : 'bg-gray-300'}`}
+          >
+            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${isPublic ? 'translate-x-4' : 'translate-x-1'}`} />
+          </button>
+        </div>
+        <p className="text-[12px] text-gray-500">Publish this workspace online to share it with anyone.</p>
       </div>
+
+      <AnimatePresence>
+        {isPublic && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="p-4 space-y-3">
+              <div className="flex gap-2">
+                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 flex items-center overflow-hidden">
+                  <span className="text-[12px] text-gray-600 truncate">{appLink}</span>
+                </div>
+                <button 
+                  onClick={() => { navigator.clipboard.writeText(fullUrl); toast.success("Link copied!"); }}
+                  className="bg-gray-900 text-white px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-black transition-colors"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
-export default function WorkspaceHeader({ title, conversationId, onUpgrade }) {
+export default function WorkspaceHeader({ title, conversationId }) {
   const [showPublish, setShowPublish] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const publishRef = useRef(null);
 
   useEffect(() => {
-    const h = (e) => {
-      if (publishRef.current && !publishRef.current.contains(e.target) && !isPublishing) setShowPublish(false);
-    };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    const h = (e) => { if (publishRef.current && !publishRef.current.contains(e.target) && !isPublishing) setShowPublish(false); };
+    document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h);
   }, [isPublishing]);
 
   return (
-    <header className="flex items-center justify-between px-5 h-14 flex-shrink-0 bg-white">
+    <header className="flex items-center justify-between px-5 h-[52px] flex-shrink-0 bg-white border-b border-gray-200 z-30">
       
-      {/* LEFT: APPLE MAC DOTS */}
-      <div className="flex items-center gap-2 flex-1 min-w-0 pl-1">
-        <div className="flex gap-2">
-           <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-           <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-           <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+      {/* MAC DOTS + TITLE */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        {/* Apple 3 Dots */}
+        <div className="flex gap-2 items-center group cursor-default pl-1">
+           <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] transition-transform group-hover:scale-105"></div>
+           <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] transition-transform group-hover:scale-105 delay-75"></div>
+           <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] transition-transform group-hover:scale-105 delay-150"></div>
         </div>
-        <p className="text-[14px] font-semibold truncate max-w-[360px] text-gray-800 ml-4">
-          {title || 'New conversation'}
-        </p>
+        
+        {/* Notion-style Title */}
+        <div className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-md cursor-pointer transition-colors -ml-1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <p className="text-[13px] font-medium truncate max-w-[360px] text-gray-700">
+            {title || 'Untitled workspace'}
+          </p>
+        </div>
       </div>
 
-      {/* RIGHT: YUZU UPGRADE & PUBLISH */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <button onClick={onUpgrade}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all hover:opacity-90 border"
-          style={{ background: 'linear-gradient(90deg, #DDFF00 0%, #FFFFFF 100%)', borderColor: '#DDFF00', color: '#0A0A0A' }}>
-          <span className="text-[14px] leading-none"></span>
-          Upgrade
-        </button>
-
+      {/* RIGHT ACTIONS */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        
+        {/* Notion Style Share Button */}
         <div ref={publishRef} className="relative flex-shrink-0">
           <button
-            onClick={() => { if (!isPublishing) setShowPublish((s) => !s); }}
-            disabled={isPublishing}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg transition-all ${isPublishing ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#0A0A0A] text-white hover:bg-gray-900'}`}
+            onClick={() => setShowPublish(!showPublish)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-md transition-all text-gray-700 hover:bg-gray-100"
           >
-            {isPublishing ? (
-              <><svg className="w-3.5 h-3.5 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Publishing...</>
-            ) : 'Publish'}
+            Share
           </button>
           <AnimatePresence>
-            {showPublish && <PublishModal conversationId={conversationId} isPublishing={isPublishing} setIsPublishing={setIsPublishing} onClose={() => setShowPublish(false)} />}
+            {showPublish && <PublishPopover conversationId={conversationId} isPublishing={isPublishing} setIsPublishing={setIsPublishing} onClose={() => setShowPublish(false)} />}
           </AnimatePresence>
         </div>
+        
+        {/* Top Right Options (Where Upgrade lives now conceptually) */}
+        <button className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors ml-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </button>
       </div>
     </header>
   );
