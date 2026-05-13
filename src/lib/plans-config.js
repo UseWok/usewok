@@ -1,63 +1,106 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v8';
-const DB_PLANS_KEY = 'plans_config_v8';
+const PLANS_STORAGE_KEY = 'stensor_plans_v5';
+const DB_PLANS_KEY = 'plans_config';
 
 export const DEFAULT_PLANS = [
   {
     id: 'free',
-    name: 'Free',
+    name: 'Gratuit',
     price_monthly: 0,
     price_yearly: 0,
-    checkout_url: null,
+    checkout_url_monthly: null,
+    checkout_url_yearly: null,
+    features_header: 'Éléments clefs\nComprend :',
+    features: [
+      { text: 'Formulaires de base' },
+      { text: 'Sites de base' },
+      { text: 'Automatisations de base' },
+      { text: 'Bases de données personnalisées' },
+      { text: 'Stensor Calendar' },
+      { text: 'Stensor Mail' }
+    ]
   },
   {
-    id: 'pro',
-    name: 'Pro',
+    id: 'plus',
+    name: 'Plus',
     price_monthly: 11.50,
     price_yearly: 9.50,
-    checkout_url: 'https://buy.stripe.com/test_pro',
+    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_plus_yearly',
+    features_header: 'Toutes les fonctionnalités de l’accès gratuit, plus :',
+    features: [
+      { text: 'Blocs illimités' },
+      { text: 'Graphiques illimités' },
+      { text: 'Formulaires personnalisés' },
+      { text: 'Sites personnalisés' },
+      { text: 'Intégrations de base' }
+    ]
   },
   {
-    id: 'max',
-    name: 'Max',
-    badge: 'Popular',
+    id: 'business',
+    name: 'Business',
+    badge: 'Populaire',
     price_monthly: 23.50,
     price_yearly: 19.50,
-    checkout_url: 'https://buy.stripe.com/test_max',
+    checkout_url_monthly: 'https://buy.stripe.com/test_business_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_business_yearly',
+    features_header: 'Toutes les fonctionnalités du forfait Plus, plus :',
+    features: [
+      { text: 'Agent Stensor' },
+      { text: 'Agents personnalisés' },
+      { text: 'Notes d’IA', tag: 'Bêta' },
+      { text: 'Autorisations de base de données' },
+      { text: 'SSO SAML' },
+      { text: 'Recherche Enterprise' },
+      { text: 'Intégrations Premium', prefix: '+4' },
+      { text: 'Vérifier n’importe quelle page', prefix: '+5' }
+    ]
   },
   {
-    id: 'unlimited',
-    name: 'Unlimited',
+    id: 'enterprise',
+    name: 'Enterprise',
     badge: 'Limited',
     price_monthly: 31.50,
     price_yearly: 25.50,
-    checkout_url: 'mailto:contact@stensor.com',
+    checkout_url_monthly: 'mailto:contact@stensor.com',
+    checkout_url_yearly: 'mailto:contact@stensor.com',
+    features_header: 'Toutes les fonctionnalités du forfait Business, plus :',
+    features: [
+      { text: 'Données analytiques et contrôles de l’IA' },
+      { text: 'Aucune conservation des données avec les fournisseurs LLM' },
+      { text: 'Provisionnement des utilisateurs via SCIM' },
+      { text: 'Contrôles et sécurité avancés' },
+      { text: 'Journal d’audit' },
+      { text: 'Intégrations de sécurité et de conformité (DLP, SIEM)' },
+      { text: 'Gestion de domaine' },
+      { text: 'Intégrations avancées' }
+    ]
   },
 ];
 
 export const COMPARISON_FEATURES = [
   {
-    category: "AI Capabilities",
+    category: "Capacités IA",
     items: [
-      { name: "Flash Requests", free: "10 / month", pro: "100 / month", max: "500 / month", unlimited: "Unlimited" },
-      { name: "Deep Synthesis", free: "-", pro: "10 / month", max: "50 / month", unlimited: "Unlimited" },
-      { name: "Web Search", free: "Basic", pro: "Advanced", max: "Unlimited", unlimited: "Unlimited" },
-      { name: "File Upload", free: "-", pro: "10 MB max", max: "100 MB max", unlimited: "Unlimited" },
+      { name: "Requêtes Flash", free: "10 / mois", plus: "100 / mois", business: "500 / mois", enterprise: "Illimité" },
+      { name: "Deep Synthesis", free: "-", plus: "10 / mois", business: "50 / mois", enterprise: "Illimité" },
+      { name: "Recherche Web", free: "Basique", plus: "Avancée", business: "Illimitée", enterprise: "Illimitée" },
+      { name: "Upload de fichiers", free: "-", plus: "10 Mo max", business: "100 Mo max", enterprise: "Illimité" },
     ]
   },
   {
-    category: "Advanced Features",
+    category: "Fonctionnalités avancées",
     items: [
-      { name: "Custom AI Agents", free: "-", pro: "1 agent", max: "Unlimited", unlimited: "Unlimited" },
-      { name: "API Access", free: "-", pro: "-", max: "Yes", unlimited: "Advanced limits" },
-      { name: "Export", free: "PDF", pro: "PDF, CSV", max: "PDF, CSV, Excel", unlimited: "All formats + API" },
+      { name: "Agents IA personnalisés", free: "-", plus: "1 agent", business: "Illimité", enterprise: "Illimité" },
+      { name: "Accès API", free: "-", plus: "-", business: "Oui", enterprise: "Limites avancées" },
+      { name: "Export", free: "PDF", plus: "PDF, CSV", business: "PDF, CSV, Excel", enterprise: "Tous formats + API" },
     ]
   },
   {
-    category: "Security & Support",
+    category: "Sécurité & Support",
     items: [
-      { name: "Support", free: "Community", pro: "Standard", max: "Priority (24h)", unlimited: "Dedicated (1h)" },
-      { name: "SAML SSO", free: "-", pro: "-", max: "-", unlimited: "Yes" },
-      { name: "Data Retention", free: "30 days", pro: "1 year", max: "Unlimited", unlimited: "Custom policy" },
+      { name: "Support", free: "Communauté", plus: "Standard", business: "Prioritaire (24h)", enterprise: "Dédié (1h)" },
+      { name: "SSO SAML", free: "-", plus: "-", business: "-", enterprise: "Oui" },
+      { name: "Rétention des données", free: "30 jours", plus: "1 an", business: "Illimité", enterprise: "Politique personnalisée" },
     ]
   }
 ];
