@@ -129,6 +129,7 @@ export default function ChatPage() {
   const [discussMode, setDiscussMode] = useState(false);
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  const [showUpgradePlan, setShowUpgradePlan] = useState(false);
 
   useEffect(() => {
     if (!isLoadingConversation && safeMessages.length === 0 && conversationId) {
@@ -499,6 +500,11 @@ export default function ChatPage() {
     setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
   }, [mode, currentAgent, convId]);
+
+  const handleUpgradeRequest = useCallback((url) => {
+    if (url) setIframeModal({ open: true, url });
+    else setShowUpgradePlan(true);
+  }, []);
 
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg.content || msg.content.length < 20) return;
