@@ -11,7 +11,6 @@ const GoogleIcon = () => (
   </svg>
 );
 
-// Toggle Style Apple
 const Toggle = ({ enabled, onChange }) => (
   <button 
     onClick={onChange}
@@ -24,7 +23,7 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ title, conversationId, onToggleSidebar }) {
+export default function WorkspaceHeader({ hasStarted, onReload }) {
   const [showPublish, setShowPublish] = useState(false);
   const [showMode, setShowMode] = useState(false);
   const [isDeepWork, setIsDeepWork] = useState(false);
@@ -47,109 +46,112 @@ export default function WorkspaceHeader({ title, conversationId, onToggleSidebar
     setShowPublish(false);
   };
 
+  // Si le chat n'a pas commencé, on ne renvoie rien (pas de header gris, on reste tout blanc)
+  if (!hasStarted) return null;
+
   return (
-    <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 bg-[#F7F7F7] border-b border-[#E6E6E9] z-30 font-sans w-full">
+    <header className="flex items-center px-4 h-[44px] flex-shrink-0 bg-[#F7F7F7] border-b border-[#E5E5E5] z-30 font-sans w-full">
       
-      {/* GAUCHE : Toggle Sidebar + Title */}
-      <div className="flex items-center gap-3 w-1/3">
-        <button onClick={onToggleSidebar} className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-[#E5E5E5] rounded-md transition-colors">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <div className="flex items-center gap-2 hover:bg-[#E5E5E5] px-2 py-1 rounded-md cursor-pointer transition-colors max-w-[250px]">
-          <span className="text-[14px] font-semibold truncate text-[#333333]">
-            {title || 'Untitled workspace'}
-          </span>
-        </div>
+      {/* GAUCHE : 3 points Mac pour le panneau Preview */}
+      <div className="flex gap-2 items-center w-1/3 pl-1">
+         <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+         <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+         <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
       </div>
 
       {/* CENTRE : Sélecteur Mode IA */}
       <div className="flex justify-center w-1/3 relative" ref={modeRef}>
         <button 
           onClick={() => setShowMode(!showMode)} 
-          className="px-4 py-1.5 bg-white border border-[#E6E6E9] rounded-md text-[13px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors"
+          className="px-3 py-1 bg-white border border-[#D1D1D1] rounded-md text-[12px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition-colors"
         >
           {isDeepWork ? 'Deep Work' : 'Automatic'}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
-        {/* Pas d'animation, bordure noire fine */}
         {showMode && (
-          <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-black rounded-lg shadow-[0_12px_30px_rgba(0,0,0,0.12)] z-50 p-1.5 text-left">
+          <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-[#D1D1D1] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] z-50 p-1.5 text-left">
             <div 
-              className="p-3 hover:bg-gray-50 cursor-pointer rounded-md transition-colors" 
+              className="p-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors" 
               onClick={() => { setIsDeepWork(false); setShowMode(false); }}
             >
-              <div className="text-[13px] font-bold text-[#333333] flex items-center gap-2">
+              <div className="text-[13px] font-medium text-[#333333] flex items-center gap-2">
                 Automatic {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
-              <div className="text-[12px] text-[#707070] mt-1 leading-snug">
+              <div className="text-[11px] text-[#707070] mt-0.5 leading-snug">
                 We seamlessly select the absolute best AI model tailored to your specific context, perfectly balancing lightning-fast speed and deep reasoning.
               </div>
             </div>
             
-            <div className="h-px bg-[#E6E6E9] my-1 mx-2"></div>
+            <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
             
-            <div className="p-3 flex items-center justify-between rounded-md">
+            <div className="p-2 flex items-center justify-between rounded-md">
               <div className="flex-1 pr-3">
-                <div className="text-[13px] font-bold text-[#333333]">Deep Work</div>
-                <div className="text-[12px] text-[#707070] mt-1 leading-snug">Advanced reasoning mode for highly complex tasks.</div>
+                <div className="text-[13px] font-medium text-[#333333]">Deep Work</div>
+                <div className="text-[11px] text-[#707070] mt-0.5 leading-snug">Advanced reasoning mode for highly complex tasks.</div>
               </div>
-              <Toggle enabled={isDeepWork} onChange={() => setIsDeepWork(!isDeepWork)} />
+              <Toggle enabled={isDeepWork} onChange={() => { setIsDeepWork(!isDeepWork); setShowMode(false); }} />
             </div>
           </div>
         )}
       </div>
 
-      {/* DROITE : Publish */}
-      <div className="flex justify-end w-1/3 relative" ref={publishRef}>
+      {/* DROITE : Reload & Publish */}
+      <div className="flex justify-end items-center gap-2 w-1/3 relative" ref={publishRef}>
+        
+        <button 
+          onClick={onReload}
+          className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-white rounded-md border border-transparent hover:border-[#D1D1D1] transition-all"
+          title="Regenerate response"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.46-5.46"/></svg>
+        </button>
+
         <button 
           onClick={() => setShowPublish(!showPublish)}
-          className="px-4 py-1.5 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] transition-colors shadow-sm"
+          className="px-3 py-1 bg-[#0080ff] text-white text-[12px] font-medium rounded-md hover:bg-[#0066cc] transition-colors shadow-sm"
         >
           Publish
         </button>
 
-        {/* Pas d'animation, bordure noire fine */}
         {showPublish && (
-          <div className="absolute top-[calc(100%+6px)] right-0 w-[320px] bg-white border border-black shadow-[0_12px_30px_rgba(0,0,0,0.12)] rounded-lg z-50 text-left font-sans">
-            <div className="p-4 border-b border-[#E6E6E9]">
-              <h3 className="text-[14px] font-bold text-[#333333] mb-1">Publish Your App</h3>
-              <p className="text-[12px] text-[#707070]">Make your Stensor interface available to the world.</p>
+          <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#D1D1D1] shadow-[0_4px_12px_rgba(0,0,0,0.1)] rounded-lg z-50 text-left font-sans">
+            <div className="p-3 border-b border-[#E5E5E5]">
+              <h3 className="text-[13px] font-medium text-[#333333]">Publish Your App</h3>
             </div>
             
-            <div className="p-4 space-y-5">
+            <div className="p-3 space-y-4">
               <div className="cursor-pointer group">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-1 group-hover:text-[#0080ff] transition-colors">Connect a custom domain</h4>
-                <p className="text-[12px] text-[#707070]">Use your own domain for a professional look.</p>
+                <h4 className="text-[12px] font-medium text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Connect a custom domain</h4>
               </div>
               
               <div className="cursor-pointer group">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-1 group-hover:text-[#0080ff] transition-colors">Share your app</h4>
-                <p className="text-[12px] text-[#707070]">Share a link via email or social media.</p>
+                <h4 className="text-[12px] font-medium text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Share your app</h4>
+                <p className="text-[11px] text-[#707070]">Share a link via email or social media.</p>
               </div>
               
-              <div className="border-t border-[#E6E6E9] pt-4">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-3">App Visibility</h4>
-                <div className="flex items-center justify-between bg-white p-3 rounded-md border border-[#E6E6E9] shadow-sm">
-                  <div className="flex items-center gap-2.5">
+              <div className="border-t border-[#E5E5E5] pt-3">
+                <h4 className="text-[12px] font-medium text-[#333333] mb-2">App Visibility</h4>
+                <div className="flex items-center justify-between bg-white p-2 rounded-md border border-[#E5E5E5] shadow-sm">
+                  <div className="flex items-center gap-2">
                     <GoogleIcon />
-                    <span className="text-[13px] font-bold text-[#333333]">Index on Google</span>
+                    <span className="text-[12px] font-medium text-[#333333]">Index on Google</span>
                   </div>
                   <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-1">
                 {indexGoogle && (
-                  <div className="bg-[#F9F8F6] border border-[#E6E6E9] p-2.5 rounded-md flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-1.5 flex-shrink-0"></div>
-                    <p className="text-[11px] text-[#707070] font-medium leading-snug">
+                  <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2 rounded-md flex items-start gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-[#DDFF00] mt-1.5 flex-shrink-0"></div>
+                    <p className="text-[10px] text-gray-600 font-medium leading-snug">
                       Indexing your app on Google takes between 24-48h.
                     </p>
                   </div>
                 )}
                 
-                <button onClick={handlePublish} className="w-full py-2.5 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] transition-colors shadow-sm">
+                <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[12px] font-medium rounded-md hover:bg-[#0066cc] transition-colors shadow-sm">
                   Publish
                 </button>
               </div>
