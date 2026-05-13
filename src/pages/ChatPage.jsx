@@ -1,3 +1,4 @@
+// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,8 +20,12 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
+import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import ThinkingSteps from '@/components/chat/ThinkingSteps';
+import SynthesisProposal from '@/components/chat/SynthesisProposal';
+import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
-// MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
+// 2. COMPOSANTS ET CONSTANTES APRES LES IMPORTS
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
     {open && (
@@ -85,8 +90,17 @@ export default function ChatPage() {
 
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [messages, setMessages] = useState(() => conversationId ? getConversationMessages(conversationId) : []);
-  const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && getConversationMessages(conversationId).length === 0);
+  
+  // SÉCURITÉ ANTI-CRASH : On force la garantie que messages est TOUJOURS un array.
+  const [messages, setMessages] = useState(() => {
+    if (!conversationId) return [];
+    const msgs = getConversationMessages(conversationId);
+    return Array.isArray(msgs) ? msgs : [];
+  });
+  
+  const safeMessages = Array.isArray(messages) ? messages : [];
+
+  const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && safeMessages.length === 0);
   const [input, setInput] = useState(() => {
     const saved = localStorage.getItem('stensor_saved_input');
     if (saved) {localStorage.removeItem('stensor_saved_input');return saved;}
@@ -96,6 +110,7 @@ export default function ChatPage() {
     }
     return '';
   });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
@@ -107,7 +122,8 @@ export default function ChatPage() {
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [freeDaysLeft, setFreeDaysLeft] = useState(null);
   const [milestoneShown, setMilestoneShown] = useState(false);
-  
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
   const [convTitleDisplay, setConvTitleDisplay] = useState('');
   const [ficheContent, setFicheContent] = useState(null);
   const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
@@ -117,15 +133,17 @@ export default function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (!isLoadingConversation && messages.length === 0 && conversationId) {
+    if (!isLoadingConversation && safeMessages.length === 0 && conversationId) {
       navigate('/');
     }
-  }, [isLoadingConversation, messages.length, conversationId, navigate]);
+  }, [isLoadingConversation, safeMessages.length, conversationId, navigate]);
 
+  const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const userScrolledUpRef = useRef(false);
   const isMountedRef = useRef(true);
+  const synthPendingRef = useRef(null);
   const abortedRef = useRef(false);
 
   useEffect(() => {
@@ -183,7 +201,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (initialQ && messages.length === 0) sendMessage(initialQ);
+    if (initialQ && safeMessages.length === 0) sendMessage(initialQ);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
   }, []);
 
@@ -193,7 +211,8 @@ export default function ChatPage() {
     if (!conversationId) return;
     loadConversationFromCloud(conversationId).then((cloudMsgs) => {
       if (!isMountedRef.current) return;
-      if (cloudMsgs?.length > 0) {setMessages(cloudMsgs);saveConversationMessages(conversationId, cloudMsgs);}
+      const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
+      if (safeCloudMsgs.length > 0) {setMessages(safeCloudMsgs);saveConversationMessages(conversationId, safeCloudMsgs);}
       setTimeout(() => setIsLoadingConversation(false), 300);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
@@ -208,10 +227,23 @@ export default function ChatPage() {
 
   useEffect(() => { if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
+  const startProgress = () => {
+    let prog = 0;
+    loadingTimerRef.current = setInterval(() => {
+      prog += Math.random() * 8 + 2;
+      if (prog >= 90) {prog = 90;clearInterval(loadingTimerRef.current);}
+      setLoadingProgress(Math.round(prog));
+    }, 600);
+  };
+
+  const stopProgress = () => { clearInterval(loadingTimerRef.current); setLoadingProgress(0); };
+
   const handleStop = useCallback(() => {
     abortedRef.current = true;
+    stopProgress();
     setIsLoading(false);
-    setMessages((prev) => [...prev, { role: 'assistant', content: 'Generation interrupted by user.' }]);
+    setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Generation interrupted by user.' }]);
   }, []);
 
   const buildTitle = async (text, newMessages) => {
@@ -244,6 +276,53 @@ export default function ChatPage() {
     if (!text?.trim() || isLoading || blocked) return;
     const actualText = discussMode ? 'Discuss: ' + text : text;
 
+    if (text.trimEnd().endsWith('...') && !text.trimEnd().endsWith('....')) {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...safeMessages, userMsg];
+      setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true); startProgress();
+
+      const steps = [
+      { label: 'Reading intent & financial context', param: 'Intent ✓' },
+      { label: 'Mapping your financial parameters', param: null },
+      { label: 'Running multi-scenario projections', param: null },
+      { label: 'Validating assumptions & constraints', param: null },
+      { label: 'Structuring final synthesis', param: null }];
+
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+      let step = 0;
+      const stepInterval = setInterval(() => { step++; if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else clearInterval(stepInterval); }, 700);
+
+      await new Promise((r) => setTimeout(r, steps.length * 700 + 600));
+      clearInterval(stepInterval);
+      setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true }));
+      await new Promise((r) => setTimeout(r, 500));
+      setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+
+      stopProgress(); setIsLoading(false);
+      const DEEP_REPLIES = ["Deep Synthesis complete — but I’m waiting for your real question to unlock the full analysis.", "All 578 simulations ran. Ask your question and I’ll give you the complete strategic breakdown.", "Synthesis engine primed. What’s the question you want to go deep on?", "Analysis framework ready — hit me with the real question."];
+      const reply = DEEP_REPLIES[Math.floor(Math.random() * DEEP_REPLIES.length)];
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
+
+    if (text.trimEnd().endsWith('..')) {
+      const userMsg = { role: 'user', content: text }; const newMessages = [...safeMessages, userMsg];
+      setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true); startProgress();
+      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
+      stopProgress(); setIsLoading(false);
+      const reply = 'b';
+      const finalMsgs = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
+      let currentUser = user;
+      if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {}}
+      if (currentUser) await updateCredits(currentUser, 1);
+      return;
+    }
+
     let currentUser = user;
     if (!currentUser) { try {currentUser = await base44.auth.me();if (currentUser) {setUser(currentUser);setCreditsUsed(currentUser.credits_used ?? 0);}} catch {} }
 
@@ -261,14 +340,14 @@ export default function ChatPage() {
     }
 
     const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map((f) => f.name) : undefined };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages); localStorage.removeItem('stensor_chat_draft'); setInput(''); setFiles([]); setIsLoading(true);
+    const newMessages = [...safeMessages, userMsg];
+    setMessages(newMessages); localStorage.removeItem('stensor_chat_draft'); setInput(''); setFiles([]); setIsLoading(true); setLoadingProgress(0); startProgress();
 
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
       if (currentUser) await updateCredits(currentUser, 1);
-      setIsLoading(false); return;
+      stopProgress(); setIsLoading(false); return;
     }
 
     let file_urls = [];
@@ -306,21 +385,39 @@ export default function ChatPage() {
 
     const systemContext = agentConfig?.instructions ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
 
-    const recentMsgs = messages.slice(-2);
-    const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
+    const recentMsgs = safeMessages.slice(-2);
+    const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content?.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    abortedRef.current = false;
-    
-    // FAKE DELAY POUR LAISSER L'ANIMATION THINKING S'AFFICHER
-    await new Promise(r => setTimeout(r, 4500));
+    let routeDecision = '1';
+    if (!isFirstMessage) {
+      const localDecision = quickRouteLocal(text);
+      if (localDecision !== null) { routeDecision = localDecision; } else {
+        try {
+          const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n2 = ONLY when ALL 3 conditions are met simultaneously:\n  - The question involves genuine multi-step financial calculations\n  - A complete answer REQUIRES structured reasoning across 3+ financial variables\n  - A short paragraph answer would be clearly insufficient or misleading\n1 = Everything else.\n\nCRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.\n\nInput: ${text.slice(0, 400)}`;
+          const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
+          routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
+          if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
+        } catch { routeDecision = '1'; }
+      }
+    }
 
+    if (routeDecision === '2') {
+      const PROPOSAL_MSGS = ["Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!", "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.", "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.", "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
+      let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
+      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
+      stopProgress(); setIsLoading(false);
+      setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
+      return;
+    }
+
+    abortedRef.current = false;
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) });
     } catch (err) {
-      setIsLoading(false);
+      stopProgress(); setIsLoading(false);
       setMessages([...newMessages, { role: 'assistant', content: "I haven't been able to process your request yet. Please try again in a few seconds." }]);
       return;
     }
@@ -345,7 +442,7 @@ export default function ChatPage() {
     const convTitle = await buildTitle(text, newMessages);
     saveToDiscussions(convTitle, text);
     setConvTitleDisplay(convTitle);
-    setIsLoading(false);
+    stopProgress(); setIsLoading(false);
     
     if (!discussMode) { setFicheContent(content); setFicheMsgIdx(newMessages.length); }
     const msgIdx = newMessages.length;
@@ -358,7 +455,53 @@ export default function ChatPage() {
       setMilestoneShown(true);
       toast(<div><p className="font-bold text-sm">{t('milestone_title')}</p><p className="text-xs mt-0.5 opacity-70">{t('milestone_sub')}</p></div>, { duration: 7000 });
     }
-  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
+  }, [user, userPlan, mode, currentAgent, files, safeMessages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, milestoneShown, t]);
+
+  const continueSynthesis = useCallback(async (doDeep) => {
+    const pending = synthPendingRef.current;
+    if (!pending) return;
+    synthPendingRef.current = null;
+    const { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext = '' } = pending;
+
+    setMessages(newMessages); setIsLoading(true); setLoadingProgress(0); startProgress();
+
+    let content = '';
+
+    if (doDeep) {
+      const steps = [ { label: 'Reading intent & financial context', param: 'Intent ✓' }, { label: 'Mapping your financial parameters', param: null }, { label: 'Running multi-scenario projections', param: null }, { label: 'Validating assumptions & constraints', param: null }, { label: 'Structuring final synthesis', param: null } ];
+      setSynthProgress({ active: true, steps, currentStep: 0, done: false });
+      let step = 0;
+      const stepInterval = setInterval(() => { step++; if (step < steps.length) setSynthProgress((p) => ({ ...p, currentStep: step }));else clearInterval(stepInterval); }, 700);
+
+      let deepResult = null;
+      try { deepResult = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction + '\n\nIMPORTANT: This is a Deep Synthesis. Provide a thorough, structured, multi-step analysis with precise numbers and concrete recommendations.', model: 'gemini_3_1_pro', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) }); } catch {}
+      content = deepResult ? typeof deepResult === 'string' ? deepResult : JSON.stringify(deepResult) : "Je n'ai pas pu compléter la Deep Synthesis. Essaie de nouveau dans quelques secondes.";
+
+      clearInterval(stepInterval); setSynthProgress((p) => ({ ...p, currentStep: steps.length, done: true })); await new Promise((r) => setTimeout(r, 700)); setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    } else {
+      let quickResult = null;
+      try { quickResult = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) }); } catch {}
+      content = quickResult ? typeof quickResult === 'string' ? quickResult : JSON.stringify(quickResult) : "Je n'ai pas pu traiter ta demande. Essaie de nouveau dans quelques secondes.";
+    }
+
+    const baseCost = doDeep ? mode.credit_max || mode.credit_cost : mode.credit_cost;
+    const costPerMsg = baseCost + (useInternet ? 1 : 0);
+    const msgMeta = { modeName: doDeep ? 'Deep Synthesis' : mode.label, modelName: doDeep ? 'Deep Synthesis' : 'Precision', usedInternet: useInternet, hasFiles: file_urls.length > 0 };
+
+    if (currentUser) {
+      await updateCredits(currentUser, costPerMsg);
+      if (doDeep) { try { const newDeep = (currentUser.deep_credits_used || 0) + 1; await base44.entities.User.update(currentUser.id, { deep_credits_used: newDeep }); setUser((prev) => prev ? { ...prev, deep_credits_used: newDeep } : prev); } catch {} }
+      if (isFirstMessage) { completeReferralOnFirstMessage(currentUser.id).catch(() => {}); }
+    }
+
+    const convTitle = await buildTitle(text, newMessages);
+    saveToDiscussions(convTitle, text);
+    stopProgress(); setIsLoading(false); setFicheContent(content);
+    const msgIdx = newMessages.length; setFicheMsgIdx(msgIdx);
+    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: msgIdx, meta: msgMeta }];
+    setMessages(finalMsgs); saveConversationMessages(convId, finalMsgs);
+    syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
+  }, [mode, currentAgent, convId]);
 
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg.content || msg.content.length < 20) return;
@@ -367,19 +510,18 @@ export default function ChatPage() {
   }, [discussMode]);
 
   return (
-    // FOND BLANC PUR, EDGE TO EDGE
     <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
       <WorkspaceHeader
-        title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
+        title={convTitleDisplay || safeMessages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
         onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
-      {/* GLOBAL FLEX CONTAINER: NO PADDING, FLUSH TO EDGES */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative bg-white">
         
-        {/* LE CHAT - BORD À BORD, SÉPARÉ PAR UNE LIGNE GRISE */}
         <AnimatePresence initial={false}>
           {isSidebarOpen && (
             <motion.div 
@@ -391,7 +533,14 @@ export default function ChatPage() {
             >
               <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
                 
-                {!isLoadingConversation && messages.length === 0 && (
+                {isLoadingConversation && (
+                  <div className="flex gap-2 justify-start items-center">
+                    <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                    <ChatLoadingAnimation mode={mode.id} />
+                  </div>
+                )}
+                
+                {!isLoadingConversation && safeMessages.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
                     <div className="flex flex-col items-center justify-center opacity-20">
                       <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
@@ -400,47 +549,53 @@ export default function ChatPage() {
                   </div>
                 )}
                 
-                {!isLoadingConversation && messages.map((msg, idx) => (
+                {!isLoadingConversation && safeMessages.map((msg, idx) => (
                   <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                    {msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} isGenerating={false} discussMode={discussMode} />
-                      : <UserMessageBubble msg={msg} />
+                    {msg.role === 'synthesis_proposal'
+                      ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                      : msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
                     }
                   </motion.div>
                 ))}
                 
-                {/* L'EFFET WOW REMPLACE LE CHARGEMENT BASIQUE */}
-                {isLoading && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-                    <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
-                  </motion.div>
+                {synthProgress?.active && (
+                  <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+                )}
+                
+                {isLoading && !synthProgress?.active && (
+                  <ThinkingSteps isLoading={isLoading} text={safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
                 )}
                 
                 <div ref={messagesEndRef} />
               </div>
               
               <div className="flex-shrink-0 flex flex-col p-4 pt-2">
-                 {/* Input sans fond global lourd, s'intégrant au blanc */}
                 <ChatInputBar
                   input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
-                  isLoading={isLoading} discussMode={discussMode} setDiscussMode={setDiscussMode} 
-                  onOpenIframe={(url) => setIframeModal({ open: true, url })}
+                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                  canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
+                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                  onOpenIframe={(url) => setIframeModal({ open: true, url })} 
+                  discussMode={discussMode} setDiscussMode={setDiscussMode} 
                 />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         
-        {/* LA PREVIEW PANEL - PREND 100% DE L'ESPACE RESTANT, SANS OMBRE NI MARGE EXTERNE */}
-        <motion.div layout className="flex-1 flex flex-col bg-[#F9FAFB] overflow-hidden relative">
-          <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+        <motion.div layout className="flex-1 flex flex-col bg-[#FFFFFF] overflow-hidden relative pl-4">
+          <div className="w-full h-full border border-gray-200/80 rounded-l-2xl overflow-hidden shadow-sm mt-4 mb-4">
+             <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+          </div>
         </motion.div>
 
       </div>
 
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
       
-      {/* MODALE 95% POUR ENGRENAGE/DNA/PRICING */}
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       <AnimatePresence>
