@@ -32,7 +32,6 @@ import {
   LifeBuoy, ArrowUpCircle, Key
 } from 'lucide-react';
 
-// MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
     {open && (
@@ -131,12 +130,9 @@ export default function ChatPage() {
   const [discussMode, setDiscussMode] = useState(false);
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
-  
-  // UX PREMIUM : Sidebar statique (sans anim) + Menu Profil
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sections, setSections] = useState({ recentes: true, agents: true });
   const toggleSection = (s) => setSections(prev => ({ ...prev, [s]: !prev[s] }));
-  
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
 
@@ -148,7 +144,6 @@ export default function ChatPage() {
   const synthPendingRef = useRef(null);
   const abortedRef = useRef(false);
 
-  // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
@@ -183,7 +178,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
-    
     try {
       const allDiscs = getDiscussions();
       setDiscussions(allDiscs || []);
@@ -314,7 +308,6 @@ export default function ChatPage() {
     const useInternet = useWebSearch && hasInternet;
 
     abortedRef.current = false;
-    
     await new Promise(r => setTimeout(r, 4500));
 
     let result;
@@ -365,13 +358,11 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
+    <div className="flex font-sans h-screen w-full bg-[#F9F8F6] overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
       
-      {/* SIDEBAR ULTRA QUALI & PRO (SANS ANIMATION POUR L'OUVERTURE/FERMETURE) */}
+      {/* SIDEBAR */}
       {isSidebarOpen && (
         <aside className="w-[260px] flex-shrink-0 h-full bg-[#F7F7F7] border-r border-[#E5E5E5] flex flex-col z-40">
-          
-          {/* Header Sidebar */}
           <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2 group">
             <div className="flex items-center gap-2 overflow-hidden">
               <div className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
@@ -386,7 +377,6 @@ export default function ChatPage() {
             </button>
           </div>
 
-          {/* Nav Items */}
           <div className="px-3 space-y-0.5 mb-5">
             {navItems.map((item) => (
               <button 
@@ -401,10 +391,7 @@ export default function ChatPage() {
             ))}
           </div>
 
-          {/* Sections (Notion Style) */}
           <div className="flex-1 overflow-y-auto px-3 space-y-6 [&::-webkit-scrollbar]:hidden">
-            
-            {/* Récentes */}
             <div>
               <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
@@ -421,8 +408,6 @@ export default function ChatPage() {
                 </ul>
               )}
             </div>
-
-            {/* Agents */}
             <div>
               <div onClick={() => toggleSection('agents')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
@@ -445,10 +430,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Menu Profil (Le gros bouton du bas) */}
           <div className="p-3 border-t border-[#E5E5E5] relative" ref={profileMenuRef}>
-            
-            {/* LA GROSSE FENÊTRE VERS LE HAUT (Popover) */}
             <AnimatePresence>
               {isProfileMenuOpen && (
                 <motion.div 
@@ -462,35 +444,28 @@ export default function ChatPage() {
                     <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
                     <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Forfait Free'}</p>
                   </div>
-                  
-                  <button onClick={() => { setIsProfileMenuOpen(false); /* Add route */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
                     <Settings className="w-4 h-4 text-gray-500" /> Paramètres
                   </button>
-                  <button onClick={() => { setIsProfileMenuOpen(false); /* Add route */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
                     <LifeBuoy className="w-4 h-4 text-gray-500" /> Tickets support
                   </button>
-                  
                   <div className="h-px bg-gray-100 my-1"></div>
-                  
                   <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors group">
                     <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Passer à un forfait supérieur
                   </button>
-                  <button onClick={() => { setIsProfileMenuOpen(false); /* Open code modal */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
                     <Key className="w-4 h-4 text-gray-500" /> J'ai un code...
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Bouton Nouvelle Discussion */}
             <button 
               onClick={() => { navigate('/'); setIsProfileMenuOpen(false); }} 
               className="flex items-center justify-center gap-2 w-full py-2 mb-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-semibold text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" /> Nouvelle discussion
             </button>
-
-            {/* Bouton Profil */}
             <button 
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left"
@@ -508,72 +483,63 @@ export default function ChatPage() {
         </aside>
       )}
 
-      {/* MAIN WORKSPACE (Chat + Preview) */}
-      <div className="flex flex-col flex-1 min-w-0 relative bg-white">
-        
-        <WorkspaceHeader
-          title={convTitleDisplay || messages?.find(m => m.role === 'user')?.content?.slice(0, 50)}
-          conversationId={convId}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          isSidebarOpen={isSidebarOpen}
-        />
-
-        <div className="flex flex-1 overflow-hidden relative">
+      {/* ZONE PRINCIPALE FLOTTANTE */}
+      <div className="flex-1 flex flex-col p-2 min-w-0">
+        <div className="flex-1 flex flex-col bg-white rounded-xl border border-[#E5E5E5] overflow-hidden shadow-sm">
           
-          {/* CHAT COLUMN */}
-          <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-[#E5E5E5] bg-white z-10">
-            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+          <WorkspaceHeader
+            title={convTitleDisplay || messages?.find(m => m.role === 'user')?.content?.slice(0, 50)}
+            conversationId={convId}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            isSidebarOpen={isSidebarOpen}
+          />
+
+          <div className="flex flex-1 overflow-hidden relative">
+            <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-[#E5E5E5] bg-white z-10">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+                {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
+                {!isLoadingConversation && messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full opacity-20">
+                    <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
+                    <p className="text-xs">{t('start_conversation')}</p>
+                  </div>
+                )}
+                {messages.map((msg, idx) => (
+                  <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                    {msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} agent={msg.agent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Moi'} />
+                    }
+                  </motion.div>
+                ))}
+                {synthProgress?.active && <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />}
+                {isLoading && !synthProgress?.active && (
+                  <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+                )}
+                <div ref={messagesEndRef} />
+              </div>
               
-              {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
-              
-              {!isLoadingConversation && messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full opacity-20">
-                  <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
-                  <p className="text-xs">{t('start_conversation')}</p>
-                </div>
-              )}
-              
-              {messages.map((msg, idx) => (
-                <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                  {msg.role === 'assistant'
-                    ? <AssistantMessage content={msg.content} agent={msg.agent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                    : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Moi'} />
-                  }
-                </motion.div>
-              ))}
-              
-              {synthProgress?.active && <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />}
-              
-              {isLoading && !synthProgress?.active && (
-                <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-              )}
-              
-              <div ref={messagesEndRef} />
+              <div className="flex-shrink-0 flex flex-col p-4 pt-2 bg-white">
+                <ChatInputBar
+                  input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                  canUploadFiles={canUploadFiles} hasInternet={hasInternet}
+                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                  onOpenIframe={(url) => setIframeModal({ open: true, url })}
+                  discussMode={discussMode} setDiscussMode={setDiscussMode}
+                />
+              </div>
             </div>
             
-            <div className="flex-shrink-0 flex flex-col p-4 pt-2 bg-white">
-              <ChatInputBar
-                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                canUploadFiles={canUploadFiles} hasInternet={hasInternet}
-                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onOpenIframe={(url) => setIframeModal({ open: true, url })}
-                discussMode={discussMode} setDiscussMode={setDiscussMode}
-              />
+            <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+               <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
             </div>
           </div>
-          
-          {/* PREVIEW COLUMN */}
-          <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-             <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
-          </div>
-
         </div>
       </div>
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
-      
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
