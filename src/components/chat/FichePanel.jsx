@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -8,14 +7,14 @@ const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf83
 
 function FicheContent({ content }) {
   return (
-    <div className="prose prose-sm max-w-none" style={{ fontSize: '16px', lineHeight: '1.85', color: '#1a1a1a' }}>
+    <div className="prose prose-sm max-w-none" style={{ fontSize: '15px', lineHeight: '1.75', color: '#1a1a1a' }}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '24px 0 10px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
-          h2: ({ children }) => <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '20px 0 8px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
-          h3: ({ children }) => <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '16px 0 6px', color: FG }}>{children}</h3>,
-          p: ({ children }) => <p style={{ margin: '0 0 16px', lineHeight: '1.9', fontSize: '16px' }}>{children}</p>,
+          h1: ({ children }) => <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '20px 0 10px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
+          h2: ({ children }) => <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '18px 0 8px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
+          h3: ({ children }) => <h3 style={{ fontSize: '14px', fontWeight: 700, margin: '14px 0 6px', color: FG }}>{children}</h3>,
+          p: ({ children }) => <p style={{ margin: '0 0 14px', lineHeight: '1.8' }}>{children}</p>,
           ul: ({ children }) => <ul style={{ margin: '8px 0 14px', paddingLeft: '20px', listStyleType: 'disc' }}>{children}</ul>,
           ol: ({ children }) => <ol style={{ margin: '8px 0 14px', paddingLeft: '20px' }}>{children}</ol>,
           li: ({ children }) => <li style={{ margin: '4px 0', lineHeight: '1.7' }}>{children}</li>,
@@ -27,7 +26,7 @@ function FicheContent({ content }) {
           ),
           code: ({ inline, children }) => inline
             ? <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '1px 6px', fontSize: '12px', fontFamily: 'monospace' }}>{children}</code>
-            : <pre style={{ background: '#f6f6f4', borderRadius: '6px', padding: '14px', overflowX: 'auto', margin: '10px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace' }}>{children}</code></pre>,
+            : <pre style={{ background: '#F9F8F6', borderRadius: '6px', padding: '14px', overflowX: 'auto', margin: '10px 0', border: '1px solid #E6E6E9' }}><code style={{ fontSize: '12px', fontFamily: 'monospace' }}>{children}</code></pre>,
           hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.07)', margin: '20px 0' }} />,
           table: ({ children }) => (
             <div style={{ overflowX: 'auto', margin: '14px 0', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.08)' }}>
@@ -47,7 +46,7 @@ function FicheContent({ content }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 px-10 py-10">
+    <div className="space-y-4">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="space-y-2">
           <div className="h-4 rounded-sm animate-pulse" style={{ background: 'rgba(0,0,0,0.07)', width: `${60 + i * 10}%` }} />
@@ -76,80 +75,57 @@ export default function FichePanel({ content = null, loading = false, link = nul
   }, [content]);
 
   return (
-    <div className="flex h-full w-full bg-[#F9FAFB] p-4">
+    <div className="flex flex-col h-full w-full bg-[#F7F7F7] p-2">
+      
       {/* Fenêtre "Mac" avec bordures fines et fond blanc */}
       <div className="flex flex-col flex-1 bg-white border border-[#E6E6E9] rounded-xl shadow-sm overflow-hidden font-sans">
         
         {/* HEADER DE LA FENETRE PREVIEW (Les 3 points Mac) */}
         <div className="flex items-center px-4 h-10 border-b border-[#E6E6E9] bg-white flex-shrink-0">
-          <div className="flex gap-2 items-center cursor-default">
+          <div className="flex gap-2 items-center cursor-default w-1/3">
              <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
              <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
              <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
           </div>
-          {/* Titre optionnel de la preview centré */}
-          <div className="flex-1 flex justify-center">
-             <span className="text-[12px] font-medium text-gray-400 select-none">Preview</span>
+          <div className="flex-1 flex justify-center w-1/3">
+             <span className="text-[12px] font-semibold text-[#999999] select-none">Preview</span>
           </div>
-          {/* Spacer pour équilibrer la flexbox (même taille que les 3 points) */}
-          <div className="w-[52px]"></div> 
+          <div className="w-1/3"></div> 
         </div>
 
         {/* ZONE DE CONTENU DÉFILABLE */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}>
-                <LoadingSkeleton />
-              </motion.div>
-            ) : content ? (
-              <motion.div key={content.slice(0, 40)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="px-10 py-8"
-              >
-                <FicheContent content={content} />
-              </motion.div>
-            ) : (
-              <motion.div key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="px-10 py-10"
-              >
-                {/* Builder-style empty template */}
-                <div className="flex items-center gap-3 mb-8">
-                  <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-30" />
-                  <div className="h-3 rounded-sm animate-none" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
-                </div>
-                <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
-                <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
-                <div className="space-y-2 mb-8">
-                  <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
-                  <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
-                  <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
-                </div>
-                <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
-                <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
-                <div className="space-y-2 mb-8">
-                  {[100, 88, 94, 72].map((w, i) => (
-                    <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
-                  ))}
-                </div>
-                <div className="flex gap-3">
-                  <div className="h-8 rounded-sm" style={{ width: '100px', background: 'rgba(0,0,0,0.07)' }} />
-                  <div className="h-8 rounded-sm" style={{ width: '80px', background: 'rgba(0,0,0,0.05)' }} />
-                </div>
-                <p className="text-xs mt-10 text-center" style={{ color: 'rgba(0,0,0,0.18)' }}>Launch an analysis to display the result here.</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white p-8 md:p-12">
+          {loading ? (
+            <LoadingSkeleton />
+          ) : content ? (
+            <FicheContent content={content} />
+          ) : (
+            <div className="opacity-60">
+              <div className="flex items-center gap-3 mb-8">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
+                <div className="h-3 rounded-sm" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
+              </div>
+              <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
+              <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
+              <div className="space-y-2 mb-8">
+                <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
+                <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
+                <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
+              </div>
+              <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
+              <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
+              <div className="space-y-2 mb-8">
+                {[100, 88, 94, 72].map((w, i) => (
+                  <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
+                ))}
+              </div>
+              <p className="text-xs mt-10 text-center font-medium" style={{ color: 'rgba(0,0,0,0.3)' }}>
+                Launch an analysis to display the result here.
+              </p>
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   );
