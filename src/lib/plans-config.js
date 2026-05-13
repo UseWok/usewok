@@ -1,108 +1,73 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v6';
-const DB_PLANS_KEY = 'plans_config_v6';
+const PLANS_STORAGE_KEY = 'stensor_plans_v7';
+const DB_PLANS_KEY = 'plans_config_v7';
 
 export const DEFAULT_PLANS = [
   {
     id: 'free',
-    name: 'Gratuit',
+    name: 'Free',
     price_monthly: 0,
     price_yearly: 0,
-    checkout_url_monthly: null,
-    checkout_url_yearly: null,
-    features_header: 'Éléments clefs\nComprend :',
-    features: [
-      { text: 'Formulaires de base' },
-      { text: 'Sites de base' },
-      { text: 'Automatisations de base' },
-      { text: 'Bases de données personnalisées' },
-      { text: 'Stensor Calendar' },
-      { text: 'Stensor Mail' }
-    ]
+    checkout_url: null,
+    features_header: 'Includes:',
+    features: ['Basic forms', 'Basic sites', 'Basic automations', 'Custom databases', 'Stensor Calendar', 'Stensor Mail']
   },
   {
-    id: 'plus',
-    name: 'Plus',
+    id: 'pro',
+    name: 'Pro',
     price_monthly: 11.50,
     price_yearly: 9.50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly', // Remplace par tes liens
-    checkout_url_yearly: 'https://buy.stripe.com/test_plus_yearly',
-    features_header: 'Toutes les fonctionnalités de l’accès gratuit, plus :',
-    features: [
-      { text: 'Blocs illimités' },
-      { text: 'Graphiques illimités' },
-      { text: 'Formulaires personnalisés' },
-      { text: 'Sites personnalisés' },
-      { text: 'Intégrations de base' }
-    ]
+    checkout_url: 'https://buy.stripe.com/test_pro',
+    features_header: 'All Free features, plus:',
+    features: ['Unlimited blocks', 'Unlimited graphs', 'Custom forms', 'Custom sites', 'Basic integrations']
   },
   {
-    id: 'business',
-    name: 'Business',
-    badge: 'Populaire',
+    id: 'max',
+    name: 'Max',
+    badge: 'Popular',
     price_monthly: 23.50,
     price_yearly: 19.50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_business_monthly',
-    checkout_url_yearly: 'https://buy.stripe.com/test_business_yearly',
-    features_header: 'Toutes les fonctionnalités du forfait Plus, plus :',
-    features: [
-      { text: 'Agent Stensor' },
-      { text: 'Agents personnalisés' },
-      { text: 'Notes d’IA', tag: 'Bêta' },
-      { text: 'Autorisations de base de données' },
-      { text: 'SSO SAML' },
-      { text: 'Recherche Enterprise' },
-      { text: 'Intégrations Premium', prefix: '+4' },
-      { text: 'Vérifier n’importe quelle page', prefix: '+5' }
-    ]
+    checkout_url: 'https://buy.stripe.com/test_max',
+    features_header: 'All Pro features, plus:',
+    features: ['Stensor Agent', 'Custom Agents', 'AI Notes (Beta)', 'Database permissions', 'SAML SSO', 'Enterprise search', 'Premium integrations [+4]', 'Verify any page [+5]']
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
+    id: 'unlimited',
+    name: 'Unlimited',
     badge: 'Limited',
     price_monthly: 31.50,
     price_yearly: 25.50,
-    checkout_url_monthly: 'mailto:contact@stensor.com',
-    checkout_url_yearly: 'mailto:contact@stensor.com',
-    features_header: 'Toutes les fonctionnalités du forfait Business, plus :',
-    features: [
-      { text: 'Données analytiques et contrôles de l’IA' },
-      { text: 'Aucune conservation des données avec les fournisseurs LLM' },
-      { text: 'Provisionnement des utilisateurs via SCIM' },
-      { text: 'Contrôles et sécurité avancés' },
-      { text: 'Journal d’audit' },
-      { text: 'Intégrations de sécurité et de conformité (DLP, SIEM)' },
-      { text: 'Gestion de domaine' },
-      { text: 'Intégrations avancées' }
-    ]
+    checkout_url: 'mailto:contact@stensor.com',
+    features_header: 'All Max features, plus:',
+    features: ['AI analytics & controls', 'No data retention with LLM providers', 'User provisioning via SCIM', 'Advanced security & controls', 'Audit logs', 'Security & compliance integrations', 'Domain management', 'Advanced integrations']
   },
 ];
 
 export const COMPARISON_FEATURES = [
   {
-    category: "Création et personnalisation",
+    category: "Creation and customization",
     items: [
-      { name: "Blocs", free: "Illimités", plus: "Illimités", business: "Illimités", enterprise: "Illimités" },
-      { name: "Graphiques", free: "De base", plus: "Illimités", business: "Illimités", enterprise: "Illimités" },
-      { name: "Formulaires", free: "De base", plus: "Personnalisés", business: "Personnalisés", enterprise: "Personnalisés" },
-      { name: "Sites", free: "De base", plus: "Personnalisés", business: "Personnalisés", enterprise: "Personnalisés" },
+      { name: "Blocks", free: "Unlimited", pro: "Unlimited", max: "Unlimited", unlimited: "Unlimited" },
+      { name: "Graphs", free: "Basic", pro: "Unlimited", max: "Unlimited", unlimited: "Unlimited" },
+      { name: "Forms", free: "Basic", pro: "Custom", max: "Custom", unlimited: "Custom" },
+      { name: "Sites", free: "Basic", pro: "Custom", max: "Custom", unlimited: "Custom" },
     ]
   },
   {
-    category: "IA de Stensor",
+    category: "Stensor AI",
     items: [
-      { name: "Agent Stensor", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
-      { name: "Agents personnalisés", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
-      { name: "Notes d'IA (Bêta)", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
-      { name: "Contrôles de l'IA", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
+      { name: "Stensor Agent", free: "-", pro: "-", max: "Included", unlimited: "Included" },
+      { name: "Custom Agents", free: "-", pro: "-", max: "Included", unlimited: "Included" },
+      { name: "AI Notes (Beta)", free: "-", pro: "-", max: "Included", unlimited: "Included" },
+      { name: "AI Controls", free: "-", pro: "-", max: "-", unlimited: "Included" },
     ]
   },
   {
-    category: "Sécurité et gestion",
+    category: "Security and management",
     items: [
-      { name: "SSO SAML", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
-      { name: "Recherche Enterprise", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
-      { name: "Journal d'audit", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
-      { name: "Gestion de domaine", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
+      { name: "SAML SSO", free: "-", pro: "-", max: "Included", unlimited: "Included" },
+      { name: "Enterprise Search", free: "-", pro: "-", max: "Included", unlimited: "Included" },
+      { name: "Audit Log", free: "-", pro: "-", max: "-", unlimited: "Included" },
+      { name: "Domain Management", free: "-", pro: "-", max: "-", unlimited: "Included" },
     ]
   }
 ];
