@@ -76,62 +76,80 @@ export default function FichePanel({ content = null, loading = false, link = nul
   }, [content]);
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-white">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}>
-              <LoadingSkeleton />
-            </motion.div>
-          ) : content ? (
-            <motion.div key={content.slice(0, 40)}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="px-10 py-10"
-            >
+    <div className="flex h-full w-full bg-[#F9FAFB] p-4">
+      {/* Fenêtre "Mac" avec bordures fines et fond blanc */}
+      <div className="flex flex-col flex-1 bg-white border border-[#E6E6E9] rounded-xl shadow-sm overflow-hidden font-sans">
+        
+        {/* HEADER DE LA FENETRE PREVIEW (Les 3 points Mac) */}
+        <div className="flex items-center px-4 h-10 border-b border-[#E6E6E9] bg-white flex-shrink-0">
+          <div className="flex gap-2 items-center cursor-default">
+             <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+             <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+             <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+          </div>
+          {/* Titre optionnel de la preview centré */}
+          <div className="flex-1 flex justify-center">
+             <span className="text-[12px] font-medium text-gray-400 select-none">Preview</span>
+          </div>
+          {/* Spacer pour équilibrer la flexbox (même taille que les 3 points) */}
+          <div className="w-[52px]"></div> 
+        </div>
 
-              <FicheContent content={content} />
-            </motion.div>
-          ) : (
-            <motion.div key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="px-10 py-10"
-            >
-              {/* Builder-style empty template */}
-              <div className="flex items-center gap-3 mb-8">
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-30" />
-                <div className="h-3 rounded-sm animate-none" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
-              </div>
-              <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
-              <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
-              <div className="space-y-2 mb-8">
-                <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
-                <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
-                <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
-              </div>
-              <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
-              <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
-              <div className="space-y-2 mb-8">
-                {[100, 88, 94, 72].map((w, i) => (
-                  <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <div className="h-8 rounded-sm" style={{ width: '100px', background: 'rgba(0,0,0,0.07)' }} />
-                <div className="h-8 rounded-sm" style={{ width: '80px', background: 'rgba(0,0,0,0.05)' }} />
-              </div>
-              <p className="text-xs mt-10 text-center" style={{ color: 'rgba(0,0,0,0.18)' }}>Lance une analyse pour afficher le résultat ici</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ZONE DE CONTENU DÉFILABLE */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}>
+                <LoadingSkeleton />
+              </motion.div>
+            ) : content ? (
+              <motion.div key={content.slice(0, 40)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="px-10 py-8"
+              >
+                <FicheContent content={content} />
+              </motion.div>
+            ) : (
+              <motion.div key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="px-10 py-10"
+              >
+                {/* Builder-style empty template */}
+                <div className="flex items-center gap-3 mb-8">
+                  <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-30" />
+                  <div className="h-3 rounded-sm animate-none" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
+                </div>
+                <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
+                <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
+                <div className="space-y-2 mb-8">
+                  <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
+                  <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
+                  <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
+                </div>
+                <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
+                <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
+                <div className="space-y-2 mb-8">
+                  {[100, 88, 94, 72].map((w, i) => (
+                    <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <div className="h-8 rounded-sm" style={{ width: '100px', background: 'rgba(0,0,0,0.07)' }} />
+                  <div className="h-8 rounded-sm" style={{ width: '80px', background: 'rgba(0,0,0,0.05)' }} />
+                </div>
+                <p className="text-xs mt-10 text-center" style={{ color: 'rgba(0,0,0,0.18)' }}>Launch an analysis to display the result here.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
