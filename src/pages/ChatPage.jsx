@@ -1,4 +1,3 @@
-// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -29,7 +28,8 @@ import SynthesisProgress from '@/components/chat/SynthesisProgress';
 import { 
   Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, 
   ChevronRight, X, Cpu, BookOpen, ChevronsLeft, Search, 
-  FileText, Settings, Bot, Lock, Plus, Star 
+  FileText, Settings, Bot, Lock, Plus, Star, MoreHorizontal,
+  LifeBuoy, ArrowUpCircle, Key
 } from 'lucide-react';
 
 // MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
@@ -100,7 +100,6 @@ export default function ChatPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [discussions, setDiscussions] = useState([]);
   
-  // GARANTIE ARRAY POUR EVITER LE CRASH
   const [messages, setMessages] = useState(() => {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
     return Array.isArray(initial) ? initial : [];
@@ -133,10 +132,13 @@ export default function ChatPage() {
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   
-  // NOUVEAU: GESTION DE LA SIDEBAR
+  // UX PREMIUM : Sidebar statique (sans anim) + Menu Profil
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sections, setSections] = useState({ recentes: true, agents: true });
   const toggleSection = (s) => setSections(prev => ({ ...prev, [s]: !prev[s] }));
+  
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -145,6 +147,17 @@ export default function ChatPage() {
   const isMountedRef = useRef(true);
   const synthPendingRef = useRef(null);
   const abortedRef = useRef(false);
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!isLoadingConversation && messages.length === 0 && conversationId) navigate('/');
@@ -171,7 +184,6 @@ export default function ChatPage() {
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
     
-    // Charger les discussions récentes pour la Sidebar
     try {
       const allDiscs = getDiscussions();
       setDiscussions(allDiscs || []);
@@ -254,7 +266,7 @@ export default function ChatPage() {
       if (idx >= 0) stored.splice(idx, 1);
       stored.unshift(disc);
       saveDiscussions(stored);
-      setDiscussions(stored); // Update sidebar
+      setDiscussions(stored);
     } catch {}
   };
 
@@ -303,7 +315,6 @@ export default function ChatPage() {
 
     abortedRef.current = false;
     
-    // DELAI POUR L'ANIMATION DE CHARGEMENT
     await new Promise(r => setTimeout(r, 4500));
 
     let result;
@@ -337,17 +348,11 @@ export default function ChatPage() {
 
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, discussMode]);
 
-  const continueSynthesis = useCallback(async (doDeep) => {
-    setIsLoading(true); startProgress();
-    setTimeout(() => { setIsLoading(false); stopProgress(); }, 2000);
-  }, []);
-
   const handleMessageClick = useCallback((msg, idx) => {
     if (!msg?.content || msg.content.length < 20 || discussMode) return;
     setFicheContent(msg.content); setFicheMsgIdx(idx);
   }, [discussMode]);
 
-  // NAVIGATION ITEMS POUR LA SIDEBAR
   const isAdmin = user?.role === 'admin';
   const navItems = [
     { icon: Home, labelKey: 'home', label: 'Accueil', path: '/app', active: location.pathname === '/app' },
@@ -360,123 +365,152 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
+    <div className="flex font-sans h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
       
-      {/* NOUVELLE SIDEBAR (CLAUDE + NOTION STYLE) */}
-      <AnimatePresence initial={false}>
-        {isSidebarOpen && (
-          <motion.aside
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 260, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex-shrink-0 h-full bg-[#F9F8F6] border-r border-[#E6E6E9] overflow-hidden flex flex-col z-40"
-          >
-            <div className="w-[260px] flex flex-col h-full">
-              
-              {/* Sidebar Header (Workspace & Collapse) */}
-              <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <div className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
-                    {(user?.full_name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-[14px] font-semibold text-[#333333] truncate">
-                    {user?.full_name || 'My Workspace'}
-                  </span>
-                </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-[#999999] hover:text-[#333333] transition-colors p-1">
-                  <ChevronsLeft className="w-4 h-4" />
-                </button>
+      {/* SIDEBAR ULTRA QUALI & PRO (SANS ANIMATION POUR L'OUVERTURE/FERMETURE) */}
+      {isSidebarOpen && (
+        <aside className="w-[260px] flex-shrink-0 h-full bg-[#F7F7F7] border-r border-[#E5E5E5] flex flex-col z-40">
+          
+          {/* Header Sidebar */}
+          <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2 group">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
+                {(user?.full_name || 'U').charAt(0).toUpperCase()}
               </div>
-
-              {/* Primary Navigation (Tes anciens menus restaurés) */}
-              <div className="px-3 space-y-0.5 mb-4">
-                {navItems.map((item) => (
-                  <button 
-                    key={item.labelKey || item.label} 
-                    onClick={() => navigate(item.path)} 
-                    className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium transition-colors ${item.active ? 'bg-black/5 text-[#333333] font-semibold' : 'text-[#707070] hover:bg-black/5 hover:text-[#333333]'}`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.label || t(item.labelKey)}</span>
-                    {item.highlight && <span className="ml-auto text-[9px] font-bold bg-[#DDFF00] text-black px-1.5 py-0.5 rounded-full">NEW</span>}
-                  </button>
-                ))}
-              </div>
-
-              {/* Sections Collapsables (Notion Style) */}
-              <div className="flex-1 overflow-y-auto px-3 space-y-5 [&::-webkit-scrollbar]:hidden">
-                
-                {/* Récentes */}
-                <div>
-                  <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-[#999999] hover:text-[#333333] transition-colors">
-                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
-                    <span className="text-[11px] font-semibold tracking-wide">Récentes</span>
-                  </div>
-                  {sections.recentes && (
-                    <ul className="space-y-0.5">
-                       {discussions.slice(0, 5).map((d) => (
-                         <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer text-[#333333] transition-colors truncate">
-                            <FileText className="w-3.5 h-3.5 text-[#999999]" />
-                            <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'Nouvelle discussion'}</span>
-                         </li>
-                       ))}
-                    </ul>
-                  )}
-                </div>
-
-                {/* Agents */}
-                <div>
-                  <div onClick={() => toggleSection('agents')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-[#999999] hover:text-[#333333] transition-colors">
-                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
-                    <span className="text-[11px] font-semibold tracking-wide">Agents</span>
-                  </div>
-                  {sections.agents && (
-                    <ul className="space-y-0.5">
-                       {AGENTS.map((a) => (
-                         <li key={a.id} onClick={() => navigate(`/chat?agent=${a.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer text-[#333333] transition-colors">
-                            <Bot className="w-3.5 h-3.5 text-[#999999]" />
-                            <span className="text-[13px] font-medium truncate">{a.label}</span>
-                         </li>
-                       ))}
-                       <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer text-[#707070] transition-colors mt-1">
-                          <Plus className="w-3.5 h-3.5 text-[#999999]" />
-                          <span className="text-[13px] font-medium">Nouvel agent</span>
-                       </li>
-                    </ul>
-                  )}
-                </div>
-              </div>
-
-              {/* Sidebar Bottom (Nouvelle Discussion + Profil) */}
-              <div className="p-3 border-t border-[#E6E6E9] flex flex-col gap-2">
-                <button 
-                  onClick={() => navigate('/')} 
-                  className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-[#E6E6E9] rounded-lg text-[13px] font-semibold text-[#333333] hover:bg-gray-50 transition-colors shadow-sm"
-                >
-                  <Plus className="w-4 h-4" /> Nouvelle discussion
-                </button>
-
-                <button className="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left">
-                  <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
-                    {(user?.full_name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-[#333333] truncate">{user?.full_name || 'Utilisateur'}</p>
-                    <p className="text-[11px] text-[#707070]">{userPlan?.name || 'Forfait Free'}</p>
-                  </div>
-                  <Settings className="w-4 h-4 text-[#999999]" />
-                </button>
-              </div>
+              <span className="text-[13px] font-semibold text-gray-900 truncate">
+                {user?.full_name || 'My Workspace'}
+              </span>
             </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+            <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 opacity-0 group-hover:opacity-100">
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+          </div>
 
-      {/* ZONE DE TRAVAIL PRINCIPALE */}
+          {/* Nav Items */}
+          <div className="px-3 space-y-0.5 mb-5">
+            {navItems.map((item) => (
+              <button 
+                key={item.labelKey || item.label} 
+                onClick={() => navigate(item.path)} 
+                className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-200/60 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-black/5 hover:text-gray-900'}`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.label || t(item.labelKey)}</span>
+                {item.highlight && <span className="ml-auto text-[9px] font-bold bg-[#DDFF00] text-black px-1.5 py-0.5 rounded-full">NEW</span>}
+              </button>
+            ))}
+          </div>
+
+          {/* Sections (Notion Style) */}
+          <div className="flex-1 overflow-y-auto px-3 space-y-6 [&::-webkit-scrollbar]:hidden">
+            
+            {/* Récentes */}
+            <div>
+              <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
+                <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
+                <span className="text-[11px] font-semibold tracking-wide">Récentes</span>
+              </div>
+              {sections.recentes && (
+                <ul className="space-y-0.5">
+                   {discussions.slice(0, 5).map((d) => (
+                     <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-700 transition-colors truncate">
+                        <FileText className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'Nouvelle discussion'}</span>
+                     </li>
+                   ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Agents */}
+            <div>
+              <div onClick={() => toggleSection('agents')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
+                <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
+                <span className="text-[11px] font-semibold tracking-wide">Agents</span>
+              </div>
+              {sections.agents && (
+                <ul className="space-y-0.5">
+                   {AGENTS.map((a) => (
+                     <li key={a.id} onClick={() => navigate(`/chat?agent=${a.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-700 transition-colors">
+                        <Bot className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-[13px] font-medium truncate">{a.label}</span>
+                     </li>
+                   ))}
+                   <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-500 transition-colors mt-1">
+                      <Plus className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-[13px] font-medium">Nouvel agent</span>
+                   </li>
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Menu Profil (Le gros bouton du bas) */}
+          <div className="p-3 border-t border-[#E5E5E5] relative" ref={profileMenuRef}>
+            
+            {/* LA GROSSE FENÊTRE VERS LE HAUT (Popover) */}
+            <AnimatePresence>
+              {isProfileMenuOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-[calc(100%+8px)] left-3 w-[240px] bg-white border border-gray-200 rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] py-1.5 z-50 font-sans"
+                >
+                  <div className="px-3 py-2 border-b border-gray-100 mb-1">
+                    <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
+                    <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Forfait Free'}</p>
+                  </div>
+                  
+                  <button onClick={() => { setIsProfileMenuOpen(false); /* Add route */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                    <Settings className="w-4 h-4 text-gray-500" /> Paramètres
+                  </button>
+                  <button onClick={() => { setIsProfileMenuOpen(false); /* Add route */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                    <LifeBuoy className="w-4 h-4 text-gray-500" /> Tickets support
+                  </button>
+                  
+                  <div className="h-px bg-gray-100 my-1"></div>
+                  
+                  <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors group">
+                    <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Passer à un forfait supérieur
+                  </button>
+                  <button onClick={() => { setIsProfileMenuOpen(false); /* Open code modal */ }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                    <Key className="w-4 h-4 text-gray-500" /> J'ai un code...
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Bouton Nouvelle Discussion */}
+            <button 
+              onClick={() => { navigate('/'); setIsProfileMenuOpen(false); }} 
+              className="flex items-center justify-center gap-2 w-full py-2 mb-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-semibold text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" /> Nouvelle discussion
+            </button>
+
+            {/* Bouton Profil */}
+            <button 
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left"
+            >
+              <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
+                {(user?.full_name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
+                <p className="text-[11px] text-gray-500">{userPlan?.name || 'Forfait Free'}</p>
+              </div>
+              <MoreHorizontal className="w-4 h-4 text-gray-400" />
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* MAIN WORKSPACE (Chat + Preview) */}
       <div className="flex flex-col flex-1 min-w-0 relative bg-white">
         
-        {/* HEADER */}
         <WorkspaceHeader
           title={convTitleDisplay || messages?.find(m => m.role === 'user')?.content?.slice(0, 50)}
           conversationId={convId}
@@ -484,11 +518,10 @@ export default function ChatPage() {
           isSidebarOpen={isSidebarOpen}
         />
 
-        {/* CONTENU (Chat + Preview) */}
         <div className="flex flex-1 overflow-hidden relative">
           
-          {/* COLONNE CHAT */}
-          <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-[#E6E6E9] bg-white z-10">
+          {/* CHAT COLUMN */}
+          <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-[#E5E5E5] bg-white z-10">
             <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
               
               {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
@@ -531,20 +564,21 @@ export default function ChatPage() {
             </div>
           </div>
           
-          {/* COLONNE PREVIEW */}
-          <motion.div layout className="flex-1 flex flex-col bg-[#F9FAFB] overflow-hidden relative">
+          {/* PREVIEW COLUMN */}
+          <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
              <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
-          </motion.div>
+          </div>
 
         </div>
       </div>
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
+      
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-2xl p-6" onClick={e => e.stopPropagation()}>
-              <p className="font-black text-xl mb-4 text-center">Free limit reached</p>
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
+              <p className="font-black text-xl mb-4">Free limit reached</p>
               <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
             </motion.div>
           </motion.div>
