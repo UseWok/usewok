@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { getPlansConfig, loadPlansFromDB, COMPARISON_FEATURES } from '@/lib/plans-config';
+import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
+
+// Composant utilitaire pour générer de fausses icones de marques
+const BrandIcons = ({ count }) => (
+  <div className="flex items-center gap-1 mt-1.5 mb-1">
+    <div className="w-3.5 h-3.5 bg-blue-500 rounded-sm"></div>
+    <div className="w-3.5 h-3.5 bg-green-500 rounded-sm"></div>
+    <div className="w-3.5 h-3.5 bg-yellow-400 rounded-sm"></div>
+    <div className="w-3.5 h-3.5 bg-red-500 rounded-sm"></div>
+    {count > 4 && <div className="w-3.5 h-3.5 bg-purple-500 rounded-full"></div>}
+  </div>
+);
 
 export default function PricingPage() {
   const [user, setUser] = useState(null);
   const [plans, setPlans] = useState(() => getPlansConfig());
   const [purchased, setPurchased] = useState('free');
-  const [showTable, setShowTable] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,138 +31,238 @@ export default function PricingPage() {
     if (plan.checkout_url) { window.location.href = plan.checkout_url; }
   };
 
-  const currentPlanObj = plans?.find(p => p.id === purchased) || plans?.[0] || {};
+  const getButtonProps = (planId) => {
+    if (planId === purchased) return { text: "Current plan", class: "bg-white text-[#999999] border border-[#E6E6E9] cursor-default" };
+    if (planId === 'max') return { text: "Upgrade plan", class: "bg-[#2383E2] text-white border border-transparent hover:bg-[#1e70c1]" };
+    return { text: "Upgrade plan", class: "bg-white text-[#333333] border border-[#E6E6E9] hover:bg-[#F9F9F9]" };
+  };
+
+  const pFree = plans.find(p => p.id === 'free') || {};
+  const pPro = plans.find(p => p.id === 'pro') || {};
+  const pMax = plans.find(p => p.id === 'max') || {};
+  const pUnlim = plans.find(p => p.id === 'unlimited') || {};
 
   return (
-    <div className="min-h-screen bg-white font-sans text-[#0d0d0d] flex flex-col pb-24 antialiased">
+    <div className="min-h-screen bg-[#FFFFFF] font-sans flex flex-col pb-24 antialiased">
       
-      {/* HEADER & CURRENT PLAN BANNER */}
-      <div className="pt-24 pb-8 px-6 max-w-[1200px] mx-auto w-full">
-        <h1 className="text-[40px] font-bold tracking-tight mb-2">Discover plans</h1>
-        <p className="text-[17px] text-gray-500 mb-12">Compare all Stensor plans</p>
+      {/* SECTION 1: PAGE HEADER */}
+      <div className="pt-10 px-10 w-full max-w-[1200px] mx-auto">
+        <h1 className="text-[32px] font-bold text-[#333333] tracking-tight">Discover plans</h1>
+        <p className="text-[16px] text-[#707070] mt-2">Compare all Stensor plans</p>
+      </div>
 
-        <div className="mb-12 border border-gray-200 rounded-2xl p-8 flex flex-col md:flex-row items-start justify-between bg-[#fcfcfc] shadow-sm">
-          <div className="mb-6 md:mb-0 max-w-md">
-            <h2 className="text-[13px] font-semibold text-gray-500 mb-4">Your current plan</h2>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-[12px] font-bold bg-white border border-gray-200 px-2 py-0.5 rounded">USD</span>
-              <h3 className="text-2xl font-bold">{currentPlanObj?.name || 'Free'}</h3>
+      {/* SECTION 2: YOUR CURRENT PLAN */}
+      <div className="mt-10 px-10 w-full max-w-[1200px] mx-auto">
+        <div className="flex justify-between items-end mb-3">
+          <h2 className="text-[18px] font-bold text-[#333333]">Your current plan</h2>
+          <div className="flex items-center gap-1.5 px-3 py-1 border border-[#E6E6E9] rounded-full cursor-pointer hover:bg-gray-50">
+            <span className="text-[13px] text-[#707070] font-medium">USD</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#707070" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <div className="border border-[#E6E6E9] rounded-[8px] bg-white p-6 md:p-8 flex flex-col md:flex-row items-stretch justify-between">
+          <div className="flex-1 pr-6">
+            <h3 className="text-[28px] font-bold text-[#333333] mb-1">Free</h3>
+            <p className="text-[16px] text-[#707070] mb-4">For organizing every corner of your life — personal and professional</p>
+            <div className="flex items-center gap-1.5 text-[13px] text-[#999999]">
+              Unlimited blocks
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
-            <p className="text-[14px] text-gray-600 mb-5 leading-relaxed">
-              Basic AI personal finance tool for organizing personal finances, personal projects and much more.
-            </p>
-            <button className="text-[14px] font-medium text-gray-900 border border-gray-300 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors">
-              Manage plan
-            </button>
           </div>
           
-          <div className="flex flex-col items-start bg-blue-50/50 p-6 rounded-xl border border-blue-100 w-full md:w-[420px]">
-            <div className="flex items-center gap-2 mb-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2383E2" strokeWidth="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span className="text-[16px] font-bold text-[#2383E2]">Stensor AI</span>
+          {/* Nested Box */}
+          <div className="mt-6 md:mt-0 w-full md:w-[40%] bg-[#F9F9F9] rounded-[6px] p-6 flex flex-col items-start justify-center">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded-full bg-gray-200/50 flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#333333" strokeWidth="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <span className="text-[15px] font-bold text-[#333333]">Stensor AI</span>
             </div>
-            <p className="text-[14px] text-gray-700 mb-6 leading-relaxed">
-              Upgrade to a higher plan to search anywhere, automate meeting notes and more.
+            <p className="text-[13px] text-[#707070] mb-5 leading-relaxed">
+              Upgrade to search anywhere, automate meeting notes and more
             </p>
-            <button onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })} className="px-5 py-2.5 bg-[#2383E2] text-white text-[14px] font-medium rounded-lg hover:bg-[#1E70C1] transition-colors w-full md:w-auto text-center shadow-sm">
-              Upgrade to higher plan
+            <button className="self-end px-4 py-2 bg-[#2383E2] text-white text-[14px] font-bold rounded-[4px] hover:bg-[#1e70c1] transition-colors max-w-[200px] text-center">
+              Upgrade plan
             </button>
           </div>
         </div>
       </div>
 
-      {/* PLANS GRID */}
-      <div className="max-w-[1200px] mx-auto px-6 w-full">
-        <h2 className="text-2xl font-bold mb-6">Compare all plans</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {(plans || []).map((plan) => {
-            const isMax = plan.id === 'max';
-            return (
-              <div key={plan.id} className="flex flex-col bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm">
-                
-                <h3 className="text-2xl font-bold text-[#0A0A0A] mb-6 flex justify-between items-center">
-                  {plan.name}
-                  {plan.badge && <span className="bg-blue-100 text-[#2383E2] text-[11px] font-bold px-2 py-0.5 rounded-md">{plan.badge}</span>}
-                </h3>
-                
-                <div className="mb-6 h-[70px]">
-                  <div className="flex items-end gap-1 mb-1">
-                    <span className="text-[28px] font-bold leading-none">
-                      ${plan.price_yearly === 0 ? '0' : plan.price_yearly.toFixed(2)}
-                    </span>
-                  </div>
-                  {plan.price_monthly > 0 ? (
-                    <div className="text-[12.5px] text-gray-500 leading-snug mt-2">
-                      per user/month, billed annually<br/>
-                      ${plan.price_monthly.toFixed(2)} billed monthly
-                    </div>
-                  ) : (
-                    <div className="text-[12.5px] text-gray-500 leading-snug mt-2">
-                      per user/month
-                    </div>
-                  )}
-                </div>
+      {/* SECTION 3: COMPARISON HEADER & PRICING COLUMNS */}
+      <div className="mt-12 px-10 w-full max-w-[1200px] mx-auto">
+        <h2 className="text-[18px] font-bold text-[#333333] mb-6 flex items-center gap-1.5">
+          Compare all plans
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </h2>
 
-                <div className="flex-1 mb-8">
-                  <p className="text-[13px] font-bold text-gray-900 mb-4">{plan.features_header}</p>
-                  <ul className="space-y-3.5">
-                    {(plan.features || []).map((f, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-[13px] text-gray-700 leading-snug">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <button 
-                  onClick={() => handleChoose(plan)} 
-                  className={`w-full py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
-                    isMax 
-                      ? 'bg-[#2383E2] text-white hover:bg-[#1E70C1]' 
-                      : 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Join Waitlist
-                </button>
-
-              </div>
-            );
-          })}
-        </div>
-
-        {/* COMPARISON TABLE */}
-        <div className="flex justify-start mt-12 mb-6 border-t border-gray-200 pt-8">
-          <button onClick={() => setShowTable(!showTable)} className="text-[15px] font-semibold text-gray-800 hover:text-gray-900 flex items-center gap-2">
-            Compare all features
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${showTable ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-        </div>
-
-        {showTable && (
-          <div className="w-full overflow-x-auto pb-10">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <tbody>
-                {(COMPARISON_FEATURES || []).map((section, sIdx) => (
-                  <React.Fragment key={sIdx}>
-                    <tr><td colSpan={5} className="py-4 px-4 text-[13px] font-bold text-gray-900 bg-gray-50 border-y border-gray-200">{section.category}</td></tr>
-                    {(section.items || []).map((item, iIdx) => (
-                      <tr key={iIdx} className="hover:bg-gray-50/50">
-                        <td className="py-3.5 px-4 text-[13.5px] font-medium text-gray-900 border-b border-gray-100">{item.name}</td>
-                        <td className="py-3.5 px-4 text-[13.5px] text-gray-600 border-b border-gray-100">{item.free}</td>
-                        <td className="py-3.5 px-4 text-[13.5px] text-gray-600 border-b border-gray-100">{item.pro}</td>
-                        <td className="py-3.5 px-4 text-[13.5px] text-gray-600 border-b border-gray-100">{item.max}</td>
-                        <td className="py-3.5 px-4 text-[13.5px] text-gray-600 border-b border-gray-100">{item.unlimited}</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+        {/* 5-Column Grid Layout. Col 1 is empty in this row */}
+        <div className="grid grid-cols-5 gap-0">
+          <div className="col-span-1"></div>
+          
+          {/* Free */}
+          <div className="col-span-1 px-4 flex flex-col">
+            <h3 className="text-[28px] font-bold text-[#333333] mb-3">Free</h3>
+            <p className="text-[13px] text-[#999999] h-[48px]">$0 per user per month</p>
+            <div className="h-[36px] mt-2"></div> {/* Spacer for button area */}
           </div>
-        )}
+
+          {/* Pro */}
+          <div className="col-span-1 px-4 flex flex-col">
+            <h3 className="text-[28px] font-bold text-[#333333] mb-3">Pro</h3>
+            <div className="h-[48px] flex flex-col">
+              <span className="text-[13px] text-[#707070]">${pPro.price_yearly?.toFixed(2)} per user per month</span>
+              <span className="text-[11px] text-[#999999]">billed annually</span>
+              <span className="text-[11px] text-[#999999]">${pPro.price_monthly?.toFixed(2)} billed monthly</span>
+            </div>
+            <button onClick={() => handleChoose(pPro)} className={`mt-2 w-full py-2 rounded-[4px] text-[13px] font-bold transition-colors ${getButtonProps('pro').class}`}>
+              {getButtonProps('pro').text}
+            </button>
+          </div>
+
+          {/* Max */}
+          <div className="col-span-1 px-4 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="text-[28px] font-bold text-[#333333] leading-none">Max</h3>
+              <span className="bg-[#EBF5FF] text-[#2383E2] text-[11px] font-bold px-2 py-0.5 rounded-full">Popular</span>
+            </div>
+            <div className="h-[48px] flex flex-col">
+              <span className="text-[13px] text-[#707070]">${pMax.price_yearly?.toFixed(2)} per user per month</span>
+              <span className="text-[11px] text-[#999999]">billed annually</span>
+              <span className="text-[11px] text-[#999999]">${pMax.price_monthly?.toFixed(2)} billed monthly</span>
+            </div>
+            <button onClick={() => handleChoose(pMax)} className={`mt-2 w-full py-2 rounded-[4px] text-[13px] font-bold transition-colors ${getButtonProps('max').class}`}>
+              {getButtonProps('max').text}
+            </button>
+          </div>
+
+          {/* Unlimited */}
+          <div className="col-span-1 px-4 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="text-[28px] font-bold text-[#333333] leading-none">Unlimited</h3>
+              <span className="bg-[#F0F0F0] text-[#707070] text-[11px] font-bold px-2 py-0.5 rounded-full">Limited</span>
+            </div>
+            <div className="h-[48px] flex flex-col">
+              <span className="text-[13px] text-[#707070]">${pUnlim.price_yearly?.toFixed(2)} per user per month</span>
+              <span className="text-[11px] text-[#999999]">billed annually</span>
+              <span className="text-[11px] text-[#999999]">${pUnlim.price_monthly?.toFixed(2)} billed monthly</span>
+            </div>
+            <button onClick={() => handleChoose(pUnlim)} className={`mt-2 w-full py-2 rounded-[4px] text-[13px] font-bold transition-colors ${getButtonProps('unlimited').class}`}>
+              {getButtonProps('unlimited').text}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* SECTION 4: FEATURES COMPARISON TABLE */}
+      <div className="mt-8 px-10 w-full max-w-[1200px] mx-auto">
+        <div className="bg-[#F7F7F5] rounded-t-[8px] pb-6">
+          <div className="grid grid-cols-5 gap-0">
+            
+            {/* COLUMN 1: Labels */}
+            <div className="col-span-1 p-5 border-r border-transparent">
+              <p className="text-[13px] font-bold text-[#333333]">Key elements</p>
+            </div>
+
+            {/* COLUMN 2: Free */}
+            <div className="col-span-1 p-5">
+              <p className="text-[13px] font-bold text-[#333333] mb-4">Includes</p>
+              <ul className="space-y-3">
+                {['Basic forms', 'Basic sites', 'Basic automations', 'Custom databases', 'Stensor Calendar', 'Stensor Mail'].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-[#333333]">
+                    <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* COLUMN 3: Pro */}
+            <div className="col-span-1 p-5">
+              <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Free, plus</p>
+              <ul className="space-y-3">
+                {['Unlimited blocks', 'Unlimited graphs', 'Custom forms', 'Custom sites', 'Basic integrations'].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-[#333333]">
+                    <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <BrandIcons count={4} />
+            </div>
+
+            {/* COLUMN 4: Max */}
+            <div className="col-span-1 p-5">
+              <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Pro, plus</p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Stensor Agent
+                </li>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Custom agents
+                </li>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>AI Notes <span className="ml-1 bg-[#EBF5FF] text-[#2383E2] text-[10px] font-bold px-1.5 py-0.5 rounded-full">Beta</span></span>
+                </li>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Database permissions
+                </li>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  SAML SSO
+                </li>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333]">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Enterprise search
+                </li>
+                <div className="flex items-center gap-1.5 ml-5 mt-1">
+                  <BrandIcons count={4} />
+                  <span className="text-[11px] text-[#999999]">+4</span>
+                </div>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333] mt-3">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Premium integrations
+                </li>
+                <div className="flex items-center gap-1.5 ml-5 mt-1">
+                  <BrandIcons count={5} />
+                  <span className="text-[11px] text-[#999999]">+5</span>
+                </div>
+                <li className="flex items-start gap-2 text-[13px] text-[#333333] mt-3">
+                  <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  Verify any page
+                </li>
+              </ul>
+            </div>
+
+            {/* COLUMN 5: Unlimited */}
+            <div className="col-span-1 p-5">
+              <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Max, plus</p>
+              <ul className="space-y-3">
+                {['AI analytics and controls', 'No data retention with LLM providers', 'User provisioning via SCIM', 'Advanced security and controls', 'Audit log', 'Security and compliance integrations (DLP, SIEM)', 'Domain management', 'Advanced integrations'].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-[#333333]">
+                    <svg className="w-3.5 h-3.5 text-[#333333] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span className="leading-snug">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 5: FOOTER */}
+      <div className="flex justify-center mt-6 mb-12">
+        <button className="text-[13px] font-medium text-[#707070] hover:text-[#333333] flex items-center gap-1.5 transition-colors">
+          Compare all features
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
     </div>
   );
 }
