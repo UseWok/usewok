@@ -1,89 +1,80 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v4';
+const PLANS_STORAGE_KEY = 'stensor_plans_v5';
 const DB_PLANS_KEY = 'plans_config';
 
 export const DEFAULT_PLANS = [
   {
     id: 'free',
-    name: 'Free',
-    description: 'For organizing every corner of your financial life.',
+    name: 'Gratuit',
     price_monthly: 0,
     price_yearly: 0,
-    credits_limit: 10,
-    deep_credits_limit: 0,
     checkout_url_monthly: null,
     checkout_url_yearly: null,
-    features_header: 'Includes:',
-    features: ['Basic financial models', '10 Flash requests/mo', 'Standard response speed', 'Web access']
+    features_header: 'Éléments clefs\nComprend :',
+    features: [
+      { text: 'Formulaires de base' },
+      { text: 'Sites de base' },
+      { text: 'Automatisations de base' },
+      { text: 'Bases de données personnalisées' },
+      { text: 'Stensor Calendar' },
+      { text: 'Stensor Mail' }
+    ]
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    description: 'A place for professionals to plan and execute.',
-    price_monthly: 15,
-    price_yearly: 12,
-    credits_limit: 100,
-    deep_credits_limit: 10,
-    checkout_url_monthly: 'https://buy.stripe.com/test_pro_monthly',
-    checkout_url_yearly: 'https://buy.stripe.com/test_pro_yearly',
-    features_header: 'Everything in Free, plus:',
-    features: ['100 Flash requests/mo', '10 Deep Synthesis/mo', 'File Uploads', 'Priority support']
+    id: 'plus',
+    name: 'Plus',
+    price_monthly: 11.50,
+    price_yearly: 9.50,
+    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_plus_yearly',
+    features_header: 'Toutes les fonctionnalités de l’accès gratuit, plus :',
+    features: [
+      { text: 'Blocs illimités' },
+      { text: 'Graphiques illimités' },
+      { text: 'Formulaires personnalisés' },
+      { text: 'Sites personnalisés' },
+      { text: 'Intégrations de base' }
+    ]
   },
   {
-    id: 'max',
-    name: 'Max',
-    badge: 'Popular',
-    description: 'For companies using Stensor to connect several tools.',
-    price_monthly: 50,
-    price_yearly: 40,
-    credits_limit: 500,
-    deep_credits_limit: 50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_max_monthly',
-    checkout_url_yearly: 'https://buy.stripe.com/test_max_yearly',
-    features_header: 'Everything in Pro, plus:',
-    features: ['500 Flash requests/mo', '50 Deep Synthesis/mo', 'Unlimited Web Search', 'Advanced Custom AI agents']
+    id: 'business',
+    name: 'Business',
+    badge: 'Populaire',
+    price_monthly: 23.50,
+    price_yearly: 19.50,
+    checkout_url_monthly: 'https://buy.stripe.com/test_business_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_business_yearly',
+    features_header: 'Toutes les fonctionnalités du forfait Plus, plus :',
+    features: [
+      { text: 'Agent Stensor' },
+      { text: 'Agents personnalisés' },
+      { text: 'Notes d’IA', tag: 'Bêta' },
+      { text: 'Autorisations de base de données' },
+      { text: 'SSO SAML' },
+      { text: 'Recherche Enterprise' },
+      { text: 'Intégrations Premium', prefix: '+4' },
+      { text: 'Vérifier n’importe quelle page', prefix: '+5' }
+    ]
   },
   {
-    id: 'unlimited',
-    name: 'Unlimited',
-    description: 'Advanced controls and support to run your entire org.',
-    price_monthly: 'Custom',
-    price_yearly: 'Custom',
-    credits_limit: 'Unlimited',
-    deep_credits_limit: 'Unlimited',
+    id: 'enterprise',
+    name: 'Enterprise',
+    badge: 'Limited',
+    price_monthly: 31.50,
+    price_yearly: 25.50,
     checkout_url_monthly: 'mailto:contact@stensor.com',
     checkout_url_yearly: 'mailto:contact@stensor.com',
-    features_header: 'Everything in Max, plus:',
-    features: ['Unlimited everything', 'Dedicated success manager', 'SSO & advanced security', 'SLA 99.9%']
-  },
-];
-
-// Données du grand tableau comparatif (Notion style)
-export const COMPARISON_FEATURES = [
-  {
-    category: "AI capabilities & Limits",
-    items: [
-      { name: "Flash requests", free: "10 / mo", pro: "100 / mo", max: "500 / mo", unlimited: "Unlimited" },
-      { name: "Deep Synthesis", free: "-", pro: "10 / mo", max: "50 / mo", unlimited: "Unlimited" },
-      { name: "Web Search", free: "Basic", pro: "Advanced", max: "Unlimited", unlimited: "Unlimited" },
-      { name: "File Uploads", free: "-", pro: "Up to 10MB", max: "Up to 100MB", unlimited: "Unlimited" },
+    features_header: 'Toutes les fonctionnalités du forfait Business, plus :',
+    features: [
+      { text: 'Données analytiques et contrôles de l’IA' },
+      { text: 'Aucune conservation des données avec les fournisseurs LLM' },
+      { text: 'Provisionnement des utilisateurs via SCIM' },
+      { text: 'Contrôles et sécurité avancés' },
+      { text: 'Journal d’audit' },
+      { text: 'Intégrations de sécurité et de conformité (DLP, SIEM)' },
+      { text: 'Gestion de domaine' },
+      { text: 'Intégrations avancées' }
     ]
   },
-  {
-    category: "Advanced Features",
-    items: [
-      { name: "Custom AI Agents", free: "-", pro: "1 custom agent", max: "Unlimited", unlimited: "Unlimited" },
-      { name: "API Access", free: "-", pro: "-", max: "Yes", unlimited: "Advanced rate limits" },
-      { name: "Export capabilities", free: "PDF only", pro: "PDF, CSV", max: "PDF, CSV, Excel", unlimited: "All formats + API sync" },
-    ]
-  },
-  {
-    category: "Security & Support",
-    items: [
-      { name: "Support level", free: "Community", pro: "Standard", max: "Priority (24h)", unlimited: "Dedicated manager (1h)" },
-      { name: "SSO SAML", free: "-", pro: "-", max: "-", unlimited: "Yes" },
-      { name: "Data retention", free: "30 days", pro: "1 year", max: "Unlimited", unlimited: "Custom policies" },
-    ]
-  }
 ];
 
 export function getPlansConfig() {
