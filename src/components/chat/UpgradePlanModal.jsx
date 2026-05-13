@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
+import React, { useState, useEffect } from 'react';
+import { getPlansConfig, loadPlansFromDB, COMPARISON_FEATURES } from '@/lib/plans-config';
 import { useNavigate } from 'react-router-dom';
 
 export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
   const navigate = useNavigate();
   const [plans, setPlans] = useState(() => getPlansConfig());
   const [billing, setBilling] = useState('yearly');
+  const [showTable, setShowTable] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -29,7 +30,7 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
     return { text: "Passer à un forfait inférieur", class: "bg-white text-gray-900 border border-gray-300 hover:bg-gray-50" };
   };
 
-  const currentPlanObj = plans.find(p => p.id === currentPlanId) || plans[0];
+  const currentPlanObj = plans?.find(p => p.id === currentPlanId) || plans?.[0] || {};
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm font-sans">
@@ -43,11 +44,13 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
           <h2 className="text-3xl font-bold tracking-tight mb-2 text-[#0A0A0A]">Découvrir les forfaits</h2>
           <p className="text-[15px] text-gray-500 mb-10">Comparez tous les forfaits Stensor</p>
           
-          {/* BANNER IN MODAL */}
           <div className="mb-10 border border-gray-200 rounded-[12px] p-6 flex flex-col md:flex-row items-start justify-between bg-white shadow-sm">
             <div className="mb-4 md:mb-0">
               <h2 className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Votre forfait actuel</h2>
-              <h3 className="text-xl font-bold mb-2">{currentPlanObj.name}</h3>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-[11px] font-bold bg-gray-100 px-2 py-1 rounded">EUR</span>
+                <h3 className="text-xl font-bold">{currentPlanObj?.name || 'Forfait'}</h3>
+              </div>
               <p className="text-[14px] text-gray-600 mb-2">Pour organiser tous les aspects de votre vie</p>
             </div>
             <div className="flex flex-col items-start bg-gray-50 p-4 rounded-xl border border-gray-200 w-full md:w-[350px]">
@@ -61,7 +64,6 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
             </div>
           </div>
 
-          {/* TOGGLE */}
           <div className="flex items-center justify-end gap-3 mb-6">
             <span className={`text-[14px] font-medium ${billing === 'monthly' ? 'text-black' : 'text-gray-500'}`} onClick={() => setBilling('monthly')}>Mensuel</span>
             <button className="w-11 h-6 rounded-full bg-gray-200 relative" onClick={() => setBilling(billing === 'monthly' ? 'yearly' : 'monthly')}>
@@ -71,10 +73,9 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
           </div>
         </div>
 
-        {/* GRID IN MODAL (NO BORDERS) */}
         <div className="max-w-[1200px] mx-auto px-6 w-full pb-16 flex-1">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {plans.map((plan) => {
+            {(plans || []).map((plan) => {
               const btnState = getButtonState(plan.id);
               const mainPrice = billing === 'yearly' ? plan.price_yearly : plan.price_monthly;
               const subPrice = billing === 'yearly' ? plan.price_monthly : plan.price_yearly;
@@ -106,7 +107,7 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-gray-900 mb-3 whitespace-pre-line leading-snug">{plan.features_header}</p>
                     <ul className="space-y-3">
-                      {plan.features?.map((f, i) => (
+                      {(plan.features || []).map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-[13px] text-gray-700">
                           {f.prefix ? (
                             <span className="text-[11px] font-bold bg-gray-100 text-gray-600 px-1 py-0.5 rounded flex-shrink-0">{f.prefix}</span>
@@ -125,6 +126,36 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
               );
             })}
           </div>
+
+          <div className="flex justify-center mt-10 mb-6">
+            <button onClick={() => setShowTable(!showTable)} className="text-[13px] font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
+              Comparer toutes les fonctionnalités
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={showTable ? 'rotate-180' : ''}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+
+          {showTable && (
+            <div className="w-full overflow-x-auto pb-10">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <tbody>
+                  {(COMPARISON_FEATURES || []).map((section, sIdx) => (
+                    <React.Fragment key={sIdx}>
+                      <tr><td colSpan={5} className="py-3 px-4 text-[12px] font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 uppercase tracking-wider">{section.category}</td></tr>
+                      {(section.items || []).map((item, iIdx) => (
+                        <tr key={iIdx}>
+                          <td className="py-2.5 px-4 text-[12px] font-medium text-gray-900 border-b border-gray-100">{item.name}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.free}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.plus}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.business}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.enterprise}</td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
