@@ -95,7 +95,7 @@ function quickRouteLocal(text) {
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const urlParams = newSearchParams(location.search);
+  const urlParams = new URLSearchParams(location.search);
   const initialQ = urlParams.get('q') || '';
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
