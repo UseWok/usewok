@@ -7,7 +7,11 @@ import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/on
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import HeroSection from '../components/home/HeroSection';
 import RecentApps from '../components/home/RecentApps';
-import { AGENTS } from '../components/Sidebar';
+const AGENTS = [
+  { id: 'global', label: "Knowing exactly where I'm going" },
+  { id: 'emotions-depenses', label: 'Spend without guilt' },
+  { id: 'wealth-strategy', label: 'Becoming financially free' },
+];
 import { useLanguage } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
