@@ -1,4 +1,4 @@
-// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT
+// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT (Corrige le crash de l'écran blanc)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -24,8 +24,9 @@ import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
 import ThinkingSteps from '@/components/chat/ThinkingSteps';
 import SynthesisProposal from '@/components/chat/SynthesisProposal';
 import SynthesisProgress from '@/components/chat/SynthesisProgress';
+import UpgradePlanModal from '@/components/chat/UpgradePlanModal';
 
-// 2. COMPOSANTS ET CONSTANTES APRES LES IMPORTS
+// 2. MODALES ET CONSTANTES APRÈS LES IMPORTS
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
     {open && (
@@ -35,7 +36,7 @@ const IframeModal = ({ open, url, onClose }) => (
           <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-full transition-all shadow-sm">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
+          <iframe src={url} className="w-full h-full border-none bg-white" />
         </motion.div>
       </div>
     )}
@@ -97,7 +98,6 @@ export default function ChatPage() {
     const msgs = getConversationMessages(conversationId);
     return Array.isArray(msgs) ? msgs : [];
   });
-  
   const safeMessages = Array.isArray(messages) ? messages : [];
 
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && safeMessages.length === 0);
@@ -110,7 +110,6 @@ export default function ChatPage() {
     }
     return '';
   });
-  
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState(ALL_MODES[ALL_MODES.length - 1]);
   const [currentAgent, setCurrentAgent] = useState(agentId);
@@ -130,7 +129,6 @@ export default function ChatPage() {
   const [discussMode, setDiscussMode] = useState(false);
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (!isLoadingConversation && safeMessages.length === 0 && conversationId) {
@@ -211,8 +209,7 @@ export default function ChatPage() {
     if (!conversationId) return;
     loadConversationFromCloud(conversationId).then((cloudMsgs) => {
       if (!isMountedRef.current) return;
-      const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
-      if (safeCloudMsgs.length > 0) {setMessages(safeCloudMsgs);saveConversationMessages(conversationId, safeCloudMsgs);}
+      if (cloudMsgs?.length > 0) {setMessages(cloudMsgs);saveConversationMessages(conversationId, cloudMsgs);}
       setTimeout(() => setIsLoadingConversation(false), 300);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
@@ -509,93 +506,84 @@ export default function ChatPage() {
     setFicheContent(msg.content); setFicheMsgIdx(idx);
   }, [discussMode]);
 
+  // 3. LE DESIGN NOTION (Bord à bord, Ligne grise, Zéro ombre lourde)
   return (
     <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
       <WorkspaceHeader
         title={convTitleDisplay || safeMessages.find(m => m.role === 'user')?.content?.slice(0, 50)}
         conversationId={convId}
-        onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        user={user}
+        userPlan={userPlan}
+        onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })}
       />
 
-      <div className="flex flex-1 overflow-hidden relative bg-white">
+      <div className="flex flex-1 overflow-hidden relative">
         
-        <AnimatePresence initial={false}>
-          {isSidebarOpen && (
-            <motion.div 
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 400, opacity: 1 }} 
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex-shrink-0 flex flex-col overflow-hidden relative bg-white border-r border-gray-200 z-10"
-            >
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
-                
-                {isLoadingConversation && (
-                  <div className="flex gap-2 justify-start items-center">
-                    <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
-                    <ChatLoadingAnimation mode={mode.id} />
-                  </div>
-                )}
-                
-                {!isLoadingConversation && safeMessages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
-                    <div className="flex flex-col items-center justify-center opacity-20">
-                      <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
-                      <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {!isLoadingConversation && safeMessages.map((msg, idx) => (
-                  <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                    {msg.role === 'synthesis_proposal'
-                      ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                      : msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
-                    }
-                  </motion.div>
-                ))}
-                
-                {synthProgress?.active && (
-                  <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-                )}
-                
-                {isLoading && !synthProgress?.active && (
-                  <ThinkingSteps isLoading={isLoading} text={safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-                )}
-                
-                <div ref={messagesEndRef} />
+        {/* LE CHAT (Style Notion - Séparé par une ligne grise) */}
+        <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-gray-200 bg-white z-10">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+            
+            {isLoadingConversation && (
+              <div className="flex gap-2 justify-start items-center">
+                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
+                <ChatLoadingAnimation mode={mode.id} />
               </div>
-              
-              <div className="flex-shrink-0 flex flex-col p-4 pt-2">
-                <ChatInputBar
-                  input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
-                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                  canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
-                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                  onOpenIframe={(url) => setIframeModal({ open: true, url })} 
-                  discussMode={discussMode} setDiscussMode={setDiscussMode} 
-                />
+            )}
+            
+            {!isLoadingConversation && safeMessages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
+                <div className="flex flex-col items-center justify-center opacity-20">
+                  <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
+                  <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
+                </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        <motion.div layout className="flex-1 flex flex-col bg-[#FFFFFF] overflow-hidden relative pl-4">
-          <div className="w-full h-full border border-gray-200/80 rounded-l-2xl overflow-hidden shadow-sm mt-4 mb-4">
-             <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+            )}
+            
+            {!isLoadingConversation && safeMessages.map((msg, idx) => (
+              <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                {msg.role === 'synthesis_proposal'
+                  ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                  : msg.role === 'assistant'
+                  ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                  : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
+                }
+              </motion.div>
+            ))}
+            
+            {synthProgress?.active && (
+              <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+            )}
+            
+            {isLoading && !synthProgress?.active && (
+              <ThinkingSteps isLoading={isLoading} text={safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(safeMessages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
+            )}
+            
+            <div ref={messagesEndRef} />
           </div>
-        </motion.div>
+          
+          <div className="flex-shrink-0 flex flex-col p-4 pt-2">
+            <ChatInputBar
+              input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+              isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+              currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+              canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
+              useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+              onUpgradeRequest={handleUpgradeRequest} discussMode={discussMode} setDiscussMode={setDiscussMode}
+            />
+          </div>
+        </div>
+        
+        {/* LA PREVIEW (Pleine largeur, sans bordure) */}
+        <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+          <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+        </div>
 
       </div>
 
+      {/* MODALES D'ORIGINE */}
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
-      
+      <UpgradePlanModal open={showUpgradePlan} onClose={() => setShowUpgradePlan(false)} currentPlanId={userPlan?.id || 'free'} />
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       <AnimatePresence>
