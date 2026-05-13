@@ -77,6 +77,34 @@ export const DEFAULT_PLANS = [
   },
 ];
 
+export const COMPARISON_FEATURES = [
+  {
+    category: "Capacités IA",
+    items: [
+      { name: "Requêtes Flash", free: "10 / mois", plus: "100 / mois", business: "500 / mois", enterprise: "Illimité" },
+      { name: "Deep Synthesis", free: "-", plus: "10 / mois", business: "50 / mois", enterprise: "Illimité" },
+      { name: "Recherche Web", free: "Basique", plus: "Avancée", business: "Illimitée", enterprise: "Illimitée" },
+      { name: "Upload de fichiers", free: "-", plus: "10 Mo max", business: "100 Mo max", enterprise: "Illimité" },
+    ]
+  },
+  {
+    category: "Fonctionnalités avancées",
+    items: [
+      { name: "Agents IA personnalisés", free: "-", plus: "1 agent", business: "Illimité", enterprise: "Illimité" },
+      { name: "Accès API", free: "-", plus: "-", business: "Oui", enterprise: "Limites avancées" },
+      { name: "Export", free: "PDF", plus: "PDF, CSV", business: "PDF, CSV, Excel", enterprise: "Tous formats + API" },
+    ]
+  },
+  {
+    category: "Sécurité & Support",
+    items: [
+      { name: "Support", free: "Communauté", plus: "Standard", business: "Prioritaire (24h)", enterprise: "Dédié (1h)" },
+      { name: "SSO SAML", free: "-", plus: "-", business: "-", enterprise: "Oui" },
+      { name: "Rétention des données", free: "30 jours", plus: "1 an", business: "Illimité", enterprise: "Politique personnalisée" },
+    ]
+  }
+];
+
 export function getPlansConfig() {
   try { return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || DEFAULT_PLANS; } catch { return DEFAULT_PLANS; }
 }

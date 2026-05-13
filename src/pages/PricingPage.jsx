@@ -159,18 +159,10 @@ export default function PricingPage() {
                       {section.items.map((item, iIdx) => (
                         <tr key={iIdx} className="hover:bg-gray-50/50 transition-colors">
                           <td className="py-3.5 px-4 text-[13px] font-medium text-gray-900 border-b border-gray-100">{item.name}</td>
-                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">
-                            {item.free === 'Yes' ? <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> : item.free}
-                          </td>
-                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">
-                            {item.pro === 'Yes' ? <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> : item.pro}
-                          </td>
-                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">
-                            {item.max === 'Yes' ? <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> : item.max}
-                          </td>
-                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">
-                            {item.unlimited === 'Yes' ? <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> : item.unlimited}
-                          </td>
+                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">{item.free}</td>
+                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">{item.plus}</td>
+                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">{item.business}</td>
+                          <td className="py-3.5 px-4 text-[13px] text-gray-600 border-b border-gray-100">{item.enterprise}</td>
                         </tr>
                       ))}
                     </React.Fragment>

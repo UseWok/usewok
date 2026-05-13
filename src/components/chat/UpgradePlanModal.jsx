@@ -123,9 +123,9 @@ export default function UpgradePlanModal({ open, onClose, currentPlanId }) {
                         <tr key={iIdx}>
                           <td className="py-2.5 px-4 text-[12px] font-medium text-gray-900 border-b border-gray-100">{item.name}</td>
                           <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.free}</td>
-                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.pro}</td>
-                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.max}</td>
-                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.unlimited}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.plus}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.business}</td>
+                          <td className="py-2.5 px-4 text-[12px] text-gray-600 border-b border-gray-100">{item.enterprise}</td>
                         </tr>
                       ))}
                     </React.Fragment>
