@@ -1,122 +1,161 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 
-function PublishPopover({ conversationId, isPublishing, setIsPublishing }) {
-  const [isPublic, setIsPublic] = useState(false);
-  const appLink = `stensor.base44.app/p/${conversationId || 'xyz123'}`;
-  const fullUrl = `https://${appLink}`;
+// Icône Google officielle
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
 
-  const togglePublish = async () => {
-    setIsPublishing(true);
-    const newState = !isPublic;
-    if (conversationId) {
-      try {
-        const convs = await base44.entities.Conversation.filter({ conv_id: conversationId });
-        if (convs.length > 0) {
-          await base44.entities.Conversation.update(convs[0].id, { is_public: newState });
-        }
-      } catch {}
-    }
-    setIsPublic(newState);
-    setIsPublishing(false);
-    if (newState) toast.success("Live on the web");
+// Toggle Style Apple
+const Toggle = ({ enabled, onChange }) => (
+  <button 
+    onClick={onChange}
+    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ease-in-out ${enabled ? 'bg-[#0080ff]' : 'bg-[#E5E5E5]'}`}
+  >
+    <span 
+      className="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out" 
+      style={{ transform: enabled ? 'translateX(18px)' : 'translateX(2px)' }} 
+    />
+  </button>
+);
+
+export default function WorkspaceHeader({ title, conversationId, onToggleSidebar }) {
+  const [showPublish, setShowPublish] = useState(false);
+  const [showMode, setShowMode] = useState(false);
+  const [isDeepWork, setIsDeepWork] = useState(false);
+  const [indexGoogle, setIndexGoogle] = useState(false);
+
+  const publishRef = useRef(null);
+  const modeRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (publishRef.current && !publishRef.current.contains(e.target)) setShowPublish(false);
+      if (modeRef.current && !modeRef.current.contains(e.target)) setShowMode(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handlePublish = () => {
+    toast.success("App published successfully!");
+    setShowPublish(false);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.97 }} transition={{ duration: 0.15, ease: "easeOut" }}
-      className="absolute top-full mt-2 right-0 bg-white z-50 w-[300px] rounded-[12px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-[#E6E6E9] overflow-hidden font-sans"
-    >
-      <div className="p-4 border-b border-[#E6E6E9] bg-white">
-        <div className="flex items-center justify-between mb-1">
-          <h4 className="text-[14px] font-semibold text-[#333333]">Share to web</h4>
-          <button 
-            onClick={togglePublish} disabled={isPublishing}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isPublic ? 'bg-[#2383E2]' : 'bg-[#E6E6E9]'}`}
-          >
-            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${isPublic ? 'translate-x-4' : 'translate-x-1'}`} />
-          </button>
-        </div>
-        <p className="text-[12px] text-[#707070]">Publish this workspace online to share it with anyone.</p>
-      </div>
-
-      <AnimatePresence>
-        {isPublic && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <div className="p-4 bg-[#F9F8F6]">
-              <div className="flex gap-2">
-                <div className="flex-1 bg-white border border-[#E6E6E9] rounded-md px-3 py-1.5 flex items-center overflow-hidden">
-                  <span className="text-[12px] text-[#707070] truncate">{appLink}</span>
-                </div>
-                <button 
-                  onClick={() => { navigator.clipboard.writeText(fullUrl); toast.success("Link copied!"); }}
-                  className="bg-[#2383E2] text-white px-3 py-1.5 rounded-md text-[12px] font-bold hover:bg-[#1e70c1] transition-colors"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-export default function WorkspaceHeader({ title, conversationId, onToggleSidebar, isSidebarOpen }) {
-  const [showPublish, setShowPublish] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const publishRef = useRef(null);
-
-  useEffect(() => {
-    const h = (e) => { if (publishRef.current && !publishRef.current.contains(e.target) && !isPublishing) setShowPublish(false); };
-    document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h);
-  }, [isPublishing]);
-
-  return (
-    <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 bg-white border-b border-[#E6E6E9] z-30 font-sans">
+    <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 bg-[#F7F7F7] border-b border-[#E6E6E9] z-30 font-sans w-full">
       
-      {/* LEFT: Toggle Sidebar + Title */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        
-        {/* Toggle Sidebar Button (Claude style) */}
-        <button 
-          onClick={onToggleSidebar}
-          className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-[#F9F8F6] rounded-md transition-colors"
-        >
+      {/* GAUCHE : Toggle Sidebar + Title */}
+      <div className="flex items-center gap-3 w-1/3">
+        <button onClick={onToggleSidebar} className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-[#E5E5E5] rounded-md transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-
-        {/* Title */}
-        <div className="flex items-center gap-2 hover:bg-[#F9F8F6] px-2 py-1 rounded-md cursor-pointer transition-colors max-w-[400px]">
+        <div className="flex items-center gap-2 hover:bg-[#E5E5E5] px-2 py-1 rounded-md cursor-pointer transition-colors max-w-[250px]">
           <span className="text-[14px] font-semibold truncate text-[#333333]">
             {title || 'Untitled workspace'}
           </span>
         </div>
       </div>
 
-      {/* RIGHT ACTIONS */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        
-        {/* Notion Style Share Button */}
-        <div ref={publishRef} className="relative flex-shrink-0">
-          <button
-            onClick={() => setShowPublish(!showPublish)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-md transition-all text-[#707070] hover:text-[#333333] hover:bg-[#F9F8F6]"
-          >
-            Share
-          </button>
-          <AnimatePresence>
-            {showPublish && <PublishPopover conversationId={conversationId} isPublishing={isPublishing} setIsPublishing={setIsPublishing} />}
-          </AnimatePresence>
-        </div>
-        
-        {/* Options */}
-        <button className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-[#F9F8F6] rounded-md transition-colors">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      {/* CENTRE : Sélecteur Mode IA */}
+      <div className="flex justify-center w-1/3 relative" ref={modeRef}>
+        <button 
+          onClick={() => setShowMode(!showMode)} 
+          className="px-4 py-1.5 bg-white border border-[#E6E6E9] rounded-md text-[13px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors"
+        >
+          {isDeepWork ? 'Deep Work' : 'Automatic'}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
+
+        {/* Pas d'animation, bordure noire fine */}
+        {showMode && (
+          <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-black rounded-lg shadow-[0_12px_30px_rgba(0,0,0,0.12)] z-50 p-1.5 text-left">
+            <div 
+              className="p-3 hover:bg-gray-50 cursor-pointer rounded-md transition-colors" 
+              onClick={() => { setIsDeepWork(false); setShowMode(false); }}
+            >
+              <div className="text-[13px] font-bold text-[#333333] flex items-center gap-2">
+                Automatic {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+              </div>
+              <div className="text-[12px] text-[#707070] mt-1 leading-snug">
+                We seamlessly select the absolute best AI model tailored to your specific context, perfectly balancing lightning-fast speed and deep reasoning.
+              </div>
+            </div>
+            
+            <div className="h-px bg-[#E6E6E9] my-1 mx-2"></div>
+            
+            <div className="p-3 flex items-center justify-between rounded-md">
+              <div className="flex-1 pr-3">
+                <div className="text-[13px] font-bold text-[#333333]">Deep Work</div>
+                <div className="text-[12px] text-[#707070] mt-1 leading-snug">Advanced reasoning mode for highly complex tasks.</div>
+              </div>
+              <Toggle enabled={isDeepWork} onChange={() => setIsDeepWork(!isDeepWork)} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* DROITE : Publish */}
+      <div className="flex justify-end w-1/3 relative" ref={publishRef}>
+        <button 
+          onClick={() => setShowPublish(!showPublish)}
+          className="px-4 py-1.5 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] transition-colors shadow-sm"
+        >
+          Publish
+        </button>
+
+        {/* Pas d'animation, bordure noire fine */}
+        {showPublish && (
+          <div className="absolute top-[calc(100%+6px)] right-0 w-[320px] bg-white border border-black shadow-[0_12px_30px_rgba(0,0,0,0.12)] rounded-lg z-50 text-left font-sans">
+            <div className="p-4 border-b border-[#E6E6E9]">
+              <h3 className="text-[14px] font-bold text-[#333333] mb-1">Publish Your App</h3>
+              <p className="text-[12px] text-[#707070]">Make your Stensor interface available to the world.</p>
+            </div>
+            
+            <div className="p-4 space-y-5">
+              <div className="cursor-pointer group">
+                <h4 className="text-[13px] font-bold text-[#333333] mb-1 group-hover:text-[#0080ff] transition-colors">Connect a custom domain</h4>
+                <p className="text-[12px] text-[#707070]">Use your own domain for a professional look.</p>
+              </div>
+              
+              <div className="cursor-pointer group">
+                <h4 className="text-[13px] font-bold text-[#333333] mb-1 group-hover:text-[#0080ff] transition-colors">Share your app</h4>
+                <p className="text-[12px] text-[#707070]">Share a link via email or social media.</p>
+              </div>
+              
+              <div className="border-t border-[#E6E6E9] pt-4">
+                <h4 className="text-[13px] font-bold text-[#333333] mb-3">App Visibility</h4>
+                <div className="flex items-center justify-between bg-white p-3 rounded-md border border-[#E6E6E9] shadow-sm">
+                  <div className="flex items-center gap-2.5">
+                    <GoogleIcon />
+                    <span className="text-[13px] font-bold text-[#333333]">Index on Google</span>
+                  </div>
+                  <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                {indexGoogle && (
+                  <div className="bg-[#F9F8F6] border border-[#E6E6E9] p-2.5 rounded-md flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-1.5 flex-shrink-0"></div>
+                    <p className="text-[11px] text-[#707070] font-medium leading-snug">
+                      Indexing your app on Google takes between 24-48h.
+                    </p>
+                  </div>
+                )}
+                
+                <button onClick={handlePublish} className="w-full py-2.5 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] transition-colors shadow-sm">
+                  Publish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
