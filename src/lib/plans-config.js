@@ -1,5 +1,5 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v5';
-const DB_PLANS_KEY = 'plans_config';
+const PLANS_STORAGE_KEY = 'stensor_plans_v6';
+const DB_PLANS_KEY = 'plans_config_v6';
 
 export const DEFAULT_PLANS = [
   {
@@ -24,7 +24,7 @@ export const DEFAULT_PLANS = [
     name: 'Plus',
     price_monthly: 11.50,
     price_yearly: 9.50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly',
+    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly', // Remplace par tes liens
     checkout_url_yearly: 'https://buy.stripe.com/test_plus_yearly',
     features_header: 'Toutes les fonctionnalités de l’accès gratuit, plus :',
     features: [
@@ -79,28 +79,30 @@ export const DEFAULT_PLANS = [
 
 export const COMPARISON_FEATURES = [
   {
-    category: "Capacités IA",
+    category: "Création et personnalisation",
     items: [
-      { name: "Requêtes Flash", free: "10 / mois", plus: "100 / mois", business: "500 / mois", enterprise: "Illimité" },
-      { name: "Deep Synthesis", free: "-", plus: "10 / mois", business: "50 / mois", enterprise: "Illimité" },
-      { name: "Recherche Web", free: "Basique", plus: "Avancée", business: "Illimitée", enterprise: "Illimitée" },
-      { name: "Upload de fichiers", free: "-", plus: "10 Mo max", business: "100 Mo max", enterprise: "Illimité" },
+      { name: "Blocs", free: "Illimités", plus: "Illimités", business: "Illimités", enterprise: "Illimités" },
+      { name: "Graphiques", free: "De base", plus: "Illimités", business: "Illimités", enterprise: "Illimités" },
+      { name: "Formulaires", free: "De base", plus: "Personnalisés", business: "Personnalisés", enterprise: "Personnalisés" },
+      { name: "Sites", free: "De base", plus: "Personnalisés", business: "Personnalisés", enterprise: "Personnalisés" },
     ]
   },
   {
-    category: "Fonctionnalités avancées",
+    category: "IA de Stensor",
     items: [
-      { name: "Agents IA personnalisés", free: "-", plus: "1 agent", business: "Illimité", enterprise: "Illimité" },
-      { name: "Accès API", free: "-", plus: "-", business: "Oui", enterprise: "Limites avancées" },
-      { name: "Export", free: "PDF", plus: "PDF, CSV", business: "PDF, CSV, Excel", enterprise: "Tous formats + API" },
+      { name: "Agent Stensor", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
+      { name: "Agents personnalisés", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
+      { name: "Notes d'IA (Bêta)", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
+      { name: "Contrôles de l'IA", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
     ]
   },
   {
-    category: "Sécurité & Support",
+    category: "Sécurité et gestion",
     items: [
-      { name: "Support", free: "Communauté", plus: "Standard", business: "Prioritaire (24h)", enterprise: "Dédié (1h)" },
-      { name: "SSO SAML", free: "-", plus: "-", business: "-", enterprise: "Oui" },
-      { name: "Rétention des données", free: "30 jours", plus: "1 an", business: "Illimité", enterprise: "Politique personnalisée" },
+      { name: "SSO SAML", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
+      { name: "Recherche Enterprise", free: "-", plus: "-", business: "Inclus", enterprise: "Inclus" },
+      { name: "Journal d'audit", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
+      { name: "Gestion de domaine", free: "-", plus: "-", business: "-", enterprise: "Inclus" },
     ]
   }
 ];
