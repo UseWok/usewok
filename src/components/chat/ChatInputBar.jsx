@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, discussMode, setDiscussMode, canUploadFiles, hasInternet, onOpenIframe }) {
+export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, discussMode, setDiscussMode, canUploadFiles, hasInternet, onOpenIframe, setFiles, setUseWebSearch, useWebSearch }) {
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [pastedImages, setPastedImages] = useState([]);

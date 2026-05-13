@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LOGO_URL } from '@/lib/chat-constants';
+import { toast } from 'sonner';
 
 // Simulation du flux de pensée Gemini Flash
 const MOCK_CHAIN_OF_THOUGHT = [
