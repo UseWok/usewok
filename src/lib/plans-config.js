@@ -1,123 +1,74 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v2';
+const PLANS_STORAGE_KEY = 'stensor_plans_v3';
 const DB_PLANS_KEY = 'plans_config';
 
 export const DEFAULT_PLANS = [
   {
     id: 'free',
     name: 'Free',
+    description: 'For organizing every corner of your financial life.',
     price_monthly: 0,
     price_yearly: 0,
     credits_limit: 10,
-    daily_credits_limit: 5,
-    can_choose_model: false,
-    default_model: 'gemini_3_flash',
-    allowed_modes: ['thinking'],
+    deep_credits_limit: 0,
     internet_access: false,
-    max_discussions: 15,
     file_upload: false,
-    file_upload_extended: false,
-    ultimate_access: false,
-    lessons_per_month: 0,
-    shareable_credits: 0,
-    premium_support: false,
+    features: ['10 Flash requests per month', 'Basic financial agents', 'Standard response speed']
   },
   {
-    id: 'essential',
-    name: 'Essential',
-    price_monthly: 20,
-    price_yearly: 16,
+    id: 'pro',
+    name: 'Pro',
+    description: 'A place for small teams to plan and execute.',
+    price_monthly: 15,
+    price_yearly: 12,
     credits_limit: 100,
-    daily_credits_limit: 0,
-    can_choose_model: true,
-    default_model: 'gemini_3_flash',
-    allowed_modes: ['fast', 'thinking', 'pro'],
-    internet_access: false,
-    max_discussions: 30,
-    file_upload: true,
-    file_upload_extended: false,
-    ultimate_access: false,
-    lessons_per_month: 0,
-    shareable_credits: 0,
-    premium_support: false,
-  },
-  {
-    id: 'advanced',
-    name: 'Advanced',
-    price_monthly: 36,
-    price_yearly: 30,
-    credits_limit: 250,
-    daily_credits_limit: 0,
-    can_choose_model: true,
-    default_model: 'gemini_3_flash',
-    allowed_modes: ['fast', 'thinking', 'pro'],
+    deep_credits_limit: 10,
     internet_access: true,
-    max_discussions: 0,
     file_upload: true,
-    file_upload_extended: false,
-    ultimate_access: false,
-    lessons_per_month: 3,
-    shareable_credits: 25,
-    premium_support: false,
+    checkout_url_monthly: 'https://buy.stripe.com/test_pro_monthly', // A REMPLACER PAR TES VRAIS LIENS STRIPE
+    checkout_url_yearly: 'https://buy.stripe.com/test_pro_yearly',
+    features: ['100 Flash requests per month', '10 Deep Synthesis per month', 'Web Search included', 'File Uploads', 'Priority support']
   },
   {
-    id: 'expert',
-    name: 'Expert',
-    price_monthly: 100,
-    price_yearly: 80,
+    id: 'max',
+    name: 'Max',
+    description: 'For companies using Stensor to connect several tools.',
+    price_monthly: 50,
+    price_yearly: 40,
     credits_limit: 500,
-    daily_credits_limit: 0,
-    can_choose_model: true,
-    default_model: 'gemini_3_flash',
-    allowed_modes: ['fast', 'thinking', 'pro', 'ultimate'],
+    deep_credits_limit: 50,
     internet_access: true,
-    max_discussions: 0,
     file_upload: true,
-    file_upload_extended: true,
-    ultimate_access: true,
-    lessons_per_month: 3,
-    shareable_credits: 25,
-    premium_support: false,
+    checkout_url_monthly: 'https://buy.stripe.com/test_max_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_max_yearly',
+    features: ['500 Flash requests per month', '50 Deep Synthesis per month', 'Unlimited Web Search', 'Extended File Uploads', 'Custom AI parameters']
   },
   {
-    id: 'supreme',
-    name: 'Supreme',
-    price_monthly: 180,
-    price_yearly: 150,
-    credits_limit: 1200,
-    daily_credits_limit: 0,
-    can_choose_model: true,
-    default_model: 'gemini_3_flash',
-    allowed_modes: ['fast', 'thinking', 'pro', 'ultimate'],
+    id: 'enterprise',
+    name: 'Enterprise',
+    description: 'Advanced controls and support to run your entire org.',
+    price_monthly: 'Custom',
+    price_yearly: 'Custom',
+    credits_limit: 'Unlimited',
+    deep_credits_limit: 'Unlimited',
     internet_access: true,
-    max_discussions: 0,
     file_upload: true,
-    file_upload_extended: true,
-    ultimate_access: true,
-    lessons_per_month: 3,
-    shareable_credits: 25,
-    premium_support: true,
+    checkout_url_monthly: 'mailto:contact@ton-domaine.com', // Lien contact
+    checkout_url_yearly: 'mailto:contact@ton-domaine.com',
+    features: ['Unlimited everything', 'Dedicated success manager', 'Custom AI agent training', 'SSO & advanced security', 'SLA 99.9%']
   },
 ];
 
 export function getPlansConfig() {
-  try {
-    return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || DEFAULT_PLANS;
-  } catch {
-    return DEFAULT_PLANS;
-  }
+  try { return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || DEFAULT_PLANS; } catch { return DEFAULT_PLANS; }
 }
 
 export function savePlansConfig(plans) {
   localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
-  // Also persist to DB so landing page and all users see live changes
   import('@/api/base44Client').then(({ base44 }) => {
     base44.entities.AppSettings.filter({ key: DB_PLANS_KEY }).then(results => {
       const val = JSON.stringify(plans);
-      if (results.length > 0) {
-        base44.entities.AppSettings.update(results[0].id, { value: val });
-      } else {
-        base44.entities.AppSettings.create({ key: DB_PLANS_KEY, value: val });
-      }
+      if (results.length > 0) { base44.entities.AppSettings.update(results[0].id, { value: val }); } 
+      else { base44.entities.AppSettings.create({ key: DB_PLANS_KEY, value: val }); }
     });
   });
 }
