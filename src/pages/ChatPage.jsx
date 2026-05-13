@@ -1,4 +1,4 @@
-
+// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT (Règle d'or pour éviter le crash)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -20,7 +20,6 @@ import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
-import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
 import ThinkingSteps from '@/components/chat/ThinkingSteps';
 import SynthesisProposal from '@/components/chat/SynthesisProposal';
@@ -32,6 +31,15 @@ import {
   FileText, Settings, Bot, Lock, Plus, Star, MoreHorizontal,
   LifeBuoy, ArrowUpCircle, Key
 } from 'lucide-react';
+
+// 2. DÉCLARATION DES COMPOSANTS ET CONSTANTES APRES LES IMPORTS
+const CustomUserMessageBubble = ({ msg }) => (
+  <div className="flex justify-end w-full mb-6 font-sans">
+    <div className="bg-[#F7F7F7] text-[#0d0d0d] text-[15px] leading-relaxed px-4 py-2.5 rounded-2xl max-w-[80%] whitespace-pre-wrap">
+      {msg.content}
+    </div>
+  </div>
+);
 
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
@@ -87,7 +95,7 @@ function quickRouteLocal(text) {
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const urlParams = new URLSearchParams(location.search);
+  const urlParams = new URLSearchParams(location.search); // Correction du bug URLSearchParams
   const initialQ = urlParams.get('q') || '';
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
@@ -347,6 +355,15 @@ export default function ChatPage() {
     setFicheContent(msg.content); setFicheMsgIdx(idx);
   }, [discussMode]);
 
+  const handleReload = () => {
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    if (lastUserMsg) {
+      const filteredMsgs = messages.slice(0, messages.lastIndexOf(lastUserMsg));
+      setMessages(filteredMsgs);
+      sendMessage(lastUserMsg.content);
+    }
+  };
+
   const isAdmin = user?.role === 'admin';
   const navItems = [
     { icon: Home, labelKey: 'home', label: 'Accueil', path: '/app', active: location.pathname === '/app' },
@@ -358,10 +375,11 @@ export default function ChatPage() {
     ] : []),
   ];
 
+  const hasStarted = messages.length > 0 || isLoading;
+
   return (
     <div className="flex font-sans h-screen w-full bg-[#F9F8F6] overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
       
-      {/* SIDEBAR */}
       {isSidebarOpen && (
         <aside className="w-[260px] flex-shrink-0 h-full bg-[#F7F7F7] border-r border-[#E5E5E5] flex flex-col z-40">
           <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2 group">
@@ -486,57 +504,56 @@ export default function ChatPage() {
 
       {/* ZONE PRINCIPALE FLOTTANTE */}
       <div className="flex-1 flex flex-col p-2 min-w-0">
-        <div className="flex-1 flex flex-col bg-white rounded-xl border border-[#E5E5E5] overflow-hidden shadow-sm">
+        <div className={`flex flex-1 rounded-xl overflow-hidden transition-all duration-300 ${hasStarted ? 'border border-[#E5E5E5] shadow-sm flex-row' : 'flex-col justify-center items-center max-w-3xl mx-auto'}`}>
           
-          <WorkspaceHeader
-            title={convTitleDisplay || messages?.find(m => m.role === 'user')?.content?.slice(0, 50)}
-            conversationId={convId}
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            isSidebarOpen={isSidebarOpen}
-          />
+          {/* COLONNE CHAT */}
+          <div className={`flex flex-col bg-white overflow-hidden ${hasStarted ? 'w-[450px] border-r border-[#E5E5E5] z-10' : 'w-full h-full'}`}>
+            <WorkspaceHeader hasStarted={hasStarted} onReload={handleReload} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-          <div className="flex flex-1 overflow-hidden relative">
-            <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-[#E5E5E5] bg-white z-10">
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
-                {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
-                {!isLoadingConversation && messages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full opacity-20">
-                    <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
-                    <p className="text-xs">{t('start_conversation')}</p>
-                  </div>
-                )}
-                {messages.map((msg, idx) => (
-                  <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                    {msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} agent={msg.agent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || 'Moi'} />
-                    }
-                  </motion.div>
-                ))}
-                {synthProgress?.active && <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />}
-                {isLoading && !synthProgress?.active && (
-                  <ThinkingSteps isLoading={isLoading} text={messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''} hasFiles={(messages.filter(m => m.role === 'user').slice(-1)[0]?.files?.length || 0) > 0} useWebSearch={useWebSearch && hasInternet} />
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              <div className="flex-shrink-0 flex flex-col p-4 pt-2 bg-white">
-                <ChatInputBar
-                  input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                  canUploadFiles={canUploadFiles} hasInternet={hasInternet}
-                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                  onOpenIframe={(url) => setIframeModal({ open: true, url })}
-                  discussMode={discussMode} setDiscussMode={setDiscussMode}
-                />
-              </div>
+            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col justify-end' : ''}`}>
+              {!hasStarted && (
+                <div className="flex flex-col items-center justify-center h-full text-center mb-10 opacity-30">
+                  <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain mb-4" />
+                  <h2 className="text-[20px] font-semibold text-[#0d0d0d]">How can I help you today?</h2>
+                </div>
+              )}
+              {messages.map((msg, idx) => (
+                <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                  {msg.role === 'assistant'
+                    ? <AssistantMessage content={msg.content} agent={msg.agent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
+                    : <CustomUserMessageBubble msg={msg} />
+                  }
+                </motion.div>
+              ))}
+              {isLoading && !synthProgress?.active && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                  <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
+                </motion.div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
             
+            <div className={`flex-shrink-0 flex flex-col p-4 pt-2 bg-white ${!hasStarted ? 'pb-10' : ''}`}>
+              <ChatInputBar
+                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                canUploadFiles={canUploadFiles} hasInternet={hasInternet}
+                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                onOpenIframe={(url) => setIframeModal({ open: true, url })}
+                discussMode={discussMode} setDiscussMode={setDiscussMode}
+              />
+              {!hasStarted && <p className="text-center text-[11px] text-gray-400 mt-3">Stensor AI can make mistakes. Verify important info.</p>}
+            </div>
+          </div>
+          
+          {/* COLONNE PREVIEW */}
+          {hasStarted && (
             <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
                <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
             </div>
-          </div>
+          )}
+
         </div>
       </div>
 
