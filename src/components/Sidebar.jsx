@@ -17,9 +17,9 @@ import {
 } from 'lucide-react';
 
 import { base44 } from '@/api/base44Client';
-import ProfilePopover from './ProfilePopover';
-import NotificationsPopover from './NotificationsPopover';
-import FlashUsagePopover from './FlashUsagePopover';
+import ProfilePopover from './sidebar/ProfilePopover';
+import NotificationsPopover from './sidebar/NotificationsPopover';
+import FlashUsagePopover from './sidebar/FlashUsagePopover';
 import { getUserPlan } from '@/lib/plans-config';
 import { getUserColor } from '@/lib/user-color';
 
