@@ -1,3 +1,4 @@
+// 1. TOUS LES IMPORTS (Strictement en haut pour éviter le crash)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -14,8 +15,18 @@ import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { useLanguage } from '@/lib/i18n';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
+import FichePanel from '@/components/chat/FichePanel';
+import ChatInputBar from '@/components/chat/ChatInputBar';
+import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
+import AssistantMessage from '@/components/chat/AssistantMessage';
+import UserMessageBubble from '@/components/chat/UserMessageBubble';
+import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
+import SynthesisProposal from '@/components/chat/SynthesisProposal';
+import SynthesisProgress from '@/components/chat/SynthesisProgress';
+import { ChevronRight, Star, Bot, Lock, FileText, Search, Settings } from 'lucide-react';
+import { getUserColor } from '@/lib/user-color';
 
-// MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
+// 2. MODALE 95% AVEC VOILE NOIR (NOTION STYLE)
 const IframeModal = ({ open, url, onClose }) => (
   <AnimatePresence>
     {open && (
@@ -32,19 +43,11 @@ const IframeModal = ({ open, url, onClose }) => (
   </AnimatePresence>
 );
 
-import FichePanel from '@/components/chat/FichePanel';
-import ChatInputBar from '@/components/chat/ChatInputBar';
-import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
-import AssistantMessage from '@/components/chat/AssistantMessage';
-import UserMessageBubble from '@/components/chat/UserMessageBubble';
-import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
-import SynthesisProposal from '@/components/chat/SynthesisProposal';
-import SynthesisProgress from '@/components/chat/SynthesisProgress';
-
 const AGENTS = [
-{ id: 'global', label: "Knowing exactly where I'm going" },
-{ id: 'emotions-depenses', label: 'Spend without guilt' },
-{ id: 'wealth-strategy', label: 'Becoming financially free' }];
+  { id: 'global', label: "Knowing exactly where I'm going" },
+  { id: 'emotions-depenses', label: 'Spend without guilt' },
+  { id: 'wealth-strategy', label: 'Becoming financially free' }
+];
 
 const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
 
@@ -120,6 +123,10 @@ export default function ChatPage() {
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // États de pliage Sidebar (Structure Notion)
+  const [sections, setSections] = useState({ recent: true, favorites: true, agents: true, private: true });
+  const toggleSection = (s) => setSections(prev => ({ ...prev, [s]: !prev[s] }));
 
   useEffect(() => {
     if (!isLoadingConversation && messages.length === 0 && conversationId) {
@@ -345,62 +352,16 @@ export default function ChatPage() {
     const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
 
-    const VISION_MAP = { fire: 'Liberté Totale (FIRE / retraite anticipée)', heritage: 'Héritage immobilier familial', entrepreneur: 'Impact entrepreneurial', serenite: 'Sérénité financière quotidienne' };
-    const PERSONALITY_MAP = { sniper: 'Le Sniper (direct, froid, chiffres purs)', architect: "L'Architecte (pédagogue, visionnaire)", guardian: 'Le Gardien (prudent, protecteur)' };
-    const TONE_MAP = { brutal: 'sans filtre, direct même si dur', kind: 'bienveillant, célèbre les victoires' };
-    const DEPTH_MAP = { concise: 'très concis et percutant', balanced: 'équilibré', deep: 'analyse complète et exhaustive' };
-    const VOICE_MAP = { human: 'chaud et empathique comme un ami brillant', robotic: 'précis et data-driven, zéro remplissage', hybrid: 'chaleur + précision — le meilleur des deux' };
-    const STATUS_MAP = { freelancer: 'Freelancer (revenus variables)', employed: 'Salarié (salaire stable)', entrepreneur: 'Entrepreneur (réinvestit ses profits)', student: 'Étudiant (construit les bases)' };
-    const SAVINGS_MAP = { none: 'Début (<5k)', small: 'En construction (5k–20k)', medium: 'Base solide (20k–100k)', large: 'Patrimoine croissant (>100k)' };
-    const AGE_MAP = { young: '18–25 ans', mid: '26–35 ans', mature: '36–45 ans', '46plus': '46+ ans' };
-    const dnaLines = [];
-    if (currentUser?.ai_vision) dnaLines.push(`- Vision de vie : ${VISION_MAP[currentUser.ai_vision] || currentUser.ai_vision}`);
-    if (currentUser?.ai_personality) dnaLines.push(`- Ton caractère : ${PERSONALITY_MAP[currentUser.ai_personality] || currentUser.ai_personality}`);
-    if (currentUser?.ai_golden_rule) dnaLines.push(`- Règle d'or : "${currentUser.ai_golden_rule}"`);
-    if (currentUser?.ai_tone) dnaLines.push(`- Style : ${TONE_MAP[currentUser.ai_tone] || currentUser.ai_tone}`);
-    if (currentUser?.ai_depth) dnaLines.push(`- Profondeur : ${DEPTH_MAP[currentUser.ai_depth] || currentUser.ai_depth}`);
-    if (currentUser?.ai_voice) dnaLines.push(`- Voix IA : ${VOICE_MAP[currentUser.ai_voice] || currentUser.ai_voice}`);
-    if (currentUser?.ai_status) dnaLines.push(`- Statut professionnel : ${STATUS_MAP[currentUser.ai_status] || currentUser.ai_status}`);
-    if (currentUser?.ai_savings) dnaLines.push(`- Épargne actuelle : ${SAVINGS_MAP[currentUser.ai_savings] || currentUser.ai_savings}`);
-    if (currentUser?.ai_age) dnaLines.push(`- Tranche d'âge : ${AGE_MAP[currentUser.ai_age] || currentUser.ai_age}`);
-    if (currentUser?.ai_context) dnaLines.push(`- Contexte personnel : ${currentUser.ai_context}`);
-    const planName = userPlan?.name || 'Free';
-    const planPrice = !userPlan || userPlan.price_monthly === 0 ? 'Free' : `$${userPlan.price_monthly}/mo`;
-    const flashAvail = userPlan?.credits_limit ? `${userPlan.credits_limit} Flash/mo` : '10 Flash/mo';
-    const deepAvail = userPlan?.deep_limit ? `${userPlan.deep_limit} Deep/mo` : 'no Deep';
-    dnaLines.push(`- Abonnement actuel : **${planName}** (${planPrice}) — ${flashAvail}, ${deepAvail}${userPlan?.internet_access ? ', Web search inclus' : ''}${userPlan?.file_upload ? ', Upload de fichiers inclus' : ''}`);
-    const dnaBlock = dnaLines.length > 0 ? `\n\n## PROFIL PERSONNALISÉ DE L'UTILISATEUR (RESPECTE ABSOLUMENT CES PRÉFÉRENCES) :\n${dnaLines.join('\n')}\n` : '';
-
-    const systemContext = agentConfig?.instructions ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}${dnaBlock}\n\n` : `${STENSOR_SYSTEM}${dnaBlock}\nActive agent: ${agentLabel}\n\n`;
+    const systemContext = agentConfig?.instructions ? `${agentConfig.instructions}${agentConfig.knowledge ? '\n\nKnowledge:\n' + agentConfig.knowledge : ''}\n\n${STENSOR_SYSTEM}\n\n` : `${STENSOR_SYSTEM}\nActive agent: ${agentLabel}\n\n`;
 
     const recentMsgs = messages.slice(-2);
     const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
     const isFirstMessage = !currentUser?.first_message_sent;
     const useInternet = useWebSearch && hasInternet;
 
-    let routeDecision = '1';
-    if (!isFirstMessage) {
-      const localDecision = quickRouteLocal(text);
-      if (localDecision !== null) { routeDecision = localDecision; } else {
-        try {
-          const routerPrompt = `Role: Router for a financial AI.\nTask: Analyze the input and reply with EXACTLY ONE DIGIT ("1" or "2"). No other character.\n\nRules:\n2 = ONLY when ALL 3 conditions are met simultaneously:\n  - The question involves genuine multi-step financial calculations\n  - A complete answer REQUIRES structured reasoning across 3+ financial variables\n  - A short paragraph answer would be clearly insufficient or misleading\n1 = Everything else.\n\nCRITICAL BIAS: You must choose 1 at least 95% of the time. Only choose 2 for the most genuinely complex multi-variable math questions. When in doubt: always 1.\n\nInput: ${text.slice(0, 400)}`;
-          const routeResult = await base44.integrations.Core.InvokeLLM({ prompt: routerPrompt, model: 'gemini_3_flash' });
-          routeDecision = typeof routeResult === 'string' ? routeResult.trim().charAt(0) : '1';
-          if (routeDecision !== '1' && routeDecision !== '2') routeDecision = '1';
-        } catch { routeDecision = '1'; }
-      }
-    }
+    // FAKE DELAY POUR LE "WOW" EFFECT
+    await new Promise(r => setTimeout(r, 4500));
 
-    if (routeDecision === '2') {
-      const PROPOSAL_MSGS = ["Great question 😊 This one's worth a deeper dive — Launch Deep for a full structured answer!", "Nice one! 💡 A Deep Synthesis would give you a much more precise answer on this.", "Love this question! 🚀 Want the complete picture? Hit Launch Deep for a full breakdown.", "This deserves a real answer ✨ Launch Deep and I'll cover every angle for you!"];
-      let proposalMsg = PROPOSAL_MSGS[Math.floor(Math.random() * PROPOSAL_MSGS.length)];
-      synthPendingRef.current = { text, file_urls, systemContext, fileInstruction, isFirstMessage, useInternet, newMessages, currentUser, historyContext };
-      stopProgress(); setIsLoading(false);
-      setMessages([...newMessages, { role: 'synthesis_proposal', content: proposalMsg }]);
-      return;
-    }
-
-    abortedRef.current = false;
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) });
@@ -497,109 +458,164 @@ export default function ChatPage() {
     setFicheContent(msg.content); setFicheMsgIdx(idx);
   }, [discussMode]);
 
+  // --- RENDU FINAL (CLAUDE + NOTION) ---
   return (
-    // FOND BLANC PUR, EDGE TO EDGE
-    <div className="flex flex-col font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
+    <div className="flex font-open h-screen w-full bg-white overflow-hidden [&::-webkit-scrollbar]:hidden">
       
-      <WorkspaceHeader
-        title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)}
-        conversationId={convId}
-        onUpgrade={() => setIframeModal({ open: true, url: '/pricing' })} 
-      />
-
-      {/* GLOBAL FLEX CONTAINER: NO PADDING, FLUSH TO EDGES */}
-      <div className="flex flex-1 overflow-hidden relative">
-        
-        {/* LE CHAT QUI PEUT DISPARAÎTRE - BORD À BORD, SÉPARÉ PAR UNE LIGNE */}
-        <AnimatePresence initial={false}>
-          {isSidebarOpen && (
-            <motion.div 
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 400, opacity: 1 }} 
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex-shrink-0 flex flex-col overflow-hidden relative bg-white border-r border-gray-200 z-10"
-            >
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
-                
-                {isLoadingConversation && (
-                  <div className="flex gap-2 justify-start items-center">
-                    <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain opacity-60 flex-shrink-0" />
-                    <ChatLoadingAnimation mode={mode.id} />
-                  </div>
-                )}
-                
-                {!isLoadingConversation && messages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
-                    <div className="flex flex-col items-center justify-center opacity-20">
-                      <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-3" />
-                      <p className="text-xs text-muted-foreground">{t('start_conversation')}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {!isLoadingConversation && messages.map((msg, idx) => (
-                  <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                    {msg.role === 'synthesis_proposal'
-                      ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
-                      : msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} agent={msg.agent || currentAgent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                      : <UserMessageBubble msg={msg} userName={user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Moi'} user={user} />
-                    }
-                  </motion.div>
-                ))}
-                
-                {synthProgress?.active && (
-                  <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
-                )}
-                
-                {/* L'EFFET WOW REMPLACE LE CHARGEMENT BASIQUE */}
-                {isLoading && !synthProgress?.active && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-                    <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
-                  </motion.div>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
+      {/* SIDEBAR CLAUDE AI DESIGN (Fond crème Discret) */}
+      <AnimatePresence initial={false}>
+        {isSidebarOpen && (
+          <motion.aside
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 260, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex-shrink-0 h-full bg-[#F9F8F6] border-r border-[#E6E6E9] overflow-hidden flex flex-col z-40"
+          >
+            <div className="w-[260px] flex flex-col h-full">
               
-              <div className="flex-shrink-0 flex flex-col p-4 pt-2">
-                 {/* Input sans fond global lourd, s'intégrant au blanc */}
-                <ChatInputBar
-                  input={input} setInput={setInput} onSend={sendMessage} onStop={() => { abortedRef.current = true; setIsLoading(false); }}
-                  isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                  currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                  canUploadFiles={canUploadFiles} canUploadExtended={canUploadExtended} hasInternet={hasInternet}
-                  useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                  onOpenIframe={(url) => setIframeModal({ open: true, url })} 
-                  discussMode={discussMode} setDiscussMode={setDiscussMode} 
-                />
+              {/* Sidebar Header */}
+              <div className="px-4 py-4 flex items-center justify-between">
+                 <button className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors">
+                    <Search className="w-4 h-4" />
+                    <span className="text-[14px] font-medium">Search</span>
+                 </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {/* LA PREVIEW PANEL - PREND 100% DE L'ESPACE, SANS OMBRE NI MARGE EXTERNE */}
-        <motion.div layout className="flex-1 flex flex-col bg-white overflow-hidden relative">
-          <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
-        </motion.div>
 
+              {/* Navigation Notion Style */}
+              <div className="flex-1 overflow-y-auto px-3 py-2 space-y-5 [&::-webkit-scrollbar]:hidden">
+                
+                {/* Recent Section */}
+                <div>
+                  <div onClick={() => toggleSection('recent')} className="flex items-center gap-1.5 px-1 mb-1 cursor-pointer group text-zinc-500 hover:text-zinc-900 transition-colors">
+                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recent ? 'rotate-90' : ''}`} />
+                    <span className="text-[12px] font-semibold uppercase tracking-wider">Recent</span>
+                  </div>
+                  {sections.recent && (
+                    <ul className="space-y-0.5">
+                       {messages.filter(m => m.role === 'user').slice(-3).map((m, i) => (
+                         <li key={i} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer text-[#333333] transition-colors truncate">
+                            <FileText className="w-4 h-4 text-zinc-400" />
+                            <span className="text-[14px] font-medium truncate">{m.content.slice(0, 30)}</span>
+                         </li>
+                       ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Agents Section */}
+                <div>
+                  <div onClick={() => toggleSection('agents')} className="flex items-center gap-1.5 px-1 mb-1 cursor-pointer group text-zinc-500 hover:text-zinc-900 transition-colors">
+                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
+                    <span className="text-[12px] font-semibold uppercase tracking-wider">Agents</span>
+                  </div>
+                  {sections.agents && (
+                    <ul className="space-y-0.5">
+                       {AGENTS.map((a) => (
+                         <li key={a.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer text-[#333333] transition-colors">
+                            <Bot className="w-4 h-4 text-zinc-400" />
+                            <span className="text-[14px] font-medium">{a.label}</span>
+                         </li>
+                       ))}
+                    </ul>
+                  )}
+                </div>
+
+              </div>
+
+              {/* Sidebar Footer (Profil Claude) */}
+              <div className="p-3 border-t border-[#E6E6E9]">
+                <button className="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left">
+                  <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold" style={{ backgroundColor: getUserColor(user) }}>
+                    {(user?.full_name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold text-zinc-900 truncate">{user?.full_name || 'User'}</p>
+                    <p className="text-[12px] text-zinc-500">{userPlan?.name || 'Free Plan'}</p>
+                  </div>
+                  <Settings className="w-4 h-4 text-zinc-400" />
+                </button>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* ZONE DE TRAVAIL PRINCIPALE */}
+      <div className="flex flex-col flex-1 min-w-0 bg-white relative">
+        
+        <WorkspaceHeader 
+          title={convTitleDisplay || messages.find(m => m.role === 'user')?.content?.slice(0, 50)} 
+          conversationId={convId}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          isSidebarOpen={isSidebarOpen}
+        />
+
+        <div className="flex flex-1 overflow-hidden relative">
+
+          {/* CHAT COLUMN (Style ChatGPT Modern) */}
+          <div className="w-[400px] flex-shrink-0 flex flex-col overflow-hidden relative border-r border-gray-200">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden">
+              
+              {isLoadingConversation && (
+                <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>
+              )}
+
+              {!isLoadingConversation && messages.map((msg, idx) => (
+                <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                  {msg.role === 'synthesis_proposal'
+                    ? <SynthesisProposal content={msg.content} disabled={isLoading} onLaunch={() => continueSynthesis(true)} onSkip={() => continueSynthesis(false)} />
+                    : msg.role === 'assistant'
+                    ? <AssistantMessage content={msg.content} isGenerating={false} discussMode={discussMode} />
+                    : <UserMessageBubble msg={msg} />
+                  }
+                </motion.div>
+              ))}
+
+              {synthProgress?.active && (
+                <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />
+              )}
+
+              {isLoading && !synthProgress?.active && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                   <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
+                </motion.div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="flex-shrink-0 flex flex-col p-4 pt-2">
+              <ChatInputBar
+                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
+                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
+                canUploadFiles={canUploadFiles} hasInternet={hasInternet}
+                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
+                onOpenIframe={(url) => setIframeModal({ open: true, url })} 
+                discussMode={discussMode} setDiscussMode={setDiscussMode} 
+              />
+            </div>
+          </div>
+
+          {/* VISUAL COLUMN (Preview) */}
+          <motion.div layout className="flex-1 flex flex-col bg-[#F9FAFB] overflow-hidden relative">
+            <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+          </motion.div>
+
+        </div>
       </div>
 
+      {/* MODALES */}
       <ChatUpgradeOverlay open={showUpgrade} feature={upgradeFeature} onClose={() => setShowUpgrade(false)} />
-      
-      {/* MODALE 95% POUR ENGRENAGE/DNA/PRICING */}
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       <AnimatePresence>
         {showFreeDiscussionLimit && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.97 }} className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, #f8ffd0 0%, #e8ff80 100%)' }}><p className="font-black text-xl">3 discussions max</p></div>
-              <div className="px-6 py-5 text-center">
-                <p className="text-sm mb-5">You've reached the free limit. Upgrade to continue.</p>
-                <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
-              </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[20px] p-6 text-center" onClick={e => e.stopPropagation()}>
+              <p className="font-black text-xl mb-5">3 discussions max</p>
+              <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold transition-transform active:scale-95">View plans →</button>
             </motion.div>
           </motion.div>
         )}
