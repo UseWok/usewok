@@ -1,18 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { 
   ChevronRight, 
-  ChevronDown, 
   Settings, 
   FileText, 
   Star, 
   Bot, 
   Lock, 
-  Clock, 
   Bell, 
-  Zap, 
   Search 
 } from 'lucide-react';
 
