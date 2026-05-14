@@ -28,13 +28,13 @@ import {
   Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, 
   ChevronRight, X, Cpu, BookOpen, ChevronsLeft, Search, 
   FileText, Settings, Bot, Lock, Plus, Star, MoreHorizontal,
-  LifeBuoy, ArrowUpCircle, Key
+  LifeBuoy, ArrowUpCircle, Key, Briefcase, Check, ChevronDown
 } from 'lucide-react';
 
-// BUBBLE UTILISATEUR ARRONDIE & COULEUR BARRE PREVIEW (#F4F4F4)
+// BULLE UTILISATEUR (#F7F7F7 pour matcher la barre, très arrondie)
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans">
-    <div className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
+    <div className="bg-[#F7F7F7] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
       {msg.content}
     </div>
   </div>
@@ -91,6 +91,11 @@ function quickRouteLocal(text) {
   return !hasNumbers && complexTerms < 2 ? '1' : null;
 }
 
+const mockWorkspaces = [
+  { id: 'ws1', name: 'My Workspace', current: true },
+  { id: 'ws2', name: 'Acme Corp', current: false },
+];
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -107,6 +112,10 @@ export default function ChatPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [discussions, setDiscussions] = useState([]);
   
+  const [workspaces, setWorkspaces] = useState(mockWorkspaces);
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+  const workspaceRef = useRef(null);
+
   const [messages, setMessages] = useState(() => {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
     return Array.isArray(initial) ? initial : [];
@@ -157,9 +166,8 @@ export default function ChatPage() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setIsProfileMenuOpen(false);
-      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) setIsProfileMenuOpen(false);
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target)) setShowWorkspaceSwitcher(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -380,29 +388,59 @@ export default function ChatPage() {
   return (
     <div className="flex font-sans h-screen w-full bg-[#F9F8F6] overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
       
-      {/* SIDEBAR */}
+      {/* SIDEBAR BLANCHE AVEC WORKSPACE SWITCHER */}
       {isSidebarOpen && (
-        <aside className="w-[260px] flex-shrink-0 h-full bg-[#F7F7F7] border-r border-[#E5E5E5] flex flex-col z-40">
-          <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2 group">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
-                {(user?.full_name || 'U').charAt(0).toUpperCase()}
+        <aside className="w-[260px] flex-shrink-0 h-full bg-white border-r border-[#E5E5E5] flex flex-col z-40">
+          
+          <div className="p-3 border-b border-[#E5E5E5] relative" ref={workspaceRef}>
+            <button 
+              onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
+              className="flex items-center justify-between w-full px-3 py-2 bg-white border border-[#E5E5E5] rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Briefcase className="w-4 h-4 text-gray-500" />
+                <span className="text-[13px] font-bold text-[#333333] truncate">
+                  {workspaces.find(w => w.current)?.name || 'My Workspace'}
+                </span>
               </div>
-              <span className="text-[13px] font-semibold text-gray-900 truncate">
-                {user?.full_name || 'My Workspace'}
-              </span>
-            </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 opacity-0 group-hover:opacity-100">
-              <ChevronsLeft className="w-4 h-4" />
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            </button>
+            <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Subscription linked to workspace</p>
+
+            <AnimatePresence>
+              {showWorkspaceSwitcher && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.1 }}
+                  className="absolute top-[calc(100%-10px)] left-3 right-3 bg-white border border-[#E5E5E5] rounded-xl shadow-lg py-1.5 z-50 p-1"
+                >
+                  {workspaces.map(w => (
+                    <button key={w.id} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
+                      <Briefcase className="w-4 h-4 text-gray-400" />
+                      <span className="flex-1 truncate">{w.name}</span>
+                      {w.current && <Check className="w-4 h-4 text-[#0080ff]" />}
+                    </button>
+                  ))}
+                  <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
+                  <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
+                    <Plus className="w-4 h-4" /> Create workspace
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="px-3 pt-4 pb-2">
+            <button onClick={() => { navigate('/'); }} className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-bold text-[#333333] hover:bg-gray-50 transition-colors shadow-sm">
+              <Plus className="w-4 h-4" /> New chat
             </button>
           </div>
 
-          <div className="px-3 space-y-0.5 mb-5">
+          <div className="px-3 space-y-0.5 mt-2">
             {navItems.map((item) => (
               <button 
                 key={item.labelKey || item.label} 
                 onClick={() => navigate(item.path)} 
-                className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-200/60 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-black/5 hover:text-gray-900'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
               >
                 <item.icon className="w-4 h-4" />
                 <span>{item.label || t(item.labelKey)}</span>
@@ -411,16 +449,16 @@ export default function ChatPage() {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 space-y-6 [&::-webkit-scrollbar]:hidden">
+          <div className="flex-1 overflow-y-auto px-3 mt-6 space-y-6 [&::-webkit-scrollbar]:hidden">
             <div>
               <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
-                <span className="text-[11px] font-semibold tracking-wide">Recents</span>
+                <span className="text-[11px] font-bold tracking-wider">RECENTS</span>
               </div>
               {sections.recentes && (
                 <ul className="space-y-0.5">
                    {discussions.slice(0, 5).map((d) => (
-                     <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-700 transition-colors truncate">
+                     <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors truncate">
                         <FileText className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'New chat'}</span>
                      </li>
@@ -431,17 +469,17 @@ export default function ChatPage() {
             <div>
               <div onClick={() => toggleSection('agents')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
-                <span className="text-[11px] font-semibold tracking-wide">Agents</span>
+                <span className="text-[11px] font-bold tracking-wider">AGENTS</span>
               </div>
               {sections.agents && (
                 <ul className="space-y-0.5">
                    {AGENTS.map((a) => (
-                     <li key={a.id} onClick={() => navigate(`/chat?agent=${a.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-700 transition-colors">
+                     <li key={a.id} onClick={() => navigate(`/chat?agent=${a.id}`)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors">
                         <Bot className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-[13px] font-medium truncate">{a.label}</span>
                      </li>
                    ))}
-                   <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-500 transition-colors mt-1">
+                   <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-500 transition-colors mt-1">
                       <Plus className="w-3.5 h-3.5 text-gray-400" />
                       <span className="text-[13px] font-medium">New agent</span>
                    </li>
@@ -449,85 +487,35 @@ export default function ChatPage() {
               )}
             </div>
           </div>
-
-          <div className="p-3 border-t border-[#E5E5E5] relative" ref={profileMenuRef}>
-            <AnimatePresence>
-              {isProfileMenuOpen && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute bottom-[calc(100%+8px)] left-3 w-[240px] bg-white border border-gray-200 rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] py-1.5 z-50 font-sans"
-                >
-                  <div className="px-3 py-2 border-b border-gray-100 mb-1">
-                    <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'User'}</p>
-                    <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Free Plan'}</p>
-                  </div>
-                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <Settings className="w-4 h-4 text-gray-500" /> Settings
-                  </button>
-                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <LifeBuoy className="w-4 h-4 text-gray-500" /> Support tickets
-                  </button>
-                  <div className="h-px bg-gray-100 my-1"></div>
-                  <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors group">
-                    <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Upgrade plan
-                  </button>
-                  <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <Key className="w-4 h-4 text-gray-500" /> I have a code...
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <button 
-              onClick={() => { navigate('/'); setIsProfileMenuOpen(false); }} 
-              className="flex items-center justify-center gap-2 w-full py-2 mb-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-semibold text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" /> New chat
-            </button>
-            <button 
-              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left"
-            >
-              <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
-                {(user?.full_name || 'U').charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'User'}</p>
-                <p className="text-[11px] text-gray-500">{userPlan?.name || 'Free Plan'}</p>
-              </div>
-              <MoreHorizontal className="w-4 h-4 text-gray-400" />
-            </button>
-          </div>
         </aside>
       )}
 
-      {/* ZONE PRINCIPALE FLOTTANTE SANS TOUCHER LES BORDS */}
+      {/* ZONE PRINCIPALE FLOTTANTE */}
       <div className="flex-1 flex flex-col p-2 min-w-0">
         
         {/* LA "FENETRE" QUI ENGLOBE TOUT */}
-        <div className={`flex flex-1 rounded-[16px] overflow-hidden bg-white shadow-sm border border-[#E5E5E5] transition-all duration-300 ${hasStarted ? 'flex-row' : 'flex-col max-w-3xl mx-auto w-full'}`}>
+        <div className={`flex flex-1 rounded-[16px] overflow-hidden bg-white shadow-sm transition-all duration-300 ${hasStarted ? 'flex-row border border-[#E5E5E5]' : 'flex-col max-w-3xl mx-auto w-full border-none shadow-none'}`}>
           
           {/* COLONNE CHAT */}
           <div className={`flex flex-col bg-white overflow-hidden ${hasStarted ? 'w-[450px] border-r border-[#E5E5E5] z-10' : 'w-full h-full'}`}>
             
-            {/* HEADER SPECIFIQUE AU CHAT (Juste Hamburger + ligne grise) */}
+            {/* HEADER CHAT SPECIFIQUE : Ligne grise qui ne touche pas les bords */}
             <div className="flex flex-col flex-shrink-0 bg-white pt-3">
               <div className="px-4 pb-2 flex items-center">
-                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors rounded-md">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-gray-100 transition-colors rounded-md">
+                  <ChevronsLeft className="w-5 h-5" />
                 </button>
               </div>
+              {/* Ligne élégante qui ne touche pas les bords */}
               <div className="mx-6 border-b border-[#E5E5E5]"></div>
             </div>
 
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col justify-end' : ''}`}>
               {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
               {!isLoadingConversation && messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full opacity-20">
+                <div className="flex flex-col items-center justify-center h-full opacity-30 text-center mb-10">
                   <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain mb-3" />
-                  <p className="text-xs">Start a conversation</p>
+                  <h2 className="text-[20px] font-semibold text-[#0d0d0d]">How can I help you today?</h2>
                 </div>
               )}
               {messages.map((msg, idx) => (
@@ -557,6 +545,7 @@ export default function ChatPage() {
                 onOpenIframe={(url) => setIframeModal({ open: true, url })}
                 discussMode={discussMode} setDiscussMode={setDiscussMode}
               />
+              {!hasStarted && <p className="text-center text-[11px] text-gray-400 mt-3">Stensor AI can make mistakes. Verify important info.</p>}
             </div>
           </div>
           
@@ -577,7 +566,7 @@ export default function ChatPage() {
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[20px] p-6 text-center" onClick={e => e.stopPropagation()}>
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
               <p className="font-black text-xl mb-4">Free limit reached</p>
               <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
             </motion.div>
