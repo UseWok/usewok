@@ -18,7 +18,7 @@ export default function AssistantMessage({ content, isGenerating }) {
     let safeText = typeof text === 'string' ? text : JSON.stringify(text);
     return safeText.split(/(\*\*.*?\*\*)/g).map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="font-bold text-[#0d0d0d]">{part.slice(2, -2)}</strong>;
+        return <strong key={index} className="font-semibold text-[#0d0d0d]">{part.slice(2, -2)}</strong>;
       }
       return <span key={index}>{part}</span>;
     });
@@ -26,7 +26,8 @@ export default function AssistantMessage({ content, isGenerating }) {
 
   return (
     <div className="flex justify-start w-full mb-6 font-sans">
-      <div className="text-[#0d0d0d] text-[15px] leading-relaxed w-full max-w-[95%] whitespace-pre-wrap">
+      {/* Slightly thinner text: text-gray-700 font-[400] */}
+      <div className="text-gray-700 text-[14.5px] font-[400] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap">
         {renderFormattedContent(content)}
       </div>
     </div>
