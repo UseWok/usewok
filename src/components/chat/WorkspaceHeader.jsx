@@ -56,13 +56,13 @@ export default function WorkspaceHeader({ onReload }) {
          <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
       </div>
 
-      {/* 2. CENTER: Automatic Mode Selector */}
+      {/* 2. CENTER: AI Selector */}
       <div className="flex justify-center w-1/2 relative" ref={modeRef}>
         <button 
           onClick={() => setShowMode(!showMode)} 
-          className="px-3.5 py-1.5 bg-white border border-[#D1D1D1] rounded-[6px] text-[12px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition-colors"
+          className="px-3.5 py-1.5 bg-white border border-[#E5E5E5] rounded-[6px] text-[12px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition-colors"
         >
-          {isDeepWork ? 'Deep Market Analysis' : 'Automatic Synthesis Mode'}
+          {isDeepWork ? 'Deep Work' : 'Automatic'}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
@@ -73,10 +73,10 @@ export default function WorkspaceHeader({ onReload }) {
               onClick={() => { setIsDeepWork(false); setShowMode(false); }}
             >
               <div className="text-[13px] font-bold text-[#333333] flex items-center gap-2">
-                Automatic Synthesis {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                Automatic {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
               <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">
-                Stensor automatically selects the premier financial models based on incoming context, balancing execution speed and analytical depth gracefully.
+                Wok automatically selects the premier reasoning models based on context, balancing speed and analytical depth gracefully.
               </div>
             </div>
             
@@ -84,8 +84,8 @@ export default function WorkspaceHeader({ onReload }) {
             
             <div className="p-3 flex items-center justify-between rounded-md">
               <div className="flex-1 pr-3">
-                <div className="text-[13px] font-bold text-[#333333]">Deep Market Analysis</div>
-                <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">Elite, compute-heavy causal reasoning mode for highly complex, volatile strategy generation.</div>
+                <div className="text-[13px] font-bold text-[#333333]">Deep Work</div>
+                <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">Advanced reasoning mode for highly complex logic resolution.</div>
               </div>
               <Toggle enabled={isDeepWork} onChange={() => { setIsDeepWork(!isDeepWork); setShowMode(false); }} />
             </div>
@@ -96,11 +96,10 @@ export default function WorkspaceHeader({ onReload }) {
       {/* 3. RIGHT: Reload + Publish */}
       <div className="flex justify-end items-center gap-2 w-1/4 relative" ref={publishRef}>
         
-        {/* BOUTON REGENERATE REVISITÉ */}
         <button 
           onClick={onReload}
           className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-[#E5E5E5] rounded-md transition-all"
-          title="Regenerate synthesis"
+          title="Regenerate response"
         >
           <RefreshCw className="w-4 h-4" />
         </button>
@@ -116,26 +115,24 @@ export default function WorkspaceHeader({ onReload }) {
           <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 text-left font-sans p-1">
             <div className="p-3 border-b border-[#E5E5E5]">
               <h3 className="text-[14px] font-bold text-[#333333]">Publish Your App</h3>
-              <p className="text-[11.5px] text-[#707070]">Deploy intelligence context externally.</p>
             </div>
             
             <div className="p-3 space-y-4">
               <div className="cursor-pointer group">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Connect custom asset domain</h4>
-                <p className="text-[11.5px] text-[#707070]">Utilize your own secure domain for intellectual property protection.</p>
+                <h4 className="text-[13px] font-bold text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Connect custom domain</h4>
               </div>
               
               <div className="cursor-pointer group">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Generate secure intel link</h4>
-                <p className="text-[11.5px] text-[#707070]">Share synthesis results via encrypted links to authorized peers.</p>
+                <h4 className="text-[13px] font-bold text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Share your app</h4>
+                <p className="text-[11.5px] text-[#707070]">Share a link via email or social networks.</p>
               </div>
               
               <div className="border-t border-[#E5E5E5] pt-3">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-3">Google Indexing Protocol</h4>
+                <h4 className="text-[13px] font-bold text-[#333333] mb-2">App Visibility</h4>
                 <div className="flex items-center justify-between bg-white p-2.5 rounded-md border border-[#E5E5E5] shadow-sm">
                   <div className="flex items-center gap-2.5">
                     <GoogleIcon />
-                    <span className="text-[13px] font-bold text-[#333333]">Submit to Search</span>
+                    <span className="text-[13px] font-bold text-[#333333]">Index on Google</span>
                   </div>
                   <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
                 </div>
@@ -144,15 +141,15 @@ export default function WorkspaceHeader({ onReload }) {
               <div className="space-y-3 pt-1">
                 {indexGoogle && (
                   <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-1.5 flex-shrink-0"></div>
                     <p className="text-[11px] text-[#707070] font-medium leading-snug">
-                      Submit current synthesis results for global search indexing. Execution takes 24-48h pending Google validation protocols. Maximize visibility.
+                      Instantly index your app on Google to drive massive organic traffic. Execution takes 24-48h.
                     </p>
                   </div>
                 )}
                 
                 <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-[6px] hover:bg-[#0066cc] transition-colors shadow-sm">
-                  Deploy Intelligence
+                  Deploy
                 </button>
               </div>
             </div>
