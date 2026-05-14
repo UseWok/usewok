@@ -46,7 +46,7 @@ export default function WorkspaceHeader({ onReload }) {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 h-[48px] flex-shrink-0 bg-[#F4F4F4] border-b border-[#E5E5E5] z-30 font-sans w-full">
+    <header className="flex items-center justify-between px-4 h-[48px] flex-shrink-0 bg-[#F7F7F7] border-b border-[#E5E5E5] z-30 font-sans w-full">
       
       {/* 1. LEFT: Mac Dots */}
       <div className="flex gap-2 items-center w-1/4 pl-1">
@@ -61,11 +61,10 @@ export default function WorkspaceHeader({ onReload }) {
           onClick={() => setShowMode(!showMode)} 
           className="px-3.5 py-1.5 bg-white border border-[#D1D1D1] rounded-[6px] text-[12px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition-colors"
         >
-          {isDeepWork ? 'Deep Market Analysis' : 'Automatic Synthesis Mode'}
+          {isDeepWork ? 'Deep Work' : 'Automatic'}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
-        {/* BORDURES ADOUCIES : border-[#E5E5E5] au lieu de black */}
         {showMode && (
           <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 p-1 text-left">
             <div 
@@ -73,7 +72,7 @@ export default function WorkspaceHeader({ onReload }) {
               onClick={() => { setIsDeepWork(false); setShowMode(false); }}
             >
               <div className="text-[13px] font-bold text-[#333333] flex items-center gap-2">
-                Automatic Synthesis {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                Automatic {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
               <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">
                 Stensor automatically selects the premier financial models based on incoming context, balancing execution speed and analytical depth gracefully.
@@ -84,8 +83,8 @@ export default function WorkspaceHeader({ onReload }) {
             
             <div className="p-3 flex items-center justify-between rounded-md">
               <div className="flex-1 pr-3">
-                <div className="text-[13px] font-bold text-[#333333]">Deep Market Analysis</div>
-                <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">Elite, compute-heavy causal reasoning mode for highly complex, volatile strategy generation.</div>
+                <div className="text-[13px] font-bold text-[#333333]">Deep Work</div>
+                <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">Advanced reasoning mode for highly complex, volatile strategy generation.</div>
               </div>
               <Toggle enabled={isDeepWork} onChange={() => { setIsDeepWork(!isDeepWork); setShowMode(false); }} />
             </div>
@@ -111,7 +110,6 @@ export default function WorkspaceHeader({ onReload }) {
           Publish
         </button>
 
-        {/* BORDURES ADOUCIES : border-[#E5E5E5] au lieu de black */}
         {showPublish && (
           <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 text-left font-sans p-1">
             <div className="p-3 border-b border-[#E5E5E5]">
@@ -146,12 +144,12 @@ export default function WorkspaceHeader({ onReload }) {
                   <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
                     <p className="text-[11px] text-[#707070] font-medium leading-snug">
-                      Submit current synthesis results for global search indexing. Execution takes 24-48h pending Google validation protocols. Maximize visibility. Option fully reversible.
+                      Submit current synthesis results for global search indexing. Execution takes 24-48h pending Google validation protocols.
                     </p>
                   </div>
                 )}
                 
-                <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-[6px] hover:bg-[#0066cc] transition-colors shadow-sm">
+                <button onClick={() => { setShowPublish(false); toast.success("Interface deployed."); }} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-[6px] hover:bg-[#0066cc] transition-colors shadow-sm">
                   Deploy Intelligence
                 </button>
               </div>
