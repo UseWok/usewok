@@ -1,100 +1,60 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-import { CHAR_SPEED, LOGO_URL, FG, YUZU, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
 import { ALL_MODES } from '@/lib/modes-config';
 import { completeReferralOnFirstMessage } from '@/lib/referral';
 import { getUserPlan } from '@/lib/plans-config';
 import { emitCreditsUpdate } from '@/lib/credits-events';
-import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
 import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
-import { useLanguage } from '@/lib/i18n';
 import { getUserColor } from '@/lib/user-color';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
-import ChatUpgradeOverlay from '@/components/chat/ChatUpgradeOverlay';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
-import ThinkingSteps from '@/components/chat/ThinkingSteps';
-import SynthesisProposal from '@/components/chat/SynthesisProposal';
-import SynthesisProgress from '@/components/chat/SynthesisProgress';
 
 import { 
-  Home, Bell, MessageSquare, ShoppingBag, TrendingUp, Zap, 
-  ChevronRight, X, Cpu, BookOpen, ChevronsLeft, Search, 
-  FileText, Settings, Bot, Lock, Plus, Star, MoreHorizontal,
-  LifeBuoy, ArrowUpCircle, Key, Briefcase, Check, ChevronDown
+  Home, MessageSquare, Cpu, BookOpen, ChevronsLeft, 
+  FileText, Bot, Plus, Star, MoreHorizontal, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X
 } from 'lucide-react';
 
-// BULLE UTILISATEUR (#F7F7F7 pour matcher la barre, très arrondie)
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans">
-    <div className="bg-[#F7F7F7] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
+    <div className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
       {msg.content}
     </div>
   </div>
 );
 
-const IframeModal = ({ open, url, onClose }) => (
-  <AnimatePresence>
-    {open && (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center font-open">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#0A0A0A]/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div initial={{ y: 50, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 30, opacity: 0, scale: 0.98 }} transition={{ type: "spring", damping: 25 }} className="relative w-[95vw] h-[95vh] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-gray-200">
-          <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-full transition-all shadow-sm">
-            <X className="w-5 h-5" strokeWidth={2.5} />
-          </button>
-          <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
-        </motion.div>
+const IframeModal = ({ open, url, onClose }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
+      <div className="relative w-[95vw] h-[95vh] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+        <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-full transition-all shadow-sm">
+          <X className="w-5 h-5" strokeWidth={2.5} />
+        </button>
+        <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
       </div>
-    )}
-  </AnimatePresence>
-);
+    </div>
+  );
+};
 
 const AGENTS = [
-  { id: 'global', labelKey: 'global_agent', label: "Knowing exactly where I'm going" },
-  { id: 'emotions-depenses', labelKey: 'emotions_agent', label: 'Spend without guilt' },
-  { id: 'wealth-strategy', labelKey: 'wealth_agent', label: 'Becoming financially free' },
+  { id: 'global', label: "Global Asset Strategy" },
+  { id: 'emotions-depenses', label: 'Spend without guilt' },
+  { id: 'wealth-strategy', label: 'Becoming financially free' },
 ];
 
 const STENSOR_SYSTEM = `You are a brilliant, candid financial expert. You speak like a smart friend — direct, warm, and actionable.
-
-LANGUAGE: ALWAYS respond in the same language as the user.
-CRITICAL: NEVER mention any platform name, its launch, its features, or promotional content. You exist solely to solve the user's financial problems.
-LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.
-
-FORMAT:
-- Blank lines between paragraphs and around lists
-- Bold numbers and key terms
-- ### headers for multi-part answers
-- Bullet points for any list (never inline)
-- Always end with a concrete next step
-
-RULES:
-- Max 2 sentences per paragraph
-- Greeting/small talk: 1-2 sentences only, relaxed. No structure.
-- Go straight to the point. No intro, no restating question.
-- If user shares a document: say you ran 578 simulations, give best scenario with 85% probability.
-- Never promote any product or service.`;
-
-function quickRouteLocal(text) {
-  const t = text?.trim() || "";
-  if (t.length < 60) return '1';
-  if (/^(bonjour|salut|merci|ok|ciao|hello|\u00e7a va|hi |hey |thanks|bonne)/i.test(t)) return '1';
-  const hasNumbers = /\d+/.test(t);
-  const complexTerms = (t.match(/investis|portefeuille|calcul|simul|projection|remboursement|int\u00e9r\u00eat|compos|retraite|amortissement/gi) || []).length;
-  return !hasNumbers && complexTerms < 2 ? '1' : null;
-}
-
-const mockWorkspaces = [
-  { id: 'ws1', name: 'My Workspace', current: true },
-  { id: 'ws2', name: 'Acme Corp', current: false },
-];
+LANGUAGE: ALWAYS respond in English.
+CRITICAL: NEVER mention any platform name, its launch, its features, or promotional content.
+LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -106,15 +66,34 @@ export default function ChatPage() {
   const convIdRef = useRef(conversationId || `conv_${Date.now()}`);
   const convId = convIdRef.current;
 
-  const { t } = useLanguage();
-
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [discussions, setDiscussions] = useState([]);
   
-  const [workspaces, setWorkspaces] = useState(mockWorkspaces);
-  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
-  const workspaceRef = useRef(null);
+  // FULLY FUNCTIONAL WORKSPACE LOGIC
+  const [workspaces, setWorkspaces] = useState(() => {
+    const saved = localStorage.getItem('stensor_workspaces');
+    return saved ? JSON.parse(saved) : [{ id: 'default', name: 'My Workspace', current: true }];
+  });
+  const currentWorkspace = workspaces.find(w => w.current) || workspaces[0];
+
+  const handleCreateWorkspace = () => {
+    const name = prompt("Enter new workspace name:");
+    if (name && name.trim()) {
+      const newWs = { id: `ws_${Date.now()}`, name: name.trim(), current: true };
+      const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
+      setWorkspaces(updated);
+      localStorage.setItem('stensor_workspaces', JSON.stringify(updated));
+      toast.success("Workspace created successfully.");
+    }
+  };
+
+  const handleSwitchWorkspace = (id) => {
+    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
+    setWorkspaces(updated);
+    localStorage.setItem('stensor_workspaces', JSON.stringify(updated));
+    setShowWorkspaceSwitcher(false);
+  };
 
   const [messages, setMessages] = useState(() => {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
@@ -133,35 +112,22 @@ export default function ChatPage() {
   const [currentAgent, setCurrentAgent] = useState(agentId);
   const [files, setFiles] = useState([]);
   const [useWebSearch, setUseWebSearch] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [upgradeFeature, setUpgradeFeature] = useState('');
-  const [showFreeDiscussionLimit, setShowFreeDiscussionLimit] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(0);
-  const [freeDaysLeft, setFreeDaysLeft] = useState(null);
-  const [milestoneShown, setMilestoneShown] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [synthProgress, setSynthProgress] = useState({ active: false, steps: [], currentStep: 0, done: false });
-  const [convTitleDisplay, setConvTitleDisplay] = useState('');
   const [ficheContent, setFicheContent] = useState(null);
-  const [ficheMsgIdx, setFicheMsgIdx] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
-  
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [sections, setSections] = useState({ recentes: true, agents: true });
-  const toggleSection = (s) => setSections(prev => ({ ...prev, [s]: !prev[s] }));
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const workspaceRef = useRef(null);
 
-  const loadingTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
-  const userScrolledUpRef = useRef(false);
   const isMountedRef = useRef(true);
-  const synthPendingRef = useRef(null);
   const abortedRef = useRef(false);
 
-  // LOGIQUE UI CONDITIONNELLE (Permet de cacher/afficher la preview)
   const hasStarted = messages.length > 0 || isLoading;
 
   useEffect(() => {
@@ -185,7 +151,6 @@ export default function ChatPage() {
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
   const dailyLimit = user?.daily_credits_limit || userPlan?.daily_credits_limit || 0;
   const todayKey = new Date().toISOString().slice(0, 10);
-  
   const getDailyUsed = () => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}')[todayKey] || 0; } catch { return 0; } };
   const incrementDailyUsed = () => { try { const d = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); d[todayKey] = (d[todayKey] || 0) + 1; localStorage.setItem('stensor_daily_usage', JSON.stringify(d)); } catch { } };
   const dailyBlocked = dailyLimit > 0 && getDailyUsed() >= dailyLimit;
@@ -193,32 +158,15 @@ export default function ChatPage() {
 
   const canUploadFiles = userPlan?.file_upload || false;
   const hasInternet = userPlan?.internet_access || false;
-  const agentLabel = AGENTS.find((a) => a.id === currentAgent)?.label || 'Global Agent';
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
-    try {
-      const allDiscs = getDiscussions();
-      setDiscussions(allDiscs || []);
-      if (conversationId) {
-        const disc = allDiscs?.find((d) => d.id === conversationId);
-        if (disc) setFreeDaysLeft(getDiscussionDaysLeft(disc));
-      }
-    } catch {}
-
+    try { setDiscussions(getDiscussions() || []); } catch {}
     base44.auth.me().then((u) => {
       setUser(u);
       if (u?.id) setCurrentUser(u.id);
       setCreditsUsed(u?.credits_used ?? 0);
-      const plan = getUserPlan(u);
-      setUserPlan(plan);
-      if (!plan || plan.price_monthly === 0) {
-         try { const disc = getDiscussions()?.find(d => d.id === conversationId); if(disc) setFreeDaysLeft(getDiscussionDaysLeft(disc)); } catch{}
-      } else setFreeDaysLeft(null);
-      
-      const savedDefault = localStorage.getItem('stensor_default_mode');
-      const preferred = savedDefault && plan?.allowed_modes?.includes(savedDefault) ? ALL_MODES.find((m) => m.id === savedDefault) : ALL_MODES.find((m) => plan?.allowed_modes?.includes(m.id));
-      if (preferred) setMode(preferred);
+      setUserPlan(getUserPlan(u));
     }).catch(() => {});
   }, [conversationId]);
 
@@ -235,34 +183,14 @@ export default function ChatPage() {
       if (!isMountedRef.current) return;
       const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
       if (safeCloudMsgs.length > 0) { setMessages(safeCloudMsgs); saveConversationMessages(conversationId, safeCloudMsgs); }
-      setTimeout(() => setIsLoadingConversation(false), 300);
+      setIsLoadingConversation(false);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const handler = () => { userScrolledUpRef.current = container.scrollHeight - container.scrollTop - container.clientHeight > 80; };
-    container.addEventListener('scroll', handler, { passive: true });
-    return () => container.removeEventListener('scroll', handler);
-  }, []);
-
-  useEffect(() => { if (!userScrolledUpRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-
-  const startProgress = () => {
-    let prog = 0;
-    loadingTimerRef.current = setInterval(() => {
-      prog += Math.random() * 8 + 2;
-      if (prog >= 90) { prog = 90; clearInterval(loadingTimerRef.current); }
-      setLoadingProgress(Math.round(prog));
-    }, 600);
-  };
-
-  const stopProgress = () => { clearInterval(loadingTimerRef.current); setLoadingProgress(0); };
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const handleStop = useCallback(() => {
-    abortedRef.current = true; stopProgress(); setIsLoading(false);
-    setSynthProgress({ active: false, steps: [], currentStep: 0, done: false });
+    abortedRef.current = true; setIsLoading(false);
     setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Generation interrupted.' }]);
   }, []);
 
@@ -292,48 +220,40 @@ export default function ChatPage() {
 
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading || blocked) return;
-    const actualText = discussMode ? 'Discuss: ' + text : text;
 
     let currentUser = user;
     if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) { setUser(currentUser); setCreditsUsed(currentUser.credits_used ?? 0); } } catch {} }
 
-    const isFree = !userPlan || userPlan.price_monthly === 0;
-    if (isFree) {
-      try { const stored = getDiscussions(); if (!stored.find((d) => d.id === convId) && stored.length >= 3) { localStorage.setItem('stensor_saved_input', text); setShowFreeDiscussionLimit(true); return; } } catch {}
-    }
-
-    const userMsg = { role: 'user', content: actualText, files: files.length > 0 ? files.map((f) => f.name) : undefined };
+    const userMsg = { role: 'user', content: text, files: files.length > 0 ? files.map((f) => f.name) : undefined };
     const newMessages = [...messages, userMsg];
-    setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true); startProgress();
+    setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true);
 
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
       if (currentUser) await updateCredits(currentUser, 1);
-      stopProgress(); setIsLoading(false); return;
+      setIsLoading(false); return;
     }
 
     let file_urls = [];
     if (files.length > 0 && canUploadFiles) { for (const file of files) { try { const { file_url } = await base44.integrations.Core.UploadFile({ file }); file_urls.push(file_url); } catch {} } }
 
     await initAgentsFromDB().catch(() => {});
-    const agentConfig = currentAgent ? getAgentConfig(currentAgent) : null;
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
 
-    const systemContext = agentConfig?.instructions ? `${agentConfig.instructions}\n\n${STENSOR_SYSTEM}\n\n` : `${STENSOR_SYSTEM}\n\n`;
+    const systemContext = `${STENSOR_SYSTEM}\n\nWorkspace Context: ${currentWorkspace.name}\n`;
     const recentMsgs = messages.slice(-2);
     const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent conversation ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content?.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
     const isFirstMessage = !currentUser?.first_message_sent;
-    const useInternet = useWebSearch && hasInternet;
 
     abortedRef.current = false;
-    await new Promise(r => setTimeout(r, 4500));
+    await new Promise(r => setTimeout(r, 2000));
 
     let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useInternet, ...(file_urls.length > 0 ? { file_urls } : {}) });
+      result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useWebSearch, ...(file_urls.length > 0 ? { file_urls } : {}) });
     } catch (err) {
-      setIsLoading(false); stopProgress();
+      setIsLoading(false);
       setMessages([...newMessages, { role: 'assistant', content: "I haven't been able to process your request. Please try again." }]);
       return;
     }
@@ -341,7 +261,7 @@ export default function ChatPage() {
     if (abortedRef.current) return;
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    const costPerMsg = discussMode ? 1 : (isFirstMessage ? 1 : mode.credit_cost) + (useInternet ? 1 : 0);
+    const costPerMsg = discussMode ? 1 : (isFirstMessage ? 1 : mode.credit_cost) + (useWebSearch ? 1 : 0);
     if (currentUser) {
       await updateCredits(currentUser, costPerMsg);
       if (isFirstMessage) { await base44.auth.updateMe({ first_message_sent: true }); setUser(prev => ({...prev, first_message_sent: true})); completeReferralOnFirstMessage(currentUser.id).catch(() => {}); }
@@ -350,20 +270,15 @@ export default function ChatPage() {
     const convTitle = await buildTitle(text);
     saveToDiscussionsLogic(convTitle, text);
     setConvTitleDisplay(convTitle);
-    stopProgress(); setIsLoading(false);
+    setIsLoading(false);
     
-    if (!discussMode) { setFicheContent(content); setFicheMsgIdx(newMessages.length); }
-    const finalMsgs = [...newMessages, { role: 'assistant', content, _msgIdx: discussMode ? undefined : newMessages.length }];
+    if (!discussMode) setFicheContent(content);
+    const finalMsgs = [...newMessages, { role: 'assistant', content }];
     setMessages(finalMsgs);
     saveConversationMessages(convId, finalMsgs);
     syncConversationToCloud(convId, finalMsgs, { title: convTitle, preview: text, model: mode.label, agent: currentAgent });
 
-  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, discussMode]);
-
-  const handleMessageClick = useCallback((msg, idx) => {
-    if (!msg?.content || msg.content.length < 20 || discussMode) return;
-    setFicheContent(msg.content); setFicheMsgIdx(idx);
-  }, [discussMode]);
+  }, [user, userPlan, mode, currentAgent, files, messages, isLoading, blocked, useWebSearch, hasInternet, canUploadFiles, discussMode, currentWorkspace]);
 
   const handleReload = () => {
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
@@ -376,203 +291,165 @@ export default function ChatPage() {
 
   const isAdmin = user?.role === 'admin';
   const navItems = [
-    { icon: Home, labelKey: 'home', label: 'Home', path: '/app', active: location.pathname === '/app' },
+    { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: Cpu, label: 'DNA Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
+    { icon: Cpu, label: 'DNA Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna' },
     ...(isAdmin ? [
-      { icon: ShoppingBag, labelKey: 'administration', label: 'Admin', path: '/admin/products', active: location.pathname.startsWith('/admin') && !location.pathname.includes('blog') },
+      { icon: ShoppingBag, label: 'Admin', path: '/admin/products', active: location.pathname.startsWith('/admin') && !location.pathname.includes('blog') },
       { icon: BookOpen, label: 'Blog', path: '/admin/blog', active: location.pathname === '/admin/blog' },
     ] : []),
   ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-[#F9F8F6] overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
+    <div className="flex font-sans h-screen w-full bg-white overflow-hidden antialiased">
       
-      {/* SIDEBAR BLANCHE AVEC WORKSPACE SWITCHER */}
+      {/* SIDEBAR (Pure White Background) */}
       {isSidebarOpen && (
         <aside className="w-[260px] flex-shrink-0 h-full bg-white border-r border-[#E5E5E5] flex flex-col z-40">
           
-          <div className="p-3 border-b border-[#E5E5E5] relative" ref={workspaceRef}>
-            <button 
-              onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
-              className="flex items-center justify-between w-full px-3 py-2 bg-white border border-[#E5E5E5] rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <Briefcase className="w-4 h-4 text-gray-500" />
-                <span className="text-[13px] font-bold text-[#333333] truncate">
-                  {workspaces.find(w => w.current)?.name || 'My Workspace'}
-                </span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
-            <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Subscription linked to workspace</p>
+          <div className="flex-1 flex flex-col">
+            <div className="px-3 pt-4 pb-2 space-y-1">
+               {navItems.map((item) => (
+                 <button 
+                   key={item.label} 
+                   onClick={() => navigate(item.path)} 
+                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                 >
+                   <item.icon className="w-4 h-4" />
+                   <span>{item.label}</span>
+                 </button>
+               ))}
+            </div>
 
-            <AnimatePresence>
-              {showWorkspaceSwitcher && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.1 }}
-                  className="absolute top-[calc(100%-10px)] left-3 right-3 bg-white border border-[#E5E5E5] rounded-xl shadow-lg py-1.5 z-50 p-1"
-                >
-                  {workspaces.map(w => (
-                    <button key={w.id} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
-                      <Briefcase className="w-4 h-4 text-gray-400" />
-                      <span className="flex-1 truncate">{w.name}</span>
-                      {w.current && <Check className="w-4 h-4 text-[#0080ff]" />}
-                    </button>
-                  ))}
-                  <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                  <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
-                    <Plus className="w-4 h-4" /> Create workspace
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="flex-1 overflow-y-auto px-3 mt-4 space-y-6 [&::-webkit-scrollbar]:hidden">
+               <div>
+                 <div className="flex items-center px-1 mb-2">
+                   <span className="text-[11px] font-bold text-gray-400 tracking-wider">RECENTS</span>
+                 </div>
+                 <ul className="space-y-0.5">
+                    {discussions.slice(0, 5).map((d) => (
+                      <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors truncate">
+                         <FileText className="w-3.5 h-3.5 text-gray-400" />
+                         <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'New chat'}</span>
+                      </li>
+                    ))}
+                 </ul>
+               </div>
+            </div>
           </div>
 
-          <div className="px-3 pt-4 pb-2">
-            <button onClick={() => { navigate('/'); }} className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-bold text-[#333333] hover:bg-gray-50 transition-colors shadow-sm">
+          {/* BOTTOM SIDEBAR (Image 1 replica: New Chat + Profile) */}
+          <div className="p-3 border-t border-[#E5E5E5] relative flex flex-col gap-2 bg-white" ref={profileMenuRef}>
+            
+            <button 
+              onClick={() => { navigate('/'); setIsProfileMenuOpen(false); }} 
+              className="flex items-center justify-center gap-2 w-full py-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-bold text-[#333333] hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <Plus className="w-4 h-4" /> New chat
             </button>
-          </div>
 
-          <div className="px-3 space-y-0.5 mt-2">
-            {navItems.map((item) => (
-              <button 
-                key={item.labelKey || item.label} 
-                onClick={() => navigate(item.path)} 
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-              >
-                <item.icon className="w-4 h-4" />
-                <span>{item.label || t(item.labelKey)}</span>
-                {item.highlight && <span className="ml-auto text-[9px] font-bold bg-[#DDFF00] text-black px-1.5 py-0.5 rounded-full">NEW</span>}
-              </button>
-            ))}
-          </div>
+            {isProfileMenuOpen && (
+              <div className="absolute bottom-[calc(100%+8px)] left-3 w-[240px] bg-white border border-black rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] py-1.5 z-50 font-sans">
+                <div className="px-3 py-2 border-b border-gray-100 mb-1">
+                  <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'User'}</p>
+                  <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Free Plan'}</p>
+                </div>
+                <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <Settings className="w-4 h-4 text-gray-500" /> Settings
+                </button>
+                <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <LifeBuoy className="w-4 h-4 text-gray-500" /> Support tickets
+                </button>
+                <div className="h-px bg-gray-100 my-1"></div>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors group">
+                  <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Upgrade plan
+                </button>
+                <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
+                  <Key className="w-4 h-4 text-gray-500" /> I have a code...
+                </button>
+              </div>
+            )}
 
-          <div className="flex-1 overflow-y-auto px-3 mt-6 space-y-6 [&::-webkit-scrollbar]:hidden">
-            <div>
-              <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
-                <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
-                <span className="text-[11px] font-bold tracking-wider">RECENTS</span>
+            <button 
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left"
+            >
+              <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: '#8B5CF6' }}>
+                {(user?.full_name || 'U').charAt(0).toUpperCase()}
               </div>
-              {sections.recentes && (
-                <ul className="space-y-0.5">
-                   {discussions.slice(0, 5).map((d) => (
-                     <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors truncate">
-                        <FileText className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'New chat'}</span>
-                     </li>
-                   ))}
-                </ul>
-              )}
-            </div>
-            <div>
-              <div onClick={() => toggleSection('agents')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
-                <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.agents ? 'rotate-90' : ''}`} />
-                <span className="text-[11px] font-bold tracking-wider">AGENTS</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
+                <p className="text-[11px] text-gray-500">{userPlan?.name || 'Free'}</p>
               </div>
-              {sections.agents && (
-                <ul className="space-y-0.5">
-                   {AGENTS.map((a) => (
-                     <li key={a.id} onClick={() => navigate(`/chat?agent=${a.id}`)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors">
-                        <Bot className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-[13px] font-medium truncate">{a.label}</span>
-                     </li>
-                   ))}
-                   <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-500 transition-colors mt-1">
-                      <Plus className="w-3.5 h-3.5 text-gray-400" />
-                      <span className="text-[13px] font-medium">New agent</span>
-                   </li>
-                </ul>
-              )}
-            </div>
+              <MoreHorizontal className="w-4 h-4 text-gray-400" />
+            </button>
           </div>
         </aside>
       )}
 
-      {/* ZONE PRINCIPALE FLOTTANTE */}
-      <div className="flex-1 flex flex-col p-2 min-w-0">
-        
-        {/* LA "FENETRE" QUI ENGLOBE TOUT */}
-        <div className={`flex flex-1 rounded-[16px] overflow-hidden bg-white shadow-sm transition-all duration-300 ${hasStarted ? 'flex-row border border-[#E5E5E5]' : 'flex-col max-w-3xl mx-auto w-full border-none shadow-none'}`}>
+      {/* MAIN ZONE (White BG, Edge to Edge, No outer borders) */}
+      <div className="flex-1 flex overflow-hidden bg-white">
           
-          {/* COLONNE CHAT */}
-          <div className={`flex flex-col bg-white overflow-hidden ${hasStarted ? 'w-[450px] border-r border-[#E5E5E5] z-10' : 'w-full h-full'}`}>
-            
-            {/* HEADER CHAT SPECIFIQUE : Ligne grise qui ne touche pas les bords */}
-            <div className="flex flex-col flex-shrink-0 bg-white pt-3">
-              <div className="px-4 pb-2 flex items-center">
-                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-gray-100 transition-colors rounded-md">
-                  <ChevronsLeft className="w-5 h-5" />
+        {/* CHAT COLUMN (Anchored left, fixed width when active, full width when empty) */}
+        <div className={`flex flex-col bg-white overflow-hidden ${hasStarted ? 'w-[500px] border-r border-[#E5E5E5] z-10' : 'w-full max-w-3xl mx-auto'}`}>
+          
+          {/* Menu button for chat column */}
+          <div className="flex flex-col flex-shrink-0 bg-white pt-4">
+            <div className="px-4 pb-2 flex items-center">
+              {!isSidebarOpen && (
+                <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors rounded-md mr-2">
+                  <ChevronsLeft className="w-5 h-5 rotate-180" />
                 </button>
-              </div>
-              {/* Ligne élégante qui ne touche pas les bords */}
-              <div className="mx-6 border-b border-[#E5E5E5]"></div>
+              )}
             </div>
+            {/* Fine line that doesn't touch the borders */}
+            {hasStarted && <div className="mx-6 border-b border-[#E5E5E5]"></div>}
+          </div>
 
-            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col justify-end' : ''}`}>
-              {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
-              {!isLoadingConversation && messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full opacity-30 text-center mb-10">
-                  <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain mb-3" />
-                  <h2 className="text-[20px] font-semibold text-[#0d0d0d]">How can I help you today?</h2>
-                </div>
-              )}
-              {messages.map((msg, idx) => (
-                <motion.div key={idx} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                  {msg.role === 'assistant'
-                    ? <AssistantMessage content={msg.content} agent={msg.agent} meta={msg.meta} onClick={() => handleMessageClick(msg, idx)} discussMode={discussMode} />
-                    : <CustomUserMessageBubble msg={msg} />
-                  }
-                </motion.div>
-              ))}
-              {synthProgress?.active && <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />}
-              {isLoading && !synthProgress?.active && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-                  <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-            
-            <div className={`flex-shrink-0 flex flex-col p-4 pt-2 bg-white ${!hasStarted ? 'pb-10' : ''}`}>
-              <ChatInputBar
-                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
-                isLoading={isLoading} blocked={blocked} mode={mode} setMode={setMode}
-                currentAgent={currentAgent} setCurrentAgent={setCurrentAgent} userPlan={userPlan}
-                canUploadFiles={canUploadFiles} hasInternet={hasInternet}
-                useWebSearch={useWebSearch} setUseWebSearch={setUseWebSearch} files={files} setFiles={setFiles}
-                onOpenIframe={(url) => setIframeModal({ open: true, url })}
-                discussMode={discussMode} setDiscussMode={setDiscussMode}
-              />
-              {!hasStarted && <p className="text-center text-[11px] text-gray-400 mt-3">Stensor AI can make mistakes. Verify important info.</p>}
-            </div>
+          <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-6 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col justify-center items-center' : ''}`}>
+            {!hasStarted && (
+               <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-20">
+                 <img src={LOGO_URL} alt="Stensor" className="w-12 h-12 object-contain mb-4" />
+                 <h2 className="text-[22px] font-semibold text-[#0d0d0d]">How can I help you today?</h2>
+               </div>
+            )}
+
+            {messages.map((msg, idx) => (
+              <div key={idx}>
+                {msg.role === 'assistant' 
+                  ? <AssistantMessage content={msg.content} />
+                  : <CustomUserMessageBubble msg={msg} />
+                }
+              </div>
+            ))}
+            {isLoading && <AssistantMessage content="" isGenerating={true} />}
+            <div ref={messagesEndRef} className="h-4" />
           </div>
           
-          {/* COLONNE PREVIEW (Apparait uniquement après avoir commencé) */}
-          {hasStarted && (
-            <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+          {/* INPUT BAR */}
+          <div className={`flex-shrink-0 p-4 bg-white w-full ${!hasStarted ? 'pb-10' : ''}`}>
+            <ChatInputBar
+              input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop}
+              isLoading={isLoading} 
+              currentWorkspace={currentWorkspace} workspaces={workspaces} setWorkspaces={setWorkspaces} showWorkspaceSwitcher={showWorkspaceSwitcher} setShowWorkspaceSwitcher={setShowWorkspaceSwitcher} workspaceRef={workspaceRef} handleCreateWorkspace={handleCreateWorkspace} handleSwitchWorkspace={handleSwitchWorkspace}
+            />
+          </div>
+        </div>
+        
+        {/* PREVIEW COLUMN (Appears only after first generation, hugging borders closely) */}
+        {hasStarted && (
+          <div className="flex-1 bg-white p-3 overflow-hidden">
+            <div className="w-full h-full border border-[#E5E5E5] rounded-xl flex flex-col overflow-hidden shadow-sm">
                <WorkspaceHeader onReload={handleReload} />
-               <div className="flex-1 overflow-y-auto">
-                 <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+               <div className="flex-1 overflow-y-auto bg-white">
+                 <FichePanel content={ficheContent} loading={false} />
                </div>
             </div>
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
-      <AnimatePresence>
-        {showFreeDiscussionLimit && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
-              <p className="font-black text-xl mb-4">Free limit reached</p>
-              <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
