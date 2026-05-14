@@ -41,53 +41,50 @@ export default function WorkspaceHeader({ onReload }) {
   }, []);
 
   const handlePublish = () => {
-    toast.success("App published successfully.");
+    toast.success("Interface published successfully.");
     setShowPublish(false);
   };
 
   return (
-    <header className="flex items-center justify-between px-4 h-[48px] flex-shrink-0 bg-[#F4F4F4] border-b border-[#E5E5E5] z-30 font-sans w-full">
+    <header className="flex items-center justify-between px-4 h-[50px] flex-shrink-0 bg-[#F4F4F4] border-b border-[#E5E5E5] z-30 font-sans w-full">
       
-      {/* 1. LEFT: Mac Dots & Preview Label */}
-      <div className="flex items-center gap-4 w-1/4 pl-1">
-        <div className="flex gap-2 items-center">
-           <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-           <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-           <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
-        </div>
-        <span className="text-[12px] font-semibold text-[#999999] select-none">Preview</span>
+      {/* 1. LEFT: Mac Dots */}
+      <div className="flex gap-2 items-center w-1/4 pl-1">
+         <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+         <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+         <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
       </div>
 
-      {/* 2. CENTER: Automatic Mode Selector */}
+      {/* 2. CENTER: Automatic Mode Selector (No animations, black border popup) */}
       <div className="flex justify-center w-1/2 relative" ref={modeRef}>
         <button 
           onClick={() => setShowMode(!showMode)} 
           className="px-3.5 py-1.5 bg-white border border-[#D1D1D1] rounded-[6px] text-[12px] font-semibold text-[#333333] hover:bg-gray-50 flex items-center gap-1.5 shadow-sm transition-colors"
         >
-          {isDeepWork ? 'Deep Work' : 'Automatic'}
+          {isDeepWork ? 'Deep Market Analysis' : 'Automatic'}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
         {showMode && (
-          <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] z-50 p-1 text-left">
+          <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-black rounded-lg shadow-xl z-50 text-left p-1">
             <div 
-              className="p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors" 
+              className="p-3 hover:bg-gray-50 cursor-pointer rounded-md transition-colors" 
               onClick={() => { setIsDeepWork(false); setShowMode(false); }}
             >
               <div className="text-[13px] font-bold text-[#333333] flex items-center gap-2">
                 Automatic {(!isDeepWork) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
-              <div className="text-[11.5px] text-[#707070] mt-1.5 leading-snug">
-                We seamlessly select the absolute best AI model tailored to your specific context, balancing execution speed and analytical depth.
+              <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">
+                Stensor automatically selects the premier financial models based on incoming context, balancing execution speed and analytical depth gracefully.
               </div>
             </div>
             
-            <div className="h-px bg-[#E5E5E5] my-1 mx-3"></div>
+            <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
             
-            <div className="p-3 flex items-center justify-between rounded-lg">
+            <div className="p-3 flex items-center justify-between rounded-md">
               <div className="flex-1 pr-3">
-                <div className="text-[13px] font-bold text-[#333333]">Deep Work</div>
-                <div className="text-[11.5px] text-[#707070] mt-1.5 leading-snug">Advanced reasoning mode for highly complex and volatile strategy generation.</div>
+                <div className="text-[13px] font-bold text-[#333333]">Deep Market Analysis</div>
+                <div className="text-[11.5px] text-[#707070] mt-1 leading-snug">Elite, compute-heavy causal reasoning mode for highly complex, volatile strategy generation.</div>
               </div>
               <Toggle enabled={isDeepWork} onChange={() => { setIsDeepWork(!isDeepWork); setShowMode(false); }} />
             </div>
@@ -98,13 +95,12 @@ export default function WorkspaceHeader({ onReload }) {
       {/* 3. RIGHT: Reload + Publish */}
       <div className="flex justify-end items-center gap-2 w-1/4 relative" ref={publishRef}>
         
-        {/* Clean visual reload button */}
         <button 
           onClick={onReload}
-          className="p-1.5 text-[#999999] hover:text-[#333333] hover:bg-gray-200/50 rounded-md transition-all"
-          title="Regenerate"
+          className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-white rounded-md border border-transparent hover:border-[#D1D1D1] transition-all"
+          title="Regenerate synthesis"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.46-5.46"/></svg>
         </button>
 
         <button 
@@ -115,7 +111,7 @@ export default function WorkspaceHeader({ onReload }) {
         </button>
 
         {showPublish && (
-          <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] z-50 text-left font-sans p-1">
+          <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-black rounded-lg shadow-xl z-50 text-left font-sans p-1">
             <div className="p-3 border-b border-[#E5E5E5]">
               <h3 className="text-[14px] font-bold text-[#333333]">Publish Your App</h3>
             </div>
@@ -127,11 +123,11 @@ export default function WorkspaceHeader({ onReload }) {
               
               <div className="cursor-pointer group">
                 <h4 className="text-[13px] font-bold text-[#333333] mb-0.5 group-hover:text-[#0080ff] transition-colors">Share your app</h4>
-                <p className="text-[11.5px] text-[#707070]">Share a link via email or social networks.</p>
+                <p className="text-[11.5px] text-[#707070]">Share a link via email or social media.</p>
               </div>
               
               <div className="border-t border-[#E5E5E5] pt-3">
-                <h4 className="text-[13px] font-bold text-[#333333] mb-2">App Visibility</h4>
+                <h4 className="text-[13px] font-bold text-[#333333] mb-3">App Visibility</h4>
                 <div className="flex items-center justify-between bg-white p-2.5 rounded-md border border-[#E5E5E5] shadow-sm">
                   <div className="flex items-center gap-2.5">
                     <GoogleIcon />
@@ -144,9 +140,9 @@ export default function WorkspaceHeader({ onReload }) {
               <div className="space-y-3 pt-1">
                 {indexGoogle && (
                   <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-1.5 flex-shrink-0"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
                     <p className="text-[11px] text-[#707070] font-medium leading-snug">
-                      Indexing your app on Google takes between 24-48h. Maximize your visibility globally.
+                      Indexing your app on Google takes between 24-48h to maximize visibility globally.
                     </p>
                   </div>
                 )}
