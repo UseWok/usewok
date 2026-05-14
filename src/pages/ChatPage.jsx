@@ -8,7 +8,7 @@ import { ALL_MODES } from '@/lib/modes-config';
 import { completeReferralOnFirstMessage } from '@/lib/referral';
 import { getUserPlan } from '@/lib/plans-config';
 import { emitCreditsUpdate } from '@/lib/credits-events';
-import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
+import { getDiscussions, saveDiscussions, getConversationMessages, saveConversationMessages, setCurrentUser, syncConversationToCloud, loadConversationFromCloud, loadConversationTitleFromCloud, getDiscussionDaysLeft } from '@/lib/discussions';
 import { initAgentsFromDB, getAgentConfig } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
 
@@ -19,7 +19,7 @@ import AssistantMessage from '@/components/chat/AssistantMessage';
 import ChatLoadingAnimation from '@/components/chat/ChatLoadingAnimation';
 
 import { 
-  Home, MessageSquare, Cpu, BookOpen, ChevronsLeft, 
+  Home, MessageSquare, Cpu, BookOpen, ChevronsLeft, ShoppingBag,
   FileText, Bot, Plus, Star, MoreHorizontal, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X
 } from 'lucide-react';
 
@@ -114,6 +114,7 @@ export default function ChatPage() {
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [ficheContent, setFicheContent] = useState(null);
+  const [convTitleDisplay, setConvTitleDisplay] = useState('');
   const [discussMode, setDiscussMode] = useState(false);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   
