@@ -18,18 +18,18 @@ import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
-import { 
+import {
   Home, MessageSquare, Cpu, BookOpen, PanelLeftClose, PanelLeft,
-  FileText, Bot, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
-} from 'lucide-react';
+  FileText, Bot, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2 } from
+'lucide-react';
 
-const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans">
+const CustomUserMessageBubble = ({ msg }) =>
+<div className="flex justify-end w-full mb-6 font-sans">
     <div className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
       {msg.content}
     </div>
-  </div>
-);
+  </div>;
+
 
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
@@ -41,15 +41,15 @@ const IframeModal = ({ open, url, onClose }) => {
         </button>
         <iframe src={url} className="w-full h-full border-none bg-[#F9FAFB]" />
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 const AGENTS = [
-  { id: 'global', label: "Global AI Executive" },
-  { id: 'creative', label: 'Creative Synthesizer' },
-  { id: 'logic', label: 'Logic & Code Architect' },
-];
+{ id: 'global', label: "Global AI Executive" },
+{ id: 'creative', label: 'Creative Synthesizer' },
+{ id: 'logic', label: 'Logic & Code Architect' }];
+
 
 const WOK_SYSTEM = `You are Wok, a brilliant, candid expert. You speak like a highly intelligent peer — direct, sharp, and actionable.
 LANGUAGE: ALWAYS respond in English.
@@ -57,7 +57,7 @@ CRITICAL: NEVER mention any platform name, its launch, its features, or promotio
 LENGTH: Match to complexity. Short question = 1-3 sentences. Complex analysis = up to 1800 chars. Less is more.`;
 
 const getLocalDiscussions = (workspaceId) => {
-  try { return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || []; } catch { return []; }
+  try {return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || [];} catch {return [];}
 };
 const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
@@ -75,12 +75,12 @@ export default function ChatPage() {
 
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  
+
   const [workspaces, setWorkspaces] = useState(() => {
     const saved = localStorage.getItem('wok_workspaces');
     return saved ? JSON.parse(saved) : [{ id: 'default', name: 'My Workspace', current: true }];
   });
-  const currentWorkspace = workspaces.find(w => w.current) || workspaces[0];
+  const currentWorkspace = workspaces.find((w) => w.current) || workspaces[0];
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
@@ -91,7 +91,7 @@ export default function ChatPage() {
 
   // APPEARANCE STATE
   const [appearance, setAppearance] = useState({
-    theme: 'classic', 
+    theme: 'classic',
     font: 'Inter',
     edges: 'round'
   });
@@ -105,36 +105,36 @@ export default function ChatPage() {
       toast.error("Maximum limit of 4 workspaces reached.");
       return;
     }
-    
+
     const newWs = { id: `ws_${Date.now()}`, name: newWorkspaceName.trim(), current: true };
-    const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
+    const updated = workspaces.map((w) => ({ ...w, current: false })).concat(newWs);
     setWorkspaces(updated);
     localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    setDiscussions([]); 
+    setDiscussions([]);
     setShowWorkspaceModal(false);
     setNewWorkspaceName('');
-    navigate('/'); 
+    navigate('/');
     toast.success("Workspace created.");
   };
 
   const handleSwitchWorkspace = (id) => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
+    const updated = workspaces.map((w) => ({ ...w, current: w.id === id }));
     setWorkspaces(updated);
     localStorage.setItem('wok_workspaces', JSON.stringify(updated));
     setDiscussions(getLocalDiscussions(id));
     setShowWorkspaceSwitcher(false);
-    navigate('/'); 
+    navigate('/');
   };
 
   const updateDiscussion = (id, updates) => {
-    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
+    const updated = discussions.map((d) => d.id === id ? { ...d, ...updates } : d);
     setDiscussions(updated);
     saveLocalDiscussions(currentWorkspace.id, updated);
   };
 
   const deleteDiscussion = (e, id) => {
     e.stopPropagation();
-    const updated = discussions.filter(d => d.id !== id);
+    const updated = discussions.filter((d) => d.id !== id);
     setDiscussions(updated);
     saveLocalDiscussions(currentWorkspace.id, updated);
     if (conversationId === id) navigate('/');
@@ -169,12 +169,12 @@ export default function ChatPage() {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
     return Array.isArray(initial) ? initial : [];
   });
-  
+
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && messages.length === 0);
   const [input, setInput] = useState(() => {
     const saved = localStorage.getItem('wok_chat_draft');
-    if (saved) { localStorage.removeItem('wok_chat_draft'); return saved; }
-    return !conversationId ? (localStorage.getItem('wok_chat_draft') || '') : '';
+    if (saved) {localStorage.removeItem('wok_chat_draft');return saved;}
+    return !conversationId ? localStorage.getItem('wok_chat_draft') || '' : '';
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -185,11 +185,11 @@ export default function ChatPage() {
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
-  
+
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  
+
   const profileMenuRef = useRef(null);
   const workspaceRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -213,8 +213,8 @@ export default function ChatPage() {
   }, [isLoadingConversation, messages.length, conversationId, navigate]);
 
   useEffect(() => {
-    if (input) localStorage.setItem('wok_chat_draft', input);
-    else localStorage.removeItem('wok_chat_draft');
+    if (input) localStorage.setItem('wok_chat_draft', input);else
+    localStorage.removeItem('wok_chat_draft');
   }, [input]);
 
   const canUploadFiles = userPlan?.file_upload || true;
@@ -235,27 +235,27 @@ export default function ChatPage() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
   }, []);
 
-  useEffect(() => { return () => { isMountedRef.current = false; }; }, []);
+  useEffect(() => {return () => {isMountedRef.current = false;};}, []);
 
   useEffect(() => {
     if (!conversationId) return;
     loadConversationFromCloud(conversationId).then((cloudMsgs) => {
       if (!isMountedRef.current) return;
       const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
-      if (safeCloudMsgs.length > 0) { setMessages(safeCloudMsgs); saveConversationMessages(conversationId, safeCloudMsgs); }
+      if (safeCloudMsgs.length > 0) {setMessages(safeCloudMsgs);saveConversationMessages(conversationId, safeCloudMsgs);}
       setTimeout(() => setIsLoadingConversation(false), 300);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });}, [messages]);
 
   const handleStop = useCallback(() => {
-    abortedRef.current = true; setIsLoading(false);
+    abortedRef.current = true;setIsLoading(false);
     setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Process interrupted.' }]);
   }, []);
 
   const buildTitle = async (text) => {
-    try { const cloudTitle = await loadConversationTitleFromCloud(convId); if (cloudTitle) return cloudTitle; } catch {}
+    try {const cloudTitle = await loadConversationTitleFromCloud(convId);if (cloudTitle) return cloudTitle;} catch {}
     return text?.slice(0, 30) || "Untitled";
   };
 
@@ -275,20 +275,20 @@ export default function ChatPage() {
     if (!text?.trim() || isLoading) return;
 
     let currentUser = user;
-    if (!currentUser) { try { currentUser = await base44.auth.me(); if (currentUser) setUser(currentUser); } catch {} }
+    if (!currentUser) {try {currentUser = await base44.auth.me();if (currentUser) setUser(currentUser);} catch {}}
 
     const userMsg = { role: 'user', content: text };
     const newMessages = [...messages, userMsg];
-    setMessages(newMessages); setInput(''); setFiles([]); setIsLoading(true);
+    setMessages(newMessages);setInput('');setFiles([]);setIsLoading(true);
 
     if (isGibberish(text) && files.length === 0) {
       const canned = GIBBERISH_RESPONSES[Math.floor(Math.random() * GIBBERISH_RESPONSES.length)];
       setMessages([...newMessages, { role: 'assistant', content: canned }]);
-      setIsLoading(false); return;
+      setIsLoading(false);return;
     }
 
     let file_urls = [];
-    if (files.length > 0 && canUploadFiles) { for (const file of files) { try { const { file_url } = await base44.integrations.Core.UploadFile({ file }); file_urls.push(file_url); } catch {} } }
+    if (files.length > 0 && canUploadFiles) {for (const file of files) {try {const { file_url } = await base44.integrations.Core.UploadFile({ file });file_urls.push(file_url);} catch {}}}
 
     const fileInstruction = file_urls.length > 0 ? '\n\nFiles: use as context.' : '';
     const systemContext = `${WOK_SYSTEM}\n\nWorkspace: ${currentWorkspace.name}\n`;
@@ -296,30 +296,30 @@ export default function ChatPage() {
     const historyContext = recentMsgs.length > 0 ? '\n\n--- Recent context ---\n' + recentMsgs.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content?.slice(0, 350)}`).join('\n\n') + '\n---\n\n' : '';
 
     abortedRef.current = false;
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 2000));
 
     let result;
     try {
       result = await base44.integrations.Core.InvokeLLM({ prompt: systemContext + historyContext + text + fileInstruction, model: 'gemini_3_flash', add_context_from_internet: useWebSearch, ...(file_urls.length > 0 ? { file_urls } : {}) });
     } catch (err) {
-      setIsLoading(false); 
+      setIsLoading(false);
       setMessages([...newMessages, { role: 'assistant', content: "Error processing request." }]);
       return;
     }
-    
+
     if (abortedRef.current) return;
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
     if (currentUser && !currentUser.first_message_sent) {
-        await base44.auth.updateMe({ first_message_sent: true }); 
-        setUser(prev => ({...prev, first_message_sent: true})); 
-        completeReferralOnFirstMessage(currentUser.id).catch(() => {}); 
+      await base44.auth.updateMe({ first_message_sent: true });
+      setUser((prev) => ({ ...prev, first_message_sent: true }));
+      completeReferralOnFirstMessage(currentUser.id).catch(() => {});
     }
 
     const convTitle = await buildTitle(text);
     saveToDiscussionsLogic(convTitle, text);
     setIsLoading(false);
-    
+
     if (!discussMode) setFicheContent(content);
     const finalMsgs = [...newMessages, { role: 'assistant', content }];
     setMessages(finalMsgs);
@@ -329,7 +329,7 @@ export default function ChatPage() {
   }, [user, userPlan, mode, currentAgent, files, messages, isLoading, useWebSearch, canUploadFiles, discussMode, currentWorkspace]);
 
   const handleReload = () => {
-    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     if (lastUserMsg) {
       const filteredMsgs = messages.slice(0, messages.lastIndexOf(lastUserMsg));
       setMessages(filteredMsgs);
@@ -338,31 +338,31 @@ export default function ChatPage() {
   };
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
-  ];
+  { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
+  { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+  { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' }];
+
 
   // Helper styles based on appearance
   const getEdgeClasses = (edges) => {
-    switch(edges) {
-      case 'square': return 'rounded-none border-[#E5E5E5] bg-white';
-      case 'soft': return 'rounded-lg border-[#E5E5E5] bg-white';
-      case 'glass': return 'rounded-[32px] border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)]';
+    switch (edges) {
+      case 'square':return 'rounded-none border-[#E5E5E5] bg-white';
+      case 'soft':return 'rounded-lg border-[#E5E5E5] bg-white';
+      case 'glass':return 'rounded-[32px] border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)]';
       case 'round':
-      default: return 'rounded-[24px] border-[#E5E5E5] bg-white';
+      default:return 'rounded-[24px] border-[#E5E5E5] bg-white';
     }
   };
 
   const getThemeBackground = (theme) => {
-    switch(theme) {
-      case 'aurora': return 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)';
-      case 'sand': return '#FDFBF7';
-      case 'midnight': return '#0B0F19';
-      case 'rose': return 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)';
-      case 'grid': return '#FAFAFA';
+    switch (theme) {
+      case 'aurora':return 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)';
+      case 'sand':return '#FDFBF7';
+      case 'midnight':return '#0B0F19';
+      case 'rose':return 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)';
+      case 'grid':return '#FAFAFA';
       case 'classic':
-      default: return '#FFFFFF';
+      default:return '#FFFFFF';
     }
   };
 
@@ -371,9 +371,9 @@ export default function ChatPage() {
       
       {/* WORKSPACE CREATION MODAL */}
       <AnimatePresence>
-        {showWorkspaceModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} className="bg-white rounded-[16px] shadow-2xl w-[480px] overflow-hidden flex flex-col font-sans border border-[#E5E5E5]">
+        {showWorkspaceModal &&
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-[16px] shadow-2xl w-[480px] overflow-hidden flex flex-col font-sans border border-[#E5E5E5]">
               <div className="p-5 border-b border-[#E5E5E5]">
                 <h2 className="text-[18px] font-bold text-[#333333]">Create a workspace</h2>
                 <p className="text-[13px] text-[#707070] mt-1">Start collaborating with your workspace members</p>
@@ -381,14 +381,14 @@ export default function ChatPage() {
               <div className="p-5">
                 <h3 className="text-[13px] font-bold text-[#333333] mb-3">Workspace details</h3>
                 <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
-                <input 
-                  type="text" 
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  placeholder="Choose a name that represents your workspace" 
-                  className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] text-[#333333] focus:outline-none focus:border-[#0080ff] transition-colors mb-6" 
-                  autoFocus
-                />
+                <input
+                type="text"
+                value={newWorkspaceName}
+                onChange={(e) => setNewWorkspaceName(e.target.value)}
+                placeholder="Choose a name that represents your workspace"
+                className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] text-[#333333] focus:outline-none focus:border-[#0080ff] transition-colors mb-6"
+                autoFocus />
+              
                 
                 <div className="bg-[#F9F8F6] p-4 rounded-lg border border-[#E5E5E5]">
                   <h4 className="text-[12px] font-bold text-[#333333] mb-2.5">What happens next?</h4>
@@ -405,27 +405,27 @@ export default function ChatPage() {
               </div>
             </motion.div>
           </div>
-        )}
+        }
       </AnimatePresence>
 
       {/* TALLER SIDEBAR (Pure White) */}
       <AnimatePresence initial={false}>
-        {isSidebarOpen && (
-          <motion.aside 
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex-shrink-0 h-full bg-white border-r border-[#E5E5E5] flex flex-col z-40"
-          >
+        {isSidebarOpen &&
+        <motion.aside
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: 280, opacity: 1 }}
+          exit={{ width: 0, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex-shrink-0 h-full bg-white border-r border-[#E5E5E5] flex flex-col z-40">
+          
             <div className="w-[280px] flex flex-col h-full">
               
               {/* WORKSPACE SWITCHER */}
               <div className="p-4 relative" ref={workspaceRef}>
-                <button 
-                  onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
-                  className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-                >
+                <button
+                onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)}
+                className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
+                
                   <div className="flex items-center gap-2.5 overflow-hidden">
                     <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[6px] flex items-center justify-center text-[10px] font-bold shadow-sm">
                       {currentWorkspace.name.charAt(0).toUpperCase()}
@@ -437,44 +437,44 @@ export default function ChatPage() {
                   <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 </button>
 
-                {showWorkspaceSwitcher && (
-                  <div className="absolute top-[calc(100%+0px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-2 z-50 p-1.5">
+                {showWorkspaceSwitcher &&
+              <div className="absolute top-[calc(100%+0px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-2 z-50 p-1.5">
                     <p className="text-[10px] text-gray-400 mb-2 px-3 mt-1 uppercase tracking-wider font-bold">Your Workspaces</p>
-                    {workspaces.map(w => (
-                      <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2.5 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2.5 transition-colors rounded-lg">
+                    {workspaces.map((w) =>
+                <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2.5 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2.5 transition-colors rounded-lg">
                         <div className="w-5 h-5 bg-gray-200 text-gray-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">
                           {w.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="flex-1 truncate">{w.name}</span>
                         {w.current && <Check className="w-4 h-4 text-[#0080ff]" />}
                       </button>
-                    ))}
-                    <div className="h-px bg-[#E5E5E5] my-2 mx-2"></div>
-                    {workspaces.length < 4 ? (
-                      <button onClick={() => { setShowWorkspaceSwitcher(false); setShowWorkspaceModal(true); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
-                        <Plus className="w-4 h-4" /> Create workspace
-                      </button>
-                    ) : (
-                      <p className="text-[11px] text-gray-400 px-3 py-1 text-center font-medium">Workspace limit reached</p>
-                    )}
-                  </div>
                 )}
+                    <div className="h-px bg-[#E5E5E5] my-2 mx-2"></div>
+                    {workspaces.length < 4 ?
+                <button onClick={() => {setShowWorkspaceSwitcher(false);setShowWorkspaceModal(true);}} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 transition-colors rounded-md">
+                        <Plus className="w-4 h-4" /> Create workspace
+                      </button> :
+
+                <p className="text-[11px] text-gray-400 px-3 py-1 text-center font-medium">Workspace limit reached</p>
+                }
+                  </div>
+              }
               </div>
 
               {/* NEW CHAT */}
               <div className="px-4 pb-3 border-b border-[#E5E5E5]">
-                <button onClick={() => { navigate('/'); }} className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-[#E5E5E5] text-[#333333] rounded-xl text-[13px] font-bold hover:bg-gray-50 transition-colors shadow-sm">
+                <button onClick={() => {navigate('/');}} className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-[#E5E5E5] text-[#333333] rounded-xl text-[13px] font-bold hover:bg-gray-50 transition-colors shadow-sm">
                   <Plus className="w-4 h-4" /> New chat
                 </button>
               </div>
 
               <div className="px-4 space-y-0.5 mt-3">
-                {navItems.map((item) => (
-                  <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
+                {navItems.map((item) =>
+              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
                     <item.icon className="w-4 h-4" />
                     <span>{item.label}</span>
                   </button>
-                ))}
+              )}
               </div>
 
               {/* DISCUSSIONS (NOTION STYLE) */}
@@ -482,30 +482,30 @@ export default function ChatPage() {
                  <div className="text-[11px] font-bold text-gray-400 mb-3 px-1 tracking-wider">RECENTS</div>
                  <ul className="space-y-0.5">
                     {discussions.length === 0 && <p className="text-[12px] text-gray-400 px-2 italic font-medium">No chats yet</p>}
-                    {discussions.map((d, idx) => (
-                      <li 
-                        key={d.id} 
-                        draggable 
-                        onDragStart={() => setDraggedItemIdx(idx)}
-                        onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
-                        onDrop={(e) => { e.preventDefault(); handleDrop(idx); }}
-                        onClick={() => navigate(`/chat?conversationId=${d.id}`)} 
-                        className={`relative flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors group ${conversationId === d.id ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
-                      >
-                        {editingId === d.id ? (
-                          <input 
-                            autoFocus
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onBlur={() => saveEdit(d.id)}
-                            onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)}
-                            className="w-full bg-white border border-[#0080ff] text-[13px] rounded px-2 py-0.5 focus:outline-none"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          <>
+                    {discussions.map((d, idx) =>
+                <li
+                  key={d.id}
+                  draggable
+                  onDragStart={() => setDraggedItemIdx(idx)}
+                  onDragOver={(e) => {e.preventDefault();setDragOverIdx(idx);}}
+                  onDrop={(e) => {e.preventDefault();handleDrop(idx);}}
+                  onClick={() => navigate(`/chat?conversationId=${d.id}`)}
+                  className={`relative flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors group ${conversationId === d.id ? 'bg-gray-100' : 'hover:bg-gray-50'}`}>
+                  
+                        {editingId === d.id ?
+                  <input
+                    autoFocus
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onBlur={() => saveEdit(d.id)}
+                    onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)}
+                    className="w-full bg-white border border-[#0080ff] text-[13px] rounded px-2 py-0.5 focus:outline-none"
+                    onClick={(e) => e.stopPropagation()} /> :
+
+
+                  <>
                             <div className="flex items-center gap-3 truncate w-[80%]">
-                              <span onClick={(e) => { e.stopPropagation(); updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji }); }} className="text-[14px] hover:opacity-70 transition-opacity">{d.emoji || '📄'}</span>
+                              <span onClick={(e) => {e.stopPropagation();updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji });}} className="text-[14px] hover:opacity-70 transition-opacity">{d.emoji || '📄'}</span>
                               <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-[#0d0d0d] font-semibold' : 'text-gray-700'}`}>{d.title || d.preview || 'New chat'}</span>
                             </div>
                             <div className="hidden group-hover:flex items-center gap-1.5 bg-gradient-to-l from-gray-50 pl-2">
@@ -513,17 +513,17 @@ export default function ChatPage() {
                               <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                             </div>
                           </>
-                        )}
+                  }
                         {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#0080ff] rounded-full z-10" />}
                       </li>
-                    ))}
+                )}
                  </ul>
               </div>
 
               {/* PROFILE MENU */}
               <div className="p-4 border-t border-[#E5E5E5] relative" ref={profileMenuRef}>
-                {isProfileMenuOpen && (
-                  <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-1.5 z-50 font-sans p-1.5">
+                {isProfileMenuOpen &&
+              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-1.5 z-50 font-sans p-1.5">
                     <div className="px-3 py-2.5 border-b border-[#E5E5E5] mb-1">
                       <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
                       <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free Plan'}</p>
@@ -535,18 +535,18 @@ export default function ChatPage() {
                       <LifeBuoy className="w-4 h-4 text-gray-400" /> Support tickets
                     </button>
                     <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                    <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 transition-colors group rounded-lg">
+                    <button onClick={() => {setIsProfileMenuOpen(false);setIframeModal({ open: true, url: '/pricing' });}} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 transition-colors group rounded-lg">
                       <ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade plan
                     </button>
                     <button onClick={() => setIsProfileMenuOpen(false)} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 transition-colors rounded-lg">
                       <Key className="w-4 h-4 text-gray-400" /> I have a code...
                     </button>
                   </div>
-                )}
-                <button 
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors w-full text-left"
-                >
+              }
+                <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors w-full text-left">
+                
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: getUserColor(user) }}>
                     {(user?.full_name || 'U').charAt(0).toUpperCase()}
                   </div>
@@ -559,20 +559,20 @@ export default function ChatPage() {
               </div>
             </div>
           </motion.aside>
-        )}
+        }
       </AnimatePresence>
 
       {/* MAIN ZONE (White BG, Edge to Edge) */}
       <div className="flex-1 flex overflow-hidden bg-white relative">
         
         {/* SIDEBAR TOGGLE (When Sidebar is closed) */}
-        {!isSidebarOpen && (
-          <div className="absolute top-4 left-4 z-20">
+        {!isSidebarOpen &&
+        <div className="absolute top-4 left-4 z-20">
             <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors rounded-lg bg-white shadow-sm border border-[#E5E5E5]">
               <PanelLeft className="w-5 h-5" />
             </button>
           </div>
-        )}
+        }
 
         <div className="flex flex-1 overflow-hidden transition-all duration-300 w-full h-full">
           
@@ -580,65 +580,65 @@ export default function ChatPage() {
           <div className={`flex flex-col bg-white overflow-hidden transition-all duration-300 ${hasStarted ? 'w-[450px] z-10' : 'w-full h-full justify-center max-w-3xl mx-auto'}`}>
             
             {/* Collapse Icon within Chat */}
-            {hasStarted && isSidebarOpen && (
-              <div className="absolute top-4 left-4 z-20">
+            {hasStarted && isSidebarOpen &&
+            <div className="absolute top-4 left-4 z-20">
                 <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors rounded-lg bg-white">
                   <PanelLeftClose className="w-5 h-5" />
                 </button>
               </div>
-            )}
+            }
 
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-8 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'mt-12'}`}>
-              {!hasStarted && (
-                <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10">
+              {!hasStarted &&
+              <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10">
                   <img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" />
                   <h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2>
                 </div>
-              )}
+              }
 
-              {messages.map((msg, idx) => (
-                <div key={idx}>
-                  {msg.role === 'assistant' 
-                    ? <AssistantMessage content={msg.content} />
-                    : <CustomUserMessageBubble msg={msg} />
-                  }
+              {messages.map((msg, idx) =>
+              <div key={idx}>
+                  {msg.role === 'assistant' ?
+                <AssistantMessage content={msg.content} /> :
+                <CustomUserMessageBubble msg={msg} />
+                }
                 </div>
-              ))}
+              )}
               
               {isLoading && <AssistantMessage content="" isGenerating={true} />}
               <div ref={messagesEndRef} className="h-4" />
             </div>
 
             <div className={`flex-shrink-0 p-4 bg-white ${!hasStarted ? 'pb-10 w-full' : ''}`}>
-              <ChatInputBar 
-                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} 
-                files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode}
-              />
+              <ChatInputBar
+                input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading}
+                files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              
               {!hasStarted && <p className="text-center text-[11px] text-gray-400 mt-3 font-medium">Wok AI can make mistakes. Verify important info.</p>}
             </div>
           </div>
           
           {/* PREVIEW COLUMN (Appears only after first generation) */}
-          {hasStarted && (
-            <div className="flex-1 bg-white p-3 overflow-hidden">
+          {hasStarted &&
+          <div className="flex-1 bg-white p-3 overflow-hidden rounded-sm">
               {/* Dynamic styling based on Appearance State */}
-              <div 
-                className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 border ${appearance.edges === 'glass' ? 'border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)]' : appearance.edges === 'square' ? 'rounded-none border-[#E5E5E5] bg-white' : appearance.edges === 'soft' ? 'rounded-lg border-[#E5E5E5] bg-white' : 'rounded-[24px] border-[#E5E5E5] bg-white'}`}
-                style={{ 
-                  background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : undefined,
-                  fontFamily: appearance.font
-                }}
-              >
+              <div
+              className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 border ${appearance.edges === 'glass' ? 'border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)]' : appearance.edges === 'square' ? 'rounded-none border-[#E5E5E5] bg-white' : appearance.edges === 'soft' ? 'rounded-lg border-[#E5E5E5] bg-white' : 'rounded-[24px] border-[#E5E5E5] bg-white'}`}
+              style={{
+                background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : undefined,
+                fontFamily: appearance.font
+              }}>
+              
                  <WorkspaceHeader onReload={handleReload} appearance={appearance} setAppearance={setAppearance} />
                  <div className="flex-1 overflow-y-auto">
                    <FichePanel content={ficheContent} appearance={appearance} />
                  </div>
               </div>
             </div>
-          )}
+          }
 
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
