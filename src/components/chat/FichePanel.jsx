@@ -65,7 +65,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function FichePanel({ content = null, loading = false, link = null }) {
+export default function FichePanel({ content = null, loading = false }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -75,58 +75,17 @@ export default function FichePanel({ content = null, loading = false, link = nul
   }, [content]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#F7F7F7] p-2">
-      
-      {/* Fenêtre "Mac" avec bordures fines et fond blanc */}
-      <div className="flex flex-col flex-1 bg-white border border-[#E6E6E9] rounded-xl shadow-sm overflow-hidden font-sans">
-        
-        {/* HEADER DE LA FENETRE PREVIEW (Les 3 points Mac) */}
-        <div className="flex items-center px-4 h-10 border-b border-[#E6E6E9] bg-white flex-shrink-0">
-          <div className="flex gap-2 items-center cursor-default w-1/3">
-             <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-             <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-             <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
-          </div>
-          <div className="flex-1 flex justify-center w-1/3">
-             <span className="text-[12px] font-semibold text-[#999999] select-none">Preview</span>
-          </div>
-          <div className="w-1/3"></div> 
+    <div className="flex flex-col h-full w-full bg-white p-6 md:p-10 overflow-y-auto" ref={scrollRef}>
+      {loading ? (
+        <LoadingSkeleton />
+      ) : content ? (
+        <FicheContent content={content} />
+      ) : (
+        <div className="opacity-40 flex flex-col items-center justify-center h-full">
+          <img src={LOGO_URL} alt="Stensor" className="w-8 h-8 object-contain mb-4 grayscale" />
+          <p className="text-[13px] font-medium text-gray-500">Awaiting synthesis execution...</p>
         </div>
-
-        {/* ZONE DE CONTENU DÉFILABLE */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white p-8 md:p-12">
-          {loading ? (
-            <LoadingSkeleton />
-          ) : content ? (
-            <FicheContent content={content} />
-          ) : (
-            <div className="opacity-60">
-              <div className="flex items-center gap-3 mb-8">
-                <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-                <div className="h-3 rounded-sm" style={{ width: '140px', background: 'rgba(0,0,0,0.07)' }} />
-              </div>
-              <div className="h-8 rounded-sm mb-3" style={{ width: '65%', background: 'rgba(0,0,0,0.07)' }} />
-              <div className="h-8 rounded-sm mb-8" style={{ width: '45%', background: 'rgba(0,0,0,0.05)' }} />
-              <div className="space-y-2 mb-8">
-                <div className="h-3.5 rounded-sm" style={{ width: '100%', background: 'rgba(0,0,0,0.05)' }} />
-                <div className="h-3.5 rounded-sm" style={{ width: '92%', background: 'rgba(0,0,0,0.05)' }} />
-                <div className="h-3.5 rounded-sm" style={{ width: '78%', background: 'rgba(0,0,0,0.04)' }} />
-              </div>
-              <div className="h-px mb-8" style={{ background: 'rgba(0,0,0,0.06)' }} />
-              <div className="h-4 rounded-sm mb-4" style={{ width: '30%', background: 'rgba(0,0,0,0.07)' }} />
-              <div className="space-y-2 mb-8">
-                {[100, 88, 94, 72].map((w, i) => (
-                  <div key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%`, background: 'rgba(0,0,0,0.04)' }} />
-                ))}
-              </div>
-              <p className="text-xs mt-10 text-center font-medium" style={{ color: 'rgba(0,0,0,0.3)' }}>
-                Launch an analysis to display the result here.
-              </p>
-            </div>
-          )}
-        </div>
-
-      </div>
+      )}
     </div>
   );
 }
