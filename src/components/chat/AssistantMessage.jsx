@@ -26,8 +26,7 @@ export default function AssistantMessage({ content, isGenerating }) {
 
   return (
     <div className="flex justify-start w-full mb-6 font-sans">
-      {/* Slightly thinner text: text-gray-700 font-[400] */}
-      <div className="text-gray-700 text-[14.5px] font-[400] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap">
+      <div className="text-gray-700 text-[14.5px] font-[300] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap">
         {renderFormattedContent(content)}
       </div>
     </div>
