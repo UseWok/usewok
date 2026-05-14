@@ -19,8 +19,8 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
 import { 
-  Home, MessageSquare, Cpu, BookOpen, ChevronsLeft, 
-  FileText, Bot, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X
+  Home, MessageSquare, Cpu, ChevronsLeft, 
+  FileText, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
