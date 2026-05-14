@@ -1,4 +1,3 @@
-// 1. TOUS LES IMPORTS STRICTEMENT EN HAUT (Règle d'or pour éviter le crash)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,10 +31,10 @@ import {
   LifeBuoy, ArrowUpCircle, Key
 } from 'lucide-react';
 
-// 2. DÉCLARATION DES COMPOSANTS ET CONSTANTES APRES LES IMPORTS
+// BUBBLE UTILISATEUR ARRONDIE & COULEUR BARRE PREVIEW (#F4F4F4)
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans">
-    <div className="bg-[#F7F7F7] text-[#0d0d0d] text-[15px] leading-relaxed px-4 py-2.5 rounded-2xl max-w-[80%] whitespace-pre-wrap">
+    <div className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[24px] max-w-[80%] whitespace-pre-wrap">
       {msg.content}
     </div>
   </div>
@@ -95,7 +94,7 @@ function quickRouteLocal(text) {
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const urlParams = new URLSearchParams(location.search); // Correction du bug URLSearchParams
+  const urlParams = new URLSearchParams(location.search);
   const initialQ = urlParams.get('q') || '';
   const agentId = urlParams.get('agent') || 'global';
   const conversationId = urlParams.get('conversationId') || null;
@@ -152,6 +151,9 @@ export default function ChatPage() {
   const isMountedRef = useRef(true);
   const synthPendingRef = useRef(null);
   const abortedRef = useRef(false);
+
+  // LOGIQUE UI CONDITIONNELLE (Permet de cacher/afficher la preview)
+  const hasStarted = messages.length > 0 || isLoading;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -366,20 +368,19 @@ export default function ChatPage() {
 
   const isAdmin = user?.role === 'admin';
   const navItems = [
-    { icon: Home, labelKey: 'home', label: 'Accueil', path: '/app', active: location.pathname === '/app' },
-    { icon: MessageSquare, label: 'All Conversations', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: Cpu, label: 'ADN Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
+    { icon: Home, labelKey: 'home', label: 'Home', path: '/app', active: location.pathname === '/app' },
+    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+    { icon: Cpu, label: 'DNA Stensor', path: '/ai-dna', active: location.pathname === '/ai-dna', highlight: true },
     ...(isAdmin ? [
       { icon: ShoppingBag, labelKey: 'administration', label: 'Admin', path: '/admin/products', active: location.pathname.startsWith('/admin') && !location.pathname.includes('blog') },
       { icon: BookOpen, label: 'Blog', path: '/admin/blog', active: location.pathname === '/admin/blog' },
     ] : []),
   ];
 
-  const hasStarted = messages.length > 0 || isLoading;
-
   return (
     <div className="flex font-sans h-screen w-full bg-[#F9F8F6] overflow-hidden [&::-webkit-scrollbar]:hidden antialiased">
       
+      {/* SIDEBAR */}
       {isSidebarOpen && (
         <aside className="w-[260px] flex-shrink-0 h-full bg-[#F7F7F7] border-r border-[#E5E5E5] flex flex-col z-40">
           <div className="flex items-center justify-between px-3 py-3 hover:bg-black/5 cursor-pointer rounded-lg mx-2 mt-2 transition-colors mb-2 group">
@@ -414,14 +415,14 @@ export default function ChatPage() {
             <div>
               <div onClick={() => toggleSection('recentes')} className="flex items-center gap-1 px-1 mb-1.5 cursor-pointer group text-gray-400 hover:text-gray-900 transition-colors">
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sections.recentes ? 'rotate-90' : ''}`} />
-                <span className="text-[11px] font-semibold tracking-wide">Récentes</span>
+                <span className="text-[11px] font-semibold tracking-wide">Recents</span>
               </div>
               {sections.recentes && (
                 <ul className="space-y-0.5">
                    {discussions.slice(0, 5).map((d) => (
                      <li key={d.id} onClick={() => navigate(`/chat?conversationId=${d.id}`)} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-700 transition-colors truncate">
                         <FileText className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'Nouvelle discussion'}</span>
+                        <span className="text-[13px] font-medium truncate">{d.title || d.preview || 'New chat'}</span>
                      </li>
                    ))}
                 </ul>
@@ -442,7 +443,7 @@ export default function ChatPage() {
                    ))}
                    <li onClick={() => navigate('/ai-dna')} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-pointer text-gray-500 transition-colors mt-1">
                       <Plus className="w-3.5 h-3.5 text-gray-400" />
-                      <span className="text-[13px] font-medium">Nouvel agent</span>
+                      <span className="text-[13px] font-medium">New agent</span>
                    </li>
                 </ul>
               )}
@@ -460,21 +461,21 @@ export default function ChatPage() {
                   className="absolute bottom-[calc(100%+8px)] left-3 w-[240px] bg-white border border-gray-200 rounded-xl shadow-[0_12px_36px_-4px_rgba(0,0,0,0.12)] py-1.5 z-50 font-sans"
                 >
                   <div className="px-3 py-2 border-b border-gray-100 mb-1">
-                    <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
-                    <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Forfait Free'}</p>
+                    <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'User'}</p>
+                    <p className="text-[12px] text-gray-500 truncate">{userPlan?.name || 'Free Plan'}</p>
                   </div>
                   <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <Settings className="w-4 h-4 text-gray-500" /> Paramètres
+                    <Settings className="w-4 h-4 text-gray-500" /> Settings
                   </button>
                   <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <LifeBuoy className="w-4 h-4 text-gray-500" /> Tickets support
+                    <LifeBuoy className="w-4 h-4 text-gray-500" /> Support tickets
                   </button>
                   <div className="h-px bg-gray-100 my-1"></div>
                   <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}) }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors group">
-                    <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Passer à un forfait supérieur
+                    <ArrowUpCircle className="w-4 h-4 text-blue-500 group-hover:text-blue-600" /> Upgrade plan
                   </button>
                   <button onClick={() => { setIsProfileMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-colors">
-                    <Key className="w-4 h-4 text-gray-500" /> J'ai un code...
+                    <Key className="w-4 h-4 text-gray-500" /> I have a code...
                   </button>
                 </motion.div>
               )}
@@ -483,7 +484,7 @@ export default function ChatPage() {
               onClick={() => { navigate('/'); setIsProfileMenuOpen(false); }} 
               className="flex items-center justify-center gap-2 w-full py-2 mb-2 bg-white border border-[#E5E5E5] rounded-lg text-[13px] font-semibold text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
             >
-              <Plus className="w-4 h-4" /> Nouvelle discussion
+              <Plus className="w-4 h-4" /> New chat
             </button>
             <button 
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -493,8 +494,8 @@ export default function ChatPage() {
                 {(user?.full_name || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'Utilisateur'}</p>
-                <p className="text-[11px] text-gray-500">{userPlan?.name || 'Forfait Free'}</p>
+                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.full_name || 'User'}</p>
+                <p className="text-[11px] text-gray-500">{userPlan?.name || 'Free Plan'}</p>
               </div>
               <MoreHorizontal className="w-4 h-4 text-gray-400" />
             </button>
@@ -502,19 +503,31 @@ export default function ChatPage() {
         </aside>
       )}
 
-      {/* ZONE PRINCIPALE FLOTTANTE */}
+      {/* ZONE PRINCIPALE FLOTTANTE SANS TOUCHER LES BORDS */}
       <div className="flex-1 flex flex-col p-2 min-w-0">
-        <div className={`flex flex-1 rounded-xl overflow-hidden transition-all duration-300 ${hasStarted ? 'border border-[#E5E5E5] shadow-sm flex-row' : 'flex-col justify-center items-center max-w-3xl mx-auto'}`}>
+        
+        {/* LA "FENETRE" QUI ENGLOBE TOUT */}
+        <div className={`flex flex-1 rounded-[16px] overflow-hidden bg-white shadow-sm border border-[#E5E5E5] transition-all duration-300 ${hasStarted ? 'flex-row' : 'flex-col max-w-3xl mx-auto w-full'}`}>
           
           {/* COLONNE CHAT */}
           <div className={`flex flex-col bg-white overflow-hidden ${hasStarted ? 'w-[450px] border-r border-[#E5E5E5] z-10' : 'w-full h-full'}`}>
-            <WorkspaceHeader hasStarted={hasStarted} onReload={handleReload} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+            
+            {/* HEADER SPECIFIQUE AU CHAT (Juste Hamburger + ligne grise) */}
+            <div className="flex flex-col flex-shrink-0 bg-white pt-3">
+              <div className="px-4 pb-2 flex items-center">
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors rounded-md">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+              </div>
+              <div className="mx-6 border-b border-[#E5E5E5]"></div>
+            </div>
 
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-4 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col justify-end' : ''}`}>
-              {!hasStarted && (
-                <div className="flex flex-col items-center justify-center h-full text-center mb-10 opacity-30">
-                  <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain mb-4" />
-                  <h2 className="text-[20px] font-semibold text-[#0d0d0d]">How can I help you today?</h2>
+              {isLoadingConversation && <div className="flex justify-center pt-10"><ChatLoadingAnimation /></div>}
+              {!isLoadingConversation && messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full opacity-20">
+                  <img src={LOGO_URL} alt="Stensor" className="w-10 h-10 object-contain mb-3" />
+                  <p className="text-xs">Start a conversation</p>
                 </div>
               )}
               {messages.map((msg, idx) => (
@@ -525,6 +538,7 @@ export default function ChatPage() {
                   }
                 </motion.div>
               ))}
+              {synthProgress?.active && <SynthesisProgress steps={synthProgress.steps} currentStep={synthProgress.currentStep} done={synthProgress.done} />}
               {isLoading && !synthProgress?.active && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
                   <AssistantMessage content="" isGenerating={true} discussMode={discussMode} />
@@ -543,14 +557,16 @@ export default function ChatPage() {
                 onOpenIframe={(url) => setIframeModal({ open: true, url })}
                 discussMode={discussMode} setDiscussMode={setDiscussMode}
               />
-              {!hasStarted && <p className="text-center text-[11px] text-gray-400 mt-3">Stensor AI can make mistakes. Verify important info.</p>}
             </div>
           </div>
           
-          {/* COLONNE PREVIEW */}
+          {/* COLONNE PREVIEW (Apparait uniquement après avoir commencé) */}
           {hasStarted && (
             <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-               <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+               <WorkspaceHeader onReload={handleReload} />
+               <div className="flex-1 overflow-y-auto">
+                 <FichePanel content={ficheContent} loading={false} link={ficheMsgIdx !== null ? `${window.location.origin}/p/${convId}--${ficheMsgIdx}` : null} />
+               </div>
             </div>
           )}
 
@@ -561,7 +577,7 @@ export default function ChatPage() {
       <AnimatePresence>
         {showFreeDiscussionLimit && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowFreeDiscussionLimit(false)}>
-            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-2xl p-6 text-center" onClick={e => e.stopPropagation()}>
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[20px] p-6 text-center" onClick={e => e.stopPropagation()}>
               <p className="font-black text-xl mb-4">Free limit reached</p>
               <button onClick={() => { setShowFreeDiscussionLimit(false); navigate('/pricing'); }} className="w-full py-3 bg-black text-white rounded-xl font-bold">View plans →</button>
             </motion.div>
