@@ -242,7 +242,7 @@ export default function ChatPage() {
     const finalMsgs = [...newMessages, { role: 'assistant', content }];
     setMessages(finalMsgs);
     saveConversationMessages(convId, finalMsgs);
-  }, [user, userPlan, files, messages, isLoading, currentWorkspace]);
+  }, [user, userPlan, currentAgent, files, messages, isLoading, currentWorkspace]);
 
   return (
     <div className="flex font-sans h-screen w-full bg-white overflow-hidden antialiased">
