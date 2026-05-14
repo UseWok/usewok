@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, Sparkles, Binary, FileUp, Target, LineChart, Image as ImageIcon } from 'lucide-react';
+import { Settings, Sparkles, Binary, FileUp, Zap, Target, LineChart, Image as ImageIcon } from 'lucide-react';
 
 const Toggle = ({ enabled, onChange }) => (
-  <button onClick={onChange} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ease-in-out ${enabled ? 'bg-[#0080ff]' : 'bg-[#E5E5E5]'}`}>
-    <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out" style={{ transform: enabled ? 'translateX(18px)' : 'translateX(2px)' }} />
+  <button
+    onClick={onChange}
+    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ease-in-out ${enabled ? 'bg-[#0080ff]' : 'bg-[#E5E5E5]'}`}
+  >
+    <span
+      className="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out"
+      style={{ transform: enabled ? 'translateX(18px)' : 'translateX(2px)' }}
+    />
   </button>
 );
 
@@ -31,7 +37,7 @@ export default function ChatInputBar({ input, setInput, onSend, isLoading }) {
   return (
     <div className="flex flex-col gap-2 font-sans relative" ref={configRef}>
       
-      {/* AI LEARNING STRATEGIES POPOVER - Soft Borders */}
+      {/* AI LEARNING STRATEGIES POPOVER - Bordures douces */}
       {showAIConfig && (
         <div className="absolute bottom-[calc(100%+12px)] left-0 w-[340px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 p-2 font-sans">
           
@@ -43,13 +49,14 @@ export default function ChatInputBar({ input, setInput, onSend, isLoading }) {
           <div className="h-px bg-[#E5E5E5] my-1 mx-3"></div>
 
           {/* APEX MODE */}
-          <div className="p-3 bg-white rounded-lg mt-2 mx-1 flex items-center justify-between gap-3">
+          <div className="p-3 bg-[#F9F8F6] rounded-lg mt-2 mx-1 flex items-center justify-between gap-3 border border-[#E5E5E5]">
             <div className="flex-1 pr-2">
               <div className="flex items-center gap-2">
-                  <h3 className="text-[13px] font-bold text-[#333333]">Deep Work Finance</h3>
+                  <Zap className="w-4 h-4 text-[#0080ff]" />
+                  <h3 className="text-[13px] font-bold text-[#333333]">Elite Finance Mode</h3>
               </div>
               <p className="text-[11px] text-[#707070] mt-1 leading-snug">
-                Compute-heavy reasoning for highly complex market strategies.
+                Compute-heavy reasoning for volatile market strategies.
               </p>
             </div>
             <Toggle enabled={apexEquityMode} onChange={() => setApexEquityMode(!apexEquityMode)} />
@@ -86,12 +93,12 @@ export default function ChatInputBar({ input, setInput, onSend, isLoading }) {
         </div>
       )}
 
-      {/* INPUT BAR - Same rounded-xl format as FichePanel */}
-      <div className="bg-white border border-[#E5E5E5] rounded-[16px] p-2 flex items-center gap-2 shadow-sm relative z-10 transition-shadow hover:shadow-md focus-within:shadow-md">
+      {/* INPUT BAR - Même forme que Preview (rounded-xl) + Icône Image */}
+      <div className="bg-white border border-[#E5E5E5] rounded-xl p-2 flex items-center gap-2 shadow-sm relative z-10 transition-shadow hover:shadow-md focus-within:shadow-md">
         
         <button 
           onClick={() => setShowAIConfig(!showAIConfig)}
-          className={`p-2.5 rounded-xl flex-shrink-0 transition-colors ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4]'}`}
+          className={`p-2.5 rounded-lg flex-shrink-0 transition-colors ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4]'}`}
         >
           <Settings className="w-5 h-5" />
         </button>
@@ -107,17 +114,17 @@ export default function ChatInputBar({ input, setInput, onSend, isLoading }) {
         />
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <button className="p-2 text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4] rounded-xl transition-colors">
+          <button className="p-2 text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4] rounded-lg transition-colors">
             <ImageIcon className="w-5 h-5" />
           </button>
-          <button className="p-2 text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4] rounded-xl transition-colors">
+          <button className="p-2 text-gray-400 hover:text-[#333333] hover:bg-[#F4F4F4] rounded-lg transition-colors">
             <FileUp className="w-5 h-5" />
           </button>
           
           <button 
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="p-2 bg-[#0080ff] text-white rounded-xl hover:bg-[#0066cc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm ml-1"
+            className="p-2 bg-[#0080ff] text-white rounded-lg hover:bg-[#0066cc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm ml-1"
           >
             <Sparkles className="w-5 h-5" />
           </button>

@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { RefreshCw } from 'lucide-react';
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
@@ -66,6 +65,7 @@ export default function WorkspaceHeader({ onReload }) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
+        {/* BORDURES ADOUCIES : border-[#E5E5E5] au lieu de black */}
         {showMode && (
           <div className="absolute top-[calc(100%+6px)] w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 p-1 text-left">
             <div 
@@ -96,13 +96,12 @@ export default function WorkspaceHeader({ onReload }) {
       {/* 3. RIGHT: Reload + Publish */}
       <div className="flex justify-end items-center gap-2 w-1/4 relative" ref={publishRef}>
         
-        {/* BOUTON REGENERATE REVISITÉ */}
         <button 
           onClick={onReload}
-          className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-[#E5E5E5] rounded-md transition-all"
+          className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-white rounded-md border border-transparent hover:border-[#D1D1D1] transition-all"
           title="Regenerate synthesis"
         >
-          <RefreshCw className="w-4 h-4" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.46-5.46"/></svg>
         </button>
 
         <button 
@@ -112,6 +111,7 @@ export default function WorkspaceHeader({ onReload }) {
           Publish
         </button>
 
+        {/* BORDURES ADOUCIES : border-[#E5E5E5] au lieu de black */}
         {showPublish && (
           <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 text-left font-sans p-1">
             <div className="p-3 border-b border-[#E5E5E5]">
@@ -146,7 +146,7 @@ export default function WorkspaceHeader({ onReload }) {
                   <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
                     <p className="text-[11px] text-[#707070] font-medium leading-snug">
-                      Submit current synthesis results for global search indexing. Execution takes 24-48h pending Google validation protocols. Maximize visibility.
+                      Submit current synthesis results for global search indexing. Execution takes 24-48h pending Google validation protocols. Maximize visibility. Option fully reversible.
                     </p>
                   </div>
                 )}
