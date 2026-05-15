@@ -23,7 +23,7 @@ import {
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
     <div 
-      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border border-[#E5E5E5]"
+      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -76,10 +76,13 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-const WOK_SYSTEM = `You are an ultra-high performance coding assistant and expert. 
-CRITICAL DIRECTIVE: Regardless of technical complexity, you MUST strictly analyze the user's query and write all your explanations and final responses in the EXACT LANGUAGE used by the user in their prompt. 
-The generated code must remain in standard programming languages.
-NEVER mention any platform name. You are Wok.`;
+// GOD-TIER SYSTEM PROMPT
+const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI intelligence engine. 
+CRITICAL DIRECTIVES:
+1. 100% Value & Creativity: Structure your responses impeccably. Deliver definitive solutions and unparalleled insight. Do not act like a basic chatbot.
+2. Visual UI Generation: Actively use HTML/CSS/JS code blocks NOT just to output raw code, but to generate visual aids, diagrams, and modern UI elements to illustrate your answers and elevate the user experience.
+3. Language Mirroring: You MUST write your explanations and final response in the EXACT LANGUAGE used by the user in their prompt.
+4. Zero fluff. Never mention any external platform names. You are Wok.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -320,14 +323,14 @@ export default function ChatPage() {
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
-      {/* ABSOLUTE TOP LEVEL SIDEBAR TOGGLE TO PREVENT Z-INDEX ISSUES */}
-      <div className="absolute top-4 left-4 z-[60] md:hidden">
-        {!isSidebarOpen && (
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-500 hover:text-gray-900 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
-            <PanelLeft className="w-4 h-4" />
+      {/* UNIFIED SIDEBAR RESTORE BUTTON (Only visible when sidebar is closed) */}
+      {!isSidebarOpen && (
+        <div className="absolute top-4 left-4 z-[999]">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+            <PanelLeft className="w-5 h-5" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
@@ -443,21 +446,17 @@ export default function ChatPage() {
         </div>
       </aside>
 
+      {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && window.innerWidth < 768 && (
         <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
-        <div className="flex items-center justify-between p-3 md:absolute md:top-4 md:left-4 md:z-20 bg-white md:bg-transparent border-b md:border-none border-[#E5E5E5]">
-          {!isSidebarOpen && window.innerWidth >= 768 && (
-            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
-              <PanelLeft className="w-4 h-4" />
-            </button>
-          )}
-          
+        {/* MOBILE VIEW SWITCHER (Only visible when chat has started on mobile) */}
+        <div className="flex items-center justify-end p-3 md:hidden">
           {hasStarted && (
-            <div className="flex md:hidden bg-gray-100 p-1 rounded-md ml-auto">
+            <div className="flex bg-gray-100 p-1 rounded-md ml-auto z-50">
               <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Chat</button>
               <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Preview</button>
             </div>
