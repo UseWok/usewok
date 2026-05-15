@@ -76,6 +76,12 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
+// CRITICAL UPDATE: System Prompt enforcing language mirroring while keeping code standard.
+const WOK_SYSTEM = `You are an ultra-high performance coding assistant and expert. 
+CRITICAL DIRECTIVE: Regardless of technical complexity, you MUST strictly analyze the user's query and write all your explanations and final responses in the EXACT LANGUAGE used by the user in their prompt. 
+The generated code must remain in standard programming languages.
+NEVER mention any platform name. You are Wok.`;
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,9 +111,8 @@ export default function ChatPage() {
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   
-  // Mobile View Logic
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
-  const [mobileView, setMobileView] = useState('chat'); // 'chat' | 'preview'
+  const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -173,6 +178,7 @@ export default function ChatPage() {
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState(''); // Tracks the query for the thinking state
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
@@ -257,6 +263,7 @@ export default function ChatPage() {
     const userMsg = { role: 'user', content: text };
     const newMessages = [...(messages || []), userMsg];
     setMessages(newMessages); 
+    setCurrentQuery(text); // Pass query to AssistantMessage for logic scanning
     setInput(''); 
     setIsLoading(true); 
     setAiThemePromptActive(false);
@@ -265,7 +272,7 @@ export default function ChatPage() {
 
     let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({ prompt: text, model: 'gemini_3_flash' });
+      result = await base44.integrations.Core.InvokeLLM({ prompt: WOK_SYSTEM + "\n\n" + text, model: 'gemini_3_flash' });
     } catch (err) {
       setIsLoading(false); 
       setMessages([...newMessages, { role: 'assistant', content: "Request failed." }]);
@@ -286,7 +293,6 @@ export default function ChatPage() {
     saveConversationMessages(convId, finalMsgs);
     saveToDiscussionsLogic("New Chat", text);
     
-    // Auto-switch to preview on Mobile if it generated an interface
     if (window.innerWidth < 768 && !discussMode) {
       setMobileView('preview');
     }
@@ -315,6 +321,12 @@ export default function ChatPage() {
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
+      <div className="absolute top-4 left-4 z-[9999]">
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-500 hover:text-gray-900 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+          {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+        </button>
+      </div>
+
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
         <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff] mb-4" autoFocus />
@@ -334,17 +346,10 @@ export default function ChatPage() {
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-50 transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-white">
+      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-40 transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
+        <div className="w-[260px] flex flex-col h-full bg-white pt-14">
           
-          <div className="p-4 border-b border-black/5 flex items-center justify-between">
-             <h1 className="text-2xl font-[800] italic tracking-tighter text-[#0d0d0d]">WOK</h1>
-             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-none border border-[#E5E5E5] bg-white shadow-sm">
-               <PanelLeftClose className="w-4 h-4" />
-             </button>
-          </div>
-          
-          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
+          <div className="px-4 pb-4 border-b border-black/5 relative" ref={workspaceRef}>
             <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-sm transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
@@ -425,15 +430,12 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && window.innerWidth < 768 && (
         <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* MAIN ZONE */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
-        {/* MOBILE HEADER & TOGGLE */}
         <div className="flex items-center justify-between p-3 md:absolute md:top-4 md:left-4 md:z-20 bg-white md:bg-transparent border-b md:border-none border-[#E5E5E5]">
           {!isSidebarOpen && (
             <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
@@ -441,7 +443,6 @@ export default function ChatPage() {
             </button>
           )}
           
-          {/* Mobile View Switcher */}
           {hasStarted && (
             <div className="flex md:hidden bg-gray-100 p-1 rounded-md ml-auto">
               <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Chat</button>
@@ -452,12 +453,11 @@ export default function ChatPage() {
 
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
-          {/* CHAT COLUMN (Strict 23% on desktop, 100% on mobile when 'chat' view) */}
           <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
               {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
-              {isLoading && <AssistantMessage content="" isGenerating={true} />}
+              {isLoading && <AssistantMessage content="" isGenerating={true} query={currentQuery} />}
               <div ref={messagesEndRef} className="h-4" />
             </div>
             <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
@@ -465,7 +465,6 @@ export default function ChatPage() {
             </div>
           </div>
           
-          {/* PREVIEW COLUMN (Strict 77% on desktop, 100% on mobile when 'preview' view) */}
           {hasStarted && (
             <div className={`flex-1 bg-[#FAFAFA] p-2 md:p-3 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none border rounded-md border-[#E5E5E5] bg-white shadow-sm`}>
