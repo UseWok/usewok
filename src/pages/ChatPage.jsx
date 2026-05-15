@@ -20,11 +20,10 @@ import {
   FileText, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
 } from 'lucide-react';
 
-// ENFORCED OPEN SANS FOR USER BUBBLE
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6">
+  <div className="flex justify-end w-full mb-6 font-sans">
     <div 
-      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-4 py-3 rounded-md max-w-[85%] whitespace-pre-wrap shadow-sm border border-[#E5E5E5]"
+      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[85%] whitespace-pre-wrap shadow-sm border border-[#E5E5E5]"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -32,11 +31,10 @@ const CustomUserMessageBubble = ({ msg }) => (
   </div>
 );
 
-// ZERO-ANIMATION 95% IFRAME MODAL
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0A0A0A]/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
       <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
         <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
@@ -176,7 +174,6 @@ export default function ChatPage() {
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   
-  // SHARED 95% IFRAME MODAL STATE
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
 
   const profileMenuRef = useRef(null);
@@ -300,26 +297,38 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-white overflow-hidden antialiased">
+    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
-      {/* MODALS */}
+      {/* ABSOLUTE TOP LEVEL SIDEBAR TOGGLE TO PREVENT Z-INDEX ISSUES */}
+      <div className="absolute top-4 left-4 z-[9999]">
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-500 hover:text-gray-900 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+          {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+        </button>
+      </div>
+
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff]" autoFocus />
+        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff] mb-4" autoFocus />
+        <div className="bg-[#F9F8F6] p-4 rounded-lg border border-[#E5E5E5]">
+          <h4 className="text-[12px] font-bold text-[#333333] mb-2.5">What happens next?</h4>
+          <ul className="text-[11.5px] text-[#707070] space-y-2">
+            <li>• You will be the owner with full management permissions</li>
+            <li>• You can invite members and manage licenses</li>
+            <li>• Access your workspace dashboard to get started</li>
+          </ul>
+        </div>
       </ProModal>
 
       <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
         <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
 
-      {/* SHARED 95% IFRAME MODAL FOR SETTINGS/SUPPORT/PRICING */}
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
-      {/* SIDEBAR (Zero Animation) */}
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-50 transition-none ${isSidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #EAEFF8 100%)' }}>
-        <div className="w-[260px] flex flex-col h-full">
+      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-40 transition-none ${isSidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #EAEFF8 100%)' }}>
+        <div className="w-[260px] flex flex-col h-full pt-14"> {/* Added pt-14 to clear the absolute toggle button */}
           
-          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
+          <div className="px-4 pb-4 border-b border-black/5 relative" ref={workspaceRef}>
             <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-sm transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
@@ -328,7 +337,7 @@ export default function ChatPage() {
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </button>
             {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%+0px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
+              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
                 {workspaces.map(w => (
                   <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none">
                     <div className="w-5 h-5 bg-gray-200 text-gray-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
@@ -342,7 +351,7 @@ export default function ChatPage() {
             )}
           </div>
 
-          <div className="px-4 py-3 border-b border-black/5"><button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-sm transition-none"><Plus className="w-4 h-4" /> New chat</button></div>
+          <div className="px-4 py-3 border-b border-black/5"><button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-sm transition-none"><Plus className="w-4 h-4" /> New chat</button></div>
 
           <div className="px-4 space-y-0.5 mt-3">
             {navItems.map((item) => (
@@ -384,27 +393,11 @@ export default function ChatPage() {
                   <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
                   <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                
-                {/* SETTINGS -> 95% MODAL */}
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
-                  <Settings className="w-4 h-4 text-gray-400" /> Settings
-                </button>
-                
-                {/* SUPPORT -> 95% MODAL */}
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
-                  <LifeBuoy className="w-4 h-4 text-gray-400" /> Support
-                </button>
-                
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
                 <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                
-                {/* PRICING -> 95% MODAL */}
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none">
-                  <ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade
-                </button>
-                
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
-                  <Key className="w-4 h-4 text-gray-400" /> I have a code...
-                </button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
               </div>
             )}
             <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-white/50 border border-transparent hover:border-[#E5E5E5] transition-none w-full text-left">
@@ -416,32 +409,23 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* MAIN ZONE (White BG, Edge to Edge) */}
-      <div className="flex-1 flex overflow-hidden bg-white relative z-0">
-        <div className="absolute top-4 left-4 z-20">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
-            {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-          </button>
-        </div>
-        <div className="flex flex-1 overflow-hidden w-full h-full relative">
+      <div className="flex-1 flex overflow-hidden relative z-10">
+        <div className="flex flex-1 overflow-hidden w-full h-full">
           
-          {/* CHAT COLUMN (Strict 23% approximation, elevated Z-index to prevent clipping) */}
           <div className={`flex flex-col bg-white overflow-visible transition-none ${hasStarted ? 'w-[23%] min-w-[300px] max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               {isLoading && <AssistantMessage content="" isGenerating={true} />}
               <div ref={messagesEndRef} className="h-4" />
             </div>
-            {/* Input Bar container overflow is visible to allow popover to overflow */}
             <div className={`flex-shrink-0 p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} aiThemePromptActive={aiThemePromptActive} setAiThemePromptActive={setAiThemePromptActive} />
             </div>
           </div>
           
-          {/* PREVIEW COLUMN (Strict 77%) */}
           {hasStarted && (
-            <div className="flex-1 bg-white p-3 overflow-hidden flex flex-col w-[77%] z-0">
+            <div className="flex-1 bg-[#FAFAFA] p-3 overflow-hidden flex flex-col w-[77%] z-0">
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none border rounded-md border-[#E5E5E5] bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={convId} appearance={appearance} setAppearance={setAppearance} onAskAI={() => setAiThemePromptActive(true)} />
                  <div className="flex-1 overflow-y-auto bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
