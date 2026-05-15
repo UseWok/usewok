@@ -94,7 +94,8 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
         </div>
       )}
 
-      <div className="bg-white border border-[#E5E5E5] rounded-[18px] flex flex-col shadow-sm focus-within:shadow-md transition-none z-10 w-full overflow-hidden">
+      {/* MATCHED CORNERS: rounded-xl instead of rounded-[18px] */}
+      <div className="bg-white border border-[#E5E5E5] rounded-xl flex flex-col shadow-sm focus-within:shadow-md transition-none z-10 w-full overflow-hidden">
         
         <textarea 
           ref={textareaRef}
