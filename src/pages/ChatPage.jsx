@@ -23,7 +23,7 @@ import {
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
     <div 
-      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm border border-[#E5E5E5]"
+      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border border-[#E5E5E5]"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -34,9 +34,9 @@ const CustomUserMessageBubble = ({ msg }) => (
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
       <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
+        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
         <iframe src={url} className="w-full h-full border-none bg-white" />
@@ -48,7 +48,7 @@ const IframeModal = ({ open, url, onClose }) => {
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
       <div className="relative w-[95%] md:w-[480px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
         <div className="p-5 border-b border-[#E5E5E5] flex justify-between items-center bg-[#F9F9F9]">
           <div>
@@ -76,7 +76,6 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// CRITICAL UPDATE: System Prompt enforcing language mirroring while keeping code standard.
 const WOK_SYSTEM = `You are an ultra-high performance coding assistant and expert. 
 CRITICAL DIRECTIVE: Regardless of technical complexity, you MUST strictly analyze the user's query and write all your explanations and final responses in the EXACT LANGUAGE used by the user in their prompt. 
 The generated code must remain in standard programming languages.
@@ -178,7 +177,7 @@ export default function ChatPage() {
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState(''); // Tracks the query for the thinking state
+  const [currentQuery, setCurrentQuery] = useState(''); 
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
@@ -263,7 +262,7 @@ export default function ChatPage() {
     const userMsg = { role: 'user', content: text };
     const newMessages = [...(messages || []), userMsg];
     setMessages(newMessages); 
-    setCurrentQuery(text); // Pass query to AssistantMessage for logic scanning
+    setCurrentQuery(text); 
     setInput(''); 
     setIsLoading(true); 
     setAiThemePromptActive(false);
@@ -321,10 +320,13 @@ export default function ChatPage() {
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
-      <div className="absolute top-4 left-4 z-[9999]">
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-500 hover:text-gray-900 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
-          {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-        </button>
+      {/* ABSOLUTE TOP LEVEL SIDEBAR TOGGLE TO PREVENT Z-INDEX ISSUES */}
+      <div className="absolute top-4 left-4 z-[60] md:hidden">
+        {!isSidebarOpen && (
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-500 hover:text-gray-900 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+            <PanelLeft className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
@@ -346,11 +348,18 @@ export default function ChatPage() {
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-40 transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-white pt-14">
+      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
+        <div className="w-[260px] flex flex-col h-full bg-white">
           
-          <div className="px-4 pb-4 border-b border-black/5 relative" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-sm transition-none">
+          <div className="p-4 border-b border-black/5 flex items-center justify-between">
+             <h1 className="text-2xl font-[800] italic tracking-tighter text-[#0d0d0d]">WOK</h1>
+             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-none border border-[#E5E5E5] bg-white shadow-none">
+               <PanelLeftClose className="w-4 h-4" />
+             </button>
+          </div>
+          
+          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
+            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-none transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
                 <span className="text-[13px] font-bold text-[#333333] truncate">{currentWorkspace?.name}</span>
@@ -372,11 +381,9 @@ export default function ChatPage() {
             )}
           </div>
 
-          <div className="px-4 py-3 border-b border-black/5"><button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-sm transition-none"><Plus className="w-4 h-4" /> New chat</button></div>
-
           <div className="px-4 space-y-0.5 mt-3">
             {navItems.map((item) => (
-              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-white shadow-sm border border-[#E5E5E5] text-gray-900 font-bold' : 'text-gray-600 hover:bg-white/50 border border-transparent'}`}>
+              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}>
                 <item.icon className="w-4 h-4" /><span>{item.label}</span>
               </button>
             ))}
@@ -386,7 +393,7 @@ export default function ChatPage() {
              <div className="text-[11px] font-bold text-gray-400 mb-3 px-1 tracking-wider uppercase font-sans">Recents</div>
              <ul className="space-y-0.5">
                 {discussions?.map((d, idx) => (
-                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-white shadow-sm border border-[#E5E5E5]' : 'border border-transparent hover:bg-white/50'}`}>
+                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-gray-100' : 'border border-transparent hover:bg-gray-50'}`}>
                     {editingId === d.id ? (
                       <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0080ff] text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
                     ) : (
@@ -405,6 +412,12 @@ export default function ChatPage() {
                   </li>
                 ))}
              </ul>
+          </div>
+
+          <div className="px-4 py-3 border-t border-black/5 mt-auto">
+            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-none transition-none">
+              <Plus className="w-4 h-4" /> New chat
+            </button>
           </div>
 
           <div className="p-4 border-t border-black/5 relative" ref={profileMenuRef}>
@@ -431,13 +444,13 @@ export default function ChatPage() {
       </aside>
 
       {isSidebarOpen && window.innerWidth < 768 && (
-        <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
         <div className="flex items-center justify-between p-3 md:absolute md:top-4 md:left-4 md:z-20 bg-white md:bg-transparent border-b md:border-none border-[#E5E5E5]">
-          {!isSidebarOpen && (
+          {!isSidebarOpen && window.innerWidth >= 768 && (
             <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
               <PanelLeft className="w-4 h-4" />
             </button>
@@ -457,7 +470,7 @@ export default function ChatPage() {
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
               {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
-              {isLoading && <AssistantMessage content="" isGenerating={true} query={currentQuery} />}
+              <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
               <div ref={messagesEndRef} className="h-4" />
             </div>
             <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
