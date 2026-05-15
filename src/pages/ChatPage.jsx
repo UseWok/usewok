@@ -20,18 +20,23 @@ import {
   FileText, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
 } from 'lucide-react';
 
+// ENFORCED OPEN SANS FOR USER BUBBLE
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans">
-    <div className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-4 py-3 rounded-md max-w-[85%] whitespace-pre-wrap shadow-sm border border-[#E5E5E5]">
+  <div className="flex justify-end w-full mb-6">
+    <div 
+      className="bg-[#F4F4F4] text-[#0d0d0d] text-[15px] leading-relaxed px-4 py-3 rounded-md max-w-[85%] whitespace-pre-wrap shadow-sm border border-[#E5E5E5]"
+      style={{ fontFamily: '"Open Sans", sans-serif' }}
+    >
       {msg.content}
     </div>
   </div>
 );
 
+// ZERO-ANIMATION 95% IFRAME MODAL
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0A0A0A]/60 backdrop-blur-sm">
       <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
         <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
@@ -105,8 +110,6 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const handleCreateWorkspace = () => {
     if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
@@ -172,6 +175,8 @@ export default function ChatPage() {
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
+  
+  // SHARED 95% IFRAME MODAL STATE
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
 
   const profileMenuRef = useRef(null);
@@ -231,7 +236,6 @@ export default function ChatPage() {
     } catch {}
   };
 
-  // UNIFIED CURRENCY LOGIC INTEGRATED HERE
   const handleUpdateCredits = async (cost) => {
       if(!user) return;
       const newUsed = (user.credits_used || 0) + cost;
@@ -242,7 +246,6 @@ export default function ChatPage() {
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading) return;
     
-    // OPTIMISTIC UI: Instantly clear input and show user message
     const userMsg = { role: 'user', content: text };
     const newMessages = [...(messages || []), userMsg];
     setMessages(newMessages); 
@@ -264,7 +267,6 @@ export default function ChatPage() {
     if (abortedRef.current) return;
     const content = typeof result === 'string' ? result : JSON.stringify(result);
 
-    // Charge unified credits: 1 for chat, 10 for UI generation (assumed non-discuss mode)
     const cost = discussMode ? 1 : 10;
     await handleUpdateCredits(cost);
 
@@ -310,21 +312,13 @@ export default function ChatPage() {
         <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
 
-      <ProModal open={showSupportModal} onClose={() => setShowSupportModal(false)} title="Support" subtitle="Engineering usually responds within 1 hour." actionText="Submit" onAction={() => setShowSupportModal(false)}>
-         <textarea rows={4} className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none resize-none" placeholder="Describe your issue..." />
-      </ProModal>
-
-      <ProModal open={showSettingsModal} onClose={() => setShowSettingsModal(false)} title="Account Settings" actionText="Save Changes" onAction={() => setShowSettingsModal(false)}>
-        <div className="space-y-4">
-          <div><label className="text-[12px] font-semibold text-[#707070] mb-1 block">Full Name</label><input type="text" defaultValue={user?.full_name} className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff]" /></div>
-        </div>
-      </ProModal>
+      {/* SHARED 95% IFRAME MODAL FOR SETTINGS/SUPPORT/PRICING */}
+      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       {/* SIDEBAR (Zero Animation) */}
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-40 transition-none ${isSidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #EAEFF8 100%)' }}>
+      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-50 transition-none ${isSidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #EAEFF8 100%)' }}>
         <div className="w-[260px] flex flex-col h-full">
           
-          {/* WORKSPACE SWITCHER */}
           <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
             <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-sm transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
@@ -390,11 +384,27 @@ export default function ChatPage() {
                   <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
                   <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
+                
+                {/* SETTINGS -> 95% MODAL */}
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
+                  <Settings className="w-4 h-4 text-gray-400" /> Settings
+                </button>
+                
+                {/* SUPPORT -> 95% MODAL */}
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
+                  <LifeBuoy className="w-4 h-4 text-gray-400" /> Support
+                </button>
+                
                 <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
+                
+                {/* PRICING -> 95% MODAL */}
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none">
+                  <ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade
+                </button>
+                
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none">
+                  <Key className="w-4 h-4 text-gray-400" /> I have a code...
+                </button>
               </div>
             )}
             <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-white/50 border border-transparent hover:border-[#E5E5E5] transition-none w-full text-left">
@@ -407,30 +417,31 @@ export default function ChatPage() {
       </aside>
 
       {/* MAIN ZONE (White BG, Edge to Edge) */}
-      <div className="flex-1 flex overflow-hidden bg-white relative">
+      <div className="flex-1 flex overflow-hidden bg-white relative z-0">
         <div className="absolute top-4 left-4 z-20">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
             {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
           </button>
         </div>
-        <div className="flex flex-1 overflow-hidden w-full h-full">
+        <div className="flex flex-1 overflow-hidden w-full h-full relative">
           
-          {/* CHAT COLUMN (Strict 20% approximation via min/max) */}
-          <div className={`flex flex-col bg-white overflow-hidden transition-none ${hasStarted ? 'w-[20%] min-w-[300px] max-w-[340px] border-r border-[#E5E5E5] z-10' : 'w-full h-full justify-center max-w-3xl mx-auto'}`}>
+          {/* CHAT COLUMN (Strict 23% approximation, elevated Z-index to prevent clipping) */}
+          <div className={`flex flex-col bg-white overflow-visible transition-none ${hasStarted ? 'w-[23%] min-w-[300px] max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'mt-16'}`}>
-              {!isLoadingConversation && !hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
+              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
               {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               {isLoading && <AssistantMessage content="" isGenerating={true} />}
               <div ref={messagesEndRef} className="h-4" />
             </div>
-            <div className={`flex-shrink-0 p-4 bg-white ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+            {/* Input Bar container overflow is visible to allow popover to overflow */}
+            <div className={`flex-shrink-0 p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} aiThemePromptActive={aiThemePromptActive} setAiThemePromptActive={setAiThemePromptActive} />
             </div>
           </div>
           
-          {/* PREVIEW COLUMN (Strict 80%) */}
+          {/* PREVIEW COLUMN (Strict 77%) */}
           {hasStarted && (
-            <div className="flex-1 bg-white p-3 overflow-hidden flex flex-col w-[80%]">
+            <div className="flex-1 bg-white p-3 overflow-hidden flex flex-col w-[77%] z-0">
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none border rounded-md border-[#E5E5E5] bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={convId} appearance={appearance} setAppearance={setAppearance} onAskAI={() => setAiThemePromptActive(true)} />
                  <div className="flex-1 overflow-y-auto bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
