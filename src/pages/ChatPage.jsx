@@ -95,7 +95,7 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
-  const [appearance, setAppearance] = useState({ theme: 'classic', font: 'Inter', edges: 'soft' });
+  const [appearance, setAppearance] = useState({ theme: 'sand', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
 
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
