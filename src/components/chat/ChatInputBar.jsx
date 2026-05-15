@@ -1,96 +1,141 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, Sparkles, Mic, MessageCircle, Image as ImageIcon, FileUp, Zap, Search, Eye, PenTool } from 'lucide-react';
+import { Settings, Sparkles, FileUp, Zap, Image as ImageIcon, X, Mic, Check } from 'lucide-react';
 
-export default function ChatInputBar({ onSend, isLoading }) {
-  const [input, setInput] = useState('');
-  const [showConfig, setShowAIConfig] = useState(false);
+export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, files = [], setFiles, aiThemePromptActive, setAiThemePromptActive }) {
+  const [showAIConfig, setShowAIConfig] = useState(false);
   const [masterMode, setMasterMode] = useState(false);
-  const [selectedMode, setSelectedMode] = useState('search');
-  const textareaRef = useRef(null);
+  const [selectedStrategy, setSelectedStrategy] = useState('balanced');
+  const configRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const charLimit = 300;
 
-  // Auto-resize logic: 3 lines to 7 lines
+  useEffect(() => {
+    const h = (e) => { if(configRef.current && !configRef.current.contains(e.target)) setShowAIConfig(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  // Textarea Auto-Resize (3 lines min ~72px, up to 7 lines max ~168px)
+  const textareaRef = useRef(null);
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 72), 168); 
+      textareaRef.current.style.height = '72px'; // Reset to min
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const newHeight = Math.min(Math.max(scrollHeight, 72), 168); 
       textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [input]);
 
-  const handleSend = () => {
-    if (!isLoading && input.trim()) {
-      onSend(input);
-      setInput('');
+  const handleSend = () => { if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input); };
+  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+
+  const handleFileChange = (e) => {
+    const dropped = Array.from(e.target.files || []);
+    if (dropped.length > 0) {
+      const parsedFiles = dropped.map(file => ({
+        file, name: file.name, url: URL.createObjectURL(file), type: file.type
+      }));
+      setFiles(p => [...(p || []), ...parsedFiles]);
     }
   };
 
+  const removeFile = (idx) => {
+    setFiles(files.filter((_, i) => i !== idx));
+  };
+
   const modes = [
-    { id: 'search', icon: Search, name: 'Search' },
-    { id: 'insight', icon: Eye, name: 'Insight' },
-    { id: 'build', icon: PenTool, name: 'Build' },
+    { id: 'creative', name: 'Creative' },
+    { id: 'balanced', name: 'Balanced' },
+    { id: 'precise', name: 'Precise' },
   ];
 
   return (
-    <div className="flex flex-col w-full relative">
+    <div className="flex flex-col w-full relative overflow-visible" ref={configRef}>
       
-      {/* IMPROVED SOBRE CONFIG POPOVER */}
-      {showConfig && (
-        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[280px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[100] p-2 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150">
-          <div className="p-3 mb-1 flex items-center justify-between hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" onClick={() => setMasterMode(!masterMode)}>
-            <div className="flex items-center gap-2">
-              <Zap className={`w-4 h-4 ${masterMode ? 'text-blue-500' : 'text-gray-300'}`} />
-              <span className="text-[13px] font-bold">Expert Finance Agent</span>
-            </div>
-            <div className={`w-8 h-4 rounded-full relative transition-colors ${masterMode ? 'bg-blue-500' : 'bg-gray-200'}`}>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${masterMode ? 'left-4.5' : 'left-0.5'}`} />
-            </div>
+      {aiThemePromptActive && (
+        <div className="absolute -top-10 left-2 z-[999]">
+          <div className="bg-[#EBF5FF] border border-[#0080ff]/30 text-[#0080ff] text-[11px] font-bold px-3 py-1.5 rounded-md flex items-center gap-2 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5" /> Customizing AI Appearance...
+            <button onClick={() => setAiThemePromptActive(false)} className="hover:bg-blue-100 rounded-full p-0.5 ml-1 transition-none"><X className="w-3 h-3"/></button>
           </div>
-          <div className="h-px bg-gray-100 my-1 mx-2" />
-          <button onClick={() => { setMasterMode(false); setShowAIConfig(false); }} className="w-full text-left p-2.5 text-[12px] font-medium text-gray-500 hover:text-black hover:bg-gray-50 rounded-lg">Default Engine</button>
-          <div className="mt-2 space-y-1">
-            {modes.map(m => (
-              <button key={m.id} onClick={() => { setSelectedMode(m.id); setShowAIConfig(false); }} className={`flex items-center gap-3 w-full p-2.5 rounded-lg text-[12px] font-semibold transition-colors ${selectedMode === m.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 text-gray-600'}`}>
-                <m.icon className="w-4 h-4" /> {m.name}
+        </div>
+      )}
+
+      {showAIConfig && (
+        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[260px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[999] p-2 font-sans transition-none">
+          <button onClick={() => { setMasterMode(false); setShowAIConfig(false); }} className="w-full text-left p-2.5 rounded-md flex items-center justify-between hover:bg-gray-50 transition-none">
+             <span className="text-[13px] font-bold text-[#333333]">Default Engine</span>
+             {!masterMode && <Check className="w-4 h-4 text-[#0080ff]" />}
+          </button>
+          <button onClick={() => { setMasterMode(true); setShowAIConfig(false); }} className="w-full text-left p-2.5 rounded-md flex items-center justify-between hover:bg-gray-50 transition-none mt-1">
+             <div className="flex items-center gap-2">
+               <Zap className="w-4 h-4 text-[#0080ff]" />
+               <span className="text-[13px] font-bold text-[#333333]">Expert Finance Agent</span>
+             </div>
+             {masterMode && <Check className="w-4 h-4 text-[#0080ff]" />}
+          </button>
+
+          <div className="mx-4 my-2 border-b border-[#E5E5E5]"></div>
+
+          <div className="space-y-1">
+            {modes.map((m) => (
+              <button key={m.id} onClick={() => { setSelectedStrategy(m.id); setShowAIConfig(false); }} className={`w-full text-left p-2 rounded-md flex items-center gap-3 transition-none ${selectedStrategy === m.id ? 'bg-gray-50 text-[#0d0d0d]' : 'hover:bg-gray-50 text-gray-500'}`}>
+                <span className="text-[12px] font-semibold">{m.name}</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-white border border-[#E5E5E5] rounded-2xl flex flex-col shadow-sm focus-within:shadow-md transition-all">
+      <div className="bg-white border border-[#E5E5E5] rounded-md flex flex-col shadow-sm focus-within:shadow-md transition-none z-10 w-full">
         
-        {/* TEXT ON TOP */}
         <textarea 
           ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value.slice(0, charLimit))}
-          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-          placeholder="Ask Wok anything..."
-          className="w-full p-4 bg-transparent text-[16px] focus:outline-none resize-none leading-relaxed min-h-[72px]"
+          value={input} 
+          onChange={(e) => setInput(e.target.value.substring(0, charLimit))} 
+          onKeyDown={handleKeyDown}
+          placeholder={aiThemePromptActive ? "Describe appearance change..." : "Message Wok..."}
+          className="w-full bg-transparent text-[15px] text-[#0d0d0d] placeholder:text-gray-400 focus:outline-none resize-none leading-relaxed px-3 pt-3 pb-1"
           style={{ fontFamily: '"Open Sans", sans-serif' }}
         />
 
-        {/* BUTTONS ON BOTTOM ROW */}
-        <div className="flex items-center justify-between px-3 py-2 border-t border-gray-50">
+        {(files?.length || 0) > 0 && (
+          <div className="flex gap-2 px-3 pt-1 pb-2 overflow-x-auto">
+            {files.map((file, i) => (
+              <div key={i} className="relative w-12 h-12 rounded-md border border-[#E5E5E5] flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                {file.type?.startsWith('image/') ? <img src={file.url} className="object-cover w-full h-full" alt="preview" /> : <FileUp className="w-5 h-5 text-gray-400" />}
+                <button onClick={() => removeFile(i)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"><X className="w-3 h-3"/></button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-1">
-            <button onClick={() => setShowAIConfig(!showConfig)} className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition-all"><Settings className="w-5 h-5" /></button>
-            <button className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg"><ImageIcon className="w-5 h-5" /></button>
-            <button className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg"><Mic className="w-5 h-5" /></button>
+            <button onClick={() => setShowAIConfig(!showAIConfig)} className={`p-1.5 rounded-md transition-none active:scale-95 ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4]'}`}>
+              <Settings className="w-4 h-4" />
+            </button>
+            <button onClick={() => fileInputRef.current.click()} className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-md transition-none active:scale-95">
+              <ImageIcon className="w-4 h-4" />
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" multiple onChange={handleFileChange} />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className={`text-[10px] font-bold ${input.length >= charLimit ? 'text-red-500' : 'text-gray-300'}`}>
               {input.length}/{charLimit}
             </span>
-            <button 
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className={`p-2 rounded-xl transition-all active:scale-90 ${input.trim() ? 'bg-black text-white shadow-lg' : 'bg-gray-100 text-gray-300'}`}
-            >
-              <Sparkles className="w-5 h-5" />
-            </button>
+            
+            {isLoading ? (
+              <button onClick={onStop} className="w-8 h-8 bg-[#0080ff] text-white rounded-md flex items-center justify-center shadow-sm hover:bg-[#0066cc] active:scale-95 transition-none">
+                <div className="w-3 h-3 bg-white rounded-[2px]"></div>
+              </button>
+            ) : (
+              <button onClick={handleSend} disabled={!input.trim() && (files?.length || 0) === 0} className={`w-8 h-8 rounded-md flex items-center justify-center transition-none active:scale-95 shadow-sm ${(input.trim() || (files?.length || 0) > 0) ? 'bg-[#0A0A0A] text-white hover:bg-black/80' : 'bg-[#E5E5E5] text-white cursor-not-allowed'}`}>
+                <Sparkles className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
