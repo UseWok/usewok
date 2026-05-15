@@ -7,6 +7,7 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
   const [selectedStrategy, setSelectedStrategy] = useState('balanced');
   const configRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const charLimit = 300;
 
@@ -16,19 +17,24 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Textarea Auto-Resize (3 lines min ~72px, up to 7 lines max ~168px)
-  const textareaRef = useRef(null);
+  // Flawless Textarea Auto-Resize Engine
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = '72px'; // Reset to min
+      textareaRef.current.style.height = 'inherit'; // Reset height to recalculate
       const scrollHeight = textareaRef.current.scrollHeight;
-      const newHeight = Math.min(Math.max(scrollHeight, 72), 168); 
-      textareaRef.current.style.height = `${newHeight}px`;
+      // Limits height between approx 1 line (24px + padding) and 7 lines (168px)
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 56), 168)}px`;
     }
   }, [input]);
 
   const handleSend = () => { if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input); };
-  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+  
+  const handleKeyDown = (e) => { 
+    if (e.key === 'Enter' && !e.shiftKey) { 
+      e.preventDefault(); 
+      handleSend(); 
+    } 
+  };
 
   const handleFileChange = (e) => {
     const dropped = Array.from(e.target.files || []);
@@ -88,7 +94,7 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
         </div>
       )}
 
-      <div className="bg-white border border-[#E5E5E5] rounded-md flex flex-col shadow-sm focus-within:shadow-md transition-none z-10 w-full">
+      <div className="bg-white border border-[#E5E5E5] rounded-[18px] flex flex-col shadow-sm focus-within:shadow-md transition-none z-10 w-full overflow-hidden">
         
         <textarea 
           ref={textareaRef}
@@ -96,12 +102,12 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))} 
           onKeyDown={handleKeyDown}
           placeholder={aiThemePromptActive ? "Describe appearance change..." : "Message Wok..."}
-          className="w-full bg-transparent text-[15px] text-[#0d0d0d] placeholder:text-gray-400 focus:outline-none resize-none leading-relaxed px-3 pt-3 pb-1"
+          className="w-full bg-transparent text-[15px] text-[#0d0d0d] placeholder:text-gray-400 focus:outline-none resize-none leading-relaxed px-4 pt-4 pb-2"
           style={{ fontFamily: '"Open Sans", sans-serif' }}
         />
 
         {(files?.length || 0) > 0 && (
-          <div className="flex gap-2 px-3 pt-1 pb-2 overflow-x-auto">
+          <div className="flex gap-2 px-4 pt-1 pb-2 overflow-x-auto">
             {files.map((file, i) => (
               <div key={i} className="relative w-12 h-12 rounded-md border border-[#E5E5E5] flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
                 {file.type?.startsWith('image/') ? <img src={file.url} className="object-cover w-full h-full" alt="preview" /> : <FileUp className="w-5 h-5 text-gray-400" />}
@@ -113,26 +119,26 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
 
         <div className="flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-1">
-            <button onClick={() => setShowAIConfig(!showAIConfig)} className={`p-1.5 rounded-md transition-none active:scale-95 ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4]'}`}>
+            <button onClick={() => setShowAIConfig(!showAIConfig)} className={`p-2 rounded-md transition-none active:scale-95 ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4]'}`}>
               <Settings className="w-4 h-4" />
             </button>
-            <button onClick={() => fileInputRef.current.click()} className="p-1.5 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-md transition-none active:scale-95">
+            <button onClick={() => fileInputRef.current.click()} className="p-2 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-md transition-none active:scale-95">
               <ImageIcon className="w-4 h-4" />
             </button>
             <input type="file" ref={fileInputRef} className="hidden" multiple onChange={handleFileChange} />
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-bold ${input.length >= charLimit ? 'text-red-500' : 'text-gray-300'}`}>
+          <div className="flex items-center gap-3 pr-1">
+            <span className={`text-[11px] font-bold ${input.length >= charLimit ? 'text-red-500' : 'text-gray-300'}`}>
               {input.length}/{charLimit}
             </span>
             
             {isLoading ? (
-              <button onClick={onStop} className="w-8 h-8 bg-[#0080ff] text-white rounded-md flex items-center justify-center shadow-sm hover:bg-[#0066cc] active:scale-95 transition-none">
+              <button onClick={onStop} className="w-9 h-9 bg-[#0080ff] text-white rounded-[10px] flex items-center justify-center shadow-sm hover:bg-[#0066cc] active:scale-95 transition-none">
                 <div className="w-3 h-3 bg-white rounded-[2px]"></div>
               </button>
             ) : (
-              <button onClick={handleSend} disabled={!input.trim() && (files?.length || 0) === 0} className={`w-8 h-8 rounded-md flex items-center justify-center transition-none active:scale-95 shadow-sm ${(input.trim() || (files?.length || 0) > 0) ? 'bg-[#0A0A0A] text-white hover:bg-black/80' : 'bg-[#E5E5E5] text-white cursor-not-allowed'}`}>
+              <button onClick={handleSend} disabled={!input.trim() && (files?.length || 0) === 0} className={`w-9 h-9 rounded-[10px] flex items-center justify-center transition-none active:scale-95 shadow-sm ${(input.trim() || (files?.length || 0) > 0) ? 'bg-[#0A0A0A] text-white hover:bg-black/80' : 'bg-[#F4F4F4] text-gray-300 cursor-not-allowed'}`}>
                 <Sparkles className="w-4 h-4" />
               </button>
             )}
