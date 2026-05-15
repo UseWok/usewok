@@ -35,9 +35,9 @@ export default function PricingPage() {
     
     // Serene routing: breaks out of 95% iframe seamlessly to the top window
     let checkoutUrl = '';
-    if (planId === 'pro') checkoutUrl = 'https://buy.stripe.com/test_pro';
-    if (planId === 'max') checkoutUrl = 'https://buy.stripe.com/test_max';
-    if (planId === 'unlimited') checkoutUrl = 'mailto:contact@wok.com';
+    if (planId === 'pro') checkoutUrl = 'https://buy.stripe.com/aFa6oHdtn8RW60VeHSbEA0K';
+    if (planId === 'max') checkoutUrl = 'https://buy.stripe.com/7sYdR9fBv7NS8932ZabEA0L';
+    if (planId === 'unlimited') checkoutUrl = 'mailto:contact.stensor@proton.me';
 
     if (checkoutUrl) {
       window.top.location.href = checkoutUrl;
