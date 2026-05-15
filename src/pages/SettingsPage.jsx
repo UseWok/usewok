@@ -8,6 +8,8 @@ import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
+
+
 function SectionTitle({ children }) {
   return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
 }
@@ -30,6 +32,7 @@ export default function SettingsPage() {
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
+
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -64,6 +67,8 @@ export default function SettingsPage() {
     }).catch(() => {});
   }, []);
 
+
+
   const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
@@ -73,7 +78,7 @@ export default function SettingsPage() {
 
   const getDailyUsage = () => {
     try {
-      const data = JSON.parse(localStorage.getItem('wok_daily_usage') || '{}');
+      const data = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}');
       return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(); d.setDate(d.getDate() - (6 - i));
         const key = d.toISOString().slice(0, 10);

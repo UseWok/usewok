@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Sparkles, Binary, FileUp, Zap, Target, LineChart, Image as ImageIcon, X, Mic, MessageCircle } from 'lucide-react';
+import Toggle from '@/components/ui/Toggle'; 
+import { Settings, Sparkles, FileUp, Zap, Target, Binary, LineChart, Image as ImageIcon, X, Mic, MessageCircle } from 'lucide-react';
 
-export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, files = [], setFiles, discussMode, setDiscussMode, aiThemePromptActive, setAiThemePromptActive }) {
+export default function ChatInputBar({ input, setInput, onSend, onStop, isLoading, files, setFiles, discussMode, setDiscussMode }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const [masterMode, setMasterMode] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('architect');
+  const [isRecording, setIsRecording] = useState(false);
   const configRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -15,66 +17,201 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const handleSend = () => { if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input); };
+  const handleSend = () => { if (!isLoading && (input.trim() || files.length > 0)) onSend(input); };
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
 
-  // REPLACED `handleStop` with `onStop` prop correctly
-  const handleMicClick = () => { setIsRecording(!isRecording); };
+  // Audio Context for Microphone sounds
+  const playMicStart = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.15);
+    } catch(e) {}
+  };
+
+  const playMicStop = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+  };
+
+  const handleMicClick = () => {
+    if (isRecording) playMicStop(); else playMicStart();
+    setIsRecording(!isRecording);
+  };
+
+  const handleFileChange = (e) => {
+    const dropped = Array.from(e.target.files || []);
+    if (dropped.length > 0) {
+      const parsedFiles = dropped.map(file => ({
+        file, name: file.name, url: URL.createObjectURL(file), type: file.type
+      }));
+      setFiles(p => [...p, ...parsedFiles]);
+    }
+  };
+
+  const removeFile = (idx) => {
+    setFiles(files.filter((_, i) => i !== idx));
+  };
+
+  // 3 EDGY, PROFESSIONAL MODES
+  const learningStrategies = [
+    { id: 'architect', icon: Target, name: 'Strategic Architect', desc: 'Constructs robust, logic-driven frameworks focused strictly on sustainable structural expansion.' },
+    { id: 'auditor', icon: Binary, name: 'Forensic Auditor', desc: 'Meticulously dissects data to find hidden discrepancies, anomalies, and undeniable truths.' },
+    { id: 'quant', icon: LineChart, name: 'Quantitative Engine', desc: 'Executes pure mathematical logic, relying entirely on statistical probabilities and rigid formulas.' },
+  ];
 
   return (
-    <div className="flex flex-col gap-2 font-sans relative" ref={configRef}>
+    <div className="flex flex-col w-full relative" ref={configRef}>
       
-      <AnimatePresence initial={false}>
-        {aiThemePromptActive && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute -top-10 left-2 z-20">
-            <div className="bg-[#EBF5FF] border border-[#0080ff]/30 text-[#0080ff] text-[11px] font-bold px-3 py-1.5 rounded-md flex items-center gap-2 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" /> AI Customization: Preference Active
-              <button onClick={() => setAiThemePromptActive(false)} className="hover:bg-blue-100 rounded-full p-0.5 transition-none"><X className="w-3 h-3"/></button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {showAIConfig && (
-        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[300px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-50 p-2 text-left transition-none">
-          <p className="text-[10px] font-bold text-gray-400 mb-2 px-2 uppercase tracking-wider">AI Behavior Directive</p>
-          {['architect', 'auditor', 'quant'].map((id) => (
-            <button key={id} onClick={() => { setSelectedStrategy(id); setShowAIConfig(false); }} className={`w-full text-left p-2.5 rounded-md flex items-center gap-3 hover:bg-[#F9F8F6] ${selectedStrategy === id ? 'bg-[#F9F8F6]' : ''}`}>
-              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${selectedStrategy === id ? 'border-[#0080ff]' : 'border-gray-300'}`}>{selectedStrategy === id && <div className="w-1.5 h-1.5 bg-[#0080ff] rounded-full" />}</div>
-              <span className="text-[12px] font-bold capitalize text-[#333333]">{id} Profile</span>
-            </button>
-          ))}
+        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[340px] bg-white border border-[#E5E5E5] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 p-2 font-sans">
+          <div className="p-3">
+            <h3 className="text-[13px] font-bold text-[#333333]">Base Power</h3>
+            <p className="text-[11.5px] text-[#707070] mt-1 leading-snug">Default behavior. Fast, incredibly reliable query resolution.</p>
+          </div>
+          <div className="h-px bg-[#E5E5E5] my-1 mx-3"></div>
+          <div className="p-3 bg-white rounded-lg mt-2 mx-1 flex items-center justify-between gap-3">
+            <div className="flex-1 pr-2">
+              <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-[#0080ff]" />
+                  <h3 className="text-[13px] font-bold text-[#333333]">Master AI Protocol</h3>
+              </div>
+              <p className="text-[11px] text-[#707070] mt-1 leading-snug">
+                Deep logic analysis executed with relentless precision.
+              </p>
+            </div>
+            <Toggle enabled={masterMode} onChange={() => setMasterMode(!masterMode)} />
+          </div>
+
+          {/* 3 SHARP MODES */}
+          <div className="pt-4 pb-1 space-y-1">
+            <h4 className="text-[11px] font-bold text-[#999999] tracking-wider mb-2 px-3 uppercase">Behavioral Directives</h4>
+            {learningStrategies.map((strategy, idx) => (
+              <div key={strategy.id} className="relative">
+                <button 
+                  onClick={() => { setSelectedStrategy(strategy.id); setShowAIConfig(false); }}
+                  className="w-full text-left p-3 rounded-lg flex items-start gap-3 hover:bg-[#F9F8F6] transition-colors group"
+                >
+                  <div className="mt-0.5 flex-shrink-0">
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${selectedStrategy === strategy.id ? 'border-[#0080ff]' : 'border-gray-300'}`}>
+                      {selectedStrategy === strategy.id && <div className="w-2 h-2 bg-[#0080ff] rounded-full" />}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                         <strategy.icon className={`w-4 h-4 ${selectedStrategy === strategy.id ? 'text-[#0080ff]' : 'text-gray-500'}`} />
+                         <span className="text-[13px] font-bold text-[#333333]">{strategy.name}</span>
+                      </div>
+                      <p className="text-[11px] text-[#707070] mt-1 leading-snug">{strategy.desc}</p>
+                  </div>
+                </button>
+                {idx < learningStrategies.length - 1 && (
+                  <div className="mx-4 my-1 h-px bg-[#F0F0F0]"></div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* RECTANGULAR, TALLER INPUT BAR */}
-      <div className="bg-white border border-[#E5E5E5] rounded-md p-2 flex flex-col shadow-sm relative overflow-visible min-h-[72px]">
-        {(files?.length || 0) > 0 && (
-          <div className="flex gap-2 px-2 pt-1 pb-2 overflow-x-auto">
+      {/* INPUT BAR (rounded-2xl to match bubbles) */}
+      <div className="bg-white border border-[#E5E5E5] rounded-[24px] flex flex-col shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md relative overflow-visible">
+        
+        {/* File Preview Area */}
+        {files.length > 0 && (
+          <div className="flex gap-2 px-4 pt-3 pb-1 overflow-x-auto">
             {files.map((file, i) => (
-              <div key={i} className="relative w-12 h-12 rounded-md border border-[#E5E5E5] bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                {file.type?.startsWith('image/') ? <img src={file.url} className="object-cover w-full h-full" /> : <FileUp className="w-5 h-5 text-gray-400" />}
-                <button onClick={() => setFiles(files.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><X className="w-3 h-3"/></button>
+              <div key={i} className="relative w-12 h-12 rounded-lg border border-[#E5E5E5] flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                {file.type?.startsWith('image/') ? (
+                   <img src={file.url} className="object-cover w-full h-full" alt="preview" />
+                ) : (
+                   <FileUp className="w-5 h-5 text-gray-400" />
+                )}
+                <button onClick={() => removeFile(i)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><X className="w-3 h-3"/></button>
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex items-end gap-2 p-1 flex-1">
-          <button onClick={() => setShowAIConfig(!showAIConfig)} className="p-2.5 rounded-md text-gray-400 hover:bg-[#F4F4F4] transition-none"><Settings className="w-5 h-5" /></button>
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={aiThemePromptActive ? "Describe appearance change..." : "Message Wok..."} className="flex-1 bg-transparent text-[15px] text-[#0d0d0d] focus:outline-none resize-none leading-relaxed font-sans mb-1" rows={1} style={{ minHeight: '32px', maxHeight: '200px' }} />
-          <div className="flex items-center gap-1.5 relative mb-0.5">
-            <button onClick={() => setDiscussMode(!discussMode)} className={`p-2 rounded-md ${discussMode ? 'bg-[#F3E8FF] text-[#7E22CE]' : 'text-[#707070] hover:bg-[#F4F4F4]'}`}><MessageCircle className="w-5 h-5" /></button>
-            <button onClick={() => fileInputRef.current.click()} className="p-2 text-[#707070] hover:bg-[#F4F4F4] rounded-md"><ImageIcon className="w-5 h-5" /></button>
-            <input type="file" ref={fileInputRef} className="hidden" multiple onChange={(e) => { const dropped = Array.from(e.target.files || []); if (dropped.length > 0) { setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]); } }} />
+        <div className="flex items-center gap-2 p-2">
+          
+          <button 
+            onClick={() => setShowAIConfig(!showAIConfig)}
+            className={`p-2.5 rounded-full flex-shrink-0 transition-colors ${showAIConfig ? 'bg-[#F4F4F4] text-[#333333]' : 'text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4]'}`}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+
+          <textarea 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Message Wok..." 
+            className="flex-1 bg-transparent text-[15px] text-[#0d0d0d] placeholder:text-gray-400 focus:outline-none resize-none h-[22px] overflow-hidden leading-relaxed font-sans"
+            rows={1}
+            style={{ height: '22px' }}
+          />
+
+          <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+            <button onClick={() => setDiscussMode(!discussMode)} className={`p-2 rounded-full transition-colors flex items-center justify-center ${discussMode ? 'bg-[#F3E8FF] text-[#7E22CE]' : 'text-[#707070] hover:bg-[#F4F4F4] hover:text-[#333333]'}`} title="Discuss Mode">
+              <MessageCircle className="w-5 h-5" />
+            </button>
+            <button onClick={() => fileInputRef.current.click()} className="p-2 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-full transition-colors">
+              <ImageIcon className="w-5 h-5" />
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" multiple onChange={handleFileChange} />
             
-            <div className="relative w-9 h-9 flex items-center justify-end">
+            {/* The right-most container for Send & Mic overlay */}
+            <div className="relative w-10 h-10 flex items-center justify-end">
+              
+              {/* Send or Stop button underneath */}
               {isLoading ? (
-                <button onClick={onStop} className="absolute right-0 w-9 h-9 bg-[#0080ff] text-white rounded-md flex items-center justify-center"><div className="w-3 h-3 bg-white rounded-[2px]"></div></button>
+                <button onClick={onStop} className="absolute right-0 w-10 h-10 bg-[#0080ff] text-white rounded-full flex items-center justify-center shadow-sm">
+                  <div className="w-3.5 h-3.5 bg-white rounded-[3px]"></div>
+                </button>
               ) : (
-                <button onClick={handleSend} disabled={!input.trim() && (files?.length || 0) === 0} className={`absolute right-0 w-9 h-9 rounded-md flex items-center justify-center ${(input.trim() || (files?.length || 0) > 0) ? 'bg-[#0A0A0A] text-white' : 'bg-[#E5E5E5] text-white'}`}><Sparkles className="w-[16px] h-[16px]" /></button>
+                <button 
+                  onClick={handleSend}
+                  disabled={!input.trim() && files.length === 0}
+                  className={`absolute right-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm ${input.trim() || files.length > 0 ? 'bg-[#0A0A0A] text-white hover:bg-black/80' : 'bg-[#E5E5E5] text-white cursor-not-allowed'}`}
+                >
+                  <Sparkles className="w-[18px] h-[18px]" />
+                </button>
+              )}
+
+              {/* Mic Overlay Button (Google style stretch) */}
+              <motion.button 
+                onClick={handleMicClick} 
+                animate={{ width: isRecording ? 100 : 40, backgroundColor: isRecording ? '#F3E8FF' : 'transparent', color: isRecording ? '#7E22CE' : 'transparent' }} 
+                className={`absolute right-0 h-10 rounded-full flex items-center justify-center z-10 transition-colors overflow-hidden ${isRecording ? 'shadow-md' : 'pointer-events-none'}`}
+              >
+                {isRecording ? (
+                  <div className="flex items-center gap-2 px-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#7E22CE] animate-pulse"></div>
+                    <span className="text-[13px] font-bold tracking-wide">REC</span>
+                  </div>
+                ) : null}
+              </motion.button>
+              
+              {/* Mic Icon Trigger (Clickable when not recording) */}
+              {!isRecording && (
+                 <button onClick={handleMicClick} className="absolute right-[46px] p-2 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-full transition-colors">
+                    <Mic className="w-5 h-5" />
+                 </button>
               )}
             </div>
+
           </div>
         </div>
       </div>

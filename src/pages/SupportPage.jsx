@@ -68,6 +68,7 @@ export default function SupportPage() {
     setLoading(true);
     base44.entities.SupportTicket.filter({ user_email: u.email })
       .then(t => {
+        // Filter out cancellation tickets from support view
         const support = t.filter(tk => tk.category !== 'cancellation');
         setMyTickets(support.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
         setLoading(false);
@@ -88,6 +89,7 @@ export default function SupportPage() {
     if (user) { loadMyTickets(user); if (user.role === 'admin') loadAdminTickets(); }
   }, [user]);
 
+  // Listen for new ticket event
   useEffect(() => {
     const handler = (e) => { if (e.detail) setChatTicket(e.detail); };
     window.addEventListener('open-support-chat', handler);
@@ -115,7 +117,7 @@ export default function SupportPage() {
   const refresh = () => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); };
 
   return (
-    <div className="min-h-screen font-sans" style={{ background: '#fafafa' }}>
+    <div className="min-h-screen font-be" style={{ background: '#fafafa' }}>
       <div className="max-w-2xl mx-auto px-4 py-6 pb-16">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setPage('landing')} className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
@@ -220,7 +222,7 @@ export default function SupportPage() {
 
 function LandingPage({ onNavigate }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-sans bg-white">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen font-be bg-white">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-12">
           <h1 className="text-5xl font-black mb-3" style={{ color: FG }}>Help & Support</h1>
@@ -254,7 +256,7 @@ function LandingPage({ onNavigate }) {
               </div>
             </div>
           </motion.button>
-          <motion.a href="https://reddit.com/r/wok" target="_blank" rel="noopener noreferrer"
+          <motion.a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
             whileHover={{ scale: 1.02 }}
             className="p-4 text-left rounded-lg transition-all"
             style={{ background: 'white', border: '1px solid rgba(0,0,0,0.07)' }}>
@@ -284,6 +286,7 @@ function NewTicketModal({ onClose, user }) {
   const handleAnalyze = async () => {
     if (!description.trim()) return;
     setStep(1);
+    // Simple loading without AI call
     await new Promise(r => setTimeout(r, 800));
     setSuggestedCategory(null);
     setSelectedCategory('other');
@@ -294,11 +297,13 @@ function NewTicketModal({ onClose, user }) {
     if (submitting) return;
     setSubmitting(true);
 
+    // Upload files first
     let file_urls = [];
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
 
+    // Build initial message with description + files
     const initialMsg = {
       author: 'user',
       text: description,
@@ -309,6 +314,7 @@ function NewTicketModal({ onClose, user }) {
     let userPlan = '';
     try { userPlan = getUserPlan(user)?.name || ''; } catch {}
 
+    // Create ticket with messages_json saved immediately
     const ticket = await base44.entities.SupportTicket.create({
       title: user?.full_name || user?.email?.split('@')[0] || 'User',
       description,
@@ -461,6 +467,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Poll for updates — only update if server has MORE messages than local
   useEffect(() => {
     const id = currentTicket.id;
     const interval = setInterval(async () => {
@@ -547,7 +554,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-black truncate" style={{ color: FG }}>
-                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Wok Support'}
+                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Support Stensor'}
                 </p>
                 <span className="text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
                   <CatIcon className="w-2.5 h-2.5" />{cat.label}
@@ -606,6 +613,8 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           <p className="text-center text-sm py-8" style={{ color: '#aaa' }}>No messages yet</p>
           ) : messages.map((msg, i) => {
           const isSystem = msg.author === 'system';
+          // For regular users: their own messages (author='user') are on the right
+          // For admins: their own messages (author='admin') are on the right
           const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
 
           if (isSystem) {
@@ -619,9 +628,10 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             );
           }
 
+          // Avatar config
           const isStensor = msg.author === 'admin';
           const avatarLetter = isStensor
-            ? 'W'
+            ? 'S'
             : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U');
           const avatarBg = isStensor ? YUZU : '#6366f1';
           const avatarColor = isStensor ? FG : 'white';
@@ -630,6 +640,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
 
+              {/* Left avatar (other person) */}
               {!isMe && (
                 <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black shadow-sm"
                   style={{ background: avatarBg, color: avatarColor, border: '1.5px solid rgba(0,0,0,0.08)' }}>
@@ -657,6 +668,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                 </div>
               </div>
 
+              {/* Right avatar (me) */}
               {isMe && (
                 <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black shadow-sm"
                   style={{
@@ -664,7 +676,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                     color: isAdmin ? FG : 'white',
                     border: '1.5px solid rgba(0,0,0,0.08)',
                   }}>
-                  {isAdmin ? 'W' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
+                  {isAdmin ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
                 </div>
               )}
             </motion.div>
