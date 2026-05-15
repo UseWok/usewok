@@ -16,6 +16,22 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
+const FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro', 'Oswald', 'Raleway', 'PT Sans', 'Nunito', 'Merriweather', 'Playfair Display', 'Rubik', 'Work Sans', 'Quicksand', 'Fira Sans', 'Barlow', 'Inconsolata', 'IBM Plex Sans', 'System UI'];
+const THEMES = [
+  { id: 'classic', color: '#FFFFFF', name: 'Classic' },
+  { id: 'aurora', color: 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)', name: 'Aurora' },
+  { id: 'sand', color: '#FDFBF7', name: 'Sand' },
+  { id: 'rose', color: 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)', name: 'Rose' },
+  { id: 'midnight', color: '#0B0F19', name: 'Midnight' },
+  { id: 'grid', color: '#FAFAFA', name: 'Grid' }
+];
+const EDGES = [
+  { id: 'square', radius: '0px' },
+  { id: 'soft', radius: '8px' },
+  { id: 'round', radius: '24px' },
+  { id: 'glass', radius: '32px' } 
+];
+
 export default function WorkspaceHeader({ onReload, appearance, setAppearance, onAskAI, convId }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
@@ -24,8 +40,10 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [indexGoogle, setIndexGoogle] = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
 
   const publishRef = useRef(null);
+  const appRef = useRef(null);
 
   // Sync Slug to Conversation ID reliably
   useEffect(() => {
@@ -40,6 +58,7 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
         setShowPublish(false);
         setTimeout(() => setPublishView('main'), 200);
       }
+      if (appRef.current && !appRef.current.contains(e.target)) setShowAppearance(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -69,10 +88,10 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
 
   return (
     <>
-      {/* CUSTOM DOMAIN MODAL (Zero Animation) */}
+      {/* CUSTOM DOMAIN MODAL (Zero Animation & Responsive Width & Z-Index Highest) */}
       {showDomainModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center font-sans bg-[#0A0A0A]/60">
-          <div className="relative w-[520px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60">
+          <div className="relative w-[95%] md:w-[520px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
             <div className="p-5 border-b border-[#E5E5E5] bg-[#F9F9F9]">
               <h2 className="text-[16px] font-bold text-[#333333]">Custom Domain Configuration</h2>
               <p className="text-[12px] text-[#707070] mt-1">Manage the public access link for your workspace project.</p>
@@ -81,7 +100,7 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
             <div className="p-6">
               <label className="text-[12px] font-bold text-[#333333] mb-2 block">Public Link</label>
               <div className="flex items-center w-full border border-[#E5E5E5] rounded-md overflow-hidden focus-within:border-[#0080ff] transition-colors">
-                <div className="bg-[#F9F9F9] px-3 py-2 border-r border-[#E5E5E5] text-[13px] text-[#707070] font-mono select-none">
+                <div className="bg-[#F9F9F9] px-3 py-2 border-r border-[#E5E5E5] text-[13px] text-[#707070] font-mono select-none hidden md:block">
                   https://wok.base44.app/p/
                 </div>
                 <input 
@@ -109,15 +128,58 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
       {/* HEADER */}
       <header className={`flex items-center justify-between px-4 h-[48px] flex-shrink-0 z-30 font-sans w-full rounded-t-md ${appearance?.theme !== 'classic' ? 'bg-transparent border-b border-black/5' : 'bg-[#F4F4F4] border-b border-[#E5E5E5]'}`}>
         
-        {/* 1. LEFT: Mac Dots */}
-        <div className="flex gap-2 items-center w-1/4 pl-1">
-           <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-           <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-           <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+        {/* 1. LEFT: Mac Dots + Ambiance Button */}
+        <div className="flex gap-4 items-center w-1/3 pl-1">
+           <div className="flex gap-1.5 items-center">
+             <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+             <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+             <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+           </div>
+           
+           <div className="relative" ref={appRef}>
+            <button onClick={() => setShowAppearance(!showAppearance)} className={`px-3.5 py-1.5 rounded-md text-[12px] font-semibold flex items-center gap-1.5 shadow-sm transition-colors border ${isDark ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-[#E5E5E5] text-[#333333] hover:bg-gray-50'}`}>
+              <Palette className="w-3.5 h-3.5" /> Appearance
+            </button>
+            
+            {showAppearance && (
+              <div className="absolute top-[calc(100%+6px)] left-0 w-[340px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[9999] p-1 text-left font-sans text-[#333333]">
+                <div className="p-3 pb-1">
+                  <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Themes</p>
+                  <div className="flex gap-2 mb-4">
+                    {THEMES.map(t => (
+                      <button key={t.id} onClick={() => setAppearance({...appearance, theme: t.id})} className={`w-7 h-7 rounded-full border-2 transition-all ${appearance.theme === t.id ? 'border-[#0080ff] scale-110' : 'border-gray-200 hover:scale-105 shadow-sm'}`} style={{ background: t.color }} title={t.name} />
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Typography</p>
+                  <div className="grid grid-cols-4 gap-1.5 mb-4 max-h-[140px] overflow-y-auto pr-1">
+                    {FONTS.map(f => (
+                      <button key={f} onClick={() => setAppearance({...appearance, font: f})} className={`flex flex-col items-center justify-center p-2 rounded-md border transition-colors ${appearance.font === f ? 'border-[#0080ff] bg-[#F4F8FE]' : 'border-[#E5E5E5] hover:border-gray-300 bg-white'}`}>
+                        <span style={{fontFamily: f}} className="text-[16px] text-gray-800 leading-none mb-1">Aa</span>
+                        <span className="text-[8px] text-gray-500 truncate w-full text-center">{f}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Edge Style</p>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {EDGES.map(e => (
+                      <button key={e.id} onClick={() => setAppearance({...appearance, edges: e.id})} className={`relative w-full aspect-square border-2 transition-all flex items-start justify-end p-1 rounded-md ${appearance.edges === e.id ? 'border-[#0080ff] bg-[#F4F8FE]' : 'border-[#E5E5E5] hover:border-gray-300 bg-white'}`}>
+                        <div className="w-1/2 h-1/2 border-t-2 border-r-2 border-gray-400" style={{ borderTopRightRadius: e.radius, background: e.id === 'glass' ? 'linear-gradient(to bottom left, rgba(0,128,255,0.2), transparent)' : 'transparent' }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-2 border-t border-[#E5E5E5] bg-[#F9F9F9] rounded-b-lg">
+                  <button onClick={() => { onAskAI(); setShowAppearance(false); }} className="w-full py-2 bg-[#0080ff] text-white text-[12px] font-bold rounded-md hover:bg-[#0066cc] transition-colors shadow-sm">Ask AI to customize</button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 2. CENTER: Live Link Sync */}
-        <div className="flex justify-center w-1/2 relative">
+        <div className="flex justify-center w-1/3 relative hidden md:flex">
           <div className={`px-4 py-1.5 rounded-full text-[11px] font-mono flex items-center gap-2 border ${isDark ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-50 border-[#E5E5E5] text-gray-500'}`}>
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="truncate max-w-[200px] select-all">{shareUrl}</span>
@@ -125,7 +187,7 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
         </div>
 
         {/* 3. RIGHT: Reload + Publish */}
-        <div className="flex justify-end items-center gap-2 w-1/4 relative" ref={publishRef}>
+        <div className="flex justify-end items-center gap-2 w-1/3 relative" ref={publishRef}>
           
           <button onClick={onReload} className={`p-1.5 rounded-md transition-none ${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-[#707070] hover:text-[#333333] hover:bg-[#E5E5E5]'}`} title="Regenerate">
             <RefreshCw className="w-4 h-4" />
@@ -136,7 +198,7 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
           </button>
 
           {showPublish && (
-            <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-50 text-left font-sans p-1 text-[#333333]">
+            <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
               
               {publishView === 'main' ? (
                 <>
