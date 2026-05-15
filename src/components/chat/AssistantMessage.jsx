@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 export default function AssistantMessage({ content, isGenerating }) {
   if (isGenerating) {
     return (
-      <div className="flex justify-start w-full mb-6 font-sans">
+      <div className="flex justify-start w-full mb-6">
         <div className="flex items-center gap-1.5 h-6">
           <motion.div className="w-2 h-2 bg-black rounded-full" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0 }} />
           <motion.div className="w-2 h-2 bg-black rounded-full" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }} />
@@ -25,9 +25,12 @@ export default function AssistantMessage({ content, isGenerating }) {
   };
 
   return (
-    <div className="flex justify-start w-full mb-6 font-sans">
-      {/* Slightly thinner text: text-gray-700 font-[400] */}
-      <div className="text-gray-700 text-[14.5px] font-[400] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap">
+    <div className="flex justify-start w-full mb-6">
+      {/* Enforced Open Sans on Assistant responses */}
+      <div 
+        className="text-gray-700 text-[14.5px] font-[300] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap"
+        style={{ fontFamily: '"Open Sans", sans-serif' }}
+      >
         {renderFormattedContent(content)}
       </div>
     </div>
