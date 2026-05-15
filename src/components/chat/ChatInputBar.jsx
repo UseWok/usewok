@@ -35,10 +35,11 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
     setFiles(files.filter((_, i) => i !== idx));
   };
 
+  // Simplified edgy modes
   const learningStrategies = [
-    { id: 'architect', icon: Target, name: 'Strategic Architect', desc: 'Constructs robust, logic-driven frameworks.' },
-    { id: 'auditor', icon: Binary, name: 'Forensic Auditor', desc: 'Meticulously dissects data to find anomalies and absolute truths.' },
-    { id: 'quant', icon: LineChart, name: 'Quantitative Engine', desc: 'Executes pure mathematical logic based on statistics.' },
+    { id: 'architect', icon: Target, name: 'Strategic Architect' },
+    { id: 'auditor', icon: Binary, name: 'Forensic Auditor' },
+    { id: 'quant', icon: LineChart, name: 'Quantitative Engine' },
   ];
 
   return (
@@ -47,34 +48,34 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
       {aiThemePromptActive && (
         <div className="absolute -top-10 left-2 z-[999]">
           <div className="bg-[#EBF5FF] border border-[#0080ff]/30 text-[#0080ff] text-[11px] font-bold px-3 py-1.5 rounded-md flex items-center gap-2 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5" /> Customizing AI Appearance...
+            <Sparkles className="w-3.5 h-3.5" /> AI Customization: Preference Active
             <button onClick={() => setAiThemePromptActive(false)} className="hover:bg-blue-100 rounded-full p-0.5 ml-1 transition-none"><X className="w-3 h-3"/></button>
           </div>
         </div>
       )}
 
-      {/* POPOVER: Absolute positioned, floating ABOVE everything (z-[999]), with dynamic bounding to avoid clipping */}
+      {/* POPOVER: Cleaned up AI mode selector */}
       {showAIConfig && (
-        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[300px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[999] p-1.5 font-sans transition-none">
-          <div className="pt-2 pb-1 space-y-1">
-            <h4 className="text-[10px] font-bold text-[#999999] tracking-wider mb-2 px-3 uppercase">AI Behavior Directive</h4>
+        <div className="absolute bottom-[calc(100%+12px)] left-0 w-[280px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[999] p-1.5 font-sans transition-none">
+          
+          <div className="p-2 bg-gray-50 rounded-md mb-2 flex items-center justify-between border border-[#E5E5E5]">
+            <div className="flex items-center gap-2">
+              <Zap className={`w-4 h-4 ${masterMode ? 'text-[#0080ff]' : 'text-gray-400'}`} />
+              <span className="text-[12px] font-bold text-[#333333]">Expert Finance Agent</span>
+            </div>
+            <Toggle enabled={masterMode} onChange={() => setMasterMode(!masterMode)} />
+          </div>
+
+          <div className="h-px bg-[#E5E5E5] mx-2 my-2"></div>
+
+          <div className="space-y-0.5">
             {learningStrategies.map((strategy) => (
               <button 
                 key={strategy.id} onClick={() => { setSelectedStrategy(strategy.id); setShowAIConfig(false); }} 
-                className="w-full text-left p-2.5 rounded-md flex items-start gap-3 hover:bg-[#F9F8F6] transition-none"
+                className={`w-full text-left p-2 rounded-md flex items-center gap-3 transition-none ${selectedStrategy === strategy.id ? 'bg-gray-100 text-[#0d0d0d]' : 'hover:bg-gray-50 text-gray-600'}`}
               >
-                <div className="mt-0.5 flex-shrink-0">
-                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${selectedStrategy === strategy.id ? 'border-[#0080ff]' : 'border-gray-300'}`}>
-                    {selectedStrategy === strategy.id && <div className="w-1.5 h-1.5 bg-[#0080ff] rounded-full" />}
-                  </div>
-                </div>
-                <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                       <strategy.icon className={`w-3.5 h-3.5 ${selectedStrategy === strategy.id ? 'text-[#0080ff]' : 'text-gray-500'}`} />
-                       <span className="text-[12px] font-bold text-[#333333]">{strategy.name}</span>
-                    </div>
-                    <p className="text-[11px] text-[#707070] mt-1 leading-snug">{strategy.desc}</p>
-                </div>
+                <strategy.icon className={`w-4 h-4 ${selectedStrategy === strategy.id ? 'text-[#0080ff]' : 'text-gray-400'}`} />
+                <span className="text-[12px] font-semibold">{strategy.name}</span>
               </button>
             ))}
           </div>
@@ -100,7 +101,6 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
             <Settings className="w-5 h-5" />
           </button>
 
-          {/* ENFORCED OPEN SANS FOR INPUT */}
           <textarea 
             value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
             placeholder={aiThemePromptActive ? "Describe appearance change..." : "Message Wok..."}
@@ -127,13 +127,6 @@ export default function ChatInputBar({ input, setInput, onSend, onStop, isLoadin
                 <button onClick={handleSend} disabled={!input.trim() && (files?.length || 0) === 0} className={`absolute right-0 w-9 h-9 rounded-md flex items-center justify-center transition-none active:scale-95 shadow-sm ${(input.trim() || (files?.length || 0) > 0) ? 'bg-[#0A0A0A] text-white hover:bg-black/80' : 'bg-[#E5E5E5] text-white cursor-not-allowed'}`}>
                   <Sparkles className="w-[16px] h-[16px]" />
                 </button>
-              )}
-
-              {/* Static Mic Icon (Visual only, no animation logic for absolute zero-latency) */}
-              {!isRecording && (
-                 <button onClick={handleMicClick} className="absolute right-[44px] p-2 text-[#707070] hover:text-[#333333] hover:bg-[#F4F4F4] rounded-md transition-none active:scale-95">
-                    <Mic className="w-5 h-5" />
-                 </button>
               )}
             </div>
           </div>
