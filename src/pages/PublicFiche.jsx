@@ -1,119 +1,238 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-import { X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { base44 } from '@/api/base44Client';
 import { loadConversationFromCloud } from '@/lib/discussions';
 
-const FG = '#0A0A0A';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-function FicheContent({ content }) {
-  return (
-    <div style={{ fontSize: '15px', lineHeight: '1.85', color: '#1a1a1a' }}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          h1: ({ children }) => <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '28px 0 12px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
-          h2: ({ children }) => <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '22px 0 10px', color: FG }}>{children}</h2>,
-          h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '18px 0 8px', color: FG }}>{children}</h3>,
-          p: ({ children }) => <p style={{ margin: '0 0 16px', lineHeight: '1.85' }}>{children}</p>,
-          ul: ({ children }) => <ul style={{ margin: '10px 0 16px', paddingLeft: '22px', listStyleType: 'disc' }}>{children}</ul>,
-          ol: ({ children }) => <ol style={{ margin: '10px 0 16px', paddingLeft: '22px' }}>{children}</ol>,
-          li: ({ children }) => <li style={{ margin: '5px 0', lineHeight: '1.75' }}>{children}</li>,
-          strong: ({ children }) => <strong style={{ fontWeight: 700, color: FG }}>{children}</strong>,
-          blockquote: ({ children }) =>
-          <blockquote style={{ borderLeft: '3px solid #DDFF00', paddingLeft: '16px', margin: '14px 0', color: '#555', fontStyle: 'italic' }}>
-              {children}
-            </blockquote>,
+// --- THE PUBLIC LIVE RENDER ENGINE ---
+export function PublicLiveEngine({ content }) {
+  const [isCompiling, setIsCompiling] = useState(true);
+  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
-          hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.07)', margin: '24px 0' }} />,
-          code: ({ inline, children }) => inline ?
-          <code style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '4px', padding: '2px 7px', fontSize: '13px', fontFamily: 'monospace' }}>{children}</code> :
-          <pre style={{ background: '#f6f6f4', borderRadius: '12px', padding: '16px', overflowX: 'auto', margin: '12px 0' }}><code style={{ fontSize: '13px', fontFamily: 'monospace' }}>{children}</code></pre>,
-          table: ({ children }) =>
-          <div style={{ overflowX: 'auto', margin: '16px 0', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>{children}</table>
-            </div>,
+  // Default to Wok Sand / Inter for public pages if no appearance object is passed
+  const font = 'Inter, system-ui, sans-serif';
+  const FG = '#0A0A0A';
 
-          thead: ({ children }) => <thead style={{ background: FG }}>{children}</thead>,
-          th: ({ children }) => <th style={{ textAlign: 'left', padding: '12px 16px', color: 'white', fontWeight: 700, fontSize: '13px' }}>{children}</th>,
-          td: ({ children }) => <td style={{ padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>{children}</td>
-        }}>
+  useEffect(() => {
+    setIsCompiling(true);
+
+    let html = '';
+    let css = '';
+    let js = '';
+    let rawComponent = '';
+
+    if (content) {
+      const bt = String.fromCharCode(96, 96, 96);
+      const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
+      const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
+      const jsRegex = new RegExp(bt + '(?:javascript|js|jsx|react)\\n([\\s\\S]*?)' + bt, 'i');
+
+      const htmlMatch = content.match(htmlRegex);
+      const cssMatch = content.match(cssRegex);
+      const jsMatch = content.match(jsRegex);
+
+      if (htmlMatch) html = htmlMatch[1];
+      if (cssMatch) css = cssMatch[1];
+      if (jsMatch) js = jsMatch[1];
+      
+      if (!jsMatch && htmlMatch && (html.includes('export default') || html.includes('import React') || html.includes('function App'))) {
+          js = html;
+          html = '';
+      }
+
+      rawComponent = js || html || css || content;
+
+      if (js) {
+        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]lucide-react['"];?/g, 'const { $1 } = window.lucideReact;');
+        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]recharts['"];?/g, 'const { $1 } = window.Recharts;');
+        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]framer-motion['"];?/g, 'const { $1 } = window.Motion;');
+        js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
+        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
+        js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
+        js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
+        js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
+        js = js.replace(/export\s+(const|let|var|function)/g, '$1');
+      }
+    }
+
+    setCompiledCode({ html, css, js, rawComponent });
+
+    const timer = setTimeout(() => setIsCompiling(false), 800);
+    return () => clearTimeout(timer);
+  }, [content]);
+
+  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
+
+  const srcDoc = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        {content}
-      </ReactMarkdown>
-    </div>);
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/recharts/umd/Recharts.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/lucide-react/dist/umd/lucide-react.min.js" crossorigin="anonymous"></script>
+        
+        <style>
+          html, body { 
+            margin: 0; 
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: ${font}; 
+            color: ${FG};
+            background-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          ::-webkit-scrollbar { width: 6px; }
+          ::-webkit-scrollbar-track { background: transparent; }
+          ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 10px; }
+          ${compiledCode.css}
+        </style>
+      </head>
+      <body>
+        <div id="root" style="width:100%; height:100%; padding: 0;"></div>
+        ${compiledCode.html}
+        
+        <script>
+          window.onerror = function(message) {
+            const root = document.getElementById('root');
+            if(root) {
+               root.innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Execution Crash:</strong><br/>' + (message || 'Script error.') + '</div>';
+            }
+            return true;
+          };
+        </script>
 
+        <script type="text/babel" data-type="module">
+          const { useState, useEffect, useRef, useMemo, useCallback } = React;
+          
+          const createSafeLibrary = (libObj, libName) => {
+            return new Proxy(libObj || {}, {
+              get(target, prop) {
+                if (prop in target) return target[prop];
+                if (prop === '__esModule') return true;
+                if (typeof prop === 'string' && prop.match(/^[A-Z]/)) {
+                  return function FallbackComponent() {
+                    return React.createElement(
+                      "span",
+                      { style: { color: '#ef4444', fontSize: '11px', border: '1px dashed #ef4444', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#fef2f2', fontWeight: 'bold' } },
+                      String(prop)
+                    );
+                  };
+                }
+                return undefined;
+              }
+            });
+          };
+
+          window.lucideReact = createSafeLibrary(window.lucideReact || window.lucide || {}, 'lucide-react');
+          window.lucide = window.lucideReact;
+          window.Recharts = createSafeLibrary(window.Recharts || window.recharts || {}, 'recharts');
+          window.Motion = createSafeLibrary(window.Motion || window.framerMotion || {}, 'framer-motion');
+          window.framerMotion = window.Motion;
+
+          try {
+            ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
+            if (typeof App !== 'undefined') {
+              const root = ReactDOM.createRoot(document.getElementById('root'));
+              root.render(React.createElement(App));
+            } else {
+              throw new Error("Wok Engine failed: The main React component must be named 'App'.");
+            }
+          } catch(err) {
+            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
+          }
+        </script>
+      </body>
+    </html>
+  `;
+
+  if (hasComponent) {
+    return (
+      <div className="w-full h-screen relative bg-white">
+        <AnimatePresence>
+          {isCompiling && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm"
+            >
+              <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <iframe
+          title="Wok Live Preview"
+          srcDoc={srcDoc}
+          className="w-full h-full border-none absolute inset-0 z-0"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      </div>
+    );
+  }
+
+  // Fallback to Markdown if the AI generated pure text
+  return (
+    <div className="prose prose-sm max-w-2xl mx-auto p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.8' }}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
+  );
 }
 
 export default function PublicFiche() {
   const { id } = useParams();
+  
+  // Backwards compatibility with the `--` splitting logic
   const parts = id?.split('--') || [];
   const conversationId = parts[0];
-  const msgIdx = parts.length > 1 ? parseInt(parts[1]) : null;
-
+  
   const [messages, setMessages] = useState([]);
-  const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
-  const [showBadge, setShowBadge] = useState(true);
 
   useEffect(() => {
-    if (!conversationId) {setLoading(false);return;}
+    if (!conversationId) {
+      setLoading(false);
+      return;
+    }
     loadConversationFromCloud(conversationId).then((msgs) => {
       if (msgs?.length > 0) setMessages(msgs);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [conversationId]);
 
-  const ficheMessages = msgIdx !== null ?
-  messages.filter((m, i) => m.role === 'assistant' && i === msgIdx && m.content?.length > 40) :
-  messages.filter((m) => m.role === 'assistant' && m.content?.length > 40);
-
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-4 border-gray-100 border-t-black rounded-full animate-spin" />
-      </div>);
+        <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin" />
+      </div>
+    );
+  }
 
+  // Get the last message the assistant generated
+  const assistantMessages = messages.filter((m) => m.role === 'assistant' && m.content?.length > 40);
+  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].content : null;
+
+  if (!finalContent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-lg font-semibold text-gray-400">Intelligence not found or not published.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white font-inter">
-
-
-      {/* Content */}
-      <main className="max-w-2xl mx-auto px-6 py-14">
-        {ficheMessages.length === 0 ?
-        <div className="text-center py-24">
-            <p className="text-lg font-semibold text-zinc-300">Fiche introuvable ou non publiée.</p>
-          </div> :
-
-        ficheMessages.map((msg, i) =>
-        <div key={i} className={i < ficheMessages.length - 1 ? 'mb-14 pb-14' : ''}
-        style={i < ficheMessages.length - 1 ? { borderBottom: '1px solid rgba(0,0,0,0.06)' } : {}}>
-              <FicheContent content={msg.content} />
-            </div>
-        )
-        }
-      </main>
-
-      {/* Floating badge */}
-      {showBadge &&
-      <div
-        className="fixed bottom-6 right-6 flex items-center gap-2 px-3 py-2"
-        style={{ background: FG, borderRadius: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 100 }}>
-          <img src={LOGO_URL} alt="Stensor" className="w-5 h-5 object-contain" />
-          <a href="/" className="text-xs font-bold text-white whitespace-nowrap">Edit with Stensor</a>
-          
-          <button onClick={() => setShowBadge(false)}
-        className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20">
-            <X className="w-2.5 h-2.5 text-white" />
-          </button>
-        </div>
-      }
-    </div>);
-
+    <div className="w-full h-screen overflow-hidden bg-white">
+      <PublicLiveEngine content={finalContent} />
+    </div>
+  );
 }
