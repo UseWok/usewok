@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -28,6 +24,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     let rawComponent = '';
 
     if (content) {
+      // Dynamic backticks to prevent markdown UI crashes
       const bt = String.fromCharCode(96, 96, 96);
       const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
       const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
@@ -52,7 +49,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       let componentLogic = js;
 
       if (componentLogic) {
-        // DOUBLE-SANITIZATION: Strip any stray markdown that leaked into the JS variable
+        // DOUBLE-SANITIZATION: Strip any stray markdown that leaked into the JS block
         componentLogic = componentLogic.replace(/```jsx/g, '').replace(/```javascript/g, '').replace(/```/g, '');
 
         // SURGICALLY EXTRACT IMPORTS
@@ -64,7 +61,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = componentLogic.replace(importRegex, ''); 
         }
 
-        // Clean exports so React can mount the App cleanly
+        // Clean exports so Babel can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -94,7 +91,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // React Error Boundary is injected natively to catch asynchronous lifecycle errors
+  // React Error Boundary + Console Hijacker to intercept Silent Babel Crashes
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -138,17 +135,24 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         ${compiledCode.html}
         
         <script>
+          // THE CONSOLE HIJACKER: Catches silent Babel compilation errors
+          const oldError = console.error;
+          console.error = function(...args) {
+            const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: 'Compilation Error: ' + msg }, '*');
+            oldError.apply(console, args);
+          };
+
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
-            const root = document.getElementById('root');
-            if(root) {
-               root.innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Execution Crash:</strong><br/>' + (message || 'Script error.') + '</div>';
-            }
             return true;
           };
+          window.addEventListener('unhandledrejection', function(event) {
+            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: 'Unhandled Promise: ' + event.reason }, '*');
+          });
         </script>
 
-        <script type="text/babel" data-type="module">
+        <script type="text/babel" data-type="module" data-presets="react">
           import React from 'react';
           import { createRoot } from 'react-dom/client';
           
@@ -167,12 +171,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
             }
             render() {
               if (this.state.hasError) {
-                return (
-                  <div style={{ color: '#991b1b', padding: '24px', fontFamily: 'monospace', fontSize: '13px', background: '#fee2e2', borderLeft: '4px solid #f87171', margin: '20px', borderRadius: '4px' }}>
-                    <strong>React Render Crash:</strong><br/>
-                    {this.state.errorMessage}
-                  </div>
-                );
+                return null; // The error is sent to the parent UI instead of rendering in the iframe
               }
               return this.props.children;
             }
@@ -190,7 +189,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
             }
           } catch(err) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
-            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
           }
         </script>
       </body>
