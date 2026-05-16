@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -52,7 +48,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       let componentLogic = js;
 
       if (js) {
-        // SURGICALLY EXTRACT IMPORTS
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
         const matchedImports = js.match(importRegex);
         
@@ -61,7 +56,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = js.replace(importRegex, ''); 
         }
 
-        // Clean exports so Babel can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -76,7 +70,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     return () => clearTimeout(timer);
   }, [content]);
 
-  // Listen for runtime errors from the iframe
   useEffect(() => {
     const handleMessage = (e) => {
       if (e.data?.type === 'WOK_RUNTIME_ERROR') {
@@ -91,7 +84,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // Modern ESM Architecture with ?bundle to PREVENT ambiguous export crashes
+  // React Error Boundary is injected natively to catch asynchronous lifecycle errors like 'l.current is null'
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -146,18 +139,41 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </script>
 
         <script type="text/babel" data-type="module">
+          import React from 'react';
           import { createRoot } from 'react-dom/client';
           
-          // --- HOISTED AI IMPORTS ---
           ${compiledCode.imports}
           
+          class ErrorBoundary extends React.Component {
+            constructor(props) {
+              super(props);
+              this.state = { hasError: false, errorMessage: '' };
+            }
+            static getDerivedStateFromError(error) {
+              return { hasError: true, errorMessage: error.toString() };
+            }
+            componentDidCatch(error, errorInfo) {
+              window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*');
+            }
+            render() {
+              if (this.state.hasError) {
+                return (
+                  <div style={{ color: '#991b1b', padding: '24px', fontFamily: 'monospace', fontSize: '13px', background: '#fee2e2', borderLeft: '4px solid #f87171', margin: '20px', borderRadius: '4px' }}>
+                    <strong>React Render Crash:</strong><br/>
+                    {this.state.errorMessage}
+                  </div>
+                );
+              }
+              return this.props.children;
+            }
+          }
+
           try {
-            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
               const root = createRoot(document.getElementById('root'));
-              root.render(<App />);
+              root.render(<ErrorBoundary><App /></ErrorBoundary>);
               window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
               throw new Error("Wok Engine failed: The main React component must be named 'App'.");
