@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Code2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function AssistantMessage({ content, isGenerating, query }) {
   const [thinkingSteps, setThinkingSteps] = useState([]);
@@ -32,8 +34,8 @@ export default function AssistantMessage({ content, isGenerating, query }) {
         setThinkingSteps(s => {
           const newS = [...s];
           if(newS.length > 0) newS[newS.length - 1].done = true;
-          if (hasCode) return [...newS, { text: 'Generating logic (Line 14)...', done: false }];
-          if (hasStyle) return [...newS, { text: 'Injecting stylesheets...', done: false }];
+          if (hasCode) return [...newS, { text: 'Generating UI logic...', done: false }];
+          if (hasStyle) return [...newS, { text: 'Injecting modern stylesheets...', done: false }];
           return [...newS, { text: 'Synthesizing response...', done: false }];
         });
       }, 1900));
@@ -59,7 +61,6 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     return (
       <div className="flex justify-start w-full mb-6 font-sans px-4 md:px-0">
         <div className="flex flex-col relative w-full max-w-[85%]">
-          
           {/* Subtle Halo Effect for 'Thinking' */}
           <div className="absolute -inset-4 bg-white/60 blur-xl rounded-full z-0 pointer-events-none"></div>
 
@@ -91,16 +92,37 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     );
   }
 
-  // RENDER FINAL TEXT
-  const renderFormattedContent = (text) => {
+  // --- ARTIFACT HIDING LOGIC ---
+  const renderCleanContent = (text) => {
     if (!text) return null;
     let safeText = typeof text === 'string' ? text : JSON.stringify(text);
-    return safeText.split(/(\*\*.*?\*\*)/g).map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="font-semibold text-[#0d0d0d]">{part.slice(2, -2)}</strong>;
-      }
-      return <span key={index}>{part}</span>;
-    });
+
+    // 1. Check if a code block exists
+    const hasCodeBlock = /```[\s\S]*?```/.test(safeText);
+
+    // 2. Strip all code blocks out of the text string so they don't render in the chat
+    const textWithoutCode = safeText.replace(/```[\s\S]*?```/g, '').trim();
+
+    return (
+      <div className="flex flex-col gap-4">
+        {/* If the AI generated code, show a sleek success badge INSTEAD of the raw code */}
+        {hasCodeBlock && (
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F4F8FE] border border-[#0080ff]/20 rounded-xl max-w-fit">
+            <Code2 className="w-4 h-4 text-[#0080ff]" />
+            <span className="text-[12.5px] font-bold text-[#0080ff] tracking-tight">Interactive Component Deployed</span>
+          </div>
+        )}
+
+        {/* Render the remaining fluid text (if any) cleanly */}
+        {textWithoutCode && (
+          <div className="prose prose-sm max-w-none text-gray-700" style={{ fontSize: '14.5px', fontWeight: 300, lineHeight: 1.8, fontFamily: '"Open Sans", sans-serif' }}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {textWithoutCode}
+            </ReactMarkdown>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -110,11 +132,8 @@ export default function AssistantMessage({ content, isGenerating, query }) {
       transition={{ duration: 0.4 }}
       className="flex justify-start w-full mb-6 px-4 md:px-0"
     >
-      <div 
-        className="text-gray-700 text-[14.5px] font-[300] leading-[1.8] tracking-wide w-full max-w-[95%] whitespace-pre-wrap"
-        style={{ fontFamily: '"Open Sans", sans-serif' }}
-      >
-        {renderFormattedContent(content)}
+      <div className="w-full max-w-[95%]">
+        {renderCleanContent(content)}
       </div>
     </motion.div>
   );
