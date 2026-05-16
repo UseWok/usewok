@@ -80,34 +80,31 @@ const saveLocalDiscussions = (workspaceId, data) => {
 const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley business strategist and behavioral psychologist.
 Your goal: Analyze the user's prompt and generate a HIGHLY CONCRETE, REALISTIC, AND ACTIONABLE execution masterplan.
 CRITICAL RULES:
-1. TRUTHFUL & ACCESSIBLE: Do not use complex, academic jargon. Speak clearly, truthfully, and simply. Ensure the vocabulary is highly accessible.
-2. CONCRETE PLANS: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact actionable steps.
-3. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
-4. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
-5. Reply in the exact same language the user wrote in.`;
+1. CONCRETE TIMELINES: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact steps to take.
+2. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process. Use accessible, simple vocabulary. Do not use academic jargon.
+3. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
+4. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
 Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES:
-1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
-2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, rounded-3xl corners, and massive padding. No fake navbars or headers.
-3. LOOPING ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
+1. ABSOLUTE TEXT FIDELITY (CONTENT LOCK): You must inject the provided text verbatim into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
+2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, and massive padding. No fake navbars or headers.
+3. INFINITE SCROLL ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
    \`<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>\`
 4. MODERN IMPORTS: You operate in an ESM environment. You MUST use standard ES6 imports at the top of your file:
    \`import React, { useState, useEffect, useRef } from 'react';\`
    \`import { motion, AnimatePresence } from 'framer-motion';\`
    \`import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';\`
-   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';\`
-5. SAFE REACT PRACTICES (NO CRASHES): NEVER access ref.current without a strict null check (if (ref.current)). ALWAYS wrap Recharts <ResponsiveContainer> in a parent div with a strict minimum height (e.g., className="w-full h-64").
-6. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
+   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';\`
+5. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
 1. Output ONLY the raw jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
-2. If the error is 'ambiguous indirect export' or a module resolution error, DO NOT rewrite the React logic. Simply REMOVE the offending import (e.g., a broken lucide-react icon) and replace it with a safe fallback like 'AlertCircle' or 'CheckCircle2'.
-3. Keep the exact same design and UI, just solve the technical bug (e.g., adding missing refs, fixing imports, handling null values).
-4. Main component must be named 'App'. Do NOT use export default.`;
+2. Keep the exact same design and UI, just solve the technical bug (e.g. adding missing refs, fixing imports, handling null values, defining minimum heights for charts).
+3. Main component must be named 'App'. Do NOT use export default.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -582,22 +579,22 @@ export default function ChatPage() {
 
               {/* FROSTED GLASS AUTO-HEALING BANNER */}
               {runtimeError && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[90%] bg-white/85 backdrop-blur-xl border border-red-100 text-[#333333] p-3 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] z-[9999] flex flex-col md:flex-row items-center gap-4">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[90%] bg-white/90 backdrop-blur-xl border border-red-100/50 text-[#333333] p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-[9999] flex flex-col md:flex-row items-center gap-5">
                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
-                         <AlertTriangle className="w-4 h-4 text-red-500"/>
+                      <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                         <AlertTriangle className="w-5 h-5 text-red-500"/>
                       </div>
-                      <div className="flex flex-col max-w-[280px]">
-                        <span className="text-[#0d0d0d] font-bold text-[13px] leading-tight">Runtime Exception</span>
-                        <p className="text-[11px] text-gray-500 font-mono mt-0.5 line-clamp-2 leading-relaxed">{runtimeError}</p>
+                      <div className="flex flex-col max-w-[300px]">
+                        <span className="text-[#0d0d0d] font-bold text-[14px] leading-tight">Runtime Exception</span>
+                        <p className="text-[12px] text-gray-500 font-mono mt-1 line-clamp-2 leading-relaxed">{runtimeError}</p>
                       </div>
                    </div>
-                   <div className="hidden md:block w-px h-8 bg-gray-200/60 mx-1"></div>
-                   <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">0 Credits</span>
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={handleFixError} className="px-4 py-1.5 bg-[#0d0d0d] text-white text-[12px] font-bold rounded-xl hover:bg-[#333333] flex items-center gap-1.5 transition-all shadow-md"><Sparkles className="w-3.5 h-3.5"/> Auto-Fix</button>
-                        <button onClick={() => setRuntimeError(null)} className="text-gray-400 hover:text-gray-700 p-1.5 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X className="w-4 h-4"/></button>
+                   <div className="hidden md:block w-px h-10 bg-gray-200/60 mx-2"></div>
+                   <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                      <span className="text-[11px] text-gray-500 font-medium">This will not deduct any credits.</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={handleFixError} className="px-5 py-2 bg-[#0d0d0d] text-white text-[13px] font-bold rounded-xl hover:bg-[#333333] flex items-center gap-2 transition-all shadow-md"><Sparkles className="w-4 h-4"/> Auto-Fix with AI</button>
+                        <button onClick={() => setRuntimeError(null)} className="text-gray-400 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X className="w-4 h-4"/></button>
                       </div>
                    </div>
                 </div>
