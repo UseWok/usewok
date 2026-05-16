@@ -24,7 +24,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     let rawComponent = '';
 
     if (content) {
-      // Dynamic backticks to prevent markdown UI crashes
       const bt = String.fromCharCode(96, 96, 96);
       const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
       const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
@@ -61,10 +60,11 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = componentLogic.replace(importRegex, ''); 
         }
 
-        // Clean exports so Babel can mount the App cleanly
-        componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
-        componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
-        componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
+        // AGGRESSIVE EXPORT SANITIZATION: Prevents "ambiguous indirect export" crashes
+        componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
+        componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
+        componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
+        componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
       }
 
       setCompiledCode({ html, css, js: componentLogic, imports: extractedImports, rawComponent });
@@ -91,7 +91,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // React Error Boundary + Console Hijacker to intercept Silent Babel Crashes
+  // STRICT PEER DEPENDENCY MAP: Prevents duplicate React instances and 'ambiguous export' crashes
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -106,9 +106,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           "imports": {
             "react": "[https://esm.sh/react@18.2.0](https://esm.sh/react@18.2.0)",
             "react-dom/client": "[https://esm.sh/react-dom@18.2.0/client](https://esm.sh/react-dom@18.2.0/client)",
-            "lucide-react": "[https://esm.sh/lucide-react@0.378.0?bundle](https://esm.sh/lucide-react@0.378.0?bundle)",
-            "framer-motion": "[https://esm.sh/framer-motion@11.2.10?bundle](https://esm.sh/framer-motion@11.2.10?bundle)",
-            "recharts": "[https://esm.sh/recharts@2.12.7?bundle](https://esm.sh/recharts@2.12.7?bundle)"
+            "lucide-react": "[https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0](https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0)",
+            "framer-motion": "[https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0](https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0)",
+            "recharts": "[https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0](https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0)"
           }
         }
         </script>
@@ -135,7 +135,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         ${compiledCode.html}
         
         <script>
-          // THE CONSOLE HIJACKER: Catches silent Babel compilation errors
           const oldError = console.error;
           console.error = function(...args) {
             const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
@@ -171,7 +170,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
             }
             render() {
               if (this.state.hasError) {
-                return null; // The error is sent to the parent UI instead of rendering in the iframe
+                return null;
               }
               return this.props.children;
             }
