@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 // --- THE NATIVE ESM RENDER ENGINE ---
-export function LivePreviewEngine({ content, appearance }) {
+export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', imports: '', rawComponent: '' });
@@ -48,16 +48,14 @@ export function LivePreviewEngine({ content, appearance }) {
       let componentLogic = js;
 
       if (js) {
-        // 1. SURGICALLY EXTRACT IMPORTS (ESM requires imports at the absolute top-level)
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
         const matchedImports = js.match(importRegex);
         
         if (matchedImports) {
           extractedImports = matchedImports.join('\n');
-          componentLogic = js.replace(importRegex, ''); // Remove imports from the main logic block
+          componentLogic = js.replace(importRegex, ''); 
         }
 
-        // 2. Clean exports so Babel can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -72,9 +70,21 @@ export function LivePreviewEngine({ content, appearance }) {
     return () => clearTimeout(timer);
   }, [content]);
 
+  // Listen for runtime errors from the iframe
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data?.type === 'WOK_RUNTIME_ERROR') {
+        if (onError) onError(e.data.message);
+      } else if (e.data?.type === 'WOK_RUNTIME_SUCCESS') {
+        if (onSuccess) onSuccess();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onError, onSuccess]);
+
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // Modern ESM Architecture: Uses an importmap to resolve bare specifiers instantly via esm.sh
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -119,6 +129,7 @@ export function LivePreviewEngine({ content, appearance }) {
         
         <script>
           window.onerror = function(message) {
+            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             const root = document.getElementById('root');
             if(root) {
                root.innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Execution Crash:</strong><br/>' + (message || 'Script error.') + '</div>';
@@ -130,20 +141,20 @@ export function LivePreviewEngine({ content, appearance }) {
         <script type="text/babel" data-type="module">
           import { createRoot } from 'react-dom/client';
           
-          // --- HOISTED AI IMPORTS ---
           ${compiledCode.imports}
           
           try {
-            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
               const root = createRoot(document.getElementById('root'));
               root.render(<App />);
+              window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
               throw new Error("Wok Engine failed: The main React component must be named 'App'.");
             }
           } catch(err) {
+            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
             document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
           }
         </script>
@@ -221,7 +232,7 @@ export function LivePreviewEngine({ content, appearance }) {
   );
 }
 
-export default function FichePanel({ content = null, appearance }) {
+export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -231,7 +242,7 @@ export default function FichePanel({ content = null, appearance }) {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden" ref={scrollRef}>
       {content ? (
-        <LivePreviewEngine content={content} appearance={appearance} />
+        <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />
       ) : (
         <div className="flex flex-col items-center justify-center h-full w-full">
           <motion.div 
