@@ -4,51 +4,42 @@ import { CheckCircle2, LayoutTemplate } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// Rapid-Fire micro-statuses to kill wait fatigue
+const LOADING_STATUSES = [
+  "Initializing psychological models...",
+  "Structuring Bento Grid layout...",
+  "Injecting Framer animations...",
+  "Mapping Recharts visualizers...",
+  "Refining ultra-modern typography...",
+  "Compiling glassmorphism CSS...",
+  "Finalizing UI component tree..."
+];
+
 export default function AssistantMessage({ content, isGenerating, query }) {
-  const [thinkingSteps, setThinkingSteps] = useState([]);
+  const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
   const [localGenerating, setLocalGenerating] = useState(isGenerating);
 
+  // High-Speed Status Cycler
   useEffect(() => {
-    let timers = [];
-    
+    let interval;
     if (isGenerating) {
       setLocalGenerating(true);
-      setThinkingSteps([{ text: 'Initializing core environment...', done: false }]);
+      setCurrentStatusIndex(0);
       
-      const q = query?.toLowerCase() || '';
-      const hasCode = q.includes('code') || q.includes('build') || q.includes('script') || q.includes('component');
-
-      timers.push(setTimeout(() => {
-        setThinkingSteps(s => {
-          const newS = [...s];
-          if(newS.length > 0) newS[0].done = true;
-          return [...newS, { text: 'Parsing user query...', done: false }];
+      // Cycle to a new technical status every 1.8 seconds
+      interval = setInterval(() => {
+        setCurrentStatusIndex((prev) => {
+          if (prev < LOADING_STATUSES.length - 1) return prev + 1;
+          return prev; // Hold on the last status if generation takes very long
         });
-      }, 800));
-
-      timers.push(setTimeout(() => {
-        setThinkingSteps(s => {
-          const newS = [...s];
-          if(newS.length > 0) newS[newS.length - 1].done = true;
-          if (hasCode) return [...newS, { text: 'Generating UI logic...', done: false }];
-          return [...newS, { text: 'Synthesizing response...', done: false }];
-        });
-      }, 1900));
-
+      }, 1800);
     } else if (!isGenerating && localGenerating) {
-      setThinkingSteps(s => {
-        const newS = [...s];
-        if (newS.length > 0) newS[newS.length - 1].done = true;
-        return [...newS, { text: 'Execution complete.', done: true }];
-      });
-      
-      timers.push(setTimeout(() => {
-        setLocalGenerating(false);
-      }, 800));
+      // API finished. Wait a tiny bit then clear loading state.
+      setTimeout(() => setLocalGenerating(false), 600);
     }
 
-    return () => timers.forEach(clearTimeout);
-  }, [isGenerating, query, localGenerating]);
+    return () => clearInterval(interval);
+  }, [isGenerating, localGenerating]);
 
   if (localGenerating) {
     return (
@@ -56,26 +47,22 @@ export default function AssistantMessage({ content, isGenerating, query }) {
         <div className="flex flex-col relative w-full max-w-[85%]">
           <div className="absolute -inset-4 bg-white/60 blur-xl rounded-full z-0 pointer-events-none"></div>
           <div className="relative z-10 border-l-[3px] border-gray-200 pl-4 py-1 space-y-3">
-            <span className="text-[12px] font-bold text-gray-400 mb-2 block tracking-wider uppercase">Thinking...</span>
-            <AnimatePresence>
-              {thinkingSteps.map((step, idx) => (
-                <motion.div 
-                  key={idx} 
-                  initial={{ opacity: 0, x: -10 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                  className="flex items-center gap-2.5"
-                >
-                  {step.done ? (
-                    <CheckCircle2 className="w-[18px] h-[18px] text-green-500" />
-                  ) : (
-                    <div className="w-[18px] h-[18px] rounded-full border-2 border-t-[#0080ff] border-gray-200 animate-spin"></div>
-                  )}
-                  <span className={`text-[13px] ${step.done ? 'text-gray-500' : 'text-gray-900 font-medium'}`} style={{ fontFamily: '"Open Sans", sans-serif' }}>
-                    {step.text}
-                  </span>
-                </motion.div>
-              ))}
+            <span className="text-[12px] font-bold text-[#0080ff] mb-2 block tracking-widest uppercase flex items-center gap-2">
+              <div className="w-[14px] h-[14px] rounded-full border-2 border-t-[#0080ff] border-gray-200 animate-spin"></div>
+              Compiling Ecosystem
+            </span>
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={currentStatusIndex} 
+                initial={{ opacity: 0, y: 5 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -5, transition: { duration: 0.1 } }}
+                className="flex items-center gap-2.5"
+              >
+                <span className="text-[13px] text-gray-900 font-medium" style={{ fontFamily: '"Open Sans", sans-serif' }}>
+                  {LOADING_STATUSES[currentStatusIndex]}
+                </span>
+              </motion.div>
             </AnimatePresence>
           </div>
         </div>
