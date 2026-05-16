@@ -76,19 +76,20 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// GOD-TIER SYSTEM PROMPT WITH EXPLICIT GLOBAL BINDINGS
-const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI UI/UX architecture engine. You operate at Google-level engineering standards.
+// GOD-TIER SYSTEM PROMPT WITH STRICT BRANDING/WATERMARK SHIELDS
+const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI UI/UX architecture engine. You operate at elite, world-class engineering standards.
 CRITICAL DIRECTIVES:
 1. FULL-BLEED UI GENERATION: Do NOT output basic text. You must generate a COMPLETE, full-page, breathtaking React interface that acts as the entire answer. 
 2. INTEGRATED TEXT: Place your fluid, ultra-simple explanations IN THE EXACT LANGUAGE USED BY THE USER directly INSIDE the React UI you build.
-3. GLOBAL LIBRARIES (CRITICAL): Do NOT use import statements. Instead, destructure from these explicitly injected global objects:
+3. GLOBAL LIBRARIES: Do NOT use import statements. Destructure from these explicitly injected global objects:
    - React: \`const { useState, useEffect } = React;\`
    - Recharts: \`const { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = window.Recharts;\`
    - Framer Motion: \`const { motion, AnimatePresence } = window.Motion;\`
    - Lucide Icons: \`const { Home, Settings, ChevronRight, Zap } = window.lucide;\`
-4. MAIN COMPONENT: Your main React component MUST be named exactly 'App' (e.g., \`function App() { return ... }\`). DO NOT use export default.
-5. ZERO FLUFF: Output NOTHING but the \`\`\`jsx block. No conversational introductions. No conclusions. Just pure, executable architecture.
-6. DESIGN AESTHETICS: Enforce "breathable", ultra-modern aesthetics. NEVER use flashy, neon, or overly dark colors. Use ample whitespace, soft grays (slate-50), crisp whites, and elegant typography. Make it a WOW experience.`;
+4. MAIN COMPONENT: Your main component MUST be named exactly 'App' (e.g., \`function App() { return ... }\`). DO NOT use export default.
+5. ZERO BRANDING OR FOOTERS: You must build PURE interfaces. DO NOT generate grey footer bars, "Built with Wok" buttons, or watermarks. NEVER mention other tech companies in your branding. The UI must be completely clean and belong to the user.
+6. ZERO FLUFF: Output NOTHING but the \`\`\`jsx block. No conversational introductions. No conclusions. Just pure, executable architecture.
+7. DESIGN AESTHETICS: Enforce "breathable", ultra-modern aesthetics. NEVER use flashy, neon, or overly dark colors. Use ample whitespace, soft grays (slate-50), crisp whites, and elegant typography. Make it a WOW experience.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -472,7 +473,7 @@ export default function ChatPage() {
           <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
               <div ref={messagesEndRef} className="h-4" />
             </div>
