@@ -10,7 +10,7 @@ const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf83
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
-  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
+  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', imports: '', rawComponent: '' });
 
   const isDark = appearance?.theme === 'midnight';
   const FG = isDark ? '#F3F4F6' : '#0A0A0A';
@@ -44,22 +44,35 @@ export function LivePreviewEngine({ content, appearance }) {
 
       rawComponent = js || html || css || content;
 
-      if (js) {
-        // We no longer strip imports. We KEEP them so the ESM map can resolve them.
-        // We only clean the exports so Babel can mount the App cleanly.
-        js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
-        js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
-        js = js.replace(/export\s+(const|let|var|function)/g, '$1');
-      }
-    }
+      let extractedImports = '';
+      let componentLogic = js;
 
-    setCompiledCode({ html, css, js, rawComponent });
+      if (js) {
+        // 1. SURGICALLY EXTRACT IMPORTS (ESM requires imports at the absolute top-level)
+        const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
+        const matchedImports = js.match(importRegex);
+        
+        if (matchedImports) {
+          extractedImports = matchedImports.join('\n');
+          componentLogic = js.replace(importRegex, ''); // Remove imports from the main logic block
+        }
+
+        // 2. Clean exports so Babel can mount the App cleanly
+        componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
+        componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
+        componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
+      }
+
+      setCompiledCode({ html, css, js: componentLogic, imports: extractedImports, rawComponent });
+    } else {
+      setCompiledCode({ html: '', css: '', js: '', imports: '', rawComponent: '' });
+    }
 
     const timer = setTimeout(() => setIsCompiling(false), 800);
     return () => clearTimeout(timer);
   }, [content]);
 
-  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
+  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
   // Modern ESM Architecture: Uses an importmap to resolve bare specifiers instantly via esm.sh
   const srcDoc = `
@@ -115,10 +128,13 @@ export function LivePreviewEngine({ content, appearance }) {
         </script>
 
         <script type="text/babel" data-type="module">
-          import React from 'react';
           import { createRoot } from 'react-dom/client';
           
+          // --- HOISTED AI IMPORTS ---
+          ${compiledCode.imports}
+          
           try {
+            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
