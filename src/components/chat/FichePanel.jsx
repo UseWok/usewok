@@ -6,10 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance }) {
-  return <LivePreviewEngine content={content} appearance={appearance} />;
-}
-
+// --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
@@ -68,6 +65,7 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
+  // Swapped to stable JSDelivr CDNs to completely prevent "not defined" errors
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -76,12 +74,12 @@ export function LivePreviewEngine({ content, appearance }) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/recharts/umd/Recharts.min.js" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/lucide-react/dist/umd/lucide-react.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.6/babel.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.0/umd/Recharts.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.18.0/dist/framer-motion.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/lucide-react@0.330.0/dist/umd/lucide-react.min.js" crossorigin="anonymous"></script>
         
         <style>
           html, body { 
@@ -146,10 +144,6 @@ export function LivePreviewEngine({ content, appearance }) {
           
           window.Motion = createSafeLibrary(window.Motion || window.framerMotion || {}, 'framer-motion');
           window.framerMotion = window.Motion;
-          
-          const lucide = window.lucideReact;
-          const Recharts = window.Recharts;
-          const framerMotion = window.Motion;
 
           try {
             ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
