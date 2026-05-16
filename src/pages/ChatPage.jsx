@@ -76,25 +76,26 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE TOKEN-ECONOMY & AVANT-GARDE PROMPTS ---
+// --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
 
-// PROMPT 1: Raw Text Engine. NO Markdown. Pure value.
-const PROMPT_PSYCHOLOGIST = `You are an elite behavioral psychologist and strategist.
-Your goal: Answer the user's prompt by focusing deeply on human psychology, cognitive ease, and high-impact momentum.
-CRITICAL RULES FOR TOKEN ECONOMY:
-1. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#), no bullet points (-). Output pure, unformatted paragraph text.
-2. EXTREME CONCISION: Provide maximum insight in minimum words. Zero fluff. Get straight to the genius core of the answer.
-3. Reply in the exact same language the user wrote in.`;
-
-// PROMPT 2: The Architect. No fake navbars. 2026 Aesthetics.
-const PROMPT_ARCHITECT = `You are a God-tier UI/UX React Developer building an ultra-modern, 2026-era interface.
-Your goal: Take the provided psychological text and build a BREATHTAKING React component to display it.
+// PROMPT 1: The Strategist. Forces hyper-realistic, concrete timelines. No markdown formatting to save tokens.
+const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley business strategist and behavioral psychologist.
+Your goal: Analyze the user's prompt and generate a HIGHLY CONCRETE, REALISTIC, AND ACTIONABLE execution masterplan.
 CRITICAL RULES:
-1. NO FAKE NAVIGATION: Do NOT build non-functional headers, navbars, or footers unless the user explicitly asks for a "website". Focus 100% of your code on visualizing the core content.
-2. AVANT-GARDE AESTHETICS: Avoid the "2010s blog" look. Use elite design trends (like Linear, Vercel, or Stripe). Use extreme typographic scale contrast, sleek Bento-box grids, subtle 1px borders (border-black/5), and massive breathing room.
-3. INTEGRATION: Break the raw text apart and weave it organically into interactive cards, visualizers (Recharts), or UI elements.
-4. GLOBAL LIBRARIES: Destructure from window: \`const { useState } = React;\`, \`const { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } = window.Recharts;\`, \`const { motion } = window.Motion;\`, \`const { Zap } = window.lucideReact;\`. NO IMPORT STATEMENTS.
-5. TOKEN ECONOMY: Write the most efficient, non-repetitive Tailwind code possible. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
+1. CONCRETE TIMELINES: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7", "Phase 2: Days 8-14"). Give specific metrics, tools, and exact steps to take. Do not give vague advice. Solve the problem completely.
+2. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
+3. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
+4. Reply in the exact same language the user wrote in.`;
+
+// PROMPT 2: The Architect. Forces Bento Grids, Glassmorphism, and Safe Icons.
+const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a 2026-era interface.
+Your goal: Take the raw strategic text provided and build a BREATHTAKING React component to present it.
+CRITICAL RULES:
+1. AVANT-GARDE AESTHETICS (NO 2010s BLOGS): You MUST use a Bento-box grid layout (grid-cols-1 md:grid-cols-3 gap-6). Use massive rounded corners (rounded-3xl), subtle borders (border border-slate-200/50), glassmorphism (bg-white/50 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]), and extreme typographic scale. Do NOT build a basic text article.
+2. NO FAKE NAVIGATION: Do NOT build non-functional navbars or headers. Focus 100% on the data widgets.
+3. SAFE ICONS ONLY (PREVENT CRASHES): Do NOT guess icon names. You may ONLY destructure and use these exact verified icons from window.lucideReact: { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe }.
+4. GLOBAL LIBRARIES: Destructure from window: \`const { useState } = React;\`, \`const { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } = window.Recharts;\`, \`const { motion } = window.Motion;\`. NO IMPORT STATEMENTS.
+5. INTEGRATION: Break the strategy text into pieces and weave it beautifully into the Bento-box cards. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -285,7 +286,7 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // Phase 1: Psychologist (Generate dense, unformatted text to save tokens)
+      // Phase 1: Psychologist (Generate dense, actionable, hyper-realistic text)
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -297,9 +298,9 @@ export default function ChatPage() {
       // Update UI instantly with the raw text
       setFicheContent(psychologicalText);
 
-      // Phase 2: Architect (Wrap text in avant-garde UI, no fake navbars)
+      // Phase 2: Architect (Wrap text in avant-garde UI, guaranteed safe icons)
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\nInject this text into an elite UI component:\n" + psychologicalText, 
+        prompt: PROMPT_ARCHITECT + "\n\nInject this text into an elite Bento-box UI component:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
       });
 
