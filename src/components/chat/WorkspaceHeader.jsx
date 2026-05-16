@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { RefreshCw, Palette, ExternalLink, ArrowLeft, Mail, Sparkles } from 'lucide-react';
+import { RefreshCw, Palette, ExternalLink, ArrowLeft, Mail, Sparkles, Type } from 'lucide-react';
+import { base44 } from '@/api/base44Client'; // INJECTED CLOUD CLIENT
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
@@ -16,26 +17,29 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-// High-End Preset Ambiances
 const AMBIANCES = [
-  { id: 'wok_sand', name: 'Wok Sand', theme: 'sand', font: 'Inter', edges: 'soft', previewColor: '#FDFBF7' },
-  { id: 'wix_clean', name: 'Wix Clean', theme: 'classic', font: 'System UI', edges: 'square', previewColor: '#FFFFFF' },
-  { id: 'stripe_modern', name: 'Stripe', theme: 'grid', font: 'Inter', edges: 'round', previewColor: '#FAFAFA' },
-  { id: 'deep_void', name: 'Deep Void', theme: 'midnight', font: 'Roboto', edges: 'glass', previewColor: '#0B0F19' }
+  { id: 'wok_sand', name: 'Wok Sand', theme: 'sand', edges: 'soft', previewColor: '#FDFBF7' },
+  { id: 'wix_clean', name: 'Wix Clean', theme: 'classic', edges: 'square', previewColor: '#FFFFFF' },
+  { id: 'stripe_modern', name: 'Stripe', theme: 'grid', edges: 'round', previewColor: '#FAFAFA' },
+  { id: 'deep_void', name: 'Deep Void', theme: 'midnight', edges: 'glass', previewColor: '#0B0F19' }
 ];
 
-export default function WorkspaceHeader({ onReload, appearance, setAppearance, onAskAI, convId }) {
+const FONTS = ['Inter', 'System UI', 'Roboto', 'Playfair Display', 'Space Grotesk'];
+
+export default function WorkspaceHeader({ onReload, appearance, setAppearance, onAskAI, convId, content }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
-  const [showDomainModal, setShowDomainModal] = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [indexGoogle, setIndexGoogle] = useState(false);
-  const [showAppearance, setShowAppearance] = useState(false);
-
+  const [showDomainModal, setShowDomainModal] = useState(false);
+  
   const publishRef = useRef(null);
   const appRef = useRef(null);
+  
+  const isDark = appearance?.theme === 'midnight';
 
   useEffect(() => {
     const slug = convId || `conv_${Date.now().toString().slice(-6)}`;
@@ -55,27 +59,60 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handlePublish = () => {
-    setIsPublished(true);
-    toast.success("Intelligence deployed successfully.");
-    setShowPublish(false);
+  // API WIRE-UP: Publish to Cloud
+  const handlePublish = async () => {
+    try {
+      if (convId) {
+        await base44.entities.Conversation.update(convId, {
+          is_public: true,
+          slug: customSlug,
+          appearance: JSON.stringify(appearance)
+        });
+      }
+      setIsPublished(true);
+      toast.success("Intelligence déployée avec succès sur le Cloud.");
+      setShowPublish(false);
+    } catch (error) {
+      toast.error("Attente de configuration backend. Affichage local mis à jour.");
+      setIsPublished(true);
+      setShowPublish(false);
+    }
   };
 
-  const handleSaveDomain = () => {
-    if(!tempSlug.trim()) { toast.error("Path cannot be empty."); return; }
-    setCustomSlug(tempSlug.trim());
-    setShowDomainModal(false);
-    toast.success("Custom domain configuration saved.");
+  // API WIRE-UP: Save Domain to Cloud
+  const handleSaveDomain = async () => {
+    const slug = tempSlug.trim();
+    if(!slug) { 
+      toast.error("Le chemin ne peut pas être vide."); 
+      return; 
+    }
+    
+    const isValid = /^[a-z0-9-]{1,30}$/.test(slug);
+    if (!isValid) {
+      toast.error("Cette URL est invalide. Utilisez uniquement des lettres minuscules, des chiffres et des tirets. (Max 30 caractères)");
+      return;
+    }
+
+    try {
+      if (convId) {
+        await base44.entities.Conversation.update(convId, { slug: slug });
+      }
+      setCustomSlug(slug);
+      setShowDomainModal(false);
+      toast.success("Configuration de domaine sauvegardée sur le Cloud.");
+    } catch (error) {
+      toast.error("Attente de configuration backend. URL locale mise à jour.");
+      setCustomSlug(slug);
+      setShowDomainModal(false);
+    }
   };
 
   const shareUrl = `https://wok.base44.app/p/${customSlug}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copied to clipboard!");
+    toast.success("Lien copié dans le presse-papiers !");
   };
-
-  const isDark = appearance?.theme === 'midnight';
 
   return (
     <>
@@ -88,14 +125,18 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
             </div>
             
             <div className="p-6">
-              <label className="text-[12px] font-bold text-[#333333] mb-2 block">Public Link</label>
+              <label className="text-[12px] font-bold text-[#333333] mb-2 block">Public Link (Max 30 chars)</label>
               <div className="flex items-center w-full border border-[#E5E5E5] rounded-md overflow-hidden focus-within:border-[#0080ff] transition-colors">
                 <div className="bg-[#F9F9F9] px-3 py-2 border-r border-[#E5E5E5] text-[13px] text-[#707070] font-mono select-none hidden md:block">
                   https://wok.base44.app/p/
                 </div>
                 <input 
-                  type="text" value={tempSlug} onChange={(e) => setTempSlug(e.target.value)} 
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-[#333333]" autoFocus
+                  type="text" 
+                  maxLength={30}
+                  value={tempSlug} 
+                  onChange={(e) => setTempSlug(e.target.value)} 
+                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-[#333333]" 
+                  autoFocus
                 />
               </div>
 
@@ -115,10 +156,9 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
         </div>
       )}
 
-      {/* HEADER */}
-      <header className={`flex items-center justify-between px-4 h-[48px] flex-shrink-0 z-30 font-sans w-full rounded-t-md ${appearance?.theme !== 'classic' ? 'bg-transparent border-b border-black/5' : 'bg-[#F4F4F4] border-b border-[#E5E5E5]'}`}>
+      <header className={`flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full ${appearance?.theme !== 'classic' ? 'bg-transparent border-b border-black/5' : 'bg-white border-b border-[#E5E5E5]'}`}>
         
-        {/* 1. LEFT: Mac Dots + Ambiances Button */}
+        {/* 1. LEFT: Mac Dots + Configurator */}
         <div className="flex gap-4 items-center w-1/3 pl-1">
            <div className="flex gap-1.5 items-center">
              <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
@@ -127,58 +167,70 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
            </div>
            
            <div className="relative" ref={appRef}>
-            <button onClick={() => setShowAppearance(!showAppearance)} className={`px-3.5 py-1.5 rounded-md text-[12px] font-semibold flex items-center gap-1.5 shadow-sm transition-colors border ${isDark ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-[#E5E5E5] text-[#333333] hover:bg-gray-50'}`}>
-              <Palette className="w-3.5 h-3.5" /> Ambiances
+            <button 
+              onClick={() => setShowAppearance(!showAppearance)} 
+              className={`px-3.5 py-1.5 rounded-md text-[12px] font-semibold flex items-center gap-1.5 shadow-sm transition-colors border ${isDark ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-[#E5E5E5] text-[#333333] hover:bg-gray-50'}`}
+            >
+              <Palette className="w-3.5 h-3.5" /> Appearance
             </button>
             
             {showAppearance && (
-              <div className="absolute top-[calc(100%+6px)] left-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[9999] p-2 text-left font-sans text-[#333333]">
-                <p className="text-[10px] font-bold text-gray-400 px-2 py-1 uppercase tracking-wider">Premium Ecosystems</p>
-                <div className="grid grid-cols-2 gap-2 mt-2 mb-3 px-1">
-                  {AMBIANCES.map(a => (
-                    <button 
-                      key={a.id} 
-                      onClick={() => { setAppearance({ theme: a.theme, font: a.font, edges: a.edges }); setShowAppearance(false); }} 
-                      className={`flex flex-col items-start p-2 rounded-lg border transition-all ${appearance.theme === a.theme ? 'border-[#0080ff] bg-[#F4F8FE]' : 'border-[#E5E5E5] hover:border-gray-300 bg-white'}`}
-                    >
-                      <div className="w-full h-12 rounded-md mb-2 border border-black/5 shadow-inner" style={{ backgroundColor: a.previewColor }}></div>
-                      <span className="text-[12px] font-bold text-gray-800 leading-tight">{a.name}</span>
-                    </button>
-                  ))}
+              <div className="absolute top-[calc(100%+8px)] left-0 w-[320px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[9999] p-3 text-left font-sans text-[#333333]">
+                
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-1"><Palette className="w-3 h-3" /> Ambiances</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {AMBIANCES.map(a => (
+                      <button key={a.id} onClick={() => { setAppearance({...appearance, theme: a.theme, edges: a.edges}) }} className={`flex flex-col items-start p-2 rounded-lg border transition-all ${appearance.theme === a.theme ? 'border-[#0080ff] bg-[#F4F8FE] ring-1 ring-[#0080ff]/20' : 'border-[#E5E5E5] hover:border-gray-300 bg-white'}`}>
+                        <div className="w-full h-10 rounded-md mb-2 border border-black/5 shadow-inner" style={{ backgroundColor: a.previewColor }}></div>
+                        <span className="text-[12px] font-bold text-gray-800 leading-tight">{a.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="border-t border-[#E5E5E5] pt-2 mt-1">
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-1"><Type className="w-3 h-3" /> Typography</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FONTS.map(f => (
+                      <button key={f} onClick={() => setAppearance({...appearance, font: f})} className={`px-2.5 py-1.5 rounded-md border text-[11px] font-medium transition-colors ${appearance.font === f ? 'border-[#0080ff] bg-[#0080ff] text-white' : 'border-[#E5E5E5] bg-white text-gray-600 hover:bg-gray-50'}`}>
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-[#E5E5E5] pt-3">
                   <button onClick={() => { onAskAI(); setShowAppearance(false); }} className="w-full py-2 bg-[#0080ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0066cc] flex items-center justify-center gap-2 transition-colors shadow-sm">
                     <Sparkles className="w-3.5 h-3.5" /> Ask AI to Custom Build
                   </button>
                 </div>
+
               </div>
             )}
           </div>
         </div>
 
-        {/* 2. CENTER: Live Link Sync */}
+        {/* 2. CENTER: Live Link */}
         <div className="flex justify-center w-1/3 relative hidden md:flex">
-          <div className={`px-4 py-1.5 rounded-full text-[11px] font-mono flex items-center gap-2 border ${isDark ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-50 border-[#E5E5E5] text-gray-500'}`}>
+          <div className={`px-4 py-1.5 rounded-full text-[11px] font-mono flex items-center gap-2 border ${isDark ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-[#E5E5E5] text-gray-500 shadow-sm'}`}>
             <ExternalLink className="w-3.5 h-3.5" />
-            <span className="truncate max-w-[200px] select-all">{shareUrl}</span>
+            <span className="truncate max-w-[200px] select-all">wok.base44.app/p/{customSlug}</span>
           </div>
         </div>
 
-        {/* 3. RIGHT: Reload + Publish */}
+        {/* 3. RIGHT: Actions */}
         <div className="flex justify-end items-center gap-2 w-1/3 relative" ref={publishRef}>
-          
           <button onClick={onReload} className={`p-1.5 rounded-md transition-none ${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-[#707070] hover:text-[#333333] hover:bg-[#E5E5E5]'}`} title="Regenerate">
             <RefreshCw className="w-4 h-4" />
           </button>
-
-          <button onClick={() => setShowPublish(!showPublish)} className="px-3.5 py-1.5 bg-[#0080ff] text-white text-[12px] font-bold rounded-[6px] hover:bg-[#0066cc] shadow-sm">
+          
+          <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0080ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0066cc] shadow-sm">
             Publish
           </button>
 
           {showPublish && (
-            <div className="absolute top-[calc(100%+6px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-lg shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
-              
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
               {publishView === 'main' ? (
                 <>
                   <div className="p-3 border-b border-[#E5E5E5]">
@@ -231,7 +283,6 @@ export default function WorkspaceHeader({ onReload, appearance, setAppearance, o
                   </div>
                 </>
               ) : (
-                /* SHARE VIEW */
                 <>
                   <div className="p-3 border-b border-[#E5E5E5] flex items-center gap-2">
                     <button onClick={() => setPublishView('main')} className="p-1 hover:bg-gray-100 rounded-md text-gray-500"><ArrowLeft className="w-4 h-4" /></button>
