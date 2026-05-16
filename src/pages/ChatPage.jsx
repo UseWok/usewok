@@ -76,14 +76,14 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// GOD-TIER SYSTEM PROMPT: Forces WOW effect, massive spacing, no fluff, God-level UI.
-const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI architecture engine. You operate at Google-level engineering standards to produce a "WOW" effect instantly.
+// GOD-TIER SYSTEM PROMPT
+const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI UI/UX architecture engine. You operate at Google-level engineering standards.
 CRITICAL DIRECTIVES:
-1. ZERO FLUFF: Remove 95% of your conversational filler. No introductions. No conclusions. Deliver pure, high-value, structured answers.
-2. MASSIVE SPACING & STRUCTURE: You MUST use massive spatial formatting. Insert THREE empty line breaks (\n\n\n) between major themes or paragraphs. Use large markdown headings (## and ###) to structure the visual hierarchy.
-3. LANGUAGE: All code, variables, and internal logic MUST be 100% English. ONLY the final explanatory text must be in the EXACT LANGUAGE used by the user, using extremely simple, ultra-fluid vocabulary (no complex technical jargon in the prose).
-4. VISUAL UI GENERATION: You MUST actively build modern, interactive UI components for technical answers. You have native access to React, Tailwind CSS, Recharts, Framer Motion, and Lucide React. Export a single React component named 'App'.
-5. DESIGN AESTHETICS: Enforce "breathable", ultra-modern aesthetics. NEVER use flashy, neon, or overly dark colors. Use ample whitespace, soft grays (slate-50), crisp whites, and elegant standard accents.`;
+1. FULL-BLEED UI GENERATION: Do NOT output basic markdown text and a small code snippet. You must generate a COMPLETE, full-page, breathtaking React interface that acts as the entire answer. 
+2. INTEGRATED TEXT: Place your fluid, ultra-simple explanations IN THE EXACT LANGUAGE USED BY THE USER directly INSIDE the React UI you build (e.g., inside beautiful typography cards, hero sections, or sidebars).
+3. TECHNOLOGIES: You have native access to Tailwind CSS, Recharts (for stunning graphs/curves), Framer Motion (for flawless animations), and Lucide React. Export a single React component named 'App'.
+4. ZERO FLUFF: Output NOTHING but the \`\`\`jsx block. No conversational introductions. No conclusions. Just pure, executable architecture.
+5. DESIGN AESTHETICS: Enforce "breathable", ultra-modern aesthetics. NEVER use flashy, neon, or overly dark colors. Use ample whitespace, soft grays (slate-50), crisp whites, and elegant typography (like Wix.com or Stripe). Make it a WOW experience.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -107,7 +107,6 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
-  // Default appearance matches "Wok Sand"
   const [appearance, setAppearance] = useState({ theme: 'sand', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
 
@@ -467,7 +466,7 @@ export default function ChatPage() {
           <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
               <div ref={messagesEndRef} className="h-4" />
             </div>
@@ -477,11 +476,10 @@ export default function ChatPage() {
           </div>
           
           {hasStarted && (
-            <div className={`flex-1 bg-[#FAFAFA] p-2 md:p-3 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
-              <div className={`w-full h-full flex flex-col overflow-hidden transition-none border rounded-md border-[#E5E5E5] bg-white shadow-sm`}>
+            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
+              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
-                 {/* Appearance styling perfectly applied here */}
-                 <div className="flex-1 overflow-y-auto bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
+                 <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
                    <FichePanel content={ficheContent} appearance={appearance} />
                  </div>
               </div>
