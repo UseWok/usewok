@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -52,7 +48,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       let componentLogic = js;
 
       if (js) {
-        // 1. SURGICALLY EXTRACT IMPORTS (ESM requires imports at the absolute top-level)
+        // SURGICALLY EXTRACT IMPORTS
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
         const matchedImports = js.match(importRegex);
         
@@ -61,7 +57,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = js.replace(importRegex, ''); 
         }
 
-        // 2. Clean exports so Babel can mount the App cleanly
+        // Clean exports so Babel can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -91,7 +87,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // Modern ESM Architecture: Uses an importmap to resolve bare specifiers instantly via esm.sh
+  // Modern ESM Architecture with ?bundle to PREVENT ambiguous export crashes
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -106,9 +102,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           "imports": {
             "react": "https://esm.sh/react@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "lucide-react": "https://esm.sh/lucide-react@0.330.0",
-            "framer-motion": "https://esm.sh/framer-motion@10.18.0",
-            "recharts": "https://esm.sh/recharts@2.12.0"
+            "lucide-react": "https://esm.sh/lucide-react@0.378.0?bundle",
+            "framer-motion": "https://esm.sh/framer-motion@11.2.10?bundle",
+            "recharts": "https://esm.sh/recharts@2.12.7?bundle"
           }
         }
         </script>
