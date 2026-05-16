@@ -77,32 +77,36 @@ const saveLocalDiscussions = (workspaceId, data) => {
 };
 
 // --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
-const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist.
-COST REDUCTION PROTOCOL: Output PURE, highly-dense actionable data. ZERO conversational filler. ZERO intros. Do not say "Here is your plan".
-GOAL: Generate a concrete execution masterplan integrating the user's specific preferences implicitly.
-CONTENT: Outline Phases, Specific Metrics, Tools, and brief accessible psychology explanations.
-FORMAT: Raw text, simple line breaks. NO markdown headings (#) or bolding (**).
-LANGUAGE: Reply in the exact same language the user wrote in.`;
+
+// COST-CRUSHER PROTOCOL: Pure data payload generation.
+const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist and behavioral psychologist.
+COST REDUCTION & CONTEXT PROTOCOL:
+1. Output PURE, highly-dense actionable data. ZERO conversational filler. ZERO intros.
+2. Analyze the user's query and IMPLICITLY merge their preferences, context, and requested features directly into a concrete masterplan.
+3. Outline exact phases (e.g., "Phase 1: Days 1-7"), Specific Metrics, and brief accessible psychological explanations.
+4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Use basic line breaks.
+5. Reply in the exact same language the user wrote in. This output will be read directly by an Architect AI.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
+Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES (FAILURE RESULTS IN CRASH):
-1. CONTENT LOCK (100% FIDELITY): Inject the exact text provided into the UI VERBATIM. Do not summarize it. Do not skip text. Present the truth exactly as provided.
-2. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
+1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
+2. RESTRICTED IMPORTS: You MUST use this exact import block. DO NOT ADD OR GUESS ANY OTHER ICONS. DO NOT DEVIATE:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
    import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-3. SAFE REACT PRACTICES: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
-4. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle borders, rounded-3xl corners. No fake navbars.
-5. INFINITE SCROLL: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
+3. SAFE REACT PRACTICES: NEVER access ref.current without a strict null check (if (ref.current)). ALWAYS wrap Recharts <ResponsiveContainer> in a <div className="w-full h-64">.
+4. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, rounded-3xl corners, and massive padding. No fake navbars.
+5. INFINITE SCROLL: Use this exact Framer Motion snippet for all elements: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
 6. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
-The React code encountered a runtime error. Fix the code completely.
+The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
-1. Output ONLY the raw jsx block. No explanations. Zero conversational fluff.
-2. Keep the exact same design and UI, just solve the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
-3. If the error mentions 'ambiguous indirect export', remove the broken lucide-react icon and substitute it with 'Activity'.
+1. Output ONLY the raw jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
+2. Keep the exact same design and UI. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
+3. If the error mentions 'ambiguous indirect export', it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
 4. Main component must be named 'App'. Do NOT use export default.`;
 
 export default function ChatPage() {
@@ -299,6 +303,8 @@ export default function ChatPage() {
     try {
       // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
+        
+        // Dynamic string generation to bypass markdown UI crashes
         const bt = String.fromCharCode(96, 96, 96);
         const codeBlockRegex = new RegExp(bt + '(?:jsx|javascript|react)?\\n([\\s\\S]*?)' + bt, 'i');
         
