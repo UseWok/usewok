@@ -1,14 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Code2, LayoutTemplate } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
-  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', hasCode: false });
+  const [viewMode, setViewMode] = useState('preview');
+  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
   const isDark = appearance?.theme === 'midnight';
   const FG = isDark ? '#F3F4F6' : '#0A0A0A';
@@ -19,6 +20,7 @@ export function LivePreviewEngine({ content, appearance }) {
     let html = '';
     let css = '';
     let js = '';
+    let rawComponent = '';
 
     if (content) {
       const bt = String.fromCharCode(96, 96, 96);
@@ -34,26 +36,31 @@ export function LivePreviewEngine({ content, appearance }) {
       if (cssMatch) css = cssMatch[1];
       if (jsMatch) js = jsMatch[1];
       
-      if (!jsMatch && htmlMatch && (html.includes('export default') || html.includes('import React'))) {
+      if (!jsMatch && htmlMatch && (html.includes('export default') || html.includes('import React') || html.includes('function App'))) {
           js = html;
           html = '';
       }
 
+      rawComponent = js || html || css || content;
+
+      // Aggressive Import/Export Stripper for Sandbox Safety
       if (js) {
-        js = js.replace(/export\s+default\s+(?:function\s+App|App)/g, 'function App');
-        js = js.replace(/export\s+default\s+/g, '');
         js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
+        js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
+        js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
+        js = js.replace(/export\s+(const|let|var|function)/g, '$1');
       }
     }
 
-    const hasCode = !!(html || css || js);
-    setCompiledCode({ html, css, js, hasCode });
+    setCompiledCode({ html, css, js, rawComponent });
 
     const timer = setTimeout(() => setIsCompiling(false), 800);
     return () => clearTimeout(timer);
   }, [content]);
 
-  // FULL BLEED SANDBOX - Zero borders, full height/width
+  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
+
+  // Global Binding: This maps React, Lucide, Recharts, and Motion so the AI doesn't need imports
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -90,18 +97,27 @@ export function LivePreviewEngine({ content, appearance }) {
         ${compiledCode.html}
         
         <script type="text/babel" data-type="module">
+          // 1. Global Error Catcher
+          window.onerror = function(msg, url, line, col, err) {
+            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 14px; background: #fee2e2; border-bottom: 1px solid #f87171;"><strong>Runtime Crash:</strong><br/>' + msg + '</div>';
+            return false;
+          };
+
+          // 2. Map Enterprise Libraries to Global Scope
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
+          if (window.Recharts) Object.assign(window, window.Recharts);
+          if (window.Motion) Object.assign(window, window.Motion);
+          if (window.lucide) Object.assign(window, window.lucide);
           
-          try {
-            ${compiledCode.js}
-            
-            if (typeof App !== 'undefined') {
-              const root = ReactDOM.createRoot(document.getElementById('root'));
-              root.render(<App />);
-            }
-          } catch(err) {
-            console.error("Wok Runtime Error:", err);
-            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 20px; font-family: monospace; font-size: 13px; background: #fee2e2; border-radius: 8px; border: 1px solid #f87171;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
+          // 3. Execute AI Logic
+          ${compiledCode.js}
+          
+          // 4. Force Mount Component
+          if (typeof App !== 'undefined') {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+          } else {
+            throw new Error("Wok Engine failed: The main React component must be named 'App'.");
           }
         </script>
       </body>
@@ -110,25 +126,55 @@ export function LivePreviewEngine({ content, appearance }) {
 
   return (
     <div className="w-full h-full relative" style={{ color: isDark ? '#E5E7EB' : '#1a1a1a', fontFamily: appearance?.font || 'inherit' }}>
-      {compiledCode.hasCode ? (
-        <div className="w-full h-full relative">
-          <AnimatePresence>
-            {isCompiling && (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-transparent backdrop-blur-sm"
+      {hasComponent ? (
+        <div className="w-full h-full flex flex-col bg-white">
+          
+          {/* Claude-Style Artifact Toggle */}
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-50/80 border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm backdrop-blur-md">
+            <div className="flex items-center gap-1 p-1 bg-gray-200/50 rounded-lg">
+              <button 
+                onClick={() => setViewMode('preview')} 
+                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
-                <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
-                <span className="text-[12px] font-bold text-[#0080ff] uppercase tracking-widest">Constructing UI...</span>
-              </motion.div>
+                <LayoutTemplate className="w-3.5 h-3.5" /> App Interface
+              </button>
+              <button 
+                onClick={() => setViewMode('code')} 
+                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                <Code2 className="w-3.5 h-3.5" /> Source Code
+              </button>
+            </div>
+            {isCompiling && <Loader2 className="w-4 h-4 text-gray-400 animate-spin mr-2" />}
+          </div>
+
+          <div className="flex-1 relative w-full h-full">
+            {viewMode === 'preview' ? (
+              <>
+                <AnimatePresence>
+                  {isCompiling && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm"
+                    >
+                      <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
+                      <span className="text-[12px] font-bold text-[#0080ff] uppercase tracking-widest">Building Ecosystem...</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <iframe
+                  title="Wok Live Preview"
+                  srcDoc={srcDoc}
+                  className="w-full h-full border-none absolute inset-0 z-0"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                />
+              </>
+            ) : (
+              <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300">
+                <pre><code>{compiledCode.rawComponent}</code></pre>
+              </div>
             )}
-          </AnimatePresence>
-          <iframe
-            title="Wok Live Preview"
-            srcDoc={srcDoc}
-            className="w-full h-full border-none absolute inset-0 z-0"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          />
+          </div>
         </div>
       ) : (
         <div className="prose prose-sm max-w-none p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.75' }}>
