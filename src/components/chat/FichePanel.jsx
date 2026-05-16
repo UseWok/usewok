@@ -61,7 +61,7 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Global Binding with CORS unmasking and Lucide-React bindings
+  // Global Binding with native error catching to bypass "Script error." masks
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -100,36 +100,37 @@ export function LivePreviewEngine({ content, appearance }) {
         
         <script>
           // 1. Unmasked Global Error Catcher
-          window.addEventListener('error', function(e) {
-            const msg = e.error ? e.error.message : e.message;
-            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-bottom: 1px solid #f87171;"><strong>Runtime Crash:</strong><br/>' + msg + '</div>';
-          });
+          window.onerror = function(message) {
+            const root = document.getElementById('root');
+            if(root) {
+               root.innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Execution Crash:</strong><br/>' + (message || 'Script error.') + '</div>';
+            }
+            return true;
+          };
         </script>
 
         <script type="text/babel" data-type="module">
-          // 2. Safe Global Binding Engine
+          // 2. Exact Alias Binding Engine
+          window.lucide = window.lucide || window.lucideReact || window.LucideReact || {};
+          window.framerMotion = window.Motion || window.framerMotion || {};
+          window.Recharts = window.Recharts || {};
+
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
           
-          const safeBind = (lib) => {
-            if (!lib) return;
-            for (let key in lib) {
-              try { window[key] = lib[key]; } catch (e) {}
+          try {
+            // 3. Execute AI Logic
+            ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
+            
+            // 4. Force Mount Component
+            if (typeof App !== 'undefined') {
+              const root = ReactDOM.createRoot(document.getElementById('root'));
+              root.render(<App />);
+            } else {
+              throw new Error("Wok Engine failed: The main React component must be named 'App'.");
             }
-          };
-
-          safeBind(window.Recharts);
-          safeBind(window.Motion);
-          safeBind(window.lucideReact || window.LucideReact || window.lucide);
-          
-          // 3. Execute AI Logic (escaped safely)
-          ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
-          
-          // 4. Force Mount Component
-          if (typeof App !== 'undefined') {
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-          } else {
-            throw new Error("Wok Engine failed: The main React component must be named 'App'.");
+          } catch(err) {
+            console.error("Wok Runtime Error:", err);
+            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
           }
         </script>
       </body>
