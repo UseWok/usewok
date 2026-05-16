@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -52,8 +48,8 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       let componentLogic = js;
 
       if (componentLogic) {
-        // DOUBLE-SANITIZATION: Strip any stray markdown that leaked into the JS block
-        componentLogic = componentLogic.replace(/```jsx/g, '').replace(/```javascript/g, '').replace(/```/g, '');
+        // DOUBLE-SANITIZATION: Strip stray markdown
+        componentLogic = componentLogic.replace(/```jsx/gi, '').replace(/```javascript/gi, '').replace(/```/g, '');
 
         // SURGICALLY EXTRACT IMPORTS
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
@@ -61,13 +57,20 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         
         if (matchedImports) {
           extractedImports = matchedImports.join('\n');
+          
+          // SMART IMPORT SANITIZER: Prevent Duplicate 'React' Declaration SyntaxError
+          extractedImports = extractedImports.replace(/import\s+React\s*,\s*\{/g, 'import {'); // "import React, { useState }" -> "import { useState }"
+          extractedImports = extractedImports.replace(/import\s+React\s+from/g, 'import from'); // "import React from" -> "import from"
+          extractedImports = extractedImports.replace(/import\s+from\s+['"]react['"];?/g, ''); // Removes empty react imports
+          
           componentLogic = componentLogic.replace(importRegex, ''); 
         }
 
         // Clean exports so React can mount the App cleanly
-        componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
-        componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
-        componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
+        componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
+        componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
+        componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
+        componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
       }
 
       setCompiledCode({ html, css, js: componentLogic, imports: extractedImports, rawComponent });
@@ -79,7 +82,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     return () => clearTimeout(timer);
   }, [content]);
 
-  // Listen for runtime errors from the iframe
   useEffect(() => {
     const handleMessage = (e) => {
       if (e.data?.type === 'WOK_RUNTIME_ERROR') {
@@ -94,7 +96,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // React Error Boundary is injected natively with namespaced imports to prevent SyntaxErrors
+  // RENDER ENGINE: Full-Bleed (no root padding) and Single-Source React
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -117,7 +119,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </script>
         
         <style>
-          html, body { 
+          html, body, #root { 
             margin: 0; 
             padding: 0;
             width: 100%;
@@ -134,7 +136,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </style>
       </head>
       <body>
-        <div id="root" style="width:100%; height:100%; padding: 24px;"></div>
+        <div id="root"></div>
         ${compiledCode.html}
         
         <script>
@@ -155,13 +157,12 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
-          import * as __WokReact__ from 'react';
-          import { createRoot as __WokCreateRoot__ } from 'react-dom/client';
+          import React from 'react';
+          import { createRoot } from 'react-dom/client';
           
-          // --- HOISTED AI IMPORTS ---
           ${compiledCode.imports}
           
-          class ErrorBoundary extends __WokReact__.Component {
+          class ErrorBoundary extends React.Component {
             constructor(props) {
               super(props);
               this.state = { hasError: false, errorMessage: '' };
@@ -181,11 +182,10 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           }
 
           try {
-            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
-              const root = __WokCreateRoot__(document.getElementById('root'));
+              const root = createRoot(document.getElementById('root'));
               root.render(<ErrorBoundary><App /></ErrorBoundary>);
               window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
@@ -239,7 +239,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
                 <iframe
                   title="Wok Live Preview"
                   srcDoc={srcDoc}
-                  className="w-full h-full border-none absolute inset-0 z-0"
+                  className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 />
               </>
