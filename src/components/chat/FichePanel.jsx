@@ -48,6 +48,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       let componentLogic = js;
 
       if (js) {
+        // 1. SURGICALLY EXTRACT IMPORTS (ESM requires imports at the absolute top-level)
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
         const matchedImports = js.match(importRegex);
         
@@ -56,6 +57,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = js.replace(importRegex, ''); 
         }
 
+        // 2. Clean exports so Babel can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -85,6 +87,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
+  // Modern ESM Architecture: Uses an importmap to resolve bare specifiers instantly via esm.sh
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -141,9 +144,11 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         <script type="text/babel" data-type="module">
           import { createRoot } from 'react-dom/client';
           
+          // --- HOISTED AI IMPORTS ---
           ${compiledCode.imports}
           
           try {
+            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
@@ -226,40 +231,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           >
             {content}
           </ReactMarkdown>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  const scrollRef = useRef(null);
-
-  useEffect(() => {
-    if (content && scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [content]);
-
-  return (
-    <div className="flex flex-col h-full w-full overflow-hidden" ref={scrollRef}>
-      {content ? (
-        <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full w-full">
-          <motion.div 
-            animate={{ rotate: 360 }} 
-            transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-            className="relative w-24 h-24 mb-6"
-          >
-            <div className="absolute inset-0 border-[1px] border-gray-300 rounded-full" />
-            <motion.div 
-              animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} 
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="absolute inset-2 border-[1px] border-gray-400 rounded-full border-dashed"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-[#0080ff] rounded-full shadow-[0_0_10px_#0080ff]" />
-            </div>
-          </motion.div>
         </div>
       )}
     </div>
