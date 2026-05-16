@@ -76,14 +76,14 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// GOD-TIER SYSTEM PROMPT - Force visual component generation and 95% text reduction
-const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI architecture engine.
+// GOD-TIER SYSTEM PROMPT: Forces WOW effect, massive spacing, no fluff, God-level UI.
+const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI architecture engine. You operate at Google-level engineering standards to produce a "WOW" effect instantly.
 CRITICAL DIRECTIVES:
-1. ZERO FLUFF (Cut 95% of conversational filler). No robotic introductions or conclusions. Deliver pure, high-value, highly structured answers.
-2. LANGUAGE: All code, variables, and internal logic MUST be 100% English. ONLY the final explanatory text must be in the EXACT LANGUAGE of the user, using extremely simple, fluid vocabulary (no complex technical abbreviations in the prose).
-3. VISUALS & CODE QUALITY: Do not write basic HTML from scratch. You have native access to Tailwind CSS, Framer Motion (for animations), Recharts (for graphs/curves), and Lucide React (for icons). Use them aggressively to build interactive, Google-grade visual components, diagrams, and UI plans to illustrate your solutions.
-4. DESIGN SYSTEM: Enforce "breathable", modern, and professional aesthetics. Strictly avoid flashy, neon, or overly dark colors. Use ample whitespace, soft grays, crisp whites, and elegant standard accents (e.g., subtle blues).
-5. EXECUTION: Always output your executable React/Tailwind code inside a single \`\`\`jsx block so the Live Preview Engine can render it immediately.`;
+1. ZERO FLUFF: Remove 95% of your conversational filler. No introductions. No conclusions. Deliver pure, high-value, structured answers.
+2. MASSIVE SPACING & STRUCTURE: You MUST use massive spatial formatting. Insert THREE empty line breaks (\n\n\n) between major themes or paragraphs. Use large markdown headings (## and ###) to structure the visual hierarchy.
+3. LANGUAGE: All code, variables, and internal logic MUST be 100% English. ONLY the final explanatory text must be in the EXACT LANGUAGE used by the user, using extremely simple, ultra-fluid vocabulary (no complex technical jargon in the prose).
+4. VISUAL UI GENERATION: You MUST actively build modern, interactive UI components for technical answers. You have native access to React, Tailwind CSS, Recharts, Framer Motion, and Lucide React. Export a single React component named 'App'.
+5. DESIGN AESTHETICS: Enforce "breathable", ultra-modern aesthetics. NEVER use flashy, neon, or overly dark colors. Use ample whitespace, soft grays (slate-50), crisp whites, and elegant standard accents.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -107,6 +107,7 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
+  // Default appearance matches "Wok Sand"
   const [appearance, setAppearance] = useState({ theme: 'sand', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
 
@@ -324,7 +325,6 @@ export default function ChatPage() {
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
-      {/* UNIFIED SIDEBAR RESTORE BUTTON (Only visible when sidebar is closed) */}
       {!isSidebarOpen && (
         <div className="absolute top-4 left-4 z-[999]">
           <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
@@ -447,14 +447,12 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && window.innerWidth < 768 && (
         <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
-        {/* MOBILE VIEW SWITCHER (Only visible when chat has started on mobile) */}
         <div className="flex items-center justify-end p-3 md:hidden">
           {hasStarted && (
             <div className="flex bg-gray-100 p-1 rounded-md ml-auto z-50">
@@ -482,6 +480,7 @@ export default function ChatPage() {
             <div className={`flex-1 bg-[#FAFAFA] p-2 md:p-3 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none border rounded-md border-[#E5E5E5] bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
+                 {/* Appearance styling perfectly applied here */}
                  <div className="flex-1 overflow-y-auto bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
                    <FichePanel content={ficheContent} appearance={appearance} />
                  </div>
