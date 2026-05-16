@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
+// --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
@@ -60,7 +61,7 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Global Binding: This maps React, Lucide, Recharts, and Motion so the AI doesn't need imports
+  // Global Binding with Safe Iterate: Prevents 'Infinity' read-only crashes
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -103,11 +104,23 @@ export function LivePreviewEngine({ content, appearance }) {
             return false;
           };
 
-          // 2. Map Enterprise Libraries to Global Scope
+          // 2. Safe Global Binding Engine
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
-          if (window.Recharts) Object.assign(window, window.Recharts);
-          if (window.Motion) Object.assign(window, window.Motion);
-          if (window.lucide) Object.assign(window, window.lucide);
+          
+          const safeBind = (lib) => {
+            if (!lib) return;
+            for (let key in lib) {
+              try { 
+                window[key] = lib[key]; 
+              } catch (e) {
+                // Silently skip read-only globals like 'Infinity'
+              }
+            }
+          };
+
+          safeBind(window.Recharts);
+          safeBind(window.Motion);
+          safeBind(window.lucide);
           
           // 3. Execute AI Logic
           ${compiledCode.js}
