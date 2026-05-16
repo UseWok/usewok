@@ -83,27 +83,28 @@ CRITICAL RULES:
 1. TRUTHFUL & ACCESSIBLE: Do not use complex, academic jargon. Speak clearly, truthfully, and simply. Ensure the vocabulary is highly accessible.
 2. CONCRETE PLANS: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact actionable steps.
 3. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
-4. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
+4. RAW TEXT ONLY: Do NOT use markdown. No bolding, no headings. Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
 5. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
 Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES:
 1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
-2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, and massive padding. No fake navbars or headers.
+2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, rounded-3xl corners, and massive padding. No fake navbars or headers.
 3. LOOPING ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
-   \`<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>\`
+   <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
 4. MODERN IMPORTS: You operate in an ESM environment. You MUST use standard ES6 imports at the top of your file:
-   \`import React, { useState } from 'react';\`
-   \`import { motion } from 'framer-motion';\`
-   \`import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';\`
-   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';\`
-5. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
+   import React, { useState, useEffect, useRef } from 'react';
+   import { motion } from 'framer-motion';
+   import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
+   import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+5. SAFE REACT PRACTICES: NEVER access ref.current without a strict null check (if (ref.current)). ALWAYS wrap Recharts <ResponsiveContainer> in a parent div with a strict minimum height (e.g., className="w-full h-64").
+6. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
-1. Output ONLY the raw \`\`\`jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
+1. Output ONLY the raw jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
 2. Keep the exact same design and UI, just solve the technical bug (e.g. adding missing refs, fixing imports, handling null values).
 3. Main component must be named 'App'. Do NOT use export default.`;
 
@@ -387,7 +388,7 @@ export default function ChatPage() {
 
   const handleFixError = () => {
     if (!runtimeError) return;
-    const promptMsg = `The following errors happened in the app:\n\n\`\`\`\n${runtimeError}\n\`\`\`\n\nPlease help me fix these errors.`;
+    const promptMsg = `The following errors happened in the app:\n\n${String.fromCharCode(96,96,96)}\n${runtimeError}\n${String.fromCharCode(96,96,96)}\n\nPlease help me fix these errors.`;
     const savedError = runtimeError;
     setRuntimeError(null);
     sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
@@ -584,7 +585,7 @@ export default function ChatPage() {
                       <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
                          <AlertTriangle className="w-4 h-4 text-red-500"/>
                       </div>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col max-w-[280px]">
                         <span className="text-[#0d0d0d] font-bold text-[13px] leading-tight">Runtime Exception</span>
                         <p className="text-[11px] text-gray-500 font-mono mt-0.5 line-clamp-2 leading-relaxed">{runtimeError}</p>
                       </div>
