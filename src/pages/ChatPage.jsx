@@ -78,24 +78,27 @@ const saveLocalDiscussions = (workspaceId, data) => {
 
 // --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
 
-// PROMPT 1: The Strategist. Forces hyper-realistic, concrete timelines. No markdown formatting to save tokens.
 const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley business strategist and behavioral psychologist.
 Your goal: Analyze the user's prompt and generate a HIGHLY CONCRETE, REALISTIC, AND ACTIONABLE execution masterplan.
 CRITICAL RULES:
-1. CONCRETE TIMELINES: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7", "Phase 2: Days 8-14"). Give specific metrics, tools, and exact steps to take. Do not give vague advice. Solve the problem completely.
+1. CONCRETE TIMELINES: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact steps to take.
 2. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
 3. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
 4. Reply in the exact same language the user wrote in.`;
 
-// PROMPT 2: The Architect. Forces Bento Grids, Glassmorphism, and Safe Icons.
-const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a 2026-era interface.
-Your goal: Take the raw strategic text provided and build a BREATHTAKING React component to present it.
+const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
+Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES:
-1. AVANT-GARDE AESTHETICS (NO 2010s BLOGS): You MUST use a Bento-box grid layout (grid-cols-1 md:grid-cols-3 gap-6). Use massive rounded corners (rounded-3xl), subtle borders (border border-slate-200/50), glassmorphism (bg-white/50 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]), and extreme typographic scale. Do NOT build a basic text article.
-2. NO FAKE NAVIGATION: Do NOT build non-functional navbars or headers. Focus 100% on the data widgets.
-3. SAFE ICONS ONLY (PREVENT CRASHES): Do NOT guess icon names. You may ONLY destructure and use these exact verified icons from window.lucideReact: { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe }.
-4. GLOBAL LIBRARIES: Destructure from window: \`const { useState } = React;\`, \`const { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } = window.Recharts;\`, \`const { motion } = window.Motion;\`. NO IMPORT STATEMENTS.
-5. INTEGRATION: Break the strategy text into pieces and weave it beautifully into the Bento-box cards. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
+1. ABSOLUTE TEXT FIDELITY: You must inject the provided text verbatim into the UI. Do not summarize it. Do not change the vocabulary. Do not make it complex. Present the truth exactly as provided.
+2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, and massive padding. No fake navbars or headers.
+3. INFINITE SCROLL ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
+   \`<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>\`
+4. MODERN IMPORTS: You operate in an ESM environment. You MUST use standard ES6 imports at the top of your file:
+   \`import React, { useState } from 'react';\`
+   \`import { motion } from 'framer-motion';\`
+   \`import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';\`
+   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';\`
+5. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -286,7 +289,7 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // Phase 1: Psychologist (Generate dense, actionable, hyper-realistic text)
+      // Phase 1: Psychologist
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -295,12 +298,11 @@ export default function ChatPage() {
       if (abortedRef.current) return;
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
       
-      // Update UI instantly with the raw text
       setFicheContent(psychologicalText);
 
-      // Phase 2: Architect (Wrap text in avant-garde UI, guaranteed safe icons)
+      // Phase 2: Architect (Now with exact content injection mandate)
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\nInject this text into an elite Bento-box UI component:\n" + psychologicalText, 
+        prompt: PROMPT_ARCHITECT + "\n\nInject this EXACT text into the UI without summarizing:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
       });
 
