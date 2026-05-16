@@ -271,4 +271,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   );
 }
 
-export default FichePanel;
+export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
+  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
+}
