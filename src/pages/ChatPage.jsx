@@ -80,29 +80,30 @@ const saveLocalDiscussions = (workspaceId, data) => {
 const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley business strategist and behavioral psychologist.
 Your goal: Analyze the user's prompt and generate a HIGHLY CONCRETE, REALISTIC, AND ACTIONABLE execution masterplan.
 CRITICAL RULES:
-1. CONCRETE TIMELINES: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact steps to take.
-2. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
-3. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
-4. Reply in the exact same language the user wrote in.`;
+1. TRUTHFUL & ACCESSIBLE: Do not use complex, academic jargon. Speak clearly, truthfully, and simply. Ensure the vocabulary is highly accessible.
+2. CONCRETE PLANS: Always provide exact, realistic phases (e.g., "Phase 1: Days 1-7"). Give specific metrics, tools, and exact actionable steps.
+3. PSYCHOLOGY: Explain the psychological 'why' behind the strategy so the user trusts the process.
+4. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#). Use basic line breaks to separate paragraphs. Be dense, direct, and zero fluff.
+5. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
 Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES:
-1. ABSOLUTE TEXT FIDELITY: You must inject the provided text verbatim into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
+1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
 2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, and massive padding. No fake navbars or headers.
-3. INFINITE SCROLL ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
+3. LOOPING ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
    \`<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>\`
 4. MODERN IMPORTS: You operate in an ESM environment. You MUST use standard ES6 imports at the top of your file:
    \`import React, { useState } from 'react';\`
    \`import { motion } from 'framer-motion';\`
    \`import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';\`
-   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';\`
+   \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';\`
 5. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
-1. Output ONLY the raw \`\`\`jsx block. No explanations. No markdown formatting.
+1. Output ONLY the raw \`\`\`jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
 2. Keep the exact same design and UI, just solve the technical bug (e.g. adding missing refs, fixing imports, handling null values).
 3. Main component must be named 'App'. Do NOT use export default.`;
 
@@ -298,27 +299,45 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // ZERO-CREDIT AUTO-HEALING PIPELINE
+      // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
+        
+        // Bypassing the Markdown UI glitch by dynamically generating the Regex 
+        const bt = String.fromCharCode(96, 96, 96);
+        const codeBlockRegex = new RegExp(bt + '(?:jsx|javascript|react)?\\n([\\s\\S]*?)' + bt, 'i');
+        
+        const codeMatch = ficheContent?.match(codeBlockRegex);
+        const codeToFix = codeMatch ? codeMatch[0] : ficheContent;
+
         const fixResult = await base44.integrations.Core.InvokeLLM({ 
-          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCurrent Code:\n" + ficheContent, 
+          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix, 
           model: 'gemini_3_flash' 
         });
 
         if (abortedRef.current) return;
-        const finalCode = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
+        const fixedCodeBlock = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
         
+        // Reconstruct the full content
+        let newContent = ficheContent;
+        if (codeMatch) {
+          let finalFixedCode = fixedCodeBlock;
+          if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}jsx\n${finalFixedCode}\n${bt}`;
+          newContent = ficheContent.replace(codeMatch[0], finalFixedCode);
+        } else {
+          newContent = fixedCodeBlock;
+        }
+
         await handleUpdateCredits(0); // FREE FIX
         setIsLoading(false);
-        setFicheContent(finalCode);
+        setFicheContent(newContent);
         
-        const finalMsgs = [...newMessages, { role: 'assistant', content: finalCode }];
+        const finalMsgs = [...newMessages, { role: 'assistant', content: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
-        return; // Bypass normal dual-pipeline
+        return; 
       }
 
-      // STANDARD DUAL-PIPELINE (Psychologist -> Architect)
+      // 2. STANDARD DUAL-PIPELINE (Psychologist -> Architect)
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -335,8 +354,13 @@ export default function ChatPage() {
       });
 
       if (abortedRef.current) return;
-      const finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
+      let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
       
+      const bt = String.fromCharCode(96, 96, 96);
+      if (!finalCode.includes(bt)) {
+        finalCode = `${bt}jsx\n${finalCode}\n${bt}`;
+      }
+
       const finalContent = psychologicalText + "\n\n" + finalCode;
 
       const cost = discussMode ? 1 : 10;
@@ -553,19 +577,25 @@ export default function ChatPage() {
                  </div>
               </div>
 
-              {/* AUTO-HEALING ERROR BANNER */}
+              {/* FROSTED GLASS AUTO-HEALING BANNER */}
               {runtimeError && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] bg-[#0A0A0A] text-white p-4 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 z-[9999] flex flex-col gap-3">
-                   <div className="flex items-start justify-between gap-4">
-                      <div className="flex flex-col">
-                        <span className="text-red-400 font-bold text-[13px] flex items-center gap-1.5"><AlertTriangle className="w-4 h-4"/> Runtime Error Detected</span>
-                        <p className="text-[12px] text-gray-300 font-mono mt-1 line-clamp-2">{runtimeError}</p>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[90%] bg-white/85 backdrop-blur-xl border border-red-100 text-[#333333] p-3 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] z-[9999] flex flex-col md:flex-row items-center gap-4">
+                   <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                         <AlertTriangle className="w-4 h-4 text-red-500"/>
                       </div>
-                      <button onClick={() => setRuntimeError(null)} className="text-gray-500 hover:text-white mt-0.5"><X className="w-4 h-4"/></button>
+                      <div className="flex flex-col">
+                        <span className="text-[#0d0d0d] font-bold text-[13px] leading-tight">Runtime Exception</span>
+                        <p className="text-[11px] text-gray-500 font-mono mt-0.5 line-clamp-2 leading-relaxed">{runtimeError}</p>
+                      </div>
                    </div>
-                   <div className="flex items-center justify-between mt-1 pt-3 border-t border-white/10">
-                      <span className="text-[10.5px] text-gray-500 font-medium">0 credits consumed for bug fixes</span>
-                      <button onClick={handleFixError} className="px-3.5 py-1.5 bg-white text-black text-[12px] font-bold rounded-lg hover:bg-gray-200 flex items-center gap-1.5 transition-colors"><Sparkles className="w-3.5 h-3.5"/> Auto-Fix with AI</button>
+                   <div className="hidden md:block w-px h-8 bg-gray-200/60 mx-1"></div>
+                   <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">0 Credits</span>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={handleFixError} className="px-4 py-1.5 bg-[#0d0d0d] text-white text-[12px] font-bold rounded-xl hover:bg-[#333333] flex items-center gap-1.5 transition-all shadow-md"><Sparkles className="w-3.5 h-3.5"/> Auto-Fix</button>
+                        <button onClick={() => setRuntimeError(null)} className="text-gray-400 hover:text-gray-700 p-1.5 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X className="w-4 h-4"/></button>
+                      </div>
                    </div>
                 </div>
               )}
