@@ -16,7 +16,7 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
 import { 
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft,
+  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, AlertTriangle, Sparkles,
   FileText, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
 } from 'lucide-react';
 
@@ -77,7 +77,6 @@ const saveLocalDiscussions = (workspaceId, data) => {
 };
 
 // --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
-
 const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley business strategist and behavioral psychologist.
 Your goal: Analyze the user's prompt and generate a HIGHLY CONCRETE, REALISTIC, AND ACTIONABLE execution masterplan.
 CRITICAL RULES:
@@ -89,7 +88,7 @@ CRITICAL RULES:
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
 Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES:
-1. ABSOLUTE TEXT FIDELITY: You must inject the provided text verbatim into the UI. Do not summarize it. Do not change the vocabulary. Do not make it complex. Present the truth exactly as provided.
+1. ABSOLUTE TEXT FIDELITY: You must inject the provided text verbatim into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
 2. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, and massive padding. No fake navbars or headers.
 3. INFINITE SCROLL ANIMATIONS: To save API tokens, use this exact Framer Motion snippet for all your elements to create stunning, looping scroll effects:
    \`<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>\`
@@ -99,6 +98,13 @@ CRITICAL RULES:
    \`import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';\`
    \`import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';\`
 5. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
+
+const PROMPT_AUTO_FIX = `You are an elite React Debugger.
+The user's React code encountered a runtime error. You must fix the code completely.
+CRITICAL RULES:
+1. Output ONLY the raw \`\`\`jsx block. No explanations. No markdown formatting.
+2. Keep the exact same design and UI, just solve the technical bug (e.g. adding missing refs, fixing imports, handling null values).
+3. Main component must be named 'App'. Do NOT use export default.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -134,6 +140,9 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
   const [showCodeModal, setShowCodeModal] = useState(false);
+
+  // AUTO-HEALING ERROR STATE
+  const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
     if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
@@ -275,7 +284,7 @@ export default function ChatPage() {
       setUser(prev => ({...prev, credits_used: newUsed}));
   };
 
-  const sendMessage = useCallback(async (text) => {
+  const sendMessage = useCallback(async (text, options = {}) => {
     if (!text?.trim() || isLoading) return;
     
     const userMsg = { role: 'user', content: text };
@@ -289,7 +298,27 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // Phase 1: Psychologist
+      // ZERO-CREDIT AUTO-HEALING PIPELINE
+      if (options.isCorrection) {
+        const fixResult = await base44.integrations.Core.InvokeLLM({ 
+          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCurrent Code:\n" + ficheContent, 
+          model: 'gemini_3_flash' 
+        });
+
+        if (abortedRef.current) return;
+        const finalCode = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
+        
+        await handleUpdateCredits(0); // FREE FIX
+        setIsLoading(false);
+        setFicheContent(finalCode);
+        
+        const finalMsgs = [...newMessages, { role: 'assistant', content: finalCode }];
+        setMessages(finalMsgs);
+        saveConversationMessages(convId, finalMsgs);
+        return; // Bypass normal dual-pipeline
+      }
+
+      // STANDARD DUAL-PIPELINE (Psychologist -> Architect)
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -300,7 +329,6 @@ export default function ChatPage() {
       
       setFicheContent(psychologicalText);
 
-      // Phase 2: Architect (Now with exact content injection mandate)
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_ARCHITECT + "\n\nInject this EXACT text into the UI without summarizing:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
@@ -331,7 +359,15 @@ export default function ChatPage() {
       setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
     }
-  }, [messages, isLoading, discussMode, currentWorkspace, user]);
+  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
+
+  const handleFixError = () => {
+    if (!runtimeError) return;
+    const promptMsg = `The following errors happened in the app:\n\n\`\`\`\n${runtimeError}\n\`\`\`\n\nPlease help me fix these errors.`;
+    const savedError = runtimeError;
+    setRuntimeError(null);
+    sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
+  };
 
   const handleStop = useCallback(() => {
     abortedRef.current = true; setIsLoading(false);
@@ -509,13 +545,30 @@ export default function ChatPage() {
           </div>
           
           {hasStarted && (
-            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
+            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
-                   <FichePanel content={ficheContent} appearance={appearance} />
+                   <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} />
                  </div>
               </div>
+
+              {/* AUTO-HEALING ERROR BANNER */}
+              {runtimeError && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] bg-[#0A0A0A] text-white p-4 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 z-[9999] flex flex-col gap-3">
+                   <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-red-400 font-bold text-[13px] flex items-center gap-1.5"><AlertTriangle className="w-4 h-4"/> Runtime Error Detected</span>
+                        <p className="text-[12px] text-gray-300 font-mono mt-1 line-clamp-2">{runtimeError}</p>
+                      </div>
+                      <button onClick={() => setRuntimeError(null)} className="text-gray-500 hover:text-white mt-0.5"><X className="w-4 h-4"/></button>
+                   </div>
+                   <div className="flex items-center justify-between mt-1 pt-3 border-t border-white/10">
+                      <span className="text-[10.5px] text-gray-500 font-medium">0 credits consumed for bug fixes</span>
+                      <button onClick={handleFixError} className="px-3.5 py-1.5 bg-white text-black text-[12px] font-bold rounded-lg hover:bg-gray-200 flex items-center gap-1.5 transition-colors"><Sparkles className="w-3.5 h-3.5"/> Auto-Fix with AI</button>
+                   </div>
+                </div>
+              )}
             </div>
           )}
         </div>
