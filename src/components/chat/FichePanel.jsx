@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-// --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
+// --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
@@ -45,12 +45,8 @@ export function LivePreviewEngine({ content, appearance }) {
       rawComponent = js || html || css || content;
 
       if (js) {
-        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]lucide-react['"];?/g, 'const { $1 } = window.lucideReact;');
-        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]recharts['"];?/g, 'const { $1 } = window.Recharts;');
-        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]framer-motion['"];?/g, 'const { $1 } = window.Motion;');
-        js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
-        js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
-        js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
+        // We no longer strip imports. We KEEP them so the ESM map can resolve them.
+        // We only clean the exports so Babel can mount the App cleanly.
         js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         js = js.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -65,20 +61,27 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
+  // Modern ESM Architecture: Uses an importmap to resolve bare specifiers instantly via esm.sh
   const srcDoc = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.6/babel.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.0/umd/Recharts.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.18.0/dist/framer-motion.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/lucide-react@0.330.0/dist/umd/lucide-react.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        
+        <script type="importmap">
+        {
+          "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.330.0",
+            "framer-motion": "https://esm.sh/framer-motion@10.18.0",
+            "recharts": "https://esm.sh/recharts@2.12.0"
+          }
+        }
+        </script>
         
         <style>
           html, body { 
@@ -90,7 +93,6 @@ export function LivePreviewEngine({ content, appearance }) {
             color: ${FG};
             background-color: transparent;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
           }
           ::-webkit-scrollbar { width: 6px; }
           ::-webkit-scrollbar-track { background: transparent; }
@@ -113,58 +115,17 @@ export function LivePreviewEngine({ content, appearance }) {
         </script>
 
         <script type="text/babel" data-type="module">
-          const { useState, useEffect, useRef, useMemo, useCallback } = React;
+          import React from 'react';
+          import { createRoot } from 'react-dom/client';
           
-          // THE PROXY SHIELD
-          const createSafeLibrary = (libObj, libName) => {
-            return new Proxy(libObj || {}, {
-              get(target, prop) {
-                if (prop in target) return target[prop];
-                if (prop === '__esModule') return true;
-                
-                if (typeof prop === 'string' && prop.match(/^[A-Z]/)) {
-                  console.warn(libName + ": Component '" + prop + "' is missing. Rendering fallback.");
-                  return function FallbackComponent() {
-                    return React.createElement(
-                      "span",
-                      { style: { color: '#ef4444', fontSize: '11px', border: '1px dashed #ef4444', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#fef2f2', fontWeight: 'bold' } },
-                      String(prop)
-                    );
-                  };
-                }
-                return undefined;
-              }
-            });
-          };
-
-          // Explicitly map all variations of library names to prevent case-sensitive crashes
-          const actualLucide = window.LucideReact || window.lucideReact || window.lucide || {};
-          window.lucideReact = createSafeLibrary(actualLucide, 'lucide-react');
-          window.lucide = window.lucideReact;
-          window.LucideReact = window.lucideReact;
-          
-          window.Recharts = createSafeLibrary(window.Recharts || window.recharts || {}, 'recharts');
-          window.recharts = window.Recharts; // Case-sensitivity catch
-          
-          window.Motion = createSafeLibrary(window.Motion || window.framerMotion || window.motion || {}, 'framer-motion');
-          window.framerMotion = window.Motion;
-          window.motion = window.Motion; // Case-sensitivity catch for 'window.motion'
-
-          // Local scope overrides just in case the AI forgets to destructure the window object
-          const lucide = window.lucideReact;
-          const Recharts = window.Recharts;
-          const recharts = window.Recharts;
-          const framerMotion = window.Motion;
-          const motion = window.Motion;
-
           try {
-            ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
+            ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
-              const root = ReactDOM.createRoot(document.getElementById('root'));
-              root.render(React.createElement(App));
+              const root = createRoot(document.getElementById('root'));
+              root.render(<App />);
             } else {
-              throw new Error("Wok failed: The main React component must be named 'App'.");
+              throw new Error("Wok Engine failed: The main React component must be named 'App'.");
             }
           } catch(err) {
             document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
@@ -219,9 +180,9 @@ export function LivePreviewEngine({ content, appearance }) {
                 />
               </>
             ) : (
-              <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300 leading-relaxed">
-                <pre><code>{compiledCode.rawComponent}</code></pre>
-              </div>
+               <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300 leading-relaxed">
+                 <pre><code>{compiledCode.rawComponent}</code></pre>
+               </div>
             )}
           </div>
         </div>
