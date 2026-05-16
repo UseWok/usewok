@@ -485,7 +485,7 @@ export default function ChatPage() {
           {hasStarted && (
             <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
-                 <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
+                 <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
                    <FichePanel content={ficheContent} appearance={appearance} />
                  </div>
