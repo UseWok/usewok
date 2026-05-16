@@ -76,21 +76,25 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// DUAL-PIPELINE PROMPTS
-const PROMPT_PSYCHOLOGIST = `You are an elite behavioral psychologist and business strategist.
-Your goal: Answer the user's prompt by focusing deeply on human psychology, cognitive ease, gamification, and high-impact momentum. 
-Rules:
-1. Output ONLY beautifully structured text. Use Markdown headings (##) and bullet points.
-2. Be extremely concise but incredibly insightful. Zero fluff. Make the user say "WOW".
+// --- ELITE TOKEN-ECONOMY & AVANT-GARDE PROMPTS ---
+
+// PROMPT 1: Raw Text Engine. NO Markdown. Pure value.
+const PROMPT_PSYCHOLOGIST = `You are an elite behavioral psychologist and strategist.
+Your goal: Answer the user's prompt by focusing deeply on human psychology, cognitive ease, and high-impact momentum.
+CRITICAL RULES FOR TOKEN ECONOMY:
+1. RAW TEXT ONLY: Do NOT use markdown. No bolding (**), no headings (#), no bullet points (-). Output pure, unformatted paragraph text.
+2. EXTREME CONCISION: Provide maximum insight in minimum words. Zero fluff. Get straight to the genius core of the answer.
 3. Reply in the exact same language the user wrote in.`;
 
-const PROMPT_ARCHITECT = `You are a God-tier UI/UX React Developer.
-Your goal: Take the following psychological text and wrap it in a BREATHTAKING, modern React interface.
-Rules:
-1. Use advanced layouts: Bento-box grids, glassmorphism, floating cards. It must look like a 2026 Apple or Stripe product.
-2. Integrate the text naturally into the UI. Do not leave the text as a separate block.
-3. You have native access to Tailwind CSS, window.Recharts (PieChart, AreaChart), window.Motion (framer-motion), and window.lucideReact (icons). DO NOT USE IMPORT STATEMENTS.
-4. Output ONLY the raw \`\`\`jsx code block. Your main component must be named 'App'. No introductions.`;
+// PROMPT 2: The Architect. No fake navbars. 2026 Aesthetics.
+const PROMPT_ARCHITECT = `You are a God-tier UI/UX React Developer building an ultra-modern, 2026-era interface.
+Your goal: Take the provided psychological text and build a BREATHTAKING React component to display it.
+CRITICAL RULES:
+1. NO FAKE NAVIGATION: Do NOT build non-functional headers, navbars, or footers unless the user explicitly asks for a "website". Focus 100% of your code on visualizing the core content.
+2. AVANT-GARDE AESTHETICS: Avoid the "2010s blog" look. Use elite design trends (like Linear, Vercel, or Stripe). Use extreme typographic scale contrast, sleek Bento-box grids, subtle 1px borders (border-black/5), and massive breathing room.
+3. INTEGRATION: Break the raw text apart and weave it organically into interactive cards, visualizers (Recharts), or UI elements.
+4. GLOBAL LIBRARIES: Destructure from window: \`const { useState } = React;\`, \`const { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } = window.Recharts;\`, \`const { motion } = window.Motion;\`, \`const { Zap } = window.lucideReact;\`. NO IMPORT STATEMENTS.
+5. TOKEN ECONOMY: Write the most efficient, non-repetitive Tailwind code possible. Main component MUST be named 'App'. Output ONLY the \`\`\`jsx block.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -267,7 +271,6 @@ export default function ChatPage() {
       setUser(prev => ({...prev, credits_used: newUsed}));
   };
 
-  // DUAL PIPELINE EXECUTION
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading) return;
     
@@ -282,7 +285,7 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // Phase 1: Psychologist (Generate brilliant text)
+      // Phase 1: Psychologist (Generate dense, unformatted text to save tokens)
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -291,19 +294,18 @@ export default function ChatPage() {
       if (abortedRef.current) return;
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
       
-      // Update UI instantly with just the text so the user isn't waiting
+      // Update UI instantly with the raw text
       setFicheContent(psychologicalText);
 
-      // Phase 2: Architect (Wrap text in UI)
+      // Phase 2: Architect (Wrap text in avant-garde UI, no fake navbars)
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\nInject this psychological text into a UI:\n" + psychologicalText, 
+        prompt: PROMPT_ARCHITECT + "\n\nInject this text into an elite UI component:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
       });
 
       if (abortedRef.current) return;
       const finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
       
-      // Merge text and code for final output
       const finalContent = psychologicalText + "\n\n" + finalCode;
 
       const cost = discussMode ? 1 : 10;
