@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -64,11 +60,10 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           componentLogic = componentLogic.replace(importRegex, ''); 
         }
 
-        // AGGRESSIVE EXPORT SANITIZATION: Prevents "ambiguous indirect export" crashes
-        componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
-        componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
-        componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
-        componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
+        // Clean exports so React can mount the App cleanly
+        componentLogic = componentLogic.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
+        componentLogic = componentLogic.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
+        componentLogic = componentLogic.replace(/export\s+(const|let|var|function)/g, '$1');
       }
 
       setCompiledCode({ html, css, js: componentLogic, imports: extractedImports, rawComponent });
@@ -95,7 +90,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // STRICT PEER DEPENDENCY MAP: Prevents duplicate React instances and 'ambiguous export' crashes
+  // React Error Boundary is injected natively with namespaced imports to prevent SyntaxErrors
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -156,12 +151,13 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
-          import React from 'react';
-          import { createRoot } from 'react-dom/client';
+          import * as __WokReact__ from 'react';
+          import { createRoot as __WokCreateRoot__ } from 'react-dom/client';
           
+          // --- HOISTED AI IMPORTS ---
           ${compiledCode.imports}
           
-          class ErrorBoundary extends React.Component {
+          class ErrorBoundary extends __WokReact__.Component {
             constructor(props) {
               super(props);
               this.state = { hasError: false, errorMessage: '' };
@@ -181,10 +177,11 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
           }
 
           try {
+            // --- ISOLATED AI COMPONENT LOGIC ---
             ${compiledCode.js}
             
             if (typeof App !== 'undefined') {
-              const root = createRoot(document.getElementById('root'));
+              const root = __WokCreateRoot__(document.getElementById('root'));
               root.render(<ErrorBoundary><App /></ErrorBoundary>);
               window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
