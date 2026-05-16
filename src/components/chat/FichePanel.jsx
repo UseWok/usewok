@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
-}
-
 // --- THE NATIVE ESM RENDER ENGINE ---
 export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -60,13 +56,15 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         const matchedImports = componentLogic.match(importRegex);
         
         if (matchedImports) {
-          extractedImports = matchedImports.join('\n');
+          let rawImports = matchedImports.join('\n');
           
-          // SMART IMPORT SANITIZER: Prevent Duplicate 'React' Declaration SyntaxError
-          extractedImports = extractedImports.replace(/import\s+React\s*,\s*\{/g, 'import {'); // "import React, { useState }" -> "import { useState }"
-          extractedImports = extractedImports.replace(/import\s+React\s+from/g, 'import from'); // "import React from" -> "import from"
-          extractedImports = extractedImports.replace(/import\s+from\s+['"]react['"];?/g, ''); // Removes empty react imports
+          // SMART IMPORT SANITIZER: Prevent Duplicate 'React' SyntaxErrors SAFELY
+          // 1. Completely remove standalone "import React from 'react';"
+          rawImports = rawImports.replace(/import\s+React\s+from\s+['"]react['"];?/gi, '');
+          // 2. Convert "import React, { useState } from 'react';" -> "import { useState } from 'react';"
+          rawImports = rawImports.replace(/import\s+React\s*,\s*\{([^}]+)\}\s*from\s+['"]react['"];?/gi, 'import { $1 } from "react";');
           
+          extractedImports = rawImports;
           componentLogic = componentLogic.replace(importRegex, ''); 
         }
 
@@ -272,3 +270,5 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     </div>
   );
 }
+
+export default FichePanel;
