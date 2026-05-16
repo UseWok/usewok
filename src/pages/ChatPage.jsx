@@ -76,20 +76,21 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// GOD-TIER SYSTEM PROMPT WITH BEHAVIORAL PSYCHOLOGY & HIGH-END UI PATTERNS
-const WOK_SYSTEM = `You are Wok, an indispensable, God-tier AI architecture engine. You operate at elite engineering and human psychology standards.
-CRITICAL DIRECTIVES:
-1. PSYCHOLOGY-DRIVEN UI: Do not just build tools. Build immersive, highly interactive, psychological interfaces. Use concepts like cognitive ease, gamification, momentum, and visual storytelling to make the solution deeply memorable and impactful.
-2. FULL-BLEED ARCHITECTURE: Generate a COMPLETE, breathtaking React application. Utilize advanced layouts (Bento-box grids, asymmetric masonry), complex visualizers (Recharts Area/Pie charts, custom CSS gauges), and rich placeholder images (\`https://images.unsplash.com/photo-...\`).
-3. INTEGRATED FLUID TEXT: Weave your expert, psychological explanation directly INTO the UI (in the user's language) inside stunning typography cards or hero sections. No standalone markdown text.
-4. GLOBAL LIBRARIES: Do NOT use import statements. Destructure exactly like this from the injected globals:
-   - React: \`const { useState, useEffect, useRef } = React;\`
-   - Recharts: \`const { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = window.Recharts;\`
-   - Framer Motion: \`const { motion, AnimatePresence } = window.Motion;\`
-   - Lucide: \`const { Home, Zap, Sparkles, Brain, ArrowRight, Layers, CheckCircle } = window.lucideReact;\`
-5. MAIN COMPONENT: Your main component MUST be named exactly 'App' (e.g., \`function App() { return ... }\`). DO NOT use export default.
-6. ZERO BRANDING: Build PURE interfaces. No "Built with Wok" watermarks. No footers.
-7. AESTHETICS: Enforce ultra-modern design (Apple/Linear/Stripe aesthetics). Use glassmorphism, subtle shadows, crisp fonts, and high-contrast breathing room. Output ONLY the \`\`\`jsx block. ZERO FLUFF.`;
+// DUAL-PIPELINE PROMPTS
+const PROMPT_PSYCHOLOGIST = `You are an elite behavioral psychologist and business strategist.
+Your goal: Answer the user's prompt by focusing deeply on human psychology, cognitive ease, gamification, and high-impact momentum. 
+Rules:
+1. Output ONLY beautifully structured text. Use Markdown headings (##) and bullet points.
+2. Be extremely concise but incredibly insightful. Zero fluff. Make the user say "WOW".
+3. Reply in the exact same language the user wrote in.`;
+
+const PROMPT_ARCHITECT = `You are a God-tier UI/UX React Developer.
+Your goal: Take the following psychological text and wrap it in a BREATHTAKING, modern React interface.
+Rules:
+1. Use advanced layouts: Bento-box grids, glassmorphism, floating cards. It must look like a 2026 Apple or Stripe product.
+2. Integrate the text naturally into the UI. Do not leave the text as a separate block.
+3. You have native access to Tailwind CSS, window.Recharts (PieChart, AreaChart), window.Motion (framer-motion), and window.lucideReact (icons). DO NOT USE IMPORT STATEMENTS.
+4. Output ONLY the raw \`\`\`jsx code block. Your main component must be named 'App'. No introductions.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -266,6 +267,7 @@ export default function ChatPage() {
       setUser(prev => ({...prev, credits_used: newUsed}));
   };
 
+  // DUAL PIPELINE EXECUTION
   const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading) return;
     
@@ -279,31 +281,50 @@ export default function ChatPage() {
 
     abortedRef.current = false;
 
-    let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({ prompt: WOK_SYSTEM + "\n\n" + text, model: 'gemini_3_flash' });
+      // Phase 1: Psychologist (Generate brilliant text)
+      const textResult = await base44.integrations.Core.InvokeLLM({ 
+        prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
+        model: 'gemini_3_flash' 
+      });
+
+      if (abortedRef.current) return;
+      const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
+      
+      // Update UI instantly with just the text so the user isn't waiting
+      setFicheContent(psychologicalText);
+
+      // Phase 2: Architect (Wrap text in UI)
+      const codeResult = await base44.integrations.Core.InvokeLLM({ 
+        prompt: PROMPT_ARCHITECT + "\n\nInject this psychological text into a UI:\n" + psychologicalText, 
+        model: 'gemini_3_flash' 
+      });
+
+      if (abortedRef.current) return;
+      const finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
+      
+      // Merge text and code for final output
+      const finalContent = psychologicalText + "\n\n" + finalCode;
+
+      const cost = discussMode ? 1 : 10;
+      await handleUpdateCredits(cost);
+
+      setIsLoading(false);
+      if (!discussMode) setFicheContent(finalContent);
+      
+      const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      saveToDiscussionsLogic("New Chat", text);
+      
+      if (window.innerWidth < 768 && !discussMode) {
+        setMobileView('preview');
+      }
+
     } catch (err) {
       setIsLoading(false); 
-      setMessages([...newMessages, { role: 'assistant', content: "Request failed." }]);
+      setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
-    }
-    
-    if (abortedRef.current) return;
-    const content = typeof result === 'string' ? result : JSON.stringify(result);
-
-    const cost = discussMode ? 1 : 10;
-    await handleUpdateCredits(cost);
-
-    setIsLoading(false);
-    if (!discussMode) setFicheContent(content);
-    
-    const finalMsgs = [...newMessages, { role: 'assistant', content }];
-    setMessages(finalMsgs);
-    saveConversationMessages(convId, finalMsgs);
-    saveToDiscussionsLogic("New Chat", text);
-    
-    if (window.innerWidth < 768 && !discussMode) {
-      setMobileView('preview');
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user]);
 
