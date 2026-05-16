@@ -1,16 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, Code2, LayoutTemplate } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-// --- CLAUDE-STYLE ARTIFACT ENGINE ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
-  const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'code'
-  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', cleanText: '', rawComponent: '' });
+  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', hasCode: false });
 
   const isDark = appearance?.theme === 'midnight';
   const FG = isDark ? '#F3F4F6' : '#0A0A0A';
@@ -21,14 +19,8 @@ export function LivePreviewEngine({ content, appearance }) {
     let html = '';
     let css = '';
     let js = '';
-    let cleanText = content || '';
-    let rawComponent = '';
 
     if (content) {
-      // 1. Extract clean text
-      cleanText = content.replace(/```[\s\S]*?```/g, '').trim();
-
-      // 2. Safe Regex extraction
       const bt = String.fromCharCode(96, 96, 96);
       const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
       const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
@@ -42,15 +34,11 @@ export function LivePreviewEngine({ content, appearance }) {
       if (cssMatch) css = cssMatch[1];
       if (jsMatch) js = jsMatch[1];
       
-      // Routing logic
       if (!jsMatch && htmlMatch && (html.includes('export default') || html.includes('import React'))) {
           js = html;
           html = '';
       }
 
-      rawComponent = js || html || css; // Store raw code for the 'Code View' toggle
-
-      // 3. Compiler Crash Prevention
       if (js) {
         js = js.replace(/export\s+default\s+(?:function\s+App|App)/g, 'function App');
         js = js.replace(/export\s+default\s+/g, '');
@@ -58,14 +46,14 @@ export function LivePreviewEngine({ content, appearance }) {
       }
     }
 
-    setCompiledCode({ html, css, js, cleanText, rawComponent });
+    const hasCode = !!(html || css || js);
+    setCompiledCode({ html, css, js, hasCode });
 
     const timer = setTimeout(() => setIsCompiling(false), 800);
     return () => clearTimeout(timer);
   }, [content]);
 
-  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
-
+  // FULL BLEED SANDBOX - Zero borders, full height/width
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -81,9 +69,11 @@ export function LivePreviewEngine({ content, appearance }) {
         <script src="https://unpkg.com/lucide@latest"></script>
         
         <style>
-          body { 
+          html, body { 
             margin: 0; 
-            padding: 16px 0; 
+            padding: 0;
+            width: 100%;
+            height: 100%;
             font-family: ${appearance?.font || 'system-ui, sans-serif'}; 
             color: ${FG};
             background-color: transparent;
@@ -96,7 +86,7 @@ export function LivePreviewEngine({ content, appearance }) {
         </style>
       </head>
       <body>
-        <div id="root"></div>
+        <div id="root" style="width:100%; height:100%;"></div>
         ${compiledCode.html}
         
         <script type="text/babel" data-type="module">
@@ -119,83 +109,42 @@ export function LivePreviewEngine({ content, appearance }) {
   `;
 
   return (
-    <div className="w-full h-full flex flex-col gap-6" style={{ color: isDark ? '#E5E7EB' : '#1a1a1a', fontFamily: appearance?.font || 'inherit' }}>
-      
-      {/* STRUCTURED TEXT RESPONSE */}
-      {compiledCode.cleanText && (
-        <div className="prose prose-sm max-w-none w-full" style={{ fontSize: '15px', lineHeight: '1.75' }}>
+    <div className="w-full h-full relative" style={{ color: isDark ? '#E5E7EB' : '#1a1a1a', fontFamily: appearance?.font || 'inherit' }}>
+      {compiledCode.hasCode ? (
+        <div className="w-full h-full relative">
+          <AnimatePresence>
+            {isCompiling && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-transparent backdrop-blur-sm"
+              >
+                <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
+                <span className="text-[12px] font-bold text-[#0080ff] uppercase tracking-widest">Constructing UI...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <iframe
+            title="Wok Live Preview"
+            srcDoc={srcDoc}
+            className="w-full h-full border-none absolute inset-0 z-0"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      ) : (
+        <div className="prose prose-sm max-w-none p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.75' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              h1: ({ children }) => <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 16px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
-              h2: ({ children }) => <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '24px 0 10px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
+              h1: ({ children }) => <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 20px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
+              h2: ({ children }) => <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '24px 0 12px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
               h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '16px 0 8px', color: FG }}>{children}</h3>,
               p: ({ children }) => <p style={{ margin: '0 0 16px', lineHeight: '1.8', color: isDark ? '#D1D5DB' : '#4B5563' }}>{children}</p>,
-              ul: ({ children }) => <ul style={{ margin: '8px 0 16px', paddingLeft: '20px', listStyleType: 'disc', color: isDark ? '#D1D5DB' : '#4B5563' }}>{children}</ul>,
-              li: ({ children }) => <li style={{ margin: '6px 0' }}>{children}</li>,
-              strong: ({ children }) => <strong style={{ fontWeight: 700, color: FG }}>{children}</strong>,
             }}
           >
-            {compiledCode.cleanText}
+            {content}
           </ReactMarkdown>
         </div>
       )}
-
-      {/* CLAUDE-STYLE ARTIFACT WINDOW */}
-      {hasComponent && (
-        <div className="flex-1 w-full flex flex-col border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden min-h-[500px]">
-          
-          {/* Artifact Toggle Header */}
-          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-center gap-1 p-1 bg-gray-200/50 rounded-lg">
-              <button 
-                onClick={() => setViewMode('preview')} 
-                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <LayoutTemplate className="w-3.5 h-3.5" /> Preview
-              </button>
-              <button 
-                onClick={() => setViewMode('code')} 
-                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Code2 className="w-3.5 h-3.5" /> Source
-              </button>
-            </div>
-            {isCompiling && <Loader2 className="w-4 h-4 text-gray-400 animate-spin mr-2" />}
-          </div>
-
-          {/* Artifact Content Area */}
-          <div className="flex-1 relative bg-white">
-            {viewMode === 'preview' ? (
-              <>
-                <AnimatePresence>
-                  {isCompiling && (
-                    <motion.div 
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm"
-                    >
-                      <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
-                      <span className="text-[12px] font-bold text-[#0080ff] uppercase tracking-widest">Building UI...</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <iframe
-                  title="Wok Live Preview"
-                  srcDoc={srcDoc}
-                  className="w-full h-full border-none absolute inset-0 z-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-              </>
-            ) : (
-              /* RAW SOURCE CODE VIEW */
-              <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300">
-                <pre><code>{compiledCode.rawComponent}</code></pre>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
@@ -208,12 +157,11 @@ export default function FichePanel({ content = null, appearance }) {
   }, [content]);
 
   return (
-    <div className="flex flex-col h-full w-full p-6 md:p-10 overflow-y-auto" ref={scrollRef}>
+    <div className="flex flex-col h-full w-full overflow-hidden" ref={scrollRef}>
       {content ? (
         <LivePreviewEngine content={content} appearance={appearance} />
       ) : (
         <div className="flex flex-col items-center justify-center h-full w-full">
-          {/* Modern Geometric Loader for Empty State */}
           <motion.div 
             animate={{ rotate: 360 }} 
             transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
