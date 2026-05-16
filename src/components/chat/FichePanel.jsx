@@ -6,6 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
+// --- DEFAULT EXPORT: FichePanel wraps LivePreviewEngine ---
+export default function FichePanel({ content = null, appearance }) {
+  return <LivePreviewEngine content={content} appearance={appearance} />;
+}
+
 // --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
