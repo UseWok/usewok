@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance }) {
-  return <LivePreviewEngine content={content} appearance={appearance} />;
-}
-
 // --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -69,7 +65,6 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Swapped to stable JSDelivr CDNs to completely prevent "not defined" errors
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -120,6 +115,7 @@ export function LivePreviewEngine({ content, appearance }) {
         <script type="text/babel" data-type="module">
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
           
+          // THE PROXY SHIELD
           const createSafeLibrary = (libObj, libName) => {
             return new Proxy(libObj || {}, {
               get(target, prop) {
@@ -141,13 +137,25 @@ export function LivePreviewEngine({ content, appearance }) {
             });
           };
 
-          window.lucideReact = createSafeLibrary(window.lucideReact || window.lucide || {}, 'lucide-react');
+          // Explicitly map all variations of library names to prevent case-sensitive crashes
+          const actualLucide = window.LucideReact || window.lucideReact || window.lucide || {};
+          window.lucideReact = createSafeLibrary(actualLucide, 'lucide-react');
           window.lucide = window.lucideReact;
+          window.LucideReact = window.lucideReact;
           
           window.Recharts = createSafeLibrary(window.Recharts || window.recharts || {}, 'recharts');
+          window.recharts = window.Recharts; // Case-sensitivity catch
           
-          window.Motion = createSafeLibrary(window.Motion || window.framerMotion || {}, 'framer-motion');
+          window.Motion = createSafeLibrary(window.Motion || window.framerMotion || window.motion || {}, 'framer-motion');
           window.framerMotion = window.Motion;
+          window.motion = window.Motion; // Case-sensitivity catch for 'window.motion'
+
+          // Local scope overrides just in case the AI forgets to destructure the window object
+          const lucide = window.lucideReact;
+          const Recharts = window.Recharts;
+          const recharts = window.Recharts;
+          const framerMotion = window.Motion;
+          const motion = window.Motion;
 
           try {
             ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
@@ -230,6 +238,40 @@ export function LivePreviewEngine({ content, appearance }) {
           >
             {content}
           </ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function FichePanel({ content = null, appearance }) {
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (content && scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [content]);
+
+  return (
+    <div className="flex flex-col h-full w-full overflow-hidden" ref={scrollRef}>
+      {content ? (
+        <LivePreviewEngine content={content} appearance={appearance} />
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full w-full">
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+            className="relative w-24 h-24 mb-6"
+          >
+            <div className="absolute inset-0 border-[1px] border-gray-300 rounded-full" />
+            <motion.div 
+              animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} 
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              className="absolute inset-2 border-[1px] border-gray-400 rounded-full border-dashed"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-2 h-2 bg-[#0080ff] rounded-full shadow-[0_0_10px_#0080ff]" />
+            </div>
+          </motion.div>
         </div>
       )}
     </div>
