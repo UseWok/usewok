@@ -61,20 +61,21 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Global Binding with Safe Iterate: Prevents 'Infinity' read-only crashes
+  // Global Binding with CORS unmasking and Lucide-React bindings
   const srcDoc = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-        <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-        <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/recharts/umd/Recharts.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/lucide-react@0.292.0/dist/umd/lucide-react.min.js" crossorigin="anonymous"></script>
         
         <style>
           html, body { 
@@ -94,36 +95,34 @@ export function LivePreviewEngine({ content, appearance }) {
         </style>
       </head>
       <body>
-        <div id="root" style="width:100%; height:100%;"></div>
+        <div id="root" style="width:100%; height:100%; padding: 24px;"></div>
         ${compiledCode.html}
         
-        <script type="text/babel" data-type="module">
-          // 1. Global Error Catcher
-          window.onerror = function(msg, url, line, col, err) {
-            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 14px; background: #fee2e2; border-bottom: 1px solid #f87171;"><strong>Runtime Crash:</strong><br/>' + msg + '</div>';
-            return false;
-          };
+        <script>
+          // 1. Unmasked Global Error Catcher
+          window.addEventListener('error', function(e) {
+            const msg = e.error ? e.error.message : e.message;
+            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-bottom: 1px solid #f87171;"><strong>Runtime Crash:</strong><br/>' + msg + '</div>';
+          });
+        </script>
 
+        <script type="text/babel" data-type="module">
           // 2. Safe Global Binding Engine
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
           
           const safeBind = (lib) => {
             if (!lib) return;
             for (let key in lib) {
-              try { 
-                window[key] = lib[key]; 
-              } catch (e) {
-                // Silently skip read-only globals like 'Infinity'
-              }
+              try { window[key] = lib[key]; } catch (e) {}
             }
           };
 
           safeBind(window.Recharts);
           safeBind(window.Motion);
-          safeBind(window.lucide);
+          safeBind(window.lucideReact || window.LucideReact || window.lucide);
           
-          // 3. Execute AI Logic
-          ${compiledCode.js}
+          // 3. Execute AI Logic (escaped safely)
+          ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
           
           // 4. Force Mount Component
           if (typeof App !== 'undefined') {
