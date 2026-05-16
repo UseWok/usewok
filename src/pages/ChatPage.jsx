@@ -79,10 +79,10 @@ const saveLocalDiscussions = (workspaceId, data) => {
 // --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
 
 // COST-CRUSHER PROTOCOL: Pure data payload generation.
-const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist and behavioral psychologist.
+const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist.
 COST REDUCTION & CONTEXT PROTOCOL:
 1. Output PURE, highly-dense actionable data. ZERO conversational filler. ZERO intros.
-2. Analyze the user's query and IMPLICITLY merge their preferences, context, and requested features directly into a concrete masterplan.
+2. Analyze the user's query and IMPLICITLY merge their preferences into a concrete masterplan.
 3. Outline exact phases (e.g., "Phase 1: Days 1-7"), Specific Metrics, and brief accessible psychological explanations.
 4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Use basic line breaks.
 5. Reply in the exact same language the user wrote in. This output will be read directly by an Architect AI.`;
@@ -90,14 +90,14 @@ COST REDUCTION & CONTEXT PROTOCOL:
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple building a breathtaking 2026-era interface.
 Your goal: Take the raw strategic text provided and build a REACT component to present it.
 CRITICAL RULES (FAILURE RESULTS IN CRASH):
-1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Do not change the vocabulary. Present the truth exactly as provided.
-2. RESTRICTED IMPORTS: You MUST use this exact import block. DO NOT ADD OR GUESS ANY OTHER ICONS. DO NOT DEVIATE:
+1. CONTENT LOCK (100% FIDELITY): You MUST inject the provided text VERBATIM into the UI. Do not summarize it. Present the truth exactly as provided.
+2. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
    import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-3. SAFE REACT PRACTICES: NEVER access ref.current without a strict null check (if (ref.current)). ALWAYS wrap Recharts <ResponsiveContainer> in a <div className="w-full h-64">.
-4. AVANT-GARDE AESTHETICS: Use Bento-box grid layouts, heavy glassmorphism, subtle 1px borders, rounded-3xl corners, and massive padding. No fake navbars.
+3. SAFE REACT PRACTICES: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
+4. AVANT-GARDE AESTHETICS: Build a FULL-BLEED, immersive UI that looks like a real website (e.g., "min-h-screen bg-slate-900"). Use Bento-box grids, glassmorphism, rounded-3xl corners. No fake navbars.
 5. INFINITE SCROLL: Use this exact Framer Motion snippet for all elements: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
 6. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
@@ -106,7 +106,7 @@ The user's React code encountered a runtime error. You must fix the code complet
 CRITICAL RULES:
 1. Output ONLY the raw jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
 2. Keep the exact same design and UI. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
-3. If the error mentions 'ambiguous indirect export', it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
+3. If the error mentions 'ambiguous indirect export' or a module resolution error, it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
 4. Main component must be named 'App'. Do NOT use export default.`;
 
 export default function ChatPage() {
@@ -582,7 +582,7 @@ export default function ChatPage() {
 
               {/* FROSTED GLASS AUTO-HEALING BANNER */}
               {runtimeError && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[90%] bg-white/90 backdrop-blur-xl border border-red-100/50 text-[#333333] p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-[9999] flex flex-col md:flex-row items-center gap-5">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] bg-white/90 backdrop-blur-xl border border-red-100/50 text-[#333333] p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-[9999] flex flex-col md:flex-row items-center gap-5">
                    <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
                          <AlertTriangle className="w-5 h-5 text-red-500"/>
