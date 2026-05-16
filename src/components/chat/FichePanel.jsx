@@ -6,11 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-// --- DEFAULT EXPORT: FichePanel wraps LivePreviewEngine ---
-export default function FichePanel({ content = null, appearance }) {
-  return <LivePreviewEngine content={content} appearance={appearance} />;
-}
-
 // --- THE LIVE RENDER ENGINE (REACT & TAILWIND SANDBOX) ---
 export function LivePreviewEngine({ content, appearance }) {
   const [isCompiling, setIsCompiling] = useState(true);
@@ -50,17 +45,12 @@ export function LivePreviewEngine({ content, appearance }) {
       rawComponent = js || html || css || content;
 
       if (js) {
-        // 1. Transform external imports into global destructuring safely
         js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]lucide-react['"];?/g, 'const { $1 } = window.lucideReact;');
         js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]recharts['"];?/g, 'const { $1 } = window.Recharts;');
         js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]framer-motion['"];?/g, 'const { $1 } = window.Motion;');
         js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
         js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
-        
-        // 2. Strip any remaining unsupported imports
         js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
-
-        // 3. Clean exports so the component mounts cleanly
         js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
         js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
         js = js.replace(/export\s+(const|let|var|function)/g, '$1');
@@ -75,7 +65,6 @@ export function LivePreviewEngine({ content, appearance }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Global Binding with Proxy Shield to prevent 'undefined' component crashes
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -101,6 +90,7 @@ export function LivePreviewEngine({ content, appearance }) {
             color: ${FG};
             background-color: transparent;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
           }
           ::-webkit-scrollbar { width: 6px; }
           ::-webkit-scrollbar-track { background: transparent; }
@@ -125,26 +115,28 @@ export function LivePreviewEngine({ content, appearance }) {
         <script type="text/babel" data-type="module">
           const { useState, useEffect, useRef, useMemo, useCallback } = React;
           
-          // THE PROXY SHIELD: Prevents React from crashing if an icon/component is missing
+          // THE PROXY SHIELD: Renders a red text badge safely if a component is missing
           const createSafeLibrary = (libObj, libName) => {
             return new Proxy(libObj || {}, {
               get(target, prop) {
                 if (prop in target) return target[prop];
                 if (prop === '__esModule') return true;
                 
-                // If a capitalized component is requested but doesn't exist, return a dummy visual badge instead of crashing
                 if (typeof prop === 'string' && prop.match(/^[A-Z]/)) {
                   console.warn(libName + ": Component '" + prop + "' is missing. Rendering fallback.");
-                  return () => React.createElement("span", { 
-                    style: { color: '#ef4444', fontSize: '10px', border: '1px dashed #ef4444', padding: '2px 4px', borderRadius: '4px', display: 'inline-block' } 
-                  }, "[" + prop + "]");
+                  return function FallbackComponent() {
+                    return React.createElement(
+                      "span",
+                      { style: { color: '#ef4444', fontSize: '11px', border: '1px dashed #ef4444', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#fef2f2', fontWeight: 'bold' } },
+                      String(prop)
+                    );
+                  };
                 }
                 return undefined;
               }
             });
           };
 
-          // Safely map all libraries to the global window
           window.lucideReact = createSafeLibrary(window.lucideReact || window.lucide || {}, 'lucide-react');
           window.lucide = window.lucideReact;
           
@@ -153,21 +145,18 @@ export function LivePreviewEngine({ content, appearance }) {
           window.Motion = createSafeLibrary(window.Motion || window.framerMotion || {}, 'framer-motion');
           window.framerMotion = window.Motion;
           
-          // Inject standard aliases directly into local scope just in case the AI skips destructuring
           const lucide = window.lucideReact;
           const Recharts = window.Recharts;
           const framerMotion = window.Motion;
 
           try {
-            // Execute AI Logic
             ${compiledCode.js.replace(/<\/script>/gi, '<\\/script>')}
             
-            // Force Mount
             if (typeof App !== 'undefined') {
               const root = ReactDOM.createRoot(document.getElementById('root'));
               root.render(React.createElement(App));
             } else {
-              throw new Error("Wok Engine failed: The main React component must be named 'App'.");
+              throw new Error("Wok failed: The main React component must be named 'App'.");
             }
           } catch(err) {
             document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
@@ -182,7 +171,6 @@ export function LivePreviewEngine({ content, appearance }) {
       {hasComponent ? (
         <div className="w-full h-full flex flex-col bg-white rounded-xl shadow-sm border border-[#E5E5E5] overflow-hidden">
           
-          {/* Claude-Style Artifact Toggle */}
           <div className="flex items-center justify-between px-3 py-2 bg-gray-50/80 border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm backdrop-blur-md">
             <div className="flex items-center gap-1 p-1 bg-gray-200/50 rounded-lg">
               <button 
@@ -223,14 +211,14 @@ export function LivePreviewEngine({ content, appearance }) {
                 />
               </>
             ) : (
-              <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300">
+              <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300 leading-relaxed">
                 <pre><code>{compiledCode.rawComponent}</code></pre>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="prose prose-sm max-w-none p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.75' }}>
+        <div className="prose prose-sm max-w-none p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.8' }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -242,6 +230,40 @@ export function LivePreviewEngine({ content, appearance }) {
           >
             {content}
           </ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function FichePanel({ content = null, appearance }) {
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (content && scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [content]);
+
+  return (
+    <div className="flex flex-col h-full w-full overflow-hidden" ref={scrollRef}>
+      {content ? (
+        <LivePreviewEngine content={content} appearance={appearance} />
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full w-full">
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+            className="relative w-24 h-24 mb-6"
+          >
+            <div className="absolute inset-0 border-[1px] border-gray-300 rounded-full" />
+            <motion.div 
+              animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} 
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              className="absolute inset-2 border-[1px] border-gray-400 rounded-full border-dashed"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-2 h-2 bg-[#0080ff] rounded-full shadow-[0_0_10px_#0080ff]" />
+            </div>
+          </motion.div>
         </div>
       )}
     </div>
