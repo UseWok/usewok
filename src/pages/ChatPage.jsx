@@ -76,71 +76,42 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE DUAL-PIPELINE PROMPTS ---
+// --- ELITE AUTONOMOUS ROUTING PROMPTS ---
 
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
 TOKEN REDUCTION & DATA PROTOCOL:
-1. Output ONLY ultra-dense telegraphic shorthand. ZERO fluff. ZERO full sentences.
-2. Expand the user's query into a masterplan. Provide the exact copywriting content using ELI5 (Explain Like I'm 5) concepts.
-3. VISUAL DATA PREPARATION: You MUST generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points (e.g., months, efficiency metrics, percentages).
-4. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
+1. THEME SELECTION: Evaluate the user's intent and select the perfect aesthetic. Your output MUST start with T:X (X is 1 to 5).
+   T:1 = Wok Clean (Corporate/SaaS)
+   T:2 = Deep Void (Tech/Dark/Hacker)
+   T:3 = Yuzu Accent (Fintech/Bold/Energy)
+   T:4 = Corp Sand (Luxury/Elegant/Minimal)
+   T:5 = Brutalism (Creative/Agency/Raw)
+2. Output ONLY ultra-dense telegraphic shorthand (e.g., T:2 | P1:Action | Metric:80%). ZERO fluff. ZERO sentences.
+3. Provide exact ELI5 (Explain Like I'm 5) copywriting points.
+4. VISUAL DATA PREPARATION: Generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points.
+5. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
 
-const PROMPT_ARCHITECT = `<role>
-Tu es le Lead UI/UX Architect et le moteur de rendu de "Wok", une plateforme no-code haut de gamme. Ton objectif est de générer des interfaces web d'un niveau de design d'élite, dignes des meilleures entreprises technologiques.
-</role>
-
-<core_directive>
-Désormais, tu n'as PLUS le droit de générer ou d'inventer des styles CSS, des couleurs ou des typographies de manière aléatoire. Tu DOIS obligatoirement construire toutes tes interfaces en appliquant l'un des 5 "Design Modes" stricts définis ci-dessous. Aucun écart n'est toléré.
-</core_directive>
-
-<design_system>
-MODE 1 : "Wok Clean" (Inspiration : Stripe, Vercel)
-- Typographie : Inter (Body) / Space Grotesk (Headers)
-- Background : Blanc pur (#FFFFFF) ou Gris ultra-léger (#FAFAFA)
-- Éléments : Ombres douces (Soft Drop Shadows), bordures subtiles (#EAEAEA), Radius moyen (8px).
-- Vibe : Professionnel, fluide, rassurant.
-
-MODE 2 : "Deep Void" (Inspiration : Linear, esthétique Hacker premium)
-- Typographie : System UI ou Inter
-- Background : Noir profond (#050505)
-- Éléments : Contrastes nets, bordures gris sombre (#1A1A1A), texte gris clair (#EDEDED), Radius fin (4px) ou nul. Sans ombre.
-- Vibe : Minimalisme absolu, focus, technique.
-
-MODE 3 : "Yuzu Accent" (Inspiration : Startups Fintech modernes)
-- Typographie : Roboto (Body) / Playfair Display (Headers pour un contraste audacieux)
-- Background : Sombre (#0A0A0A) ou Blanc cassé (#F4F4F0)
-- Éléments : Utilisation d'une couleur d'accentuation forte "Jaune Yuzu/Néon", Radius prononcé (12px), éléments UI très délimités.
-- Vibe : Énergique, disruptif, moderne.
-
-MODE 4 : "Corporate Sand" (Inspiration : Marques de luxe discrètes)
-- Typographie : Playfair Display (Headers) / Inter (Body)
-- Background : Beige sable très clair (#FDFBF7)
-- Éléments : Couleurs typographiques douces (Charbon #1C1C1C), espacements aérés (High Line-height), Radius classique.
-- Vibe : Élégant, organique, intemporel.
-
-MODE 5 : "Brutalism Light" (Inspiration : Agences de design avant-gardistes)
-- Typographie : Space Grotesk (Global)
-- Background : Gris neutre (#E5E5E5)
-- Éléments : Bordures noires épaisses (2px, #000000), ombres portées dures (Solid Black Shadows), couleurs primaires saturées en accent.
-- Vibe : Brut, audacieux, assumé.
-</design_system>
-
-<execution_rules>
-1. Analyse la demande de l'utilisateur et sélectionne le "Design Mode" le plus pertinent. Ne mélange jamais les caractéristiques de deux modes.
-2. TYPOGRAPHIE & IDENTITÉ : TOUS les tags <p> DOIVENT utiliser \`leading-[1.8]\`. Ajoute le symbole '+' aux grands titres de section en guise de signature.
-3. GRAPHIQUES COMPLEXES : Rends 3 Recharts DIFFÉRENTS (ex: AreaChart, RadarChart, RadialBarChart). Tu DOIS inclure <XAxis>, <YAxis>, <Tooltip>, et des définitions <linearGradient>. Mappe les avec les données réelles fournies. Enveloppe les dans <div className="w-full h-80">.
-4. PAS DE BOILERPLATE : Aucun navbar, footer, ou faux bouton "Start". Construis UNIQUEMENT le contenu interactif core et les grilles Bento.
-5. IMPORTS : Exactement ceci :
+const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
+CRITICAL RULES (FAILURE CRASHES SYSTEM):
+1. READ THE THEME (T:X) AND APPLY EXACT STYLES:
+   T:1 (Clean): min-h-screen bg-[#FAFAFA], text-zinc-900, rounded-[24px], soft shadows.
+   T:2 (Deep Void): min-h-screen bg-[#050505], text-zinc-100, border-zinc-800, zero shadow.
+   T:3 (Yuzu): min-h-screen bg-[#0A0A0A], text-white, neon yellow accents (#E6FF00), rounded-[32px].
+   T:4 (Sand): min-h-screen bg-[#FDFBF7], text-zinc-800, rounded-[32px], elegant spacing.
+   T:5 (Brutalism): min-h-screen bg-[#E5E5E5], text-black, sharp edges (rounded-none), thick borders (border-black border-2), solid shadows.
+2. TYPOGRAPHY & IDENTITY: ALL <p> tags MUST use \`leading-[1.8]\`. Append a '+' symbol to major section titles. Use massive whitespace (p-12 md:p-24, space-y-24).
+3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts. Must include <XAxis>, <YAxis>, <Tooltip>, <linearGradient>. Map to the data provided. Wrap in <div className="w-full h-80">.
+4. NO BOILERPLATE: Zero navbars, footers, or fake "Start" buttons. 
+5. IMPORTS: Exactly this:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
    import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-6. ANIMATION : Utilise le snippet Framer exact : <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
-7. Le composant DOIT s'appeler 'App'. Sors UNIQUEMENT le bloc de code jsx.
-</execution_rules>`;
+6. ANIMATION: Use exact Framer snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
-RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, current Mode styling, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
+RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -164,8 +135,8 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
-  const [appearance, setAppearance] = useState({ theme: 'grid', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
+  const [viewMode, setViewMode] = useState('preview');
 
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
@@ -176,7 +147,6 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
   const [showCodeModal, setShowCodeModal] = useState(false);
-
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -369,18 +339,18 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(0);
+        await handleUpdateCredits(0); 
         setIsLoading(false);
         setFicheContent(newContent);
         
         const chatDisplayContent = "✨ Architecture successfully recompiled to fix runtime errors.";
-        
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
         return; 
       }
 
+      // SILENT DUAL-PIPELINE: Agent 1 drives theme logic and data payload
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -621,10 +591,16 @@ export default function ChatPage() {
           
           {hasStarted && (
             <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
-              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
-                 <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
-                 <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
-                   <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} />
+              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#FAFAFA]`}>
+                 <WorkspaceHeader 
+                   onReload={handleReload} 
+                   convId={conversationId || convId} 
+                   onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} 
+                   viewMode={viewMode}
+                   setViewMode={setViewMode}
+                 />
+                 <div className="flex-1 overflow-hidden relative bg-transparent">
+                   <FichePanel content={ficheContent} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} />
                  </div>
               </div>
 
