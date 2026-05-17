@@ -75,18 +75,16 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     if (!text) return null;
     let safeText = typeof text === 'string' ? text : JSON.stringify(text);
 
-    // If the AI generated code/UI, SILENCE the chat. Show ONLY the badge.
-    const hasCodeBlock = /```[\s\S]*?```/.test(safeText);
-
-    if (hasCodeBlock) {
+    // If the text is exactly the success string we set in ChatPage.jsx, render the sleek UI badge.
+    if (safeText.includes("✨ Architecture generated successfully") || safeText.includes("✨ Architecture successfully recompiled")) {
       return (
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white border border-[#E5E5E5] rounded-xl shadow-sm max-w-fit">
-          <div className="p-1.5 bg-[#F4F8FE] rounded-md">
-            <LayoutTemplate className="w-4 h-4 text-[#0080ff]" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-white border border-[#E5E5E5] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] max-w-fit">
+          <div className="p-2 bg-[#F4F8FE] rounded-lg">
+            <LayoutTemplate className="w-5 h-5 text-[#0080ff]" />
           </div>
           <div className="flex flex-col">
-             <span className="text-[12.5px] font-bold text-[#0d0d0d] tracking-tight leading-none mb-0.5">Interface Built</span>
-             <span className="text-[10.5px] font-medium text-gray-500 leading-none">View result in preview</span>
+             <span className="text-[13px] font-bold text-[#0d0d0d] tracking-tight leading-none mb-1">Architecture Compiled</span>
+             <span className="text-[11.5px] font-medium text-gray-500 leading-none">View result in the preview panel</span>
           </div>
         </div>
       );
