@@ -79,34 +79,35 @@ const saveLocalDiscussions = (workspaceId, data) => {
 // --- ELITE ADAPTIVE DUAL-PIPELINE PROMPTS ---
 
 const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist operating silently in the backend.
-COST REDUCTION & ADAPTIVE PROTOCOL:
+COST REDUCTION & DATA PROTOCOL:
 1. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions. Do not acknowledge the user.
-2. ADAPTIVE LENGTH: If the user's prompt is short, provide a highly concise but complete masterplan. If long, provide deep details. Do not over-generate.
-3. Use ELI5 (Explain Like I'm 5) language. Simple, powerful, jargon-free analogies.
+2. ADAPTIVE LENGTH: Match output depth to user prompt length. Use ELI5 (Explain Like I'm 5) language and powerful, simple analogies. No complex jargon.
+3. VISUAL DATA PREPARATION: You MUST generate explicit, realistic comparative data points (e.g., "System A vs System B over 6 months") for the Architect to map into charts.
 4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Basic line breaks only.
 5. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel building a $10,000 award-winning interactive dashboard.
 CRITICAL AESTHETIC RULES (FAILURE RESULTS IN CRASH):
-1. HYPER-LEGIBILITY & 1.8 LINE HEIGHT: You MUST use massive whitespace (p-12 md:p-24, space-y-16). All paragraph text MUST use the \`leading-[1.8]\` or \`leading-loose\` Tailwind classes. 
-2. CALM PREMIUM UI: Prioritize ultra-clean light mode (bg-[#FAFAFA]) or sleek dark mode (bg-[#050505]). Avoid aggressive neon text effects; make it look sophisticated and easy on the eyes.
-3. STRICT BOILERPLATE BAN: DO NOT build headers, navbars, or footers (NO "2026 Copyright" text). DO NOT build generic "Start" buttons. Build ONLY the high-value core interactive content and Bento-box grids.
-4. MULTI-VARIANT VISUALIZATIONS: Use at least 3 DIFFERENT types of Recharts (e.g., AreaChart, RadialBarChart, RadarChart) wrapped in <div className="w-full h-80">.
-5. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it.
-6. RESTRICTED IMPORTS: Use EXACTLY this import block:
+1. HYPER-LEGIBILITY & SPACING: Use massive whitespace (p-12 md:p-24, space-y-24). ALL paragraph text MUST use the \`leading-[1.8]\` Tailwind class. 
+2. UNIQUE IDENTITY (+): You MUST append a '+' symbol to major section titles and key metric numbers to make the UI unique and branded.
+3. CALM PREMIUM UI: Prioritize Deep Void Black (bg-[#050505]) with glowing Neon Yuzu or Cyan accents, OR an ultra-sleek light mode. No aggressive eye-straining effects.
+4. ELITE DATA VISUALIZATION (MANDATORY): Use at least 3 DIFFERENT Recharts. They CANNOT be empty. You MUST include <XAxis>, <YAxis>, <Tooltip>, <Legend>, and <CartesianGrid strokeDasharray="3 3" opacity={0.1}/>. Use complex comparative data arrays and beautiful <linearGradient> defs. Wrap charts in <div className="w-full h-80">.
+5. STRICT BOILERPLATE BAN: DO NOT build headers, navbars, footers, or generic "Start" buttons. Build ONLY high-value core interactive content and Bento-box grids.
+6. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it.
+7. RESTRICTED IMPORTS: Use EXACTLY this import block:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
-   import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
-   import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-7. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
-8. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
-9. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
+   import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
+   import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+8. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-80">.
+9. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+10. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
 1. Output ONLY the raw React code. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
-2. Keep the exact same design, whitespace, and UI. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
+2. Keep the exact same design, 1.8 line-heights, whitespace, and '+' symbols. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
 3. If the error mentions 'ambiguous indirect export', it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
 4. Main component must be named 'App'. Do NOT use export default.`;
 
@@ -594,6 +595,7 @@ export default function ChatPage() {
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
+                   {/* Pass isPublic={false} inside the app to hide the watermark */}
                    <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} />
                  </div>
               </div>
