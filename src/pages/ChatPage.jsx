@@ -16,8 +16,7 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
 import { 
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, AlertTriangle, Sparkles,
-  FileText, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, Briefcase, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
+  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
@@ -78,12 +77,8 @@ const saveLocalDiscussions = (workspaceId, data) => {
 
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
 TOKEN REDUCTION & DATA PROTOCOL:
-1. THEME SELECTION: Evaluate the user's intent and select the perfect aesthetic. Output MUST start with T:X (X is 1 to 5).
-   T:1 = Wok Clean (Corporate/SaaS)
-   T:2 = Deep Void (Tech/Dark/Hacker)
-   T:3 = Yuzu Accent (Fintech/Bold/Energy)
-   T:4 = Corp Sand (Luxury/Elegant/Minimal)
-   T:5 = Brutalism (Creative/Agency/Raw)
+1. THEME SELECTION: Evaluate user intent. Output MUST start with T:X (X is 1 to 5).
+   T:1=Wok Clean, T:2=Deep Void, T:3=Yuzu Accent, T:4=Corp Sand, T:5=Brutalism.
 2. Output ONLY ultra-dense telegraphic shorthand. ZERO sentences.
 3. Provide exact ELI5 copywriting points.
 4. Generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points.
@@ -145,10 +140,11 @@ export default function ChatPage() {
   const [editTitle, setEditTitle] = useState('');
 
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
-  const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
   const [viewMode, setViewMode] = useState('preview');
 
-  // --- APP DASHBOARD STATE ---
+  // LIFTED SLUG STATE FOR DASHBOARD SYNC
+  const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
+
   const [appSettings, setAppSettings] = useState({
     title: 'AI-Powered Interface',
     description: 'A highly optimized interactive experience built with Wok.',
@@ -163,6 +159,8 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  
+  // AUTONOMOUS ERROR CATCHING STATE
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -319,7 +317,6 @@ export default function ChatPage() {
     setCurrentQuery(text); 
     setInput(''); 
     setIsLoading(true); 
-    setAiThemePromptActive(false);
     abortedRef.current = false;
 
     try {
@@ -356,7 +353,7 @@ export default function ChatPage() {
         setIsLoading(false);
         setFicheContent(newContent);
         
-        const chatDisplayContent = "✨ Architecture successfully recompiled to fix runtime errors.";
+        const chatDisplayContent = "✨ Architecture successfully recompiled to bypass silent runtime exceptions.";
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
@@ -417,14 +414,16 @@ export default function ChatPage() {
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
-  const handleFixError = () => {
-    if (!runtimeError) return;
-    const bt = String.fromCharCode(96);
-    const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
-    const savedError = runtimeError;
-    setRuntimeError(null);
-    sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
-  };
+  // SILENT AUTO-HEALING ENGINE
+  useEffect(() => {
+    if (runtimeError && !isLoading) {
+      const bt = String.fromCharCode(96);
+      const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
+      const savedError = runtimeError;
+      setRuntimeError(null);
+      sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
+    }
+  }, [runtimeError, isLoading, sendMessage]);
 
   const handleStop = useCallback(() => {
     abortedRef.current = true; setIsLoading(false);
@@ -440,20 +439,19 @@ export default function ChatPage() {
     }
   };
 
-  // --- APP DASHBOARD HANDLERS ---
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if(convId) {
       try { await base44.entities.Conversation.update(convId, { title: newSettings.title }); } 
-      catch (e) { console.log('Meta update mocked locally.'); }
+      catch (e) {}
     }
-    toast.success("Paramètres mis à jour avec succès.");
+    toast.success("Settings updated successfully.");
   };
 
   const handleCloneApp = () => {
     const newConvId = `conv_${Date.now()}`;
     saveConversationMessages(newConvId, messages);
-    toast.success("Application clonée. Nouvelle URL générée.");
+    toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
   };
 
@@ -463,14 +461,13 @@ export default function ChatPage() {
       try { await base44.entities.Conversation.update(convId, { is_public: false }); } 
       catch(e){}
     }
-    toast.success("Application dépubliée.");
+    toast.success("Application unpublished.");
   };
 
   const handleDeleteApp = () => {
     deleteDiscussion({ stopPropagation: () => {} }, convId);
-    toast.success("Application supprimée définitivement.");
+    toast.success("Application deleted permanently.");
   };
-
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
@@ -639,15 +636,13 @@ export default function ChatPage() {
                  <WorkspaceHeader 
                    onReload={handleReload} 
                    convId={conversationId || convId} 
-                   appearance={appearance} 
-                   setAppearance={setAppearance} 
-                   onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} 
                    viewMode={viewMode}
+                   customSlug={customSlug}
+                   setCustomSlug={setCustomSlug}
                  />
                  <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
                    <FichePanel 
                      content={ficheContent} 
-                     appearance={appearance} 
                      onError={setRuntimeError} 
                      onSuccess={() => setRuntimeError(null)} 
                      isPublic={false} 
@@ -658,6 +653,7 @@ export default function ChatPage() {
                      onClone={handleCloneApp}
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
+                     customSlug={customSlug}
                    />
                  </div>
               </div>
