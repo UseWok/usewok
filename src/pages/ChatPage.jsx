@@ -107,7 +107,7 @@ The user's React code encountered a runtime error. You must fix the code complet
 CRITICAL RULES:
 1. Output ONLY the raw React code. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
 2. Keep the exact same design and UI. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
-3. If the error mentions 'ambiguous indirect export' or a module resolution error, it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
+3. THE CDN CRASH RULE: If the error mentions 'ambiguous indirect export', 'SyntaxError', or a module resolution error, IT MEANS AN IMPORT IS CRASHING THE BROWSER. You MUST remove all 'lucide-react' and 'recharts' imports, and replace them with native Tailwind HTML shapes/SVGs. DO NOT output the exact same code you received.
 4. Main component must be named 'App'. Do NOT use export default.`;
 
 export default function ChatPage() {
@@ -306,17 +306,16 @@ export default function ChatPage() {
       if (options.isCorrection) {
         
         // MATHEMATICAL EXTRACTION: Completely bypasses Regex to prevent UI parsing crashes.
-        const bt = String.fromCharCode(96, 96, 96);
+        const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
         let codeMatch = null;
 
-        if (codeToFix.includes(bt)) {
-          const first = codeToFix.indexOf(bt);
-          const last = codeToFix.lastIndexOf(bt);
-          if (first !== -1 && last !== -1 && first !== last) {
-            codeMatch = codeToFix.substring(first, last + 3);
-            codeToFix = codeMatch;
-          }
+        const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
+        const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
+        
+        if (startIdx !== -1 && endIdx !== -1 && startIdx !== endIdx) {
+          codeMatch = codeToFix.substring(startIdx, endIdx + 3);
+          codeToFix = codeMatch;
         }
 
         const fixResult = await base44.integrations.Core.InvokeLLM({ 
@@ -330,7 +329,7 @@ export default function ChatPage() {
         let newContent = ficheContent;
         if (codeMatch) {
           let finalFixedCode = fixedCodeBlock;
-          if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}jsx\n${finalFixedCode}\n${bt}`;
+          if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}${bt}${bt}jsx\n${finalFixedCode}\n${bt}${bt}${bt}`;
           newContent = ficheContent.replace(codeMatch, finalFixedCode);
         } else {
           newContent = fixedCodeBlock;
@@ -365,9 +364,9 @@ export default function ChatPage() {
       if (abortedRef.current) return;
       let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
       
-      const bt = String.fromCharCode(96, 96, 96);
+      const bt = String.fromCharCode(96);
       if (!finalCode.includes(bt)) {
-        finalCode = `${bt}jsx\n${finalCode}\n${bt}`;
+        finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
       }
 
       // We ONLY return the code to the chat and preview.
@@ -397,7 +396,8 @@ export default function ChatPage() {
 
   const handleFixError = () => {
     if (!runtimeError) return;
-    const promptMsg = `The following errors happened in the app:\n\n${runtimeError}\n\nPlease help me fix these errors.`;
+    const bt = String.fromCharCode(96);
+    const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
     const savedError = runtimeError;
     setRuntimeError(null);
     sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
