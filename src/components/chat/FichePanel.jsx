@@ -50,12 +50,10 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
       let componentLogic = js || html || content;
 
       if (componentLogic) {
-        // Strip stray markdown formatting safely
         const btCode = String.fromCharCode(96);
         const btPattern = new RegExp(`${btCode}{3}(?:jsx|javascript|react)?\\n?`, 'gi');
         componentLogic = componentLogic.replace(btPattern, '').replace(new RegExp(`${btCode}{3}`, 'g'), '');
 
-        // Clean exports so React can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
         componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
         componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
@@ -85,7 +83,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // The Watermark is rendered ONLY if isPublic is true
   const watermarkHTML = isPublic ? `
     <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)';" onmouseout="this.style.opacity='0.6'; this.style.transform='none';" onclick="window.open('https://wok.com', '_blank')">
       <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
@@ -93,7 +90,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     </div>
   ` : '';
 
-  // RENDER ENGINE: Pinned Stable CDN Versions & Direct Compilation
+  // RENDER ENGINE: Pinned Stable CDN Versions & Google Fonts Injection
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -102,6 +99,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         
         <script type="importmap">
         {
