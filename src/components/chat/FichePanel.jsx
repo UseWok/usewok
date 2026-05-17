@@ -19,13 +19,13 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
     <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 rounded-tl-xl border-t border-l border-[#E5E5E5] flex">
       {/* Sidebar */}
       <div className="w-[240px] bg-white border-r border-[#E5E5E5] hidden md:flex flex-col py-6 px-4">
-        <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Tableau de bord</p>
+        <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Dashboard</p>
         <div className="space-y-1">
           <button className="w-full flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-[13px] font-semibold">
-            <LayoutDashboard className="w-4 h-4" /> Vue d'ensemble
+            <LayoutDashboard className="w-4 h-4" /> Overview
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-[13px] font-medium">
-            <Settings className="w-4 h-4" /> Paramètres avancés
+            <Settings className="w-4 h-4" /> Advanced Settings
           </button>
         </div>
       </div>
@@ -55,10 +55,10 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
              />
              <div className="flex items-center gap-3 mt-2">
                 <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
-                   <ExternalLink className="w-4 h-4" /> Ouvrir l'application
+                   <ExternalLink className="w-4 h-4" /> Open App
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
-                   <Share2 className="w-4 h-4" /> Partager (Gagnez des crédits)
+                   <Share2 className="w-4 h-4" /> Share (Earn Credits)
                 </button>
              </div>
           </div>
@@ -68,31 +68,31 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
         <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-[13px] text-blue-800 leading-relaxed">
-            <strong>Optimisation SEO:</strong> Plus les métadonnées (titre et description) de cette application sont précises et riches en mots-clés, plus elle sera facile à trouver et à indexer par les moteurs de recherche.
+            <strong>SEO Optimization:</strong> The more precise and keyword-rich the metadata (title and description) of this application, the easier it will be to find and index by search engines.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Visibility */}
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-            <h3 className="text-[15px] font-bold text-slate-900 mb-1">Visibilité de l'application</h3>
-            <p className="text-[13px] text-slate-500 mb-5">Contrôlez qui peut accéder à votre application.</p>
+            <h3 className="text-[15px] font-bold text-slate-900 mb-1">App Visibility</h3>
+            <p className="text-[13px] text-slate-500 mb-5">Control who can access your application.</p>
             <select 
               value={settings.isPublic ? 'public' : 'private'} 
               onChange={(e) => onUpdateSettings({...settings, isPublic: e.target.value === 'public'})}
               className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-[13px] font-medium outline-none focus:border-blue-500 appearance-none bg-slate-50"
             >
-              <option value="public">🌐 Public (Accessible par URL)</option>
-              <option value="private">🔒 Privé (Espace de travail uniquement)</option>
+              <option value="public">🌐 Public (Accessible via URL)</option>
+              <option value="private">🔒 Private (Workspace only)</option>
             </select>
           </div>
 
           {/* Badge Control */}
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-            <h3 className="text-[15px] font-bold text-slate-900 mb-1">Marque Blanche</h3>
-            <p className="text-[13px] text-slate-500 mb-5">Affichez ou masquez le badge "Built with WOK".</p>
+            <h3 className="text-[15px] font-bold text-slate-900 mb-1">White Label</h3>
+            <p className="text-[13px] text-slate-500 mb-5">Show or hide the "Built with WOK" badge.</p>
             <div className="flex items-center justify-between mt-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
-               <span className="text-[13px] font-semibold text-slate-700">Badge Plateforme</span>
+               <span className="text-[13px] font-semibold text-slate-700">Platform Badge</span>
                <button 
                   onClick={() => onUpdateSettings({...settings, showBadge: !settings.showBadge})} 
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.showBadge ? 'bg-blue-600' : 'bg-slate-300'}`}
@@ -106,11 +106,11 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
         {/* Clone Section */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex items-center justify-between">
            <div>
-              <h3 className="text-[15px] font-bold text-slate-900 mb-1">Cloner l'interface</h3>
-              <p className="text-[13px] text-slate-500">Duplique le code dans une nouvelle session avec une nouvelle URL.</p>
+              <h3 className="text-[15px] font-bold text-slate-900 mb-1">Clone Interface</h3>
+              <p className="text-[13px] text-slate-500">Duplicates the code into a new session with a new URL.</p>
            </div>
            <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center gap-2">
-             <Copy className="w-4 h-4" /> Cloner
+             <Copy className="w-4 h-4" /> Clone
            </button>
         </div>
 
@@ -122,10 +122,10 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
            </div>
            <div className="flex flex-col md:flex-row gap-4">
              <button onClick={onUnpublish} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50">
-               Dépublier la page
+               Unpublish Page
              </button>
              <button onClick={onDelete} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm">
-               <Trash2 className="w-4 h-4" /> Supprimer définitivement
+               <Trash2 className="w-4 h-4" /> Delete Permanently
              </button>
            </div>
         </div>
@@ -216,7 +216,6 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
         ${watermarkHTML}
         
         <script>
-          // ERROR INJECTION REMOVED. FAIL SILENTLY.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
@@ -234,7 +233,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
             componentDidCatch(error) { window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*'); }
             render() {
               if (this.state.hasError) {
-                return null; // SILENT FAIL
+                return null;
               }
               return this.props.children;
             }
@@ -259,20 +258,20 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
   return (
     <div className="w-full h-full relative font-sans flex flex-col">
       
-      {/* THE GREY STRUCTURAL BAR IS BACK */}
+      {/* THE GREY STRUCTURAL BAR - NO ICONS, PURE TEXT */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative">
         <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
           <button 
             onClick={() => setViewMode('preview')} 
-            className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
-            <LayoutTemplate className="w-3.5 h-3.5" /> App Interface
+            App Interface
           </button>
           <button 
             onClick={() => setViewMode('dashboard')} 
-            className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
-            <LayoutDashboard className="w-3.5 h-3.5" /> Tableau de bord
+            Dashboard
           </button>
         </div>
       </div>
