@@ -76,31 +76,31 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- LOSSLESS TOKEN COMPRESSION PROMPTS ---
+// --- ELITE LIGHT-THEME ADAPTIVE PROMPTS ---
 
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
-TOKEN REDUCTION PROTOCOL:
-1. Output ONLY ultra-dense telegraphic shorthand (e.g., P1:Action|Metric|PsychTrigger). ZERO fluff. ZERO full sentences.
-2. Analyze the user query to build a strategic masterplan, then compress it into this shorthand data payload.
-3. Designate 3 distinct datasets for UI charts (Area, Radar, Radial).
+TOKEN REDUCTION & DATA PROTOCOL:
+1. Output ONLY ultra-dense telegraphic shorthand. ZERO fluff. ZERO full sentences.
+2. Expand the user's query into a masterplan. Provide the exact copywriting content using ELI5 (Explain Like I'm 5) concepts.
+3. VISUAL DATA PREPARATION: You MUST generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points (e.g., months, efficiency metrics, percentages).
 4. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
 CRITICAL RULES (FAILURE CRASHES SYSTEM):
-1. AESTHETICS: Use Deep Void Black (bg-[#050505]) or ultra-clean light (bg-[#FAFAFA]). Massive whitespace (p-12 md:p-24, gap-12). Glowing accents (text-cyan-400, text-emerald-400). Append '+' to major headers.
-2. ELOQUENT UX COPY: Unzip the provided shorthand data into beautiful, highly readable, ELI5 (Explain Like I'm 5) paragraphs. ALL <p> tags MUST use \`leading-[1.8]\` or \`leading-loose\` and \`text-white/90\` (if dark).
-3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts (Area, Radar, RadialBar) with comparative mock data, <XAxis>, <Tooltip>, and gradients. Wrap in <div className="w-full h-80">.
-4. NO BOILERPLATE: Zero navbars, footers, or fake buttons. 
+1. AESTHETICS: STRICTLY use a premium Light Theme (min-h-screen bg-[#FAFAFA] text-zinc-900). Use massive whitespace (p-12 md:p-24, space-y-16). Use Bento cards with massive border-radius (bg-white border border-zinc-100 rounded-[32px] p-12). Contrast with occasional deep cards (bg-zinc-900 text-white).
+2. TYPOGRAPHY & IDENTITY: ALL <p> tags MUST use \`leading-[1.8]\` or \`leading-loose\` and font-light (text-zinc-500). You MUST append a '+' symbol to major section titles to create a unique signature.
+3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts (e.g., AreaChart, RadarChart, RadialBarChart). You MUST include <XAxis>, <YAxis>, <Tooltip>, and complex <linearGradient> defs to make the curves beautiful. Map them to the realistic data provided. Wrap in <div className="w-full h-80">.
+4. NO BOILERPLATE: Zero navbars, standard footers, or fake "Start" buttons. 
 5. IMPORTS: Exactly this:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
    import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-6. ANIMATION: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+6. ANIMATION: Use exact Framer snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
 7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
-RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
+RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, bg-[#FAFAFA], rounded-[32px], and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -124,7 +124,7 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
-  const [appearance, setAppearance] = useState({ theme: 'sand', font: 'Inter', edges: 'soft' });
+  const [appearance, setAppearance] = useState({ theme: 'grid', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
 
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
@@ -299,6 +299,7 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
+      // 1. SMART PATCHING
       if (options.isCorrection) {
         const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
@@ -329,7 +330,7 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(0); // FREE
+        await handleUpdateCredits(0); // FREE FIX
         setIsLoading(false);
         setFicheContent(newContent);
         
@@ -341,7 +342,7 @@ export default function ChatPage() {
         return; 
       }
 
-      // LOSSLESS COMPRESSION PIPELINE 
+      // 2. SILENT DUAL-PIPELINE 
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -585,7 +586,6 @@ export default function ChatPage() {
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
-                   {/* Pass isPublic={false} inside the app to hide the watermark */}
                    <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} />
                  </div>
               </div>
