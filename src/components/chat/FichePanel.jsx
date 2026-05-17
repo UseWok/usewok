@@ -7,16 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 // --- ENTERPRISE DASHBOARD COMPONENT ---
-const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpublish }) => {
+const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUnpublish }) => {
   const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
   const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
 
   const handleSave = () => {
-    onUpdateSettings({ ...settings, title, description });
+    if (onUpdateSettings) {
+      onUpdateSettings({ ...settings, title, description });
+    }
   };
 
   return (
-    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 rounded-tl-xl border-t border-l border-[#E5E5E5] flex">
+    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 border-t border-l border-[#E5E5E5] flex">
       {/* Sidebar */}
       <div className="w-[240px] bg-white border-r border-[#E5E5E5] hidden md:flex flex-col py-6 px-4">
         <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Dashboard</p>
@@ -24,7 +26,7 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
           <button className="w-full flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-[13px] font-semibold">
             <LayoutDashboard className="w-4 h-4" /> Overview
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-[13px] font-medium">
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-[13px] font-medium transition-colors">
             <Settings className="w-4 h-4" /> Advanced Settings
           </button>
         </div>
@@ -44,20 +46,20 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
                value={title} 
                onChange={(e) => setTitle(e.target.value)} 
                onBlur={handleSave}
-               className="text-3xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 py-1 w-full"
+               className="text-3xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 py-1 w-full transition-all"
              />
              <textarea 
                value={description}
                onChange={(e) => setDescription(e.target.value)}
                onBlur={handleSave}
                rows={3}
-               className="text-[14px] text-slate-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 w-full resize-none leading-relaxed"
+               className="text-[14px] text-slate-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 w-full resize-none leading-relaxed transition-all"
              />
              <div className="flex items-center gap-3 mt-2">
-                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
                    <ExternalLink className="w-4 h-4" /> Open App
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
                    <Share2 className="w-4 h-4" /> Share (Earn Credits)
                 </button>
              </div>
@@ -65,7 +67,7 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
         </div>
 
         {/* SEO Meta Alert */}
-        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3">
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm">
           <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-[13px] text-blue-800 leading-relaxed">
             <strong>SEO Optimization:</strong> The more precise and keyword-rich the metadata (title and description) of this application, the easier it will be to find and index by search engines.
@@ -79,8 +81,8 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
             <p className="text-[13px] text-slate-500 mb-5">Control who can access your application.</p>
             <select 
               value={settings.isPublic ? 'public' : 'private'} 
-              onChange={(e) => onUpdateSettings({...settings, isPublic: e.target.value === 'public'})}
-              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-[13px] font-medium outline-none focus:border-blue-500 appearance-none bg-slate-50"
+              onChange={(e) => onUpdateSettings && onUpdateSettings({...settings, isPublic: e.target.value === 'public'})}
+              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-[13px] font-medium outline-none focus:border-blue-500 appearance-none bg-slate-50 transition-colors"
             >
               <option value="public">🌐 Public (Accessible via URL)</option>
               <option value="private">🔒 Private (Workspace only)</option>
@@ -94,7 +96,7 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
             <div className="flex items-center justify-between mt-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                <span className="text-[13px] font-semibold text-slate-700">Platform Badge</span>
                <button 
-                  onClick={() => onUpdateSettings({...settings, showBadge: !settings.showBadge})} 
+                  onClick={() => onUpdateSettings && onUpdateSettings({...settings, showBadge: !settings.showBadge})} 
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.showBadge ? 'bg-blue-600' : 'bg-slate-300'}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${settings.showBadge ? 'translate-x-5' : 'translate-x-1'}`} />
@@ -109,7 +111,7 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
               <h3 className="text-[15px] font-bold text-slate-900 mb-1">Clone Interface</h3>
               <p className="text-[13px] text-slate-500">Duplicates the code into a new session with a new URL.</p>
            </div>
-           <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center gap-2">
+           <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center gap-2 transition-colors">
              <Copy className="w-4 h-4" /> Clone
            </button>
         </div>
@@ -121,10 +123,10 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
              <h3 className="text-[15px] font-bold text-red-700">Danger Zone</h3>
            </div>
            <div className="flex flex-col md:flex-row gap-4">
-             <button onClick={onUnpublish} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50">
+             <button onClick={onUnpublish} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50 transition-colors">
                Unpublish Page
              </button>
-             <button onClick={onDelete} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm">
+             <button onClick={onDelete} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm transition-colors">
                <Trash2 className="w-4 h-4" /> Delete Permanently
              </button>
            </div>
@@ -135,7 +137,7 @@ const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubli
   );
 };
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess, isPublic = false, viewMode, setViewMode, appSettings, onUpdateSettings, onClone, onDelete, onUnpublish }) {
+export default function FichePanel({ content = null, appearance, onError, onSuccess, isPublic = false, viewMode, setViewMode, appSettings = {}, onUpdateSettings, onClone, onDelete, onUnpublish }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
@@ -216,6 +218,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
         ${watermarkHTML}
         
         <script>
+          // ERROR INJECTION REMOVED. FAIL SILENTLY TO PREVENT UGLY RED SCREENS.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
@@ -233,7 +236,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
             componentDidCatch(error) { window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*'); }
             render() {
               if (this.state.hasError) {
-                return null;
+                return null; // SILENT FAIL
               }
               return this.props.children;
             }
@@ -256,19 +259,20 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
   `;
 
   return (
-    <div className="w-full h-full relative font-sans flex flex-col">
+    // pt-[56px] pushes the content below the absolute WorkspaceHeader to prevent click collisions
+    <div className="w-full h-full relative font-sans flex flex-col pt-[56px]">
       
-      {/* THE GREY STRUCTURAL BAR - NO ICONS, PURE TEXT */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative">
+      {/* THE GREY STRUCTURAL BAR */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative rounded-tl-xl border-l">
         <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
           <button 
-            onClick={() => setViewMode('preview')} 
+            onClick={() => setViewMode && setViewMode('preview')} 
             className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
             App Interface
           </button>
           <button 
-            onClick={() => setViewMode('dashboard')} 
+            onClick={() => setViewMode && setViewMode('dashboard')} 
             className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
             Dashboard
@@ -284,7 +288,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
                 {isCompiling && (
                   <motion.div 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md"
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md border-l border-[#E5E5E5]"
                   >
                     <div className="p-4 bg-white rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
                        <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
@@ -296,7 +300,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
               <iframe
                 title="Wok Live Preview"
                 srcDoc={srcDoc}
-                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
+                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent border-l border-[#E5E5E5]"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
             </>
@@ -310,7 +314,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
             />
           )
         ) : (
-          <div className="flex items-center justify-center h-full w-full opacity-30">
+          <div className="flex items-center justify-center h-full w-full opacity-30 border-l border-t border-[#E5E5E5] rounded-tl-xl bg-white/50">
              <LayoutTemplate className="w-16 h-16 text-slate-400" />
           </div>
         )}
