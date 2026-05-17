@@ -93,7 +93,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     </div>
   ` : '';
 
-  // RENDER ENGINE: Pinned Stable CDN Versions & Direct Compilation (No Regex Import Scrubbing)
+  // RENDER ENGINE: Pinned Stable CDN Versions & Direct Compilation
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -150,7 +150,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
         <script type="text/babel" data-type="module" data-presets="react">
           import { createRoot as __WokCreateRoot__ } from 'react-dom/client';
           
-          // AI CODE RENDERED DIRECTLY - PREVENTS DUPLICATE DECLARATION CRASHES
           ${compiledCode.js}
           
           class ErrorBoundary extends React.Component {
