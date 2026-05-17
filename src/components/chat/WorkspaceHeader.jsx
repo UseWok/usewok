@@ -17,11 +17,10 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ onReload, convId, viewMode }) {
+export default function WorkspaceHeader({ onReload, convId, viewMode, customSlug, setCustomSlug }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
   const [isPublished, setIsPublished] = useState(false);
-  const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [indexGoogle, setIndexGoogle] = useState(false);
   const [showDomainModal, setShowDomainModal] = useState(false);
@@ -29,10 +28,8 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
   const publishRef = useRef(null);
 
   useEffect(() => {
-    const slug = convId || `conv_${Date.now().toString().slice(-6)}`;
-    setCustomSlug(slug);
-    setTempSlug(slug);
-  }, [convId]);
+    setTempSlug(customSlug);
+  }, [customSlug]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -97,7 +94,6 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
     toast.success("Link copied to clipboard!");
   };
 
-  // IF THE DASHBOARD IS OPEN, HIDE THE HEADER TOOLS ENTIRELY
   if (viewMode === 'dashboard') {
     return <header className="h-[56px] flex-shrink-0 z-30 w-full bg-transparent absolute top-0 left-0 right-0 pointer-events-none" />;
   }
@@ -146,7 +142,6 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
 
       <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-transparent absolute top-0 left-0 right-0">
         
-        {/* LEFT: Mac Dots */}
         <div className="flex gap-4 items-center pl-1">
            <div className="flex gap-1.5 items-center">
              <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
@@ -155,7 +150,6 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
            </div>
         </div>
 
-        {/* RIGHT: Reload Tool & Publish Flow */}
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
           <button onClick={onReload} className="p-1.5 rounded-md transition-none text-[#707070] hover:text-[#333333] hover:bg-white/50 backdrop-blur-sm" title="Regenerate">
             <RefreshCw className="w-4 h-4" />
