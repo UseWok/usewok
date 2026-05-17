@@ -76,30 +76,31 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE DUAL-PIPELINE COGNITIVE PROMPTS ---
+// --- ELITE SILENT DUAL-PIPELINE PROMPTS ---
 
-const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist.
+const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist. You operate silently in the backend.
 COST REDUCTION & DATA PROTOCOL:
-1. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions.
+1. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions. Do not acknowledge the user.
 2. Analyze the user query and IMPLICITLY merge their preferences into a masterplan.
 3. Outline clear Phases, Specific Metrics, and brief accessible psychological explanations.
 4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Use basic line breaks.
-5. Language: Reply in the exact same language the user wrote in.`;
+5. Your ONLY job is to prepare this structural text payload for the UI Architect AI. Reply in the exact same language the user wrote in.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel building a $10,000 award-winning 2026 interface.
-Your goal: Take the raw strategic text provided and build a BREATHTAKING REACT component.
+Your goal: Take the raw strategic text payload provided and build a BREATHTAKING REACT component.
 CRITICAL RULES (FAILURE RESULTS IN CRASH):
-1. $10K AESTHETICS: Build a FULL-BLEED, immersive UI. Use dark modes (bg-[#050505] or bg-slate-900) or very soft lights (bg-[#FAFAFA]) to prevent eye fatigue. Use Bento-box grids, heavy glassmorphism, subtle glowing orbs, and massive padding.
-2. NO FLUFF: DO NOT build fake navbars or standard footers. Build ONLY the core interactive content.
-3. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it. Present the truth exactly as provided.
-4. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
+1. OUTPUT FORMAT: You must output ONLY a valid React code block wrapped in three backticks followed by jsx. Do NOT output any conversational text.
+2. $10K AESTHETICS: Build a FULL-BLEED, immersive UI. Use dark modes (bg-[#050505] or bg-slate-900) or very soft lights (bg-[#FAFAFA]) to prevent eye fatigue. Use Bento-box grids, heavy glassmorphism, subtle glowing orbs, and massive padding.
+3. NO FLUFF: DO NOT build fake navbars or standard footers. Build ONLY the core interactive content.
+4. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it. Present the truth exactly as provided.
+5. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
    import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-5. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
-6. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
-7. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
+6. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
+7. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.6 }}>
+8. Main component MUST be named 'App'.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
@@ -303,6 +304,7 @@ export default function ChatPage() {
     try {
       // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
+        
         const bt = String.fromCharCode(96, 96, 96);
         const codeBlockRegex = new RegExp(bt + '(?:jsx|javascript|react)?\\n([\\s\\S]*?)' + bt, 'i');
         
@@ -336,7 +338,8 @@ export default function ChatPage() {
         return; 
       }
 
-      // 2. STANDARD DUAL-PIPELINE (Psychologist -> Architect)
+      // 2. SILENT DUAL-PIPELINE 
+      // Step A: Agent 1 (Psychologist) generates the data payload silently.
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -345,10 +348,11 @@ export default function ChatPage() {
       if (abortedRef.current) return;
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
       
-      setFicheContent(psychologicalText);
+      // We DO NOT setFicheContent here. The user only sees the loading state.
 
+      // Step B: Agent 2 (Architect) builds the UI from the silent data.
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\nInject this EXACT text into the UI without summarizing:\n" + psychologicalText, 
+        prompt: PROMPT_ARCHITECT + "\n\n[INJECT THIS DATA VERBATIM INTO THE UI]:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
       });
 
@@ -360,7 +364,8 @@ export default function ChatPage() {
         finalCode = `${bt}jsx\n${finalCode}\n${bt}`;
       }
 
-      const finalContent = psychologicalText + "\n\n" + finalCode;
+      // We ONLY return the code to the chat and preview. The text payload remains hidden.
+      const finalContent = finalCode;
 
       const cost = discussMode ? 1 : 10;
       await handleUpdateCredits(cost);
