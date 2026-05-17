@@ -63,7 +63,7 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
             <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
             <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">{actionText}</button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -76,7 +76,7 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE LIGHT-THEME ADAPTIVE PROMPTS ---
+// --- ELITE DUAL-PIPELINE PROMPTS ---
 
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
 TOKEN REDUCTION & DATA PROTOCOL:
@@ -85,22 +85,62 @@ TOKEN REDUCTION & DATA PROTOCOL:
 3. VISUAL DATA PREPARATION: You MUST generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points (e.g., months, efficiency metrics, percentages).
 4. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
 
-const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
-CRITICAL RULES (FAILURE CRASHES SYSTEM):
-1. AESTHETICS: STRICTLY use a premium Light Theme (min-h-screen bg-[#FAFAFA] text-zinc-900). Use massive whitespace (p-12 md:p-24, space-y-16). Use Bento cards with massive border-radius (bg-white border border-zinc-100 rounded-[32px] p-12). Contrast with occasional deep cards (bg-zinc-900 text-white).
-2. TYPOGRAPHY & IDENTITY: ALL <p> tags MUST use \`leading-[1.8]\` or \`leading-loose\` and font-light (text-zinc-500). You MUST append a '+' symbol to major section titles to create a unique signature.
-3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts (e.g., AreaChart, RadarChart, RadialBarChart). You MUST include <XAxis>, <YAxis>, <Tooltip>, and complex <linearGradient> defs to make the curves beautiful. Map them to the realistic data provided. Wrap in <div className="w-full h-80">.
-4. NO BOILERPLATE: Zero navbars, standard footers, or fake "Start" buttons. 
-5. IMPORTS: Exactly this:
+const PROMPT_ARCHITECT = `<role>
+Tu es le Lead UI/UX Architect et le moteur de rendu de "Wok", une plateforme no-code haut de gamme. Ton objectif est de générer des interfaces web d'un niveau de design d'élite, dignes des meilleures entreprises technologiques.
+</role>
+
+<core_directive>
+Désormais, tu n'as PLUS le droit de générer ou d'inventer des styles CSS, des couleurs ou des typographies de manière aléatoire. Tu DOIS obligatoirement construire toutes tes interfaces en appliquant l'un des 5 "Design Modes" stricts définis ci-dessous. Aucun écart n'est toléré.
+</core_directive>
+
+<design_system>
+MODE 1 : "Wok Clean" (Inspiration : Stripe, Vercel)
+- Typographie : Inter (Body) / Space Grotesk (Headers)
+- Background : Blanc pur (#FFFFFF) ou Gris ultra-léger (#FAFAFA)
+- Éléments : Ombres douces (Soft Drop Shadows), bordures subtiles (#EAEAEA), Radius moyen (8px).
+- Vibe : Professionnel, fluide, rassurant.
+
+MODE 2 : "Deep Void" (Inspiration : Linear, esthétique Hacker premium)
+- Typographie : System UI ou Inter
+- Background : Noir profond (#050505)
+- Éléments : Contrastes nets, bordures gris sombre (#1A1A1A), texte gris clair (#EDEDED), Radius fin (4px) ou nul. Sans ombre.
+- Vibe : Minimalisme absolu, focus, technique.
+
+MODE 3 : "Yuzu Accent" (Inspiration : Startups Fintech modernes)
+- Typographie : Roboto (Body) / Playfair Display (Headers pour un contraste audacieux)
+- Background : Sombre (#0A0A0A) ou Blanc cassé (#F4F4F0)
+- Éléments : Utilisation d'une couleur d'accentuation forte "Jaune Yuzu/Néon", Radius prononcé (12px), éléments UI très délimités.
+- Vibe : Énergique, disruptif, moderne.
+
+MODE 4 : "Corporate Sand" (Inspiration : Marques de luxe discrètes)
+- Typographie : Playfair Display (Headers) / Inter (Body)
+- Background : Beige sable très clair (#FDFBF7)
+- Éléments : Couleurs typographiques douces (Charbon #1C1C1C), espacements aérés (High Line-height), Radius classique.
+- Vibe : Élégant, organique, intemporel.
+
+MODE 5 : "Brutalism Light" (Inspiration : Agences de design avant-gardistes)
+- Typographie : Space Grotesk (Global)
+- Background : Gris neutre (#E5E5E5)
+- Éléments : Bordures noires épaisses (2px, #000000), ombres portées dures (Solid Black Shadows), couleurs primaires saturées en accent.
+- Vibe : Brut, audacieux, assumé.
+</design_system>
+
+<execution_rules>
+1. Analyse la demande de l'utilisateur et sélectionne le "Design Mode" le plus pertinent. Ne mélange jamais les caractéristiques de deux modes.
+2. TYPOGRAPHIE & IDENTITÉ : TOUS les tags <p> DOIVENT utiliser \`leading-[1.8]\`. Ajoute le symbole '+' aux grands titres de section en guise de signature.
+3. GRAPHIQUES COMPLEXES : Rends 3 Recharts DIFFÉRENTS (ex: AreaChart, RadarChart, RadialBarChart). Tu DOIS inclure <XAxis>, <YAxis>, <Tooltip>, et des définitions <linearGradient>. Mappe les avec les données réelles fournies. Enveloppe les dans <div className="w-full h-80">.
+4. PAS DE BOILERPLATE : Aucun navbar, footer, ou faux bouton "Start". Construis UNIQUEMENT le contenu interactif core et les grilles Bento.
+5. IMPORTS : Exactement ceci :
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
    import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-6. ANIMATION: Use exact Framer snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
-7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
+6. ANIMATION : Utilise le snippet Framer exact : <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+7. Le composant DOIT s'appeler 'App'. Sors UNIQUEMENT le bloc de code jsx.
+</execution_rules>`;
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
-RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, bg-[#FAFAFA], rounded-[32px], and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
+RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, current Mode styling, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -299,7 +339,6 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // 1. SMART PATCHING
       if (options.isCorrection) {
         const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
@@ -330,7 +369,7 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(0); // FREE FIX
+        await handleUpdateCredits(0);
         setIsLoading(false);
         setFicheContent(newContent);
         
@@ -342,7 +381,6 @@ export default function ChatPage() {
         return; 
       }
 
-      // 2. SILENT DUAL-PIPELINE 
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -590,7 +628,6 @@ export default function ChatPage() {
                  </div>
               </div>
 
-              {/* FROSTED GLASS AUTO-HEALING BANNER */}
               {runtimeError && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] bg-white/90 backdrop-blur-xl border border-red-100/50 text-[#333333] p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-[9999] flex flex-col md:flex-row items-center gap-5">
                    <div className="flex items-center gap-3">
