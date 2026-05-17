@@ -89,10 +89,10 @@ COST REDUCTION & DATA PROTOCOL:
 const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel building a $10,000 award-winning 2026 interface.
 Your goal: Take the raw strategic text payload provided and build a BREATHTAKING REACT component.
 CRITICAL RULES (FAILURE RESULTS IN CRASH):
-1. OUTPUT FORMAT: You must output ONLY a valid React code block wrapped in three backticks followed by jsx. Do NOT output any conversational text.
+1. OUTPUT FORMAT: You must output ONLY a valid React component. Do NOT output any conversational text.
 2. $10K AESTHETICS: Build a FULL-BLEED, immersive UI. Use dark modes (bg-[#050505] or bg-slate-900) or very soft lights (bg-[#FAFAFA]) to prevent eye fatigue. Use Bento-box grids, heavy glassmorphism, subtle glowing orbs, and massive padding.
 3. NO FLUFF: DO NOT build fake navbars or standard footers. Build ONLY the core interactive content.
-4. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it. Present the truth exactly as provided.
+4. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it.
 5. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
@@ -105,7 +105,7 @@ CRITICAL RULES (FAILURE RESULTS IN CRASH):
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
 CRITICAL RULES:
-1. Output ONLY the raw jsx block. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
+1. Output ONLY the raw React code. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
 2. Keep the exact same design and UI. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
 3. If the error mentions 'ambiguous indirect export' or a module resolution error, it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
 4. Main component must be named 'App'. Do NOT use export default.`;
@@ -305,11 +305,19 @@ export default function ChatPage() {
       // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
         
+        // MATHEMATICAL EXTRACTION: Completely bypasses Regex to prevent UI parsing crashes.
         const bt = String.fromCharCode(96, 96, 96);
-        const codeBlockRegex = new RegExp(bt + '(?:jsx|javascript|react)?\\n([\\s\\S]*?)' + bt, 'i');
-        
-        const codeMatch = ficheContent?.match(codeBlockRegex);
-        const codeToFix = codeMatch ? codeMatch[0] : ficheContent;
+        let codeToFix = ficheContent || "";
+        let codeMatch = null;
+
+        if (codeToFix.includes(bt)) {
+          const first = codeToFix.indexOf(bt);
+          const last = codeToFix.lastIndexOf(bt);
+          if (first !== -1 && last !== -1 && first !== last) {
+            codeMatch = codeToFix.substring(first, last + 3);
+            codeToFix = codeMatch;
+          }
+        }
 
         const fixResult = await base44.integrations.Core.InvokeLLM({ 
           prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix, 
@@ -323,7 +331,7 @@ export default function ChatPage() {
         if (codeMatch) {
           let finalFixedCode = fixedCodeBlock;
           if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}jsx\n${finalFixedCode}\n${bt}`;
-          newContent = ficheContent.replace(codeMatch[0], finalFixedCode);
+          newContent = ficheContent.replace(codeMatch, finalFixedCode);
         } else {
           newContent = fixedCodeBlock;
         }
@@ -347,8 +355,6 @@ export default function ChatPage() {
 
       if (abortedRef.current) return;
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
-      
-      // We DO NOT setFicheContent here. The user only sees the loading state.
 
       // Step B: Agent 2 (Architect) builds the UI from the silent data.
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
@@ -364,7 +370,7 @@ export default function ChatPage() {
         finalCode = `${bt}jsx\n${finalCode}\n${bt}`;
       }
 
-      // We ONLY return the code to the chat and preview. The text payload remains hidden.
+      // We ONLY return the code to the chat and preview.
       const finalContent = finalCode;
 
       const cost = discussMode ? 1 : 10;
@@ -391,8 +397,7 @@ export default function ChatPage() {
 
   const handleFixError = () => {
     if (!runtimeError) return;
-    const bt = String.fromCharCode(96, 96, 96);
-    const promptMsg = `The following errors happened in the app:\n\n${bt}\n${runtimeError}\n${bt}\n\nPlease help me fix these errors.`;
+    const promptMsg = `The following errors happened in the app:\n\n${runtimeError}\n\nPlease help me fix these errors.`;
     const savedError = runtimeError;
     setRuntimeError(null);
     sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
@@ -578,7 +583,8 @@ export default function ChatPage() {
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
-                   <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} />
+                   {/* Pass isPublic={false} inside the app to hide the watermark */}
+                   <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} />
                  </div>
               </div>
 
