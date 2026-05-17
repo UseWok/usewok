@@ -76,40 +76,31 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE ADAPTIVE DUAL-PIPELINE PROMPTS ---
+// --- LOSSLESS TOKEN COMPRESSION PROMPTS ---
 
-const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist operating silently in the backend.
-COST REDUCTION & DATA PROTOCOL:
-1. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions. Do not acknowledge the user.
-2. ADAPTIVE LENGTH: Match output depth to user prompt length. Use ELI5 (Explain Like I'm 5) language and powerful, simple analogies. No complex jargon.
-3. VISUAL DATA PREPARATION: You MUST generate explicit, realistic comparative data points (e.g., "System A vs System B over 6 months") for the Architect to map into charts.
-4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Basic line breaks only.
-5. Reply in the exact same language the user wrote in.`;
+const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
+TOKEN REDUCTION PROTOCOL:
+1. Output ONLY ultra-dense telegraphic shorthand (e.g., P1:Action|Metric|PsychTrigger). ZERO fluff. ZERO full sentences.
+2. Analyze the user query to build a strategic masterplan, then compress it into this shorthand data payload.
+3. Designate 3 distinct datasets for UI charts (Area, Radar, Radial).
+4. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
 
-const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel building a $10,000 award-winning interactive dashboard.
-CRITICAL AESTHETIC RULES (FAILURE RESULTS IN CRASH):
-1. HYPER-LEGIBILITY & SPACING: Use massive whitespace (p-12 md:p-24, space-y-24). ALL paragraph text MUST use the \`leading-[1.8]\` Tailwind class. 
-2. UNIQUE IDENTITY (+): You MUST append a '+' symbol to major section titles and key metric numbers to make the UI unique and branded.
-3. CALM PREMIUM UI: Prioritize Deep Void Black (bg-[#050505]) with glowing Neon Yuzu or Cyan accents, OR an ultra-sleek light mode. No aggressive eye-straining effects.
-4. ELITE DATA VISUALIZATION (MANDATORY): Use at least 3 DIFFERENT Recharts. They CANNOT be empty. You MUST include <XAxis>, <YAxis>, <Tooltip>, <Legend>, and <CartesianGrid strokeDasharray="3 3" opacity={0.1}/>. Use complex comparative data arrays and beautiful <linearGradient> defs. Wrap charts in <div className="w-full h-80">.
-5. STRICT BOILERPLATE BAN: DO NOT build headers, navbars, footers, or generic "Start" buttons. Build ONLY high-value core interactive content and Bento-box grids.
-6. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it.
-7. RESTRICTED IMPORTS: Use EXACTLY this import block:
+const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
+CRITICAL RULES (FAILURE CRASHES SYSTEM):
+1. AESTHETICS: Use Deep Void Black (bg-[#050505]) or ultra-clean light (bg-[#FAFAFA]). Massive whitespace (p-12 md:p-24, gap-12). Glowing accents (text-cyan-400, text-emerald-400). Append '+' to major headers.
+2. ELOQUENT UX COPY: Unzip the provided shorthand data into beautiful, highly readable, ELI5 (Explain Like I'm 5) paragraphs. ALL <p> tags MUST use \`leading-[1.8]\` or \`leading-loose\` and \`text-white/90\` (if dark).
+3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts (Area, Radar, RadialBar) with comparative mock data, <XAxis>, <Tooltip>, and gradients. Wrap in <div className="w-full h-80">.
+4. NO BOILERPLATE: Zero navbars, footers, or fake buttons. 
+5. IMPORTS: Exactly this:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
    import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-8. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-80">.
-9. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
-10. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
+6. ANIMATION: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
 
-const PROMPT_AUTO_FIX = `You are an elite React Debugger.
-The user's React code encountered a runtime error. You must fix the code completely.
-CRITICAL RULES:
-1. Output ONLY the raw React code. No explanations. No markdown formatting outside of the code block. Zero conversational fluff.
-2. Keep the exact same design, 1.8 line-heights, whitespace, and '+' symbols. ONLY fix the technical bug (e.g. adding missing refs, fixing imports, assigning chart heights).
-3. If the error mentions 'ambiguous indirect export', it means an icon is crashing the CDN. Replace it with a basic imported icon like 'Activity'.
-4. Main component must be named 'App'. Do NOT use export default.`;
+const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
+RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -308,7 +299,6 @@ export default function ChatPage() {
     abortedRef.current = false;
 
     try {
-      // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
         const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
@@ -339,7 +329,7 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(0); // FREE FIX
+        await handleUpdateCredits(0); // FREE
         setIsLoading(false);
         setFicheContent(newContent);
         
@@ -351,7 +341,7 @@ export default function ChatPage() {
         return; 
       }
 
-      // 2. SILENT DUAL-PIPELINE 
+      // LOSSLESS COMPRESSION PIPELINE 
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -361,7 +351,7 @@ export default function ChatPage() {
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
 
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\n[INJECT THIS DATA VERBATIM INTO THE UI]:\n" + psychologicalText, 
+        prompt: PROMPT_ARCHITECT + "\n\n[EXPAND THIS DATA INTO A $10K UI]:\n" + psychologicalText, 
         model: 'gemini_3_flash' 
       });
 
