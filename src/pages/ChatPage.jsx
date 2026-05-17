@@ -63,7 +63,7 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
             <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
             <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">{actionText}</button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
