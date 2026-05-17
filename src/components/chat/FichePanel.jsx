@@ -1,23 +1,19 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, Code2, LayoutTemplate } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, appearance, onError, onSuccess, isPublic = false }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} isPublic={isPublic} />;
+export default function FichePanel({ content = null, onError, onSuccess, isPublic = false, viewMode = 'preview' }) {
+  return <LivePreviewEngine content={content} onError={onError} onSuccess={onSuccess} isPublic={isPublic} viewMode={viewMode} />;
 }
 
 // --- THE NATIVE ESM RENDER ENGINE ---
-export function LivePreviewEngine({ content, appearance, onError, onSuccess, isPublic }) {
+export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewMode }) {
   const [isCompiling, setIsCompiling] = useState(true);
-  const [viewMode, setViewMode] = useState('preview');
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
-
-  const isDark = appearance?.theme === 'midnight';
-  const FG = isDark ? '#F3F4F6' : '#0A0A0A';
 
   useEffect(() => {
     setIsCompiling(true);
@@ -90,7 +86,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     </div>
   ` : '';
 
-  // RENDER ENGINE: Pinned Stable CDN Versions & Google Fonts Injection
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -121,8 +116,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
             padding: 0;
             width: 100%;
             height: 100%;
-            font-family: ${appearance?.font || 'system-ui, sans-serif'}; 
-            color: ${FG};
             background-color: transparent;
             -webkit-font-smoothing: antialiased;
           }
@@ -188,28 +181,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
   `;
 
   return (
-    <div className="w-full h-full relative" style={{ color: isDark ? '#E5E7EB' : '#1a1a1a', fontFamily: appearance?.font || 'inherit' }}>
+    <div className="w-full h-full relative font-sans">
       {hasComponent ? (
-        <div className="w-full h-full flex flex-col bg-white rounded-xl shadow-sm border border-[#E5E5E5] overflow-hidden">
-          
-          <div className="flex items-center justify-between px-3 py-2 bg-gray-50/80 border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm backdrop-blur-md">
-            <div className="flex items-center gap-1 p-1 bg-gray-200/50 rounded-lg">
-              <button 
-                onClick={() => setViewMode('preview')} 
-                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <LayoutTemplate className="w-3.5 h-3.5" /> App Interface
-              </button>
-              <button 
-                onClick={() => setViewMode('code')} 
-                className={`flex items-center gap-2 px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-white text-[#0080ff] shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Code2 className="w-3.5 h-3.5" /> Source Code
-              </button>
-            </div>
-            {isCompiling && <Loader2 className="w-4 h-4 text-gray-400 animate-spin mr-2" />}
-          </div>
-
+        <div className="w-full h-full flex flex-col overflow-hidden">
           <div className="flex-1 relative w-full h-full">
             {viewMode === 'preview' ? (
               <>
@@ -217,10 +191,12 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
                   {isCompiling && (
                     <motion.div 
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm"
+                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/5 backdrop-blur-md"
                     >
-                      <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin mb-3" />
-                      <span className="text-[12px] font-bold text-[#0080ff] uppercase tracking-widest">Building Ecosystem...</span>
+                      <div className="p-4 bg-white/90 rounded-2xl shadow-xl flex flex-col items-center border border-white/20">
+                         <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
+                         <span className="text-[11px] font-bold text-[#0080ff] uppercase tracking-widest">Building</span>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -232,25 +208,15 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
                 />
               </>
             ) : (
-               <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-6 text-[13px] font-mono text-gray-300 leading-relaxed">
+               <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-8 text-[13px] font-mono text-gray-300 leading-relaxed rounded-tl-xl border-t border-l border-white/10">
                  <pre><code>{compiledCode.rawComponent}</code></pre>
                </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="prose prose-sm max-w-none p-10 w-full" style={{ fontSize: '15px', lineHeight: '1.8' }}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: ({ children }) => <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 20px', color: FG, letterSpacing: '-0.02em' }}>{children}</h1>,
-              h2: ({ children }) => <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '24px 0 12px', color: FG, letterSpacing: '-0.01em' }}>{children}</h2>,
-              h3: ({ children }) => <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '16px 0 8px', color: FG }}>{children}</h3>,
-              p: ({ children }) => <p style={{ margin: '0 0 16px', lineHeight: '1.8', color: isDark ? '#D1D5DB' : '#4B5563' }}>{children}</p>,
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+        <div className="flex items-center justify-center h-full w-full opacity-30">
+           <LayoutTemplate className="w-16 h-16 text-gray-400" />
         </div>
       )}
     </div>
