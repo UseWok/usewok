@@ -96,7 +96,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // The Watermark is injected NATIVELY here. It costs 0 tokens.
+  // Built-in ZERO-TOKEN watermark for public interfaces
   const watermarkHTML = `
     <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)';" onmouseout="this.style.opacity='0.6'; this.style.transform='none';" onclick="window.open('[https://wok.com](https://wok.com)', '_blank')">
       <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
