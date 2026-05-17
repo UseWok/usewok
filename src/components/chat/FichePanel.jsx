@@ -14,7 +14,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
 export function LivePreviewEngine({ content, appearance, onError, onSuccess, isPublic }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
-  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', imports: '', rawComponent: '' });
+  const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
   const isDark = appearance?.theme === 'midnight';
   const FG = isDark ? '#F3F4F6' : '#0A0A0A';
@@ -28,7 +28,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     let rawComponent = '';
 
     if (content) {
-      // Dynamic backticks to prevent markdown parser crashes
       const bt = String.fromCharCode(96, 96, 96);
       const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
       const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
@@ -48,28 +47,13 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
       }
 
       rawComponent = js || html || css || content;
-
-      let extractedImports = '';
       let componentLogic = js || html || content;
 
       if (componentLogic) {
-        // DOUBLE-SANITIZATION: Strip stray markdown using safe char codes
-        const btRegex = new RegExp(String.fromCharCode(96), 'g');
-        componentLogic = componentLogic.replace(/```jsx/gi, '').replace(/```javascript/gi, '').replace(btRegex, '');
-
-        // SURGICALLY EXTRACT IMPORTS
-        const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
-        const matchedImports = componentLogic.match(importRegex);
-        
-        if (matchedImports) {
-          let rawImports = matchedImports.join('\n');
-          
-          // SMART IMPORT SANITIZER: Eliminate the AI's React imports to prevent 'Duplicate Declaration' SyntaxErrors
-          rawImports = rawImports.replace(/import\s+.*?from\s+['"]react['"];?/gi, '');
-          
-          extractedImports = rawImports;
-          componentLogic = componentLogic.replace(importRegex, ''); 
-        }
+        // Strip stray markdown formatting safely
+        const btCode = String.fromCharCode(96);
+        const btPattern = new RegExp(`${btCode}{3}(?:jsx|javascript|react)?\\n?`, 'gi');
+        componentLogic = componentLogic.replace(btPattern, '').replace(new RegExp(`${btCode}{3}`, 'g'), '');
 
         // Clean exports so React can mount the App cleanly
         componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
@@ -78,9 +62,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
         componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
       }
 
-      setCompiledCode({ html, css, js: componentLogic, imports: extractedImports, rawComponent });
+      setCompiledCode({ html, css, js: componentLogic, rawComponent });
     } else {
-      setCompiledCode({ html: '', css: '', js: '', imports: '', rawComponent: '' });
+      setCompiledCode({ html: '', css: '', js: '', rawComponent: '' });
     }
 
     const timer = setTimeout(() => setIsCompiling(false), 800);
@@ -99,7 +83,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     return () => window.removeEventListener('message', handleMessage);
   }, [onError, onSuccess]);
 
-  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
+  const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
   // The Watermark is rendered ONLY if isPublic is true
   const watermarkHTML = isPublic ? `
@@ -109,7 +93,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
     </div>
   ` : '';
 
-  // RENDER ENGINE: Full-Bleed (no root padding) and Single-Source React pre-injected
+  // RENDER ENGINE: Pinned Stable CDN Versions & Direct Compilation (No Regex Import Scrubbing)
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -124,9 +108,9 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
           "imports": {
             "react": "https://esm.sh/react@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "lucide-react": "https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0",
-            "framer-motion": "https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0",
-            "recharts": "https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0"
+            "lucide-react": "https://esm.sh/lucide-react@0.263.0?deps=react@18.2.0",
+            "framer-motion": "https://esm.sh/framer-motion@10.16.4?deps=react@18.2.0,react-dom@18.2.0",
+            "recharts": "https://esm.sh/recharts@2.10.3?deps=react@18.2.0,react-dom@18.2.0"
           }
         }
         </script>
@@ -154,14 +138,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
         ${compiledCode.html}
         
         <script>
-          const oldError = console.error;
-          console.error = function(...args) {
-            const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
-            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: 'Compilation Error: ' + msg }, '*');
-            oldError.apply(console, args);
-          };
-
-          window.onerror = function(message) {
+          window.onerror = function(message, source, lineno, colno, error) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
           };
@@ -171,11 +148,10 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
-          // PERFECT REACT HOISTING: Guarantees zero duplicate SyntaxErrors
-          import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-          import { createRoot } from 'react-dom/client';
+          import { createRoot as __WokCreateRoot__ } from 'react-dom/client';
           
-          ${compiledCode.imports}
+          // AI CODE RENDERED DIRECTLY - PREVENTS DUPLICATE DECLARATION CRASHES
+          ${compiledCode.js}
           
           class ErrorBoundary extends React.Component {
             constructor(props) {
@@ -190,23 +166,15 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
             }
             render() {
               if (this.state.hasError) {
-                // If it fails to reach the parent, explicitly show the error inside the iframe
-                return (
-                  <div style={{ color: '#991b1b', padding: '24px', fontFamily: 'monospace', fontSize: '13px', background: '#fee2e2', borderLeft: '4px solid #f87171', margin: '20px', borderRadius: '4px' }}>
-                    <strong>React Render Crash:</strong><br/>
-                    {this.state.errorMessage}
-                  </div>
-                );
+                return null;
               }
               return this.props.children;
             }
           }
 
           try {
-            ${compiledCode.js}
-            
             if (typeof App !== 'undefined') {
-              const root = createRoot(document.getElementById('root'));
+              const root = __WokCreateRoot__(document.getElementById('root'));
               root.render(<ErrorBoundary><App /></ErrorBoundary>);
               window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
@@ -214,7 +182,6 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess, isP
             }
           } catch(err) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
-            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
           }
         </script>
       </body>
