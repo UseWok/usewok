@@ -1,62 +1,159 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, LayoutTemplate } from 'lucide-react';
+import { Loader2, LayoutTemplate, Settings, Globe, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
-export default function FichePanel({ content = null, onError, onSuccess, isPublic = false, viewMode = 'preview' }) {
-  return <LivePreviewEngine content={content} onError={onError} onSuccess={onSuccess} isPublic={isPublic} viewMode={viewMode} />;
-}
+// --- ENTERPRISE DASHBOARD COMPONENT ---
+const AppDashboard = ({ settings, onUpdateSettings, onClone, onDelete, onUnpublish }) => {
+  const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
+  const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
 
-// --- THE NATIVE ESM RENDER ENGINE ---
-export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewMode }) {
+  const handleSave = () => {
+    onUpdateSettings({ ...settings, title, description });
+  };
+
+  return (
+    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 rounded-tl-xl border-t border-l border-[#E5E5E5] flex">
+      {/* Sidebar */}
+      <div className="w-[240px] bg-white border-r border-[#E5E5E5] hidden md:flex flex-col py-6 px-4">
+        <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Tableau de bord</p>
+        <div className="space-y-1">
+          <button className="w-full flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-[13px] font-semibold">
+            <LayoutDashboard className="w-4 h-4" /> Vue d'ensemble
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-[13px] font-medium">
+            <Settings className="w-4 h-4" /> Paramètres avancés
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8 md:p-12 max-w-4xl">
+        
+        {/* Header Block */}
+        <div className="flex gap-6 items-start mb-10">
+          <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
+             <img src={LOGO_URL} alt="Logo" className="w-12 h-12 invert" />
+          </div>
+          <div className="flex-1 flex flex-col gap-3">
+             <input 
+               type="text" 
+               value={title} 
+               onChange={(e) => setTitle(e.target.value)} 
+               onBlur={handleSave}
+               className="text-3xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 py-1 w-full"
+             />
+             <textarea 
+               value={description}
+               onChange={(e) => setDescription(e.target.value)}
+               onBlur={handleSave}
+               rows={3}
+               className="text-[14px] text-slate-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 w-full resize-none leading-relaxed"
+             />
+             <div className="flex items-center gap-3 mt-2">
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
+                   <ExternalLink className="w-4 h-4" /> Ouvrir l'application
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50">
+                   <Share2 className="w-4 h-4" /> Partager (Gagnez des crédits)
+                </button>
+             </div>
+          </div>
+        </div>
+
+        {/* SEO Meta Alert */}
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <p className="text-[13px] text-blue-800 leading-relaxed">
+            <strong>Optimisation SEO:</strong> Plus les métadonnées (titre et description) de cette application sont précises et riches en mots-clés, plus elle sera facile à trouver et à indexer par les moteurs de recherche.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Visibility */}
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+            <h3 className="text-[15px] font-bold text-slate-900 mb-1">Visibilité de l'application</h3>
+            <p className="text-[13px] text-slate-500 mb-5">Contrôlez qui peut accéder à votre application.</p>
+            <select 
+              value={settings.isPublic ? 'public' : 'private'} 
+              onChange={(e) => onUpdateSettings({...settings, isPublic: e.target.value === 'public'})}
+              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-[13px] font-medium outline-none focus:border-blue-500 appearance-none bg-slate-50"
+            >
+              <option value="public">🌐 Public (Accessible par URL)</option>
+              <option value="private">🔒 Privé (Espace de travail uniquement)</option>
+            </select>
+          </div>
+
+          {/* Badge Control */}
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+            <h3 className="text-[15px] font-bold text-slate-900 mb-1">Marque Blanche</h3>
+            <p className="text-[13px] text-slate-500 mb-5">Affichez ou masquez le badge "Built with WOK".</p>
+            <div className="flex items-center justify-between mt-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
+               <span className="text-[13px] font-semibold text-slate-700">Badge Plateforme</span>
+               <button 
+                  onClick={() => onUpdateSettings({...settings, showBadge: !settings.showBadge})} 
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.showBadge ? 'bg-blue-600' : 'bg-slate-300'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${settings.showBadge ? 'translate-x-5' : 'translate-x-1'}`} />
+                </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Clone Section */}
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex items-center justify-between">
+           <div>
+              <h3 className="text-[15px] font-bold text-slate-900 mb-1">Cloner l'interface</h3>
+              <p className="text-[13px] text-slate-500">Duplique le code dans une nouvelle session avec une nouvelle URL.</p>
+           </div>
+           <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center gap-2">
+             <Copy className="w-4 h-4" /> Cloner
+           </button>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="border border-red-200 bg-red-50/50 p-6 rounded-2xl">
+           <div className="flex items-center gap-2 mb-4">
+             <AlertTriangle className="w-5 h-5 text-red-500" />
+             <h3 className="text-[15px] font-bold text-red-700">Danger Zone</h3>
+           </div>
+           <div className="flex flex-col md:flex-row gap-4">
+             <button onClick={onUnpublish} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50">
+               Dépublier la page
+             </button>
+             <button onClick={onDelete} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm">
+               <Trash2 className="w-4 h-4" /> Supprimer définitivement
+             </button>
+           </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default function FichePanel({ content = null, appearance, onError, onSuccess, isPublic = false, viewMode, setViewMode, appSettings, onUpdateSettings, onClone, onDelete, onUnpublish }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
   useEffect(() => {
     setIsCompiling(true);
-
-    let html = '';
-    let css = '';
-    let js = '';
-    let rawComponent = '';
+    let html = ''; let css = ''; let js = ''; let rawComponent = '';
 
     if (content) {
-      const bt = String.fromCharCode(96, 96, 96);
-      const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
-      const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
-      const jsRegex = new RegExp(bt + '(?:javascript|js|jsx|react)\\n([\\s\\S]*?)' + bt, 'i');
+      const btCode = String.fromCharCode(96);
+      const btPattern = new RegExp(`${btCode}{3}(?:jsx|javascript|react)?\\n?`, 'gi');
+      let componentLogic = content.replace(btPattern, '').replace(new RegExp(`${btCode}{3}`, 'g'), '');
 
-      const htmlMatch = content.match(htmlRegex);
-      const cssMatch = content.match(cssRegex);
-      const jsMatch = content.match(jsRegex);
+      componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
+      componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
+      componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
+      componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
 
-      if (htmlMatch) html = htmlMatch[1];
-      if (cssMatch) css = cssMatch[1];
-      if (jsMatch) js = jsMatch[1];
-      
-      if (!jsMatch && htmlMatch && (html.includes('export default') || html.includes('import React') || html.includes('function App'))) {
-          js = html;
-          html = '';
-      }
-
-      rawComponent = js || html || css || content;
-      let componentLogic = js || html || content;
-
-      if (componentLogic) {
-        const btCode = String.fromCharCode(96);
-        const btPattern = new RegExp(`${btCode}{3}(?:jsx|javascript|react)?\\n?`, 'gi');
-        componentLogic = componentLogic.replace(btPattern, '').replace(new RegExp(`${btCode}{3}`, 'g'), '');
-
-        componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
-        componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
-        componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
-        componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
-      }
-
-      setCompiledCode({ html, css, js: componentLogic, rawComponent });
+      setCompiledCode({ html, css, js: componentLogic, rawComponent: content });
     } else {
       setCompiledCode({ html: '', css: '', js: '', rawComponent: '' });
     }
@@ -79,8 +176,11 @@ export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewM
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  const watermarkHTML = isPublic ? `
-    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)';" onmouseout="this.style.opacity='0.6'; this.style.transform='none';" onclick="window.open('https://wok.com', '_blank')">
+  // Render the badge only if appSettings says so, OR if it's the public view and the badge wasn't disabled.
+  const shouldShowBadge = appSettings?.showBadge !== false;
+  
+  const watermarkHTML = shouldShowBadge ? `
+    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease; cursor: pointer;" onclick="window.open('https://wok.com', '_blank')">
       <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
       <span style="font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: -0.5px;">WOK</span>
     </div>
@@ -94,8 +194,6 @@ export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewM
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         
         <script type="importmap">
@@ -111,54 +209,33 @@ export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewM
         </script>
         
         <style>
-          html, body, #root { 
-            margin: 0; 
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: transparent;
-            -webkit-font-smoothing: antialiased;
-          }
-          ::-webkit-scrollbar { width: 6px; }
-          ::-webkit-scrollbar-track { background: transparent; }
-          ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 10px; }
-          ${compiledCode.css}
+          html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; background-color: transparent; -webkit-font-smoothing: antialiased; }
         </style>
       </head>
       <body>
         <div id="root"></div>
         ${watermarkHTML}
-        ${compiledCode.html}
         
         <script>
-          window.onerror = function(message, source, lineno, colno, error) {
+          window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
+            document.getElementById('root').innerHTML = '<div style="padding: 40px; font-family: monospace; color: #dc2626; font-size: 16px; line-height: 1.6; font-weight: bold; height: 100vh; background: #fef2f2; border: 8px solid #f87171; overflow: auto;"><h2>🚨 System Compilation Failed</h2><p>' + message + '</p></div>';
             return true;
           };
-          window.addEventListener('unhandledrejection', function(event) {
-            window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: 'Unhandled Promise: ' + event.reason }, '*');
-          });
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
-          import { createRoot as __WokCreateRoot__ } from 'react-dom/client';
+          import { createRoot } from 'react-dom/client';
           
           ${compiledCode.js}
           
           class ErrorBoundary extends React.Component {
-            constructor(props) {
-              super(props);
-              this.state = { hasError: false, errorMessage: '' };
-            }
-            static getDerivedStateFromError(error) {
-              return { hasError: true, errorMessage: error.toString() };
-            }
-            componentDidCatch(error, errorInfo) {
-              window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*');
-            }
+            constructor(props) { super(props); this.state = { hasError: false, errorMessage: '' }; }
+            static getDerivedStateFromError(error) { return { hasError: true, errorMessage: error.toString() }; }
+            componentDidCatch(error) { window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*'); }
             render() {
               if (this.state.hasError) {
-                return null;
+                return <div style={{ padding: '40px', fontFamily: 'monospace', color: '#dc2626', fontSize: '16px', fontWeight: 'bold', height: '100vh', background: '#fef2f2', border: '8px solid #f87171' }}><h2>🚨 React Render Crashed</h2><p>{this.state.errorMessage}</p></div>;
               }
               return this.props.children;
             }
@@ -166,14 +243,15 @@ export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewM
 
           try {
             if (typeof App !== 'undefined') {
-              const root = __WokCreateRoot__(document.getElementById('root'));
+              const root = createRoot(document.getElementById('root'));
               root.render(<ErrorBoundary><App /></ErrorBoundary>);
               window.parent.postMessage({ type: 'WOK_RUNTIME_SUCCESS' }, '*');
             } else {
-              throw new Error("Wok Engine failed: The main React component must be named 'App'.");
+              throw new Error("Component must be named 'App'.");
             }
           } catch(err) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
+            document.getElementById('root').innerHTML = '<div style="padding: 40px; font-family: monospace; color: #dc2626; font-size: 16px; font-weight: bold; height: 100vh; background: #fef2f2; border: 8px solid #f87171;"><h2>🚨 Syntax Error</h2><p>' + err.message + '</p></div>';
           }
         </script>
       </body>
@@ -181,44 +259,65 @@ export function LivePreviewEngine({ content, onError, onSuccess, isPublic, viewM
   `;
 
   return (
-    <div className="w-full h-full relative font-sans">
-      {hasComponent ? (
-        <div className="w-full h-full flex flex-col overflow-hidden">
-          <div className="flex-1 relative w-full h-full">
-            {viewMode === 'preview' ? (
-              <>
-                <AnimatePresence>
-                  {isCompiling && (
-                    <motion.div 
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/5 backdrop-blur-md"
-                    >
-                      <div className="p-4 bg-white/90 rounded-2xl shadow-xl flex flex-col items-center border border-white/20">
-                         <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
-                         <span className="text-[11px] font-bold text-[#0080ff] uppercase tracking-widest">Building</span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <iframe
-                  title="Wok Live Preview"
-                  srcDoc={srcDoc}
-                  className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-              </>
-            ) : (
-               <div className="absolute inset-0 overflow-auto bg-[#0A0A0A] p-8 text-[13px] font-mono text-gray-300 leading-relaxed rounded-tl-xl border-t border-l border-white/10">
-                 <pre><code>{compiledCode.rawComponent}</code></pre>
-               </div>
-            )}
+    <div className="w-full h-full relative font-sans flex flex-col">
+      
+      {/* THE GREY STRUCTURAL BAR IS BACK */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative">
+        <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
+          <button 
+            onClick={() => setViewMode('preview')} 
+            className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+          >
+            <LayoutTemplate className="w-3.5 h-3.5" /> App Interface
+          </button>
+          <button 
+            onClick={() => setViewMode('dashboard')} 
+            className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" /> Tableau de bord
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 relative w-full h-full">
+        {hasComponent ? (
+          viewMode === 'preview' ? (
+            <>
+              <AnimatePresence>
+                {isCompiling && (
+                  <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md"
+                  >
+                    <div className="p-4 bg-white rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
+                       <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
+                       <span className="text-[11px] font-bold text-[#0080ff] uppercase tracking-widest">Building</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <iframe
+                title="Wok Live Preview"
+                srcDoc={srcDoc}
+                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              />
+            </>
+          ) : (
+            <AppDashboard 
+               settings={appSettings} 
+               onUpdateSettings={onUpdateSettings} 
+               onClone={onClone}
+               onDelete={onDelete}
+               onUnpublish={onUnpublish}
+            />
+          )
+        ) : (
+          <div className="flex items-center justify-center h-full w-full opacity-30">
+             <LayoutTemplate className="w-16 h-16 text-slate-400" />
           </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center h-full w-full opacity-30">
-           <LayoutTemplate className="w-16 h-16 text-gray-400" />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
