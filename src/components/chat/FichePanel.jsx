@@ -6,8 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
+export default function FichePanel({ content = null, appearance, onError, onSuccess, isPublic = false }) {
+  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} isPublic={isPublic} />;
+}
+
 // --- THE NATIVE ESM RENDER ENGINE ---
-export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
+export function LivePreviewEngine({ content, appearance, onError, onSuccess, isPublic }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [viewMode, setViewMode] = useState('preview');
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', imports: '', rawComponent: '' });
@@ -24,6 +28,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
     let rawComponent = '';
 
     if (content) {
+      // Dynamic backticks to prevent markdown parser crashes
       const bt = String.fromCharCode(96, 96, 96);
       const htmlRegex = new RegExp(bt + '(?:html|xml)\\n([\\s\\S]*?)' + bt, 'i');
       const cssRegex = new RegExp(bt + 'css\\n([\\s\\S]*?)' + bt, 'i');
@@ -45,11 +50,12 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       rawComponent = js || html || css || content;
 
       let extractedImports = '';
-      let componentLogic = js;
+      let componentLogic = js || html || content;
 
       if (componentLogic) {
-        // DOUBLE-SANITIZATION: Strip stray markdown
-        componentLogic = componentLogic.replace(/```jsx/gi, '').replace(/```javascript/gi, '').replace(/```/g, '');
+        // DOUBLE-SANITIZATION: Strip stray markdown using safe char codes
+        const btRegex = new RegExp(String.fromCharCode(96), 'g');
+        componentLogic = componentLogic.replace(/```jsx/gi, '').replace(/```javascript/gi, '').replace(btRegex, '');
 
         // SURGICALLY EXTRACT IMPORTS
         const importRegex = /import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g;
@@ -58,9 +64,8 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         if (matchedImports) {
           let rawImports = matchedImports.join('\n');
           
-          // SMART IMPORT SANITIZER: Prevent Duplicate 'React' SyntaxErrors SAFELY
-          rawImports = rawImports.replace(/import\s+React\s+from\s+['"]react['"];?/gi, '');
-          rawImports = rawImports.replace(/import\s+React\s*,\s*\{([^}]+)\}\s*from\s+['"]react['"];?/gi, 'import { $1 } from "react";');
+          // SMART IMPORT SANITIZER: Eliminate the AI's React imports to prevent 'Duplicate Declaration' SyntaxErrors
+          rawImports = rawImports.replace(/import\s+.*?from\s+['"]react['"];?/gi, '');
           
           extractedImports = rawImports;
           componentLogic = componentLogic.replace(importRegex, ''); 
@@ -96,32 +101,32 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js || compiledCode.imports;
 
-  // Built-in ZERO-TOKEN watermark for public interfaces
-  const watermarkHTML = `
-    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)';" onmouseout="this.style.opacity='0.6'; this.style.transform='none';" onclick="window.open('[https://wok.com](https://wok.com)', '_blank')">
+  // The Watermark is rendered ONLY if isPublic is true
+  const watermarkHTML = isPublic ? `
+    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.6;" onmouseover="this.style.opacity='1'; this.style.transform='translateY(-2px)';" onmouseout="this.style.opacity='0.6'; this.style.transform='none';" onclick="window.open('https://wok.com', '_blank')">
       <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
       <span style="font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: -0.5px;">WOK</span>
     </div>
-  `;
+  ` : '';
 
-  // RENDER ENGINE: Full-Bleed (no root padding) and Single-Source React
+  // RENDER ENGINE: Full-Bleed (no root padding) and Single-Source React pre-injected
   const srcDoc = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-        <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         
         <script type="importmap">
         {
           "imports": {
-            "react": "[https://esm.sh/react@18.2.0](https://esm.sh/react@18.2.0)",
-            "react-dom/client": "[https://esm.sh/react-dom@18.2.0/client](https://esm.sh/react-dom@18.2.0/client)",
-            "lucide-react": "[https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0](https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0)",
-            "framer-motion": "[https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0](https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0)",
-            "recharts": "[https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0](https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0)"
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0",
+            "framer-motion": "https://esm.sh/framer-motion@11.2.10?deps=react@18.2.0,react-dom@18.2.0",
+            "recharts": "https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0"
           }
         }
         </script>
@@ -166,7 +171,8 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
-          import React from 'react';
+          // PERFECT REACT HOISTING: Guarantees zero duplicate SyntaxErrors
+          import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
           import { createRoot } from 'react-dom/client';
           
           ${compiledCode.imports}
@@ -184,7 +190,13 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
             }
             render() {
               if (this.state.hasError) {
-                return null;
+                // If it fails to reach the parent, explicitly show the error inside the iframe
+                return (
+                  <div style={{ color: '#991b1b', padding: '24px', fontFamily: 'monospace', fontSize: '13px', background: '#fee2e2', borderLeft: '4px solid #f87171', margin: '20px', borderRadius: '4px' }}>
+                    <strong>React Render Crash:</strong><br/>
+                    {this.state.errorMessage}
+                  </div>
+                );
               }
               return this.props.children;
             }
@@ -202,6 +214,7 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
             }
           } catch(err) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
+            document.getElementById('root').innerHTML = '<div style="color: #991b1b; padding: 24px; font-family: monospace; font-size: 13px; background: #fee2e2; border-left: 4px solid #f87171; margin: 20px; border-radius: 4px;"><strong>Compilation Error:</strong><br/>' + err.message + '</div>';
           }
         </script>
       </body>
@@ -276,8 +289,4 @@ export function LivePreviewEngine({ content, appearance, onError, onSuccess }) {
       )}
     </div>
   );
-}
-
-export default function FichePanel({ content = null, appearance, onError, onSuccess }) {
-  return <LivePreviewEngine content={content} appearance={appearance} onError={onError} onSuccess={onSuccess} />;
 }
