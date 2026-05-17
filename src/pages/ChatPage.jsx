@@ -76,32 +76,30 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE AUTONOMOUS ROUTING PROMPTS ---
-
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
 TOKEN REDUCTION & DATA PROTOCOL:
-1. THEME SELECTION: Evaluate the user's intent and select the perfect aesthetic. Your output MUST start with T:X (X is 1 to 5).
+1. THEME SELECTION: Evaluate the user's intent and select the perfect aesthetic. Output MUST start with T:X (X is 1 to 5).
    T:1 = Wok Clean (Corporate/SaaS)
    T:2 = Deep Void (Tech/Dark/Hacker)
    T:3 = Yuzu Accent (Fintech/Bold/Energy)
    T:4 = Corp Sand (Luxury/Elegant/Minimal)
    T:5 = Brutalism (Creative/Agency/Raw)
-2. Output ONLY ultra-dense telegraphic shorthand (e.g., T:2 | P1:Action | Metric:80%). ZERO fluff. ZERO sentences.
-3. Provide exact ELI5 (Explain Like I'm 5) copywriting points.
-4. VISUAL DATA PREPARATION: Generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points.
-5. RAW TEXT ONLY. No markdown. Reply in the exact same language the user wrote in.`;
+2. Output ONLY ultra-dense telegraphic shorthand. ZERO sentences.
+3. Provide exact ELI5 copywriting points.
+4. Generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points.
+5. RAW TEXT ONLY.`;
 
 const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
-CRITICAL RULES (FAILURE CRASHES SYSTEM):
+CRITICAL RULES:
 1. READ THE THEME (T:X) AND APPLY EXACT STYLES:
-   T:1 (Clean): min-h-screen bg-[#FAFAFA], text-zinc-900, rounded-[24px], soft shadows.
-   T:2 (Deep Void): min-h-screen bg-[#050505], text-zinc-100, border-zinc-800, zero shadow.
-   T:3 (Yuzu): min-h-screen bg-[#0A0A0A], text-white, neon yellow accents (#E6FF00), rounded-[32px].
-   T:4 (Sand): min-h-screen bg-[#FDFBF7], text-zinc-800, rounded-[32px], elegant spacing.
-   T:5 (Brutalism): min-h-screen bg-[#E5E5E5], text-black, sharp edges (rounded-none), thick borders (border-black border-2), solid shadows.
-2. TYPOGRAPHY & IDENTITY: ALL <p> tags MUST use \`leading-[1.8]\`. Append a '+' symbol to major section titles. Use massive whitespace (p-12 md:p-24, space-y-24).
+   T:1 (Clean): min-h-screen bg-[#FAFAFA], text-zinc-900, rounded-[24px].
+   T:2 (Deep Void): min-h-screen bg-[#050505], text-zinc-100, border-zinc-800.
+   T:3 (Yuzu): min-h-screen bg-[#0A0A0A], text-white, neon accents (#E6FF00), rounded-[32px].
+   T:4 (Sand): min-h-screen bg-[#FDFBF7], text-zinc-800, rounded-[32px].
+   T:5 (Brutalism): min-h-screen bg-[#E5E5E5], text-black, sharp edges, solid shadows.
+2. TYPOGRAPHY: ALL <p> tags MUST use \`leading-[1.8]\`. Append a '+' symbol to major section titles. Use massive whitespace (p-12 md:p-24, space-y-24).
 3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts. Must include <XAxis>, <YAxis>, <Tooltip>, <linearGradient>. Map to the data provided. Wrap in <div className="w-full h-80">.
-4. NO BOILERPLATE: Zero navbars, footers, or fake "Start" buttons. 
+4. NO BOILERPLATE: Zero navbars, footers. 
 5. IMPORTS: Exactly this:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
@@ -112,6 +110,17 @@ CRITICAL RULES (FAILURE CRASHES SYSTEM):
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
 RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
+
+const getBackgroundGradient = (theme) => {
+  switch(theme) {
+    case 'wok_clean': return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+    case 'deep_void': return 'linear-gradient(180deg, #050505 0%, #121212 100%)';
+    case 'yuzu_accent': return 'linear-gradient(180deg, #0A0A0A 0%, #1A1C00 100%)';
+    case 'corporate_sand': return 'linear-gradient(180deg, #FDFBF7 0%, #EFEBE0 100%)';
+    case 'brutalism': return 'linear-gradient(180deg, #E5E5E5 0%, #C0C0C0 100%)';
+    default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+  }
+};
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -135,17 +144,24 @@ export default function ChatPage() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
 
+  const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [aiThemePromptActive, setAiThemePromptActive] = useState(false);
   const [viewMode, setViewMode] = useState('preview');
+
+  // --- APP DASHBOARD STATE ---
+  const [appSettings, setAppSettings] = useState({
+    title: 'AI-Powered Interface',
+    description: 'A highly optimized interactive experience built with Wok.',
+    isPublic: true,
+    showBadge: true
+  });
 
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [runtimeError, setRuntimeError] = useState(null);
 
@@ -262,7 +278,6 @@ export default function ChatPage() {
       if (safeCloudMsgs.length > 0) { 
         setMessages(safeCloudMsgs); 
         saveConversationMessages(conversationId, safeCloudMsgs); 
-        
         const lastAssistantMsg = safeCloudMsgs.filter(m => m.role === 'assistant').pop();
         if (lastAssistantMsg) {
             setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
@@ -305,7 +320,6 @@ export default function ChatPage() {
     setInput(''); 
     setIsLoading(true); 
     setAiThemePromptActive(false);
-
     abortedRef.current = false;
 
     try {
@@ -313,7 +327,6 @@ export default function ChatPage() {
         const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
         let codeMatch = null;
-
         const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
         const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
         
@@ -350,7 +363,6 @@ export default function ChatPage() {
         return; 
       }
 
-      // SILENT DUAL-PIPELINE: Agent 1 drives theme logic and data payload
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -427,6 +439,38 @@ export default function ChatPage() {
       sendMessage(lastUserMsg.content);
     }
   };
+
+  // --- APP DASHBOARD HANDLERS ---
+  const handleUpdateAppMeta = async (newSettings) => {
+    setAppSettings(newSettings);
+    if(convId) {
+      try { await base44.entities.Conversation.update(convId, { title: newSettings.title }); } 
+      catch (e) { console.log('Meta update mocked locally.'); }
+    }
+    toast.success("Paramètres mis à jour avec succès.");
+  };
+
+  const handleCloneApp = () => {
+    const newConvId = `conv_${Date.now()}`;
+    saveConversationMessages(newConvId, messages);
+    toast.success("Application clonée. Nouvelle URL générée.");
+    navigate(`/chat?conversationId=${newConvId}`);
+  };
+
+  const handleUnpublishApp = async () => {
+    setAppSettings({...appSettings, isPublic: false});
+    if (convId) {
+      try { await base44.entities.Conversation.update(convId, { is_public: false }); } 
+      catch(e){}
+    }
+    toast.success("Application dépubliée.");
+  };
+
+  const handleDeleteApp = () => {
+    deleteDiscussion({ stopPropagation: () => {} }, convId);
+    toast.success("Application supprimée définitivement.");
+  };
+
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
@@ -595,36 +639,28 @@ export default function ChatPage() {
                  <WorkspaceHeader 
                    onReload={handleReload} 
                    convId={conversationId || convId} 
+                   appearance={appearance} 
+                   setAppearance={setAppearance} 
                    onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} 
                    viewMode={viewMode}
-                   setViewMode={setViewMode}
                  />
-                 <div className="flex-1 overflow-hidden relative bg-transparent">
-                   <FichePanel content={ficheContent} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} />
+                 <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
+                   <FichePanel 
+                     content={ficheContent} 
+                     appearance={appearance} 
+                     onError={setRuntimeError} 
+                     onSuccess={() => setRuntimeError(null)} 
+                     isPublic={false} 
+                     viewMode={viewMode} 
+                     setViewMode={setViewMode}
+                     appSettings={appSettings}
+                     onUpdateSettings={handleUpdateAppMeta}
+                     onClone={handleCloneApp}
+                     onDelete={handleDeleteApp}
+                     onUnpublish={handleUnpublishApp}
+                   />
                  </div>
               </div>
-
-              {runtimeError && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] bg-white/90 backdrop-blur-xl border border-red-100/50 text-[#333333] p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-[9999] flex flex-col md:flex-row items-center gap-5">
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
-                         <AlertTriangle className="w-5 h-5 text-red-500"/>
-                      </div>
-                      <div className="flex flex-col max-w-[300px]">
-                        <span className="text-[#0d0d0d] font-bold text-[14px] leading-tight">Runtime Exception</span>
-                        <p className="text-[12px] text-gray-500 font-mono mt-1 line-clamp-2 leading-relaxed">{runtimeError}</p>
-                      </div>
-                   </div>
-                   <div className="hidden md:block w-px h-10 bg-gray-200/60 mx-2"></div>
-                   <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                      <span className="text-[11px] text-gray-500 font-medium">This will not deduct any credits.</span>
-                      <div className="flex items-center gap-2">
-                        <button onClick={handleFixError} className="px-5 py-2 bg-[#0d0d0d] text-white text-[13px] font-bold rounded-xl hover:bg-[#333333] flex items-center gap-2 transition-all shadow-md"><Sparkles className="w-4 h-4"/> Auto-Fix with AI</button>
-                        <button onClick={() => setRuntimeError(null)} className="text-gray-400 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"><X className="w-4 h-4"/></button>
-                      </div>
-                   </div>
-                </div>
-              )}
             </div>
           )}
         </div>
