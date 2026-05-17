@@ -176,7 +176,6 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  // Render the badge only if appSettings says so, OR if it's the public view and the badge wasn't disabled.
   const shouldShowBadge = appSettings?.showBadge !== false;
   
   const watermarkHTML = shouldShowBadge ? `
@@ -217,9 +216,9 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
         ${watermarkHTML}
         
         <script>
+          // ERROR INJECTION REMOVED. FAIL SILENTLY.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
-            document.getElementById('root').innerHTML = '<div style="padding: 40px; font-family: monospace; color: #dc2626; font-size: 16px; line-height: 1.6; font-weight: bold; height: 100vh; background: #fef2f2; border: 8px solid #f87171; overflow: auto;"><h2>🚨 System Compilation Failed</h2><p>' + message + '</p></div>';
             return true;
           };
         </script>
@@ -235,7 +234,7 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
             componentDidCatch(error) { window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*'); }
             render() {
               if (this.state.hasError) {
-                return <div style={{ padding: '40px', fontFamily: 'monospace', color: '#dc2626', fontSize: '16px', fontWeight: 'bold', height: '100vh', background: '#fef2f2', border: '8px solid #f87171' }}><h2>🚨 React Render Crashed</h2><p>{this.state.errorMessage}</p></div>;
+                return null; // SILENT FAIL
               }
               return this.props.children;
             }
@@ -251,7 +250,6 @@ export default function FichePanel({ content = null, appearance, onError, onSucc
             }
           } catch(err) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: err.message }, '*');
-            document.getElementById('root').innerHTML = '<div style="padding: 40px; font-family: monospace; color: #dc2626; font-size: 16px; font-weight: bold; height: 100vh; background: #fef2f2; border: 8px solid #f87171;"><h2>🚨 Syntax Error</h2><p>' + err.message + '</p></div>';
           }
         </script>
       </body>
