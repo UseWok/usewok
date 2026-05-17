@@ -76,30 +76,31 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// --- ELITE $10K WOW-FACTOR DUAL-PIPELINE PROMPTS ---
+// --- ELITE ADAPTIVE DUAL-PIPELINE PROMPTS ---
 
-const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist. You operate silently in the backend.
-CRITICAL UX PROTOCOL - ELI5:
-1. DO NOT USE JARGON. Explain complex concepts like I am 5 years old. Use powerful, simple analogies. 
-2. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions. Do not acknowledge the user.
-3. Analyze the user query and IMPLICITLY merge their preferences into a masterplan.
-4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Use basic line breaks.
-5. Your ONLY job is to prepare this highly readable, jargon-free structural text payload for the UI Architect AI.`;
+const PROMPT_PSYCHOLOGIST = `You are an elite Silicon Valley strategist operating silently in the backend.
+COST REDUCTION & ADAPTIVE PROTOCOL:
+1. Output PURE, dense actionable data. ZERO conversational filler. ZERO intros or conclusions. Do not acknowledge the user.
+2. ADAPTIVE LENGTH: If the user's prompt is short, provide a highly concise but complete masterplan. If long, provide deep details. Do not over-generate.
+3. Use ELI5 (Explain Like I'm 5) language. Simple, powerful, jargon-free analogies.
+4. RAW TEXT ONLY: No markdown formatting, no headings, no bolding. Basic line breaks only.
+5. Reply in the exact same language the user wrote in.`;
 
-const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel/Apple. Your goal is to build a $10,000 award-winning 2026 interactive data dashboard based on the provided text.
+const PROMPT_ARCHITECT = `You are a Principal UI/UX Developer from Vercel building a $10,000 award-winning interactive dashboard.
 CRITICAL AESTHETIC RULES (FAILURE RESULTS IN CRASH):
-1. $10K AESTHETICS: Build a FULL-BLEED, immersive UI. You MUST use Deep Void Black (bg-[#050505]) or deep slate. You MUST use massive whitespace (p-12 md:p-24, gap-12, space-y-24) so the interface breathes. You MUST use glowing accent colors (text-cyan-400, text-emerald-400) against text-white/90.
-2. MULTI-VARIANT VISUALIZATIONS: You MUST include at least 3 DIFFERENT types of Recharts (e.g., AreaChart, RadialBarChart, RadarChart) to make the data thrilling. Wrap them in <div className="w-full h-80">.
-3. NO FLUFF: DO NOT build fake navbars or standard footers. Build ONLY the core interactive content.
-4. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it. Present the truth exactly as provided.
-5. RESTRICTED IMPORTS: Use EXACTLY this import block. Do NOT invent icons:
+1. HYPER-LEGIBILITY & 1.8 LINE HEIGHT: You MUST use massive whitespace (p-12 md:p-24, space-y-16). All paragraph text MUST use the \`leading-[1.8]\` or \`leading-loose\` Tailwind classes. 
+2. CALM PREMIUM UI: Prioritize ultra-clean light mode (bg-[#FAFAFA]) or sleek dark mode (bg-[#050505]). Avoid aggressive neon text effects; make it look sophisticated and easy on the eyes.
+3. STRICT BOILERPLATE BAN: DO NOT build headers, navbars, or footers (NO "2026 Copyright" text). DO NOT build generic "Start" buttons. Build ONLY the high-value core interactive content and Bento-box grids.
+4. MULTI-VARIANT VISUALIZATIONS: Use at least 3 DIFFERENT types of Recharts (e.g., AreaChart, RadialBarChart, RadarChart) wrapped in <div className="w-full h-80">.
+5. CONTENT LOCK: Inject the provided text VERBATIM into the UI. Do not summarize it.
+6. RESTRICTED IMPORTS: Use EXACTLY this import block:
    import React, { useState, useEffect, useRef } from 'react';
    import { motion, AnimatePresence } from 'framer-motion';
    import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe } from 'lucide-react';
    import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-6. LOOPING ANIMATIONS: Use this exact Framer Motion snippet for all major elements: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-20%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
 7. SAFE REACT: NEVER access ref.current without a strict null check. ALWAYS wrap Recharts <ResponsiveContainer> inside a <div className="w-full h-64">.
-8. Main component MUST be named 'App'.`;
+8. LOOPING ANIMATIONS: Use this exact Framer Motion snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
+9. Main component MUST be named 'App'. Output ONLY the code block starting with jsx.`;
 
 const PROMPT_AUTO_FIX = `You are an elite React Debugger.
 The user's React code encountered a runtime error. You must fix the code completely.
@@ -144,7 +145,6 @@ export default function ChatPage() {
   
   const [showCodeModal, setShowCodeModal] = useState(false);
 
-  // AUTO-HEALING ERROR STATE
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -309,7 +309,6 @@ export default function ChatPage() {
     try {
       // 1. SMART PATCHING (Zero-Credit Auto-Healing)
       if (options.isCorrection) {
-        
         const bt = String.fromCharCode(96);
         let codeToFix = ficheContent || "";
         let codeMatch = null;
@@ -343,7 +342,6 @@ export default function ChatPage() {
         setIsLoading(false);
         setFicheContent(newContent);
         
-        // CODE MASKING PROTOCOL FOR AUTO-FIX
         const chatDisplayContent = "✨ Architecture successfully recompiled to fix runtime errors.";
         
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
@@ -374,7 +372,6 @@ export default function ChatPage() {
         finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
       }
 
-      // CODE MASKING PROTOCOL
       const rawContent = finalCode;
       let chatDisplayContent = finalCode;
       
@@ -597,7 +594,6 @@ export default function ChatPage() {
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-white shadow-sm`}>
                  <WorkspaceHeader onReload={handleReload} convId={conversationId || convId} content={ficheContent} appearance={appearance} setAppearance={setAppearance} onAskAI={() => { setAiThemePromptActive(true); setMobileView('chat'); }} />
                  <div className="flex-1 overflow-hidden relative bg-white" style={{ background: appearance.theme === 'aurora' ? 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' : appearance.theme === 'sand' ? '#FDFBF7' : appearance.theme === 'midnight' ? '#0B0F19' : appearance.theme === 'rose' ? 'linear-gradient(to top, #fff1eb 0%, #ace0f9 100%)' : appearance.theme === 'grid' ? '#FAFAFA' : '#FFFFFF' }}>
-                   {/* Pass isPublic={false} inside the app to hide the watermark */}
                    <FichePanel content={ficheContent} appearance={appearance} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} />
                  </div>
               </div>
