@@ -3,7 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
+import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
+import { ALL_MODES } from '@/lib/modes-config';
+import { getUserPlan } from '@/lib/plans-config';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
@@ -13,19 +15,14 @@ import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
-// IMPORT OVERLAY PAGES
-import SupportPage from '@/pages/SupportPage';
-import SettingsPage from '@/pages/SettingsPage';
-import PricingPage from '@/pages/PricingPage';
-
 import { 
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, Sparkles, AlertTriangle
+  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0 transition-none">
+  <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
     <div 
-      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none transition-none"
+      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -33,98 +30,39 @@ const CustomUserMessageBubble = ({ msg }) => (
   </div>
 );
 
-// --- ENTERPRISE REDEEM CODE MODAL ---
-const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
-  const [activationCode, setActivationCode] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
-  const [codeError, setCodeError] = useState('');
-
+const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
-
-  const activateCode = async () => {
-    setCodeError('');
-    if (!activationCode.trim()) { setCodeError('Please enter a valid activation code.'); return; }
-    if (activationCode.trim().length < 8) { setCodeError('The code is too short. Please verify your input.'); return; }
-    if (!user) return;
-    setCodeLoading(true);
-    const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
-    if (results.length === 0) {
-      const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
-      setCodeError(anyMatch.length > 0 ? 'This code has already been redeemed.' : 'Code not found. Please double-check your spelling.');
-      setCodeLoading(false); return;
-    }
-    const codeRecord = results[0];
-    const plans = getPlansConfig();
-    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!newPlan) { setCodeError('The plan associated with this code is no longer valid.'); setCodeLoading(false); return; }
-
-    const currentPlan = getUserPlan(user);
-    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
-    const newRank = plans.findIndex(p => p.id === newPlan.id);
-    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
-
-    if (keepCurrent) {
-      const bonusCredits = newPlan.credits_limit;
-      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
-      toast.success(`Code applied! +${bonusCredits} bonus credits added to your ${currentPlan.name} plan.`);
-    } else {
-      await base44.auth.updateMe({
-        subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
-        credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
-      });
-      toast.success(`${newPlan.name} plan successfully activated!`);
-    }
-    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
-    setActivationCode('');
-    const updated = await base44.auth.me();
-    setUser(updated); setUserPlan(getUserPlan(updated));
-    setCodeLoading(false);
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/80 p-4 transition-none antialiased">
-      <div className="relative w-full max-w-[500px] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-slate-100 transition-none">
-        <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-slate-100 rounded-full transition-none">
-          <X className="w-5 h-5 text-slate-400 hover:text-slate-700" />
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
+      <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
+        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
+          <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 sm:p-10 relative overflow-hidden transition-none">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
-            <Key className="w-48 h-48 text-blue-900" />
+        <iframe src={url} className="w-full h-full border-none bg-white" />
+      </div>
+    </div>
+  );
+};
+
+const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
+      <div className="relative w-[95%] md:w-[480px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
+        <div className="p-5 border-b border-[#E5E5E5] flex justify-between items-center bg-[#F9F9F9]">
+          <div>
+            <h2 className="text-[16px] font-bold text-[#333333]">{title}</h2>
+            {subtitle && <p className="text-[12px] text-[#707070] mt-0.5">{subtitle}</p>}
           </div>
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-[#0062FF] rounded-2xl flex items-center justify-center shadow-lg mb-6 transition-none">
-               <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
-            <p className="text-[14px] text-slate-600 mb-8 max-w-sm leading-relaxed">
-              Unlock enterprise features or add bulk computing resources to your workspace by entering your secure activation key below.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input 
-                value={activationCode} 
-                onChange={e => setActivationCode(e.target.value.toUpperCase())}
-                placeholder="Ex: WOK-9A7X-M2P4" 
-                maxLength={20}
-                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-none shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-[#0062FF]/20 focus:border-[#0062FF] text-slate-900'}`}
-                onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} 
-              />
-              <button 
-                onClick={activateCode} 
-                disabled={codeLoading || !activationCode.trim()}
-                className="px-8 py-3.5 text-[14px] font-bold bg-[#0062FF] text-white rounded-xl disabled:opacity-40 hover:bg-[#0052CC] transition-none shadow-md whitespace-nowrap"
-              >
-                {codeLoading ? 'Authenticating...' : 'Unlock Features'}
-              </button>
-            </div>
-            {codeError && (
-              <div className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm transition-none">
-                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
-              </div>
-            )}
-          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 text-gray-500 rounded-md transition-colors"><X className="w-5 h-5" /></button>
         </div>
+        <div className="p-5">{children}</div>
+        {actionText && (
+          <div className="p-4 border-t border-[#E5E5E5] bg-[#F9F9F9] flex justify-end gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
+            <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">{actionText}</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -204,52 +142,95 @@ export default function ChatPage() {
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
 
+  // LIFTED SLUG STATE FOR DASHBOARD SYNC
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
-  
-  // ALGORITHM: Calculate sequential Project ID based on discussion count starting from 103
-  const projectSequenceNumber = discussions.length > 0 ? 103 + discussions.length : 103;
-  
+
   const [appSettings, setAppSettings] = useState({
-    title: `Project #${projectSequenceNumber}`,
+    title: 'AI-Powered Interface',
     description: 'A highly optimized interactive experience built with Wok.',
-    isPublic: false,
-    showBadge: true,
-    appIcon: null
+    isPublic: true,
+    showBadge: true
   });
 
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  
-  // ==========================================
-  // GLOBAL MODAL STATES (CRITICAL FOR ROUTING)
-  // ==========================================
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSupportPage, setShowSupportPage] = useState(false);
-  const [showSettingsPage, setShowSettingsPage] = useState(false);
-  const [showPricingPage, setShowPricingPage] = useState(false);
   
+  // AUTONOMOUS ERROR CATCHING STATE
   const [runtimeError, setRuntimeError] = useState(null);
-  const [isManualEdit, setIsManualEdit] = useState(false);
+
+  const handleCreateWorkspace = () => {
+    if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
+    if (workspaces.length >= 4) { toast.error("Maximum limit of 4 workspaces reached."); return; }
+    const newWs = { id: `ws_${Date.now()}`, name: newWorkspaceName.trim(), current: true };
+    const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
+    setWorkspaces(updated);
+    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
+    setDiscussions([]); 
+    setShowWorkspaceModal(false);
+    setNewWorkspaceName('');
+    navigate('/'); 
+    toast.success("Workspace created.");
+  };
+
+  const handleSwitchWorkspace = (id) => {
+    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
+    setWorkspaces(updated);
+    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
+    setDiscussions(getLocalDiscussions(id) || []);
+    setShowWorkspaceSwitcher(false);
+    navigate('/'); 
+  };
+
+  const updateDiscussion = (id, updates) => {
+    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
+    setDiscussions(updated);
+    saveLocalDiscussions(currentWorkspace.id, updated);
+  };
+
+  const deleteDiscussion = (e, id) => {
+    e.stopPropagation();
+    const updated = discussions.filter(d => d.id !== id);
+    setDiscussions(updated);
+    saveLocalDiscussions(currentWorkspace.id, updated);
+    if (conversationId === id) navigate('/');
+  };
+
+  const startEditing = (e, d) => { e.stopPropagation(); setEditingId(d.id); setEditTitle(d.title || d.preview || 'New Chat'); };
+  const saveEdit = (id) => { if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() }); setEditingId(null); };
+
+  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
+
+  const handleDrop = (idx) => {
+    if (draggedItemIdx === null || draggedItemIdx === idx) return;
+    const newDiscussions = [...discussions];
+    const [draggedItem] = newDiscussions.splice(draggedItemIdx, 1);
+    newDiscussions.splice(idx, 0, draggedItem);
+    setDiscussions(newDiscussions);
+    saveLocalDiscussions(currentWorkspace.id, newDiscussions);
+    setDraggedItemIdx(null); setDragOverIdx(null);
+  };
 
   const [messages, setMessages] = useState(() => {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
     return Array.isArray(initial) ? initial : [];
   });
   
-  // ==========================================
-  // THE FIX FOR THE CRASH IS HERE:
-  // ==========================================
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
-  
-  const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState(''); 
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   
+  const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+
   const profileMenuRef = useRef(null);
   const workspaceRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -321,7 +302,7 @@ export default function ChatPage() {
   };
 
   const handleUpdateCredits = async (cost) => {
-      if(!user || cost === 0) return;
+      if(!user) return;
       const newUsed = (user.credits_used || 0) + cost;
       await base44.entities.User.update(user.id, { credits_used: newUsed });
       setUser(prev => ({...prev, credits_used: newUsed}));
@@ -329,9 +310,6 @@ export default function ChatPage() {
 
   const sendMessage = useCallback(async (text, options = {}) => {
     if (!text?.trim() || isLoading) return;
-
-    const isManualFix = options.isManualFix === true;
-    const cost = isManualFix ? 10 : (options.isCorrection ? 0 : 10);
     
     const userMsg = { role: 'user', content: text };
     const newMessages = [...(messages || []), userMsg];
@@ -340,7 +318,6 @@ export default function ChatPage() {
     setInput(''); 
     setIsLoading(true); 
     abortedRef.current = false;
-    setIsManualEdit(false);
 
     try {
       if (options.isCorrection) {
@@ -372,14 +349,11 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(cost); 
+        await handleUpdateCredits(0); 
         setIsLoading(false);
         setFicheContent(newContent);
         
-        const chatDisplayContent = isManualFix 
-            ? "✨ I have analyzed your manual edits and fixed the syntax errors." 
-            : "✨ Architecture successfully recompiled to bypass silent runtime exceptions.";
-        
+        const chatDisplayContent = "✨ Architecture successfully recompiled to bypass silent runtime exceptions.";
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
@@ -418,14 +392,16 @@ export default function ChatPage() {
          }
       }
 
+      const cost = discussMode ? 1 : 10;
       await handleUpdateCredits(cost);
+
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
       
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
-      saveToDiscussionsLogic(`Project #${projectSequenceNumber}`, text);
+      saveToDiscussionsLogic("New Chat", text);
       
       if (window.innerWidth < 768 && !discussMode) {
         setMobileView('preview');
@@ -436,34 +412,18 @@ export default function ChatPage() {
       setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
     }
-  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent, projectSequenceNumber]);
+  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
+  // SILENT AUTO-HEALING ENGINE
   useEffect(() => {
-    if (runtimeError && !isLoading && !isManualEdit) {
+    if (runtimeError && !isLoading) {
       const bt = String.fromCharCode(96);
       const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
       const savedError = runtimeError;
       setRuntimeError(null);
       sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
     }
-  }, [runtimeError, isLoading, isManualEdit, sendMessage]);
-
-  const handleManualCodeSave = (newCode) => {
-    setFicheContent(newCode);
-    setIsManualEdit(true); 
-    setRuntimeError(null);
-    toast.success("Source code updated.");
-  };
-
-  const handleManualAIFix = () => {
-    if (!runtimeError) return;
-    toast.info("Initiating AI Code Fix... (-10 Credits)");
-    const bt = String.fromCharCode(96);
-    const promptMsg = `I made a manual edit and caused this error:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease fix the code.`;
-    const savedError = runtimeError;
-    setRuntimeError(null);
-    sendMessage(promptMsg, { isCorrection: true, rawError: savedError, isManualFix: true });
-  };
+  }, [runtimeError, isLoading, sendMessage]);
 
   const handleStop = useCallback(() => {
     abortedRef.current = true; setIsLoading(false);
@@ -488,20 +448,6 @@ export default function ChatPage() {
     toast.success("Settings updated successfully.");
   };
 
-  const handleUpdateSlug = async (newSlug) => {
-    const slug = newSlug.trim();
-    if(!slug) { toast.error("The path cannot be empty."); return; }
-    if (!/^[a-z0-9-]{1,30}$/.test(slug)) { toast.error("Invalid URL. Use only lowercase letters, numbers, and hyphens. (Max 30 chars)"); return; }
-    try {
-      if (convId) await base44.entities.Conversation.update(convId, { slug: slug });
-      setCustomSlug(slug);
-      toast.success("Domain configuration saved to the Cloud.");
-    } catch (error) {
-      setCustomSlug(slug);
-      toast.error("Waiting for backend configuration. Local URL updated.");
-    }
-  };
-
   const handleCloneApp = () => {
     const newConvId = `conv_${Date.now()}`;
     saveConversationMessages(newConvId, messages);
@@ -523,186 +469,183 @@ export default function ChatPage() {
     toast.success("Application deleted permanently.");
   };
 
-  const handleSwitchWorkspace = (id) => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
-    setWorkspaces(updated);
-    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    setDiscussions(getLocalDiscussions(id) || []);
-    setShowWorkspaceSwitcher(false);
-    navigate('/'); 
-  };
-
-  const updateDiscussion = (id, updates) => {
-    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
-    setDiscussions(updated);
-    saveLocalDiscussions(currentWorkspace.id, updated);
-  };
-
-  const deleteDiscussion = (e, id) => {
-    e.stopPropagation();
-    const updated = discussions.filter(d => d.id !== id);
-    setDiscussions(updated);
-    saveLocalDiscussions(currentWorkspace.id, updated);
-    if (conversationId === id) navigate('/');
-  };
-
-  const startEditing = (e, d) => { e.stopPropagation(); setEditingId(d.id); setEditTitle(d.title || `Project #${projectSequenceNumber}`); };
-  const saveEdit = (id) => { if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() }); setEditingId(null); };
-
-  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
-
-  const handleDrop = (idx) => {
-    if (draggedItemIdx === null || draggedItemIdx === idx) return;
-    const newDiscussions = [...discussions];
-    const [draggedItem] = newDiscussions.splice(draggedItemIdx, 1);
-    newDiscussions.splice(idx, 0, draggedItem);
-    setDiscussions(newDiscussions);
-    saveLocalDiscussions(currentWorkspace.id, newDiscussions);
-    setDraggedItemIdx(null); setDragOverIdx(null);
-  };
+  const navItems = [
+    { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
+    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
+  ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative transition-none">
+    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
       {!isSidebarOpen && (
-        <div className="absolute top-4 left-4 z-[999] transition-none">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+        <div className="absolute top-4 left-4 z-[999]">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
             <PanelLeft className="w-5 h-5" />
           </button>
         </div>
       )}
 
-      {/* RENDER THE 95% OVERLAYS WITHOUT ROUTING */}
-      <RedeemCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} setUser={setUser} setUserPlan={setUserPlan} />
-      <SupportPage open={showSupportPage} onClose={() => setShowSupportPage(false)} />
-      <SettingsPage open={showSettingsPage} onClose={() => setShowSettingsPage(false)} />
-      <PricingPage open={showPricingPage} onClose={() => setShowPricingPage(false)} />
+      <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
+        <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
+        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff] mb-4" autoFocus />
+        <div className="bg-[#F9F8F6] p-4 rounded-lg border border-[#E5E5E5]">
+          <h4 className="text-[12px] font-bold text-[#333333] mb-2.5">What happens next?</h4>
+          <ul className="text-[11.5px] text-[#707070] space-y-2">
+            <li>• You will be the owner with full management permissions</li>
+            <li>• You can invite members and manage licenses</li>
+            <li>• Access your workspace dashboard to get started</li>
+          </ul>
+        </div>
+      </ProModal>
 
-      <aside className={`flex-shrink-0 h-full border-r border-slate-200 flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-white transition-none">
+      <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
+        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none" />
+      </ProModal>
+
+      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
+
+      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
+        <div className="w-[260px] flex flex-col h-full bg-white">
           
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between transition-none">
-             <h1 className="text-2xl font-[800] italic tracking-tighter text-slate-900">WOK</h1>
-             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-md transition-none border border-slate-200 bg-white shadow-none">
+          <div className="p-4 border-b border-black/5 flex items-center justify-between">
+             <h1 className="text-2xl font-[800] italic tracking-tighter text-[#0d0d0d]">WOK</h1>
+             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-none border border-[#E5E5E5] bg-white shadow-none">
                <PanelLeftClose className="w-4 h-4" />
              </button>
           </div>
           
-          <div className="p-4 border-b border-slate-100 relative transition-none" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:bg-slate-50 shadow-none transition-none">
+          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
+            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-none transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-5 h-5 bg-[#0062FF] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
-                <span className="text-[13px] font-bold text-slate-900 truncate">{currentWorkspace?.name}</span>
+                <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
+                <span className="text-[13px] font-bold text-[#333333] truncate">{currentWorkspace?.name}</span>
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-gray-400" />
             </button>
             {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-slate-200 rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
+              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
                 {workspaces.map(w => (
-                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-slate-900 hover:bg-slate-50 flex items-center gap-2 rounded-md transition-none">
-                    <div className="w-5 h-5 bg-slate-200 text-slate-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
+                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none">
+                    <div className="w-5 h-5 bg-gray-200 text-gray-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
                     <span className="flex-1 truncate">{w.name}</span>
-                    {w.current && <Check className="w-4 h-4 text-[#0062FF]" />}
+                    {w.current && <Check className="w-4 h-4 text-[#0080ff]" />}
                   </button>
                 ))}
+                <div className="h-px bg-[#E5E5E5] my-2 mx-2"></div>
+                {workspaces.length < 4 && <button onClick={() => { setShowWorkspaceSwitcher(false); setShowWorkspaceModal(true); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none"><Plus className="w-4 h-4" /> Create workspace</button>}
               </div>
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 mt-6 transition-none">
-             <div className="text-[11px] font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">Recents</div>
-             <ul className="space-y-0.5 transition-none">
+          <div className="px-4 space-y-0.5 mt-3">
+            {navItems.map((item) => (
+              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}>
+                <item.icon className="w-4 h-4" /><span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 mt-6">
+             <div className="text-[11px] font-bold text-gray-400 mb-3 px-1 tracking-wider uppercase font-sans">Recents</div>
+             <ul className="space-y-0.5">
                 {discussions?.map((d, idx) => (
-                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-slate-100' : 'border border-transparent hover:bg-slate-50'}`}>
+                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-gray-100' : 'border border-transparent hover:bg-gray-50'}`}>
                     {editingId === d.id ? (
-                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0062FF] text-[13px] rounded px-2 py-0.5 focus:outline-none transition-none" onClick={(e) => e.stopPropagation()} />
+                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0080ff] text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
                     ) : (
                       <>
-                        <div className="flex items-center gap-3 truncate w-[80%] transition-none">
+                        <div className="flex items-center gap-3 truncate w-[80%]">
                           <span onClick={(e) => { e.stopPropagation(); updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji }); }} className="text-[14px] hover:opacity-70 transition-none">{d.emoji || '📄'}</span>
-                          <span className={`text-[13px] font-medium truncate transition-none ${conversationId === d.id ? 'text-slate-900 font-bold' : 'text-slate-700'}`}>{d.title || `Project #${103 + idx}`}</span>
+                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-[#0d0d0d] font-semibold' : 'text-gray-700'}`}>{d.title || d.preview || 'New chat'}</span>
                         </div>
-                        <div className="hidden group-hover:flex items-center gap-1.5 pl-2 transition-none">
-                          <button onClick={(e) => startEditing(e, d)} className="text-slate-400 hover:text-slate-900 transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-slate-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <div className="hidden group-hover:flex items-center gap-1.5 pl-2">
+                          <button onClick={(e) => startEditing(e, d)} className="text-gray-400 hover:text-black transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-gray-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </>
                     )}
-                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#0062FF] rounded-full z-10 transition-none" />}
+                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#0080ff] rounded-full z-10" />}
                   </li>
                 ))}
              </ul>
           </div>
 
-          <div className="px-4 py-3 border-t border-slate-100 mt-auto transition-none">
-            <button onClick={() => window.location.reload()} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0062FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0052CC] shadow-sm transition-none">
-              <Plus className="w-4 h-4" /> New Project
+          <div className="px-4 py-3 border-t border-black/5 mt-auto">
+            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-none transition-none">
+              <Plus className="w-4 h-4" /> New chat
             </button>
           </div>
 
-          <div className="p-4 border-t border-slate-100 relative transition-none" ref={profileMenuRef}>
+          <div className="p-4 border-t border-black/5 relative" ref={profileMenuRef}>
             {isProfileMenuOpen && (
-              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
-                <div className="px-3 py-2.5 border-b border-slate-100 mb-1 transition-none">
-                  <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
+              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-[#E5E5E5] rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-1.5 z-50 font-sans p-1.5 transition-none">
+                <div className="px-3 py-2.5 border-b border-[#E5E5E5] mb-1">
+                  <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
+                  <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
-                <div className="h-px bg-slate-100 my-1 mx-2 transition-none"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowPricingPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0062FF]" /> Upgrade Plan</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-slate-400" /> Redeem Code</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
+                <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
               </div>
             )}
-            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-none w-full text-left">
-              <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm transition-none" style={{ backgroundColor: '#0062FF' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
-              <div className="flex-1 min-w-0 transition-none"><p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p></div>
-              <MoreHorizontal className="w-4 h-4 text-slate-400 transition-none" />
+            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 border border-transparent hover:border-[#E5E5E5] transition-none w-full text-left">
+              <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: '#8B5CF6' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
+              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p></div>
+              <MoreHorizontal className="w-4 h-4 text-gray-400" />
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full transition-none">
-        <div className="flex items-center justify-end p-3 md:hidden transition-none">
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && window.innerWidth < 768 && (
+        <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
+        
+        <div className="flex items-center justify-end p-3 md:hidden">
           {hasStarted && (
-            <div className="flex bg-slate-100 p-1 rounded-md ml-auto z-50 transition-none">
-              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded transition-none ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-slate-500'}`}>Chat</button>
-              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded transition-none ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-slate-500'}`}>Preview</button>
+            <div className="flex bg-gray-100 p-1 rounded-md ml-auto z-50">
+              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Chat</button>
+              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Preview</button>
             </div>
           )}
         </div>
 
-        <div className="flex flex-1 overflow-hidden w-full h-full transition-none">
+        <div className="flex flex-1 overflow-hidden w-full h-full">
+          
           <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
-            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden transition-none ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
-              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10 transition-none"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx} className="transition-none">{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
-              <AssistantMessage content={ficheContent} isGenerating={isLoading} />
-              <div ref={messagesEndRef} className="h-4 transition-none" />
+            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
+              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
+              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+              <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
+              <div ref={messagesEndRef} className="h-4" />
             </div>
-            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible transition-none ${!hasStarted ? 'pb-10 w-full' : ''}`}>
-              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={() => {}} isLoading={isLoading} />
+            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
             </div>
           </div>
           
           {hasStarted && (
-            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col relative transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
+            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#FAFAFA]`}>
                  <WorkspaceHeader 
                    onReload={handleReload} 
                    convId={conversationId || convId} 
                    viewMode={viewMode}
-                   setViewMode={setViewMode}
                    customSlug={customSlug}
                    setCustomSlug={setCustomSlug}
-                   appSettings={appSettings}
                  />
-                 <div className="flex-1 overflow-hidden relative bg-transparent transition-none">
+                 <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
                    <FichePanel 
                      content={ficheContent} 
                      onError={setRuntimeError} 
                      onSuccess={() => setRuntimeError(null)} 
+                     isPublic={false} 
                      viewMode={viewMode} 
                      setViewMode={setViewMode}
                      appSettings={appSettings}
@@ -711,11 +654,6 @@ export default function ChatPage() {
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
                      customSlug={customSlug}
-                     onUpdateSlug={handleUpdateSlug}
-                     onSaveManualCode={handleManualCodeSave}
-                     runtimeError={runtimeError}
-                     isManualEdit={isManualEdit}
-                     onManualAIFix={handleManualAIFix}
                    />
                  </div>
               </div>
