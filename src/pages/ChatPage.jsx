@@ -15,6 +15,8 @@ import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
+import SupportModal from '@/pages/SupportPage';
+import SettingsModal from '@/pages/SettingsPage';
 
 import { 
   Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, Sparkles, AlertTriangle
@@ -30,46 +32,6 @@ const CustomUserMessageBubble = ({ msg }) => (
     </div>
   </div>
 );
-
-const IframeModal = ({ open, url, onClose }) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm p-4">
-      <div className="relative w-full h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-slate-100/80 hover:bg-slate-200 text-slate-800 rounded-full transition-colors shadow-sm">
-          <X className="w-5 h-5" strokeWidth={2.5} />
-        </button>
-        <iframe src={url} className="w-full h-full border-none bg-white" />
-      </div>
-    </div>
-  );
-};
-
-const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
-        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-[16px] font-bold text-slate-900">{title}</h2>
-              {subtitle && <p className="text-[12px] text-slate-500 mt-1">{subtitle}</p>}
-            </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"><X className="w-4 h-4" /></button>
-          </div>
-        </div>
-        <div className="p-6">{children}</div>
-        {actionText && (
-          <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-            <button onClick={onClose} className="px-5 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
-            <button onClick={onAction} className="px-5 py-2 text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">{actionText}</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // --- ENTERPRISE REDEEM CODE MODAL ---
 const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
@@ -123,26 +85,21 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-[500px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-100">
-        
         <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
           <X className="w-5 h-5 text-slate-400 hover:text-slate-700" />
         </button>
-
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 sm:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
             <Key className="w-48 h-48 text-blue-900" />
           </div>
-          
           <div className="relative z-10">
             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 mb-6">
                <Sparkles className="w-6 h-6 text-white" />
             </div>
-            
             <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
             <p className="text-[14px] text-slate-600 mb-8 max-w-sm leading-relaxed">
               Unlock enterprise features or add bulk computing resources to your workspace by entering your secure activation key below.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-3">
               <input 
                 value={activationCode} 
@@ -160,7 +117,6 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
                 {codeLoading ? 'Authenticating...' : 'Unlock Features'}
               </button>
             </div>
-
             <AnimatePresence>
               {codeError && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm">
@@ -251,38 +207,29 @@ export default function ChatPage() {
   const [viewMode, setViewMode] = useState('preview');
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
+  
+  // ALGORITHM: Calculate sequential Project ID based on discussion count
+  const projectSequenceNumber = discussions.length > 0 ? 3490 + discussions.length : 3490;
+  
   const [appSettings, setAppSettings] = useState({
-    title: 'AI-Powered Interface',
+    title: `Project #${projectSequenceNumber}`,
     description: 'A highly optimized interactive experience built with Wok.',
-    isPublic: true,
-    showBadge: true
+    isPublic: false,
+    showBadge: true,
+    appIcon: null
   });
 
-  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
-  const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  // New Global Code Modal
+  // GLOBAL MODALS
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
-
-  const handleCreateWorkspace = () => {
-    if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
-    if (workspaces.length >= 4) { toast.error("Maximum limit of 4 workspaces reached."); return; }
-    const newWs = { id: `ws_${Date.now()}`, name: newWorkspaceName.trim(), current: true };
-    const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
-    setWorkspaces(updated);
-    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    setDiscussions([]); 
-    setShowWorkspaceModal(false);
-    setNewWorkspaceName('');
-    navigate('/'); 
-    toast.success("Workspace created.");
-  };
 
   const handleSwitchWorkspace = (id) => {
     const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
@@ -336,8 +283,6 @@ export default function ChatPage() {
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   
-  const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
-
   const profileMenuRef = useRef(null);
   const workspaceRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -589,129 +534,101 @@ export default function ChatPage() {
     toast.success("Application deleted permanently.");
   };
 
-  const navItems = [
-    { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
-  ];
-
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
       
       {!isSidebarOpen && (
         <div className="absolute top-4 left-4 z-[999]">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
             <PanelLeft className="w-5 h-5" />
           </button>
         </div>
       )}
 
-      <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
-        <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0080ff] mb-4" autoFocus />
-        <div className="bg-[#F9F8F6] p-4 rounded-lg border border-[#E5E5E5]">
-          <h4 className="text-[12px] font-bold text-[#333333] mb-2.5">What happens next?</h4>
-          <ul className="text-[11.5px] text-[#707070] space-y-2">
-            <li>• You will be the owner with full management permissions</li>
-            <li>• You can invite members and manage licenses</li>
-            <li>• Access your workspace dashboard to get started</li>
-          </ul>
-        </div>
-      </ProModal>
-
       <RedeemCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} setUser={setUser} setUserPlan={setUserPlan} />
-      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
+      <SupportModal open={showSupportModal} onClose={() => setShowSupportModal(false)} />
+      <SettingsModal open={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
 
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
+      <aside className={`flex-shrink-0 h-full border-r border-slate-200 flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
         <div className="w-[260px] flex flex-col h-full bg-white">
           
-          <div className="p-4 border-b border-black/5 flex items-center justify-between">
-             <h1 className="text-2xl font-[800] italic tracking-tighter text-[#0d0d0d]">WOK</h1>
-             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-none border border-[#E5E5E5] bg-white shadow-none">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+             <h1 className="text-2xl font-[800] italic tracking-tighter text-slate-900">WOK</h1>
+             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-md transition-none border border-slate-200 bg-white shadow-none">
                <PanelLeftClose className="w-4 h-4" />
              </button>
           </div>
           
-          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-none transition-none">
+          <div className="p-4 border-b border-slate-100 relative" ref={workspaceRef}>
+            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:bg-slate-50 shadow-none transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-5 h-5 bg-[#0080ff] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
-                <span className="text-[13px] font-bold text-[#333333] truncate">{currentWorkspace?.name}</span>
+                <div className="w-5 h-5 bg-blue-600 text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
+                <span className="text-[13px] font-bold text-slate-900 truncate">{currentWorkspace?.name}</span>
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </button>
             {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
+              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-slate-200 rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
                 {workspaces.map(w => (
-                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none">
-                    <div className="w-5 h-5 bg-gray-200 text-gray-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
+                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-slate-900 hover:bg-slate-50 flex items-center gap-2 rounded-md transition-none">
+                    <div className="w-5 h-5 bg-slate-200 text-slate-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
                     <span className="flex-1 truncate">{w.name}</span>
-                    {w.current && <Check className="w-4 h-4 text-[#0080ff]" />}
+                    {w.current && <Check className="w-4 h-4 text-blue-600" />}
                   </button>
                 ))}
-                <div className="h-px bg-[#E5E5E5] my-2 mx-2"></div>
-                {workspaces.length < 4 && <button onClick={() => { setShowWorkspaceSwitcher(false); setShowWorkspaceModal(true); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0080ff] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none"><Plus className="w-4 h-4" /> Create workspace</button>}
               </div>
             )}
           </div>
 
-          <div className="px-4 space-y-0.5 mt-3">
-            {navItems.map((item) => (
-              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}>
-                <item.icon className="w-4 h-4" /><span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-
           <div className="flex-1 overflow-y-auto px-4 mt-6">
-             <div className="text-[11px] font-bold text-gray-400 mb-3 px-1 tracking-wider uppercase font-sans">Recents</div>
+             <div className="text-[11px] font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">Recents</div>
              <ul className="space-y-0.5">
                 {discussions?.map((d, idx) => (
-                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-gray-100' : 'border border-transparent hover:bg-gray-50'}`}>
+                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-slate-100' : 'border border-transparent hover:bg-slate-50'}`}>
                     {editingId === d.id ? (
-                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0080ff] text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
+                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-blue-600 text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
                     ) : (
                       <>
                         <div className="flex items-center gap-3 truncate w-[80%]">
                           <span onClick={(e) => { e.stopPropagation(); updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji }); }} className="text-[14px] hover:opacity-70 transition-none">{d.emoji || '📄'}</span>
-                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-[#0d0d0d] font-semibold' : 'text-gray-700'}`}>{d.title || d.preview || 'New chat'}</span>
+                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-slate-900 font-bold' : 'text-slate-700'}`}>{d.title || d.preview || 'New chat'}</span>
                         </div>
                         <div className="hidden group-hover:flex items-center gap-1.5 pl-2">
-                          <button onClick={(e) => startEditing(e, d)} className="text-gray-400 hover:text-black transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-gray-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => startEditing(e, d)} className="text-slate-400 hover:text-slate-900 transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-slate-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </>
                     )}
-                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#0080ff] rounded-full z-10" />}
+                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-blue-600 rounded-full z-10" />}
                   </li>
                 ))}
              </ul>
           </div>
 
-          <div className="px-4 py-3 border-t border-black/5 mt-auto">
-            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0080ff] text-white rounded-md text-[13px] font-bold hover:bg-[#0066cc] shadow-none transition-none">
-              <Plus className="w-4 h-4" /> New chat
+          <div className="px-4 py-3 border-t border-slate-100 mt-auto">
+            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 text-white rounded-md text-[13px] font-bold hover:bg-blue-700 shadow-sm transition-colors">
+              <Plus className="w-4 h-4" /> New Project
             </button>
           </div>
 
-          <div className="p-4 border-t border-black/5 relative" ref={profileMenuRef}>
+          <div className="p-4 border-t border-slate-100 relative" ref={profileMenuRef}>
             {isProfileMenuOpen && (
-              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-[#E5E5E5] rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-1.5 z-50 font-sans p-1.5 transition-none">
-                <div className="px-3 py-2.5 border-b border-[#E5E5E5] mb-1">
-                  <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
-                  <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
+              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
+                <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
+                  <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
+                  <p className="text-[11.5px] text-slate-500 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/settings'); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/support'); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
-                <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
+                <div className="h-px bg-slate-100 my-1 mx-2"></div>
+                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/pricing'); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 group rounded-md transition-colors"><ArrowUpCircle className="w-4 h-4 text-blue-600" /> Upgrade Plan</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><Key className="w-4 h-4 text-slate-400" /> Redeem Code</button>
               </div>
             )}
-            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 border border-transparent hover:border-[#E5E5E5] transition-none w-full text-left">
+            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors w-full text-left">
               <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: '#8B5CF6' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
-              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p></div>
-              <MoreHorizontal className="w-4 h-4 text-gray-400" />
+              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p></div>
+              <MoreHorizontal className="w-4 h-4 text-slate-400" />
             </button>
           </div>
         </div>
@@ -719,20 +636,11 @@ export default function ChatPage() {
 
       {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && window.innerWidth < 768 && (
-        <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/20 z-[45] backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
-        <div className="flex items-center justify-end p-3 md:hidden">
-          {hasStarted && (
-            <div className="flex bg-gray-100 p-1 rounded-md ml-auto z-50">
-              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Chat</button>
-              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Preview</button>
-            </div>
-          )}
-        </div>
-
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
           <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
@@ -756,15 +664,15 @@ export default function ChatPage() {
                    viewMode={viewMode}
                    setViewMode={setViewMode}
                    customSlug={customSlug}
+                   setCustomSlug={setCustomSlug}
+                   appSettings={appSettings}
                  />
                  <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
                    <FichePanel 
                      content={ficheContent} 
                      onError={setRuntimeError} 
                      onSuccess={() => setRuntimeError(null)} 
-                     isPublic={false} 
                      viewMode={viewMode} 
-                     setViewMode={setViewMode}
                      appSettings={appSettings}
                      onUpdateSettings={handleUpdateAppMeta}
                      onClone={handleCloneApp}
