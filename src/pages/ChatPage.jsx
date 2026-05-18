@@ -1,11 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
-import { ALL_MODES } from '@/lib/modes-config';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
@@ -220,6 +217,7 @@ export default function ChatPage() {
     appIcon: null
   });
 
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -676,14 +674,14 @@ export default function ChatPage() {
         </div>
 
         <div className="flex flex-1 overflow-hidden w-full h-full transition-none">
-          <div className={`flex flex-col bg-white overflow-visible transition-none w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'}`}>
-            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden transition-none md:mt-16`}>
+          <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden transition-none ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
               {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10 transition-none"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
               {messages?.map((msg, idx) => (<div key={idx} className="transition-none">{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               <AssistantMessage content={ficheContent} isGenerating={isLoading} />
               <div ref={messagesEndRef} className="h-4 transition-none" />
             </div>
-            <div className={`flex-shrink-0 p-3 md:p-4 bg-white transition-none ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible transition-none ${!hasStarted ? 'pb-10 w-full' : ''}`}>
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={() => {}} isLoading={isLoading} />
             </div>
           </div>
@@ -692,7 +690,8 @@ export default function ChatPage() {
             <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col relative transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#FAFAFA]`}>
                  <WorkspaceHeader 
-                   convId={convId} 
+                   onReload={handleReload} 
+                   convId={conversationId || convId} 
                    viewMode={viewMode}
                    setViewMode={setViewMode}
                    customSlug={customSlug}
