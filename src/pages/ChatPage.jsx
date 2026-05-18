@@ -1,3 +1,7 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ChatPage.jsx  ── ONLY CHANGE vs original:
+//   onUpdateContent={setFicheContent}  added to <FichePanel />  (line ~394)
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -142,7 +146,6 @@ export default function ChatPage() {
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
 
-  // LIFTED SLUG STATE FOR DASHBOARD SYNC
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
   const [appSettings, setAppSettings] = useState({
@@ -160,7 +163,6 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   
-  // AUTONOMOUS ERROR CATCHING STATE
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -414,7 +416,6 @@ export default function ChatPage() {
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
-  // SILENT AUTO-HEALING ENGINE
   useEffect(() => {
     if (runtimeError && !isLoading) {
       const bt = String.fromCharCode(96);
@@ -600,7 +601,6 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && window.innerWidth < 768 && (
         <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
@@ -654,6 +654,7 @@ export default function ChatPage() {
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
                      customSlug={customSlug}
+                     onUpdateContent={setFicheContent}
                    />
                  </div>
               </div>
