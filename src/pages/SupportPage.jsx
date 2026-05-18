@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MessageSquare, ChevronRight, X, Plus, RefreshCw, Loader, Upload, Send, Trash2, CheckCircle, FileText, Image as ImageIcon, Bug, DollarSign, HelpCircle } from 'lucide-react';
+import { MessageSquare, ChevronRight, X, Plus, RefreshCw, Loader2, Upload, Send, Trash2, CheckCircle, FileText, Image as ImageIcon, Bug, DollarSign, HelpCircle, ArrowRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 
@@ -45,8 +44,7 @@ function FileAttachment({ url, light = false }) {
   );
 }
 
-export default function SupportPage() {
-  const navigate = useNavigate();
+export default function SupportModal({ open, onClose }) {
   const [page, setPage] = useState('landing');
   const [activeTab, setActiveTab] = useState('my');
   const [user, setUser] = useState(null);
@@ -60,8 +58,14 @@ export default function SupportPage() {
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
-  }, []);
+    if (open) {
+      base44.auth.me().then(u => {
+        setUser(u);
+        loadMyTickets(u);
+        if (u.role === 'admin') loadAdminTickets();
+      }).catch(() => {});
+    }
+  }, [open]);
 
   const loadMyTickets = (u) => {
     if (!u) return;
@@ -84,28 +88,7 @@ export default function SupportPage() {
       .catch(() => {});
   };
 
-  useEffect(() => {
-    if (user) { loadMyTickets(user); if (user.role === 'admin') loadAdminTickets(); }
-  }, [user]);
-
-  useEffect(() => {
-    const handler = (e) => { if (e.detail) setChatTicket(e.detail); };
-    window.addEventListener('open-support-chat', handler);
-    return () => window.removeEventListener('open-support-chat', handler);
-  }, []);
-
-  if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
-
-  if (chatTicket) {
-    return (
-      <ChatPanel
-        ticket={chatTicket}
-        user={user}
-        onClose={() => { setChatTicket(null); loadMyTickets(user); if (isAdmin) loadAdminTickets(); }}
-        onUpdate={() => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); }}
-      />
-    );
-  }
+  if (!open) return null;
 
   const currentTickets = activeTab === 'admin' && isAdmin ? adminTickets : myTickets;
   const filteredTickets = ticketFilter === 'all'
@@ -115,182 +98,184 @@ export default function SupportPage() {
   const refresh = () => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); };
 
   return (
-    <div className="min-h-screen font-sans bg-[#FAFAFA] selection:bg-blue-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        className="relative w-full max-w-[900px] h-[90vh] bg-[#FAFAFA] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
         
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setPage('landing')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-              <ArrowLeft className="w-4 h-4 text-slate-600" />
-            </button>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Support Tickets</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={refresh} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm" title="Refresh">
-              <RefreshCw className="w-4 h-4 text-slate-600" />
-            </button>
-            {activeTab === 'my' && (
-              <button onClick={() => setShowNewTicket(true)} className="px-5 h-10 flex items-center gap-2 text-[13px] font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-sm transition-colors">
-                <Plus className="w-4 h-4" /> Open Ticket
-              </button>
-            )}
-          </div>
-        </div>
+        <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-full transition-colors shadow-sm">
+          <X className="w-5 h-5" />
+        </button>
 
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            {isAdmin && (
-              <div className="flex items-center gap-2 p-1 bg-slate-50 border border-slate-200 rounded-xl">
-                {[{ id: 'my', label: 'My Tickets' }, { id: 'admin', label: `Admin Queue (${adminTickets.length})` }].map(tab => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 text-[13px] font-bold rounded-lg transition-all ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
-                    {tab.label}
+        {chatTicket ? (
+          <ChatPanel
+            ticket={chatTicket}
+            user={user}
+            onClose={() => { setChatTicket(null); refresh(); }}
+            onUpdate={refresh}
+          />
+        ) : page === 'landing' ? (
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex flex-col items-center justify-center px-4 py-24 w-full">
+              <div className="text-center mb-12">
+                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">How can we help?</h1>
+                <p className="text-[15px] sm:text-[16px] text-slate-500 font-medium">Select an option below to get assistance with your account or architecture.</p>
+              </div>
+
+              <div className="w-full max-w-2xl space-y-4">
+                <button onClick={() => setPage('tickets')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 p-8 sm:p-10 rounded-3xl text-left transition-colors shadow-lg shadow-blue-600/20 group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform group-hover:scale-110 transition-transform duration-500">
+                    <MessageSquare className="w-48 h-48 text-white" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-6">
+                      <Plus className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-2">Open a Support Ticket</h3>
+                    <p className="text-[14px] text-white/80 font-medium mb-8 max-w-sm">Submit a detailed request securely. Our engineering and billing teams will assist you within 24 hours.</p>
+                    <span className="inline-flex items-center gap-2 text-[13px] font-bold text-white bg-white/10 px-4 py-2 rounded-xl group-hover:bg-white/20 transition-colors">
+                      Get Started <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </button>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button onClick={() => setPage('tickets')}
+                    className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-slate-300 hover:shadow-sm transition-all text-left flex flex-col justify-between h-full group">
+                    <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center mb-6 text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[16px] font-bold text-slate-900 mb-1">My Tickets</p>
+                      <p className="text-[13px] text-slate-500">View and manage your active requests.</p>
+                    </div>
                   </button>
-                ))}
-              </div>
-            )}
 
-            {activeTab === 'my' && (
-              <div className="flex items-center gap-2">
-                {['all', 'open', 'closed'].map(f => (
-                  <button key={f} onClick={() => setTicketFilter(f)}
-                    className={`px-4 py-1.5 text-[12px] font-bold rounded-full transition-all capitalize ${ticketFilter === f ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                    {f}
-                  </button>
-                ))}
+                  <a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
+                    className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-blue-300 hover:shadow-sm transition-all text-left flex flex-col justify-between h-full group">
+                    <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center mb-6 text-orange-500 group-hover:bg-[#FF4500] group-hover:text-white transition-colors">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[16px] font-bold text-slate-900 mb-1">Community</p>
+                      <p className="text-[13px] text-slate-500">Join the discussion on Reddit.</p>
+                    </div>
+                  </a>
+                </div>
               </div>
-            )}
+            </div>
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-            </div>
-          ) : filteredTickets.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-slate-50 border border-dashed border-slate-300 rounded-2xl">
-              <div className="w-12 h-12 bg-slate-200/50 rounded-full flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-slate-400" />
+        ) : (
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="px-8 pt-8 pb-4">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setPage('landing')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <h1 className="text-3xl font-black text-slate-900 tracking-tight">Support Tickets</h1>
+                </div>
+                <div className="flex items-center gap-3 pr-10">
+                  <button onClick={refresh} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm" title="Refresh">
+                    <RefreshCw className="w-4 h-4 text-slate-600" />
+                  </button>
+                  {activeTab === 'my' && (
+                    <button onClick={() => setShowNewTicket(true)} className="px-5 h-10 flex items-center gap-2 text-[13px] font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-sm transition-colors">
+                      <Plus className="w-4 h-4" /> Open Ticket
+                    </button>
+                  )}
+                </div>
               </div>
-              <p className="text-[14px] font-bold text-slate-600 mb-1">No tickets found</p>
-              <p className="text-[13px] text-slate-500">You're all caught up!</p>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                {isAdmin && (
+                  <div className="flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    {[{ id: 'my', label: 'My Tickets' }, { id: 'admin', label: `Admin Queue (${adminTickets.length})` }].map(tab => (
+                      <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 text-[13px] font-bold rounded-lg transition-all ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === 'my' && (
+                  <div className="flex items-center gap-2">
+                    {['all', 'open', 'closed'].map(f => (
+                      <button key={f} onClick={() => setTicketFilter(f)}
+                        className={`px-4 py-1.5 text-[12px] font-bold rounded-full transition-all capitalize border ${ticketFilter === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-sm'}`}>
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredTickets.map(ticket => {
-                const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
-                const cat = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.other;
-                const CatIcon = cat.icon;
-                return (
-                  <motion.button key={ticket.id} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                    onClick={() => setChatTicket(ticket)}
-                    className="w-full p-5 text-left bg-white border border-slate-200 rounded-2xl hover:border-blue-300 hover:shadow-sm transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
-                          <CatIcon className="w-3 h-3" /> {cat.label}
-                        </span>
-                        <p className="text-[15px] font-bold text-slate-900 truncate">
-                          {ticket.title || ticket.user_name || ticket.user_email?.split('@')[0] || 'Support Ticket'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <p className="text-[12px] font-medium text-slate-500">Opened {new Date(ticket.created_date).toLocaleDateString()}</p>
-                        {isAdmin && ticket.user_plan && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                            {ticket.user_plan}
+
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : filteredTickets.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
+                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-[14px] font-bold text-slate-600 mb-1">No tickets found</p>
+                  <p className="text-[13px] text-slate-500">You're all caught up!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredTickets.map(ticket => {
+                    const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
+                    const cat = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.other;
+                    const CatIcon = cat.icon;
+                    return (
+                      <button key={ticket.id} onClick={() => setChatTicket(ticket)}
+                        className="w-full p-5 text-left bg-white border border-slate-200 rounded-2xl hover:border-blue-300 hover:shadow-sm transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
+                              <CatIcon className="w-3 h-3" /> {cat.label}
+                            </span>
+                            <p className="text-[15px] font-bold text-slate-900 truncate">
+                              {ticket.title || ticket.user_name || ticket.user_email?.split('@')[0] || 'Support Ticket'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <p className="text-[12px] font-medium text-slate-500">Opened {new Date(ticket.created_date).toLocaleDateString()}</p>
+                            {isAdmin && ticket.user_plan && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                                {ticket.user_plan}
+                              </span>
+                            )}
+                            {isAdmin && activeTab === 'admin' && (
+                              <span className="text-[11px] font-mono text-slate-400 truncate max-w-[150px]">{ticket.user_email}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                          <span className="text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: s.bg, color: s.color }}>
+                            {s.label}
                           </span>
-                        )}
-                        {isAdmin && activeTab === 'admin' && (
-                          <span className="text-[11px] font-mono text-slate-400 truncate max-w-[150px]">{ticket.user_email}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                      <span className="text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: s.bg, color: s.color }}>
-                        {s.label}
-                      </span>
-                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                  </motion.button>
-                );
-              })}
+                          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </motion.div>
 
       <AnimatePresence>
         {showNewTicket && (
-          <NewTicketModal onClose={() => { setShowNewTicket(false); loadMyTickets(user); }} user={user} />
+          <NewTicketModal onClose={() => { setShowNewTicket(false); refresh(); }} user={user} />
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function LandingPage({ onNavigate }) {
-  const navigate = useNavigate();
-  return (
-    <div className="min-h-screen font-sans bg-[#FAFAFA] flex flex-col selection:bg-blue-100">
-      
-      {/* Mini Header to match Workspace */}
-      <div className="flex items-center px-4 sm:px-8 py-6 gap-4">
-         <button onClick={() => navigate('/')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-            <ArrowLeft className="w-4 h-4 text-slate-600" />
-         </button>
-         <h1 className="text-xl font-black text-slate-900">Workspace</h1>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 max-w-3xl mx-auto w-full">
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">How can we help?</h1>
-          <p className="text-[15px] sm:text-[16px] text-slate-500 font-medium">Select an option below to get assistance with your account or architecture.</p>
-        </motion.div>
-
-        <div className="w-full space-y-4">
-          <motion.button onClick={onNavigate} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
-            className="w-full bg-blue-600 hover:bg-blue-700 p-8 sm:p-10 rounded-3xl text-left transition-colors shadow-lg shadow-blue-600/20 group relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform group-hover:scale-110 transition-transform duration-500">
-              <MessageSquare className="w-48 h-48 text-white" />
-            </div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-6">
-                <Plus className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-2">Open a Support Ticket</h3>
-              <p className="text-[14px] text-white/80 font-medium mb-8 max-w-sm">Submit a detailed request securely. Our engineering and billing teams will assist you within 24 hours.</p>
-              <span className="inline-flex items-center gap-2 text-[13px] font-bold text-white bg-white/10 px-4 py-2 rounded-xl group-hover:bg-white/20 transition-colors">
-                Get Started <ArrowRight className="w-4 h-4" />
-              </span>
-            </div>
-          </motion.button>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <motion.button onClick={onNavigate} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
-              className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-slate-300 hover:shadow-sm transition-all text-left flex flex-col justify-between h-full group">
-              <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center mb-6 text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[16px] font-bold text-slate-900 mb-1">My Tickets</p>
-                <p className="text-[13px] text-slate-500">View and manage your active requests.</p>
-              </div>
-            </motion.button>
-
-            <motion.a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}
-              className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-blue-300 hover:shadow-sm transition-all text-left flex flex-col justify-between h-full group">
-              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center mb-6 text-orange-500 group-hover:bg-[#FF4500] group-hover:text-white transition-colors">
-                <Globe className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[16px] font-bold text-slate-900 mb-1">Community</p>
-                <p className="text-[13px] text-slate-500">Join the discussion on Reddit.</p>
-              </div>
-            </motion.a>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -307,7 +292,7 @@ function NewTicketModal({ onClose, user }) {
     if (!description.trim()) return;
     setStep(1);
     await new Promise(r => setTimeout(r, 1200));
-    setSelectedCategory('other'); // Default fallback
+    setSelectedCategory('other'); 
     setStep(2);
   };
 
@@ -355,7 +340,7 @@ function NewTicketModal({ onClose, user }) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
       onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
       <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
         className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100"
@@ -472,7 +457,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Poll for updates
   useEffect(() => {
     const id = currentTicket.id;
     const interval = setInterval(async () => {
@@ -547,7 +531,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
         className="w-full max-w-lg ml-auto h-full flex flex-col bg-white shadow-2xl border-l border-slate-200"
         onClick={e => e.stopPropagation()}>
 
-        {/* Chat Header */}
         <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 shadow-sm flex-shrink-0">
@@ -585,7 +568,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Admin Controls */}
         {isAdmin && (
           <div className="px-6 py-3 flex-shrink-0 flex gap-2 border-b border-slate-100 bg-slate-50">
             {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
@@ -597,7 +579,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         )}
 
-        {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-[#FAFAFA]">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center opacity-40">
@@ -623,34 +604,28 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             
             return (
               <div key={i} className={`flex items-end gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                
                 {!isMe && (
                   <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[12px] font-black shadow-sm ${isAdminMsg ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
                     {avatarLetter}
                   </div>
                 )}
-
                 <div className={`max-w-[75%] px-5 py-3.5 shadow-sm ${isMe ? 'bg-blue-600 text-white rounded-[20px_20px_4px_20px]' : 'bg-white border border-slate-200 text-slate-800 rounded-[20px_20px_20px_4px]'}`}>
                   {msg.text && <p className="text-[14px] leading-relaxed whitespace-pre-line">{msg.text}</p>}
-                  
                   {msg.file_urls?.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
                     </div>
                   )}
-                  
                   <p className={`text-[10px] font-medium mt-2 select-none text-right ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-
               </div>
             );
           })}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         {isClosed ? (
           <div className="px-6 py-5 flex-shrink-0 text-center bg-slate-50 border-t border-slate-200">
             <p className="text-[13px] font-bold text-slate-500">
@@ -673,11 +648,9 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             )}
             <div className="flex items-end gap-3">
               <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
-              
               <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors flex-shrink-0 text-slate-500 mb-1">
                 <Upload className="w-4 h-4" />
               </button>
-              
               <textarea 
                 value={newMessage} 
                 onChange={e => setNewMessage(e.target.value)}
@@ -686,7 +659,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                 rows={1}
                 className="flex-1 px-4 py-3 text-[14px] bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none rounded-2xl resize-none min-h-[46px] max-h-[120px] transition-colors" 
               />
-              
               <button onClick={handleSendMessage} disabled={(!newMessage.trim() && files.length === 0) || sending}
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-40 disabled:hover:bg-blue-600 shadow-sm flex-shrink-0 mb-1">
                 <Send className="w-4 h-4 ml-0.5" />
