@@ -16,7 +16,7 @@ import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
-// IMPORT OVERLAY PAGES
+// IMPORT OVERLAY PAGES (Kept original names, no "Modal" renaming)
 import SupportPage from '@/pages/SupportPage';
 import SettingsPage from '@/pages/SettingsPage';
 import PricingPage from '@/pages/PricingPage';
@@ -96,7 +96,7 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
             <Key className="w-48 h-48 text-blue-900" />
           </div>
           <div className="relative z-10">
-            <div className="w-12 h-12 bg-[#0062FF] rounded-2xl flex items-center justify-center shadow-lg mb-6">
+            <div className="w-12 h-12 bg-[#0062FF] rounded-2xl flex items-center justify-center shadow-lg mb-6 transition-none">
                <Sparkles className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
@@ -210,7 +210,7 @@ export default function ChatPage() {
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   
   // ALGORITHM: Calculate sequential Project ID based on discussion count starting from 103
-  const projectSequenceNumber = discussions.length > 0 ? 103 + discussions.length : 103;
+  const projectSequenceNumber = 103 + discussions.length;
   
   const [appSettings, setAppSettings] = useState({
     title: `Project #${projectSequenceNumber}`,
@@ -220,18 +220,18 @@ export default function ChatPage() {
     appIcon: null
   });
 
-  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
-  const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  // GLOBAL 95% OVERLAY MODALS
+  // ==========================================
+  // GLOBAL 95% OVERLAY MODAL STATES
+  // ==========================================
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showSupportPage, setShowSupportPage] = useState(false);
+  const [showSettingsPage, setShowSettingsPage] = useState(false);
+  const [showPricingPage, setShowPricingPage] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
 
@@ -457,7 +457,7 @@ export default function ChatPage() {
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
-      saveToDiscussionsLogic(`Project #${projectSequenceNumber}`, text); // Sequential name logic
+      saveToDiscussionsLogic(`Project #${projectSequenceNumber}`, text);
       
       if (window.innerWidth < 768 && !discussMode) {
         setMobileView('preview');
@@ -549,7 +549,7 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* RENDER THE 95% OVERLAY MODALS WITHOUT ROUTING */}
+      {/* RENDER THE 95% OVERLAYS WITHOUT ROUTING */}
       <RedeemCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} setUser={setUser} setUserPlan={setUserPlan} />
       <SupportPage open={showSupportPage} onClose={() => setShowSupportPage(false)} />
       <SettingsPage open={showSettingsPage} onClose={() => setShowSettingsPage(false)} />
@@ -564,6 +564,27 @@ export default function ChatPage() {
              </button>
           </div>
           
+          <div className="p-4 border-b border-slate-100 relative transition-none" ref={workspaceRef}>
+            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:bg-slate-50 shadow-none transition-none">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="w-5 h-5 bg-[#0062FF] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
+                <span className="text-[13px] font-bold text-slate-900 truncate">{currentWorkspace?.name}</span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400" />
+            </button>
+            {showWorkspaceSwitcher && (
+              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-slate-200 rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
+                {workspaces.map(w => (
+                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-slate-900 hover:bg-slate-50 flex items-center gap-2 rounded-md transition-none">
+                    <div className="w-5 h-5 bg-slate-200 text-slate-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
+                    <span className="flex-1 truncate">{w.name}</span>
+                    {w.current && <Check className="w-4 h-4 text-[#0062FF]" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex-1 overflow-y-auto px-4 mt-6 transition-none">
              <div className="text-[11px] font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">Recents</div>
              <ul className="space-y-0.5 transition-none">
@@ -600,7 +621,6 @@ export default function ChatPage() {
               <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
                 <div className="px-3 py-2.5 border-b border-slate-100 mb-1 transition-none">
                   <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
-                  <p className="text-[11.5px] text-slate-500 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
@@ -637,12 +657,12 @@ export default function ChatPage() {
               <div ref={messagesEndRef} className="h-4 transition-none" />
             </div>
             <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible transition-none ${!hasStarted ? 'pb-10 w-full' : ''}`}>
-              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={() => {}} isLoading={isLoading} />
             </div>
           </div>
           
           {hasStarted && (
-            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
+            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col relative transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0`}>
               <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#FAFAFA]`}>
                  <WorkspaceHeader 
                    onReload={handleReload} 
@@ -661,7 +681,7 @@ export default function ChatPage() {
                      viewMode={viewMode} 
                      setViewMode={setViewMode}
                      appSettings={appSettings}
-                     onUpdateSettings={setAppSettings}
+                     onUpdateSettings={handleUpdateAppMeta}
                      onClone={handleCloneApp}
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
