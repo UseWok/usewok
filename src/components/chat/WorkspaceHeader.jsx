@@ -17,19 +17,13 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ onReload, convId, viewMode, customSlug, setCustomSlug }) {
+export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMode, customSlug }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
   const [isPublished, setIsPublished] = useState(false);
-  const [tempSlug, setTempSlug] = useState(customSlug);
   const [indexGoogle, setIndexGoogle] = useState(false);
-  const [showDomainModal, setShowDomainModal] = useState(false);
   
   const publishRef = useRef(null);
-
-  useEffect(() => {
-    setTempSlug(customSlug);
-  }, [customSlug]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -60,33 +54,6 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, customSlug
     }
   };
 
-  const handleSaveDomain = async () => {
-    const slug = tempSlug.trim();
-    if(!slug) { 
-      toast.error("The path cannot be empty."); 
-      return; 
-    }
-    
-    const isValid = /^[a-z0-9-]{1,30}$/.test(slug);
-    if (!isValid) {
-      toast.error("Invalid URL. Use only lowercase letters, numbers, and hyphens. (Max 30 chars)");
-      return;
-    }
-
-    try {
-      if (convId) {
-        await base44.entities.Conversation.update(convId, { slug: slug });
-      }
-      setCustomSlug(slug);
-      setShowDomainModal(false);
-      toast.success("Domain configuration saved to the Cloud.");
-    } catch (error) {
-      toast.error("Waiting for backend configuration. Local URL updated.");
-      setCustomSlug(slug);
-      setShowDomainModal(false);
-    }
-  };
-
   const shareUrl = `https://wok.base44.app/p/${customSlug}`;
 
   const copyToClipboard = () => {
@@ -94,154 +61,127 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, customSlug
     toast.success("Link copied to clipboard!");
   };
 
-  if (viewMode === 'dashboard') {
-    return <header className="h-[56px] flex-shrink-0 z-30 w-full bg-transparent absolute top-0 left-0 right-0 pointer-events-none" />;
-  }
-
   return (
-    <>
-      {showDomainModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60">
-          <div className="relative w-[95%] md:w-[520px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-            <div className="p-5 border-b border-[#E5E5E5] bg-[#F9F9F9]">
-              <h2 className="text-[16px] font-bold text-[#333333]">Custom Domain Configuration</h2>
-              <p className="text-[12px] text-[#707070] mt-1">Manage the public access link for your workspace project.</p>
-            </div>
-            
-            <div className="p-6">
-              <label className="text-[12px] font-bold text-[#333333] mb-2 block">Public Link (Max 30 chars)</label>
-              <div className="flex items-center w-full border border-[#E5E5E5] rounded-md overflow-hidden focus-within:border-[#0080ff] transition-colors">
-                <div className="bg-[#F9F9F9] px-3 py-2 border-r border-[#E5E5E5] text-[13px] text-[#707070] font-mono select-none hidden md:block">
-                  https://wok.base44.app/p/
-                </div>
-                <input 
-                  type="text" 
-                  maxLength={30}
-                  value={tempSlug} 
-                  onChange={(e) => setTempSlug(e.target.value)} 
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-[#333333]" 
-                  autoFocus
-                />
-              </div>
+    <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-transparent absolute top-0 left-0 right-0 pointer-events-none">
+      
+      {/* LEFT: Mac Dots */}
+      <div className="flex gap-4 items-center pl-1 pointer-events-auto">
+         <div className="flex gap-1.5 items-center">
+           <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+           <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+           <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+         </div>
+      </div>
 
-              <div className="mt-6 bg-[#F4F8FE] p-4 rounded-md border border-[#0080ff]/20">
-                <p className="text-[12px] font-semibold text-[#0080ff] mb-1">Workspace Ownership</p>
-                <p className="text-[11px] text-[#555555] leading-snug">
-                  You retain absolute ownership of this project. Any modifications to this URL will immediately route external traffic to your latest published build.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-[#E5E5E5] bg-[#F9F9F9] flex justify-end gap-3">
-              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
-              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">Save Configuration</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-transparent absolute top-0 left-0 right-0">
+      {/* RIGHT: Toggles & Publish Flow */}
+      <div className="flex justify-end items-center gap-2 relative pointer-events-auto" ref={publishRef}>
         
-        <div className="flex gap-4 items-center pl-1">
-           <div className="flex gap-1.5 items-center">
-             <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-             <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-             <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
-           </div>
+        {/* NEW CENTRALIZED TOGGLES */}
+        <div className="flex items-center gap-1 p-1 mr-2 rounded-lg bg-white/60 backdrop-blur-md border border-slate-200 shadow-sm">
+          <button 
+            onClick={() => setViewMode && setViewMode('preview')} 
+            className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            Preview
+          </button>
+          <button 
+            onClick={() => setViewMode && setViewMode('dashboard')} 
+            className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            Dashboard
+          </button>
         </div>
 
-        <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
-          <button onClick={onReload} className="p-1.5 rounded-md transition-none text-[#707070] hover:text-[#333333] hover:bg-white/50 backdrop-blur-sm" title="Regenerate">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          
-          <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0080ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0066cc] shadow-sm">
-            Publish
-          </button>
+        <button onClick={onReload} className="p-1.5 rounded-md transition-none text-[#707070] hover:text-[#333333] hover:bg-white/80 backdrop-blur-sm shadow-sm border border-transparent hover:border-slate-200" title="Regenerate">
+          <RefreshCw className="w-4 h-4" />
+        </button>
+        
+        <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0080ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0066cc] shadow-sm">
+          Publish
+        </button>
 
-          {showPublish && (
-            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
-              {publishView === 'main' ? (
-                <>
-                  <div className="p-3 border-b border-[#E5E5E5]">
-                    <h3 className="text-[14px] font-bold">Publish App</h3>
+        {showPublish && (
+          <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
+            {publishView === 'main' ? (
+              <>
+                <div className="p-3 border-b border-[#E5E5E5]">
+                  <h3 className="text-[14px] font-bold">Publish App</h3>
+                </div>
+                
+                {isPublished && (
+                  <div className="px-3 pt-3 pb-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Live URL</p>
+                    <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0080ff] hover:underline font-mono truncate block flex items-center gap-1.5 p-2 bg-[#F4F8FE] rounded-md border border-[#0080ff]/20">
+                      wok.base44.app/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    </a>
                   </div>
-                  
-                  {isPublished && (
-                    <div className="px-3 pt-3 pb-1">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Live URL</p>
-                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0080ff] hover:underline font-mono truncate block flex items-center gap-1.5 p-2 bg-[#F4F8FE] rounded-md border border-[#0080ff]/20">
-                        wok.base44.app/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                      </a>
+                )}
+
+                <div className="p-2 space-y-1 mt-1">
+                  <button onClick={() => { setShowPublish(false); setViewMode('dashboard'); }} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
+                    <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Manage Domains</h4>
+                    <p className="text-[11px] text-[#707070] mt-0.5">Configure your public routing.</p>
+                  </button>
+                  <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
+                    <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Share your app</h4>
+                    <p className="text-[11px] text-[#707070] mt-0.5">Share via email or social networks.</p>
+                  </button>
+                </div>
+                
+                <div className="border-t border-[#E5E5E5] pt-3 px-3">
+                  <h4 className="text-[12px] font-bold text-[#333333] mb-2">App Visibility</h4>
+                  <div className="flex items-center justify-between bg-white p-2.5 rounded-md border border-[#E5E5E5] shadow-sm">
+                    <div className="flex items-center gap-2.5">
+                      <GoogleIcon />
+                      <span className="text-[12px] font-bold">Index on Google</span>
+                    </div>
+                    <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
+                  </div>
+                </div>
+
+                <div className="px-3 pb-2 pt-1">
+                  {indexGoogle && (
+                    <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2 mb-3 mt-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
+                      <p className="text-[10px] text-[#707070] font-medium leading-snug">
+                        Indexing execution takes 24-48h. Maximize your visibility globally.
+                      </p>
                     </div>
                   )}
-
-                  <div className="p-2 space-y-1 mt-1">
-                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Custom domain</h4>
-                      <p className="text-[11px] text-[#707070] mt-0.5">Configure your public routing.</p>
-                    </button>
-                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Share your app</h4>
-                      <p className="text-[11px] text-[#707070] mt-0.5">Share via email or social networks.</p>
-                    </button>
+                  <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] shadow-sm mt-3">
+                    {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-3 border-b border-[#E5E5E5] flex items-center gap-2">
+                  <button onClick={() => setPublishView('main')} className="p-1 hover:bg-gray-100 rounded-md text-gray-500"><ArrowLeft className="w-4 h-4" /></button>
+                  <h3 className="text-[14px] font-bold">Share App</h3>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div className="flex items-center gap-2 border border-[#E5E5E5] rounded-md p-1.5 bg-[#F9F9F9]">
+                    <div className="px-2 flex-1 text-[12px] font-mono text-gray-600 truncate bg-transparent outline-none select-all">
+                      {shareUrl}
+                    </div>
+                    <button onClick={copyToClipboard} className="px-3 py-1.5 bg-white border border-[#E5E5E5] text-[12px] font-bold rounded hover:bg-gray-50 shadow-sm">Copy</button>
                   </div>
+
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Share via</p>
                   
-                  <div className="border-t border-[#E5E5E5] pt-3 px-3">
-                    <h4 className="text-[12px] font-bold text-[#333333] mb-2">App Visibility</h4>
-                    <div className="flex items-center justify-between bg-white p-2.5 rounded-md border border-[#E5E5E5] shadow-sm">
-                      <div className="flex items-center gap-2.5">
-                        <GoogleIcon />
-                        <span className="text-[12px] font-bold">Index on Google</span>
-                      </div>
-                      <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
-                    </div>
+                  <div className="grid grid-cols-5 gap-2">
+                    <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="X (Twitter)"><XIcon /></a>
+                    <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#0a66c2] transition-colors" title="LinkedIn"><LinkedInIcon /></a>
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#1877F2] transition-colors" title="Facebook"><FacebookIcon /></a>
+                    <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#25D366] transition-colors" title="WhatsApp"><WhatsAppIcon /></a>
+                    <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="Email"><Mail className="w-4 h-4" /></a>
                   </div>
-
-                  <div className="px-3 pb-2 pt-1">
-                    {indexGoogle && (
-                      <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2 mb-3 mt-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
-                        <p className="text-[10px] text-[#707070] font-medium leading-snug">
-                          Indexing execution takes 24-48h. Maximize your visibility globally.
-                        </p>
-                      </div>
-                    )}
-                    <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] shadow-sm mt-3">
-                      {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="p-3 border-b border-[#E5E5E5] flex items-center gap-2">
-                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-gray-100 rounded-md text-gray-500"><ArrowLeft className="w-4 h-4" /></button>
-                    <h3 className="text-[14px] font-bold">Share App</h3>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 border border-[#E5E5E5] rounded-md p-1.5 bg-[#F9F9F9]">
-                      <div className="px-2 flex-1 text-[12px] font-mono text-gray-600 truncate bg-transparent outline-none select-all">
-                        {shareUrl}
-                      </div>
-                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-white border border-[#E5E5E5] text-[12px] font-bold rounded hover:bg-gray-50 shadow-sm">Copy</button>
-                    </div>
-
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Share via</p>
-                    
-                    <div className="grid grid-cols-5 gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="X (Twitter)"><XIcon /></a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#0a66c2] transition-colors" title="LinkedIn"><LinkedInIcon /></a>
-                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#1877F2] transition-colors" title="Facebook"><FacebookIcon /></a>
-                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#25D366] transition-colors" title="WhatsApp"><WhatsAppIcon /></a>
-                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="Email"><Mail className="w-4 h-4" /></a>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
-    </>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </header>
   );
 }
