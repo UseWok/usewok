@@ -142,9 +142,7 @@ export default function ChatPage() {
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
 
-  // LIFTED SLUG STATE FOR DASHBOARD SYNC
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
-
   const [appSettings, setAppSettings] = useState({
     title: 'AI-Powered Interface',
     description: 'A highly optimized interactive experience built with Wok.',
@@ -159,8 +157,6 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  
-  // AUTONOMOUS ERROR CATCHING STATE
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -414,7 +410,6 @@ export default function ChatPage() {
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
-  // SILENT AUTO-HEALING ENGINE
   useEffect(() => {
     if (runtimeError && !isLoading) {
       const bt = String.fromCharCode(96);
@@ -439,6 +434,7 @@ export default function ChatPage() {
     }
   };
 
+  // DASHBOARD API HANDLERS
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if(convId) {
@@ -446,6 +442,20 @@ export default function ChatPage() {
       catch (e) {}
     }
     toast.success("Settings updated successfully.");
+  };
+
+  const handleUpdateSlug = async (newSlug) => {
+    const slug = newSlug.trim();
+    if(!slug) { toast.error("The path cannot be empty."); return; }
+    if (!/^[a-z0-9-]{1,30}$/.test(slug)) { toast.error("Invalid URL. Use only lowercase letters, numbers, and hyphens. (Max 30 chars)"); return; }
+    try {
+      if (convId) await base44.entities.Conversation.update(convId, { slug: slug });
+      setCustomSlug(slug);
+      toast.success("Domain configuration saved to the Cloud.");
+    } catch (error) {
+      setCustomSlug(slug);
+      toast.error("Waiting for backend configuration. Local URL updated.");
+    }
   };
 
   const handleCloneApp = () => {
@@ -637,8 +647,8 @@ export default function ChatPage() {
                    onReload={handleReload} 
                    convId={conversationId || convId} 
                    viewMode={viewMode}
+                   setViewMode={setViewMode}
                    customSlug={customSlug}
-                   setCustomSlug={setCustomSlug}
                  />
                  <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
                    <FichePanel 
@@ -647,13 +657,13 @@ export default function ChatPage() {
                      onSuccess={() => setRuntimeError(null)} 
                      isPublic={false} 
                      viewMode={viewMode} 
-                     setViewMode={setViewMode}
                      appSettings={appSettings}
                      onUpdateSettings={handleUpdateAppMeta}
                      onClone={handleCloneApp}
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
                      customSlug={customSlug}
+                     onUpdateSlug={handleUpdateSlug}
                    />
                  </div>
               </div>
