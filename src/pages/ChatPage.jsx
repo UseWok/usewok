@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
 import { ALL_MODES } from '@/lib/modes-config';
-import { getUserPlan } from '@/lib/plans-config';
+import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
@@ -16,7 +17,7 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
 import { 
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
+  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, Sparkles, AlertTriangle
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
@@ -33,9 +34,9 @@ const CustomUserMessageBubble = ({ msg }) => (
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
-      <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm p-4">
+      <div className="relative w-full h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
+        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-slate-100/80 hover:bg-slate-200 text-slate-800 rounded-full transition-colors shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
         <iframe src={url} className="w-full h-full border-none bg-white" />
@@ -47,23 +48,130 @@ const IframeModal = ({ open, url, onClose }) => {
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
-      <div className="relative w-[95%] md:w-[480px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <div className="p-5 border-b border-[#E5E5E5] flex justify-between items-center bg-[#F9F9F9]">
-          <div>
-            <h2 className="text-[16px] font-bold text-[#333333]">{title}</h2>
-            {subtitle && <p className="text-[12px] text-[#707070] mt-0.5">{subtitle}</p>}
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-[480px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-[16px] font-bold text-slate-900">{title}</h2>
+              {subtitle && <p className="text-[12px] text-slate-500 mt-1">{subtitle}</p>}
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"><X className="w-4 h-4" /></button>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 text-gray-500 rounded-md transition-colors"><X className="w-5 h-5" /></button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-6">{children}</div>
         {actionText && (
-          <div className="p-4 border-t border-[#E5E5E5] bg-[#F9F9F9] flex justify-end gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
-            <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">{actionText}</button>
+          <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+            <button onClick={onClose} className="px-5 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+            <button onClick={onAction} className="px-5 py-2 text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">{actionText}</button>
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+// --- ENTERPRISE REDEEM CODE MODAL ---
+const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
+  const [activationCode, setActivationCode] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
+  const [codeError, setCodeError] = useState('');
+
+  if (!open) return null;
+
+  const activateCode = async () => {
+    setCodeError('');
+    if (!activationCode.trim()) { setCodeError('Please enter a valid activation code.'); return; }
+    if (activationCode.trim().length < 8) { setCodeError('The code is too short. Please verify your input.'); return; }
+    if (!user) return;
+    setCodeLoading(true);
+    const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
+    if (results.length === 0) {
+      const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
+      setCodeError(anyMatch.length > 0 ? 'This code has already been redeemed.' : 'Code not found. Please double-check your spelling.');
+      setCodeLoading(false); return;
+    }
+    const codeRecord = results[0];
+    const plans = getPlansConfig();
+    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
+    if (!newPlan) { setCodeError('The plan associated with this code is no longer valid.'); setCodeLoading(false); return; }
+
+    const currentPlan = getUserPlan(user);
+    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
+    const newRank = plans.findIndex(p => p.id === newPlan.id);
+    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
+
+    if (keepCurrent) {
+      const bonusCredits = newPlan.credits_limit;
+      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
+      toast.success(`Code applied! +${bonusCredits} bonus credits added to your ${currentPlan.name} plan.`);
+    } else {
+      await base44.auth.updateMe({
+        subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
+        credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
+      });
+      toast.success(`${newPlan.name} plan successfully activated!`);
+    }
+    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
+    setActivationCode('');
+    const updated = await base44.auth.me();
+    setUser(updated); setUserPlan(getUserPlan(updated));
+    setCodeLoading(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-[500px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-100">
+        
+        <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+          <X className="w-5 h-5 text-slate-400 hover:text-slate-700" />
+        </button>
+
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 sm:p-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
+            <Key className="w-48 h-48 text-blue-900" />
+          </div>
+          
+          <div className="relative z-10">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 mb-6">
+               <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
+            <p className="text-[14px] text-slate-600 mb-8 max-w-sm leading-relaxed">
+              Unlock enterprise features or add bulk computing resources to your workspace by entering your secure activation key below.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input 
+                value={activationCode} 
+                onChange={e => setActivationCode(e.target.value.toUpperCase())}
+                placeholder="Ex: WOK-9A7X-M2P4" 
+                maxLength={20}
+                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-all shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900'}`}
+                onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} 
+              />
+              <button 
+                onClick={activateCode} 
+                disabled={codeLoading || !activationCode.trim()}
+                className="px-8 py-3.5 text-[14px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-md whitespace-nowrap"
+              >
+                {codeLoading ? 'Authenticating...' : 'Unlock Features'}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {codeError && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm">
+                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
@@ -156,7 +264,10 @@ export default function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  
+  // New Global Code Modal
   const [showCodeModal, setShowCodeModal] = useState(false);
+  
   const [runtimeError, setRuntimeError] = useState(null);
 
   const handleCreateWorkspace = () => {
@@ -434,7 +545,6 @@ export default function ChatPage() {
     }
   };
 
-  // DASHBOARD API HANDLERS
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if(convId) {
@@ -509,10 +619,7 @@ export default function ChatPage() {
         </div>
       </ProModal>
 
-      <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
-        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none" />
-      </ProModal>
-
+      <RedeemCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} setUser={setUser} setUserPlan={setUserPlan} />
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
@@ -594,8 +701,8 @@ export default function ChatPage() {
                   <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
                   <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/settings'); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/support'); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
                 <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
                 <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0080ff]" /> Upgrade</button>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
@@ -657,6 +764,7 @@ export default function ChatPage() {
                      onSuccess={() => setRuntimeError(null)} 
                      isPublic={false} 
                      viewMode={viewMode} 
+                     setViewMode={setViewMode}
                      appSettings={appSettings}
                      onUpdateSettings={handleUpdateAppMeta}
                      onClone={handleCloneApp}
