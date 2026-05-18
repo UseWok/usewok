@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, LayoutTemplate, Settings, ExternalLink, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, Sparkles, Globe } from 'lucide-react';
+import { Loader2, LayoutTemplate, Settings, ExternalLink, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, Sparkles, Globe, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
@@ -12,6 +13,11 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
   const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
   
+  // App Icon Upload State
+  const [appIcon, setAppIcon] = useState(settings.appIcon || null);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const iconInputRef = useRef(null);
+
   // Domains Edit State
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [isEditingDomain, setIsEditingDomain] = useState(false);
@@ -20,7 +26,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Auto-cancel domain editing if user switches tabs
   useEffect(() => {
     setIsEditingDomain(false);
     setTempSlug(customSlug);
@@ -28,8 +33,24 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
 
   const handleSave = () => {
     if (onUpdateSettings) {
-      onUpdateSettings({ ...settings, title, description });
+      onUpdateSettings({ ...settings, title, description, appIcon });
     }
+  };
+
+  const handleIconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingIcon(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAppIcon(file_url);
+      if (onUpdateSettings) {
+        onUpdateSettings({ ...settings, title, description, appIcon: file_url });
+      }
+    } catch (err) {
+      console.error("Icon upload failed");
+    }
+    setUploadingIcon(false);
   };
 
   const handleOpenApp = () => {
@@ -42,9 +63,9 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   };
 
   return (
-    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 border-t border-l border-[#E5E5E5] flex flex-col md:flex-row">
+    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 border-t border-slate-200 flex flex-col md:flex-row">
       {/* Sidebar - Mobile horizontal, Desktop vertical */}
-      <div className="w-full md:w-[240px] bg-white border-b md:border-b-0 md:border-r border-[#E5E5E5] flex flex-row md:flex-col py-4 md:py-6 px-4 gap-2 overflow-x-auto shrink-0">
+      <div className="w-full md:w-[240px] bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-row md:flex-col py-4 md:py-6 px-4 gap-2 overflow-x-auto shrink-0 mt-[56px] md:mt-0">
         <p className="text-[14px] font-bold text-slate-900 mb-2 md:mb-6 px-3 hidden md:block">Dashboard</p>
         <button 
           onClick={() => setActiveTab('overview')}
@@ -67,15 +88,32 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-6 md:p-12 w-full max-w-4xl mx-auto">
+      <div className="flex-1 p-6 md:p-12 w-full max-w-4xl mx-auto md:mt-[56px]">
         
         {activeTab === 'overview' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Header Block */}
+            {/* Header Block with App Icon Uploader */}
             <div className="flex flex-col sm:flex-row gap-6 items-start mb-10">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-black rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
-                 <img src={LOGO_URL} alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 invert" />
+              <div 
+                onClick={() => iconInputRef.current?.click()}
+                className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-100 hover:bg-slate-200 rounded-2xl sm:rounded-3xl flex items-center justify-center border border-slate-200 flex-shrink-0 cursor-pointer overflow-hidden relative transition-colors group"
+                title="Upload App Icon"
+              >
+                 {uploadingIcon ? (
+                   <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
+                 ) : appIcon ? (
+                   <img src={appIcon} alt="App Icon" className="w-full h-full object-cover" />
+                 ) : (
+                   <Upload className="w-6 h-6 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                 )}
+                 {appIcon && !uploadingIcon && (
+                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Upload className="w-6 h-6 text-white" />
+                   </div>
+                 )}
+                 <input type="file" accept="image/*" ref={iconInputRef} onChange={handleIconUpload} className="hidden" />
               </div>
+              
               <div className="flex-1 flex flex-col gap-3 w-full">
                  <input 
                    type="text" 
@@ -191,7 +229,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
         {activeTab === 'settings' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Visibility */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">App Visibility</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Control who can access your application.</p>
@@ -205,7 +242,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
                 </select>
               </div>
 
-              {/* Badge Control */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">White Label</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Show or hide the "Built with WOK" badge.</p>
@@ -221,7 +257,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
               </div>
             </div>
 
-            {/* Clone Section */}
             <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                <div>
                   <h3 className="text-[15px] font-bold text-slate-900 mb-1">Clone Interface</h3>
@@ -321,7 +356,9 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
-  const shouldShowBadge = appSettings?.showBadge !== false;
+  // STRICT WATERMARK ENFORCEMENT: Never show inside the builder preview. Only show on live public pages if enabled.
+  const isPreviewMode = viewMode === 'preview';
+  const shouldShowBadge = !isPreviewMode && (appSettings?.showBadge !== false);
   
   const watermarkHTML = shouldShowBadge ? `
     <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease; cursor: pointer;" onclick="window.open('https://wok.com', '_blank')">
@@ -361,7 +398,6 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
         ${watermarkHTML}
         
         <script>
-          // ERROR INJECTION REMOVED. FAIL SILENTLY TO PREVENT RED SCREENS.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
@@ -379,7 +415,7 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
             componentDidCatch(error) { window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: error.toString() }, '*'); }
             render() {
               if (this.state.hasError) {
-                return null; // SILENT FAIL - ALLOWS CHAT AI TO FIX IN BACKGROUND
+                return null; // SILENT FAIL
               }
               return this.props.children;
             }
@@ -402,19 +438,16 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
   `;
 
   return (
-    // pt-[56px] pushes the content below the absolute WorkspaceHeader to prevent click collisions
     <div className="w-full h-full relative font-sans flex flex-col pt-[56px]">
-
       <div className="flex-1 relative w-full h-full">
         {hasComponent ? (
           <>
-            {/* CSS VISIBILITY TOGGLE: Keeps the iframe mounted and active in the background */}
             <div className={`absolute inset-0 w-full h-full ${viewMode === 'preview' ? 'block' : 'hidden'}`}>
               <AnimatePresence>
                 {isCompiling && (
                   <motion.div 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md border-l border-[#E5E5E5]"
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md border-t border-slate-200"
                   >
                     <div className="p-4 bg-white rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
                        <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
@@ -426,12 +459,11 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
               <iframe
                 title="Wok Live Preview"
                 srcDoc={srcDoc}
-                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent border-l border-[#E5E5E5]"
+                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent border-t border-slate-200"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
             </div>
             
-            {/* DASHBOARD TOGGLE */}
             <div className={`absolute inset-0 w-full h-full ${viewMode === 'dashboard' ? 'block' : 'hidden'}`}>
               <AppDashboard 
                  settings={appSettings} 
@@ -445,7 +477,7 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full w-full opacity-30 border-l border-t border-[#E5E5E5] rounded-tl-xl bg-white/50">
+          <div className="flex items-center justify-center h-full w-full opacity-30 border-t border-slate-200 bg-white/50">
              <LayoutTemplate className="w-16 h-16 text-slate-400" />
           </div>
         )}
