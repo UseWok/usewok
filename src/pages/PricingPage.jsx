@@ -109,7 +109,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* SECTION 3: Comparison Header & Pricing Columns (Horizontal Scroll) */}
+        {/* SECTION 3: Comparison Header & Pricing Columns */}
         <div className="mt-12 overflow-x-auto pb-4">
           <h2 className="text-[16px] font-bold text-[#333333] mb-6 flex items-center gap-1.5">
             Compare all plans
@@ -117,7 +117,7 @@ export default function PricingPage() {
 
           <div className="flex min-w-[800px]">
             {/* Column 1: Free */}
-            <div className="w-1/4 px-4 flex flex-col border-r border-[#E5E5E5]">
+            <div className="w-1/3 px-4 flex flex-col border-r border-[#E5E5E5]">
               <h3 className="text-[22px] font-bold text-[#333333] mb-2 leading-none">Free</h3>
               <div className="h-[50px] flex flex-col justify-start mt-1">
                 <span className="text-[13px] text-[#999999]">{currencySymbol}0 per member per month</span>
@@ -125,8 +125,8 @@ export default function PricingPage() {
               <div className="h-[36px] mt-2"></div> 
             </div>
 
-            {/* Column 2: Plus (Pro) */}
-            <div className="w-1/4 px-4 flex flex-col border-r border-[#E5E5E5]">
+            {/* Column 2: Pro */}
+            <div className="w-1/3 px-4 flex flex-col border-r border-[#E5E5E5]">
               <h3 className="text-[22px] font-bold text-[#333333] mb-2 leading-none">Pro</h3>
               <div className="h-[50px] flex flex-col justify-start mt-1">
                 <span className="text-[13px] text-[#707070]">{currencySymbol}{getPrice(9.50)} per member per month</span>
@@ -138,8 +138,8 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* Column 3: Business (Max) */}
-            <div className="w-1/4 px-4 flex flex-col border-r border-[#E5E5E5]">
+            {/* Column 3: Max */}
+            <div className="w-1/3 px-4 flex flex-col">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-[22px] font-bold text-[#333333] leading-none">Max</h3>
                 <span className="bg-[#EBF5FF] text-[#0080ff] text-[10px] font-bold px-1.5 py-0.5 rounded-full">Popular</span>
@@ -153,36 +153,15 @@ export default function PricingPage() {
                 Upgrade plan
               </button>
             </div>
-
-            {/* Column 4: Enterprise (Unlimited) */}
-            <div className="w-1/4 px-4 flex flex-col">
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-[22px] font-bold text-[#333333] leading-none">Unlimited</h3>
-                <span className="bg-[#F0F0F0] text-[#707070] text-[10px] font-bold px-1.5 py-0.5 rounded-full">Limited</span>
-              </div>
-              <div className="h-[50px] flex flex-col justify-start mt-1">
-                <span className="text-[13px] text-[#707070]">{currencySymbol}{getPrice(25.50)} per member per month</span>
-                <span className="text-[11px] text-[#999999]">billed annually</span>
-                <span className="text-[11px] text-[#999999]">{currencySymbol}{getPrice(31.50)} billed monthly</span>
-              </div>
-              <button onClick={() => handleAction('unlimited')} className="mt-2 w-full py-1.5 rounded-[4px] text-[13px] font-bold text-[#333333] bg-white border border-[#E6E6E9] hover:bg-gray-50 transition-colors">
-                Upgrade plan
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* SECTION 4: Features Comparison Table */}
-        <div className="mt-8 bg-[#F9F8F6] w-full pt-8 pb-10 rounded-xl border border-[#E5E5E5] overflow-x-auto">
+        {/* SECTION 4: Features Comparison Table (Framed inside Grey Box) */}
+        <div className="mt-4 bg-[#F9F8F6] w-full pt-8 pb-10 px-4 rounded-xl border border-[#E5E5E5] overflow-x-auto">
           <div className="flex min-w-[800px]">
             
-            {/* Column 1 (Far Left Label) */}
-            <div className="w-1/5 px-6 border-r border-[#E5E5E5]">
-              <p className="text-[13px] font-bold text-[#333333]">Key elements</p>
-            </div>
-
-            {/* Column 2 (General Features) */}
-            <div className="w-1/5 px-6 border-r border-[#E5E5E5]">
+            {/* Column 1 (Under Free) */}
+            <div className="w-1/3 px-4 border-r border-[#E5E5E5]">
               <p className="text-[13px] font-bold text-[#333333] mb-4">Includes</p>
               <ul className="space-y-3">
                 {['Basic forms', 'Basic sites', 'Basic automations', 'Custom databases', 'Wok Calendar', 'Wok Mail'].map((text, i) => (
@@ -193,8 +172,8 @@ export default function PricingPage() {
               </ul>
             </div>
 
-            {/* Column 3 (Under 'Plus' / Pro) */}
-            <div className="w-1/5 px-6 border-r border-[#E5E5E5]">
+            {/* Column 2 (Under Pro) */}
+            <div className="w-1/3 px-4 border-r border-[#E5E5E5]">
               <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Free, plus</p>
               <ul className="space-y-3 mb-1">
                 {['Unlimited blocks', 'Unlimited graphs', 'Custom forms', 'Custom sites', 'Basic integrations'].map((text, i) => (
@@ -208,8 +187,8 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* Column 4 (Under 'Business' / Max) */}
-            <div className="w-1/5 px-6 border-r border-[#E5E5E5]">
+            {/* Column 3 (Under Max) */}
+            <div className="w-1/3 px-4">
               <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Pro, plus</p>
               <ul className="space-y-3 mb-1">
                 <li className="flex items-start gap-2 text-[13px] text-[#707070] leading-snug"><CheckIcon /> <span>Wok Agent</span></li>
@@ -223,18 +202,6 @@ export default function PricingPage() {
                 <li className="flex items-start gap-2 text-[13px] text-[#707070] leading-snug"><CheckIcon /> <span>Database permissions</span></li>
                 <li className="flex items-start gap-2 text-[13px] text-[#707070] leading-snug"><CheckIcon /> <span>SAML SSO</span></li>
                 <li className="flex items-start gap-2 text-[13px] text-[#707070] leading-snug"><CheckIcon /> <span>Enterprise search</span></li>
-              </ul>
-            </div>
-
-            {/* Column 5 (Under 'Enterprise' / Unlimited) */}
-            <div className="w-1/5 px-6">
-              <p className="text-[13px] font-bold text-[#333333] mb-4">Everything in Max, plus</p>
-              <ul className="space-y-3">
-                {['AI analytics and controls', 'No data retention with LLM providers', 'User provisioning via SCIM', 'Advanced security and controls', 'Audit log', 'Security and compliance integrations (DLP, SIEM)'].map((text, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[13px] text-[#707070] leading-snug">
-                    <CheckIcon /> <span>{text}</span>
-                  </li>
-                ))}
               </ul>
             </div>
 
