@@ -16,7 +16,7 @@ import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
-// IMPORT OVERLAY PAGES (Kept original names, no "Modal" renaming)
+// IMPORT OVERLAY PAGES
 import SupportPage from '@/pages/SupportPage';
 import SettingsPage from '@/pages/SettingsPage';
 import PricingPage from '@/pages/PricingPage';
@@ -120,12 +120,14 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
                 {codeLoading ? 'Authenticating...' : 'Unlock Features'}
               </button>
             </div>
-            {codeError && (
-              <div className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm transition-none">
-                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {codeError && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm transition-none">
+                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -210,7 +212,7 @@ export default function ChatPage() {
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   
   // ALGORITHM: Calculate sequential Project ID based on discussion count starting from 103
-  const projectSequenceNumber = 103 + discussions.length;
+  const projectSequenceNumber = discussions.length > 0 ? 103 + discussions.length : 103;
   
   const [appSettings, setAppSettings] = useState({
     title: `Project #${projectSequenceNumber}`,
@@ -225,13 +227,11 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  // ==========================================
-  // GLOBAL 95% OVERLAY MODAL STATES
-  // ==========================================
+  // GLOBAL MODAL STATES
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSupportPage, setShowSupportPage] = useState(false);
-  const [showSettingsPage, setShowSettingsPage] = useState(false);
-  const [showPricingPage, setShowPricingPage] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
 
@@ -564,27 +564,6 @@ export default function ChatPage() {
              </button>
           </div>
           
-          <div className="p-4 border-b border-slate-100 relative transition-none" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:bg-slate-50 shadow-none transition-none">
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-5 h-5 bg-[#0062FF] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
-                <span className="text-[13px] font-bold text-slate-900 truncate">{currentWorkspace?.name}</span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </button>
-            {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-slate-200 rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
-                {workspaces.map(w => (
-                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-slate-900 hover:bg-slate-50 flex items-center gap-2 rounded-md transition-none">
-                    <div className="w-5 h-5 bg-slate-200 text-slate-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
-                    <span className="flex-1 truncate">{w.name}</span>
-                    {w.current && <Check className="w-4 h-4 text-[#0062FF]" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="flex-1 overflow-y-auto px-4 mt-6 transition-none">
              <div className="text-[11px] font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">Recents</div>
              <ul className="space-y-0.5 transition-none">
@@ -621,11 +600,12 @@ export default function ChatPage() {
               <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
                 <div className="px-3 py-2.5 border-b border-slate-100 mb-1 transition-none">
                   <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
+                  <p className="text-[11.5px] text-slate-500 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
                 <div className="h-px bg-slate-100 my-1 mx-2 transition-none"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowPricingPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0062FF]" /> Upgrade Plan</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowPricingPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0062FF]" /> Upgrade Plan</button>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-slate-400" /> Redeem Code</button>
               </div>
             )}
@@ -681,7 +661,7 @@ export default function ChatPage() {
                      viewMode={viewMode} 
                      setViewMode={setViewMode}
                      appSettings={appSettings}
-                     onUpdateSettings={handleUpdateAppMeta}
+                     onUpdateSettings={setAppSettings}
                      onClone={handleCloneApp}
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
