@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Key, Shield, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Shield, CheckCircle2 } from 'lucide-react';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -25,9 +25,6 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
-  const [activationCode, setActivationCode] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
-  const [codeError, setCodeError] = useState('');
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -44,7 +41,6 @@ export default function SettingsPage() {
       const plan = getUserPlan(u);
       setUserPlan(plan);
 
-      // Auto-downgrade to free if subscription expired (cancel approved + ends_at passed)
       if (u && plan.price_monthly > 0) {
         try {
           const tickets = await base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email, cancel_status: 'approved' });
@@ -60,7 +56,6 @@ export default function SettingsPage() {
         } catch {}
       }
 
-      // Load cancel ticket if any
       if (u?.email) {
         base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
           if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
@@ -98,46 +93,6 @@ export default function SettingsPage() {
     toast.success('Profile updated successfully.');
   };
 
-  const activateCode = async () => {
-    setCodeError('');
-    if (!activationCode.trim()) { setCodeError('Please enter a valid activation code.'); return; }
-    if (activationCode.trim().length < 8) { setCodeError('The code is too short. Please verify your input.'); return; }
-    if (!user) return;
-    setCodeLoading(true);
-    const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
-    if (results.length === 0) {
-      const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
-      setCodeError(anyMatch.length > 0 ? 'This code has already been redeemed.' : 'Code not found. Please double-check your spelling.');
-      setCodeLoading(false); return;
-    }
-    const codeRecord = results[0];
-    const plans = getPlansConfig();
-    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!newPlan) { setCodeError('The plan associated with this code is no longer valid.'); setCodeLoading(false); return; }
-
-    const currentPlan = getUserPlan(user);
-    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
-    const newRank = plans.findIndex(p => p.id === newPlan.id);
-    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
-
-    if (keepCurrent) {
-      const bonusCredits = newPlan.credits_limit;
-      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
-      toast.success(`Code applied! +${bonusCredits} bonus credits added to your ${currentPlan.name} plan.`);
-    } else {
-      await base44.auth.updateMe({
-        subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
-        credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
-      });
-      toast.success(`${newPlan.name} plan successfully activated!`);
-    }
-    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
-    setActivationCode('');
-    const updated = await base44.auth.me();
-    setUser(updated); setUserPlan(getUserPlan(updated));
-    setCodeLoading(false);
-  };
-
   const requestInvoice = async () => {
     if (!user || !invoiceEmail.trim()) return;
     setInvoiceLoading(true);
@@ -169,18 +124,16 @@ export default function SettingsPage() {
     { id: 'profile', label: 'Profile', icon: User, desc: 'Manage your personal identity.' },
     { id: 'plan', label: 'Plan & Billing', icon: CreditCard, desc: 'Manage your subscription.' },
     { id: 'usage', label: 'Usage Metrics', icon: Zap, desc: 'Monitor your API consumption.' },
-    { id: 'redeem', label: 'Redeem Code', icon: Key, desc: 'Activate special access codes.' },
     { id: 'ai_skills', label: 'AI Skills', icon: Brain, modal: true },
     { id: 'ai_control', label: 'AI Control', icon: Cpu, modal: true },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-blue-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         
-        {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <button onClick={() => navigate('/')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
             <ArrowLeft className="w-4 h-4 text-slate-600" />
@@ -190,7 +143,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
         <div className="md:hidden space-y-3 mb-4">
           {navItems.map(item => {
             const Icon = item.icon;
@@ -221,7 +173,6 @@ export default function SettingsPage() {
           })}
         </div>
 
-        {/* Desktop Layout */}
         <div className="hidden md:flex gap-10">
           <nav className="flex flex-col gap-2 w-64 flex-shrink-0">
             {navItems.map(item => {
@@ -256,7 +207,6 @@ export default function SettingsPage() {
 
       <AISettingsModal open={showAIDNAModal} onClose={() => setShowAIDNAModal(false)} />
 
-      {/* Invoice Modal */}
       <AnimatePresence>
         {showInvoiceModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -288,7 +238,6 @@ export default function SettingsPage() {
         )}
       </AnimatePresence>
 
-      {/* Delete Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -327,7 +276,7 @@ export default function SettingsPage() {
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket }) {
   const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const isYearly = user?.billing_cycle === 'yearly';
 
@@ -388,7 +337,6 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     
     return (
       <div className="space-y-6">
-        {/* Active Plan Card */}
         <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
             <CreditCard className="w-48 h-48" />
@@ -426,7 +374,6 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
           </div>
         </div>
 
-        {/* Billing History & Invoice */}
         {userPlan?.price_monthly > 0 && (
           <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-widest mb-4 text-slate-400">Financial Ledger</p>
@@ -456,7 +403,6 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
               </div>
             </div>
 
-            {/* Subtle Cancellation Entry Point */}
             {!isCancelApproved && !isCancelPending && (
               <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
                 <button onClick={() => navigate('/manage-plan')} className="text-[12px] font-semibold text-slate-400 hover:text-red-500 transition-colors">
@@ -519,56 +465,6 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
                 <Bar dataKey="tensors" fill="#0f172a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (section === 'redeem') {
-    return (
-      <div className="max-w-xl">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/30 border border-blue-100 p-8 sm:p-10 rounded-3xl shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
-            <Key className="w-48 h-48 text-blue-900" />
-          </div>
-          
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 mb-6">
-               <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
-            <p className="text-[14px] text-slate-600 mb-8 max-w-sm leading-relaxed">
-              Unlock enterprise features or add bulk computing resources to your workspace by entering your secure activation key below.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input 
-                value={activationCode} 
-                onChange={e => setActivationCode(e.target.value.toUpperCase())}
-                placeholder="Ex: WOK-9A7X-M2P4" 
-                maxLength={20}
-                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-all shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900'}`}
-                onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} 
-              />
-              <button 
-                onClick={activateCode} 
-                disabled={codeLoading || !activationCode.trim()}
-                className="px-8 py-3.5 text-[14px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-md whitespace-nowrap"
-              >
-                {codeLoading ? 'Authenticating...' : 'Unlock Features'}
-              </button>
-            </div>
-
-            <AnimatePresence>
-              {codeError && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm">
-                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                  <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </div>
