@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Key, Shield, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
-
-
-function SectionTitle({ children }) {
-  return <h2 className="text-xs font-black uppercase tracking-wider mb-4 text-muted-foreground">{children}</h2>;
+function SectionTitle({ children, description }) {
+  return (
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{children}</h2>
+      {description && <p className="text-[14px] text-slate-500 mt-1">{description}</p>}
+    </div>
+  );
 }
 
 export default function SettingsPage() {
@@ -32,7 +35,6 @@ export default function SettingsPage() {
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
-
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -67,8 +69,6 @@ export default function SettingsPage() {
     }).catch(() => {});
   }, []);
 
-
-
   const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
   const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
@@ -95,43 +95,41 @@ export default function SettingsPage() {
     setSavingProfile(true);
     await base44.auth.updateMe({ full_name: fullName.trim() });
     setSavingProfile(false);
-    toast.success('Profile updated');
+    toast.success('Profile updated successfully.');
   };
 
   const activateCode = async () => {
     setCodeError('');
-    if (!activationCode.trim()) { setCodeError('Please enter an activation code.'); return; }
-    if (activationCode.trim().length < 8) { setCodeError('Code too short — check you copied it correctly.'); return; }
+    if (!activationCode.trim()) { setCodeError('Please enter a valid activation code.'); return; }
+    if (activationCode.trim().length < 8) { setCodeError('The code is too short. Please verify your input.'); return; }
     if (!user) return;
     setCodeLoading(true);
     const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
     if (results.length === 0) {
       const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
-      setCodeError(anyMatch.length > 0 ? 'This code has already been used.' : 'Code not found. Double-check spelling or contact support.');
+      setCodeError(anyMatch.length > 0 ? 'This code has already been redeemed.' : 'Code not found. Please double-check your spelling.');
       setCodeLoading(false); return;
     }
     const codeRecord = results[0];
     const plans = getPlansConfig();
     const newPlan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!newPlan) { setCodeError('Plan associated with this code no longer exists.'); setCodeLoading(false); return; }
+    if (!newPlan) { setCodeError('The plan associated with this code is no longer valid.'); setCodeLoading(false); return; }
 
-    // Keep the best plan: if user already has a higher plan, only add bonus credits
     const currentPlan = getUserPlan(user);
     const currentRank = plans.findIndex(p => p.id === currentPlan.id);
     const newRank = plans.findIndex(p => p.id === newPlan.id);
     const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
 
     if (keepCurrent) {
-      // Add credits as bonus instead of downgrading
       const bonusCredits = newPlan.credits_limit;
       await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
-      toast.success(`Code applied! +${bonusCredits} bonus Tensors added (your ${currentPlan.name} plan is kept)`);
+      toast.success(`Code applied! +${bonusCredits} bonus credits added to your ${currentPlan.name} plan.`);
     } else {
       await base44.auth.updateMe({
         subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
         credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
       });
-      toast.success(`${newPlan.name} plan activated!`);
+      toast.success(`${newPlan.name} plan successfully activated!`);
     }
     await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
     setActivationCode('');
@@ -143,9 +141,8 @@ export default function SettingsPage() {
   const requestInvoice = async () => {
     if (!user || !invoiceEmail.trim()) return;
     setInvoiceLoading(true);
-    // Notify admin via support ticket
     await base44.entities.SupportTicket.create({
-      title: `Invoice request — ${user.full_name || user.email}`,
+      title: `Invoice Request — ${user.full_name || user.email}`,
       description: `Invoice request for the ${userPlan?.name} plan. Payment email: ${invoiceEmail.trim()}`,
       category: 'invoice',
       status: 'open',
@@ -159,7 +156,7 @@ export default function SettingsPage() {
     setInvoiceLoading(false);
     setShowInvoiceModal(false);
     setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
-    toast.success('Invoice request sent');
+    toast.success('Invoice request submitted successfully.');
   };
 
   const deleteAccount = async () => {
@@ -169,9 +166,10 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
-    { id: 'usage', label: 'Usage', icon: Zap },
+    { id: 'profile', label: 'Profile', icon: User, desc: 'Manage your personal identity.' },
+    { id: 'plan', label: 'Plan & Billing', icon: CreditCard, desc: 'Manage your subscription.' },
+    { id: 'usage', label: 'Usage Metrics', icon: Zap, desc: 'Monitor your API consumption.' },
+    { id: 'redeem', label: 'Redeem Code', icon: Key, desc: 'Activate special access codes.' },
     { id: 'ai_skills', label: 'AI Skills', icon: Brain, modal: true },
     { id: 'ai_control', label: 'AI Control', icon: Cpu, modal: true },
   ];
@@ -179,33 +177,40 @@ export default function SettingsPage() {
   const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
 
   return (
-    <div className="min-h-screen font-open" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center bg-white border border-black/8 rounded-xl hover:shadow-md transition-all">
-            <ArrowLeft className="w-4 h-4 text-muted-foreground" />
+    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-blue-100">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-10">
+          <button onClick={() => navigate('/')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
           </button>
-          <h1 className="text-2xl font-black text-fg">Settings</h1>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Workspace Settings</h1>
+          </div>
         </div>
 
-        {/* Mobile: stacked accordion */}
-        <div className="md:hidden space-y-2 mb-4">
+        {/* Mobile Accordion */}
+        <div className="md:hidden space-y-3 mb-4">
           {navItems.map(item => {
             const Icon = item.icon;
             const isOpen = activeSection === item.id;
             return (
-              <div key={item.id} className="bg-white overflow-hidden border border-border rounded-xl">
-                <button onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-3 px-4 py-4">
-                  <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg ${isOpen ? 'bg-fg' : 'bg-muted'}`}>
-                    <Icon className={`w-4 h-4 ${isOpen ? 'text-yuzu' : 'text-muted-foreground'}`} />
+              <div key={item.id} className="bg-white overflow-hidden border border-slate-200 rounded-2xl shadow-sm">
+                <button onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-4 px-5 py-4">
+                  <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-xl transition-colors ${isOpen ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'}`}>
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className="flex-1 text-left text-sm font-semibold text-fg">{item.label}</span>
-                  <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                  <div className="flex-1 text-left">
+                    <span className="block text-[14px] font-bold text-slate-900">{item.label}</span>
+                    {item.desc && <span className="block text-[12px] text-slate-500 mt-0.5">{item.desc}</span>}
+                  </div>
+                  <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                 </button>
                 <AnimatePresence>
-                  {isOpen && (
+                  {isOpen && !item.modal && (
                     <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                      <div className="px-4 pb-5 pt-1 border-t border-border">
+                      <div className="px-5 pb-6 pt-2 border-t border-slate-100">
                         <SectionContent section={item.id} {...sharedProps} />
                       </div>
                     </motion.div>
@@ -216,29 +221,33 @@ export default function SettingsPage() {
           })}
         </div>
 
-        {/* Desktop: sidebar + panel */}
-        <div className="hidden md:flex gap-8">
-          <nav className="flex flex-col gap-1 w-48 flex-shrink-0">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex gap-10">
+          <nav className="flex flex-col gap-2 w-64 flex-shrink-0">
             {navItems.map(item => {
               const Icon = item.icon;
               const active = activeSection === item.id;
               return (
                 <button key={item.id} onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(item.id)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-left rounded-xl transition-all duration-200 ${active ? 'bg-yuzu text-fg shadow-sm' : 'text-muted-foreground hover:bg-black/5'}`}>
-                <Icon className="w-4 h-4 flex-shrink-0" />
-                {item.label}
-              </button>
+                  className={`flex items-center gap-3 px-4 py-3 text-[14px] font-semibold text-left rounded-xl transition-all duration-200 ${active ? 'bg-white border border-slate-200 shadow-sm text-blue-600' : 'text-slate-600 hover:bg-slate-100/50 border border-transparent'}`}>
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
+                  {item.label}
+                </button>
               );
             })}
           </nav>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-3xl">
             <motion.div
               key={activeSection}
-              initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+              initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
-              <SectionTitle>{navItems.find(n => n.id === activeSection)?.label || ''}</SectionTitle>
+              transition={{ duration: 0.4, ease: "easeOut" }}>
+              
+              <SectionTitle description={navItems.find(n => n.id === activeSection)?.desc}>
+                {navItems.find(n => n.id === activeSection)?.label}
+              </SectionTitle>
+              
               <SectionContent section={activeSection} {...sharedProps} desktop />
             </motion.div>
           </div>
@@ -247,31 +256,31 @@ export default function SettingsPage() {
 
       <AISettingsModal open={showAIDNAModal} onClose={() => setShowAIDNAModal(false)} />
 
-      {/* Invoice modal */}
+      {/* Invoice Modal */}
       <AnimatePresence>
         {showInvoiceModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
             onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="px-5 py-4 flex items-center justify-between border-b border-border">
-                <p className="text-sm font-black text-fg">Request an invoice</p>
-                <button onClick={() => setShowInvoiceModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded">
-                  <X className="w-4 h-4 text-muted-foreground" />
+              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+              <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+                <p className="text-[15px] font-bold text-slate-900">Request Invoice</p>
+                <button onClick={() => setShowInvoiceModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 rounded-full transition-colors">
+                  <X className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-muted-foreground">Enter the email used for your payment. We'll forward your request to our team.</p>
+              <div className="p-6 space-y-5">
+                <p className="text-[13px] text-slate-600 leading-relaxed">Please confirm the email address associated with your payment. Our billing team will forward the document shortly.</p>
                 <div>
-                  <label className="text-xs font-semibold block mb-1 text-muted-foreground">Payment email *</label>
+                  <label className="text-[12px] font-bold block mb-1.5 text-slate-700">Billing Email</label>
                   <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
-                    placeholder="email@example.com"
-                    className="w-full px-3 py-2.5 text-sm border border-border rounded-lg focus:outline-none" />
+                    placeholder="finance@company.com"
+                    className="w-full px-4 py-3 text-[13px] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                 </div>
                 <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
-                  className="w-full py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-                  {invoiceLoading ? 'Sending...' : 'Submit request'}
+                  className="w-full py-3 text-[13px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-sm">
+                  {invoiceLoading ? 'Processing Request...' : 'Submit Request'}
                 </button>
               </div>
             </motion.div>
@@ -279,31 +288,36 @@ export default function SettingsPage() {
         )}
       </AnimatePresence>
 
-      {/* Delete modal */}
+      {/* Delete Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
             onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="px-6 pt-5 pb-4 bg-red-500 flex items-center justify-between">
-                <p className="text-base font-bold text-white">Delete account</p>
-                <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
+              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+              <div className="px-6 py-5 bg-red-600 flex items-center justify-between">
+                <p className="text-[15px] font-bold text-white flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" /> Terminate Account
+                </p>
+                <button onClick={() => setShowDeleteModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors">
                   <X className="w-4 h-4 text-white" />
                 </button>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs font-semibold text-muted-foreground">This action is irreversible. All your data will be permanently deleted.</p>
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground">Email: <strong className="text-fg">{user?.email}</strong></p>
+              <div className="p-6 space-y-5">
+                <p className="text-[13px] font-medium text-slate-600 leading-relaxed">This action is absolute and irreversible. All associated projects, deployed applications, and personal data will be permanently purged from our servers.</p>
+                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                  <p className="text-[12px] text-slate-500">Target Account:</p>
+                  <p className="text-[13px] font-bold text-slate-900 mt-0.5">{user?.email}</p>
                 </div>
-                <button onClick={deleteAccount} className="w-full py-2.5 font-bold text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                  Confirm deletion
-                </button>
-                <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium text-muted-foreground rounded-lg hover:bg-muted transition-colors">
-                  Cancel
-                </button>
+                <div className="flex flex-col gap-2 pt-2">
+                  <button onClick={deleteAccount} className="w-full py-3 font-bold text-[13px] bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm">
+                    I understand, delete my account
+                  </button>
+                  <button onClick={() => setShowDeleteModal(false)} className="w-full py-3 text-[13px] font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+                    Cancel Process
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -327,27 +341,37 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     else { while (d <= now) d.setMonth(d.getMonth() + 1); }
     return d;
   }
-  if (section === 'profile') return (
-    <div className={`space-y-4 ${desktop ? 'max-w-md' : 'pt-2'}`}>
-      <div>
-        <label className="text-xs font-semibold block mb-1 text-muted-foreground">Email (read-only)</label>
-        <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm bg-muted border border-border rounded-lg text-muted-foreground cursor-not-allowed" />
-      </div>
-      <div>
-        <label className="text-xs font-semibold block mb-1 text-muted-foreground">Full name</label>
-        <input value={fullName} onChange={e => setFullName(e.target.value)}
-          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all ${profileError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`} />
-        {profileError && <p className="text-xs text-red-500 mt-1">⚠ {profileError}</p>}
-      </div>
-      <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity">
-        <Save className="w-4 h-4" /> {savingProfile ? 'Saving...' : 'Save'}
-      </button>
 
-      <div className="p-4 border border-red-200 bg-red-50 rounded-xl mt-4">
-        <p className="text-sm font-semibold mb-1 text-fg">Delete account</p>
-        <p className="text-xs mb-3 text-muted-foreground">This action is irreversible. All your data will be permanently deleted.</p>
-        <button onClick={() => setShowDeleteModal(true)} className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors">
-          <Trash2 className="w-4 h-4" /> Delete account
+  if (section === 'profile') return (
+    <div className="space-y-6">
+      <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-3xl shadow-sm">
+        <div className="space-y-5 max-w-md">
+          <div>
+            <label className="text-[12px] font-bold block mb-1.5 text-slate-700">Account Email (Immutable)</label>
+            <input value={user?.email || ''} disabled className="w-full px-4 py-3 text-[13px] bg-slate-50 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed" />
+          </div>
+          <div>
+            <label className="text-[12px] font-bold block mb-1.5 text-slate-700">Full Legal Name</label>
+            <input value={fullName} onChange={e => setFullName(e.target.value)}
+              className={`w-full px-4 py-3 text-[13px] border rounded-xl focus:outline-none focus:ring-2 transition-all ${profileError ? 'border-red-400 focus:ring-red-500/20' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`} />
+            {profileError && <p className="text-[12px] text-red-500 mt-2 font-medium">⚠ {profileError}</p>}
+          </div>
+          <button onClick={saveProfile} disabled={savingProfile} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 text-[13px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-50 hover:bg-slate-800 transition-colors shadow-sm">
+            <Save className="w-4 h-4" /> {savingProfile ? 'Saving Changes...' : 'Save Profile'}
+          </button>
+        </div>
+      </div>
+
+      <div className="border border-red-200 bg-red-50/50 p-6 sm:p-8 rounded-3xl">
+        <div className="flex items-center gap-2 mb-2">
+          <Shield className="w-5 h-5 text-red-600" />
+          <p className="text-[15px] font-bold text-red-700">Danger Zone</p>
+        </div>
+        <p className="text-[13px] text-red-600/80 mb-5 leading-relaxed max-w-xl">
+          Permanently remove your account, active applications, and billing history from the Wok servers. This action cannot be reversed.
+        </p>
+        <button onClick={() => setShowDeleteModal(true)} className="py-2.5 px-5 text-[13px] font-bold flex items-center justify-center gap-2 bg-white border border-red-200 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-300 transition-colors shadow-sm">
+          <Trash2 className="w-4 h-4" /> Delete Account
         </button>
       </div>
     </div>
@@ -361,62 +385,85 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     const displayPrice = isYearly
       ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/year`
       : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/month` : 'Free';
+    
     return (
-      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-        <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Current subscription</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-black text-fg">{userPlan?.name || 'Free'}</p>
-                {isYearly && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-yuzu text-fg">YEARLY</span>}
-              </div>
-              <p className="text-xs mt-0.5 text-muted-foreground">{displayPrice}</p>
-              {renewalDate && userPlan?.price_monthly > 0 && (
-                <p className="text-xs mt-1 text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {isYearly ? 'Annual renewal on' : 'Monthly renewal on'} {formatDate(renewalDate)}
-                </p>
-              )}
-            </div>
-            <span className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg">
-              {userPlan?.credits_limit} Tensors/mo
-            </span>
+      <div className="space-y-6">
+        {/* Active Plan Card */}
+        <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+            <CreditCard className="w-48 h-48" />
           </div>
-          <div className="flex gap-2 mt-3">
-            <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-fg text-white rounded-lg hover:opacity-90">
-              Manage <ChevronRight className="w-3 h-3" />
-            </button>
-            <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-muted text-fg rounded-lg hover:bg-muted/80">
-              Upgrade
-            </button>
+          
+          <div className="relative z-10">
+            <p className="text-[11px] font-bold uppercase tracking-widest mb-3 text-slate-400">Active Architecture</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <div className="flex items-center gap-3">
+                  <p className="text-3xl font-black text-slate-900">{userPlan?.name || 'Free'}</p>
+                  {isYearly && <span className="text-[10px] font-black px-2 py-1 rounded-md bg-blue-100 text-blue-700">ANNUAL</span>}
+                </div>
+                <p className="text-[14px] mt-1 font-medium text-slate-500">{displayPrice} <span className="text-slate-300 mx-1">•</span> {userPlan?.credits_limit} Tensors included</p>
+              </div>
+            </div>
+
+            {renewalDate && userPlan?.price_monthly > 0 && !isCancelApproved && (
+              <div className="inline-flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg mb-6">
+                <Clock className="w-4 h-4 text-slate-400" />
+                <p className="text-[12px] font-medium text-slate-600">
+                  {isYearly ? 'Renews automatically on' : 'Next cycle begins on'} <strong className="text-slate-900">{formatDate(renewalDate)}</strong>
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-sm transition-colors">
+                Manage Plan <ChevronRight className="w-4 h-4" />
+              </button>
+              <button onClick={() => navigate('/pricing')} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 shadow-sm transition-colors">
+                View Upgrades
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Billing History & Invoice */}
         {userPlan?.price_monthly > 0 && (
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider mb-2 text-muted-foreground">Billing history</p>
-            <div className="border border-border rounded-xl overflow-hidden bg-white">
-              <div className="flex items-center gap-3 px-4 py-3 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-fg">{userPlan.name} plan</p>
-                  <p className="text-xs text-muted-foreground">
-                    Since {formatDate(user?.subscription_date || user?.created_date)}
-                    {isYearly && <span className="ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: 'rgba(221,255,0,0.3)', color: '#555' }}>Annual</span>}
-                  </p>
+          <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest mb-4 text-slate-400">Financial Ledger</p>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl gap-4">
+              <div className="flex-1">
+                <p className="text-[14px] font-bold text-slate-900">{userPlan.name} Subscription</p>
+                <p className="text-[12px] text-slate-500 mt-0.5">
+                  Active since {formatDate(user?.subscription_date || user?.created_date)}
+                </p>
+                
+                <div className="mt-3 flex items-center gap-2">
+                  {isCancelPending && <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-100 text-amber-700">CANCELLATION PENDING</span>}
+                  {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-red-100 text-red-700">TERMINATES {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
+                  {isCancelRejected && <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-700">ACTIVE</span>}
+                  {!cancelTicket && <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-700 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> IN GOOD STANDING</span>}
                 </div>
-                <span className="text-sm font-bold text-fg">{displayPrice}</span>
-                {isCancelPending && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}>CANCELLATION PENDING</span>}
-                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626' }}>CANCELLED · ENDS {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
-                {isCancelRejected && <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a' }}>ACTIVE</span>}
-                {!cancelTicket && <span className="text-[10px] font-black px-2 py-0.5 bg-green-100 text-green-700 rounded">ACTIVE</span>}
+              </div>
+              
+              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 w-full sm:w-auto border-t sm:border-t-0 border-slate-200 pt-4 sm:pt-0">
+                <span className="text-[16px] font-black text-slate-900">{displayPrice}</span>
                 <button onClick={() => setShowInvoiceModal(true)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-semibold rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                  <Download className="w-3 h-3" />
-                  {invoiceRequested[userPlan.name] ? 'Sent!' : 'Invoice'}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold rounded-xl transition-colors border shadow-sm ${invoiceRequested[userPlan.name] ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                  <Download className="w-3.5 h-3.5" />
+                  {invoiceRequested[userPlan.name] ? 'Dispatched' : 'Request Invoice'}
                 </button>
               </div>
             </div>
+
+            {/* Subtle Cancellation Entry Point */}
+            {!isCancelApproved && !isCancelPending && (
+              <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
+                <button onClick={() => navigate('/manage-plan')} className="text-[12px] font-semibold text-slate-400 hover:text-red-500 transition-colors">
+                  Cancel Subscription
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -428,70 +475,101 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
     const deepLimit = userPlan?.deep_credits_limit || 0;
     const deepPct = deepLimit > 0 ? Math.min((deepUsed / deepLimit) * 100, 100) : 0;
     const isDeepHigh = deepLimit > 0 && deepPct >= 90;
+    
     return (
-      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-        <div className="flex items-center justify-between px-4 py-3 bg-fg rounded-xl">
-          <div>
-            <p className="text-xs text-white/60">Current plan</p>
-            <p className="text-sm font-black text-white">{userPlan?.name || 'Free'}</p>
-          </div>
-          <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-bold bg-yuzu text-fg rounded-lg hover:opacity-90">Upgrade</button>
-        </div>
-
-        <div className="p-4 border border-border rounded-xl bg-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-muted-foreground">⚡ Flash this month</p>
-            <p className={`text-xs font-black ${isHigh ? 'text-red-500' : 'text-fg'}`}>{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
-          </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-fg'}`} style={{ width: `${pct}%` }} />
-          </div>
-          <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(pct)}% used</p>
-        </div>
-
-        {deepLimit > 0 && (
-          <div className="p-4 border border-border rounded-xl bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-muted-foreground">🧠 Deep Syntheses this month</p>
-              <p className={`text-xs font-black ${isDeepHigh ? 'text-red-500' : 'text-fg'}`}>{deepUsed} / {deepLimit}</p>
+      <div className="space-y-6 max-w-2xl">
+        <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-6 text-slate-400">Resource Allocation</p>
+          
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[14px] font-bold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-blue-500"/> Core Tensors</p>
+              <p className={`text-[14px] font-black ${isHigh ? 'text-red-500' : 'text-slate-900'}`}>{fmtN(creditsUsed)} <span className="text-slate-400 font-medium">/ {fmtN(creditsLimit)}</span></p>
             </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${isDeepHigh ? 'bg-red-500' : 'bg-fg'}`} style={{ width: `${deepPct}%` }} />
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+              <div className={`h-full rounded-full transition-all duration-500 ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }} />
             </div>
-            <p className="text-[10px] mt-1.5 text-muted-foreground">{Math.round(deepPct)}% used</p>
+            <p className="text-[12px] mt-2 text-slate-500 font-medium">{Math.round(pct)}% of monthly capacity utilized</p>
           </div>
-        )}
 
-        <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-xs font-semibold mb-4 text-muted-foreground">Activity — last 7 days</p>
-          <ResponsiveContainer width="100%" height={90}>
-            <BarChart data={getDailyUsage()} barSize={14}>
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, border: '1px solid rgba(0,0,0,0.09)', borderRadius: '8px' }} />
-              <Bar dataKey="tensors" fill="#0A0A0A" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="p-4 border border-border rounded-xl bg-white">
-          <p className="text-xs font-black uppercase tracking-wider mb-1 text-muted-foreground">Activation code</p>
-          <p className="text-xs mb-3 text-muted-foreground">Enter a code received by email to activate a subscription.</p>
-          <div className="flex gap-2">
-            <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
-              placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
-              className={`flex-1 px-3 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`}
-              onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
-            <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
-              className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
-              {codeLoading ? '...' : 'Activate'}
-            </button>
-          </div>
-          {codeError && (
-            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-              <span className="text-red-500 text-sm">✗</span>
-              <p className="text-xs text-red-600 leading-snug">{codeError}</p>
+          {deepLimit > 0 && (
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[14px] font-bold text-slate-900 flex items-center gap-2"><Brain className="w-4 h-4 text-purple-500"/> Deep Synthesis</p>
+                <p className={`text-[14px] font-black ${isDeepHigh ? 'text-red-500' : 'text-slate-900'}`}>{deepUsed} <span className="text-slate-400 font-medium">/ {deepLimit}</span></p>
+              </div>
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                <div className={`h-full rounded-full transition-all duration-500 ${isDeepHigh ? 'bg-red-500' : 'bg-purple-500'}`} style={{ width: `${deepPct}%` }} />
+              </div>
+              <p className="text-[12px] mt-2 text-slate-500 font-medium">{Math.round(deepPct)}% of advanced processing utilized</p>
             </div>
           )}
+        </div>
+
+        <div className="p-6 sm:p-8 border border-slate-200 rounded-3xl bg-white shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-6 text-slate-400">7-Day Trajectory</p>
+          <div className="h-[140px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getDailyUsage()} barSize={24}>
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
+                <Tooltip 
+                  cursor={{ fill: '#f1f5f9' }}
+                  contentStyle={{ fontSize: 12, fontWeight: 'bold', border: 'none', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} 
+                />
+                <Bar dataKey="tensors" fill="#0f172a" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (section === 'redeem') {
+    return (
+      <div className="max-w-xl">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/30 border border-blue-100 p-8 sm:p-10 rounded-3xl shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
+            <Key className="w-48 h-48 text-blue-900" />
+          </div>
+          
+          <div className="relative z-10">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 mb-6">
+               <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
+            <p className="text-[14px] text-slate-600 mb-8 max-w-sm leading-relaxed">
+              Unlock enterprise features or add bulk computing resources to your workspace by entering your secure activation key below.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input 
+                value={activationCode} 
+                onChange={e => setActivationCode(e.target.value.toUpperCase())}
+                placeholder="Ex: WOK-9A7X-M2P4" 
+                maxLength={20}
+                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-all shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900'}`}
+                onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} 
+              />
+              <button 
+                onClick={activateCode} 
+                disabled={codeLoading || !activationCode.trim()}
+                className="px-8 py-3.5 text-[14px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-md whitespace-nowrap"
+              >
+                {codeLoading ? 'Authenticating...' : 'Unlock Features'}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {codeError && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm">
+                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     );
