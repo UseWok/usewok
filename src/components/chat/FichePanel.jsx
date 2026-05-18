@@ -11,11 +11,20 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   const [activeTab, setActiveTab] = useState('overview');
   const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
   const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
+  
+  // Domains Edit State
   const [tempSlug, setTempSlug] = useState(customSlug);
+  const [isEditingDomain, setIsEditingDomain] = useState(false);
 
+  // Danger Zone Confirmation States
+  const [confirmUnpublish, setConfirmUnpublish] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Auto-cancel domain editing if user switches tabs
   useEffect(() => {
+    setIsEditingDomain(false);
     setTempSlug(customSlug);
-  }, [customSlug]);
+  }, [activeTab, customSlug]);
 
   const handleSave = () => {
     if (onUpdateSettings) {
@@ -33,70 +42,70 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   };
 
   return (
-    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 border-t border-l border-[#E5E5E5] flex">
-      {/* Sidebar */}
-      <div className="w-[240px] bg-white border-r border-[#E5E5E5] hidden md:flex flex-col py-6 px-4">
-        <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Dashboard</p>
-        <div className="space-y-1">
-          <button 
-            onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <LayoutDashboard className="w-4 h-4" /> Overview
-          </button>
-          <button 
-            onClick={() => setActiveTab('domains')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${activeTab === 'domains' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <Globe className="w-4 h-4" /> Domains
-          </button>
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <Settings className="w-4 h-4" /> Advanced Settings
-          </button>
-        </div>
+    <div className="absolute inset-0 bg-[#F9FAFB] overflow-y-auto font-sans text-slate-900 border-t border-l border-[#E5E5E5] flex flex-col md:flex-row">
+      {/* Sidebar - Mobile horizontal, Desktop vertical */}
+      <div className="w-full md:w-[240px] bg-white border-b md:border-b-0 md:border-r border-[#E5E5E5] flex flex-row md:flex-col py-4 md:py-6 px-4 gap-2 overflow-x-auto shrink-0">
+        <p className="text-[14px] font-bold text-slate-900 mb-2 md:mb-6 px-3 hidden md:block">Dashboard</p>
+        <button 
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors whitespace-nowrap ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+        >
+          <LayoutDashboard className="w-4 h-4" /> Overview
+        </button>
+        <button 
+          onClick={() => setActiveTab('domains')}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors whitespace-nowrap ${activeTab === 'domains' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+        >
+          <Globe className="w-4 h-4" /> Domains
+        </button>
+        <button 
+          onClick={() => setActiveTab('settings')}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors whitespace-nowrap ${activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+        >
+          <Settings className="w-4 h-4" /> Advanced Settings
+        </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8 md:p-12 max-w-4xl">
+      {/* Main Content Area */}
+      <div className="flex-1 p-6 md:p-12 w-full max-w-4xl mx-auto">
         
         {activeTab === 'overview' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex gap-6 items-start mb-10">
-              <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
-                 <img src={LOGO_URL} alt="Logo" className="w-12 h-12 invert" />
+            {/* Header Block */}
+            <div className="flex flex-col sm:flex-row gap-6 items-start mb-10">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-black rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
+                 <img src={LOGO_URL} alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 invert" />
               </div>
-              <div className="flex-1 flex flex-col gap-3">
+              <div className="flex-1 flex flex-col gap-3 w-full">
                  <input 
                    type="text" 
                    value={title} 
                    onChange={(e) => setTitle(e.target.value)} 
                    onBlur={handleSave}
-                   className="text-3xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 py-1 w-full transition-all"
+                   className="text-2xl sm:text-3xl font-bold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 py-1 w-full transition-all"
                  />
                  <textarea 
                    value={description}
                    onChange={(e) => setDescription(e.target.value)}
                    onBlur={handleSave}
                    rows={3}
-                   className="text-[14px] text-slate-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 w-full resize-none leading-relaxed transition-all"
+                   className="text-[13px] sm:text-[14px] text-slate-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/20 rounded-md -ml-2 px-2 w-full resize-none leading-relaxed transition-all"
                  />
-                 <div className="flex items-center gap-3 mt-2">
+                 <div className="flex flex-wrap items-center gap-3 mt-2">
                     <button onClick={handleOpenApp} className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
                        <ExternalLink className="w-4 h-4" /> Open App
                     </button>
                     <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-[13px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
-                       <Share2 className="w-4 h-4" /> Share (Earn Credits)
+                       <Share2 className="w-4 h-4" /> Share
                     </button>
                  </div>
               </div>
             </div>
 
+            {/* SEO Meta Alert */}
             <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm">
               <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[13px] text-blue-800 leading-relaxed">
+              <p className="text-[12px] sm:text-[13px] text-blue-800 leading-relaxed">
                 <strong>SEO Optimization:</strong> The more precise and keyword-rich the metadata (title and description) of this application, the easier it will be to find and index by search engines.
               </p>
             </div>
@@ -109,25 +118,62 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
              
              {/* Built-in Subdomain */}
              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-6">
-                <h3 className="text-[15px] font-bold text-slate-900 mb-1">Wok Subdomain</h3>
-                <p className="text-[13px] text-slate-500 mb-5">Your app is currently published on the following sub-domain.</p>
                 
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <div className="flex items-center w-full border border-slate-200 rounded-lg overflow-hidden focus-within:border-blue-500 transition-colors">
-                    <div className="bg-slate-50 px-3 py-2 border-r border-slate-200 text-[13px] text-slate-500 font-mono select-none hidden md:block">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-3 gap-3">
+                   <div>
+                      <h3 className="text-[15px] font-bold text-slate-900 mb-1">Wok Subdomain</h3>
+                      <p className="text-[13px] text-slate-500">Your app is currently published on the following sub-domain.</p>
+                   </div>
+                   
+                   {/* Dynamic Action Buttons */}
+                   {isEditingDomain ? (
+                     <div className="flex gap-2">
+                       <button 
+                         onClick={() => { setIsEditingDomain(false); setTempSlug(customSlug); }} 
+                         className="px-4 py-1.5 border border-slate-200 rounded-md text-[12px] font-bold text-slate-600 hover:bg-slate-50"
+                       >
+                         Cancel
+                       </button>
+                       <button 
+                         onClick={() => { onUpdateSlug && onUpdateSlug(tempSlug); setIsEditingDomain(false); }} 
+                         className="px-4 py-1.5 bg-blue-600 text-white rounded-md text-[12px] font-bold hover:bg-blue-700 shadow-sm"
+                       >
+                         Save
+                       </button>
+                     </div>
+                   ) : (
+                     <div className="flex gap-2">
+                       <button 
+                         onClick={handleShare} 
+                         className="px-4 py-1.5 border border-slate-200 rounded-md text-[12px] font-bold text-slate-600 hover:bg-slate-50"
+                       >
+                         Copy
+                       </button>
+                       <button 
+                         onClick={() => setIsEditingDomain(true)} 
+                         className="px-4 py-1.5 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 shadow-sm"
+                       >
+                         Edit
+                       </button>
+                     </div>
+                   )}
+                </div>
+                
+                {/* Responsive Input Wrapper (Transition-none for instant snap) */}
+                <div className={`flex items-center w-full border ${isEditingDomain ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'} rounded-lg overflow-hidden transition-none`}>
+                  {!isEditingDomain && (
+                    <div className="bg-slate-50 px-3 py-2.5 border-r border-slate-200 text-[13px] text-slate-500 font-mono select-none hidden sm:block transition-none">
                       https://wok.base44.app/p/
                     </div>
-                    <input 
-                      type="text" 
-                      maxLength={30}
-                      value={tempSlug} 
-                      onChange={(e) => setTempSlug(e.target.value)} 
-                      className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-slate-900" 
-                    />
-                  </div>
-                  <button onClick={() => onUpdateSlug && onUpdateSlug(tempSlug)} className="w-full sm:w-auto px-5 py-2 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 transition-colors whitespace-nowrap">
-                    Save Configuration
-                  </button>
+                  )}
+                  <input 
+                    type="text" 
+                    maxLength={30}
+                    disabled={!isEditingDomain}
+                    value={tempSlug} 
+                    onChange={(e) => setTempSlug(e.target.value)} 
+                    className="flex-1 px-3 py-2.5 text-[13px] font-mono outline-none bg-white text-slate-900 disabled:text-slate-500 transition-none w-full" 
+                  />
                 </div>
              </div>
 
@@ -145,6 +191,7 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
         {activeTab === 'settings' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Visibility */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">App Visibility</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Control who can access your application.</p>
@@ -158,6 +205,7 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
                 </select>
               </div>
 
+              {/* Badge Control */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">White Label</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Show or hide the "Built with WOK" badge.</p>
@@ -173,28 +221,55 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex items-center justify-between">
+            {/* Clone Section */}
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                <div>
                   <h3 className="text-[15px] font-bold text-slate-900 mb-1">Clone Interface</h3>
                   <p className="text-[13px] text-slate-500">Duplicates the code into a new session with a new URL.</p>
                </div>
-               <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center gap-2 transition-colors">
+               <button onClick={onClone} className="px-5 py-2.5 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 flex items-center justify-center gap-2 transition-colors whitespace-nowrap">
                  <Copy className="w-4 h-4" /> Clone
                </button>
             </div>
 
+            {/* Danger Zone */}
             <div className="border border-red-200 bg-red-50/50 p-6 rounded-2xl">
                <div className="flex items-center gap-2 mb-4">
                  <AlertTriangle className="w-5 h-5 text-red-500" />
                  <h3 className="text-[15px] font-bold text-red-700">Danger Zone</h3>
                </div>
                <div className="flex flex-col md:flex-row gap-4">
-                 <button onClick={onUnpublish} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50 transition-colors">
-                   Unpublish Page
-                 </button>
-                 <button onClick={onDelete} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm transition-colors">
-                   <Trash2 className="w-4 h-4" /> Delete Permanently
-                 </button>
+                 
+                 {confirmUnpublish ? (
+                   <div className="flex-1 flex gap-2">
+                     <button onClick={() => setConfirmUnpublish(false)} className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 text-[13px] font-bold rounded-lg hover:bg-slate-50 transition-colors">
+                       Cancel
+                     </button>
+                     <button onClick={() => { onUnpublish && onUnpublish(); setConfirmUnpublish(false); }} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 shadow-sm transition-colors">
+                       Confirm Unpublish
+                     </button>
+                   </div>
+                 ) : (
+                   <button onClick={() => setConfirmUnpublish(true)} className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 text-[13px] font-bold rounded-lg hover:bg-red-50 transition-colors">
+                     Unpublish Page
+                   </button>
+                 )}
+
+                 {confirmDelete ? (
+                   <div className="flex-1 flex gap-2">
+                     <button onClick={() => setConfirmDelete(false)} className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 text-[13px] font-bold rounded-lg hover:bg-slate-50 transition-colors">
+                       Cancel
+                     </button>
+                     <button onClick={() => { onDelete && onDelete(); setConfirmDelete(false); }} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm transition-colors">
+                       <Trash2 className="w-4 h-4" /> Confirm Delete
+                     </button>
+                   </div>
+                 ) : (
+                   <button onClick={() => setConfirmDelete(true)} className="flex-1 px-4 py-2.5 bg-red-600 text-white text-[13px] font-bold rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 shadow-sm transition-colors">
+                     <Trash2 className="w-4 h-4" /> Delete Permanently
+                   </button>
+                 )}
+
                </div>
             </div>
           </motion.div>
@@ -286,6 +361,7 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
         ${watermarkHTML}
         
         <script>
+          // ERROR INJECTION REMOVED. FAIL SILENTLY TO PREVENT RED SCREENS.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
