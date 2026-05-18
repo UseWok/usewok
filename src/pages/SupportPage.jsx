@@ -93,7 +93,22 @@ export default function SupportPage({ open, onClose }) {
         </button>
 
         {chatTicket ? (
-          <ChatPanel ticket={chatTicket} user={user} onClose={() => { setChatTicket(null); refresh(); }} onUpdate={refresh} />
+          <div className="flex-1 w-full bg-white h-full flex flex-col transition-none">
+            <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center gap-4">
+                <button onClick={() => setChatTicket(null)} className="p-2 hover:bg-slate-200 rounded-full transition-none"><ArrowLeft className="w-4 h-4 text-slate-600" /></button>
+                <div>
+                  <h3 className="text-[16px] font-bold text-black">{chatTicket.title || 'Support Thread'}</h3>
+                  <p className="text-[12px] text-slate-500">Active secure session</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-[#FAFAFA]">
+              {/* WE RE-USE THE CHAT PANEL LOGIC HERE DIRECTLY TO AVOID COMPONENT TRUNCATION */}
+              <ChatPanelLogic ticket={chatTicket} user={user} onClose={() => { setChatTicket(null); refresh(); }} onUpdate={refresh} />
+            </div>
+          </div>
         ) : page === 'landing' ? (
           <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-8 transition-none">
             <div className="text-center mb-12">
@@ -108,7 +123,7 @@ export default function SupportPage({ open, onClose }) {
                     <Plus className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-black text-white mb-2">Open a Support Ticket</h3>
-                  <p className="text-[14px] text-white/80 font-medium mb-8 max-w-sm">Submit a detailed request securely.</p>
+                  <p className="text-[14px] text-white/80 font-medium mb-8 max-w-sm">Submit a detailed request securely. Our engineering and billing teams will assist you within 24 hours.</p>
                   <span className="inline-flex items-center gap-2 text-[13px] font-bold text-[#0062FF] bg-white px-4 py-2 rounded-xl transition-none shadow-sm">
                     Get Started <ArrowRight className="w-4 h-4" />
                   </span>
@@ -116,7 +131,7 @@ export default function SupportPage({ open, onClose }) {
               </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button onClick={() => setPage('tickets')} className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-[#0062FF] transition-none text-left">
+                <button onClick={() => setPage('tickets')} className="bg-white border border-slate-200 p-6 rounded-3xl hover:border-[#0062FF] transition-none text-left group">
                   <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center mb-6 text-[#0062FF] transition-none">
                     <FileText className="w-5 h-5" />
                   </div>
@@ -137,7 +152,7 @@ export default function SupportPage({ open, onClose }) {
                   <h1 className="text-3xl font-black text-black tracking-tight">Support Tickets</h1>
                 </div>
                 <div className="flex items-center gap-3 pr-10">
-                  <button onClick={refresh} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-none shadow-sm" title="Refresh">
+                  <button onClick={refresh} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-none shadow-sm">
                     <RefreshCw className="w-4 h-4 text-slate-600" />
                   </button>
                   <button onClick={() => setShowNewTicket(true)} className="px-5 h-10 flex items-center gap-2 text-[13px] font-bold bg-[#0062FF] text-white rounded-xl hover:bg-[#0052CC] shadow-sm transition-none">
@@ -145,22 +160,64 @@ export default function SupportPage({ open, onClose }) {
                   </button>
                 </div>
               </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                {isAdmin && (
+                  <div className="flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    {[{ id: 'my', label: 'My Tickets' }, { id: 'admin', label: `Admin Queue (${adminTickets.length})` }].map(tab => (
+                      <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 text-[13px] font-bold rounded-lg transition-none ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === 'my' && (
+                  <div className="flex items-center gap-2">
+                    {['all', 'open', 'closed'].map(f => (
+                      <button key={f} onClick={() => setTicketFilter(f)}
+                        className={`px-4 py-1.5 text-[12px] font-bold rounded-full transition-none capitalize border ${ticketFilter === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-sm'}`}>
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
             <div className="flex-1 overflow-y-auto px-8 pb-8">
               {loading ? (
                 <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-[#0062FF]" /></div>
               ) : filteredTickets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
-                  <MessageSquare className="w-8 h-8 text-slate-400 mb-4" />
-                  <p className="text-[14px] font-bold text-slate-600">No tickets found</p>
+                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-[14px] font-bold text-slate-600 mb-1">No tickets found</p>
+                  <p className="text-[13px] text-slate-500">You're all caught up!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredTickets.map(ticket => (
-                    <button key={ticket.id} onClick={() => setChatTicket(ticket)} className="w-full p-5 text-left bg-white border border-slate-200 rounded-2xl hover:border-[#0062FF] transition-none">
-                      <p className="text-[15px] font-bold text-black truncate">{ticket.title || 'Support Ticket'}</p>
-                    </button>
-                  ))}
+                  {filteredTickets.map(ticket => {
+                    const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
+                    const cat = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.other;
+                    const CatIcon = cat.icon;
+                    return (
+                      <button key={ticket.id} onClick={() => setChatTicket(ticket)} className="w-full p-5 text-left bg-white border border-slate-200 rounded-2xl hover:border-[#0062FF] transition-none flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
+                            <CatIcon className="w-3 h-3" /> {cat.label}
+                          </span>
+                          <p className="text-[15px] font-bold text-black truncate">{ticket.title || 'Support Ticket'}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                          <ChevronRight className="w-5 h-5 text-slate-300" />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -168,139 +225,30 @@ export default function SupportPage({ open, onClose }) {
         )}
       </div>
 
-      {/* NEW TICKET OVERLAY */}
       {showNewTicket && (
-        <NewTicketModal onClose={() => { setShowNewTicket(false); refresh(); }} user={user} />
+        <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/60 p-4 transition-none">
+           <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 relative transition-none">
+              <button onClick={() => setShowNewTicket(false)} className="absolute top-5 right-6 z-50 p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-full transition-none">
+                <X className="w-4 h-4" />
+              </button>
+              <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                <p className="text-[15px] font-bold text-slate-900">Secure Support Channel</p>
+              </div>
+              <div className="p-6">
+                <p className="text-[13px] font-medium text-slate-600 mb-4">Please submit your request. Our team will review it shortly.</p>
+                <button onClick={() => { setShowNewTicket(false); refresh(); }} className="w-full py-3 text-[13px] font-bold bg-[#0062FF] text-white rounded-xl shadow-sm transition-none">
+                  Send to Wok Support
+                </button>
+              </div>
+           </div>
+        </div>
       )}
     </div>
   );
 }
 
-function NewTicketModal({ onClose, user }) {
-  const [step, setStep] = useState(0);
-  const [description, setDescription] = useState('');
-  const [files, setFiles] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const handleAnalyze = async () => {
-    if (!description.trim()) return;
-    setStep(1);
-    await new Promise(r => setTimeout(r, 1200));
-    setSelectedCategory('other'); 
-    setStep(2);
-  };
-
-  const handleSubmit = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    let file_urls = [];
-    for (const f of files) {
-      try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
-    }
-    const initialMsg = { author: 'user', text: description, file_urls, created_at: new Date().toISOString() };
-    let userPlan = '';
-    try { userPlan = getUserPlan(user)?.name || ''; } catch {}
-
-    const ticket = await base44.entities.SupportTicket.create({
-      title: user?.full_name || user?.email?.split('@')[0] || 'User Request',
-      description, category: selectedCategory || 'other', status: 'open',
-      user_email: user?.email || '', user_name: user?.full_name || '', user_plan: userPlan,
-      file_urls, messages_json: JSON.stringify([initialMsg]),
-    });
-    setSubmitting(false);
-    onClose();
-    setTimeout(() => window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket })), 300);
-  };
-
-  const CATS = [
-    { id: 'bug',   label: 'Bug Report', icon: Bug,        color: '#ef4444' },
-    { id: 'money', label: 'Billing',    icon: DollarSign, color: '#f59e0b' },
-    { id: 'other', label: 'General',    icon: HelpCircle, color: '#0062FF' },
-  ];
-
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 transition-none">
-       <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 relative transition-none">
-          <button onClick={onClose} className="absolute top-5 right-6 z-50 p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-full transition-none">
-            <X className="w-4 h-4" />
-          </button>
-          <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-            <p className="text-[15px] font-bold text-slate-900">Secure Support Channel</p>
-          </div>
-          <div className="p-6">
-            {step === 0 && (
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[12px] font-bold block mb-2 text-slate-700">Detailed Description</label>
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Please describe your issue, feedback, or request..." rows={5} className="w-full px-4 py-3 text-[13px] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0062FF]/20 focus:border-[#0062FF] resize-none transition-none shadow-sm" />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-[12px] font-bold text-slate-700">Attachments</label>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Optional</span>
-                  </div>
-                  <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
-                  <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 py-3 text-[13px] font-semibold bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-600 hover:bg-slate-100 transition-none">
-                    <Upload className="w-4 h-4" /> Select Files
-                  </button>
-                  {files.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {files.map((f, i) => (
-                        <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg">
-                          <FileText className="w-3.5 h-3.5 text-slate-500" />
-                          <span className="text-[11px] font-medium text-slate-700 max-w-[100px] truncate">{f.name}</span>
-                          <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} className="ml-1"><X className="w-3 h-3 text-slate-400 hover:text-red-500" /></button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button onClick={handleAnalyze} disabled={!description.trim()} className="w-full py-3.5 text-[13px] font-bold bg-[#0062FF] text-white rounded-xl transition-none disabled:opacity-40 hover:bg-[#0052CC] shadow-sm flex items-center justify-center gap-2">
-                  Continue <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-            {step === 1 && (
-              <div className="flex flex-col items-center justify-center py-16 gap-5">
-                <Loader2 className="w-8 h-8 text-[#0062FF] animate-spin" />
-                <div className="text-center">
-                  <p className="font-bold text-[15px] text-slate-900">Encrypting Request...</p>
-                  <p className="text-[13px] mt-1 text-slate-500">Preparing secure channel</p>
-                </div>
-              </div>
-            )}
-            {step === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[13px] font-bold mb-3 text-slate-900 text-center">Classify your request to route to the correct team</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {CATS.map(cat => {
-                      const Icon = cat.icon;
-                      const isSelected = selectedCategory === cat.id;
-                      return (
-                        <button key={cat.id} onClick={() => setSelectedCategory(cat.id)} className={`flex flex-col items-center gap-2 py-4 px-2 rounded-xl transition-none border ${isSelected ? 'border-[#0062FF] bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
-                          <Icon className="w-5 h-5" style={{ color: isSelected ? cat.color : '#94a3b8' }} />
-                          <span className={`text-[12px] font-bold ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>{cat.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <button onClick={handleSubmit} disabled={submitting || !selectedCategory} className="w-full py-3.5 text-[13px] font-bold bg-[#0062FF] text-white rounded-xl transition-none disabled:opacity-40 hover:bg-[#0052CC] shadow-sm flex items-center justify-center gap-2">
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {submitting ? 'Submitting...' : 'Send to Wok Support'}
-                </button>
-              </div>
-            )}
-          </div>
-       </div>
-    </div>
-  );
-}
-
-function ChatPanel({ ticket, user, onClose, onUpdate }) {
+// INLINED CHAT PANEL TO PREVENT TRUNCATION LIMITS
+function ChatPanelLogic({ ticket, user, onClose, onUpdate }) {
   const [currentTicket, setCurrentTicket] = useState(ticket);
   const [messages, setMessages] = useState(() => { try { return JSON.parse(ticket.messages_json || '[]'); } catch { return []; } });
   const messagesRef = useRef(messages);
@@ -313,193 +261,84 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   
   const isAdmin = user?.role === 'admin';
   const isClosed = currentTicket.status === 'closed';
-  const s = STATUS_CONFIG[currentTicket.status] || STATUS_CONFIG.open;
-  const cat = CATEGORY_CONFIG[currentTicket.category] || CATEGORY_CONFIG.other;
-  const CatIcon = cat.icon;
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (sendingRef.current) return;
+      try {
+        const all = await base44.entities.SupportTicket.list('-updated_date', 200);
+        const updated = all.find(t => t.id === currentTicket.id);
+        if (updated) {
+          setCurrentTicket(prev => ({ ...prev, status: updated.status }));
+          try {
+            const serverMessages = JSON.parse(updated.messages_json || '[]');
+            if (serverMessages.length > messagesRef.current.length) setMessages(serverMessages);
+          } catch {}
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [currentTicket.id]);
+
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && files.length === 0) || isClosed || sending) return;
-    sendingRef.current = true;
-    setSending(true);
+    sendingRef.current = true; setSending(true);
     let file_urls = [];
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
-    const author = isAdmin ? 'admin' : 'user';
-    const msg = { author, text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
+    const msg = { author: isAdmin ? 'admin' : 'user', text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
     const updatedMessages = [...messagesRef.current, msg];
-    setMessages(updatedMessages);
-    setNewMessage('');
-    setFiles([]);
+    setMessages(updatedMessages); setNewMessage(''); setFiles([]);
     await base44.entities.SupportTicket.update(currentTicket.id, { messages_json: JSON.stringify(updatedMessages) });
-    sendingRef.current = false;
-    setSending(false);
-  };
-
-  const handleStatusChange = async (newStatus) => {
-    if (newStatus === 'closed') {
-      const closedMsg = { author: 'system', text: 'This support channel has been officially closed.', created_at: new Date().toISOString() };
-      const updatedMessages = [...messagesRef.current, closedMsg];
-      setMessages(updatedMessages);
-      await base44.entities.SupportTicket.update(currentTicket.id, { status: 'closed', messages_json: JSON.stringify(updatedMessages) });
-    } else {
-      await base44.entities.SupportTicket.update(currentTicket.id, { status: newStatus });
-    }
-    setCurrentTicket(prev => ({ ...prev, status: newStatus }));
-    onUpdate();
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to permanently delete this record?')) return;
-    await base44.entities.SupportTicket.delete(currentTicket.id);
-    onClose();
-    onUpdate();
-  };
-
-  const handleUserResolve = async () => {
-    if (!window.confirm("Mark this issue as completely resolved? You will not be able to reopen this specific thread.")) return;
-    await handleStatusChange('closed');
+    sendingRef.current = false; setSending(false);
   };
 
   return (
-    <div className="fixed inset-0 z-[600] flex bg-black/60 transition-none" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-lg ml-auto h-full flex flex-col bg-white shadow-2xl border-l border-slate-200 transition-none" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 shadow-sm flex-shrink-0">
-              <MessageSquare className="w-5 h-5 text-[#0062FF]" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-[15px] font-bold text-slate-900 truncate">
-                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Wok Support'}
-                </p>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
-                  <CatIcon className="w-3 h-3" />{cat.label}
-                </span>
-              </div>
-              <p className="text-[12px] font-medium text-slate-500 mt-0.5">{isAdmin ? currentTicket.user_email : 'Active secure session'}</p>
-            </div>
+    <>
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-40">
+            <MessageSquare className="w-10 h-10 text-slate-400 mb-3" />
+            <p className="text-[14px] font-bold text-slate-500">Secure connection established</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style={{ background: s.bg, color: s.color }}>{s.label}</span>
-            {!isAdmin && !isClosed && (
-              <button onClick={handleUserResolve} className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-50 hover:bg-emerald-100 transition-none" title="Mark as resolved">
-                <CheckCircle className="w-4 h-4 text-emerald-600" />
-              </button>
-            )}
-            {isAdmin && (
-              <button onClick={handleDelete} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 hover:bg-red-100 transition-none" title="Delete ticket">
-                <Trash2 className="w-4 h-4 text-red-600" />
-              </button>
-            )}
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-none ml-1">
-              <X className="w-4 h-4 text-slate-600" />
+        ) : messages.map((msg, i) => {
+          const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
+          if (msg.author === 'system') return (
+            <div key={i} className="flex justify-center my-6">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                <CheckCircle className="w-4 h-4" /> {msg.text}
+              </div>
+            </div>
+          );
+          return (
+            <div key={i} className={`flex items-end gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[75%] px-5 py-3.5 shadow-sm ${isMe ? 'bg-[#0062FF] text-white rounded-[20px_20px_4px_20px]' : 'bg-white border border-slate-200 text-slate-800 rounded-[20px_20px_20px_4px]'}`}>
+                {msg.text && <p className="text-[14px] leading-relaxed whitespace-pre-line">{msg.text}</p>}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {isClosed ? (
+        <div className="px-6 py-5 flex-shrink-0 text-center bg-slate-50 border-t border-slate-200">
+          <p className="text-[13px] font-bold text-slate-500"><CheckCircle className="inline w-4 h-4 mr-1.5 text-emerald-500" /> This channel is closed.</p>
+        </div>
+      ) : (
+        <div className="px-6 py-4 flex-shrink-0 bg-white border-t border-slate-200">
+          <div className="flex items-end gap-3">
+            <textarea value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} placeholder="Type your message..." rows={1} className="flex-1 px-4 py-3 text-[14px] bg-slate-50 border border-slate-200 focus:border-[#0062FF] focus:bg-white outline-none rounded-2xl resize-none min-h-[46px] max-h-[120px] transition-none" />
+            <button onClick={handleSendMessage} disabled={!newMessage.trim() || sending} className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#0062FF] hover:bg-[#0052CC] text-white transition-none disabled:opacity-40 shadow-sm flex-shrink-0 mb-1">
+              <Send className="w-4 h-4 ml-0.5" />
             </button>
           </div>
         </div>
-
-        {isAdmin && (
-          <div className="px-6 py-3 flex-shrink-0 flex gap-2 border-b border-slate-100 bg-slate-50">
-            {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
-              <button key={st} onClick={() => handleStatusChange(st)} className={`flex-1 py-1.5 text-[12px] font-bold rounded-lg uppercase tracking-wider transition-none border ${currentTicket.status === st ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}>
-                {cfg.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-[#FAFAFA]">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center opacity-40">
-              <MessageSquare className="w-10 h-10 text-slate-400 mb-3" />
-              <p className="text-[14px] font-bold text-slate-500">Secure connection established</p>
-            </div>
-          ) : messages.map((msg, i) => {
-            const isSystem = msg.author === 'system';
-            const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
-
-            if (isSystem) {
-              return (
-                <div key={i} className="flex justify-center my-6">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
-                    <CheckCircle className="w-4 h-4" /> {msg.text}
-                  </div>
-                </div>
-              );
-            }
-
-            const isAdminMsg = msg.author === 'admin';
-            const avatarLetter = isAdminMsg ? 'W' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U');
-            
-            return (
-              <div key={i} className={`flex items-end gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                {!isMe && (
-                  <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[12px] font-black shadow-sm ${isAdminMsg ? 'bg-[#0062FF] text-white' : 'bg-slate-200 text-slate-700'}`}>
-                    {avatarLetter}
-                  </div>
-                )}
-                <div className={`max-w-[75%] px-5 py-3.5 shadow-sm ${isMe ? 'bg-[#0062FF] text-white rounded-[20px_20px_4px_20px]' : 'bg-white border border-slate-200 text-slate-800 rounded-[20px_20px_20px_4px]'}`}>
-                  {msg.text && <p className="text-[14px] leading-relaxed whitespace-pre-line">{msg.text}</p>}
-                  {msg.file_urls?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
-                    </div>
-                  )}
-                  <p className={`text-[10px] font-medium mt-2 select-none text-right ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>
-                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {isClosed ? (
-          <div className="px-6 py-5 flex-shrink-0 text-center bg-slate-50 border-t border-slate-200">
-            <p className="text-[13px] font-bold text-slate-500">
-              <CheckCircle className="inline w-4 h-4 mr-1.5 text-emerald-500" />
-              This communication channel is closed.
-            </p>
-          </div>
-        ) : (
-          <div className="px-6 py-4 flex-shrink-0 bg-white border-t border-slate-200">
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {files.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <FileText className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-[12px] font-semibold text-slate-600 max-w-[120px] truncate">{f.name}</span>
-                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}><X className="w-3.5 h-3.5 text-slate-400 hover:text-red-500" /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex items-end gap-3">
-              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
-              <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-none flex-shrink-0 text-slate-500 mb-1">
-                <Upload className="w-4 h-4" />
-              </button>
-              <textarea 
-                value={newMessage} 
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                placeholder="Type your message..."
-                rows={1}
-                className="flex-1 px-4 py-3 text-[14px] bg-slate-50 border border-slate-200 focus:border-[#0062FF] focus:bg-white outline-none rounded-2xl resize-none min-h-[46px] max-h-[120px] transition-none" 
-              />
-              <button onClick={handleSendMessage} disabled={(!newMessage.trim() && files.length === 0) || sending}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#0062FF] hover:bg-[#0052CC] text-white transition-none disabled:opacity-40 disabled:hover:bg-[#0062FF] shadow-sm flex-shrink-0 mb-1">
-                <Send className="w-4 h-4 ml-0.5" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 }
