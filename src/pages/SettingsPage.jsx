@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Shield, CheckCircle2 } from 'lucide-react';
+import { User, CreditCard, Zap, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Shield, CheckCircle2 } from 'lucide-react';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -17,8 +16,7 @@ function SectionTitle({ children, description }) {
   );
 }
 
-export default function SettingsPage() {
-  const navigate = useNavigate();
+export default function SettingsModal({ open, onClose }) {
   const [activeSection, setActiveSection] = useState('profile');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
@@ -34,35 +32,39 @@ export default function SettingsPage() {
   const [cancelTicket, setCancelTicket] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(async u => {
-      setUser(u);
-      setFullName(u?.full_name || '');
-      setInvoiceEmail(u?.email || '');
-      const plan = getUserPlan(u);
-      setUserPlan(plan);
+    if (open) {
+      base44.auth.me().then(async u => {
+        setUser(u);
+        setFullName(u?.full_name || '');
+        setInvoiceEmail(u?.email || '');
+        const plan = getUserPlan(u);
+        setUserPlan(plan);
 
-      if (u && plan.price_monthly > 0) {
-        try {
-          const tickets = await base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email, cancel_status: 'approved' });
-          const expiredTicket = tickets.find(t => t.cancel_ends_at && new Date(t.cancel_ends_at) <= new Date());
-          if (expiredTicket) {
-            const freePlans = getPlansConfig();
-            const freePlan = freePlans.find(p => p.id === 'free') || freePlans[0];
-            await base44.auth.updateMe({ subscription_plan: 'free', credits_limit: freePlan.credits_limit, credits_used: 0 });
-            const updated = await base44.auth.me();
-            setUser(updated);
-            setUserPlan(getUserPlan(updated));
-          }
-        } catch {}
-      }
+        if (u && plan.price_monthly > 0) {
+          try {
+            const tickets = await base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email, cancel_status: 'approved' });
+            const expiredTicket = tickets.find(t => t.cancel_ends_at && new Date(t.cancel_ends_at) <= new Date());
+            if (expiredTicket) {
+              const freePlans = getPlansConfig();
+              const freePlan = freePlans.find(p => p.id === 'free') || freePlans[0];
+              await base44.auth.updateMe({ subscription_plan: 'free', credits_limit: freePlan.credits_limit, credits_used: 0 });
+              const updated = await base44.auth.me();
+              setUser(updated);
+              setUserPlan(getUserPlan(updated));
+            }
+          } catch {}
+        }
 
-      if (u?.email) {
-        base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
-          if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
-        }).catch(() => {});
-      }
-    }).catch(() => {});
-  }, []);
+        if (u?.email) {
+          base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
+            if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+    }
+  }, [open]);
+
+  if (!open) return null;
 
   const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
@@ -128,155 +130,159 @@ export default function SettingsPage() {
     { id: 'ai_control', label: 'AI Control', icon: Cpu, modal: true },
   ];
 
-  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
+  const sharedProps = { user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-blue-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        className="relative w-full max-w-[1000px] h-[90vh] bg-[#FAFAFA] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
         
-        <div className="flex items-center gap-4 mb-10">
-          <button onClick={() => navigate('/')} className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-            <ArrowLeft className="w-4 h-4 text-slate-600" />
+        <div className="absolute top-6 right-6 z-50">
+          <button onClick={onClose} className="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-full transition-colors shadow-sm">
+            <X className="w-5 h-5" />
           </button>
-          <div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8 md:p-12">
+          <div className="mb-10">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Workspace Settings</h1>
           </div>
-        </div>
 
-        <div className="md:hidden space-y-3 mb-4">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isOpen = activeSection === item.id;
-            return (
-              <div key={item.id} className="bg-white overflow-hidden border border-slate-200 rounded-2xl shadow-sm">
-                <button onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-4 px-5 py-4">
-                  <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-xl transition-colors ${isOpen ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <span className="block text-[14px] font-bold text-slate-900">{item.label}</span>
-                    {item.desc && <span className="block text-[12px] text-slate-500 mt-0.5">{item.desc}</span>}
-                  </div>
-                  <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {isOpen && !item.modal && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                      <div className="px-5 pb-6 pt-2 border-t border-slate-100">
-                        <SectionContent section={item.id} {...sharedProps} />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="hidden md:flex gap-10">
-          <nav className="flex flex-col gap-2 w-64 flex-shrink-0">
+          <div className="md:hidden space-y-3 mb-4">
             {navItems.map(item => {
               const Icon = item.icon;
-              const active = activeSection === item.id;
+              const isOpen = activeSection === item.id;
               return (
-                <button key={item.id} onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(item.id)}
-                  className={`flex items-center gap-3 px-4 py-3 text-[14px] font-semibold text-left rounded-xl transition-all duration-200 ${active ? 'bg-white border border-slate-200 shadow-sm text-blue-600' : 'text-slate-600 hover:bg-slate-100/50 border border-transparent'}`}>
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
-                  {item.label}
-                </button>
+                <div key={item.id} className="bg-white overflow-hidden border border-slate-200 rounded-2xl shadow-sm">
+                  <button onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(isOpen ? null : item.id)} className="w-full flex items-center gap-4 px-5 py-4">
+                    <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-xl transition-colors ${isOpen ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <span className="block text-[14px] font-bold text-slate-900">{item.label}</span>
+                      {item.desc && <span className="block text-[12px] text-slate-500 mt-0.5">{item.desc}</span>}
+                    </div>
+                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {isOpen && !item.modal && (
+                      <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                        <div className="px-5 pb-6 pt-2 border-t border-slate-100">
+                          <SectionContent section={item.id} {...sharedProps} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
             })}
-          </nav>
+          </div>
 
-          <div className="flex-1 min-w-0 max-w-3xl">
-            <motion.div
-              key={activeSection}
-              initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.4, ease: "easeOut" }}>
-              
-              <SectionTitle description={navItems.find(n => n.id === activeSection)?.desc}>
-                {navItems.find(n => n.id === activeSection)?.label}
-              </SectionTitle>
-              
-              <SectionContent section={activeSection} {...sharedProps} desktop />
-            </motion.div>
+          <div className="hidden md:flex gap-10">
+            <nav className="flex flex-col gap-2 w-64 flex-shrink-0">
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const active = activeSection === item.id;
+                return (
+                  <button key={item.id} onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(item.id)}
+                    className={`flex items-center gap-3 px-4 py-3 text-[14px] font-semibold text-left rounded-xl transition-all duration-200 ${active ? 'bg-white border border-slate-200 shadow-sm text-blue-600' : 'text-slate-600 hover:bg-slate-100/50 border border-transparent'}`}>
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex-1 min-w-0 max-w-3xl pb-12">
+              <motion.div
+                key={activeSection}
+                initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.4, ease: "easeOut" }}>
+                
+                <SectionTitle description={navItems.find(n => n.id === activeSection)?.desc}>
+                  {navItems.find(n => n.id === activeSection)?.label}
+                </SectionTitle>
+                
+                <SectionContent section={activeSection} {...sharedProps} desktop />
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <AISettingsModal open={showAIDNAModal} onClose={() => setShowAIDNAModal(false)} />
+        <AISettingsModal open={showAIDNAModal} onClose={() => setShowAIDNAModal(false)} />
 
-      <AnimatePresence>
-        {showInvoiceModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
-            onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
-              <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
-                <p className="text-[15px] font-bold text-slate-900">Request Invoice</p>
-                <button onClick={() => setShowInvoiceModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 rounded-full transition-colors">
-                  <X className="w-4 h-4 text-slate-500" />
-                </button>
-              </div>
-              <div className="p-6 space-y-5">
-                <p className="text-[13px] text-slate-600 leading-relaxed">Please confirm the email address associated with your payment. Our billing team will forward the document shortly.</p>
-                <div>
-                  <label className="text-[12px] font-bold block mb-1.5 text-slate-700">Billing Email</label>
-                  <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
-                    placeholder="finance@company.com"
-                    className="w-full px-4 py-3 text-[13px] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
-                </div>
-                <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
-                  className="w-full py-3 text-[13px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-sm">
-                  {invoiceLoading ? 'Processing Request...' : 'Submit Request'}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showDeleteModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-            onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
-              <div className="px-6 py-5 bg-red-600 flex items-center justify-between">
-                <p className="text-[15px] font-bold text-white flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" /> Terminate Account
-                </p>
-                <button onClick={() => setShowDeleteModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors">
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              </div>
-              <div className="p-6 space-y-5">
-                <p className="text-[13px] font-medium text-slate-600 leading-relaxed">This action is absolute and irreversible. All associated projects, deployed applications, and personal data will be permanently purged from our servers.</p>
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                  <p className="text-[12px] text-slate-500">Target Account:</p>
-                  <p className="text-[13px] font-bold text-slate-900 mt-0.5">{user?.email}</p>
-                </div>
-                <div className="flex flex-col gap-2 pt-2">
-                  <button onClick={deleteAccount} className="w-full py-3 font-bold text-[13px] bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm">
-                    I understand, delete my account
-                  </button>
-                  <button onClick={() => setShowDeleteModal(false)} className="w-full py-3 text-[13px] font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
-                    Cancel Process
+        <AnimatePresence>
+          {showInvoiceModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+              onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
+              <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+                <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+                  <p className="text-[15px] font-bold text-slate-900">Request Invoice</p>
+                  <button onClick={() => setShowInvoiceModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 rounded-full transition-colors">
+                    <X className="w-4 h-4 text-slate-500" />
                   </button>
                 </div>
-              </div>
+                <div className="p-6 space-y-5">
+                  <p className="text-[13px] text-slate-600 leading-relaxed">Please confirm the email address associated with your payment. Our billing team will forward the document shortly.</p>
+                  <div>
+                    <label className="text-[12px] font-bold block mb-1.5 text-slate-700">Billing Email</label>
+                    <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
+                      placeholder="finance@company.com"
+                      className="w-full px-4 py-3 text-[13px] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                  </div>
+                  <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
+                    className="w-full py-3 text-[13px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-sm">
+                    {invoiceLoading ? 'Processing Request...' : 'Submit Request'}
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showDeleteModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+              onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
+              <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+                <div className="px-6 py-5 bg-red-600 flex items-center justify-between">
+                  <p className="text-[15px] font-bold text-white flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> Terminate Account
+                  </p>
+                  <button onClick={() => setShowDeleteModal(false)} className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors">
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+                <div className="p-6 space-y-5">
+                  <p className="text-[13px] font-medium text-slate-600 leading-relaxed">This action is absolute and irreversible. All associated projects, deployed applications, and personal data will be permanently purged from our servers.</p>
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-[12px] text-slate-500">Target Account:</p>
+                    <p className="text-[13px] font-bold text-slate-900 mt-0.5">{user?.email}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 pt-2">
+                    <button onClick={deleteAccount} className="w-full py-3 font-bold text-[13px] bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm">
+                      I understand, delete my account
+                    </button>
+                    <button onClick={() => setShowDeleteModal(false)} className="w-full py-3 text-[13px] font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+                      Cancel Process
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
 
-function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket }) {
+function SectionContent({ section, desktop, user, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, pct, creditsUsed, creditsLimit, getDailyUsage, invoiceRequested, requestInvoice, setShowDeleteModal, isHigh, isMid, fmtN, setShowInvoiceModal, cancelTicket }) {
   const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const isYearly = user?.billing_cycle === 'yearly';
 
@@ -364,10 +370,10 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
             )}
 
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-sm transition-colors">
+              <button onClick={() => window.location.href = '/manage-plan'} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-sm transition-colors">
                 Manage Plan <ChevronRight className="w-4 h-4" />
               </button>
-              <button onClick={() => navigate('/pricing')} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 shadow-sm transition-colors">
+              <button onClick={() => window.location.href = '/pricing'} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 shadow-sm transition-colors">
                 View Upgrades
               </button>
             </div>
@@ -405,7 +411,7 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
 
             {!isCancelApproved && !isCancelPending && (
               <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                <button onClick={() => navigate('/manage-plan')} className="text-[12px] font-semibold text-slate-400 hover:text-red-500 transition-colors">
+                <button onClick={() => window.location.href = '/manage-plan'} className="text-[12px] font-semibold text-slate-400 hover:text-red-500 transition-colors">
                   Cancel Subscription
                 </button>
               </div>
