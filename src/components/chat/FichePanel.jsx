@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, LayoutTemplate, Settings, ExternalLink, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, Sparkles } from 'lucide-react';
+import { Loader2, LayoutTemplate, Settings, ExternalLink, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, Sparkles, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 // --- ENTERPRISE DASHBOARD COMPONENT ---
-const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUnpublish, customSlug }) => {
+const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUnpublish, customSlug, onUpdateSlug }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
   const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
+  const [tempSlug, setTempSlug] = useState(customSlug);
+
+  useEffect(() => {
+    setTempSlug(customSlug);
+  }, [customSlug]);
 
   const handleSave = () => {
     if (onUpdateSettings) {
@@ -40,6 +45,12 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
             <LayoutDashboard className="w-4 h-4" /> Overview
           </button>
           <button 
+            onClick={() => setActiveTab('domains')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${activeTab === 'domains' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            <Globe className="w-4 h-4" /> Domains
+          </button>
+          <button 
             onClick={() => setActiveTab('settings')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
           >
@@ -53,7 +64,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
         
         {activeTab === 'overview' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Header Block */}
             <div className="flex gap-6 items-start mb-10">
               <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
                  <img src={LOGO_URL} alt="Logo" className="w-12 h-12 invert" />
@@ -84,7 +94,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
               </div>
             </div>
 
-            {/* SEO Meta Alert */}
             <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm">
               <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <p className="text-[13px] text-blue-800 leading-relaxed">
@@ -94,10 +103,48 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
           </motion.div>
         )}
 
+        {activeTab === 'domains' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+             <h2 className="text-2xl font-bold text-slate-900 mb-6">Domain Management</h2>
+             
+             {/* Built-in Subdomain */}
+             <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-6">
+                <h3 className="text-[15px] font-bold text-slate-900 mb-1">Wok Subdomain</h3>
+                <p className="text-[13px] text-slate-500 mb-5">Your app is currently published on the following sub-domain.</p>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="flex items-center w-full border border-slate-200 rounded-lg overflow-hidden focus-within:border-blue-500 transition-colors">
+                    <div className="bg-slate-50 px-3 py-2 border-r border-slate-200 text-[13px] text-slate-500 font-mono select-none hidden md:block">
+                      https://wok.base44.app/p/
+                    </div>
+                    <input 
+                      type="text" 
+                      maxLength={30}
+                      value={tempSlug} 
+                      onChange={(e) => setTempSlug(e.target.value)} 
+                      className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-slate-900" 
+                    />
+                  </div>
+                  <button onClick={() => onUpdateSlug && onUpdateSlug(tempSlug)} className="w-full sm:w-auto px-5 py-2 bg-slate-900 text-white text-[13px] font-bold rounded-lg shadow-sm hover:bg-slate-800 transition-colors whitespace-nowrap">
+                    Save Configuration
+                  </button>
+                </div>
+             </div>
+
+             {/* Custom Domain Placeholder */}
+             <div className="bg-slate-50/50 border border-dashed border-slate-300 p-8 rounded-2xl flex flex-col items-center justify-center text-center">
+                <Globe className="w-10 h-10 text-slate-400 mb-3" />
+                <h3 className="text-[15px] font-bold text-slate-900 mb-2">Custom Domains</h3>
+                <p className="text-[13px] text-slate-500 max-w-md leading-relaxed">
+                  Connecting or purchasing custom top-level domains (like .com or .io) directly through the application is currently under development. Coming soon.
+                </p>
+             </div>
+          </motion.div>
+        )}
+
         {activeTab === 'settings' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Visibility */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">App Visibility</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Control who can access your application.</p>
@@ -111,7 +158,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
                 </select>
               </div>
 
-              {/* Badge Control */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="text-[15px] font-bold text-slate-900 mb-1">White Label</h3>
                 <p className="text-[13px] text-slate-500 mb-5">Show or hide the "Built with WOK" badge.</p>
@@ -127,7 +173,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
               </div>
             </div>
 
-            {/* Clone Section */}
             <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex items-center justify-between">
                <div>
                   <h3 className="text-[15px] font-bold text-slate-900 mb-1">Clone Interface</h3>
@@ -138,7 +183,6 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
                </button>
             </div>
 
-            {/* Danger Zone */}
             <div className="border border-red-200 bg-red-50/50 p-6 rounded-2xl">
                <div className="flex items-center gap-2 mb-4">
                  <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -161,7 +205,7 @@ const AppDashboard = ({ settings = {}, onUpdateSettings, onClone, onDelete, onUn
   );
 };
 
-export default function FichePanel({ content = null, onError, onSuccess, isPublic = false, viewMode, setViewMode, appSettings = {}, onUpdateSettings, onClone, onDelete, onUnpublish, customSlug }) {
+export default function FichePanel({ content = null, onError, onSuccess, isPublic = false, viewMode, appSettings = {}, onUpdateSettings, onClone, onDelete, onUnpublish, customSlug, onUpdateSlug }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
 
@@ -242,7 +286,6 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
         ${watermarkHTML}
         
         <script>
-          // ERROR INJECTION REMOVED. FAIL SILENTLY TO PREVENT RED SCREENS.
           window.onerror = function(message) {
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
@@ -285,29 +328,12 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
   return (
     // pt-[56px] pushes the content below the absolute WorkspaceHeader to prevent click collisions
     <div className="w-full h-full relative font-sans flex flex-col pt-[56px]">
-      
-      {/* THE GREY STRUCTURAL BAR - NO ICONS, PURE TEXT */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative rounded-tl-xl border-l">
-        <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
-          <button 
-            onClick={() => setViewMode && setViewMode('preview')} 
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-          >
-            App Interface
-          </button>
-          <button 
-            onClick={() => setViewMode && setViewMode('dashboard')} 
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-          >
-            Dashboard
-          </button>
-        </div>
-      </div>
 
       <div className="flex-1 relative w-full h-full">
         {hasComponent ? (
-          viewMode === 'preview' ? (
-            <>
+          <>
+            {/* CSS VISIBILITY TOGGLE: Keeps the iframe mounted and active in the background */}
+            <div className={`absolute inset-0 w-full h-full ${viewMode === 'preview' ? 'block' : 'hidden'}`}>
               <AnimatePresence>
                 {isCompiling && (
                   <motion.div 
@@ -327,17 +353,21 @@ export default function FichePanel({ content = null, onError, onSuccess, isPubli
                 className="w-full h-full border-none absolute inset-0 z-0 bg-transparent border-l border-[#E5E5E5]"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
-            </>
-          ) : (
-            <AppDashboard 
-               settings={appSettings} 
-               onUpdateSettings={onUpdateSettings} 
-               onClone={onClone}
-               onDelete={onDelete}
-               onUnpublish={onUnpublish}
-               customSlug={customSlug}
-            />
-          )
+            </div>
+            
+            {/* DASHBOARD TOGGLE */}
+            <div className={`absolute inset-0 w-full h-full ${viewMode === 'dashboard' ? 'block' : 'hidden'}`}>
+              <AppDashboard 
+                 settings={appSettings} 
+                 onUpdateSettings={onUpdateSettings} 
+                 onClone={onClone}
+                 onDelete={onDelete}
+                 onUnpublish={onUnpublish}
+                 customSlug={customSlug}
+                 onUpdateSlug={onUpdateSlug}
+              />
+            </div>
+          </>
         ) : (
           <div className="flex items-center justify-center h-full w-full opacity-30 border-l border-t border-[#E5E5E5] rounded-tl-xl bg-white/50">
              <LayoutTemplate className="w-16 h-16 text-slate-400" />
