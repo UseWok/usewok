@@ -15,17 +15,20 @@ import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
-import SupportModal from '@/pages/SupportPage';
-import SettingsModal from '@/pages/SettingsPage';
+
+// IMPORT OVERLAY PAGES
+import SupportPage from '@/pages/SupportPage';
+import SettingsPage from '@/pages/SettingsPage';
+import PricingPage from '@/pages/PricingPage';
 
 import { 
   Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, Sparkles, AlertTriangle
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
+  <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0 transition-none">
     <div 
-      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none"
+      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none transition-none"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -83,17 +86,17 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-slate-900/60 backdrop-blur-sm p-4">
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-[500px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-100">
-        <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/80 p-4 transition-none antialiased">
+      <div className="relative w-full max-w-[500px] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-slate-100 transition-none">
+        <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-slate-100 rounded-full transition-none">
           <X className="w-5 h-5 text-slate-400 hover:text-slate-700" />
         </button>
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 sm:p-10 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 sm:p-10 relative overflow-hidden transition-none">
           <div className="absolute top-0 right-0 p-8 opacity-[0.04] pointer-events-none">
             <Key className="w-48 h-48 text-blue-900" />
           </div>
           <div className="relative z-10">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 mb-6">
+            <div className="w-12 h-12 bg-[#0062FF] rounded-2xl flex items-center justify-center shadow-lg mb-6">
                <Sparkles className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-2xl font-black text-slate-900 mb-2">Redeem Activation Code</h3>
@@ -106,28 +109,26 @@ const RedeemCodeModal = ({ open, onClose, user, setUser, setUserPlan }) => {
                 onChange={e => setActivationCode(e.target.value.toUpperCase())}
                 placeholder="Ex: WOK-9A7X-M2P4" 
                 maxLength={20}
-                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-all shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900'}`}
+                className={`flex-1 px-4 py-3.5 text-[14px] font-mono font-bold tracking-widest bg-white border rounded-xl focus:outline-none focus:ring-4 transition-none shadow-sm ${codeError ? 'border-red-300 focus:ring-red-500/20 text-red-900' : 'border-slate-200 focus:ring-[#0062FF]/20 focus:border-[#0062FF] text-slate-900'}`}
                 onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} 
               />
               <button 
                 onClick={activateCode} 
                 disabled={codeLoading || !activationCode.trim()}
-                className="px-8 py-3.5 text-[14px] font-bold bg-slate-900 text-white rounded-xl disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-md whitespace-nowrap"
+                className="px-8 py-3.5 text-[14px] font-bold bg-[#0062FF] text-white rounded-xl disabled:opacity-40 hover:bg-[#0052CC] transition-none shadow-md whitespace-nowrap"
               >
                 {codeLoading ? 'Authenticating...' : 'Unlock Features'}
               </button>
             </div>
-            <AnimatePresence>
-              {codeError && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm">
-                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                  <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {codeError && (
+              <div className="mt-4 flex items-center gap-2.5 px-4 py-3 bg-white border border-red-200 rounded-xl shadow-sm transition-none">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <p className="text-[13px] font-semibold text-red-600">{codeError}</p>
+              </div>
+            )}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -208,8 +209,8 @@ export default function ChatPage() {
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   
-  // ALGORITHM: Calculate sequential Project ID based on discussion count
-  const projectSequenceNumber = discussions.length > 0 ? 3490 + discussions.length : 3490;
+  // ALGORITHM: Calculate sequential Project ID based on discussion count starting from 103
+  const projectSequenceNumber = discussions.length > 0 ? 103 + discussions.length : 103;
   
   const [appSettings, setAppSettings] = useState({
     title: `Project #${projectSequenceNumber}`,
@@ -219,15 +220,18 @@ export default function ChatPage() {
     appIcon: null
   });
 
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  // GLOBAL MODALS
+  // GLOBAL 95% OVERLAY MODALS
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
 
@@ -453,7 +457,7 @@ export default function ChatPage() {
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
-      saveToDiscussionsLogic("New Chat", text);
+      saveToDiscussionsLogic(`Project #${projectSequenceNumber}`, text); // Sequential name logic
       
       if (window.innerWidth < 768 && !discussMode) {
         setMobileView('preview');
@@ -464,7 +468,7 @@ export default function ChatPage() {
       setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
     }
-  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
+  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent, projectSequenceNumber]);
 
   useEffect(() => {
     if (runtimeError && !isLoading) {
@@ -535,122 +539,104 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
+    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative transition-none">
       
       {!isSidebarOpen && (
-        <div className="absolute top-4 left-4 z-[999]">
+        <div className="absolute top-4 left-4 z-[999] transition-none">
           <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
             <PanelLeft className="w-5 h-5" />
           </button>
         </div>
       )}
 
+      {/* RENDER THE 95% OVERLAY MODALS WITHOUT ROUTING */}
       <RedeemCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} setUser={setUser} setUserPlan={setUserPlan} />
-      <SupportModal open={showSupportModal} onClose={() => setShowSupportModal(false)} />
-      <SettingsModal open={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
+      <SupportPage open={showSupportPage} onClose={() => setShowSupportPage(false)} />
+      <SettingsPage open={showSettingsPage} onClose={() => setShowSettingsPage(false)} />
+      <PricingPage open={showPricingPage} onClose={() => setShowPricingPage(false)} />
 
       <aside className={`flex-shrink-0 h-full border-r border-slate-200 flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-white">
-          
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="w-[260px] flex flex-col h-full bg-white transition-none">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between transition-none">
              <h1 className="text-2xl font-[800] italic tracking-tighter text-slate-900">WOK</h1>
              <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-md transition-none border border-slate-200 bg-white shadow-none">
                <PanelLeftClose className="w-4 h-4" />
              </button>
           </div>
           
-          <div className="p-4 border-b border-slate-100 relative" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-slate-200 rounded-md hover:bg-slate-50 shadow-none transition-none">
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-5 h-5 bg-blue-600 text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
-                <span className="text-[13px] font-bold text-slate-900 truncate">{currentWorkspace?.name}</span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </button>
-            {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-slate-200 rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
-                {workspaces.map(w => (
-                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-slate-900 hover:bg-slate-50 flex items-center gap-2 rounded-md transition-none">
-                    <div className="w-5 h-5 bg-slate-200 text-slate-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
-                    <span className="flex-1 truncate">{w.name}</span>
-                    {w.current && <Check className="w-4 h-4 text-blue-600" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-4 mt-6">
+          <div className="flex-1 overflow-y-auto px-4 mt-6 transition-none">
              <div className="text-[11px] font-bold text-slate-400 mb-3 px-1 tracking-wider uppercase">Recents</div>
-             <ul className="space-y-0.5">
+             <ul className="space-y-0.5 transition-none">
                 {discussions?.map((d, idx) => (
                   <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-slate-100' : 'border border-transparent hover:bg-slate-50'}`}>
                     {editingId === d.id ? (
-                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-blue-600 text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
+                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0062FF] text-[13px] rounded px-2 py-0.5 focus:outline-none transition-none" onClick={(e) => e.stopPropagation()} />
                     ) : (
                       <>
-                        <div className="flex items-center gap-3 truncate w-[80%]">
+                        <div className="flex items-center gap-3 truncate w-[80%] transition-none">
                           <span onClick={(e) => { e.stopPropagation(); updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji }); }} className="text-[14px] hover:opacity-70 transition-none">{d.emoji || '📄'}</span>
-                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-slate-900 font-bold' : 'text-slate-700'}`}>{d.title || d.preview || 'New chat'}</span>
+                          <span className={`text-[13px] font-medium truncate transition-none ${conversationId === d.id ? 'text-slate-900 font-bold' : 'text-slate-700'}`}>{d.title || `Project #${103 + idx}`}</span>
                         </div>
-                        <div className="hidden group-hover:flex items-center gap-1.5 pl-2">
+                        <div className="hidden group-hover:flex items-center gap-1.5 pl-2 transition-none">
                           <button onClick={(e) => startEditing(e, d)} className="text-slate-400 hover:text-slate-900 transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
                           <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-slate-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </>
                     )}
-                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-blue-600 rounded-full z-10" />}
+                    {dragOverIdx === idx && <div className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#0062FF] rounded-full z-10 transition-none" />}
                   </li>
                 ))}
              </ul>
           </div>
 
-          <div className="px-4 py-3 border-t border-slate-100 mt-auto">
-            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 text-white rounded-md text-[13px] font-bold hover:bg-blue-700 shadow-sm transition-colors">
+          <div className="px-4 py-3 border-t border-slate-100 mt-auto transition-none">
+            <button onClick={() => window.location.reload()} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0062FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0052CC] shadow-sm transition-none">
               <Plus className="w-4 h-4" /> New Project
             </button>
           </div>
 
-          <div className="p-4 border-t border-slate-100 relative" ref={profileMenuRef}>
+          <div className="p-4 border-t border-slate-100 relative transition-none" ref={profileMenuRef}>
             {isProfileMenuOpen && (
               <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
-                <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
+                <div className="px-3 py-2.5 border-b border-slate-100 mb-1 transition-none">
                   <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
                   <p className="text-[11.5px] text-slate-500 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
-                <div className="h-px bg-slate-100 my-1 mx-2"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); navigate('/pricing'); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 group rounded-md transition-colors"><ArrowUpCircle className="w-4 h-4 text-blue-600" /> Upgrade Plan</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-colors"><Key className="w-4 h-4 text-slate-400" /> Redeem Code</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
+                <div className="h-px bg-slate-100 my-1 mx-2 transition-none"></div>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowPricingPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-900 font-bold hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0062FF]" /> Upgrade Plan</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-slate-400" /> Redeem Code</button>
               </div>
             )}
-            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors w-full text-left">
-              <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: '#8B5CF6' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
-              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p></div>
-              <MoreHorizontal className="w-4 h-4 text-slate-400" />
+            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-none w-full text-left">
+              <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm transition-none" style={{ backgroundColor: '#0062FF' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
+              <div className="flex-1 min-w-0 transition-none"><p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p></div>
+              <MoreHorizontal className="w-4 h-4 text-slate-400 transition-none" />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
-      {isSidebarOpen && window.innerWidth < 768 && (
-        <div className="fixed inset-0 bg-slate-900/20 z-[45] backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-      )}
-
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
-        
-        <div className="flex flex-1 overflow-hidden w-full h-full">
-          
-          <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
-            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
-              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
-              <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
-              <div ref={messagesEndRef} className="h-4" />
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full transition-none">
+        <div className="flex items-center justify-end p-3 md:hidden transition-none">
+          {hasStarted && (
+            <div className="flex bg-slate-100 p-1 rounded-md ml-auto z-50 transition-none">
+              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded transition-none ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-slate-500'}`}>Chat</button>
+              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded transition-none ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-slate-500'}`}>Preview</button>
             </div>
-            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+          )}
+        </div>
+
+        <div className="flex flex-1 overflow-hidden w-full h-full transition-none">
+          <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden transition-none ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
+              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10 transition-none"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
+              {messages?.map((msg, idx) => (<div key={idx} className="transition-none">{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+              <AssistantMessage content={ficheContent} isGenerating={isLoading} />
+              <div ref={messagesEndRef} className="h-4 transition-none" />
+            </div>
+            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible transition-none ${!hasStarted ? 'pb-10 w-full' : ''}`}>
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
             </div>
           </div>
@@ -667,14 +653,15 @@ export default function ChatPage() {
                    setCustomSlug={setCustomSlug}
                    appSettings={appSettings}
                  />
-                 <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
+                 <div className="flex-1 overflow-hidden relative bg-transparent transition-none">
                    <FichePanel 
                      content={ficheContent} 
                      onError={setRuntimeError} 
                      onSuccess={() => setRuntimeError(null)} 
                      viewMode={viewMode} 
+                     setViewMode={setViewMode}
                      appSettings={appSettings}
-                     onUpdateSettings={handleUpdateAppMeta}
+                     onUpdateSettings={setAppSettings}
                      onClone={handleCloneApp}
                      onDelete={handleDeleteApp}
                      onUnpublish={handleUnpublishApp}
