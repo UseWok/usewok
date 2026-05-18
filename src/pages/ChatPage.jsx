@@ -227,52 +227,15 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
-  // GLOBAL MODAL STATES
+  // ==========================================
+  // GLOBAL OVERLAY STATES
+  // ==========================================
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showSupportPage, setShowSupportPage] = useState(false);
+  const [showSettingsPage, setShowSettingsPage] = useState(false);
+  const [showPricingPage, setShowPricingPage] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
-
-  const handleSwitchWorkspace = (id) => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
-    setWorkspaces(updated);
-    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    setDiscussions(getLocalDiscussions(id) || []);
-    setShowWorkspaceSwitcher(false);
-    navigate('/'); 
-  };
-
-  const updateDiscussion = (id, updates) => {
-    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
-    setDiscussions(updated);
-    saveLocalDiscussions(currentWorkspace.id, updated);
-  };
-
-  const deleteDiscussion = (e, id) => {
-    e.stopPropagation();
-    const updated = discussions.filter(d => d.id !== id);
-    setDiscussions(updated);
-    saveLocalDiscussions(currentWorkspace.id, updated);
-    if (conversationId === id) navigate('/');
-  };
-
-  const startEditing = (e, d) => { e.stopPropagation(); setEditingId(d.id); setEditTitle(d.title || d.preview || 'New Chat'); };
-  const saveEdit = (id) => { if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() }); setEditingId(null); };
-
-  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
-
-  const handleDrop = (idx) => {
-    if (draggedItemIdx === null || draggedItemIdx === idx) return;
-    const newDiscussions = [...discussions];
-    const [draggedItem] = newDiscussions.splice(draggedItemIdx, 1);
-    newDiscussions.splice(idx, 0, draggedItem);
-    setDiscussions(newDiscussions);
-    saveLocalDiscussions(currentWorkspace.id, newDiscussions);
-    setDraggedItemIdx(null); setDragOverIdx(null);
-  };
 
   const [messages, setMessages] = useState(() => {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
@@ -344,6 +307,15 @@ export default function ChatPage() {
   }, [conversationId]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const handleSwitchWorkspace = (id) => {
+    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
+    setWorkspaces(updated);
+    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
+    setDiscussions(getLocalDiscussions(id) || []);
+    setShowWorkspaceSwitcher(false);
+    navigate('/'); 
+  };
 
   const saveToDiscussionsLogic = (convTitle, text) => {
     try {
@@ -538,6 +510,25 @@ export default function ChatPage() {
     toast.success("Application deleted permanently.");
   };
 
+  const updateDiscussion = (id, updates) => {
+    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
+    setDiscussions(updated);
+    saveLocalDiscussions(currentWorkspace.id, updated);
+  };
+
+  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
+
+  const handleDrop = (idx) => {
+    if (draggedItemIdx === null || draggedItemIdx === idx) return;
+    const newDiscussions = [...discussions];
+    const [draggedItem] = newDiscussions.splice(draggedItemIdx, 1);
+    newDiscussions.splice(idx, 0, draggedItem);
+    setDiscussions(newDiscussions);
+    saveLocalDiscussions(currentWorkspace.id, newDiscussions);
+    setDraggedItemIdx(null); setDragOverIdx(null);
+  };
+
   return (
     <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative transition-none">
       
@@ -590,7 +581,7 @@ export default function ChatPage() {
           </div>
 
           <div className="px-4 py-3 border-t border-slate-100 mt-auto transition-none">
-            <button onClick={() => window.location.reload()} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0062FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0052CC] shadow-sm transition-none">
+            <button onClick={() => window.location.href = '/'} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0062FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0052CC] shadow-sm transition-none">
               <Plus className="w-4 h-4" /> New Project
             </button>
           </div>
@@ -600,7 +591,6 @@ export default function ChatPage() {
               <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 font-sans p-1.5 transition-none">
                 <div className="px-3 py-2.5 border-b border-slate-100 mb-1 transition-none">
                   <p className="text-[13px] font-bold text-slate-900 truncate">{user?.full_name || 'User'}</p>
-                  <p className="text-[11.5px] text-slate-500 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSettingsPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-slate-400" /> Settings</button>
                 <button onClick={() => { setIsProfileMenuOpen(false); setShowSupportPage(true); }} className="w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-slate-400" /> Support Center</button>
@@ -617,6 +607,11 @@ export default function ChatPage() {
           </div>
         </div>
       </aside>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && window.innerWidth < 768 && (
+        <div className="fixed inset-0 bg-slate-900/20 z-[45] backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+      )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full transition-none">
         <div className="flex items-center justify-end p-3 md:hidden transition-none">
