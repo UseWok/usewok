@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// ChatPage.jsx  ── Layout updated for floating preview panel
+// ChatPage.jsx  ── Layout updated for floating preview panel with 200ms Ease-Out
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,7 +19,7 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 
 import { 
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2
+  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, ChevronsLeft
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
@@ -109,6 +109,17 @@ CRITICAL RULES:
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
 RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
+const getBackgroundGradient = (theme) => {
+  switch(theme) {
+    case 'wok_clean': return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+    case 'deep_void': return 'linear-gradient(180deg, #050505 0%, #121212 100%)';
+    case 'yuzu_accent': return 'linear-gradient(180deg, #0A0A0A 0%, #1A1C00 100%)';
+    case 'corporate_sand': return 'linear-gradient(180deg, #FDFBF7 0%, #EFEBE0 100%)';
+    case 'brutalism': return 'linear-gradient(180deg, #E5E5E5 0%, #C0C0C0 100%)';
+    default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+  }
+};
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -133,6 +144,9 @@ export default function ChatPage() {
 
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
+  
+  // NEW STATE: Toggle the preview panel width
+  const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -606,21 +620,37 @@ export default function ChatPage() {
 
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
-          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#2A2A2A] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
-            <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
-              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale brightness-0 invert opacity-60" /><h2 className="text-[24px] font-bold text-white">How can I help you today?</h2></div>}
-              {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
-              <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
-              <div ref={messagesEndRef} className="h-4" />
-            </div>
-            <div className={`flex-shrink-0 p-3 md:p-4 bg-[#0F0F0F] overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
-              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+          {/* ── CHAT PANEL ── */}
+          {/* Applies 200ms cubic-bezier transition to slide/expand the chat layout when preview is toggled */}
+          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? (isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-full md:w-[340px] md:min-w-[340px] border-r border-[#2A2A2A] z-[100]') : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+            
+            {/* The Expand Button (ChevronsLeft) - only visible when the preview is collapsed */}
+            {isPreviewCollapsed && hasStarted && (
+              <div className="absolute top-4 right-4 z-[999] hidden md:block">
+                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-gray-500 hover:text-white transition-all duration-[200ms] rounded-md bg-[#1A1A1A] border border-[#2A2A2A] shadow-sm flex items-center justify-center" title="Expand Preview">
+                  <ChevronsLeft className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+
+            {/* Inner Chat Container centers content beautifully when in full screen mode */}
+            <div className={`flex flex-col w-full h-full transition-all duration-[200ms] ${hasStarted && isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
+              <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
+                {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale brightness-0 invert opacity-60" /><h2 className="text-[24px] font-bold text-white">How can I help you today?</h2></div>}
+                {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+                <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
+                <div ref={messagesEndRef} className="h-4" />
+              </div>
+              <div className={`flex-shrink-0 p-3 md:p-4 bg-[#0F0F0F] overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              </div>
             </div>
           </div>
           
+          {/* ── PREVIEW PANEL ── */}
           {hasStarted && (
-            <div className={`flex-1 bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
-              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#0F0F0F]`}>
+            <div className={`bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'flex-1 opacity-100'} z-0 relative`}>
+              <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#0F0F0F]">
                  <WorkspaceHeader 
                    onReload={handleReload} 
                    convId={conversationId || convId} 
@@ -628,6 +658,7 @@ export default function ChatPage() {
                    setViewMode={setViewMode}
                    customSlug={customSlug}
                    setCustomSlug={setCustomSlug}
+                   onTogglePreview={() => setIsPreviewCollapsed(true)}
                  />
                  <div className="flex-1 overflow-hidden relative bg-[#0F0F0F] p-4 pt-0">
                    <FichePanel 
