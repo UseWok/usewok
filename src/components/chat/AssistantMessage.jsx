@@ -45,10 +45,10 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     return (
       <div className="flex justify-start w-full mb-6 font-sans px-4 md:px-0">
         <div className="flex flex-col relative w-full max-w-[85%]">
-          <div className="absolute -inset-4 bg-white/60 blur-xl rounded-full z-0 pointer-events-none"></div>
-          <div className="relative z-10 border-l-[3px] border-gray-200 pl-4 py-1 space-y-3">
-            <span className="text-[12px] font-bold text-[#0080ff] mb-2 block tracking-widest uppercase flex items-center gap-2">
-              <div className="w-[14px] h-[14px] rounded-full border-2 border-t-[#0080ff] border-gray-200 animate-spin"></div>
+          <div className="absolute -inset-4 bg-[#0055FF]/10 blur-xl rounded-full z-0 pointer-events-none"></div>
+          <div className="relative z-10 border-l-[3px] border-[#2A2A2A] pl-4 py-1 space-y-3">
+            <span className="text-[12px] font-bold text-[#0055FF] mb-2 block tracking-widest uppercase flex items-center gap-2">
+              <div className="w-[14px] h-[14px] rounded-full border-2 border-t-[#0055FF] border-[#2A2A2A] animate-spin"></div>
               Compiling Ecosystem
             </span>
             <AnimatePresence mode="wait">
@@ -59,7 +59,7 @@ export default function AssistantMessage({ content, isGenerating, query }) {
                 exit={{ opacity: 0, y: -5, transition: { duration: 0.1 } }}
                 className="flex items-center gap-2.5"
               >
-                <span className="text-[13px] text-gray-900 font-medium" style={{ fontFamily: '"Open Sans", sans-serif' }}>
+                <span className="text-[13px] text-white font-medium" style={{ fontFamily: '"Open Sans", sans-serif' }}>
                   {LOADING_STATUSES[currentStatusIndex]}
                 </span>
               </motion.div>
@@ -78,13 +78,13 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     // If the text is exactly the success string we set in ChatPage.jsx, render the sleek UI badge.
     if (safeText.includes("✨ Architecture generated successfully") || safeText.includes("✨ Architecture successfully recompiled")) {
       return (
-        <div className="flex items-center gap-3 px-4 py-3 bg-white border border-[#E5E5E5] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] max-w-fit">
-          <div className="p-2 bg-[#F4F8FE] rounded-lg">
-            <LayoutTemplate className="w-5 h-5 text-[#0080ff]" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.2)] max-w-fit">
+          <div className="p-2 bg-[#0055FF]/10 rounded-lg">
+            <LayoutTemplate className="w-5 h-5 text-[#0055FF]" />
           </div>
           <div className="flex flex-col">
-             <span className="text-[13px] font-bold text-[#0d0d0d] tracking-tight leading-none mb-1">Architecture Compiled</span>
-             <span className="text-[11.5px] font-medium text-gray-500 leading-none">View result in the preview panel</span>
+             <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">Architecture Compiled</span>
+             <span className="text-[11.5px] font-medium text-gray-400 leading-none">View result in the preview panel</span>
           </div>
         </div>
       );
@@ -92,7 +92,7 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
     // Otherwise, render text normally
     return (
-      <div className="prose prose-sm max-w-none text-gray-700" style={{ fontSize: '14.5px', fontWeight: 300, lineHeight: 1.8, fontFamily: '"Open Sans", sans-serif' }}>
+      <div className="prose prose-sm max-w-none text-white prose-invert" style={{ fontSize: '14.5px', fontWeight: 300, lineHeight: 1.8, fontFamily: '"Open Sans", sans-serif' }}>
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {safeText}
         </ReactMarkdown>
