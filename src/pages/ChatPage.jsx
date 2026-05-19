@@ -1,6 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// ChatPage.jsx  ── ONLY CHANGE vs original:
-//   Complete visual overhaul to full dark mode. Everything else is preserved.
+// ChatPage.jsx  ── Layout updated for floating preview panel
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -42,7 +41,7 @@ const IframeModal = ({ open, url, onClose }) => {
         <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white rounded-md transition-none shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
-        <iframe src={url} className="w-full h-full border-none bg-white" />
+        <iframe src={url} className="w-full h-full border-none bg-white rounded-b-lg" />
       </div>
     </div>
   );
@@ -109,17 +108,6 @@ CRITICAL RULES:
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
 RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
-
-const getBackgroundGradient = (theme) => {
-  switch(theme) {
-    case 'wok_clean': return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
-    case 'deep_void': return 'linear-gradient(180deg, #050505 0%, #121212 100%)';
-    case 'yuzu_accent': return 'linear-gradient(180deg, #0A0A0A 0%, #1A1C00 100%)';
-    case 'corporate_sand': return 'linear-gradient(180deg, #FDFBF7 0%, #EFEBE0 100%)';
-    case 'brutalism': return 'linear-gradient(180deg, #E5E5E5 0%, #C0C0C0 100%)';
-    default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
-  }
-};
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -637,10 +625,11 @@ export default function ChatPage() {
                    onReload={handleReload} 
                    convId={conversationId || convId} 
                    viewMode={viewMode}
+                   setViewMode={setViewMode}
                    customSlug={customSlug}
                    setCustomSlug={setCustomSlug}
                  />
-                 <div className="flex-1 overflow-hidden relative bg-transparent" style={{ background: getBackgroundGradient(appearance.theme) }}>
+                 <div className="flex-1 overflow-hidden relative bg-[#0F0F0F] p-4 pt-0">
                    <FichePanel 
                      content={ficheContent} 
                      onError={setRuntimeError} 
