@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
  
 // ─────────────────────────────────────────────
-// CODE EDITOR PANEL
+// CODE EDITOR PANEL (DARK THEME - #0F0F0F)
 // ─────────────────────────────────────────────
 const CodeEditorPanel = ({ code, onUpdateContent }) => {
   const [editedCode, setEditedCode] = useState(code || '');
@@ -84,10 +84,10 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
   const isEmpty = !code;
  
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#0F0F0F]">
  
       {/* ── Editor top bar ── */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#F8F9FA] border-b border-[#E5E5E5]">
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#1A1A1A] border-b border-[#2A2A2A]">
         <div className="flex items-center gap-3">
           {/* macOS-style traffic lights */}
           <div className="flex items-center gap-1.5">
@@ -98,7 +98,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
  
           <div className="flex items-center gap-2 ml-2">
             <FileCode className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[12px] font-semibold text-slate-600 font-mono">App.jsx</span>
+            <span className="text-[12px] font-semibold text-slate-300 font-mono">App.jsx</span>
             {hasChanges && (
               <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" title="Unsaved changes" />
             )}
@@ -106,17 +106,17 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
         </div>
  
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-[#2A2A2A] border border-[#3A3A3A] px-2 py-0.5 rounded font-mono">
             JSX · React 18
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-slate-500 font-mono">
             {lines.length} lines
           </span>
         </div>
       </div>
  
       {/* ── Legend ── */}
-      <div className="shrink-0 flex items-center gap-4 px-4 py-1.5 bg-[#FAFAFA] border-b border-[#F0F0F0]">
+      <div className="shrink-0 flex items-center gap-4 px-4 py-1.5 bg-[#0F0F0F] border-b border-[#2A2A2A]">
         {[
           { color: '#60A5FA', label: 'import' },
           { color: '#34D399', label: 'declaration' },
@@ -125,17 +125,17 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
-            <span className="text-[10px] text-slate-400 font-mono">{label}</span>
+            <span className="text-[10px] text-slate-500 font-mono">{label}</span>
           </div>
         ))}
-        <span className="ml-auto text-[10px] text-slate-400 font-mono">⌘S / Ctrl+S to save</span>
+        <span className="ml-auto text-[10px] text-slate-500 font-mono">⌘S / Ctrl+S to save</span>
       </div>
  
       {/* ── Editor body ── */}
       {isEmpty ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center text-slate-300 select-none">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center text-slate-500 select-none">
           <Code2 className="w-14 h-14 stroke-1" />
-          <p className="text-[14px] font-medium">No code yet</p>
+          <p className="text-[14px] font-medium text-slate-400">No code yet</p>
           <p className="text-[12px]">Send a message in the chat to generate your app.</p>
         </div>
       ) : (
@@ -144,7 +144,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
           {/* Line numbers gutter */}
           <div
             ref={lineNumbersRef}
-            className="overflow-hidden select-none shrink-0 bg-[#F8F9FA] border-r border-[#EBEBEB]"
+            className="overflow-hidden select-none shrink-0 bg-[#1A1A1A] border-r border-[#2A2A2A]"
             style={{ lineHeight: `${LINE_H}px` }}
           >
             <div className="py-4 px-0">
@@ -164,7 +164,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
                     )}
                     <span
                       className="text-right text-[11px] tabular-nums"
-                      style={{ color: '#C8CDD6', minWidth: 24 }}
+                      style={{ color: '#555', minWidth: 24 }}
                     >
                       {i + 1}
                     </span>
@@ -181,10 +181,10 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             onChange={handleChange}
             onScroll={handleScroll}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-white text-[#1E293B] resize-none outline-none overflow-auto py-4 px-4 text-[13px] leading-none"
+            className="flex-1 bg-[#0F0F0F] text-[#E2E8F0] resize-none outline-none overflow-auto py-4 px-4 text-[13px] leading-none"
             style={{
               lineHeight: `${LINE_H}px`,
-              caretColor: '#0080ff',
+              caretColor: '#0055FF',
               tabSize: 2,
               fontFamily: '"Fira Code", "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, monospace',
             }}
@@ -204,8 +204,8 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 56, opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-[#E5E5E5] bg-white"
-            style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.06)' }}
+            className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-[#2A2A2A] bg-[#1A1A1A]"
+            style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.4)' }}
           >
             <span className="text-[12px] text-slate-400 font-medium">
               Unsaved changes
@@ -213,13 +213,13 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             <div className="flex items-center gap-2.5">
               <button
                 onClick={handleCancel}
-                className="px-4 py-1.5 text-[13px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-1.5 text-[13px] font-semibold text-slate-300 bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 px-5 py-1.5 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-lg transition-colors shadow-sm"
+                className="flex items-center gap-2 px-5 py-1.5 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-lg transition-colors shadow-sm"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Save
@@ -277,7 +277,7 @@ const AdvancedSettingsPanel = ({ settings = {}, onUpdateSettings }) => (
           <span className="text-[13px] font-semibold text-slate-700">Enable Password Gate</span>
           <button
             onClick={() => onUpdateSettings && onUpdateSettings({ ...settings, passwordProtected: !settings.passwordProtected })}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.passwordProtected ? 'bg-blue-600' : 'bg-slate-300'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.passwordProtected ? 'bg-[#0055FF]' : 'bg-slate-300'}`}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${settings.passwordProtected ? 'translate-x-5' : 'translate-x-1'}`} />
           </button>
@@ -370,7 +370,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
             <span className="text-[13px] font-semibold text-slate-700">Platform Badge</span>
             <button
               onClick={() => onUpdateSettings && onUpdateSettings({ ...settings, showBadge: !settings.showBadge })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.showBadge ? 'bg-blue-600' : 'bg-slate-300'}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.showBadge ? 'bg-[#0055FF]' : 'bg-slate-300'}`}
             >
               <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${settings.showBadge ? 'translate-x-5' : 'translate-x-1'}`} />
             </button>
@@ -411,7 +411,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
  
  
 // ─────────────────────────────────────────────
-// ENTERPRISE DASHBOARD COMPONENT
+// ENTERPRISE DASHBOARD COMPONENT (Retained for completeness, visually bypassed when in code mode)
 // ─────────────────────────────────────────────
 const AppDashboard = ({
   settings = {},
@@ -618,20 +618,21 @@ export default function FichePanel({
   return (
     <div className="w-full h-full relative font-sans flex flex-col pt-[56px]">
  
-      {/* ── Top tab bar (App Interface / Dashboard) — always visible ── */}
+      {/* ── Top tab bar (App Interface / Code) — always visible ── */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative rounded-tl-xl border-l">
         <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
           <button
             onClick={() => setViewMode && setViewMode('preview')}
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
             App Interface
           </button>
           <button
-            onClick={() => setViewMode && setViewMode('dashboard')}
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'dashboard' ? 'bg-[#0080ff] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+            onClick={() => setViewMode && setViewMode('code')}
+            className={`flex items-center gap-2 px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
           >
-            Dashboard
+            <Code2 className="w-4 h-4" />
+            Code
           </button>
         </div>
       </div>
@@ -648,8 +649,8 @@ export default function FichePanel({
                     className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md border-l border-[#E5E5E5]"
                   >
                     <div className="p-4 bg-white rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
-                      <Loader2 className="w-6 h-6 text-[#0080ff] animate-spin mb-2" />
-                      <span className="text-[11px] font-bold text-[#0080ff] uppercase tracking-widest">Building</span>
+                      <Loader2 className="w-6 h-6 text-[#0055FF] animate-spin mb-2" />
+                      <span className="text-[11px] font-bold text-[#0055FF] uppercase tracking-widest">Building</span>
                     </div>
                   </motion.div>
                 )}
@@ -661,6 +662,8 @@ export default function FichePanel({
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
             </>
+          ) : viewMode === 'code' ? (
+            <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />
           ) : (
             <AppDashboard
               settings={appSettings}
