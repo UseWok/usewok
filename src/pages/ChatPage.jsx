@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatPage.jsx  ── ONLY CHANGE vs original:
-//   onUpdateContent={setFicheContent}  added to <FichePanel />  (line ~394)
+//   Complete visual overhaul to full dark mode. Everything else is preserved.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,7 +26,7 @@ import {
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
     <div 
-      className="bg-[#E8E8E8] text-[#0d0d0d] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-none border-none"
+      className="bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
     >
       {msg.content}
@@ -37,9 +37,9 @@ const CustomUserMessageBubble = ({ msg }) => (
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
-      <div className="relative w-[95vw] h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-gray-100/80 hover:bg-gray-200 text-gray-800 rounded-md transition-none shadow-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
+      <div className="relative w-[95vw] h-[95vh] bg-[#1A1A1A] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
+        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white rounded-md transition-none shadow-sm">
           <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
         <iframe src={url} className="w-full h-full border-none bg-white" />
@@ -51,20 +51,20 @@ const IframeModal = ({ open, url, onClose }) => {
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60 backdrop-blur-sm">
-      <div className="relative w-[95%] md:w-[480px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-        <div className="p-5 border-b border-[#E5E5E5] flex justify-between items-center bg-[#F9F9F9]">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
+      <div className="relative w-[95%] md:w-[480px] bg-[#1A1A1A] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
+        <div className="p-5 border-b border-[#2A2A2A] flex justify-between items-center bg-[#1A1A1A]">
           <div>
-            <h2 className="text-[16px] font-bold text-[#333333]">{title}</h2>
-            {subtitle && <p className="text-[12px] text-[#707070] mt-0.5">{subtitle}</p>}
+            <h2 className="text-[16px] font-bold text-white">{title}</h2>
+            {subtitle && <p className="text-[12px] text-gray-400 mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 text-gray-500 rounded-md transition-colors"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 hover:bg-[#2A2A2A] text-white rounded-md transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5">{children}</div>
         {actionText && (
-          <div className="p-4 border-t border-[#E5E5E5] bg-[#F9F9F9] flex justify-end gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
-            <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors">{actionText}</button>
+          <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
+            <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">{actionText}</button>
           </div>
         )}
       </div>
@@ -477,22 +477,22 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-[#FAFAFA] overflow-hidden antialiased relative">
+    <div className="flex font-sans h-screen w-full bg-[#0F0F0F] overflow-hidden antialiased relative">
       
       {!isSidebarOpen && (
         <div className="absolute top-4 left-4 z-[999]">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-none rounded-md bg-white border border-[#E5E5E5] shadow-sm">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 text-gray-400 hover:text-white hover:bg-[#2A2A2A] transition-none rounded-md bg-[#1A1A1A] border border-[#2A2A2A] shadow-sm">
             <PanelLeft className="w-5 h-5" />
           </button>
         </div>
       )}
 
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
-        <label className="text-[12px] font-semibold text-[#707070] mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0055FF] mb-4" autoFocus />
-        <div className="bg-[#F9F8F6] p-4 rounded-lg border border-[#E5E5E5]">
-          <h4 className="text-[12px] font-bold text-[#333333] mb-2.5">What happens next?</h4>
-          <ul className="text-[11.5px] text-[#707070] space-y-2">
+        <label className="text-[12px] font-semibold text-white mb-1.5 block">Workspace name *</label>
+        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#2A2A2A] bg-[#0F0F0F] text-white rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0055FF] mb-4" autoFocus />
+        <div className="bg-[#0F0F0F] p-4 rounded-lg border border-[#2A2A2A]">
+          <h4 className="text-[12px] font-bold text-white mb-2.5">What happens next?</h4>
+          <ul className="text-[11.5px] text-gray-400 space-y-2">
             <li>• You will be the owner with full management permissions</li>
             <li>• You can invite members and manage licenses</li>
             <li>• Access your workspace dashboard to get started</li>
@@ -501,68 +501,68 @@ export default function ChatPage() {
       </ProModal>
 
       <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
-        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#E5E5E5] rounded-md px-3 py-2 text-[13px] focus:outline-none" />
+        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#2A2A2A] bg-[#0F0F0F] text-white rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
-      <aside className={`flex-shrink-0 h-full border-r border-[#E5E5E5] flex flex-col z-[50] transition-none absolute md:relative bg-white ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-white">
+      <aside className={`flex-shrink-0 h-full border-r border-[#2A2A2A] flex flex-col z-[50] transition-none absolute md:relative bg-[#0F0F0F] ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
+        <div className="w-[260px] flex flex-col h-full bg-[#0F0F0F]">
           
-          <div className="p-4 border-b border-black/5 flex items-center justify-between">
-             <h1 className="text-2xl font-[800] italic tracking-tighter text-[#0d0d0d]">WOK</h1>
-             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-none border border-[#E5E5E5] bg-white shadow-none">
+          <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between">
+             <h1 className="text-2xl font-[800] italic tracking-tighter text-white">WOK</h1>
+             <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-gray-400 hover:bg-[#1A1A1A] rounded-md transition-none border border-[#2A2A2A] bg-[#0F0F0F] shadow-none">
                <PanelLeftClose className="w-4 h-4" />
              </button>
           </div>
           
-          <div className="p-4 border-b border-black/5 relative" ref={workspaceRef}>
-            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-md hover:bg-gray-50 shadow-none transition-none">
+          <div className="p-4 border-b border-[#2A2A2A] relative" ref={workspaceRef}>
+            <button onClick={() => setShowWorkspaceSwitcher(!showWorkspaceSwitcher)} className="flex items-center justify-between w-full px-3 py-2.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md hover:bg-[#2A2A2A] shadow-none transition-none">
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <div className="w-5 h-5 bg-[#0055FF] text-white rounded-[4px] flex items-center justify-center text-[10px] font-bold">{currentWorkspace?.name?.charAt(0).toUpperCase()}</div>
-                <span className="text-[13px] font-bold text-[#333333] truncate">{currentWorkspace?.name}</span>
+                <span className="text-[13px] font-bold text-white truncate">{currentWorkspace?.name}</span>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </button>
             {showWorkspaceSwitcher && (
-              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-white border border-[#E5E5E5] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
+              <div className="absolute top-[calc(100%-8px)] left-4 right-4 bg-[#0F0F0F] border border-[#2A2A2A] rounded-md shadow-xl py-2 z-50 p-1.5 transition-none">
                 {workspaces.map(w => (
-                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-[#333333] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none">
-                    <div className="w-5 h-5 bg-gray-200 text-gray-600 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
+                  <button key={w.id} onClick={() => handleSwitchWorkspace(w.id)} className="w-full text-left px-3 py-2 text-[13px] font-medium text-white hover:bg-[#1A1A1A] flex items-center gap-2 rounded-md transition-none">
+                    <div className="w-5 h-5 bg-[#2A2A2A] text-gray-300 rounded-[4px] flex items-center justify-center text-[9px] font-bold">{w.name.charAt(0).toUpperCase()}</div>
                     <span className="flex-1 truncate">{w.name}</span>
                     {w.current && <Check className="w-4 h-4 text-[#0055FF]" />}
                   </button>
                 ))}
-                <div className="h-px bg-[#E5E5E5] my-2 mx-2"></div>
-                {workspaces.length < 4 && <button onClick={() => { setShowWorkspaceSwitcher(false); setShowWorkspaceModal(true); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0055FF] hover:bg-gray-50 flex items-center gap-2 rounded-md transition-none"><Plus className="w-4 h-4" /> Create workspace</button>}
+                <div className="h-px bg-[#2A2A2A] my-2 mx-2"></div>
+                {workspaces.length < 4 && <button onClick={() => { setShowWorkspaceSwitcher(false); setShowWorkspaceModal(true); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-[#0055FF] hover:bg-[#1A1A1A] flex items-center gap-2 rounded-md transition-none"><Plus className="w-4 h-4" /> Create workspace</button>}
               </div>
             )}
           </div>
 
           <div className="px-4 space-y-0.5 mt-3">
             {navItems.map((item) => (
-              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}>
+              <button key={item.label} onClick={() => navigate(item.path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-none ${item.active ? 'bg-[#1A1A1A] text-white font-bold border border-[#2A2A2A]' : 'text-gray-400 hover:bg-[#1A1A1A] border border-transparent hover:text-white'}`}>
                 <item.icon className="w-4 h-4" /><span>{item.label}</span>
               </button>
             ))}
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 mt-6">
-             <div className="text-[11px] font-bold text-gray-400 mb-3 px-1 tracking-wider uppercase font-sans">Recents</div>
+             <div className="text-[11px] font-bold text-gray-500 mb-3 px-1 tracking-wider uppercase font-sans">Recents</div>
              <ul className="space-y-0.5">
                 {discussions?.map((d, idx) => (
-                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-gray-100' : 'border border-transparent hover:bg-gray-50'}`}>
+                  <li key={d.id} draggable onDragStart={() => setDraggedItemIdx(idx)} onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }} onDrop={() => handleDrop(idx)} onClick={() => { navigate(`/chat?conversationId=${d.id}`); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`relative flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer group transition-none ${conversationId === d.id ? 'bg-[#1A1A1A] border border-[#2A2A2A]' : 'border border-transparent hover:bg-[#1A1A1A]'}`}>
                     {editingId === d.id ? (
-                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-white border border-[#0055FF] text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
+                      <input autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)} className="w-full bg-[#0F0F0F] border border-[#0055FF] text-white text-[13px] rounded px-2 py-0.5 focus:outline-none" onClick={(e) => e.stopPropagation()} />
                     ) : (
                       <>
                         <div className="flex items-center gap-3 truncate w-[80%]">
                           <span onClick={(e) => { e.stopPropagation(); updateDiscussion(d.id, { emoji: prompt("Enter emoji:", d.emoji || "📄") || d.emoji }); }} className="text-[14px] hover:opacity-70 transition-none">{d.emoji || '📄'}</span>
-                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-[#0d0d0d] font-semibold' : 'text-gray-700'}`}>{d.title || d.preview || 'New chat'}</span>
+                          <span className={`text-[13px] font-medium truncate ${conversationId === d.id ? 'text-white font-semibold' : 'text-gray-400 group-hover:text-gray-300'}`}>{d.title || d.preview || 'New chat'}</span>
                         </div>
                         <div className="hidden group-hover:flex items-center gap-1.5 pl-2">
-                          <button onClick={(e) => startEditing(e, d)} className="text-gray-400 hover:text-black transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-gray-400 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => startEditing(e, d)} className="text-gray-500 hover:text-white transition-none"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => deleteDiscussion(e, d.id)} className="text-gray-500 hover:text-red-500 transition-none"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </>
                     )}
@@ -572,29 +572,29 @@ export default function ChatPage() {
              </ul>
           </div>
 
-          <div className="px-4 py-3 border-t border-black/5 mt-auto">
+          <div className="px-4 py-3 border-t border-[#2A2A2A] mt-auto">
             <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0055FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0044CC] shadow-none transition-none">
               <Plus className="w-4 h-4" /> New chat
             </button>
           </div>
 
-          <div className="p-4 border-t border-black/5 relative" ref={profileMenuRef}>
+          <div className="p-4 border-t border-[#2A2A2A] relative" ref={profileMenuRef}>
             {isProfileMenuOpen && (
-              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-white border border-[#E5E5E5] rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.08)] py-1.5 z-50 font-sans p-1.5 transition-none">
-                <div className="px-3 py-2.5 border-b border-[#E5E5E5] mb-1">
-                  <p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p>
-                  <p className="text-[11.5px] text-[#707070] truncate">Plan: {userPlan?.name || 'Free'}</p>
+              <div className="absolute bottom-[calc(100%+12px)] left-4 w-[240px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.4)] py-1.5 z-50 font-sans p-1.5 transition-none">
+                <div className="px-3 py-2.5 border-b border-[#2A2A2A] mb-1">
+                  <p className="text-[13px] font-bold text-white truncate">{user?.full_name || 'User'}</p>
+                  <p className="text-[11.5px] text-gray-400 truncate">Plan: {userPlan?.name || 'Free'}</p>
                 </div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
-                <div className="h-px bg-[#E5E5E5] my-1 mx-2"></div>
-                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-[#333333] font-semibold hover:bg-gray-50 flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0055FF]" /> Upgrade</button>
-                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-[#707070] hover:bg-gray-50 flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/settings'}); }} className="w-full text-left px-3 py-2 text-[13px] text-gray-300 hover:text-white hover:bg-[#1A1A1A] flex items-center gap-2.5 rounded-md transition-none"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/support'}); }} className="w-full text-left px-3 py-2 text-[13px] text-gray-300 hover:text-white hover:bg-[#1A1A1A] flex items-center gap-2.5 rounded-md transition-none"><LifeBuoy className="w-4 h-4 text-gray-400" /> Support</button>
+                <div className="h-px bg-[#2A2A2A] my-1 mx-2"></div>
+                <button onClick={() => { setIsProfileMenuOpen(false); setIframeModal({open:true, url:'/pricing'}); }} className="w-full text-left px-3 py-2 text-[13px] text-white font-semibold hover:bg-[#1A1A1A] flex items-center gap-2.5 group rounded-md transition-none"><ArrowUpCircle className="w-4 h-4 text-[#0055FF]" /> Upgrade</button>
+                <button onClick={() => { setIsProfileMenuOpen(false); setShowCodeModal(true); }} className="w-full text-left px-3 py-2 text-[13px] text-gray-300 hover:text-white hover:bg-[#1A1A1A] flex items-center gap-2.5 rounded-md transition-none"><Key className="w-4 h-4 text-gray-400" /> I have a code...</button>
               </div>
             )}
-            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 border border-transparent hover:border-[#E5E5E5] transition-none w-full text-left">
+            <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center gap-3 p-2 rounded-md hover:bg-[#1A1A1A] border border-transparent hover:border-[#2A2A2A] transition-none w-full text-left">
               <div className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold shadow-sm" style={{ backgroundColor: '#8B5CF6' }}>{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
-              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-[#333333] truncate">{user?.full_name || 'User'}</p></div>
+              <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-white truncate">{user?.full_name || 'User'}</p></div>
               <MoreHorizontal className="w-4 h-4 text-gray-400" />
             </button>
           </div>
@@ -602,37 +602,37 @@ export default function ChatPage() {
       </aside>
 
       {isSidebarOpen && window.innerWidth < 768 && (
-        <div className="fixed inset-0 bg-black/20 z-[45]" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/60 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
         <div className="flex items-center justify-end p-3 md:hidden">
           {hasStarted && (
-            <div className="flex bg-gray-100 p-1 rounded-md ml-auto z-50">
-              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Chat</button>
-              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-white shadow-sm text-black' : 'text-gray-500'}`}>Preview</button>
+            <div className="flex bg-[#1A1A1A] border border-[#2A2A2A] p-1 rounded-md ml-auto z-50">
+              <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-[#2A2A2A] shadow-sm text-white' : 'text-gray-400'}`}>Chat</button>
+              <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-[#2A2A2A] shadow-sm text-white' : 'text-gray-400'}`}>Preview</button>
             </div>
           )}
         </div>
 
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
-          <div className={`flex flex-col bg-white overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#E5E5E5] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-none ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? 'w-full md:w-[23%] md:min-w-[300px] md:max-w-[340px] border-r border-[#2A2A2A] z-[100]' : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
-              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-30 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale" /><h2 className="text-[24px] font-bold text-[#0d0d0d]">How can I help you today?</h2></div>}
+              {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale brightness-0 invert opacity-60" /><h2 className="text-[24px] font-bold text-white">How can I help you today?</h2></div>}
               {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
               <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
               <div ref={messagesEndRef} className="h-4" />
             </div>
-            <div className={`flex-shrink-0 p-3 md:p-4 bg-white overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+            <div className={`flex-shrink-0 p-3 md:p-4 bg-[#0F0F0F] overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
             </div>
           </div>
           
           {hasStarted && (
-            <div className={`flex-1 bg-[#FAFAFA] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
-              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#FAFAFA]`}>
+            <div className={`flex-1 bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-none ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} md:w-[77%] z-0 relative`}>
+              <div className={`w-full h-full flex flex-col overflow-hidden transition-none bg-[#0F0F0F]`}>
                  <WorkspaceHeader 
                    onReload={handleReload} 
                    convId={conversationId || convId} 
