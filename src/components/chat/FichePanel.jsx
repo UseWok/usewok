@@ -84,19 +84,12 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
   const isEmpty = !code;
  
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#0F0F0F]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#0F0F0F] rounded-xl border border-[#2A2A2A]">
  
       {/* ── Editor top bar ── */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#1A1A1A] border-b border-[#2A2A2A]">
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#1A1A1A] border-b border-[#2A2A2A] rounded-t-xl">
         <div className="flex items-center gap-3">
-          {/* macOS-style traffic lights */}
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[#FF5F57] inline-block" />
-            <span className="w-3 h-3 rounded-full bg-[#FFBD2E] inline-block" />
-            <span className="w-3 h-3 rounded-full bg-[#28C840] inline-block" />
-          </div>
- 
-          <div className="flex items-center gap-2 ml-2">
+          <div className="flex items-center gap-2">
             <FileCode className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-[12px] font-semibold text-slate-300 font-mono">App.jsx</span>
             {hasChanges && (
@@ -139,7 +132,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
           <p className="text-[12px]">Send a message in the chat to generate your app.</p>
         </div>
       ) : (
-        <div className="flex flex-1 overflow-hidden font-mono">
+        <div className="flex flex-1 overflow-hidden font-mono bg-[#0F0F0F]">
  
           {/* Line numbers gutter */}
           <div
@@ -204,7 +197,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 56, opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-[#2A2A2A] bg-[#1A1A1A]"
+            className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-[#2A2A2A] bg-[#1A1A1A] rounded-b-xl"
             style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.4)' }}
           >
             <span className="text-[12px] text-slate-400 font-medium">
@@ -616,29 +609,10 @@ export default function FichePanel({
   `;
  
   return (
-    <div className="w-full h-full relative font-sans flex flex-col pt-[56px]">
+    <div className="w-full h-full relative font-sans flex flex-col">
  
-      {/* ── Top tab bar (App Interface / Code) — always visible ── */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#F9FAFB] border-b border-[#E5E5E5] shrink-0 z-20 shadow-sm relative rounded-tl-xl border-l">
-        <div className="flex items-center p-1 bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
-          <button
-            onClick={() => setViewMode && setViewMode('preview')}
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-          >
-            App Interface
-          </button>
-          <button
-            onClick={() => setViewMode && setViewMode('code')}
-            className={`flex items-center gap-2 px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-          >
-            <Code2 className="w-4 h-4" />
-            Code
-          </button>
-        </div>
-      </div>
- 
-      {/* ── Content area ── */}
-      <div className="flex-1 relative w-full h-full overflow-hidden">
+      {/* ── Content area (Fills completely, floating effect created by outer wrapper padding) ── */}
+      <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl border border-[#2A2A2A] shadow-xl">
         {hasComponent ? (
           viewMode === 'preview' ? (
             <>
@@ -646,21 +620,23 @@ export default function FichePanel({
                 {isCompiling && (
                   <motion.div
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md border-l border-[#E5E5E5]"
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#0F0F0F]/80 backdrop-blur-md"
                   >
-                    <div className="p-4 bg-white rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
+                    <div className="p-4 bg-[#1A1A1A] rounded-2xl shadow-2xl flex flex-col items-center border border-[#2A2A2A]">
                       <Loader2 className="w-6 h-6 text-[#0055FF] animate-spin mb-2" />
                       <span className="text-[11px] font-bold text-[#0055FF] uppercase tracking-widest">Building</span>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-              <iframe
-                title="Wok Live Preview"
-                srcDoc={srcDoc}
-                className="w-full h-full border-none absolute inset-0 z-0 bg-transparent border-l border-[#E5E5E5]"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              />
+              <div className="w-full h-full bg-white relative rounded-xl overflow-hidden">
+                <iframe
+                  title="Wok Live Preview"
+                  srcDoc={srcDoc}
+                  className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                />
+              </div>
             </>
           ) : viewMode === 'code' ? (
             <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />
@@ -678,8 +654,8 @@ export default function FichePanel({
             />
           )
         ) : (
-          <div className="flex items-center justify-center h-full w-full opacity-30 border-l border-t border-[#E5E5E5] rounded-tl-xl bg-white/50">
-            <LayoutTemplate className="w-16 h-16 text-slate-400" />
+          <div className="flex items-center justify-center h-full w-full opacity-30 bg-[#1A1A1A]">
+            <LayoutTemplate className="w-16 h-16 text-gray-500" />
           </div>
         )}
       </div>
