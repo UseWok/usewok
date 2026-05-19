@@ -12,7 +12,7 @@ const FacebookIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill
 const WhatsAppIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>);
 
 const Toggle = ({ enabled, onChange }) => (
-  <button onClick={onChange} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ease-in-out ${enabled ? 'bg-[#0080ff]' : 'bg-[#E5E5E5]'}`}>
+  <button onClick={onChange} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ease-in-out ${enabled ? 'bg-[#0055FF]' : 'bg-[#2A2A2A]'}`}>
     <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out" style={{ transform: enabled ? 'translateX(18px)' : 'translateX(2px)' }} />
   </button>
 );
@@ -105,17 +105,17 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
   return (
     <>
       {showDomainModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/60">
-          <div className="relative w-[95%] md:w-[520px] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#E5E5E5]">
-            <div className="p-5 border-b border-[#E5E5E5] bg-[#F9F9F9]">
-              <h2 className="text-[16px] font-bold text-[#333333]">Custom Domain Configuration</h2>
-              <p className="text-[12px] text-[#707070] mt-1">Manage the public access link for your workspace project.</p>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
+          <div className="relative w-[95%] md:w-[520px] bg-[#0F0F0F] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
+            <div className="p-5 border-b border-[#2A2A2A] bg-[#1A1A1A]">
+              <h2 className="text-[16px] font-bold text-white">Custom Domain Configuration</h2>
+              <p className="text-[12px] text-white mt-1">Manage the public access link for your workspace project.</p>
             </div>
             
-            <div className="p-6">
-              <label className="text-[12px] font-bold text-[#333333] mb-2 block">Public Link (Max 30 chars)</label>
-              <div className="flex items-center w-full border border-[#E5E5E5] rounded-md overflow-hidden focus-within:border-[#0080ff] transition-colors">
-                <div className="bg-[#F9F9F9] px-3 py-2 border-r border-[#E5E5E5] text-[13px] text-[#707070] font-mono select-none hidden md:block">
+            <div className="p-6 bg-[#0F0F0F]">
+              <label className="text-[12px] font-bold text-white mb-2 block">Public Link (Max 30 chars)</label>
+              <div className="flex items-center w-full border border-[#2A2A2A] rounded-md overflow-hidden focus-within:border-[#0055FF] transition-colors">
+                <div className="bg-[#1A1A1A] px-3 py-2 border-r border-[#2A2A2A] text-[13px] text-white font-mono select-none hidden md:block">
                   https://wok.base44.app/p/
                 </div>
                 <input 
@@ -123,22 +123,22 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
                   maxLength={30}
                   value={tempSlug} 
                   onChange={(e) => setTempSlug(e.target.value)} 
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-[#333333]" 
+                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-white bg-[#0F0F0F]" 
                   autoFocus
                 />
               </div>
 
-              <div className="mt-6 bg-[#F4F8FE] p-4 rounded-md border border-[#0080ff]/20">
-                <p className="text-[12px] font-semibold text-[#0080ff] mb-1">Workspace Ownership</p>
-                <p className="text-[11px] text-[#555555] leading-snug">
+              <div className="mt-6 bg-[#0055FF]/10 p-4 rounded-md border border-[#0055FF]/30">
+                <p className="text-[12px] font-semibold text-white mb-1">Workspace Ownership</p>
+                <p className="text-[11px] text-white leading-snug">
                   You retain absolute ownership of this project. Any modifications to this URL will immediately route external traffic to your latest published build.
                 </p>
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#E5E5E5] bg-[#F9F9F9] flex justify-end gap-3">
-              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-[#707070] hover:bg-gray-200 rounded-md transition-colors">Cancel</button>
-              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0080ff] hover:bg-[#0066cc] rounded-md transition-colors">Save Configuration</button>
+            <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
+              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
+              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors">Save Configuration</button>
             </div>
           </div>
         </div>
@@ -157,48 +157,48 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
 
         {/* RIGHT: Reload Tool & Publish Flow */}
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
-          <button onClick={onReload} className="p-1.5 rounded-md transition-none text-[#707070] hover:text-[#333333] hover:bg-white/50 backdrop-blur-sm" title="Regenerate">
+          <button onClick={onReload} className="p-1.5 rounded-md transition-none text-white hover:bg-white/10 backdrop-blur-sm" title="Regenerate">
             <RefreshCw className="w-4 h-4" />
           </button>
           
-          <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0080ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0066cc] shadow-sm">
+          <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors">
             Publish
           </button>
 
           {showPublish && (
-            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-white border border-[#E5E5E5] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-[#333333]">
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-white">
               {publishView === 'main' ? (
                 <>
-                  <div className="p-3 border-b border-[#E5E5E5]">
-                    <h3 className="text-[14px] font-bold">Publish App</h3>
+                  <div className="p-3 border-b border-[#2A2A2A]">
+                    <h3 className="text-[14px] font-bold text-white">Publish App</h3>
                   </div>
                   
                   {isPublished && (
                     <div className="px-3 pt-3 pb-1">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Live URL</p>
-                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0080ff] hover:underline font-mono truncate block flex items-center gap-1.5 p-2 bg-[#F4F8FE] rounded-md border border-[#0080ff]/20">
+                      <p className="text-[10px] font-bold text-white uppercase tracking-wider mb-1">Live URL</p>
+                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white hover:underline font-mono truncate block flex items-center gap-1.5 p-2 bg-[#1A1A1A] rounded-md border border-[#2A2A2A]">
                         wok.base44.app/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
                       </a>
                     </div>
                   )}
 
                   <div className="p-2 space-y-1 mt-1">
-                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Custom domain</h4>
-                      <p className="text-[11px] text-[#707070] mt-0.5">Configure your public routing.</p>
+                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors group">
+                      <h4 className="text-[13px] font-bold text-white transition-colors">Custom domain</h4>
+                      <p className="text-[11px] text-white mt-0.5">Configure your public routing.</p>
                     </button>
-                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-[#333333] group-hover:text-[#0080ff] transition-colors">Share your app</h4>
-                      <p className="text-[11px] text-[#707070] mt-0.5">Share via email or social networks.</p>
+                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors group">
+                      <h4 className="text-[13px] font-bold text-white transition-colors">Share your app</h4>
+                      <p className="text-[11px] text-white mt-0.5">Share via email or social networks.</p>
                     </button>
                   </div>
                   
-                  <div className="border-t border-[#E5E5E5] pt-3 px-3">
-                    <h4 className="text-[12px] font-bold text-[#333333] mb-2">App Visibility</h4>
-                    <div className="flex items-center justify-between bg-white p-2.5 rounded-md border border-[#E5E5E5] shadow-sm">
+                  <div className="border-t border-[#2A2A2A] pt-3 px-3">
+                    <h4 className="text-[12px] font-bold text-white mb-2">App Visibility</h4>
+                    <div className="flex items-center justify-between bg-[#1A1A1A] p-2.5 rounded-md border border-[#2A2A2A] shadow-sm">
                       <div className="flex items-center gap-2.5">
                         <GoogleIcon />
-                        <span className="text-[12px] font-bold">Index on Google</span>
+                        <span className="text-[12px] font-bold text-white">Index on Google</span>
                       </div>
                       <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
                     </div>
@@ -206,40 +206,40 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
 
                   <div className="px-3 pb-2 pt-1">
                     {indexGoogle && (
-                      <div className="bg-[#F9F8F6] border border-[#E5E5E5] p-2.5 rounded-md flex items-start gap-2 mb-3 mt-2">
+                      <div className="bg-[#1A1A1A] border border-[#2A2A2A] p-2.5 rounded-md flex items-start gap-2 mb-3 mt-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
-                        <p className="text-[10px] text-[#707070] font-medium leading-snug">
+                        <p className="text-[10px] text-white font-medium leading-snug">
                           Indexing execution takes 24-48h. Maximize your visibility globally.
                         </p>
                       </div>
                     )}
-                    <button onClick={handlePublish} className="w-full py-2 bg-[#0080ff] text-white text-[13px] font-bold rounded-md hover:bg-[#0066cc] shadow-sm mt-3">
+                    <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3 transition-colors">
                       {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="p-3 border-b border-[#E5E5E5] flex items-center gap-2">
-                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-gray-100 rounded-md text-gray-500"><ArrowLeft className="w-4 h-4" /></button>
-                    <h3 className="text-[14px] font-bold">Share App</h3>
+                  <div className="p-3 border-b border-[#2A2A2A] flex items-center gap-2">
+                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-[#1A1A1A] rounded-md text-white transition-colors"><ArrowLeft className="w-4 h-4" /></button>
+                    <h3 className="text-[14px] font-bold text-white">Share App</h3>
                   </div>
                   <div className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 border border-[#E5E5E5] rounded-md p-1.5 bg-[#F9F9F9]">
-                      <div className="px-2 flex-1 text-[12px] font-mono text-gray-600 truncate bg-transparent outline-none select-all">
+                    <div className="flex items-center gap-2 border border-[#2A2A2A] rounded-md p-1.5 bg-[#1A1A1A]">
+                      <div className="px-2 flex-1 text-[12px] font-mono text-white truncate bg-transparent outline-none select-all">
                         {shareUrl}
                       </div>
-                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-white border border-[#E5E5E5] text-[12px] font-bold rounded hover:bg-gray-50 shadow-sm">Copy</button>
+                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded hover:bg-[#0044CC] shadow-sm transition-colors border-none">Copy</button>
                     </div>
 
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Share via</p>
+                    <p className="text-[11px] font-bold text-white uppercase tracking-wider text-center">Share via</p>
                     
                     <div className="grid grid-cols-5 gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="X (Twitter)"><XIcon /></a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#0a66c2] transition-colors" title="LinkedIn"><LinkedInIcon /></a>
-                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#1877F2] transition-colors" title="Facebook"><FacebookIcon /></a>
-                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-[#25D366] transition-colors" title="WhatsApp"><WhatsAppIcon /></a>
-                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#E5E5E5] hover:bg-gray-50 text-gray-700 hover:text-black transition-colors" title="Email"><Mail className="w-4 h-4" /></a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="X (Twitter)"><XIcon /></a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="LinkedIn"><LinkedInIcon /></a>
+                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="Facebook"><FacebookIcon /></a>
+                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="WhatsApp"><WhatsAppIcon /></a>
+                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="Email"><Mail className="w-4 h-4" /></a>
                     </div>
                   </div>
                 </>
