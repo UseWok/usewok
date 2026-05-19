@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { RefreshCw, ExternalLink, ArrowLeft, Mail } from 'lucide-react';
+import { RefreshCw, ExternalLink, ArrowLeft, Mail, Code2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const GoogleIcon = () => (
@@ -17,7 +17,7 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ onReload, convId, viewMode }) {
+export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMode }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
   const [isPublished, setIsPublished] = useState(false);
@@ -97,7 +97,6 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
     toast.success("Link copied to clipboard!");
   };
 
-  // IF THE DASHBOARD IS OPEN, HIDE THE HEADER TOOLS ENTIRELY
   if (viewMode === 'dashboard') {
     return <header className="h-[56px] flex-shrink-0 z-30 w-full bg-transparent absolute top-0 left-0 right-0 pointer-events-none" />;
   }
@@ -138,13 +137,13 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
 
             <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
               <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
-              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors">Save Configuration</button>
+              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">Save Configuration</button>
             </div>
           </div>
         </div>
       )}
 
-      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-transparent absolute top-0 left-0 right-0">
+      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-[#0F0F0F]">
         
         {/* LEFT: Mac Dots */}
         <div className="flex gap-4 items-center pl-1">
@@ -153,6 +152,23 @@ export default function WorkspaceHeader({ onReload, convId, viewMode }) {
              <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
              <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
            </div>
+        </div>
+
+        {/* CENTER: Navigation Bar */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center p-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg shadow-sm">
+          <button
+            onClick={() => setViewMode && setViewMode('preview')}
+            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+          >
+            App Interface
+          </button>
+          <button
+            onClick={() => setViewMode && setViewMode('code')}
+            className={`flex items-center gap-2 px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+          >
+            <Code2 className="w-4 h-4" />
+            Code
+          </button>
         </div>
 
         {/* RIGHT: Reload Tool & Publish Flow */}
