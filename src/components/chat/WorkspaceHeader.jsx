@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { RefreshCw, ExternalLink, ArrowLeft, Mail, Code2 } from 'lucide-react';
+import { RefreshCw, ExternalLink, ArrowLeft, Mail, Code2, ChevronsRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const GoogleIcon = () => (
@@ -17,7 +17,7 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMode }) {
+export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMode, onTogglePreview }) {
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main'); 
   const [isPublished, setIsPublished] = useState(false);
@@ -145,13 +145,17 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
 
       <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-[#0F0F0F]">
         
-        {/* LEFT: Mac Dots */}
+        {/* LEFT: Mac Dots & Collapse Icon */}
         <div className="flex gap-4 items-center pl-1">
            <div className="flex gap-1.5 items-center">
              <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
              <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
              <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
            </div>
+           
+           <button onClick={onTogglePreview} className="hidden md:flex text-gray-500 hover:text-white transition-colors items-center justify-center ml-2" title="Hide Preview">
+             <ChevronsRight className="w-[18px] h-[18px]" strokeWidth={2.5} />
+           </button>
         </div>
 
         {/* CENTER: Navigation Bar */}
