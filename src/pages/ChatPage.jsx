@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans px-4 md:px-0">
+  <div className="flex justify-end w-full mb-6 font-sans px-1 md:px-0">
     <div 
       className="bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
       style={{ fontFamily: '"Open Sans", sans-serif' }}
