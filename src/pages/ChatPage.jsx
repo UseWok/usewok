@@ -729,7 +729,7 @@ export default function ChatPage() {
 
             {/* Inner Chat Container centers content beautifully when in full screen mode */}
             <div className={`flex flex-col w-full h-full transition-all duration-[200ms] ${hasStarted && isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
-              <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-4 md:px-6 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
+              <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-2 md:px-3 py-6 [&::-webkit-scrollbar]:hidden ${!hasStarted ? 'flex flex-col items-center justify-end w-full pb-[10vh]' : 'md:mt-16'}`}>
                 {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mb-10"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale brightness-0 invert opacity-60" /><h2 className="text-[24px] font-bold text-white">How can I help you today?</h2></div>}
                 {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
