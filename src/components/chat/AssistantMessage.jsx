@@ -62,7 +62,7 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
   if (localGenerating) {
     return (
-      <div className="flex justify-start w-full mb-6 font-sans px-4 md:px-0">
+      <div className="flex justify-start w-full mb-6 font-sans px-1 md:px-0">
         <div className="w-full max-w-[85%]">
           {/* Organic "thinking" indicator — pulsing cursor instead of spinner */}
           <div className="flex items-center gap-2 mb-4">
