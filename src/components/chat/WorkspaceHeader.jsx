@@ -225,14 +225,7 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
                   </div>
 
                   <div className="px-3 pb-2 pt-1">
-                    {indexGoogle && (
-                      <div className="bg-[#1A1A1A] border border-[#2A2A2A] p-2.5 rounded-md flex items-start gap-2 mb-3 mt-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#DDFF00] mt-[3.5px] flex-shrink-0"></div>
-                        <p className="text-[10px] text-white font-medium leading-snug">
-                          Indexing execution takes 24-48h. Maximize your visibility globally.
-                        </p>
-                      </div>
-                    )}
+                    
                     <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3 transition-colors">
                       {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
                     </button>
