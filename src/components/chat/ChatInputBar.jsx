@@ -234,12 +234,12 @@ export default function ChatInputBar({
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))}
           onKeyDown={handleKeyDown}
           placeholder={
-            aiThemePromptActive
-              ? "Décrivez le changement d'apparence..."
-              : expertMode
-              ? 'Mode Expert activé — posez votre question...'
-              : 'Message Wok...'
-          }
+  aiThemePromptActive
+    ? "Describe the change in appearance..."
+    : expertMode
+    ? 'Expert mode activated — ask your question... (⌘/ for focus)'
+    : 'Message Wok... (⌘K collapse · ⌘/ focus)'
+}
           className="w-full bg-transparent text-[15px] text-white placeholder:text-gray-500 focus:outline-none resize-none leading-relaxed px-4 pt-4 pb-2"
           style={{ fontFamily: '"Open Sans", sans-serif' }}
         />
