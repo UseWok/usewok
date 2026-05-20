@@ -30,12 +30,12 @@ export default function ChatInputBar({
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Auto-resize textarea
+  // Flawless Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'inherit';
       const sh = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(Math.max(sh, 56), 168)}px`;
+      textareaRef.current.style.height = `${Math.min(Math.max(sh, 48), 168)}px`;
     }
   }, [input]);
 
@@ -110,14 +110,14 @@ export default function ChatInputBar({
     { id: 'precise', name: 'Précis' },
   ];
 
-  const transition = 'transition-all duration-200 ease-out';
+  const transition = 'transition-all duration-300 ease-[cubic-bezier(0,0,0.2,1)]';
 
   return (
     <div className={`flex flex-col w-full relative overflow-visible`} ref={configRef}>
       {aiThemePromptActive && (
-        <div className="absolute -top-10 left-2 z-[999]">
+        <div className="absolute -top-10 left-4 z-[999]">
           <div
-            className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-md flex items-center gap-2 shadow-sm ${transition}`}
+            className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}
           >
             <Sparkles className="w-3.5 h-3.5" />
             Personnalisation de l'apparence...
@@ -134,13 +134,13 @@ export default function ChatInputBar({
       {/* AI Config panel */}
       {showAIConfig && (
         <div
-          className={`absolute bottom-[calc(100%+12px)] left-0 w-[240px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] p-2 font-sans ${transition}`}
+          className={`absolute bottom-[calc(100%+16px)] left-0 w-[240px] bg-[#131313] border border-[#2A2A2A] rounded-2xl shadow-2xl z-[999] p-2 font-sans ${transition}`}
           style={{ animation: 'wok-slide-in 200ms ease-out both' }}
         >
           {/* Engine toggle */}
           <button
             onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
-            className={`w-full text-left p-2.5 rounded-lg flex items-center justify-between hover:bg-[#1A1A1A] ${transition}`}
+            className={`w-full text-left p-2.5 rounded-xl flex items-center justify-between hover:bg-[#1E1E1E] ${transition}`}
           >
             <span className="text-[13px] font-bold text-white">Moteur standard</span>
             {!expertMode && <Check className="w-4 h-4 text-[#0055FF]" />}
@@ -148,13 +148,13 @@ export default function ChatInputBar({
 
           <button
             onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
-            className={`w-full text-left p-2.5 rounded-lg flex items-center justify-between hover:bg-[#1A1A1A] ${transition} mt-1`}
+            className={`w-full text-left p-2.5 rounded-xl flex items-center justify-between hover:bg-[#1E1E1E] ${transition} mt-1`}
           >
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-[#0055FF]" />
               <div className="flex flex-col">
                 <span className="text-[13px] font-bold text-white leading-none">Mode Expert</span>
-                <span className="text-[10.5px] text-gray-500 leading-none mt-0.5">Analyse approfondie & précision</span>
+                <span className="text-[10.5px] text-gray-500 leading-none mt-1">Analyse & précision</span>
               </div>
             </div>
             {expertMode && <Check className="w-4 h-4 text-[#0055FF]" />}
@@ -168,10 +168,10 @@ export default function ChatInputBar({
               <button
                 key={m.id}
                 onClick={() => { setSelectedStrategy(m.id); setShowAIConfig(false); }}
-                className={`w-full text-left p-2 rounded-lg flex items-center justify-between ${transition} ${
+                className={`w-full text-left p-2 rounded-xl flex items-center justify-between ${transition} ${
                   selectedStrategy === m.id
-                    ? 'bg-[#1A1A1A] text-white'
-                    : 'hover:bg-[#1A1A1A] text-gray-400'
+                    ? 'bg-[#1E1E1E] text-white'
+                    : 'hover:bg-[#1E1E1E] text-gray-400'
                 }`}
               >
                 <span className="text-[12px] font-semibold">{m.name}</span>
@@ -179,26 +179,18 @@ export default function ChatInputBar({
               </button>
             ))}
           </div>
-
-          {expertMode && (
-            <div className="mt-2 mx-1 px-3 py-2 bg-[#0055FF]/8 border border-[#0055FF]/20 rounded-lg">
-              <p className="text-[10.5px] text-[#4d88ff] font-medium leading-snug">
-                Raisonnement étendu · Contexte renforcé · Réponses structurées
-              </p>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Main input container */}
+      {/* Main input container (Sleek Gemini-style) */}
       <div
-        className={`bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl flex flex-col shadow-sm focus-within:border-[#0055FF]/50 z-10 w-full overflow-hidden ${transition}`}
+        className={`bg-[#131313] hover:bg-[#181818] focus-within:bg-[#1A1A1A] border border-transparent focus-within:border-[#333333] rounded-[28px] flex flex-col z-10 w-full overflow-hidden ${transition} shadow-[0_0_20px_rgba(0,0,0,0.2)]`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        {/* File previews at top — appear instantly, no loading */}
+        {/* File previews at top */}
         {(files?.length || 0) > 0 && (
-          <div className="flex gap-2 px-4 pt-3 pb-1 overflow-x-auto">
+          <div className="flex gap-2 px-5 pt-3 pb-1 overflow-x-auto">
             {files.map((file, i) => (
               <div
                 key={i}
@@ -206,8 +198,7 @@ export default function ChatInputBar({
                 style={{ animation: 'wok-slide-in 200ms ease-out both' }}
               >
                 <div
-                  className={`w-14 h-14 rounded-lg border-2 border-[#1a1a1a] outline outline-1 outline-[#000] flex items-center justify-center bg-[#0F0F0F] overflow-hidden ${transition}`}
-                  style={{ boxShadow: '0 0 0 1.5px rgba(0,0,0,0.7)' }}
+                  className={`w-14 h-14 rounded-xl border-2 border-[#1a1a1a] outline outline-1 outline-[#000] flex items-center justify-center bg-[#0F0F0F] overflow-hidden ${transition}`}
                 >
                   {file.type?.startsWith('image/') ? (
                     <img src={file.url} className="object-cover w-full h-full" alt="preview" />
@@ -215,11 +206,9 @@ export default function ChatInputBar({
                     <FileText className="w-6 h-6 text-gray-500" />
                   )}
                 </div>
-                {/* Remove button — top-left, appears on hover/touch */}
                 <button
                   onClick={() => removeFile(i)}
                   className={`absolute -top-1.5 -left-1.5 w-5 h-5 bg-[#0a0a0a] border border-[#3a3a3a] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 ${transition} hover:bg-red-600 hover:border-red-500`}
-                  aria-label="Supprimer le fichier"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
@@ -234,35 +223,35 @@ export default function ChatInputBar({
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))}
           onKeyDown={handleKeyDown}
           placeholder={
-  aiThemePromptActive
-    ? "Describe the change in appearance..."
-    : expertMode
-    ? 'Expert mode activated — ask your question... (⌘/ for focus)'
-    : 'Message Wok... (⌘K collapse · ⌘/ focus)'
-}
-          className="w-full bg-transparent text-[15px] text-white placeholder:text-gray-500 focus:outline-none resize-none leading-relaxed px-4 pt-4 pb-2"
+            aiThemePromptActive
+              ? "Describe the change in appearance..."
+              : expertMode
+              ? 'Expert mode activated — ask your question...'
+              : 'Message Wok...'
+          }
+          className="w-full bg-transparent text-[15px] text-white placeholder:text-gray-500 focus:outline-none resize-none leading-relaxed px-5 pt-3.5 pb-1"
           style={{ fontFamily: '"Open Sans", sans-serif' }}
         />
 
-        <div className="flex items-center justify-between px-2 py-2">
+        <div className="flex items-center justify-between px-3 pb-2 pt-1">
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowAIConfig(!showAIConfig)}
-              className={`p-2 rounded-md ${transition} active:scale-95 relative ${
+              className={`p-2 rounded-full ${transition} active:scale-95 relative ${
                 showAIConfig ? 'bg-[#2A2A2A] text-white' : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
               }`}
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-[18px] h-[18px]" />
               {expertMode && (
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#0055FF] rounded-full" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0055FF] rounded-full" />
               )}
             </button>
 
             <button
               onClick={() => fileInputRef.current.click()}
-              className={`p-2 text-gray-400 hover:text-white hover:bg-[#2A2A2A] rounded-md ${transition} active:scale-95`}
+              className={`p-2 text-gray-400 hover:text-white hover:bg-[#2A2A2A] rounded-full ${transition} active:scale-95`}
             >
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-[18px] h-[18px]" />
             </button>
             <input
               type="file"
@@ -276,17 +265,17 @@ export default function ChatInputBar({
 
           <div className="flex items-center gap-3 pr-1">
             <span
-              className={`text-[11px] font-bold ${
-                input.length >= charLimit ? 'text-red-500' : 'text-gray-500'
+              className={`text-[11px] font-medium transition-colors ${
+                input.length >= charLimit ? 'text-red-500' : 'text-gray-600'
               }`}
             >
-              {input.length}/{charLimit}
+              {input.length > 0 ? `${input.length}/${charLimit}` : ''}
             </span>
 
             {isLoading ? (
               <button
                 onClick={onStop}
-                className={`w-9 h-9 bg-[#0055FF] text-white rounded-[10px] flex items-center justify-center shadow-sm hover:bg-[#0044CC] active:scale-95 ${transition}`}
+                className={`w-9 h-9 bg-[#0055FF] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#0044CC] active:scale-95 ${transition}`}
               >
                 <div className="w-3 h-3 bg-white rounded-[2px]" />
               </button>
@@ -294,13 +283,13 @@ export default function ChatInputBar({
               <button
                 onClick={handleSend}
                 disabled={!input.trim() && (files?.length || 0) === 0}
-                className={`w-9 h-9 rounded-[10px] flex items-center justify-center ${transition} active:scale-95 shadow-sm ${
+                className={`w-9 h-9 rounded-full flex items-center justify-center ${transition} active:scale-95 ${
                   input.trim() || (files?.length || 0) > 0
-                    ? 'bg-[#0055FF] text-white hover:bg-[#0044CC]'
-                    : 'bg-[#2A2A2A] text-gray-500 cursor-not-allowed'
+                    ? 'bg-[#white] text-[#0F0F0F] hover:bg-gray-200 shadow-md'
+                    : 'bg-[#2A2A2A] text-gray-500 cursor-not-allowed opacity-50'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-[18px] h-[18px]" />
               </button>
             )}
           </div>
