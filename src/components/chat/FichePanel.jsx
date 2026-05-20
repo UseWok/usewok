@@ -665,7 +665,7 @@ export default function FichePanel({
             borderRadius: 8,
             background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
             backgroundSize: '600px 100%',
-            animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 0ms both',
+            animation: 'wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out 0ms both',
           }}
         />
         <div
