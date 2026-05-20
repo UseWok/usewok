@@ -119,6 +119,100 @@ const getBackgroundGradient = (theme) => {
     default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
   }
 };
+// ── Ghost skeleton drawn top-to-bottom while AI is generating the preview ──
+const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => (
+  <div
+    style={{
+      width,
+      height,
+      opacity,
+      borderRadius: 8,
+      flexShrink: 0,
+      background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
+      backgroundSize: '600px 100%',
+      animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
+    }}
+  />
+);
+
+const PreviewSkeleton = () => (
+  <div
+    style={{
+      width: '100%',
+      height: '100%',
+      background: '#0F0F0F',
+      borderRadius: 16,
+      padding: '28px 24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 0,
+      overflowY: 'hidden',
+    }}
+  >
+    {/* Header block */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
+      <SkeletonRow width="38%" height={22} delay={0} />
+      <SkeletonRow width="58%" height={13} delay={40} opacity={0.5} />
+    </div>
+
+    {/* Stat cards row */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            background: 'linear-gradient(90deg, #161616 25%, #1f1f1f 50%, #161616 75%)',
+            backgroundSize: '600px 100%',
+            animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both`,
+            borderRadius: 12,
+            height: 80,
+          }}
+        />
+      ))}
+    </div>
+
+    {/* Chart block */}
+    <div
+      style={{
+        background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+        backgroundSize: '600px 100%',
+        animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 230ms both',
+        borderRadius: 14,
+        height: 180,
+        marginBottom: 24,
+      }}
+    />
+
+    {/* Text lines block */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
+      {[
+        { w: '91%', d: 310 },
+        { w: '76%', d: 350 },
+        { w: '83%', d: 390 },
+        { w: '55%', d: 430, op: 0.5 },
+      ].map((r, i) => (
+        <SkeletonRow key={i} width={r.w} height={13} delay={r.d} opacity={r.op || 1} />
+      ))}
+    </div>
+
+    {/* Second chart / grid block */}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {[0, 1].map((i) => (
+        <div
+          key={i}
+          style={{
+            background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+            backgroundSize: '600px 100%',
+            animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both`,
+            borderRadius: 14,
+            height: 120,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 
 export default function ChatPage() {
   const navigate = useNavigate();
