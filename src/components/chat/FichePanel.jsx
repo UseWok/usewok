@@ -676,7 +676,7 @@ export default function FichePanel({
             opacity: 0.4,
             background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
             backgroundSize: '600px 100%',
-            animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 60ms both',
+            animation: 'wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out 60ms both',
           }}
         />
       </div>
@@ -691,7 +691,7 @@ export default function FichePanel({
               borderRadius: 14,
               background: 'linear-gradient(90deg, #161616 25%, #1f1f1f 50%, #161616 75%)',
               backgroundSize: '600px 100%',
-              animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${100 + i * 60}ms both`,
+              animation: `wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out ${100 + i * 60}ms both`,
             }}
           />
         ))}
