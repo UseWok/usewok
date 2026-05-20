@@ -654,10 +654,102 @@ export default function FichePanel({
             />
           )
         ) : (
-          <div className="flex items-center justify-center h-full w-full opacity-30 bg-[#1A1A1A]">
-            <LayoutTemplate className="w-16 h-16 text-gray-500" />
-          </div>
-        )}
+  <div className="w-full h-full bg-[#0F0F0F] flex items-center justify-center p-8">
+    <div className="w-full max-w-4xl">
+      {/* Header skeleton */}
+      <div className="flex flex-col gap-3 mb-8">
+        <div
+          style={{
+            width: '45%',
+            height: 28,
+            borderRadius: 8,
+            background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
+            backgroundSize: '600px 100%',
+            animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 0ms both',
+          }}
+        />
+        <div
+          style={{
+            width: '68%',
+            height: 16,
+            borderRadius: 6,
+            opacity: 0.4,
+            background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
+            backgroundSize: '600px 100%',
+            animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 60ms both',
+          }}
+        />
+      </div>
+
+      {/* Stat cards skeleton */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            style={{
+              height: 96,
+              borderRadius: 14,
+              background: 'linear-gradient(90deg, #161616 25%, #1f1f1f 50%, #161616 75%)',
+              backgroundSize: '600px 100%',
+              animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${100 + i * 60}ms both`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Large chart skeleton */}
+      <div
+        style={{
+          height: 220,
+          borderRadius: 16,
+          marginBottom: 32,
+          background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+          backgroundSize: '600px 100%',
+          animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 280ms both',
+        }}
+      />
+
+      {/* Text lines skeleton */}
+      <div className="flex flex-col gap-3 mb-8">
+        {[
+          { w: '92%', d: 380 },
+          { w: '78%', d: 420 },
+          { w: '85%', d: 460 },
+          { w: '58%', d: 500, op: 0.4 },
+        ].map((row, i) => (
+          <div
+            key={i}
+            style={{
+              width: row.w,
+              height: 14,
+              borderRadius: 6,
+              opacity: row.op || 1,
+              background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
+              backgroundSize: '600px 100%',
+              animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${row.d}ms both`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Bottom two-column skeleton */}
+      <div className="grid grid-cols-2 gap-4">
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            style={{
+              height: 140,
+              borderRadius: 14,
+              background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+              backgroundSize: '600px 100%',
+              animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${540 + i * 70}ms both`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
