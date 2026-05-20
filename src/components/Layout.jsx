@@ -103,7 +103,7 @@ export default function Layout() {
 
       <main
         className="flex-1 min-h-screen overflow-x-hidden relative"
-        style={{ marginLeft: isMobile || isChat ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W), transition: 'margin-left 0.2s ease' }}
+        style={{ marginLeft: isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W), transition: 'margin-left 0.2s ease' }}
       >
         {isMobile && !expanded && (
           <button
