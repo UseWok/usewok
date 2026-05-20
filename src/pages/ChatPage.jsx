@@ -386,6 +386,40 @@ export default function ChatPage() {
   }, [conversationId]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+// ── Global keyboard shortcuts ──
+useEffect(() => {
+  const handleKeyDown = (e) => {
+    // Ctrl/Cmd + S: Save (trigger in code editor if available)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (viewMode === 'code') {
+        // Code editor handles this internally
+        return;
+      }
+      toast.info('Auto-save active — changes sync continuously');
+    }
+    
+    // Ctrl/Cmd + K: Toggle preview collapse
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (hasStarted) setIsPreviewCollapsed(prev => !prev);
+    }
+    
+    // Ctrl/Cmd + /: Focus input
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      document.querySelector('textarea')?.focus();
+    }
+    
+    // Escape: Close preview collapse
+    if (e.key === 'Escape' && isPreviewCollapsed && hasStarted) {
+      setIsPreviewCollapsed(false);
+    }
+  };
+  
+  document.addEventListener('keydown', handleKeyDown);
+  return () => document.removeEventListener('keydown', handleKeyDown);
+}, [viewMode, hasStarted, isPreviewCollapsed]);
 
   const saveToDiscussionsLogic = (convTitle, text) => {
     try {
