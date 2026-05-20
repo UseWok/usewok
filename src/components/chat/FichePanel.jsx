@@ -4,9 +4,9 @@ import remarkGfm from 'remark-gfm';
 import { Loader2, LayoutTemplate, Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
- 
+
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
- 
+
 // ─────────────────────────────────────────────
 // CODE EDITOR PANEL (DARK THEME - #0F0F0F)
 // ─────────────────────────────────────────────
@@ -16,31 +16,31 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
   const textareaRef = useRef(null);
   const lineNumbersRef = useRef(null);
   const LINE_H = 22; // px — must match textarea line-height
- 
+
   // Sync when parent content changes (e.g. after AI generation)
   useEffect(() => {
     setEditedCode(code || '');
     setSavedCode(code || '');
   }, [code]);
- 
+
   const hasChanges = editedCode !== savedCode;
- 
+
   const handleChange = (e) => setEditedCode(e.target.value);
- 
+
   const handleScroll = useCallback(() => {
     if (lineNumbersRef.current && textareaRef.current) {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
     }
   }, []);
- 
+
   const handleSave = () => {
     setSavedCode(editedCode);
     if (onUpdateContent) onUpdateContent(editedCode);
     toast.success('Code saved — preview updated.');
   };
- 
+
   const handleCancel = () => setEditedCode(savedCode);
- 
+
   // Tab key inserts spaces instead of moving focus
   const handleKeyDown = (e) => {
     if (e.key === 'Tab') {
@@ -61,9 +61,9 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
       if (hasChanges) handleSave();
     }
   };
- 
+
   const lines = editedCode.split('\n');
- 
+
   // Per-line syntax indicators
   const getLineIndicator = (line) => {
     const t = line.trim();
@@ -73,19 +73,19 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
     if (t.startsWith('//') || t.startsWith('/*') || t.startsWith('*')) return 'slate';
     return null;
   };
- 
+
   const indicatorColor = {
     blue: '#60A5FA',
     emerald: '#34D399',
     amber: '#FBBF24',
     slate: '#94A3B8',
   };
- 
+
   const isEmpty = !code;
- 
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#0F0F0F] rounded-xl border border-[#2A2A2A]">
- 
+
       {/* ── Editor top bar ── */}
       <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#1A1A1A] border-b border-[#2A2A2A] rounded-t-xl">
         <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             )}
           </div>
         </div>
- 
+
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-[#2A2A2A] border border-[#3A3A3A] px-2 py-0.5 rounded font-mono">
             JSX · React 18
@@ -107,7 +107,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
           </span>
         </div>
       </div>
- 
+
       {/* ── Legend ── */}
       <div className="shrink-0 flex items-center gap-4 px-4 py-1.5 bg-[#0F0F0F] border-b border-[#2A2A2A]">
         {[
@@ -123,7 +123,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
         ))}
         <span className="ml-auto text-[10px] text-slate-500 font-mono">⌘S / Ctrl+S to save</span>
       </div>
- 
+
       {/* ── Editor body ── */}
       {isEmpty ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center text-slate-500 select-none">
@@ -133,7 +133,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden font-mono bg-[#0F0F0F]">
- 
+
           {/* Line numbers gutter */}
           <div
             ref={lineNumbersRef}
@@ -166,7 +166,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
               })}
             </div>
           </div>
- 
+
           {/* Code textarea */}
           <textarea
             ref={textareaRef}
@@ -188,7 +188,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
           />
         </div>
       )}
- 
+
       {/* ── Save / Cancel bar — animates in when changes exist ── */}
       <AnimatePresence>
         {hasChanges && (
@@ -224,8 +224,8 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
     </div>
   );
 };
- 
- 
+
+
 // ─────────────────────────────────────────────
 // ADVANCED SETTINGS PANEL (placeholder)
 // ─────────────────────────────────────────────
@@ -233,7 +233,7 @@ const AdvancedSettingsPanel = ({ settings = {}, onUpdateSettings }) => (
   <div className="flex-1 overflow-y-auto p-8 md:p-12">
     <h2 className="text-[22px] font-bold text-slate-900 mb-2">Advanced Settings</h2>
     <p className="text-[14px] text-slate-500 mb-8">Fine-grained configuration for your application.</p>
- 
+
     <div className="space-y-6 max-w-2xl">
       {/* Custom domain placeholder */}
       <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
@@ -250,7 +250,7 @@ const AdvancedSettingsPanel = ({ settings = {}, onUpdateSettings }) => (
           </button>
         </div>
       </div>
- 
+
       {/* Analytics placeholder */}
       <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
         <h3 className="text-[15px] font-bold text-slate-900 mb-1">Analytics Integration</h3>
@@ -261,7 +261,7 @@ const AdvancedSettingsPanel = ({ settings = {}, onUpdateSettings }) => (
           className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-[13px] outline-none focus:border-blue-500 bg-slate-50"
         />
       </div>
- 
+
       {/* Password protection placeholder */}
       <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
         <h3 className="text-[15px] font-bold text-slate-900 mb-1">Password Protection</h3>
@@ -279,28 +279,28 @@ const AdvancedSettingsPanel = ({ settings = {}, onUpdateSettings }) => (
     </div>
   </div>
 );
- 
- 
+
+
 // ─────────────────────────────────────────────
 // OVERVIEW PANEL (extracted from original AppDashboard)
 // ─────────────────────────────────────────────
 const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpublish }) => {
   const [title, setTitle] = useState(settings.title || 'AI-Powered Interface');
   const [description, setDescription] = useState(settings.description || 'A highly optimized interactive experience built with Wok.');
- 
+
   // Sync if settings change from outside
   useEffect(() => {
     setTitle(settings.title || 'AI-Powered Interface');
     setDescription(settings.description || 'A highly optimized interactive experience built with Wok.');
   }, [settings.title, settings.description]);
- 
+
   const handleSave = () => {
     if (onUpdateSettings) onUpdateSettings({ ...settings, title, description });
   };
- 
+
   return (
     <div className="flex-1 overflow-y-auto p-8 md:p-12 max-w-4xl">
- 
+
       {/* Header Block */}
       <div className="flex gap-6 items-start mb-10">
         <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-lg border border-slate-200 flex-shrink-0">
@@ -331,7 +331,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
           </div>
         </div>
       </div>
- 
+
       {/* SEO Alert */}
       <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm">
         <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -339,7 +339,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
           <strong>SEO Optimization:</strong> The more precise and keyword-rich the metadata (title and description) of this application, the easier it will be to find and index by search engines.
         </p>
       </div>
- 
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Visibility */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
@@ -354,7 +354,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
             <option value="private">🔒 Private (Workspace only)</option>
           </select>
         </div>
- 
+
         {/* Badge Control */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
           <h3 className="text-[15px] font-bold text-slate-900 mb-1">White Label</h3>
@@ -370,7 +370,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
           </div>
         </div>
       </div>
- 
+
       {/* Clone */}
       <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm mb-12 flex items-center justify-between">
         <div>
@@ -381,7 +381,7 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
           <Copy className="w-4 h-4" /> Clone
         </button>
       </div>
- 
+
       {/* Danger Zone */}
       <div className="border border-red-200 bg-red-50/50 p-6 rounded-2xl">
         <div className="flex items-center gap-2 mb-4">
@@ -397,12 +397,12 @@ const OverviewPanel = ({ settings, onUpdateSettings, onClone, onDelete, onUnpubl
           </button>
         </div>
       </div>
- 
+
     </div>
   );
 };
- 
- 
+
+
 // ─────────────────────────────────────────────
 // ENTERPRISE DASHBOARD COMPONENT (Retained for completeness, visually bypassed when in code mode)
 // ─────────────────────────────────────────────
@@ -422,10 +422,10 @@ const AppDashboard = ({
     { id: 'code',     label: 'Code',     icon: Code2 },
     { id: 'advanced', label: 'Advanced Settings', icon: Settings },
   ];
- 
+
   return (
     <div className="absolute inset-0 bg-[#F9FAFB] overflow-hidden font-sans text-slate-900 border-t border-l border-[#E5E5E5] flex">
- 
+
       {/* ── Sidebar ── */}
       <div className="w-[240px] bg-white border-r border-[#E5E5E5] hidden md:flex flex-col py-6 px-4 shrink-0">
         <p className="text-[14px] font-bold text-slate-900 mb-6 px-3">Dashboard</p>
@@ -446,7 +446,7 @@ const AppDashboard = ({
           ))}
         </div>
       </div>
- 
+
       {/* ── Main content area ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {dashboardTab === 'overview' && (
@@ -468,8 +468,8 @@ const AppDashboard = ({
     </div>
   );
 };
- 
- 
+
+
 // ─────────────────────────────────────────────
 // FICHE PANEL (main export)
 // ─────────────────────────────────────────────
@@ -490,33 +490,33 @@ export default function FichePanel({
 }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
- 
+
   // Sub-tab within dashboard ('overview' | 'code' | 'advanced')
   const [dashboardTab, setDashboardTab] = useState('overview');
- 
+
   useEffect(() => {
     setIsCompiling(true);
     let html = ''; let css = ''; let js = ''; let rawComponent = '';
- 
+
     if (content) {
       const btCode = String.fromCharCode(96);
       const btPattern = new RegExp(`${btCode}{3}(?:jsx|javascript|react)?\\n?`, 'gi');
       let componentLogic = content.replace(btPattern, '').replace(new RegExp(`${btCode}{3}`, 'g'), '');
- 
+
       componentLogic = componentLogic.replace(/export\s+default\s+function/g, 'function');
       componentLogic = componentLogic.replace(/export\s+default\s+class/g, 'class');
       componentLogic = componentLogic.replace(/export\s+default\s+[a-zA-Z0-9_]+;?/g, '');
       componentLogic = componentLogic.replace(/export\s+(const|let|var|function|class)/g, '$1');
- 
+
       setCompiledCode({ html, css, js: componentLogic, rawComponent: content });
     } else {
       setCompiledCode({ html: '', css: '', js: '', rawComponent: '' });
     }
- 
+
     const timer = setTimeout(() => setIsCompiling(false), 800);
     return () => clearTimeout(timer);
   }, [content]);
- 
+
   useEffect(() => {
     const handleMessage = (e) => {
       if (e.data?.type === 'WOK_RUNTIME_ERROR') {
@@ -528,18 +528,18 @@ export default function FichePanel({
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [onError, onSuccess]);
- 
+
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
- 
+
   const shouldShowBadge = appSettings?.showBadge !== false;
- 
+
   const watermarkHTML = shouldShowBadge ? `
     <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease; cursor: pointer;" onclick="window.open('https://wok.com', '_blank')">
       <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
       <span style="font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: -0.5px;">WOK</span>
     </div>
   ` : '';
- 
+
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -576,7 +576,7 @@ export default function FichePanel({
             return true;
           };
         </script>
- 
+
         <script type="text/babel" data-type="module" data-presets="react">
           import { createRoot } from 'react-dom/client';
           
@@ -591,7 +591,7 @@ export default function FichePanel({
               return this.props.children;
             }
           }
- 
+
           try {
             if (typeof App !== 'undefined') {
               const root = createRoot(document.getElementById('root'));
@@ -607,10 +607,10 @@ export default function FichePanel({
       </body>
     </html>
   `;
- 
+
   return (
     <div className="w-full h-full relative font-sans flex flex-col">
- 
+
       {/* ── Content area (Fills completely, floating effect created by outer wrapper padding) ── */}
       <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl border border-[#2A2A2A] shadow-xl">
         {hasComponent ? (
