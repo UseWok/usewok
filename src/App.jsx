@@ -30,7 +30,6 @@ import BlogPostPage from './pages/BlogPostPage';
 import AdminBlog from './pages/admin/AdminBlog';
 import SEOHead from './components/SEOHead';
 
-
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
@@ -94,7 +93,6 @@ const AuthenticatedApp = () => {
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/ai-dna" element={<AIControlTower />} />
           <Route path="/admin/blog" element={<AdminBlog />} />
-
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
@@ -117,4 +115,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
