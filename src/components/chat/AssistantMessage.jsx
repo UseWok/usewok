@@ -1,113 +1,146 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, LayoutTemplate } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { LayoutTemplate } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Rapid-Fire micro-statuses to kill wait fatigue
-const LOADING_STATUSES = [
-  "Initializing psychological models...",
-  "Structuring Bento Grid layout...",
-  "Injecting Framer animations...",
-  "Mapping Recharts visualizers...",
-  "Refining ultra-modern typography...",
-  "Compiling glassmorphism CSS...",
-  "Finalizing UI component tree..."
+// Ghost skeleton blocks drawn top-to-bottom — psychologically satisfying
+const SkeletonBlock = ({ width, delay, height = 14, opacity = 1 }) => (
+  <div
+    style={{
+      width,
+      height,
+      opacity,
+      borderRadius: 6,
+      background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+      backgroundSize: '600px 100%',
+      animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
+    }}
+  />
+);
+
+const SKELETON_ROWS = [
+  { width: '92%', delay: 0 },
+  { width: '78%', delay: 60 },
+  { width: '55%', delay: 120, height: 10, opacity: 0.55 },
+  { width: '85%', delay: 180 },
+  { width: '48%', delay: 240 },
 ];
 
 export default function AssistantMessage({ content, isGenerating, query }) {
-  const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
   const [localGenerating, setLocalGenerating] = useState(isGenerating);
 
-  // High-Speed Status Cycler
   useEffect(() => {
-    let interval;
     if (isGenerating) {
       setLocalGenerating(true);
-      setCurrentStatusIndex(0);
-      
-      // Cycle to a new technical status every 1.8 seconds
-      interval = setInterval(() => {
-        setCurrentStatusIndex((prev) => {
-          if (prev < LOADING_STATUSES.length - 1) return prev + 1;
-          return prev; // Hold on the last status if generation takes very long
-        });
-      }, 1800);
     } else if (!isGenerating && localGenerating) {
-      // API finished. Wait a tiny bit then clear loading state.
-      setTimeout(() => setLocalGenerating(false), 600);
+      const t = setTimeout(() => setLocalGenerating(false), 400);
+      return () => clearTimeout(t);
     }
-
-    return () => clearInterval(interval);
   }, [isGenerating, localGenerating]);
+
+  // Inject keyframes once
+  useEffect(() => {
+    if (document.getElementById('wok-anim-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'wok-anim-styles';
+    style.textContent = `
+      @keyframes wok-shimmer {
+        0% { background-position: -600px 0; }
+        100% { background-position: 600px 0; }
+      }
+      @keyframes wok-slide-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes wok-pulse-cursor {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.15; }
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   if (localGenerating) {
     return (
       <div className="flex justify-start w-full mb-6 font-sans px-4 md:px-0">
-        <div className="flex flex-col relative w-full max-w-[85%]">
-          <div className="absolute -inset-4 bg-[#0055FF]/10 blur-xl rounded-full z-0 pointer-events-none"></div>
-          <div className="relative z-10 border-l-[3px] border-[#2A2A2A] pl-4 py-1 space-y-3">
-            <span className="text-[12px] font-bold text-[#0055FF] mb-2 block tracking-widest uppercase flex items-center gap-2">
-              <div className="w-[14px] h-[14px] rounded-full border-2 border-t-[#0055FF] border-[#2A2A2A] animate-spin"></div>
-              Compiling Ecosystem
+        <div className="w-full max-w-[85%]">
+          {/* Organic "thinking" indicator — pulsing cursor instead of spinner */}
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              style={{
+                width: 2,
+                height: 14,
+                borderRadius: 2,
+                background: '#0055FF',
+                animation: 'wok-pulse-cursor 900ms ease-out infinite',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              className="text-[11px] font-bold tracking-widest uppercase"
+              style={{ color: '#0055FF' }}
+            >
+              Wok réfléchit
             </span>
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={currentStatusIndex} 
-                initial={{ opacity: 0, y: 5 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -5, transition: { duration: 0.1 } }}
-                className="flex items-center gap-2.5"
-              >
-                <span className="text-[13px] text-white font-medium" style={{ fontFamily: '"Open Sans", sans-serif' }}>
-                  {LOADING_STATUSES[currentStatusIndex]}
-                </span>
-              </motion.div>
-            </AnimatePresence>
+          </div>
+
+          {/* Ghost skeleton blocks drawn top-to-bottom */}
+          <div className="flex flex-col gap-[10px]">
+            {SKELETON_ROWS.map((row, i) => (
+              <SkeletonBlock key={i} {...row} />
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // --- SILENT CHAT LOGIC ---
   const renderContent = (text) => {
     if (!text) return null;
-    let safeText = typeof text === 'string' ? text : JSON.stringify(text);
+    const safeText = typeof text === 'string' ? text : JSON.stringify(text);
 
-    // If the text is exactly the success string we set in ChatPage.jsx, render the sleek UI badge.
-    if (safeText.includes("✨ Architecture generated successfully") || safeText.includes("✨ Architecture successfully recompiled")) {
+    if (
+      safeText.includes('✨ Architecture générée avec succès') ||
+      safeText.includes('✨ Architecture recompilée avec succès')
+    ) {
       return (
         <div className="flex items-center gap-3 px-4 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.2)] max-w-fit">
           <div className="p-2 bg-[#0055FF]/10 rounded-lg">
             <LayoutTemplate className="w-5 h-5 text-[#0055FF]" />
           </div>
           <div className="flex flex-col">
-             <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">Architecture Compiled</span>
-             <span className="text-[11.5px] font-medium text-gray-400 leading-none">View result in the preview panel</span>
+            <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">
+              Architecture compilée
+            </span>
+            <span className="text-[11.5px] font-medium text-gray-400 leading-none">
+              Afficher le résultat dans le panneau d'aperçu
+            </span>
           </div>
         </div>
       );
     }
 
-    // Otherwise, render text normally
     return (
-      <div className="prose prose-sm max-w-none text-white prose-invert" style={{ fontSize: '14.5px', fontWeight: 300, lineHeight: 1.8, fontFamily: '"Open Sans", sans-serif' }}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {safeText}
-        </ReactMarkdown>
+      <div
+        className="prose prose-sm max-w-none text-white prose-invert"
+        style={{
+          fontSize: '14.5px',
+          fontWeight: 300,
+          lineHeight: 1.8,
+          fontFamily: '"Open Sans", sans-serif',
+        }}
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{safeText}</ReactMarkdown>
       </div>
     );
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
+    <div
       className="flex justify-start w-full mb-6 px-4 md:px-0"
+      style={{ animation: 'wok-slide-in 200ms ease-out both' }}
     >
-      <div className="w-full max-w-[95%]">
-        {renderContent(content)}
-      </div>
-    </motion.div>
+      <div className="w-full max-w-[95%]">{renderContent(content)}</div>
+    </div>
   );
 }
