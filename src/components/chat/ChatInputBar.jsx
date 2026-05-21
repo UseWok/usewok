@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Settings, Sparkles, Zap, Image as ImageIcon, X, Check, FileText } from 'lucide-react';
+import { Settings, Sparkles, Image as ImageIcon, X, Check, FileText, ChevronRight } from 'lucide-react';
 
 export default function ChatInputBar({
   input,
@@ -13,6 +13,7 @@ export default function ChatInputBar({
   setAiThemePromptActive,
 }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
+  const [showSkillsMenu, setShowSkillsMenu] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('balanced');
   const configRef = useRef(null);
@@ -23,8 +24,10 @@ export default function ChatInputBar({
   // Close config on outside click
   useEffect(() => {
     const h = (e) => {
-      if (configRef.current && !configRef.current.contains(e.target))
+      if (configRef.current && !configRef.current.contains(e.target)) {
         setShowAIConfig(false);
+        setShowSkillsMenu(false);
+      }
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -105,9 +108,9 @@ export default function ChatInputBar({
   };
 
   const modes = [
-    { id: 'creative', name: 'Créatif' },
-    { id: 'balanced', name: 'Équilibré' },
-    { id: 'precise', name: 'Précis' },
+    { id: 'creative', name: 'Creative' },
+    { id: 'balanced', name: 'Balanced' },
+    { id: 'precise', name: 'Precise' },
   ];
 
   const transition = 'transition-all duration-300 ease-[cubic-bezier(0,0,0.2,1)]';
@@ -120,7 +123,7 @@ export default function ChatInputBar({
             className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            Personnalisation de l'apparence...
+            Customizing appearance...
             <button
               onClick={() => setAiThemePromptActive(false)}
               className={`hover:bg-[#0055FF]/20 text-white rounded-full p-0.5 ml-1 ${transition}`}
@@ -134,50 +137,83 @@ export default function ChatInputBar({
       {/* AI Config panel */}
       {showAIConfig && (
         <div
-          className={`absolute bottom-[calc(100%+16px)] left-0 w-[240px] bg-[#131313] border border-[#2A2A2A] rounded-2xl shadow-2xl z-[999] p-2 font-sans ${transition}`}
+          className={`absolute bottom-[calc(100%+16px)] left-0 w-[340px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl font-sans border border-[#333538] select-none z-[999] ${transition}`}
           style={{ animation: 'wok-slide-in 200ms ease-out both' }}
         >
-          {/* Engine toggle */}
+          {/* Flash Mode (Standard Engine) */}
           <button
             onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
-            className={`w-full text-left p-2.5 rounded-xl flex items-center justify-between hover:bg-[#1E1E1E] ${transition}`}
+            className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
           >
-            <span className="text-[13px] font-bold text-white">Moteur standard</span>
-            {!expertMode && <Check className="w-4 h-4 text-[#0055FF]" />}
+            <div className="w-8 flex-shrink-0 flex items-center justify-start pt-0.5">
+              {!expertMode && <Check className="w-5 h-5 text-white stroke-[3]" />}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[15px] font-semibold text-white leading-snug">Flash</span>
+              <span className="text-[14px] text-[#A0A2A5] mt-0.5">Fastest versatile assistance</span>
+            </div>
           </button>
 
+          {/* Expert Mode (Advanced Engine) */}
           <button
             onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
-            className={`w-full text-left p-2.5 rounded-xl flex items-center justify-between hover:bg-[#1E1E1E] ${transition} mt-1`}
+            className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
           >
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#0055FF]" />
-              <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-white leading-none">Mode Expert</span>
-                <span className="text-[10.5px] text-gray-500 leading-none mt-1">Analyse & précision</span>
-              </div>
+            <div className="w-8 flex-shrink-0 flex items-center justify-start pt-0.5">
+              {expertMode && <Check className="w-5 h-5 text-white stroke-[3]" />}
             </div>
-            {expertMode && <Check className="w-4 h-4 text-[#0055FF]" />}
+            <div className="flex flex-col">
+              <span className="text-[15px] font-semibold text-white leading-snug">Expert</span>
+              <span className="text-[14px] text-[#A0A2A5] mt-0.5">Advanced coding and mathematics</span>
+            </div>
           </button>
 
-          <div className="mx-3 my-2 border-b border-[#2A2A2A]" />
+          {/* Divider */}
+          <div className="h-[1px] bg-[#333538] my-1 mx-4" />
 
-          {/* Strategy */}
-          <div className="space-y-0.5">
-            {modes.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => { setSelectedStrategy(m.id); setShowAIConfig(false); }}
-                className={`w-full text-left p-2 rounded-xl flex items-center justify-between ${transition} ${
-                  selectedStrategy === m.id
-                    ? 'bg-[#1E1E1E] text-white'
-                    : 'hover:bg-[#1E1E1E] text-gray-400'
-                }`}
-              >
-                <span className="text-[12px] font-semibold">{m.name}</span>
-                {selectedStrategy === m.id && <Check className="w-3.5 h-3.5 text-[#0055FF]" />}
-              </button>
-            ))}
+          {/* Skills Menu Trigger */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowSkillsMenu(true)}
+            onMouseLeave={() => setShowSkillsMenu(false)}
+          >
+            <button
+              onClick={() => setShowSkillsMenu(!showSkillsMenu)}
+              className="w-full flex items-center justify-between text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+            >
+              <div className="flex items-start">
+                <div className="w-8 flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[15px] font-semibold text-white leading-snug">Skills</span>
+                  <span className="text-[14px] text-[#A0A2A5] mt-0.5 capitalize">
+                    {modes.find((m) => m.id === selectedStrategy)?.name || 'Standard'}
+                  </span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A0A2A5] mr-1" />
+            </button>
+
+            {/* Flyout Sub-menu for Skills */}
+            {showSkillsMenu && (
+              <div className="absolute left-[calc(100%+8px)] bottom-0 w-[260px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl border border-[#333538] z-50">
+                {modes.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => { 
+                      setSelectedStrategy(m.id); 
+                      setShowAIConfig(false); 
+                      setShowSkillsMenu(false); 
+                    }}
+                    className="w-full flex items-center text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+                  >
+                    <div className="w-8 flex-shrink-0 flex items-center justify-start">
+                      {selectedStrategy === m.id && <Check className="w-5 h-5 text-white stroke-[3]" />}
+                    </div>
+                    <span className="text-[15px] font-semibold text-white">{m.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -285,7 +321,7 @@ export default function ChatInputBar({
                 disabled={!input.trim() && (files?.length || 0) === 0}
                 className={`w-9 h-9 rounded-full flex items-center justify-center ${transition} active:scale-95 ${
                   input.trim() || (files?.length || 0) > 0
-                    ? 'bg-[#white] text-[#0F0F0F] hover:bg-gray-200 shadow-md'
+                    ? 'bg-white text-[#0F0F0F] hover:bg-gray-200 shadow-md'
                     : 'bg-[#2A2A2A] text-gray-500 cursor-not-allowed opacity-50'
                 }`}
               >
