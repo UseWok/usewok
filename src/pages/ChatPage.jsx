@@ -320,6 +320,46 @@ export default function ChatPage() {
   });
   
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
+
+// Add skeleton component for chat loading
+const ChatLoadingSkeleton = () => (
+  <div className="flex-1 flex flex-col justify-end p-6 space-y-6">
+    <div className="space-y-4 max-w-2xl mx-auto w-full">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex justify-start">
+          <div
+            style={{
+              width: `${70 + (i * 10)}%`,
+              height: 60,
+              borderRadius: 20,
+              background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+              backgroundSize: '600px 100%',
+              animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 100}ms both`,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const SidebarLoadingSkeleton = () => (
+  <div className="px-4 space-y-2 mt-6">
+    {[0, 1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        style={{
+          width: '100%',
+          height: 40,
+          borderRadius: 8,
+          background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+          backgroundSize: '600px 100%',
+          animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 80}ms both`,
+        }}
+      />
+    ))}
+  </div>
+);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState(''); 
