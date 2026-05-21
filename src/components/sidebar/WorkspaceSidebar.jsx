@@ -112,7 +112,7 @@ export default function WorkspaceSidebar({ expanded, setExpanded, user, userPlan
 
         transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
 
-        className="fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-[#F9F8F6] border-r border-[#E6E6E9] overflow-hidden font-sans"
+        className="fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-[#0F0F0F] border-r border-[#2A2A2A] overflow-hidden font-sans"
 
         style={{ width: EXPANDED_W }}
 
