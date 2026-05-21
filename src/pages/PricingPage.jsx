@@ -181,39 +181,52 @@ export default function PricingPage() {
         </div>
 
         {/* Plan cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '3rem' }}>
-          {plans.map((plan, i) => (
-            <div
-              key={plan.id}
-              style={{
-                background: CARD,
-                border: plan.badge ? `1.5px solid #3a3a3a` : `0.5px solid ${BORDER}`,
-                borderRadius: '14px',
-                padding: '1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                position: 'relative',
-              }}
-            >
-              {plan.badge && (
-                <span style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', background: '#2a2a2a', border: `0.5px solid ${BORDER}`, borderRadius: '999px', fontSize: '11px', padding: '3px 12px', color: '#bbb', whiteSpace: 'nowrap' }}>
-                  ⭐ {plan.badge}
-                </span>
-              )}
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '3rem' }}>
+  {plans.map((plan, i) => (
+    <div
+      key={plan.id}
+      style={{
+        background: CARD,
+        border: plan.badge ? `1.5px solid #3a3a3a` : `0.5px solid ${BORDER}`,
+        borderRadius: '14px',
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        position: 'relative',
+      }}
+    >
+      {/* New Top-Right Badge */}
+      {plan.badge && (
+        <span style={{ 
+          position: 'absolute', 
+          top: '1.5rem', 
+          right: '1.5rem', 
+          background: '#ffffff', 
+          color: '#000000', 
+          borderRadius: '6px', 
+          fontSize: '12px', 
+          fontWeight: 600,
+          padding: '4px 10px', 
+          whiteSpace: 'nowrap',
+          letterSpacing: '-0.2px'
+        }}>
+          Popular
+        </span>
+      )}
 
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 500, color: TEXT, marginBottom: '.3rem' }}>{plan.name}</h3>
-                <p style={{ fontSize: '13px', color: MUTED, lineHeight: 1.5 }}>{plan.desc}</p>
-              </div>
+      <div>
+        <h3 style={{ fontSize: '18px', fontWeight: 500, color: TEXT, marginBottom: '.3rem' }}>{plan.name}</h3>
+        <p style={{ fontSize: '13px', color: MUTED, lineHeight: 1.5 }}>{plan.desc}</p>
+      </div>
 
-              <div>
-                {plan.price !== null ? (
-                  <>
-                    <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price)}</span>
-                    <span style={{ fontSize: '13px', color: MUTED }}> / mois</span>
-                  </>
-                ) : (
+      <div>
+        {plan.price !== null ? (
+          <>
+            <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price)}</span>
+            <span style={{ fontSize: '13px', color: MUTED }}> / mois</span>
+          </>
+        ) : (
                   <span style={{ fontSize: '22px', fontWeight: 500, color: TEXT }}>Sur devis</span>
                 )}
               </div>
