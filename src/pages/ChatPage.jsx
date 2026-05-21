@@ -749,8 +749,8 @@ useEffect(() => {
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
           {/* ── CHAT PANEL ── */}
-          {/* Applies 200ms cubic-bezier transition to slide/expand the chat layout when preview is toggled */}
-          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? (isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-[#2A2A2A] z-[100]') : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+          {/* This is the SINGLE corrected container for the chat panel */}
+          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] border-r border-[#2A2A2A] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? (isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-[#2A2A2A] z-[100]') : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
             
             {/* The Expand Button (ChevronsLeft) - only visible when the preview is collapsed */}
             {isPreviewCollapsed && hasStarted && (
@@ -777,41 +777,41 @@ useEffect(() => {
           
           {/* ── PREVIEW PANEL ── */}
           {hasStarted && (
-  <div className={`bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
-    <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#0F0F0F]">
-      <WorkspaceHeader 
-        onReload={handleReload} 
-        convId={conversationId || convId} 
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        customSlug={customSlug}
-        setCustomSlug={setCustomSlug}
-        onTogglePreview={() => setIsPreviewCollapsed(true)}
-      />
-      <div className="flex-1 overflow-hidden relative bg-[#0F0F0F] p-4 pt-0">
-        {isLoading && !ficheContent ? (
-          <PreviewSkeleton />
-        ) : (
-          <FichePanel 
-            content={ficheContent} 
-            onError={setRuntimeError} 
-            onSuccess={() => setRuntimeError(null)} 
-            isPublic={false} 
-            viewMode={viewMode} 
-            setViewMode={setViewMode}
-            appSettings={appSettings}
-            onUpdateSettings={handleUpdateAppMeta}
-            onClone={handleCloneApp}
-            onDelete={handleDeleteApp}
-            onUnpublish={handleUnpublishApp}
-            customSlug={customSlug}
-            onUpdateContent={setFicheContent}
-          />
-        )}
-      </div>
-    </div>
-  </div>
-)}
+            <div className={`bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
+              <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#0F0F0F]">
+                <WorkspaceHeader 
+                  onReload={handleReload} 
+                  convId={conversationId || convId} 
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  customSlug={customSlug}
+                  setCustomSlug={setCustomSlug}
+                  onTogglePreview={() => setIsPreviewCollapsed(true)}
+                />
+                <div className="flex-1 overflow-hidden relative bg-[#0F0F0F] p-4 pt-0">
+                  {isLoading && !ficheContent ? (
+                    <PreviewSkeleton />
+                  ) : (
+                    <FichePanel 
+                      content={ficheContent} 
+                      onError={setRuntimeError} 
+                      onSuccess={() => setRuntimeError(null)} 
+                      isPublic={false} 
+                      viewMode={viewMode} 
+                      setViewMode={setViewMode}
+                      appSettings={appSettings}
+                      onUpdateSettings={handleUpdateAppMeta}
+                      onClone={handleCloneApp}
+                      onDelete={handleDeleteApp}
+                      onUnpublish={handleUnpublishApp}
+                      customSlug={customSlug}
+                      onUpdateContent={setFicheContent}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
