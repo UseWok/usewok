@@ -341,35 +341,22 @@ export default function WorkspaceSidebar({ expanded, setExpanded, user, userPlan
 
           {/* FOOTER SIDEBAR (Profil Claude Style) */}
 
-          <div className="p-3 border-t border-[#E6E6E9] flex-shrink-0 flex items-center justify-between">
-
-            <button
-
-              ref={profileRef} onClick={() => togglePopover('profile')}
-
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors w-full text-left"
-
-            >
-
-              <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold" style={{ backgroundColor: getUserColor(user) }}>
-
-                {userInitial}
-
-              </div>
-
-              <div className="flex-1 min-w-0">
-
-                <p className="text-[14px] font-semibold text-[#333333] truncate">{user?.full_name || 'User'}</p>
-
-                <p className="text-[12px] text-[#707070]">{userPlan?.name || 'Free'}</p>
-
-              </div>
-
-              <Settings className="w-4 h-4 text-[#999999]" />
-
-            </button>
-
-          </div>
+          <div className="p-3 border-t border-[#2A2A2A] flex-shrink-0 flex items-center justify-between">
+  <button
+    ref={profileRef} 
+    onClick={() => togglePopover('profile')}
+    className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1A1A1A] transition-colors w-full text-left"
+  >
+    <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-[13px] font-bold" style={{ backgroundColor: getUserColor(user) }}>
+      {userInitial}
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-[14px] font-semibold text-white truncate">{user?.full_name || 'User'}</p>
+      <p className="text-[12px] text-gray-400">{userPlan?.name || 'Free'}</p>
+    </div>
+    <Settings className="w-4 h-4 text-gray-500" />
+  </button>
+</div>
 
         </div>
 
