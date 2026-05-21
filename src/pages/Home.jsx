@@ -1,3 +1,10 @@
+// Add at top of Home component:
+const [input, setInput] = useState('');
+
+const handleSendMessage = () => {
+  if (!input.trim()) return;
+  navigate(`/chat?q=${encodeURIComponent(input)}`);
+};
 import { useState, useEffect } from 'react';
 
 import { X } from 'lucide-react';
