@@ -168,13 +168,56 @@ export default function Home() {
 
         <div className="flex-1 min-w-0 overflow-y-auto">
 
-          <HeroSection agentId={selectedAgent} onAgentChange={setSelectedAgent} />
-
-          <RecentApps
-
-            agentId={selectedAgent}
-
-          />
+          // Replace entire return section with:
+<div className="min-h-screen bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A] to-[#1A1A2E] flex flex-col items-center justify-center relative overflow-hidden">
+  {/* Glow Effect */}
+  <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[150px]" />
+  
+  <div className="relative z-10 w-full max-w-2xl px-6">
+    {/* Greeting */}
+    <h1 className="text-white text-[28px] font-medium text-center mb-8">
+      Comment puis-je vous aider, {user?.full_name?.split(' ')[0] || 'Antoine'} ?
+    </h1>
+    
+    {/* Chat Input */}
+    <div className="relative mb-4">
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+        placeholder="Demander à Gestia"
+        className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-full px-6 py-4 text-[15px] focus:outline-none focus:border-[#0055FF] placeholder:text-gray-500"
+      />
+      <button className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0055FF] rounded-full flex items-center justify-center hover:bg-[#0044CC]">
+        <span className="text-white text-lg">→</span>
+      </button>
+    </div>
+    
+    {/* 2 Action Buttons */}
+    <div className="flex gap-3">
+      <button 
+        onClick={() => navigate('/chat?q=Analyze my spending')}
+        className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl px-5 py-3 text-[14px] font-medium hover:bg-[#2A2A2A] transition-colors text-left"
+      >
+        💰 Analyze my spending
+      </button>
+      <button 
+        onClick={() => navigate('/chat?q=Financial coaching')}
+        className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl px-5 py-3 text-[14px] font-medium hover:bg-[#2A2A2A] transition-colors text-left"
+      >
+        🎯 Start financial coaching
+      </button>
+    </div>
+    
+    {/* Pop Badge */}
+    <div className="flex items-center justify-center gap-2 mt-6 text-gray-500 text-[13px]">
+      <span>Pro</span>
+      <div className="w-1 h-1 bg-gray-600 rounded-full" />
+      <span>Tap to explore</span>
+    </div>
+  </div>
+</div>
 
         </div>
 
