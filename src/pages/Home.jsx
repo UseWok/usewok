@@ -89,7 +89,7 @@ export default function Home() {
             <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[150px]" />
             
             <div className="relative z-10 w-full max-w-2xl px-6">
-              <h1 className="text-white text-[28px] font-medium text-center mb-8">
+              <h1 className="text-white font-medium text-center mb-8 text-2xl">
                 Comment puis-je vous aider, {user?.full_name?.split(' ')[0] || 'Antoine'} ?
               </h1>
               
