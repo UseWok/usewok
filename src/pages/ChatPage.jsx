@@ -790,7 +790,12 @@ useEffect(() => {
           
           {/* ── CHAT PANEL ── */}
           {/* This is the SINGLE corrected container for the chat panel */}
-          <div className={`flex flex-col bg-[#0F0F0F] overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] border-r border-[#2A2A2A] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${hasStarted ? (isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-[#2A2A2A] z-[100]') : 'w-full h-full justify-center max-w-3xl mx-auto z-10'}`}>
+          <div 
+  className={`flex flex-col overflow-visible ...`}
+  style={{
+    background: 'linear-gradient(180deg, #0A0A0A 0%, #0F0F0F 50%, #0A0A0A 100%)',
+  }}
+>
             
             {/* The Expand Button (ChevronsLeft) - only visible when the preview is collapsed */}
             {isPreviewCollapsed && hasStarted && (
