@@ -3,9 +3,6 @@ import { toast } from 'sonner';
 import { RefreshCw, ExternalLink, ArrowLeft, Mail, Code2, ChevronsRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-);
 const XIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></svg>);
 const LinkedInIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zM7.119 20.452H3.554V9h3.565v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>);
 const FacebookIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>);
@@ -23,7 +20,7 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
   const [isPublished, setIsPublished] = useState(false);
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
-  const [indexGoogle, setIndexGoogle] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
   const [showDomainModal, setShowDomainModal] = useState(false);
   
   const publishRef = useRef(null);
@@ -152,7 +149,7 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
              <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
              <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
            </div>
-           
+          
            <button onClick={onTogglePreview} className="hidden md:flex text-gray-500 hover:text-white transition-colors items-center justify-center ml-2" title="Hide Preview">
              <ChevronsRight className="w-[18px] h-[18px]" strokeWidth={2.5} />
            </button>
@@ -214,19 +211,22 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
                   </div>
                   
                   <div className="border-t border-[#2A2A2A] pt-3 px-3">
-                    <h4 className="text-[12px] font-bold text-white mb-2">App Visibility</h4>
+                    <h4 className="text-[12px] font-bold text-white mb-2">Project Visibility</h4>
                     <div className="flex items-center justify-between bg-[#1A1A1A] p-2.5 rounded-md border border-[#2A2A2A] shadow-sm">
                       <div className="flex items-center gap-2.5">
-                        <GoogleIcon />
-                        <span className="text-[12px] font-bold text-white">Index on Google</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="2" y1="12" x2="22" y2="12"></line>
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        <span className="text-[12px] font-bold text-white">Public Project</span>
                       </div>
-                      <Toggle enabled={indexGoogle} onChange={() => setIndexGoogle(!indexGoogle)} />
+                      <Toggle enabled={isPublic} onChange={() => setIsPublic(!isPublic)} />
                     </div>
                   </div>
 
                   <div className="px-3 pb-2 pt-1">
-                    
-                    <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3 transition-colors">
+                    <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3">
                       {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
                     </button>
                   </div>
