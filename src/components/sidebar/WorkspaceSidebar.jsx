@@ -179,7 +179,7 @@ export default function WorkspaceSidebar({ expanded, setExpanded, user, userPlan
 
                         onDrop={() => setDraggedOverIdx(null)}
 
-                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-black/5 transition-colors group relative ${draggedOverIdx === idx ? 'bg-blue-50/50' : ''} text-[#333333]`}
+                         className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-grab hover:bg-[#1A1A1A] transition-colors group relative ${draggedOverIdx === idx ? 'bg-[#1A1A1A]' : ''} text-white`}
 
                       >
 
