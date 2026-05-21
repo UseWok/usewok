@@ -83,46 +83,53 @@ export default function Home() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-  <div className="flex-1 min-w-0 overflow-y-auto">
-    <div className="min-h-screen bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A] to-[#1A1A2E] flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Glow Effect */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[150px]" />
-      
-      <div className="relative z-10 w-full max-w-2xl px-6">
-        <h1 className="text-[#e3e3e3] text-[32px] font-light tracking-wide text-center mb-8 antialiased">
-          Bonjour Antoine, sur quoi pouvons-nous travailler ?
-        </h1>
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          {/* Added pb-[12vh] to push the content slightly higher */}
+          <div className="min-h-screen bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A] to-[#1A1A2E] flex flex-col items-center justify-center pb-[12vh] relative overflow-hidden">
+            
+            {/* Glow Effect - Slightly reduced size and opacity to make it less overwhelming */}
+            <div className="absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px]" />
+            
+            <div className="relative z-10 w-full max-w-2xl px-6">
+              <h1 className="text-[#e3e3e3] text-[32px] font-light tracking-wide text-center mb-8 antialiased">
+                Bonjour Antoine, sur quoi pouvons-nous travailler ?
+              </h1>
               
-              <div className="relative mb-4">
+              {/* Modernized Input Bar */}
+              <div className="relative mb-5">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Demander à Gestia"
-                  className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-full px-6 py-4 text-[15px] focus:outline-none focus:border-[#0055FF] placeholder:text-gray-500"
+                  className="w-full bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-2xl px-6 py-4 text-[15px] focus:outline-none focus:border-blue-500/40 focus:bg-white/10 transition-all duration-300 placeholder:text-gray-500 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
                 />
-                <button onClick={handleSendMessage} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0055FF] rounded-full flex items-center justify-center hover:bg-[#0044CC]">
+                <button 
+                  onClick={handleSendMessage} 
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0055FF] rounded-xl flex items-center justify-center hover:bg-[#2563EB] transition-all duration-300 shadow-[0_0_15px_rgba(0,85,255,0.3)] hover:scale-105"
+                >
                   <span className="text-white text-lg">→</span>
                 </button>
               </div>
               
-              <div className="flex gap-3">
+              {/* Modernized Bottom Buttons */}
+              <div className="flex gap-4">
                 <button
                   onClick={() => navigate('/chat?q=Analyze my spending')}
-                  className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl px-5 py-3 text-[14px] font-medium hover:bg-[#2A2A2A] transition-colors text-left"
+                  className="flex-1 bg-white/[0.03] border border-white/5 text-white rounded-2xl px-5 py-4 text-[14px] font-medium hover:bg-white/[0.08] hover:border-white/10 transition-all duration-300 text-left shadow-sm backdrop-blur-md"
                 >
                   💰 Analyze my spending
                 </button>
                 <button
                   onClick={() => navigate('/chat?q=Financial coaching')}
-                  className="flex-1 bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl px-5 py-3 text-[14px] font-medium hover:bg-[#2A2A2A] transition-colors text-left"
+                  className="flex-1 bg-white/[0.03] border border-white/5 text-white rounded-2xl px-5 py-4 text-[14px] font-medium hover:bg-white/[0.08] hover:border-white/10 transition-all duration-300 text-left shadow-sm backdrop-blur-md"
                 >
                   🎯 Start financial coaching
                 </button>
               </div>
               
-              <div className="flex items-center justify-center gap-2 mt-6 text-gray-500 text-[13px]">
+              <div className="flex items-center justify-center gap-2 mt-8 text-gray-500 text-[13px] opacity-80">
                 <span>Pro</span>
                 <div className="w-1 h-1 bg-gray-600 rounded-full" />
                 <span>Tap to explore</span>
