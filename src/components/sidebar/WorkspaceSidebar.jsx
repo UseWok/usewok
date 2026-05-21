@@ -157,7 +157,7 @@ export default function WorkspaceSidebar({ expanded, setExpanded, user, userPlan
 
                 <ChevronRight className={`w-3.5 h-3.5 text-[#999999] transition-transform ${sections.recent ? 'rotate-90' : ''}`} />
 
-                <span className="text-[12px] font-semibold text-[#707070] group-hover:text-[#333333] transition-colors">Recent</span>
+               <span className="text-[12px] font-semibold text-gray-500 group-hover:text-white transition-colors">Recent</span>
 
               </div>
 
