@@ -124,17 +124,9 @@ export default function WorkspaceSidebar({ expanded, setExpanded, user, userPlan
 
           {/* HEADER SIDEBAR (Recherche et Notifs) */}
 
-          <div className="px-4 py-4 flex items-center justify-between flex-shrink-0">
-
-            <button className="flex items-center gap-2 text-[#707070] hover:text-[#333333] transition-colors w-full">
-
-              <Search className="w-4 h-4" />
-
-              <span className="text-[14px] font-medium">Search</span>
-
-            </button>
-
-            <button ref={notiRef} onClick={() => togglePopover('noti')} className="relative p-1 rounded hover:bg-black/5 text-[#707070] transition-colors">
+          <div className="px-4 py-4 flex items-center justify-between flex-shrink-0 border-b border-[#2A2A2A]">
+  <h1 className="text-xl font-[800] italic tracking-tighter text-white">WOK</h1>
+  <button ref={notiRef} onClick={() => togglePopover('noti')} className="relative p-1 rounded hover:bg-[#1A1A1A] text-gray-400 transition-colors">
 
               <Bell className="w-4 h-4" />
 
