@@ -90,7 +90,7 @@ export default function Home() {
       
       <div className="relative z-10 w-full max-w-2xl px-6">
         <h1 className="text-[#e3e3e3] text-[32px] font-light tracking-wide text-center mb-8 antialiased">
-          Where to start?
+          Bonjour Antoine, sur quoi pouvons-nous travailler ?
         </h1>
               
               <div className="relative mb-4">
