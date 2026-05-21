@@ -31,7 +31,7 @@ const ContactModal = ({ onClose }) => {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <h3 style={{fontSize:'18px',fontWeight:500,color:'#f0f0f0',marginBottom:'.5rem'}}>Thank you for reaching out!</h3>
-            <p style={{fontSize:'14px',color:'#888',lineHeight:1.6}}>We've received your message and our team will get back to you within 24 hours. We're excited to help you with your Base44 journey!</p>
+            <p style={{fontSize:'14px',color:'#888',lineHeight:1.6}}>We've received your message and our team will get back to you within 24 hours. We're excited to help you with your Wok journey!</p>
             <button onClick={onClose} style={{marginTop:'1.5rem',padding:'10px 28px',background:'#f0f0f0',color:'#111',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:500,cursor:'pointer'}}>Close</button>
           </div>
         ) : (
