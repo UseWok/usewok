@@ -647,7 +647,7 @@ useEffect(() => {
   ];
 
   return (
-    <div className="flex font-sans h-screen w-full bg-[#0F0F0F] overflow-hidden antialiased relative">
+    <div className="flex font-sans h-screen w-full bg-[#1C1C1C] overflow-hidden antialiased relative">
       
       {!isSidebarOpen && (
         <div className="absolute top-4 left-4 z-[999]">
