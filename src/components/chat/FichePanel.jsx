@@ -84,7 +84,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
   const isEmpty = !code;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#0F0F0F] rounded-xl border border-[#2A2A2A]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#1C1C1C] rounded-xl border border-[#2A2A2A]">
 
       {/* ── Editor top bar ── */}
       <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[#1A1A1A] border-b border-[#2A2A2A] rounded-t-xl">
