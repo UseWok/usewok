@@ -817,7 +817,7 @@ useEffect(() => {
           
           {/* ── PREVIEW PANEL ── */}
           {hasStarted && (
-            <div className={`bg-[#0F0F0F] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
+            <div className={`bg-[#1C1C1C] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
               <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#0F0F0F]">
                 <WorkspaceHeader 
                   onReload={handleReload} 
