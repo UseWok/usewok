@@ -629,7 +629,7 @@ export default function FichePanel({
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="w-full h-full bg-white relative rounded-xl overflow-hidden">
+              <div className="w-full h-full bg-transparent relative rounded-xl overflow-hidden">
                 <iframe
                   title="Wok Live Preview"
                   srcDoc={srcDoc}
