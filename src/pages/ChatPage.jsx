@@ -1,6 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatPage.jsx  ── Layout updated for floating preview panel with 200ms Ease-Out
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ============================================================================
+// ► 1. IMPORTS & DEPENDENCIES
+// ============================================================================
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -22,6 +26,10 @@ import {
   Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft, Plus, Settings, LifeBuoy, ArrowUpCircle, Key, ChevronDown, Check, X, MoreHorizontal, Edit2, Trash2, ChevronsLeft
 } from 'lucide-react';
 
+
+// ============================================================================
+// ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
+// ============================================================================
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex justify-end w-full mb-6 font-sans px-1 md:px-0">
     <div 
@@ -71,6 +79,10 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
   );
 };
 
+
+// ============================================================================
+// ► 3. UTILITIES, CONSTANTS & PROMPTS
+// ============================================================================
 const getLocalDiscussions = (workspaceId) => {
   try { return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || []; } catch { return []; }
 };
@@ -119,6 +131,12 @@ const getBackgroundGradient = (theme) => {
     default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
   }
 };
+
+
+// ============================================================================
+// ► 4. SKELETON LOADERS (UI STATES)
+// ============================================================================
+
 // ── Ghost skeleton drawn top-to-bottom while AI is generating the preview ──
 const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => (
   <div
@@ -213,8 +231,55 @@ const PreviewSkeleton = () => (
   </div>
 );
 
+// Add skeleton component for chat loading
+const ChatLoadingSkeleton = () => (
+  <div className="flex-1 flex flex-col justify-end p-6 space-y-6">
+    <div className="space-y-4 max-w-2xl mx-auto w-full">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex justify-start">
+          <div
+            style={{
+              width: `${70 + (i * 10)}%`,
+              height: 60,
+              borderRadius: 20,
+              background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+              backgroundSize: '600px 100%',
+              animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 100}ms both`,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
+const SidebarLoadingSkeleton = () => (
+  <div className="px-4 space-y-2 mt-6">
+    {[0, 1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        style={{
+          width: '100%',
+          height: 40,
+          borderRadius: 8,
+          background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+          backgroundSize: '600px 100%',
+          animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 80}ms both`,
+        }}
+      />
+    ))}
+  </div>
+);
+
+
+// ============================================================================
+// ► 5. MAIN COMPONENT: ChatPage
+// ============================================================================
 export default function ChatPage() {
+  
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.1 ROUTING & URL PARAMS
+  // ────────────────────────────────────────────────────────────────────────
   const navigate = useNavigate();
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
@@ -223,6 +288,9 @@ export default function ChatPage() {
   const convIdRef = useRef(conversationId || `conv_${Date.now()}`);
   const convId = convIdRef.current;
 
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.2 STATE INITIALIZATION
+  // ────────────────────────────────────────────────────────────────────────
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   
@@ -260,7 +328,40 @@ export default function ChatPage() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   
   const [runtimeError, setRuntimeError] = useState(null);
+  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
 
+  const [messages, setMessages] = useState(() => {
+    const initial = conversationId ? getConversationMessages(conversationId) : [];
+    return Array.isArray(initial) ? initial : [];
+  });
+  
+  const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
+
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState(''); 
+  const [files, setFiles] = useState([]);
+  const [ficheContent, setFicheContent] = useState(null);
+  const [discussMode, setDiscussMode] = useState(false);
+  
+  const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.3 REFS & HELPERS
+  // ────────────────────────────────────────────────────────────────────────
+  const profileMenuRef = useRef(null);
+  const workspaceRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const abortedRef = useRef(false);
+
+  const hasStarted = (messages?.length || 0) > 0 || isLoading;
+
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.4 WORKSPACE & DISCUSSION HANDLERS
+  // ────────────────────────────────────────────────────────────────────────
   const handleCreateWorkspace = () => {
     if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
     if (workspaces.length >= 4) { toast.error("Maximum limit of 4 workspaces reached."); return; }
@@ -301,9 +402,6 @@ export default function ChatPage() {
   const startEditing = (e, d) => { e.stopPropagation(); setEditingId(d.id); setEditTitle(d.title || d.preview || 'New Chat'); };
   const saveEdit = (id) => { if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() }); setEditingId(null); };
 
-  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
-
   const handleDrop = (idx) => {
     if (draggedItemIdx === null || draggedItemIdx === idx) return;
     const newDiscussions = [...discussions];
@@ -313,153 +411,6 @@ export default function ChatPage() {
     saveLocalDiscussions(currentWorkspace.id, newDiscussions);
     setDraggedItemIdx(null); setDragOverIdx(null);
   };
-
-  const [messages, setMessages] = useState(() => {
-    const initial = conversationId ? getConversationMessages(conversationId) : [];
-    return Array.isArray(initial) ? initial : [];
-  });
-  
-  const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
-
-// Add skeleton component for chat loading
-const ChatLoadingSkeleton = () => (
-  <div className="flex-1 flex flex-col justify-end p-6 space-y-6">
-    <div className="space-y-4 max-w-2xl mx-auto w-full">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex justify-start">
-          <div
-            style={{
-              width: `${70 + (i * 10)}%`,
-              height: 60,
-              borderRadius: 20,
-              background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
-              backgroundSize: '600px 100%',
-              animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 100}ms both`,
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const SidebarLoadingSkeleton = () => (
-  <div className="px-4 space-y-2 mt-6">
-    {[0, 1, 2, 3, 4].map((i) => (
-      <div
-        key={i}
-        style={{
-          width: '100%',
-          height: 40,
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
-          backgroundSize: '600px 100%',
-          animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 80}ms both`,
-        }}
-      />
-    ))}
-  </div>
-);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState(''); 
-  const [files, setFiles] = useState([]);
-  const [ficheContent, setFicheContent] = useState(null);
-  const [discussMode, setDiscussMode] = useState(false);
-  
-  const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
-
-  const profileMenuRef = useRef(null);
-  const workspaceRef = useRef(null);
-  const messagesEndRef = useRef(null);
-  const scrollContainerRef = useRef(null);
-  const abortedRef = useRef(false);
-
-  const hasStarted = (messages?.length || 0) > 0 || isLoading;
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) setIsProfileMenuOpen(false);
-      if (workspaceRef.current && !workspaceRef.current.contains(event.target)) setShowWorkspaceSwitcher(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoadingConversation && (messages?.length || 0) === 0 && conversationId) navigate('/');
-  }, [isLoadingConversation, messages?.length, conversationId, navigate]);
-
-  useEffect(() => {
-    initAgentsFromDB().catch(() => {});
-    base44.auth.me().then((u) => {
-      setUser(u);
-      if (u?.id) setCurrentUser(u.id);
-      setUserPlan(getUserPlan(u));
-    }).catch(() => {});
-  }, [conversationId]);
-
-  useEffect(() => {
-    if (initialQ && (messages?.length || 0) === 0) sendMessage(initialQ);
-  }, []);
-
-  useEffect(() => {
-    if (!conversationId) {
-      setMessages([]);
-      setFicheContent(null);
-      return;
-    }
-    loadConversationFromCloud(conversationId).then((cloudMsgs) => {
-      const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
-      if (safeCloudMsgs.length > 0) { 
-        setMessages(safeCloudMsgs); 
-        saveConversationMessages(conversationId, safeCloudMsgs); 
-        const lastAssistantMsg = safeCloudMsgs.filter(m => m.role === 'assistant').pop();
-        if (lastAssistantMsg) {
-            setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
-        } else {
-            setFicheContent(null);
-        }
-      }
-      setIsLoadingConversation(false);
-    }).catch(() => setIsLoadingConversation(false));
-  }, [conversationId]);
-
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-// ── Global keyboard shortcuts ──
-useEffect(() => {
-  const handleKeyDown = (e) => {
-    // Ctrl/Cmd + S: Save (trigger in code editor if available)
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      if (viewMode === 'code') {
-        // Code editor handles this internally
-        return;
-      }
-      toast.info('Auto-save active — changes sync continuously');
-    }
-    
-    // Ctrl/Cmd + K: Toggle preview collapse
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      if (hasStarted) setIsPreviewCollapsed(prev => !prev);
-    }
-    
-    // Ctrl/Cmd + /: Focus input
-    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-      e.preventDefault();
-      document.querySelector('textarea')?.focus();
-    }
-    
-    // Escape: Close preview collapse
-    if (e.key === 'Escape' && isPreviewCollapsed && hasStarted) {
-      setIsPreviewCollapsed(false);
-    }
-  };
-  
-  document.addEventListener('keydown', handleKeyDown);
-  return () => document.removeEventListener('keydown', handleKeyDown);
-}, [viewMode, hasStarted, isPreviewCollapsed]);
 
   const saveToDiscussionsLogic = (convTitle, text) => {
     try {
@@ -480,6 +431,10 @@ useEffect(() => {
       setUser(prev => ({...prev, credits_used: newUsed}));
   };
 
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.5 CORE CHAT LOGIC
+  // ────────────────────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text, options = {}) => {
     if (!text?.trim() || isLoading) return;
     
@@ -586,16 +541,6 @@ useEffect(() => {
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
-  useEffect(() => {
-    if (runtimeError && !isLoading) {
-      const bt = String.fromCharCode(96);
-      const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
-      const savedError = runtimeError;
-      setRuntimeError(null);
-      sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
-    }
-  }, [runtimeError, isLoading, sendMessage]);
-
   const handleStop = useCallback(() => {
     abortedRef.current = true; setIsLoading(false);
     setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Stopped.' }]);
@@ -610,6 +555,10 @@ useEffect(() => {
     }
   };
 
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.6 APP SETTINGS & META LOGIC
+  // ────────────────────────────────────────────────────────────────────────
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if(convId) {
@@ -640,12 +589,115 @@ useEffect(() => {
     toast.success("Application deleted permanently.");
   };
 
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.7 LIFECYCLES (USE_EFFECTS)
+  // ────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) setIsProfileMenuOpen(false);
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target)) setShowWorkspaceSwitcher(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoadingConversation && (messages?.length || 0) === 0 && conversationId) navigate('/');
+  }, [isLoadingConversation, messages?.length, conversationId, navigate]);
+
+  useEffect(() => {
+    initAgentsFromDB().catch(() => {});
+    base44.auth.me().then((u) => {
+      setUser(u);
+      if (u?.id) setCurrentUser(u.id);
+      setUserPlan(getUserPlan(u));
+    }).catch(() => {});
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (initialQ && (messages?.length || 0) === 0) sendMessage(initialQ);
+  }, []);
+
+  useEffect(() => {
+    if (!conversationId) {
+      setMessages([]);
+      setFicheContent(null);
+      return;
+    }
+    loadConversationFromCloud(conversationId).then((cloudMsgs) => {
+      const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
+      if (safeCloudMsgs.length > 0) { 
+        setMessages(safeCloudMsgs); 
+        saveConversationMessages(conversationId, safeCloudMsgs); 
+        const lastAssistantMsg = safeCloudMsgs.filter(m => m.role === 'assistant').pop();
+        if (lastAssistantMsg) {
+            setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
+        } else {
+            setFicheContent(null);
+        }
+      }
+      setIsLoadingConversation(false);
+    }).catch(() => setIsLoadingConversation(false));
+  }, [conversationId]);
+
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // ── Global keyboard shortcuts ──
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl/Cmd + S: Save (trigger in code editor if available)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (viewMode === 'code') {
+          // Code editor handles this internally
+          return;
+        }
+        toast.info('Auto-save active — changes sync continuously');
+      }
+      
+      // Ctrl/Cmd + K: Toggle preview collapse
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (hasStarted) setIsPreviewCollapsed(prev => !prev);
+      }
+      
+      // Ctrl/Cmd + /: Focus input
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        document.querySelector('textarea')?.focus();
+      }
+      
+      // Escape: Close preview collapse
+      if (e.key === 'Escape' && isPreviewCollapsed && hasStarted) {
+        setIsPreviewCollapsed(false);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [viewMode, hasStarted, isPreviewCollapsed]);
+
+  useEffect(() => {
+    if (runtimeError && !isLoading) {
+      const bt = String.fromCharCode(96);
+      const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
+      const savedError = runtimeError;
+      setRuntimeError(null);
+      sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
+    }
+  }, [runtimeError, isLoading, sendMessage]);
+
   const navItems = [
     { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
     { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
     { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
   ];
 
+
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.8 RENDER (JSX)
+  // ────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex font-sans h-screen w-full bg-[#1C1C1C] overflow-hidden antialiased relative">
       
@@ -657,6 +709,7 @@ useEffect(() => {
         </div>
       )}
 
+      {/* ── MODALS & OVERLAYS ── */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold text-white mb-1.5 block">Workspace name *</label>
         <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#2A2A2A] bg-[#0F0F0F] text-white rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0055FF] mb-4" autoFocus />
@@ -676,6 +729,7 @@ useEffect(() => {
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
+      {/* ── SIDEBAR ── */}
       <aside className={`flex-shrink-0 h-full border-r border-[#2A2A2A] flex flex-col z-[50] transition-none absolute md:relative bg-[#0F0F0F] ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
         <div className="w-[260px] flex flex-col h-full bg-[#1C1C1C]">
           
@@ -775,6 +829,7 @@ useEffect(() => {
         <div className="fixed inset-0 bg-black/60 z-[45]" onClick={() => setIsSidebarOpen(false)} />
       )}
 
+      {/* ── MAIN CONTENT AREA ── */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
         
         <div className="flex items-center justify-end p-3 md:hidden">
