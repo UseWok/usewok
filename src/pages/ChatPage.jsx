@@ -828,7 +828,7 @@ useEffect(() => {
                   setCustomSlug={setCustomSlug}
                   onTogglePreview={() => setIsPreviewCollapsed(true)}
                 />
-                <div className="flex-1 overflow-hidden relative bg-[#0F0F0F] p-4 pt-0">
+                <div className="flex-1 overflow-hidden relative bg-transparent p-4 pt-0">
                   {isLoading && !ficheContent ? (
                     <PreviewSkeleton />
                   ) : (
