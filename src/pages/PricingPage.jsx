@@ -91,9 +91,9 @@ export default function PricingPage() {
 
   const getPrice = (base) => {
     if (base === 0) return '0';
-    if (currency === 'EUR') return (base * 0.92).toFixed(2);
-    if (currency === 'GBP') return (base * 0.79).toFixed(2);
-    return base.toFixed(2);
+    if (currency === 'EUR') return parseFloat((base * 0.92).toFixed(2));
+    if (currency === 'GBP') return parseFloat((base * 0.79).toFixed(2));
+    return base; // Plus besoin de .toFixed(2) car tes prix de base (29, 69) sont déjà ronds
   };
 
   const sym = { USD: '$', EUR: '€', GBP: '£' }[currency];
