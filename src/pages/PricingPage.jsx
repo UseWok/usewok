@@ -258,6 +258,53 @@ export default function PricingPage() {
           ))}
         </div>
 
+        {/* Compliance & Security Badges Section */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginBottom: '3rem', userSelect: 'none' }}>
+          {/* ISO 27001 */}
+          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
+            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 22h20L12 2z"/>
+                <circle cx="12" cy="14" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>ISO 27001</div>
+              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>ISO Security Management</div>
+            </div>
+          </div>
+          
+          {/* SOC 2 Type II */}
+          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
+            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <rect x="10" y="10" width="4" height="5" rx="1"/>
+                <path d="M10 10V9a2 2 0 0 1 4 0v1"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>SOC 2 Type II</div>
+              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>SOC for Service Organizations</div>
+            </div>
+          </div>
+
+          {/* GDPR */}
+          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
+            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <rect x="9" y="11" width="6" height="5" rx="1"/>
+                <path d="M9 11V9a3 3 0 0 1 6 0v2"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>GDPR</div>
+              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>Data Protection & Privacy Regulation</div>
+            </div>
+          </div>
+        </div>
+
         {/* Comparison table */}
         <h2 style={{ fontSize: '16px', fontWeight: 500, color: TEXT, marginBottom: '1rem' }}>Compare all plans</h2>
         <div style={{ background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '14px', overflowX: 'auto' }}>
