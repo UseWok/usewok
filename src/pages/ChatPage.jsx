@@ -677,7 +677,7 @@ useEffect(() => {
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
 
       <aside className={`flex-shrink-0 h-full border-r border-[#2A2A2A] flex flex-col z-[50] transition-none absolute md:relative bg-[#0F0F0F] ${isSidebarOpen ? 'w-[260px] translate-x-0' : 'w-[260px] -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'}`}>
-        <div className="w-[260px] flex flex-col h-full bg-[#0F0F0F]">
+        <div className="w-[260px] flex flex-col h-full bg-[#1C1C1C]">
           
           <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between">
              <h1 className="text-2xl font-[800] italic tracking-tighter text-white">WOK</h1>
