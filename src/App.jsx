@@ -58,6 +58,8 @@ import BlogPostPage from './pages/BlogPostPage';
 
 import AdminBlog from './pages/admin/AdminBlog';
 
+import AdminDashboard from './pages/admin/AdminDashboard';
+
 import SEOHead from './components/SEOHead';
 
 
@@ -159,6 +161,8 @@ const AuthenticatedApp = () => {
 
         <Route path="/blog/:slug" element={<BlogPostPage />} />
 
+        <Route path="/admin/*" element={<AdminDashboard />} />
+
         <Route element={<Layout />}>
 
           <Route path="/app" element={<Home />} />
@@ -182,7 +186,6 @@ const AuthenticatedApp = () => {
           <Route path="/ai-dna" element={<AIControlTower />} />
 
           <Route path="/admin/blog" element={<AdminBlog />} />
-
 
           <Route path="*" element={<PageNotFound />} />
 
