@@ -609,14 +609,8 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Do NOT redirect on refresh — only redirect if load finishes and nothing was found at all
-  useEffect(() => {
-    if (!isLoadingConversation && (messages?.length || 0) === 0 && conversationId) {
-      // Give local storage one more chance before redirecting
-      const local = getConversationMessages(conversationId);
-      if (!local || local.length === 0) navigate('/');
-    }
-  }, [isLoadingConversation]);
+  // Never auto-redirect on F5 refresh — only navigate away if user explicitly deletes
+  // (removed the effect that was causing unwanted redirects)
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});

@@ -3,16 +3,20 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, Activity, Settings, ChevronRight,
-  TrendingUp, Shield, Zap
+  TrendingUp, Shield, Zap, CreditCard, Inbox
 } from 'lucide-react';
 import AdminOverview from '@/components/admin/AdminOverview';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminActivity from '@/components/admin/AdminActivity';
+import AdminPlans from '@/components/admin/AdminPlans';
+import AdminLeads from '@/components/admin/AdminLeads';
 
 const NAV = [
   { label: 'Overview',  path: '/admin',          icon: LayoutDashboard },
   { label: 'Users',     path: '/admin/users',     icon: Users           },
   { label: 'Activity',  path: '/admin/activity',  icon: Activity        },
+  { label: 'Plans',     path: '/admin/plans',     icon: CreditCard      },
+  { label: 'Leads',     path: '/admin/leads',     icon: Inbox           },
 ];
 
 export default function AdminDashboard() {
@@ -119,9 +123,11 @@ export default function AdminDashboard() {
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/"        element={<AdminOverview />} />
-            <Route path="/users"   element={<AdminUsers />} />
+            <Route path="/"         element={<AdminOverview />} />
+            <Route path="/users"    element={<AdminUsers />} />
             <Route path="/activity" element={<AdminActivity />} />
+            <Route path="/plans"    element={<AdminPlans />} />
+            <Route path="/leads"    element={<AdminLeads />} />
           </Routes>
         </main>
       </div>

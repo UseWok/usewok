@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { getPlansConfig } from '@/lib/plans-config';
 
 const CheckIcon = () => (
   <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{color:'#555'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -8,9 +11,25 @@ const CheckIcon = () => (
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const firstRef = useRef(); const lastRef = useRef(); const emailRef = useRef();
+  const websiteRef = useRef(); const roleRef = useRef(); const msgRef = useRef();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
+    try {
+      await base44.entities.ContactLead.create({
+        first_name: firstRef.current?.value || '',
+        last_name: lastRef.current?.value || '',
+        email: emailRef.current?.value || '',
+        website: websiteRef.current?.value || '',
+        role: roleRef.current?.value || '',
+        message: msgRef.current?.value || '',
+        status: 'new',
+      });
+    } catch {}
+    setSaving(false);
     setSubmitted(true);
   };
 
@@ -45,37 +64,37 @@ const ContactModal = ({ onClose }) => {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>First Name *</label>
-                  <input required placeholder="First Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input ref={firstRef} required placeholder="First Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Last Name *</label>
-                  <input required placeholder="Last Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input ref={lastRef} required placeholder="Last Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
               </div>
 
               <div>
                 <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Work Email *</label>
-                <input required type="email" placeholder="you@company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                <input ref={emailRef} required type="email" placeholder="you@company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
               </div>
 
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Website *</label>
-                  <input required placeholder="company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input ref={websiteRef} required placeholder="company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Role *</label>
-                  <input required placeholder="e.g., CFO, Director" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input ref={roleRef} required placeholder="e.g., CFO, Director" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
               </div>
 
               <div>
                 <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>What would you like to discuss? *</label>
-                <textarea required placeholder="Describe your needs..." rows={4} style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none',resize:'vertical',fontFamily:'inherit'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                <textarea ref={msgRef} required placeholder="Describe your needs..." rows={4} style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none',resize:'vertical',fontFamily:'inherit'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
               </div>
 
-              <button type="submit" style={{width:'100%',padding:'12px',background:'#f0f0f0',color:'#111',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:500,cursor:'pointer',marginTop:'4px'}}>
-                Send
+              <button type="submit" disabled={saving} style={{width:'100%',padding:'12px',background:'#f0f0f0',color:'#111',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:500,cursor:'pointer',marginTop:'4px',opacity:saving?0.7:1}}>
+                {saving ? 'Sending…' : 'Send'}
               </button>
             </form>
           </>
@@ -88,6 +107,7 @@ const ContactModal = ({ onClose }) => {
 export default function PricingPage() {
   const [currency, setCurrency] = useState('USD');
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   const getPrice = (base) => {
     if (base === 0) return '0';
@@ -105,41 +125,17 @@ export default function PricingPage() {
   const MUTED = '#888';
   const SUBTLE = '#444';
 
-  const plans = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: 29,
-      badge: null,
-      desc: 'For exploration and individual use',
-      btnLabel: 'Get Started',
-      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
-      features: ['50 generations / month', 'Financial analysis', 'PDF export', 'Email support', '1 user'],
-      notIncluded: ['API integrations', 'Teams', 'Custom model'],
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 69,
-      badge: 'Popular',
-      desc: 'For teams producing at scale',
-      btnLabel: 'Choose Pro',
-      btnStyle: { background: '#f0f0f0', color: '#111', border: 'none' },
-      features: ['500 generations / month', 'Analysis + forecasting', 'PDF & CSV export', 'API integrations', 'Up to 5 users', 'Priority support'],
-      notIncluded: ['Custom model', 'Guaranteed SLA'],
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: null,
-      badge: null,
-      desc: 'Tailor-made for large organizations',
-      btnLabel: 'Contact Us',
-      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
-      features: ['Unlimited generations', 'Custom AI model', 'SSO + advanced security', 'Guaranteed SLA', 'Unlimited users', 'Dedicated onboarding', 'Audit log & compliance'],
-      notIncluded: [],
-    },
-  ];
+  const rawPlans = getPlansConfig();
+  const plans = rawPlans.map(p => ({
+    ...p,
+    price: p.price_monthly || null,
+    desc: p.features_header || '',
+    btnLabel: p.id === 'enterprise' ? 'Contact Us' : p.price_monthly === 0 ? 'Get Started' : `Choose ${p.name}`,
+    btnStyle: p.badge ? { background: '#f0f0f0', color: '#111', border: 'none' } : { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
+    features: (p.features || []).map(f => f.text),
+    notIncluded: [],
+    checkout_url_monthly: p.checkout_url_monthly,
+  }));
 
   const tableFeatures = [
     { label: 'Generations / month', vals: ['50', '500', 'Unlimited'] },
@@ -221,18 +217,24 @@ export default function PricingPage() {
               </div>
 
               <div>
-                {plan.price !== null ? (
+                {plan.price_monthly > 0 ? (
                   <>
-                    <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price)}</span>
+                    <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price_monthly)}</span>
                     <span style={{ fontSize: '13px', color: MUTED }}> / month</span>
                   </>
+                ) : plan.price_monthly === 0 ? (
+                  <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>Gratuit</span>
                 ) : (
                   <span style={{ fontSize: '22px', fontWeight: 500, color: TEXT }}>Custom pricing</span>
                 )}
               </div>
 
               <button
-                onClick={() => plan.id === 'enterprise' && setShowModal(true)}
+                onClick={() => {
+                  if (plan.id === 'enterprise') { setShowModal(true); return; }
+                  const url = plan.checkout_url_monthly;
+                  if (url) navigate(`/checkout?url=${encodeURIComponent(url)}&plan=${encodeURIComponent(plan.name)}`);
+                }}
                 style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', transition: 'opacity .15s', ...plan.btnStyle }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '.8'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -315,7 +317,7 @@ export default function PricingPage() {
                 {plans.map(p => (
                   <th key={p.id} style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500, color: p.badge ? TEXT : MUTED }}>
                     {p.name}
-                    {p.badge && <span style={{ display: 'block', fontSize: '10px', color: '#777', fontWeight: 400 }}>{sym}{p.price ? getPrice(p.price) + '/mo' : 'Custom pricing'}</span>}
+                    {p.badge && <span style={{ display: 'block', fontSize: '10px', color: '#777', fontWeight: 400 }}>{p.price_monthly > 0 ? `${sym}${getPrice(p.price_monthly)}/mo` : 'Custom pricing'}</span>}
                   </th>
                 ))}
               </tr>

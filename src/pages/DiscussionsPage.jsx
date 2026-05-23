@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useDiscussions, useDeleteDiscussion } from '@/lib/useDiscussions';
-import { purgeOldFreeDiscussions } from '@/lib/discussions';
-import { getUserPlan } from '@/lib/plans-config';
 
 const FG = '#0A0A0A';
 
@@ -168,12 +166,7 @@ export default function DiscussionsPage() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      const plan = getUserPlan(u);
-      if (!plan || plan.price_monthly === 0) purgeOldFreeDiscussions();
-    }).catch(() => {});
-  }, []);
+
 
   return (
     <div className="min-h-screen font-open" style={{ background: 'white' }}>
