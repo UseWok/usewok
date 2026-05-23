@@ -59,6 +59,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import AdminBlog from './pages/admin/AdminBlog';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import UIShowcase from './pages/UIShowcase';
 
 import SEOHead from './components/SEOHead';
 
@@ -154,6 +155,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Navigate to="/app" replace />} />
 
         <Route path="/chat" element={<ChatPage />} />
+        <Route path="/ui-showcase" element={<UIShowcase />} />
 
         <Route path="/p/:id" element={<PublicFiche />} />
 
