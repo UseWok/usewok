@@ -475,6 +475,7 @@ const AppDashboard = ({
 // ─────────────────────────────────────────────
 export default function FichePanel({
   content = null,
+  iframeRefreshKey = 0,
   appearance,
   onError,
   onSuccess,
@@ -486,7 +487,7 @@ export default function FichePanel({
   onClone,
   onDelete,
   onUnpublish,
-  onUpdateContent,   // ← NEW: called when user saves code edits
+  onUpdateContent,
 }) {
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
@@ -631,6 +632,7 @@ export default function FichePanel({
               </AnimatePresence>
               <div className="w-full h-full bg-transparent relative rounded-xl overflow-hidden">
                 <iframe
+                  key={iframeRefreshKey}
                   title="Wok Live Preview"
                   srcDoc={srcDoc}
                   className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"

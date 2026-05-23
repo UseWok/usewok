@@ -18,6 +18,11 @@
       "type": "number",
       "description": "Number of Deep Syntheses used this month",
       "default": 0
+    },
+    "project_count": {
+      "type": "number",
+      "description": "Incremental counter of generated projects",
+      "default": 0
     }
   },
   "required": []

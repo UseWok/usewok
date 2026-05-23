@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { RefreshCw, ExternalLink, ArrowLeft, Mail, Code2, ChevronsRight } from 'lucide-react';
+import { RefreshCw, ExternalLink, ArrowLeft, Mail, ChevronDown, ChevronsRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const XIcon = () => (<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></svg>);
@@ -14,16 +14,26 @@ const Toggle = ({ enabled, onChange }) => (
   </button>
 );
 
-export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMode, onTogglePreview }) {
+export default function WorkspaceHeader({
+  onReloadIframe,   // NEW: only refreshes the iframe, not the page
+  onReload,         // existing: regenerate last message
+  convId,
+  projectNumber,    // NEW: incremental project number for current user
+  discussions = [], // NEW: list of discussions for the dropdown
+  onSelectDiscussion, // NEW: callback when user picks a discussion from dropdown
+  onTogglePreview,
+}) {
   const [showPublish, setShowPublish] = useState(false);
-  const [publishView, setPublishView] = useState('main'); 
+  const [publishView, setPublishView] = useState('main');
   const [isPublished, setIsPublished] = useState(false);
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [isPublic, setIsPublic] = useState(false);
   const [showDomainModal, setShowDomainModal] = useState(false);
-  
+  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+
   const publishRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const slug = convId || `conv_${Date.now().toString().slice(-6)}`;
@@ -36,6 +46,9 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
       if (publishRef.current && !publishRef.current.contains(e.target)) {
         setShowPublish(false);
         setTimeout(() => setPublishView('main'), 200);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowProjectDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -56,33 +69,22 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
       setIsPublished(true);
       toast.success(isPublic ? "App is now public — link is live!" : "App saved as private.");
       setShowPublish(false);
-    } catch (error) {
+    } catch {
       toast.error("Could not save. Check your connection.");
     }
   };
 
   const handleSaveDomain = async () => {
     const slug = tempSlug.trim();
-    if(!slug) { 
-      toast.error("The path cannot be empty."); 
-      return; 
-    }
-    
+    if (!slug) { toast.error("The path cannot be empty."); return; }
     const isValid = /^[a-z0-9-]{1,30}$/.test(slug);
-    if (!isValid) {
-      toast.error("Invalid URL. Use only lowercase letters, numbers, and hyphens. (Max 30 chars)");
-      return;
-    }
-
+    if (!isValid) { toast.error("Invalid URL. Use lowercase letters, numbers, hyphens. (Max 30 chars)"); return; }
     try {
-      if (convId) {
-        await base44.entities.Conversation.update(convId, { slug: slug });
-      }
+      if (convId) await base44.entities.Conversation.update(convId, { slug });
       setCustomSlug(slug);
       setShowDomainModal(false);
-      toast.success("Domain configuration saved to the Cloud.");
-    } catch (error) {
-      toast.error("Waiting for backend configuration. Local URL updated.");
+      toast.success("Domain configuration saved.");
+    } catch {
       setCustomSlug(slug);
       setShowDomainModal(false);
     }
@@ -95,91 +97,108 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
     toast.success("Link copied to clipboard!");
   };
 
-  if (viewMode === 'dashboard') {
-    return <header className="h-[56px] flex-shrink-0 z-30 w-full bg-transparent absolute top-0 left-0 right-0 pointer-events-none" />;
-  }
+  const displayNumber = projectNumber || '—';
 
   return (
     <>
+      {/* ── Domain Modal ── */}
       {showDomainModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
           <div className="relative w-[95%] md:w-[520px] bg-[#0F0F0F] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
             <div className="p-5 border-b border-[#2A2A2A] bg-[#1A1A1A]">
               <h2 className="text-[16px] font-bold text-white">Custom Domain Configuration</h2>
-              <p className="text-[12px] text-white mt-1">Manage the public access link for your workspace project.</p>
+              <p className="text-[12px] text-white/60 mt-1">Manage the public access link for your project.</p>
             </div>
-            
             <div className="p-6 bg-[#0F0F0F]">
               <label className="text-[12px] font-bold text-white mb-2 block">Public Link (Max 30 chars)</label>
               <div className="flex items-center w-full border border-[#2A2A2A] rounded-md overflow-hidden focus-within:border-[#0055FF] transition-colors">
                 <div className="bg-[#1A1A1A] px-3 py-2 border-r border-[#2A2A2A] text-[13px] text-white font-mono select-none hidden md:block">
-                  https://wok.base44.app/p/
+                  {window.location.origin}/p/
                 </div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={30}
-                  value={tempSlug} 
-                  onChange={(e) => setTempSlug(e.target.value)} 
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-white bg-[#0F0F0F]" 
+                  value={tempSlug}
+                  onChange={(e) => setTempSlug(e.target.value)}
+                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-white bg-[#0F0F0F]"
                   autoFocus
                 />
               </div>
-
-              <div className="mt-6 bg-[#0055FF]/10 p-4 rounded-md border border-[#0055FF]/30">
-                <p className="text-[12px] font-semibold text-white mb-1">Workspace Ownership</p>
-                <p className="text-[11px] text-white leading-snug">
-                  You retain absolute ownership of this project. Any modifications to this URL will immediately route external traffic to your latest published build.
-                </p>
-              </div>
             </div>
-
             <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
               <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
-              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">Save Configuration</button>
+              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">Save</button>
             </div>
           </div>
         </div>
       )}
 
       <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-[#0F0F0F]">
-        
+
         {/* LEFT: Mac Dots & Collapse Icon */}
         <div className="flex gap-4 items-center pl-1">
-           <div className="flex gap-1.5 items-center">
-             <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
-             <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
-             <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
-           </div>
-          
-           <button onClick={onTogglePreview} className="hidden md:flex text-gray-500 hover:text-white transition-colors items-center justify-center ml-2" title="Hide Preview">
-             <ChevronsRight className="w-[18px] h-[18px]" strokeWidth={2.5} />
-           </button>
-        </div>
-
-        {/* CENTER: Navigation Bar */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center p-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg shadow-sm">
+          <div className="flex gap-1.5 items-center">
+            <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]" />
+            <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
+            <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]" />
+          </div>
           <button
-            onClick={() => setViewMode && setViewMode('preview')}
-            className={`px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'preview' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+            onClick={onTogglePreview}
+            className="hidden md:flex text-gray-500 hover:text-white transition-colors items-center justify-center ml-2"
+            title="Hide Preview"
           >
-            App Interface
-          </button>
-          <button
-            onClick={() => setViewMode && setViewMode('code')}
-            className={`flex items-center gap-2 px-5 py-1.5 text-[12px] font-bold rounded-md transition-colors ${viewMode === 'code' ? 'bg-[#0055FF] text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-          >
-            <Code2 className="w-4 h-4" />
-            Code
+            <ChevronsRight className="w-[18px] h-[18px]" strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* RIGHT: Reload Tool & Publish Flow */}
+        {/* CENTER: New pill control */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-2 py-1.5 bg-[#252525] border border-[#3A3A3A] rounded-full shadow-sm">
+
+          {/* Refresh iframe button */}
+          <button
+            onClick={onReloadIframe}
+            className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            title="Refresh preview"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="w-px h-4 bg-[#3A3A3A] mx-0.5" />
+
+          {/* Project indicator + dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowProjectDropdown(v => !v)}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-white/10 transition-colors"
+            >
+              <span className="text-[12px] font-bold text-white/80 font-mono">/project{displayNumber}</span>
+              <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showProjectDropdown && discussions.length > 0 && (
+              <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[220px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden">
+                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 py-1.5">Projects in this session</p>
+                {discussions.map((d, i) => (
+                  <button
+                    key={d.id}
+                    onClick={() => { onSelectDiscussion && onSelectDiscussion(d.id); setShowProjectDropdown(false); }}
+                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-[#1A1A1A] flex items-center gap-2.5 transition-colors ${d.id === convId ? 'text-white font-semibold' : 'text-gray-400'}`}
+                  >
+                    <span className="text-[10px] font-mono text-white/30 w-8 flex-shrink-0">/p{i + 1}</span>
+                    <span className="truncate">{d.title || d.preview || 'New chat'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Publish Flow */}
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
-          <button onClick={onReload} className="p-1.5 rounded-md transition-none text-white hover:bg-white/10 backdrop-blur-sm" title="Regenerate">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          
-          <button onClick={() => setShowPublish(!showPublish)} className="px-4 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors">
+          <button
+            onClick={() => setShowPublish(!showPublish)}
+            className="px-4 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors"
+          >
             Publish
           </button>
 
@@ -190,35 +209,34 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
                   <div className="p-3 border-b border-[#2A2A2A]">
                     <h3 className="text-[14px] font-bold text-white">Publish App</h3>
                   </div>
-                  
+
                   {isPublished && (
                     <div className="px-3 pt-3 pb-1">
                       <p className="text-[10px] font-bold text-white uppercase tracking-wider mb-1">Live URL</p>
-                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white hover:underline font-mono truncate block flex items-center gap-1.5 p-2 bg-[#1A1A1A] rounded-md border border-[#2A2A2A]">
-                        wok.base44.app/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white hover:underline font-mono truncate flex items-center gap-1.5 p-2 bg-[#1A1A1A] rounded-md border border-[#2A2A2A]">
+                        {window.location.host}/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
                       </a>
                     </div>
                   )}
 
                   <div className="p-2 space-y-1 mt-1">
-                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-white transition-colors">Custom domain</h4>
-                      <p className="text-[11px] text-white mt-0.5">Configure your public routing.</p>
+                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors">
+                      <h4 className="text-[13px] font-bold text-white">Custom domain</h4>
+                      <p className="text-[11px] text-white/50 mt-0.5">Configure your public routing.</p>
                     </button>
-                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors group">
-                      <h4 className="text-[13px] font-bold text-white transition-colors">Share your app</h4>
-                      <p className="text-[11px] text-white mt-0.5">Share via email or social networks.</p>
+                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors">
+                      <h4 className="text-[13px] font-bold text-white">Share your app</h4>
+                      <p className="text-[11px] text-white/50 mt-0.5">Share via email or social networks.</p>
                     </button>
                   </div>
-                  
+
                   <div className="border-t border-[#2A2A2A] pt-3 px-3">
                     <h4 className="text-[12px] font-bold text-white mb-2">Project Visibility</h4>
-                    <div className="flex items-center justify-between bg-[#1A1A1A] p-2.5 rounded-md border border-[#2A2A2A] shadow-sm">
+                    <div className="flex items-center justify-between bg-[#1A1A1A] p-2.5 rounded-md border border-[#2A2A2A]">
                       <div className="flex items-center gap-2.5">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="2" y1="12" x2="22" y2="12"></line>
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                          <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                         </svg>
                         <span className="text-[12px] font-bold text-white">Public Project</span>
                       </div>
@@ -228,7 +246,7 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
 
                   <div className="px-3 pb-2 pt-1">
                     <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3">
-                      {isPublished ? 'Update Live Build' : 'Deploy Intelligence'}
+                      {isPublished ? 'Update Live Build' : 'Deploy'}
                     </button>
                   </div>
                 </>
@@ -240,20 +258,16 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
                   </div>
                   <div className="p-4 space-y-4">
                     <div className="flex items-center gap-2 border border-[#2A2A2A] rounded-md p-1.5 bg-[#1A1A1A]">
-                      <div className="px-2 flex-1 text-[12px] font-mono text-white truncate bg-transparent outline-none select-all">
-                        {shareUrl}
-                      </div>
-                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded hover:bg-[#0044CC] shadow-sm transition-colors border-none">Copy</button>
+                      <div className="px-2 flex-1 text-[12px] font-mono text-white truncate">{shareUrl}</div>
+                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded hover:bg-[#0044CC] shadow-sm transition-colors">Copy</button>
                     </div>
-
                     <p className="text-[11px] font-bold text-white uppercase tracking-wider text-center">Share via</p>
-                    
                     <div className="grid grid-cols-5 gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="X (Twitter)"><XIcon /></a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="LinkedIn"><LinkedInIcon /></a>
-                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="Facebook"><FacebookIcon /></a>
-                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="WhatsApp"><WhatsAppIcon /></a>
-                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors" title="Email"><Mail className="w-4 h-4" /></a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><XIcon /></a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><LinkedInIcon /></a>
+                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><FacebookIcon /></a>
+                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><WhatsAppIcon /></a>
+                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><Mail className="w-4 h-4" /></a>
                     </div>
                   </div>
                 </>

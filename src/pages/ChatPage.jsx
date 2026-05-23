@@ -90,6 +90,13 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
+// ── Analysis agent: fast binary decision — 1=modify existing, 2=create new ──
+const PROMPT_ANALYST = `You are a routing agent. Analyze the user prompt.
+Reply with ONLY a single digit:
+1 = The user wants to MODIFY or improve an existing interface (words like "change", "fix", "update", "add to", "improve", "make it", "can you", etc.)
+2 = The user wants to CREATE a completely NEW interface from scratch (new topic, different subject).
+Reply with 1 or 2 only. No explanation.`;
+
 const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
 TOKEN REDUCTION & DATA PROTOCOL:
 1. THEME SELECTION: Evaluate user intent. Output MUST start with T:X (X is 1 to 5).
@@ -293,6 +300,8 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
+  const [projectNumber, setProjectNumber] = useState(null);
+  const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
   
   const [workspaces, setWorkspaces] = useState(() => {
     const saved = localStorage.getItem('wok_workspaces');
@@ -487,6 +496,16 @@ export default function ChatPage() {
         return; 
       }
 
+      // ── Step 1: Analysis agent — binary decision (modify=1 vs new=2) ──
+      const analystResult = await base44.integrations.Core.InvokeLLM({
+        prompt: PROMPT_ANALYST + "\n\nUser prompt: " + text + (ficheContent ? "\n\n[Existing interface: YES]" : "\n\n[Existing interface: NO]"),
+        model: 'gemini_3_flash'
+      });
+      if (abortedRef.current) return;
+      const decision = String(typeof analystResult === 'string' ? analystResult : JSON.stringify(analystResult)).trim();
+      const isModification = decision === '1' && !!ficheContent;
+
+      // ── Step 2: Data/theme analysis ──
       const textResult = await base44.integrations.Core.InvokeLLM({ 
         prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
         model: 'gemini_3_flash' 
@@ -495,8 +514,13 @@ export default function ChatPage() {
       if (abortedRef.current) return;
       const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
 
+      // ── Step 3: Code generation — include existing code if modifying ──
+      const architectPrompt = isModification
+        ? PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\n[DATA UPDATE]:\n" + psychologicalText
+        : PROMPT_ARCHITECT + "\n\n[EXPAND THIS DATA INTO A $10K UI]:\n" + psychologicalText;
+
       const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_ARCHITECT + "\n\n[EXPAND THIS DATA INTO A $10K UI]:\n" + psychologicalText, 
+        prompt: architectPrompt, 
         model: 'gemini_3_flash' 
       });
 
@@ -521,6 +545,14 @@ export default function ChatPage() {
 
       const cost = discussMode ? 1 : 10;
       await handleUpdateCredits(cost);
+
+      // Increment project counter for new interfaces
+      if (!isModification && !discussMode && user) {
+        const newCount = (user.project_count || 0) + 1;
+        setProjectNumber(newCount);
+        base44.entities.User.update(user.id, { project_count: newCount }).catch(() => {});
+        setUser(prev => ({ ...prev, project_count: newCount }));
+      }
 
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
@@ -618,6 +650,7 @@ export default function ChatPage() {
       setUser(u);
       if (u?.id) setCurrentUser(u.id);
       setUserPlan(getUserPlan(u));
+      setProjectNumber(u?.project_count || 0);
     }).catch(() => {});
   }, [conversationId]);
 
@@ -881,12 +914,12 @@ export default function ChatPage() {
             <div className={`bg-[#1C1C1C] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
               <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#1C1C1C]">
                 <WorkspaceHeader 
-                  onReload={handleReload} 
-                  convId={conversationId || convId} 
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  customSlug={customSlug}
-                  setCustomSlug={setCustomSlug}
+                  onReload={handleReload}
+                  onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
+                  convId={conversationId || convId}
+                  projectNumber={projectNumber}
+                  discussions={discussions}
+                  onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
                   onTogglePreview={() => setIsPreviewCollapsed(true)}
                 />
                 <div className="flex-1 overflow-hidden relative bg-transparent p-4 pt-0">
@@ -894,7 +927,8 @@ export default function ChatPage() {
                     <PreviewSkeleton />
                   ) : (
                     <FichePanel 
-                      content={ficheContent} 
+                      content={ficheContent}
+                      iframeRefreshKey={iframeRefreshKey}
                       onError={setRuntimeError} 
                       onSuccess={() => setRuntimeError(null)} 
                       isPublic={false} 
