@@ -126,6 +126,8 @@ const AuthenticatedApp = () => {
 
           <Route path="/blog/:slug" element={<BlogPostPage />} />
 
+          <Route path="/ui-showcase" element={<UIShowcase />} />
+
           <Route path="*" element={<LandingPage />} />
 
         </Routes>
@@ -156,6 +158,7 @@ const AuthenticatedApp = () => {
 
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/ui-showcase" element={<UIShowcase />} />
+
 
         <Route path="/p/:id" element={<PublicFiche />} />
 
