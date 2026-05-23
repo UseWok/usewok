@@ -1,0 +1,32 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "conv_id": {
+      "type": "string",
+      "description": "Unique conversation identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Discussion title"
+    },
+    "messages_json": {
+      "type": "string",
+      "description": "Serialized messages array"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the conversation is publicly accessible"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Custom URL slug"
+    },
+    "preview": {
+      "type": "string",
+      "description": "Short preview of the conversation"
+    }
+  },
+  "required": ["conv_id"]
+}

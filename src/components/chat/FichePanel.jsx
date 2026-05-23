@@ -563,7 +563,7 @@ export default function FichePanel({
         </script>
         
         <style>
-          html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; background-color: transparent; -webkit-font-smoothing: antialiased; }
+          html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #ffffff; -webkit-font-smoothing: antialiased; }
         </style>
       </head>
       <body>

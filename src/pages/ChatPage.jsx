@@ -372,7 +372,7 @@ export default function ChatPage() {
     setDiscussions([]); 
     setShowWorkspaceModal(false);
     setNewWorkspaceName('');
-    navigate('/'); 
+    navigate('/app'); 
     toast.success("Workspace created.");
   };
 
@@ -382,7 +382,7 @@ export default function ChatPage() {
     localStorage.setItem('wok_workspaces', JSON.stringify(updated));
     setDiscussions(getLocalDiscussions(id) || []);
     setShowWorkspaceSwitcher(false);
-    navigate('/'); 
+    navigate('/app'); 
   };
 
   const updateDiscussion = (id, updates) => {
@@ -528,7 +528,14 @@ export default function ChatPage() {
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
+      // Sync to cloud so refresh always restores the conversation
+      const { syncConversationToCloud } = await import('@/lib/discussions');
+      syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 80), preview: text.slice(0, 120) });
       saveToDiscussionsLogic("New Chat", text);
+      // Update URL to include conversationId without triggering re-render
+      if (!conversationId) {
+        window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+      }
       
       if (window.innerWidth < 768 && !discussMode) {
         setMobileView('preview');
@@ -602,9 +609,14 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Do NOT redirect on refresh — only redirect if load finishes and nothing was found at all
   useEffect(() => {
-    if (!isLoadingConversation && (messages?.length || 0) === 0 && conversationId) navigate('/');
-  }, [isLoadingConversation, messages?.length, conversationId, navigate]);
+    if (!isLoadingConversation && (messages?.length || 0) === 0 && conversationId) {
+      // Give local storage one more chance before redirecting
+      const local = getConversationMessages(conversationId);
+      if (!local || local.length === 0) navigate('/');
+    }
+  }, [isLoadingConversation]);
 
   useEffect(() => {
     initAgentsFromDB().catch(() => {});
@@ -797,7 +809,7 @@ export default function ChatPage() {
           </div>
 
           <div className="px-4 py-3 border-t border-[#2A2A2A] mt-auto">
-            <button onClick={() => navigate('/')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0055FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0044CC] shadow-none transition-none">
+            <button onClick={() => navigate('/app')} className="flex items-center justify-center gap-2 w-full py-2 bg-[#0055FF] text-white rounded-md text-[13px] font-bold hover:bg-[#0044CC] shadow-none transition-none">
               <Plus className="w-4 h-4" /> New chat
             </button>
           </div>

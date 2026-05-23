@@ -45,18 +45,19 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
   const handlePublish = async () => {
     try {
       if (convId) {
-        await base44.entities.Conversation.update(convId, {
-          is_public: true,
-          slug: customSlug
-        });
+        const results = await base44.entities.Conversation.filter({ conv_id: convId });
+        const payload = { conv_id: convId, is_public: isPublic, slug: customSlug };
+        if (results.length > 0) {
+          await base44.entities.Conversation.update(results[0].id, payload);
+        } else {
+          await base44.entities.Conversation.create(payload);
+        }
       }
       setIsPublished(true);
-      toast.success("Intelligence deployed successfully to the Cloud.");
+      toast.success(isPublic ? "App is now public — link is live!" : "App saved as private.");
       setShowPublish(false);
     } catch (error) {
-      toast.error("Waiting for backend configuration. Local display updated.");
-      setIsPublished(true);
-      setShowPublish(false);
+      toast.error("Could not save. Check your connection.");
     }
   };
 
@@ -87,7 +88,7 @@ export default function WorkspaceHeader({ onReload, convId, viewMode, setViewMod
     }
   };
 
-  const shareUrl = `https://wok.base44.app/p/${customSlug}`;
+  const shareUrl = `${window.location.origin}/p/${customSlug}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);

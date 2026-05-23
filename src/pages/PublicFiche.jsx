@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { loadConversationFromCloud } from '@/lib/discussions';
+import { base44 } from '@/api/base44Client';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
@@ -198,16 +199,30 @@ export default function PublicFiche() {
   
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     if (!conversationId) {
       setLoading(false);
       return;
     }
-    loadConversationFromCloud(conversationId).then((msgs) => {
-      if (msgs?.length > 0) setMessages(msgs);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    // Check visibility
+    base44.entities.Conversation.filter({ conv_id: conversationId }).then(results => {
+      if (results.length > 0 && results[0].is_public === false) {
+        setIsPrivate(true);
+        setLoading(false);
+        return;
+      }
+      loadConversationFromCloud(conversationId).then((msgs) => {
+        if (msgs?.length > 0) setMessages(msgs);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }).catch(() => {
+      loadConversationFromCloud(conversationId).then((msgs) => {
+        if (msgs?.length > 0) setMessages(msgs);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    });
   }, [conversationId]);
 
   if (loading) {
@@ -218,9 +233,21 @@ export default function PublicFiche() {
     );
   }
 
+  if (isPrivate) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+          <span className="text-2xl">🔒</span>
+        </div>
+        <h2 className="text-white font-bold text-xl">Private Discussion</h2>
+        <p className="text-white/40 text-sm">This content is private and not available publicly.</p>
+      </div>
+    );
+  }
+
   // Get the last message the assistant generated
   const assistantMessages = messages.filter((m) => m.role === 'assistant' && m.content?.length > 40);
-  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].content : null;
+  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].rawContent || assistantMessages[assistantMessages.length - 1].content : null;
 
   if (!finalContent) {
     return (
