@@ -134,7 +134,7 @@ export default function WorkspaceHeader({
       )}
 
       {/* ── Toolbar: no background, no border — floats above the preview card ── */}
-      <div className="flex items-center justify-between px-3 h-10 flex-shrink-0 z-30 font-sans w-full">
+      <div className="flex items-center justify-between px-4 h-12 flex-shrink-0 z-30 font-sans w-full">
 
         {/* LEFT: empty spacer */}
         <div className="w-6" />

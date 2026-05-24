@@ -164,110 +164,54 @@ const getBackgroundGradient = (theme) => {
 
 // ── Ghost skeleton drawn top-to-bottom while AI is generating the preview ──
 const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => {
-  const isDark = document.documentElement.classList.contains('dark');
-  const base = isDark ? '#1a1a1a' : '#EAECF0';
-  const highlight = isDark ? '#242424' : '#F3F4F6';
   return (
     <div
+      className="skeleton-block"
       style={{
         width,
         height,
         opacity,
         borderRadius: 8,
         flexShrink: 0,
-        background: `linear-gradient(90deg, ${base} 25%, ${highlight} 50%, ${base} 75%)`,
-        backgroundSize: '600px 100%',
         animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
       }}
     />
   );
 };
 
-const PreviewSkeleton = () => {
-  const isDark = document.documentElement.classList.contains('dark');
-  const bg = isDark ? '#0F0F0F' : '#F3F4F6';
-  const card1 = isDark ? '#161616' : '#E5E7EB';
-  const card2 = isDark ? '#1f1f1f' : '#EAECF0';
-  const shimmerA = isDark ? '#141414' : '#E5E7EB';
-  const shimmerB = isDark ? '#1d1d1d' : '#EAECF0';
-  return (
-  <div
-    style={{
-      width: '100%',
-      height: '100%',
-      background: bg,
-      borderRadius: 16,
-      padding: '28px 24px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 0,
-      overflowY: 'hidden',
-    }}
-  >
+const PreviewSkeleton = () => (
+  <div className="w-full h-full bg-muted/40 rounded-2xl p-6 flex flex-col gap-0 overflow-hidden">
     {/* Header block */}
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
+    <div className="flex flex-col gap-2.5 mb-8">
       <SkeletonRow width="38%" height={22} delay={0} />
       <SkeletonRow width="58%" height={13} delay={40} opacity={0.5} />
     </div>
 
     {/* Stat cards row */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+    <div className="grid grid-cols-3 gap-3 mb-7">
       {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            background: `linear-gradient(90deg, ${card1} 25%, ${card2} 50%, ${card1} 75%)`,
-            backgroundSize: '600px 100%',
-            animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both`,
-            borderRadius: 12,
-            height: 80,
-          }}
-        />
+        <div key={i} className="skeleton-block rounded-xl h-20" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both` }} />
       ))}
     </div>
 
     {/* Chart block */}
-    <div
-      style={{
-        background: `linear-gradient(90deg, ${shimmerA} 25%, ${shimmerB} 50%, ${shimmerA} 75%)`,
-        backgroundSize: '600px 100%',
-        animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 230ms both',
-        borderRadius: 14,
-        height: 180,
-        marginBottom: 24,
-      }}
-    />
+    <div className="skeleton-block rounded-2xl mb-6" style={{ height: 180, animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 230ms both' }} />
 
-    {/* Text lines block */}
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
-      {[
-        { w: '91%', d: 310 },
-        { w: '76%', d: 350 },
-        { w: '83%', d: 390 },
-        { w: '55%', d: 430, op: 0.5 },
-      ].map((r, i) => (
+    {/* Text lines */}
+    <div className="flex flex-col gap-2.5 mb-6">
+      {[{ w: '91%', d: 310 }, { w: '76%', d: 350 }, { w: '83%', d: 390 }, { w: '55%', d: 430, op: 0.5 }].map((r, i) => (
         <SkeletonRow key={i} width={r.w} height={13} delay={r.d} opacity={r.op || 1} />
       ))}
     </div>
 
-    {/* Second chart / grid block */}
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+    {/* Bottom grid */}
+    <div className="grid grid-cols-2 gap-3">
       {[0, 1].map((i) => (
-        <div
-          key={i}
-          style={{
-            background: `linear-gradient(90deg, ${shimmerA} 25%, ${shimmerB} 50%, ${shimmerA} 75%)`,
-            backgroundSize: '600px 100%',
-            animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both`,
-            borderRadius: 14,
-            height: 120,
-          }}
-        />
+        <div key={i} className="skeleton-block rounded-2xl h-28" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both` }} />
       ))}
     </div>
   </div>
-  );
-};
+);
 
 // Add skeleton component for chat loading
 const ChatLoadingSkeleton = () => (
