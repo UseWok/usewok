@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Settings, Sparkles, Image as ImageIcon, X, Check, FileText, ChevronRight } from 'lucide-react';
+import { Settings, Sparkles, Image as ImageIcon, X, Check, FileText, ChevronRight, Pencil } from 'lucide-react';
 
 export default function ChatInputBar({
   input,
@@ -14,6 +14,8 @@ export default function ChatInputBar({
   setAiThemePromptActive,
   discussMode,
   setDiscussMode,
+  editMode,
+  setEditMode,
 }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
   const [showSkillsMenu, setShowSkillsMenu] = useState(false);
@@ -298,6 +300,20 @@ export default function ChatInputBar({
               className={`p-2 rounded-full ${transition} active:scale-95 ${iconColor}`}
             >
               <ImageIcon className="w-[18px] h-[18px]" />
+            </button>
+
+            {/* Edit mode toggle */}
+            <button
+              onClick={() => setEditMode && setEditMode(v => !v)}
+              title={editMode ? 'Mode Édition actif — l\'IA modifie le code existant' : 'Mode Édition — cliquez pour modifier plutôt que recréer'}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-semibold ${transition} active:scale-95 ${
+                editMode
+                  ? 'bg-violet-500/20 text-violet-500 border border-violet-500/40'
+                  : `${iconColor} border border-transparent`
+              }`}
+            >
+              <Pencil className="w-[15px] h-[15px]" />
+              <span className="hidden sm:inline">Edit</span>
             </button>
             <input
               type="file"

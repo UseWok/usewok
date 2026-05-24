@@ -182,7 +182,7 @@ export default function WorkspaceHeader({
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
           <button
             onClick={() => setShowPublish(!showPublish)}
-            className="px-3 py-1 bg-[#0055FF] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors whitespace-nowrap"
+            className="px-3 py-1 bg-transparent text-white text-[11px] font-bold rounded-lg border border-white/70 hover:bg-white/10 shadow-sm transition-colors whitespace-nowrap"
           >
             Publish
           </button>

@@ -1,0 +1,47 @@
+{
+  "name": "AccessCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "Code"
+    },
+    "credits": {
+      "type": "number",
+      "title": "Credits \u00e0 octroyer",
+      "default": 10
+    },
+    "used": {
+      "type": "boolean",
+      "title": "Utilis\u00e9",
+      "default": false
+    },
+    "used_by": {
+      "type": "string",
+      "title": "Utilis\u00e9 par (email)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "title": "Description"
+    }
+  },
+  "required": [
+    "code",
+    "credits"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": true,
+    "update": true,
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

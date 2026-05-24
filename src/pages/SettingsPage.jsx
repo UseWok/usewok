@@ -1,12 +1,67 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Download, ChevronRight, Trash2, X, Clock, Brain, Cpu, Gift } from 'lucide-react';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+
+function AccessCodeRedeemer({ user, onCreditsAdded }) {
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleRedeem = async () => {
+    setError('');
+    if (!code.trim()) { setError('Veuillez saisir un code.'); return; }
+    setLoading(true);
+    const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), used: false });
+    if (results.length === 0) {
+      const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
+      setError(any.length > 0 ? 'Ce code a déjà été utilisé.' : 'Code invalide ou introuvable.');
+      setLoading(false); return;
+    }
+    const rec = results[0];
+    await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
+    await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email });
+    onCreditsAdded && onCreditsAdded(rec.credits);
+    toast.success(`+${rec.credits} crédits ajoutés à votre compte !`);
+    setCode('');
+    setLoading(false);
+  };
+
+  return (
+    <div className="p-4 border border-border rounded-xl bg-white">
+      <div className="flex items-center gap-2 mb-1">
+        <Gift className="w-4 h-4 text-primary" />
+        <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Code crédits</p>
+      </div>
+      <p className="text-xs mb-3 text-muted-foreground">Entrez un code pour recevoir des crédits bonus sur votre compte.</p>
+      <div className="flex gap-2">
+        <input
+          value={code}
+          onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
+          placeholder="Ex: ABCD-EFGH-IJKL"
+          maxLength={20}
+          onKeyDown={e => { if (e.key === 'Enter') handleRedeem(); }}
+          className={`flex-1 px-3 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-400 focus:ring-red-300' : 'border-border focus:ring-fg/30'}`}
+        />
+        <button onClick={handleRedeem} disabled={loading || !code.trim()}
+          className="px-4 py-2.5 text-sm font-bold bg-fg text-white rounded-lg disabled:opacity-40 hover:opacity-90 transition-opacity">
+          {loading ? '...' : 'Utiliser'}
+        </button>
+      </div>
+      {error && (
+        <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-red-500 text-sm">✗</span>
+          <p className="text-xs text-red-600 leading-snug">{error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 
@@ -493,6 +548,8 @@ function SectionContent({ section, desktop, user, userPlan, fullName, setFullNam
             </div>
           )}
         </div>
+
+        <AccessCodeRedeemer user={user} onCreditsAdded={async () => { const u = await base44.auth.me(); setUser(u); }} />
       </div>
     );
   }

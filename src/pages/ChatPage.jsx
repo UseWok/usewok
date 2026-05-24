@@ -24,6 +24,7 @@ import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
+import EditModeOverlay from '@/components/chat/EditModeOverlay';
 
 import { 
   X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
@@ -142,6 +143,118 @@ CRITICAL RULES:
    import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 6. ANIMATION: Use exact Framer snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
 7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
+
+// ── Easter egg: chocolatine — triggered by "16/06/2010" ──
+const CHOCOLATINE_CODE = `\`\`\`jsx
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const chocolatines = [
+  { id: 1, name: 'Chocolatine Classique', region: 'Toulouse', desc: 'La vraie ! Feuilletée, dorée, avec deux barres de chocolat noir fondant.', emoji: '🥐', color: '#C8860A', votes: 4821 },
+  { id: 2, name: 'Pain au Chocolat', region: 'Paris', desc: 'Même chose mais appelée autrement par ceux qui ont tort.', emoji: '🍫', color: '#6B3F1E', votes: 1204 },
+  { id: 3, name: 'Chocolatine Amandes', region: 'Bordeaux', desc: 'Variante premium avec amandes effilées et sirop doré.', emoji: '✨', color: '#D4A843', votes: 892 },
+  { id: 4, name: 'Mini Chocolatine', region: 'Lyon', desc: 'Format bouchée, parfaite pour le café du matin.', emoji: '🤏', color: '#B8770F', votes: 567 },
+];
+
+const data = [
+  { name: 'Jan', chocolatine: 4200, painAuChocolat: 1100 },
+  { name: 'Fév', chocolatine: 4600, painAuChocolat: 1050 },
+  { name: 'Mar', chocolatine: 5100, painAuChocolat: 980 },
+  { name: 'Avr', chocolatine: 4900, painAuChocolat: 1200 },
+  { name: 'Mai', chocolatine: 5400, painAuChocolat: 1150 },
+  { name: 'Jun', chocolatine: 5800, painAuChocolat: 1300 },
+];
+
+export default function App() {
+  const [voted, setVoted] = useState(null);
+  const [verdict, setVerdict] = useState('');
+
+  const total = chocolatines.reduce((a, c) => a + c.votes, 0);
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FFF8E7 0%, #FEF3C7 50%, #FDE68A 100%)', fontFamily: 'system-ui, sans-serif', padding: '0' }}>
+      {/* Hero */}
+      <div style={{ background: 'linear-gradient(90deg, #92400E, #B45309)', padding: '48px 24px', textAlign: 'center', color: 'white' }}>
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
+          <div style={{ fontSize: 72, marginBottom: 12 }}>🥐</div>
+          <h1 style={{ fontSize: 42, fontWeight: 900, margin: 0, letterSpacing: '-1px' }}>La Vérité sur la Chocolatine</h1>
+          <p style={{ fontSize: 18, opacity: 0.85, marginTop: 12, fontWeight: 400 }}>Le débat le plus important de France depuis 1789</p>
+          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', borderRadius: 999, padding: '6px 20px', marginTop: 16, fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
+            🗺️ SUD-OUEST = CHOCOLATINE · PARIS = TORT
+          </div>
+        </motion.div>
+      </div>
+
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 24px' }}>
+        {/* Vote cards */}
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#92400E', marginBottom: 24 }}>🏆 Les candidates</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 48 }}>
+          {chocolatines.map((c) => {
+            const pct = Math.round((c.votes / total) * 100);
+            const isVoted = voted === c.id;
+            return (
+              <motion.div
+                key={c.id}
+                whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(0,0,0,0.12)' }}
+                whileTap={{ scale: 0.97 }}
+                style={{ background: 'white', borderRadius: 20, padding: 24, cursor: 'pointer', border: isVoted ? '2px solid ' + c.color : '2px solid transparent', boxShadow: '0 4px 20px rgba(0,0,0,0.07)', position: 'relative', overflow: 'hidden' }}
+                onClick={() => { setVoted(c.id); setVerdict(c.id === 1 ? '✅ Excellent choix. La vérité vous appartient.' : '❌ Erreur détectée. Redirection vers Toulouse...'); }}
+              >
+                {isVoted && <div style={{ position: 'absolute', top: 12, right: 12, background: c.color, color: 'white', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800 }}>MON VOTE</div>}
+                <div style={{ fontSize: 40, marginBottom: 12 }}>{c.emoji}</div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: '#1C1C1C', marginBottom: 4 }}>{c.name}</div>
+                <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>📍 {c.region}</div>
+                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginBottom: 16 }}>{c.desc}</div>
+                <div style={{ background: '#F3F4F6', borderRadius: 999, height: 8, overflow: 'hidden' }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: pct + '%' }} transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }} style={{ height: '100%', background: c.color, borderRadius: 999 }} />
+                </div>
+                <div style={{ fontSize: 12, color: '#6B7280', marginTop: 6, fontWeight: 700 }}>{pct}% · {c.votes.toLocaleString()} votes</div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <AnimatePresence>
+          {verdict && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ background: voted === 1 ? '#ECFDF5' : '#FEF2F2', border: '1px solid ' + (voted === 1 ? '#6EE7B7' : '#FCA5A5'), borderRadius: 16, padding: '16px 24px', marginBottom: 40, fontSize: 15, fontWeight: 700, color: voted === 1 ? '#065F46' : '#991B1B', textAlign: 'center' }}>
+              {verdict}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chart manuel */}
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#92400E', marginBottom: 20 }}>📊 Consommation mensuelle (milliers)</h2>
+        <div style={{ background: 'white', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(0,0,0,0.07)', marginBottom: 48 }}>
+          {data.map((d, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 32, fontSize: 12, fontWeight: 700, color: '#6B7280' }}>{d.name}</span>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: (d.chocolatine / 6000 * 100) + '%' }} transition={{ duration: 0.8, delay: i * 0.1 }} style={{ height: 14, background: '#B45309', borderRadius: 999 }} />
+                  <span style={{ fontSize: 11, color: '#B45309', fontWeight: 700, whiteSpace: 'nowrap' }}>{(d.chocolatine/1000).toFixed(1)}k 🥐</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: (d.painAuChocolat / 6000 * 100) + '%' }} transition={{ duration: 0.8, delay: i * 0.1 + 0.05 }} style={{ height: 14, background: '#6B3F1E', borderRadius: 999, opacity: 0.5 }} />
+                  <span style={{ fontSize: 11, color: '#6B3F1E', fontWeight: 700, opacity: 0.6, whiteSpace: 'nowrap' }}>{(d.painAuChocolat/1000).toFixed(1)}k 😔</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 16, borderTop: '1px solid #F3F4F6' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, color: '#B45309' }}><div style={{ width: 16, height: 16, background: '#B45309', borderRadius: 4 }} /> Chocolatine (correct)</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, color: '#6B7280' }}><div style={{ width: 16, height: 16, background: '#6B3F1E', borderRadius: 4, opacity: 0.5 }} /> Pain au chocolat (parisien)</div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#92400E', fontWeight: 800, fontSize: 18 }}>
+          🥐 Il n'y a pas de débat. C'est une <span style={{ color: '#B45309', textDecoration: 'underline' }}>Chocolatine</span>. Fin. 🥐
+        </div>
+      </div>
+    </div>
+  );
+}
+\`\`\``;
 
 const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
 RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
@@ -328,6 +441,7 @@ export default function ChatPage() {
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
 
@@ -421,6 +535,38 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text, options = {}) => {
     if ((!text?.trim() && !(options.files?.length)) || isLoading) return;
+
+    // ── Easter egg: date 16/06/2010 triggers chocolatine ──
+    if (text.trim() === '16/06/2010') {
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...(messages || []), userMsg];
+      setMessages(newMessages);
+      setCurrentQuery(text);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      abortedRef.current = false;
+      // Fake 20s loading with abort support
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, 20000);
+        const check = setInterval(() => { if (abortedRef.current) { clearTimeout(timer); clearInterval(check); resolve(); } }, 200);
+      });
+      if (abortedRef.current) return;
+      await handleUpdateCredits(1);
+      const chatMsg = "🥐 Analyse complète générée. Débat résolu définitivement.";
+      const finalMsgs = [...newMessages, { role: 'assistant', content: chatMsg, rawContent: CHOCOLATINE_CODE }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      setFicheContent(CHOCOLATINE_CODE);
+      // Make it public automatically
+      if (convId) {
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        syncConversationToCloud(convId, finalMsgs, { title: 'Chocolatine vs Pain au Chocolat', preview: 'Le débat ultime', is_public: true });
+        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+      }
+      setIsLoading(false);
+      return;
+    }
     
     // Capture image previews from attached files
     const imageUrls = (options.files || files || [])
@@ -478,13 +624,21 @@ export default function ChatPage() {
       }
 
       // ── Step 1: Analysis agent — binary decision (modify=1 vs new=2) ──
-      const analystResult = await base44.integrations.Core.InvokeLLM({
-        prompt: PROMPT_ANALYST + "\n\nUser prompt: " + text + (ficheContent ? "\n\n[Existing interface: YES]" : "\n\n[Existing interface: NO]"),
-        model: 'gemini_3_flash'
-      });
-      if (abortedRef.current) return;
-      const decision = String(typeof analystResult === 'string' ? analystResult : JSON.stringify(analystResult)).trim();
-      const isModification = decision === '1' && !!ficheContent;
+      // If editMode is ON, force modification regardless of analyst
+      let isModification;
+      if (editMode && ficheContent) {
+        isModification = true;
+      } else if (!editMode && ficheContent) {
+        const analystResult = await base44.integrations.Core.InvokeLLM({
+          prompt: PROMPT_ANALYST + "\n\nUser prompt: " + text + "\n\n[Existing interface: YES]",
+          model: 'gemini_3_flash'
+        });
+        if (abortedRef.current) return;
+        const decision = String(typeof analystResult === 'string' ? analystResult : JSON.stringify(analystResult)).trim();
+        isModification = decision === '1';
+      } else {
+        isModification = false;
+      }
 
       // ── Step 2: Data/theme analysis ──
       const textResult = await base44.integrations.Core.InvokeLLM({ 
@@ -807,7 +961,7 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} className="h-4" />
               </div>
               <div className="flex-shrink-0 p-4 overflow-visible">
-                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
               </div>
             </div>
           </div>
@@ -827,7 +981,8 @@ export default function ChatPage() {
             />
             {/* Floating preview card — padded, rounded, no edge touch */}
             <div className="flex-1 overflow-hidden relative px-4 pb-4">
-              <div className="w-full h-full rounded-2xl overflow-hidden border border-border shadow-md bg-card">
+              <div className="w-full h-full rounded-2xl overflow-hidden border border-border shadow-md bg-card relative">
+                <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
                 {isLoading && !ficheContent ? (
                   <PreviewSkeleton />
                 ) : (
@@ -896,7 +1051,7 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} className="h-4" />
               </div>
               <div className="flex-shrink-0 p-3">
-                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
               </div>
             </div>
           )}
