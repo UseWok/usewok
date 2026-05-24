@@ -1,4 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+
+// Theme-aware skeleton block (grey in light, dark-grey in dark)
+const SkeletonBlock = ({ w, h, delay = 0, radius = 8, opacity = 1 }) => (
+  <div
+    className="skeleton-block"
+    style={{ width: w, height: h, borderRadius: radius, opacity, flexShrink: 0,
+      animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both` }}
+  />
+);
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Loader2, LayoutTemplate, Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2 } from 'lucide-react';
@@ -612,8 +621,8 @@ export default function FichePanel({
   return (
     <div className="w-full h-full relative font-sans flex flex-col">
 
-      {/* ── Content area (Fills completely, floating effect created by outer wrapper padding) ── */}
-      <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl border border-[#2A2A2A] shadow-xl">
+      {/* Clean preview frame — single delimiter border, max space, no chrome */}
+      <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl border border-border" style={{ boxShadow: '0 0 0 1px hsl(var(--border)/0.5)' }}>
         {hasComponent ? (
           viewMode === 'preview' ? (
             <>
@@ -656,98 +665,29 @@ export default function FichePanel({
             />
           )
         ) : (
-  <div className="w-full h-full bg-[#0F0F0F] flex items-center justify-center p-8">
+  /* Ghost skeleton — grey in light mode, dark grey in dark mode. Theme-aware via CSS vars */
+  <div className="w-full h-full bg-muted/40 flex items-center justify-center p-8">
     <div className="w-full max-w-4xl">
-      {/* Header skeleton */}
-      <div className="flex flex-col gap-3 mb-8">
-        <div
-          style={{
-            width: '45%',
-            height: 28,
-            borderRadius: 8,
-            background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
-            backgroundSize: '600px 100%',
-            animation: 'wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out 0ms both',
-          }}
-        />
-        <div
-          style={{
-            width: '68%',
-            height: 16,
-            borderRadius: 6,
-            opacity: 0.4,
-            background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
-            backgroundSize: '600px 100%',
-            animation: 'wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out 60ms both',
-          }}
-        />
+      <SkeletonBlock w="45%" h={28} delay={0} />
+      <div style={{ marginBottom: 8 }} />
+      <SkeletonBlock w="68%" h={16} delay={60} opacity={0.5} />
+      <div style={{ marginBottom: 32 }} />
+
+      <div className="grid grid-cols-3 gap-4" style={{ marginBottom: 32 }}>
+        {[0,1,2].map(i => <SkeletonBlock key={i} w="100%" h={96} delay={100+i*60} radius={14} />)}
       </div>
 
-      {/* Stat cards skeleton */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              height: 96,
-              borderRadius: 14,
-              background: 'linear-gradient(90deg, #161616 25%, #1f1f1f 50%, #161616 75%)',
-              backgroundSize: '600px 100%',
-              animation: `wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out ${100 + i * 60}ms both`,
-            }}
-          />
+      <SkeletonBlock w="100%" h={220} delay={280} radius={16} />
+      <div style={{ marginBottom: 32 }} />
+
+      <div className="flex flex-col gap-3" style={{ marginBottom: 32 }}>
+        {[{w:'92%',d:380},{w:'78%',d:420},{w:'85%',d:460},{w:'58%',d:500,op:0.45}].map((r,i) => (
+          <SkeletonBlock key={i} w={r.w} h={14} delay={r.d} opacity={r.op} />
         ))}
       </div>
 
-      {/* Large chart skeleton */}
-      <div
-        style={{
-          height: 220,
-          borderRadius: 16,
-          marginBottom: 32,
-          background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
-          backgroundSize: '600px 100%',
-          animation: 'wok-shimmer 3.6 ease-out infinite, wok-slide-in 200ms ease-out 280ms both',
-        }}
-      />
-
-      {/* Text lines skeleton */}
-      <div className="flex flex-col gap-3 mb-8">
-        {[
-          { w: '92%', d: 380 },
-          { w: '78%', d: 420 },
-          { w: '85%', d: 460 },
-          { w: '58%', d: 500, op: 0.4 },
-        ].map((row, i) => (
-          <div
-            key={i}
-            style={{
-              width: row.w,
-              height: 14,
-              borderRadius: 6,
-              opacity: row.op || 1,
-              background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
-              backgroundSize: '600px 100%',
-              animation: `wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out ${row.d}ms both`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Bottom two-column skeleton */}
       <div className="grid grid-cols-2 gap-4">
-        {[0, 1].map((i) => (
-          <div
-            key={i}
-            style={{
-              height: 140,
-              borderRadius: 14,
-              background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
-              backgroundSize: '600px 100%',
-              animation: `wok-shimmer 3.6s ease-out infinite, wok-slide-in 200ms ease-out ${540 + i * 70}ms both`,
-            }}
-          />
-        ))}
+        {[0,1].map(i => <SkeletonBlock key={i} w="100%" h={140} delay={540+i*70} radius={14} />)}
       </div>
     </div>
   </div>

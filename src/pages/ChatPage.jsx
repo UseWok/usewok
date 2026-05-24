@@ -859,7 +859,7 @@ export default function ChatPage() {
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className="flex-shrink-0 p-4 bg-muted/30 border-t border-border overflow-visible">
+              <div className="flex-shrink-0 p-4 overflow-visible">
                 <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
               </div>
             </div>
@@ -944,7 +944,7 @@ export default function ChatPage() {
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className="flex-shrink-0 p-3 bg-muted/30 border-t border-border">
+              <div className="flex-shrink-0 p-3">
                 <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
               </div>
             </div>
