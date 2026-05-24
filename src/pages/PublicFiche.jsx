@@ -206,23 +206,31 @@ export default function PublicFiche() {
       setLoading(false);
       return;
     }
-    // Check visibility
-    base44.entities.Conversation.filter({ conv_id: conversationId }).then(results => {
-      if (results.length > 0 && results[0].is_public === false) {
-        setIsPrivate(true);
-        setLoading(false);
-        return;
+
+    const loadConv = async () => {
+      // Try by conv_id first, then by slug (custom domain)
+      let results = await base44.entities.Conversation.filter({ conv_id: conversationId }).catch(() => []);
+      if (results.length === 0) {
+        results = await base44.entities.Conversation.filter({ slug: conversationId }).catch(() => []);
       }
-      loadConversationFromCloud(conversationId).then((msgs) => {
+
+      const rec = results[0];
+      if (rec) {
+        if (rec.is_public === false) { setIsPrivate(true); setLoading(false); return; }
+        // Use the actual conv_id from the DB record to load messages
+        const realConvId = rec.conv_id || conversationId;
+        const msgs = await loadConversationFromCloud(realConvId).catch(() => null);
         if (msgs?.length > 0) setMessages(msgs);
         setLoading(false);
-      }).catch(() => setLoading(false));
-    }).catch(() => {
-      loadConversationFromCloud(conversationId).then((msgs) => {
+      } else {
+        // No DB record — try loading messages directly (legacy)
+        const msgs = await loadConversationFromCloud(conversationId).catch(() => null);
         if (msgs?.length > 0) setMessages(msgs);
         setLoading(false);
-      }).catch(() => setLoading(false));
-    });
+      }
+    };
+
+    loadConv();
   }, [conversationId]);
 
   if (loading) {

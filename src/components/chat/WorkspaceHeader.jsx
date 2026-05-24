@@ -29,6 +29,7 @@ export default function WorkspaceHeader({
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [isPublic, setIsPublic] = useState(false);
+  const [convRecordId, setConvRecordId] = useState(null); // DB record id (≠ convId)
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
 
@@ -39,6 +40,18 @@ export default function WorkspaceHeader({
     const slug = convId || `conv_${Date.now().toString().slice(-6)}`;
     setCustomSlug(slug);
     setTempSlug(slug);
+    // Load existing record to restore published state & real slug
+    if (convId) {
+      base44.entities.Conversation.filter({ conv_id: convId }).then(results => {
+        if (results.length > 0) {
+          const rec = results[0];
+          setConvRecordId(rec.id);
+          if (rec.slug) { setCustomSlug(rec.slug); setTempSlug(rec.slug); }
+          if (rec.is_public) setIsPublic(true);
+          if (rec.is_public !== undefined) setIsPublished(true);
+        }
+      }).catch(() => {});
+    }
   }, [convId]);
 
   useEffect(() => {
@@ -58,12 +71,12 @@ export default function WorkspaceHeader({
   const handlePublish = async () => {
     try {
       if (convId) {
-        const results = await base44.entities.Conversation.filter({ conv_id: convId });
         const payload = { conv_id: convId, is_public: isPublic, slug: customSlug };
-        if (results.length > 0) {
-          await base44.entities.Conversation.update(results[0].id, payload);
+        if (convRecordId) {
+          await base44.entities.Conversation.update(convRecordId, payload);
         } else {
-          await base44.entities.Conversation.create(payload);
+          const created = await base44.entities.Conversation.create(payload);
+          setConvRecordId(created.id);
         }
       }
       setIsPublished(true);
@@ -80,7 +93,12 @@ export default function WorkspaceHeader({
     const isValid = /^[a-z0-9-]{1,30}$/.test(slug);
     if (!isValid) { toast.error("Invalid URL. Use lowercase letters, numbers, hyphens. (Max 30 chars)"); return; }
     try {
-      if (convId) await base44.entities.Conversation.update(convId, { slug });
+      if (convRecordId) {
+        await base44.entities.Conversation.update(convRecordId, { slug });
+      } else if (convId) {
+        const created = await base44.entities.Conversation.create({ conv_id: convId, slug, is_public: isPublic });
+        setConvRecordId(created.id);
+      }
       setCustomSlug(slug);
       setShowDomainModal(false);
       toast.success("Domain configuration saved.");
