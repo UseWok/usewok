@@ -8,7 +8,7 @@ import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
-function AccessCodeRedeemer({ user, onCreditsAdded }) {
+function AccessCodeRedeemer({ user, setUser, onCreditsAdded }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,10 +24,37 @@ function AccessCodeRedeemer({ user, onCreditsAdded }) {
       setLoading(false); return;
     }
     const rec = results[0];
-    await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
+
+    // If code has a plan_id → activate that plan immediately
+    if (rec.plan_id) {
+      const { getPlansConfig } = await import('@/lib/plans-config');
+      const plans = getPlansConfig();
+      const newPlan = plans.find(p => p.id === rec.plan_id);
+      if (newPlan) {
+        await base44.auth.updateMe({
+          subscription_plan: newPlan.id,
+          credits_limit: newPlan.credits_limit || rec.credits || 10,
+          credits_used: 0,
+          credits_bonus: rec.credits > 0 ? (user?.credits_bonus || 0) + rec.credits : (user?.credits_bonus || 0),
+          billing_cycle: 'monthly',
+          subscription_date: new Date().toISOString(),
+        });
+        toast.success(`🎉 Abonnement ${newPlan.name} activé !${rec.credits > 0 ? ` +${rec.credits} crédits bonus` : ''}`);
+      } else {
+        // Plan not found, just add credits
+        await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
+        toast.success(`+${rec.credits} crédits ajoutés à votre compte !`);
+      }
+    } else {
+      // Credits only
+      await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
+      toast.success(`+${rec.credits} crédits ajoutés à votre compte !`);
+    }
+
     await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email });
+    const updated = await base44.auth.me();
+    if (setUser) setUser(updated);
     onCreditsAdded && onCreditsAdded(rec.credits);
-    toast.success(`+${rec.credits} crédits ajoutés à votre compte !`);
     setCode('');
     setLoading(false);
   };
@@ -549,7 +576,7 @@ function SectionContent({ section, desktop, user, setUser, userPlan, fullName, s
           )}
         </div>
 
-        <AccessCodeRedeemer user={user} onCreditsAdded={async () => { const u = await base44.auth.me(); setUser(u); }} />
+        <AccessCodeRedeemer user={user} setUser={setUser} onCreditsAdded={async () => {}} />
       </div>
     );
   }

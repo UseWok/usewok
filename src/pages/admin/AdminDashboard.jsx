@@ -11,14 +11,16 @@ import AdminActivity from '@/components/admin/AdminActivity';
 import AdminPlans from '@/components/admin/AdminPlans';
 import AdminLeads from '@/components/admin/AdminLeads';
 import AccessCodesTab from '@/components/admin/AccessCodesTab';
+import SupportPage from '@/pages/SupportPage';
 
 const NAV = [
-  { label: 'Overview',  path: '/admin',          icon: LayoutDashboard },
-  { label: 'Users',     path: '/admin/users',     icon: Users           },
-  { label: 'Activity',  path: '/admin/activity',  icon: Activity        },
-  { label: 'Plans',     path: '/admin/plans',     icon: CreditCard      },
-  { label: 'Leads',     path: '/admin/leads',     icon: Inbox           },
-  { label: 'Codes',     path: '/admin/codes',     icon: Zap             },
+  { label: 'Overview',  path: '/admin',           icon: LayoutDashboard },
+  { label: 'Users',     path: '/admin/users',      icon: Users           },
+  { label: 'Activity',  path: '/admin/activity',   icon: Activity        },
+  { label: 'Plans',     path: '/admin/plans',      icon: CreditCard      },
+  { label: 'Leads',     path: '/admin/leads',      icon: Inbox           },
+  { label: 'Codes',     path: '/admin/codes',      icon: Zap             },
+  { label: 'Support',   path: '/admin/support',    icon: Shield          },
 ];
 
 export default function AdminDashboard() {
@@ -134,6 +136,7 @@ export default function AdminDashboard() {
             <Route path="/plans"    element={<AdminPlans />} />
             <Route path="/leads"    element={<AdminLeads />} />
             <Route path="/codes"    element={<AccessCodesTab />} />
+            <Route path="/support"  element={<SupportPage />} />
           </Routes>
         </main>
       </div>

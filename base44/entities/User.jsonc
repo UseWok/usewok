@@ -23,6 +23,42 @@
       "type": "number",
       "description": "Incremental counter of generated projects",
       "default": 0
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "default": "light",
+      "description": "User theme preference synced across devices"
+    },
+    "credits_bonus": {
+      "type": "number",
+      "default": 0
+    },
+    "credits_used": {
+      "type": "number",
+      "default": 0
+    },
+    "credits_limit": {
+      "type": "number",
+      "default": 10
+    },
+    "subscription_plan": {
+      "type": "string",
+      "default": "free"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ],
+      "default": "monthly"
+    },
+    "subscription_date": {
+      "type": "string"
     }
   },
   "required": []

@@ -8,8 +8,12 @@
     },
     "credits": {
       "type": "number",
-      "title": "Credits \u00e0 octroyer",
-      "default": 10
+      "title": "Cr\u00e9dits \u00e0 octroyer",
+      "default": 0
+    },
+    "plan_id": {
+      "type": "string",
+      "title": "Abonnement associ\u00e9 (optionnel)"
     },
     "used": {
       "type": "boolean",
@@ -27,8 +31,7 @@
     }
   },
   "required": [
-    "code",
-    "credits"
+    "code"
   ],
   "rls": {
     "create": {
