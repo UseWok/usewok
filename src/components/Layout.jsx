@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PanelLeft } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
+import Sidebar, { COLLAPSED_W, EXPANDED_W, SIDEBAR_MARGIN } from './Sidebar';
 import { getUserPlan } from '@/lib/plans-config';
 import { onCreditsUpdate } from '@/lib/credits-events';
 import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { initTheme } from '@/lib/theme';
+import { initTheme, getTheme, setTheme } from '@/lib/theme';
 
 const SESSION_KEY = 'stensor_total_minutes';
 
@@ -26,18 +26,26 @@ export function getTotalMinutes(userId) {
   return parseFloat(localStorage.getItem(`${SESSION_KEY}_${userId}`) || '0');
 }
 
-// Pages that should NOT show the sidebar
-const NO_SIDEBAR_PATHS = ['/pricing', '/support', '/settings'];
+// Pages that show sidebar but expanded by default
+const SIDEBAR_EXPANDED_PATHS = ['/app', '/cockpit', '/discussions', '/ai-dna'];
 
 export default function Layout() {
   const [expanded, setExpanded] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
+  const [currentTheme, setCurrentTheme] = useState(getTheme());
 
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  const hideSidebar = NO_SIDEBAR_PATHS.some(p => location.pathname.startsWith(p));
+  // Sidebar always shown in Layout routes (excluded pages use different routes)
+  const showSidebar = !isMobile;
+
+  // Auto-expand sidebar on "standard" pages, collapse on chat-like pages
+  useEffect(() => {
+    const shouldExpand = SIDEBAR_EXPANDED_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
+    setExpanded(shouldExpand);
+  }, [location.pathname]);
 
   useEffect(() => {
     initTheme();
@@ -57,15 +65,25 @@ export default function Layout() {
     });
   }, []);
 
+  const handleThemeToggle = () => {
+    const next = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    setCurrentTheme(next);
+  };
+
+  // Width the main content area should shift by
+  const sidebarOffset = showSidebar ? (expanded ? EXPANDED_W : COLLAPSED_W) + SIDEBAR_MARGIN * 2 : 0;
+
   return (
     <div className="min-h-screen bg-background flex font-be">
-      {/* Sidebar — hidden on excluded pages */}
-      {!hideSidebar && !isMobile && (
+
+      {/* Floating Sidebar — desktop */}
+      {showSidebar && (
         <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />
       )}
 
       {/* Mobile sidebar with backdrop */}
-      {!hideSidebar && isMobile && (
+      {isMobile && (
         <AnimatePresence>
           {expanded && (
             <>
@@ -75,7 +93,7 @@ export default function Layout() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-30 bg-black/50"
+                className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
                 onClick={() => setExpanded(false)}
               />
               <Sidebar expanded={true} setExpanded={setExpanded} user={user} userPlan={userPlan} />
@@ -84,21 +102,27 @@ export default function Layout() {
         </AnimatePresence>
       )}
 
-      <main
-        className="flex-1 min-h-screen overflow-x-hidden relative transition-all duration-200"
-        style={{ marginLeft: (!hideSidebar && !isMobile) ? (expanded ? EXPANDED_W : COLLAPSED_W) : 0 }}
+      {/* Theme toggle — top right, always visible */}
+      <button
+        onClick={handleThemeToggle}
+        className="fixed top-4 right-4 z-50 p-2 bg-card border border-border rounded-xl shadow-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 group overflow-hidden"
+        title={currentTheme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
       >
-        {/* Hamburger toggle — only when sidebar is allowed and collapsed */}
-        {!hideSidebar && !expanded && (
-          <button
-            onClick={() => setExpanded(true)}
-            className="fixed top-4 left-4 z-30 p-2 bg-[#1C1C1C] border border-[#2A2A2A] text-gray-400 hover:text-white rounded-md transition-colors shadow-sm"
-          >
-            <PanelLeft className="w-4 h-4" />
-          </button>
-        )}
+        <span className="absolute inset-0 rounded-xl bg-foreground/8 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+        {currentTheme === 'dark'
+          ? <Sun className="w-4 h-4" />
+          : <Moon className="w-4 h-4" />
+        }
+      </button>
+
+      {/* Main content — shifts right to make room for floating sidebar */}
+      <motion.main
+        className="flex-1 min-h-screen overflow-x-hidden relative"
+        animate={{ marginLeft: sidebarOffset }}
+        transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+      >
         <Outlet />
-      </main>
+      </motion.main>
     </div>
   );
 }

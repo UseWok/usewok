@@ -100,6 +100,12 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Global 200ms fluid transitions */
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Exclude elements that should not inherit global transition */
+  *, *::before, *::after {
+    transition-duration: 200ms;
   }
   body {
     @apply bg-background text-foreground font-inter;
