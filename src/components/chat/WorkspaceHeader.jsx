@@ -15,12 +15,12 @@ const Toggle = ({ enabled, onChange }) => (
 );
 
 export default function WorkspaceHeader({
-  onReloadIframe,   // NEW: only refreshes the iframe, not the page
-  onReload,         // existing: regenerate last message
+  onReloadIframe,
+  onReload,
   convId,
-  projectNumber,    // NEW: incremental project number for current user
-  discussions = [], // NEW: list of discussions for the dropdown
-  onSelectDiscussion, // NEW: callback when user picks a discussion from dropdown
+  projectNumber,
+  discussions = [],
+  onSelectDiscussion,
   onTogglePreview,
 }) {
   const [showPublish, setShowPublish] = useState(false);
@@ -133,28 +133,22 @@ export default function WorkspaceHeader({
         </div>
       )}
 
-      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-card border-b border-border">
+      {/* ── Toolbar: no background, no border — floats above the preview card ── */}
+      <div className="flex items-center justify-between px-3 h-10 flex-shrink-0 z-30 font-sans w-full">
 
-        {/* LEFT: Mac Dots & Collapse Icon */}
-        <div className="flex gap-4 items-center pl-1">
-          <div className="flex gap-1.5 items-center">
-            <div className="w-[11px] h-[11px] rounded-full bg-[#FF5F56] border border-[#E0443E]" />
-            <div className="w-[11px] h-[11px] rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
-            <div className="w-[11px] h-[11px] rounded-full bg-[#27C93F] border border-[#1AAB29]" />
-          </div>
+        {/* LEFT: collapse icon */}
+        <div className="flex items-center gap-2">
           <button
             onClick={onTogglePreview}
-            className="hidden md:flex text-gray-500 hover:text-white transition-colors items-center justify-center ml-2"
+            className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors items-center justify-center"
             title="Hide Preview"
           >
-            <ChevronsRight className="w-[18px] h-[18px]" strokeWidth={2.5} />
+            <ChevronsRight className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* CENTER: New pill control */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-card border border-border rounded-full shadow-sm max-w-[200px] sm:max-w-none overflow-hidden">
-
-          {/* Refresh iframe button */}
+        {/* CENTER: project pill + refresh */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-background/80 backdrop-blur border border-border rounded-full shadow-sm">
           <button
             onClick={onReloadIframe}
             className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -163,28 +157,27 @@ export default function WorkspaceHeader({
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
 
-          <div className="w-px h-4 bg-[#3A3A3A] mx-0.5" />
+          <div className="w-px h-4 bg-border mx-0.5" />
 
-          {/* Project indicator + dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowProjectDropdown(v => !v)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-white/10 transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-muted transition-colors"
             >
-              <span className="text-[12px] font-bold text-white/80 font-mono">/project{displayNumber}</span>
-              <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
+              <span className="text-[12px] font-bold text-foreground font-mono">/project{displayNumber}</span>
+              <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {showProjectDropdown && discussions.length > 0 && (
-              <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[220px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden">
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 py-1.5">Projects in this session</p>
+              <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[220px] bg-card border border-border rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-1.5">Projects in this session</p>
                 {discussions.map((d, i) => (
                   <button
                     key={d.id}
                     onClick={() => { onSelectDiscussion && onSelectDiscussion(d.id); setShowProjectDropdown(false); }}
-                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-[#1A1A1A] flex items-center gap-2.5 transition-colors ${d.id === convId ? 'text-white font-semibold' : 'text-gray-400'}`}
+                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-muted flex items-center gap-2.5 transition-colors ${d.id === convId ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}
                   >
-                    <span className="text-[10px] font-mono text-white/30 w-8 flex-shrink-0">/p{i + 1}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground w-8 flex-shrink-0">/p{i + 1}</span>
                     <span className="truncate">{d.title || d.preview || 'New chat'}</span>
                   </button>
                 ))}
@@ -193,11 +186,11 @@ export default function WorkspaceHeader({
           </div>
         </div>
 
-        {/* RIGHT: Publish Flow */}
+        {/* RIGHT: Publish */}
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
           <button
             onClick={() => setShowPublish(!showPublish)}
-            className="px-3 py-1.5 bg-[#0055FF] text-white text-[11px] sm:text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors whitespace-nowrap"
+            className="px-3 py-1 bg-[#0055FF] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors whitespace-nowrap"
           >
             Publish
           </button>
@@ -275,7 +268,7 @@ export default function WorkspaceHeader({
             </div>
           )}
         </div>
-      </header>
+      </div>
     </>
   );
 }

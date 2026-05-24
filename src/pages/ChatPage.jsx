@@ -833,7 +833,7 @@ export default function ChatPage() {
         <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
 
           {/* Chat panel — desktop */}
-          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out border-r border-border ${isPreviewCollapsed ? 'flex-1' : 'w-[45%] flex-shrink-0'}`}>
+          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out ${isPreviewCollapsed ? 'flex-1' : 'w-[34%] flex-shrink-0'}`}>
             {isPreviewCollapsed && hasStarted && (
               <div className="absolute top-4 right-4 z-[999]">
                 <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-muted-foreground hover:text-foreground rounded-md bg-card border border-border shadow-sm flex items-center justify-center">
@@ -865,9 +865,10 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Preview panel — desktop */}
-          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'flex-1 opacity-100'}`}>
+          {/* Preview panel — desktop: floats as a rounded card with padding */}
+          <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'flex-1 opacity-100'}`}>
             {!ficheContent && !isLoading && <div className="absolute inset-0 z-20 cursor-not-allowed" />}
+            {/* Toolbar sits directly on background, no border/bg */}
             <WorkspaceHeader
               onReload={handleReload}
               onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
@@ -877,27 +878,30 @@ export default function ChatPage() {
               onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
               onTogglePreview={() => setIsPreviewCollapsed(true)}
             />
-            <div className="flex-1 overflow-hidden relative p-4 pt-0">
-              {isLoading && !ficheContent ? (
-                <PreviewSkeleton />
-              ) : (
-                <FichePanel
-                  content={ficheContent}
-                  iframeRefreshKey={iframeRefreshKey}
-                  onError={setRuntimeError}
-                  onSuccess={() => setRuntimeError(null)}
-                  isPublic={false}
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  appSettings={appSettings}
-                  onUpdateSettings={handleUpdateAppMeta}
-                  onClone={handleCloneApp}
-                  onDelete={handleDeleteApp}
-                  onUnpublish={handleUnpublishApp}
-                  customSlug={customSlug}
-                  onUpdateContent={setFicheContent}
-                />
-              )}
+            {/* Floating preview card — padded, rounded, no edge touch */}
+            <div className="flex-1 overflow-hidden relative px-4 pb-4">
+              <div className="w-full h-full rounded-2xl overflow-hidden border border-border shadow-md bg-card">
+                {isLoading && !ficheContent ? (
+                  <PreviewSkeleton />
+                ) : (
+                  <FichePanel
+                    content={ficheContent}
+                    iframeRefreshKey={iframeRefreshKey}
+                    onError={setRuntimeError}
+                    onSuccess={() => setRuntimeError(null)}
+                    isPublic={false}
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                    appSettings={appSettings}
+                    onUpdateSettings={handleUpdateAppMeta}
+                    onClone={handleCloneApp}
+                    onDelete={handleDeleteApp}
+                    onUnpublish={handleUnpublishApp}
+                    customSlug={customSlug}
+                    onUpdateContent={setFicheContent}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
