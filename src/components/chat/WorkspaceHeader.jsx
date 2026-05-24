@@ -103,16 +103,16 @@ export default function WorkspaceHeader({
     <>
       {/* ── Domain Modal ── */}
       {showDomainModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
-          <div className="relative w-[95%] md:w-[520px] bg-[#0F0F0F] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
-            <div className="p-5 border-b border-[#2A2A2A] bg-[#1A1A1A]">
-              <h2 className="text-[16px] font-bold text-white">Custom Domain Configuration</h2>
-              <p className="text-[12px] text-white/60 mt-1">Manage the public access link for your project.</p>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/60 backdrop-blur-sm">
+          <div className="relative w-[95%] md:w-[520px] bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
+            <div className="p-5 border-b border-border">
+              <h2 className="text-[16px] font-bold text-foreground">Custom Domain Configuration</h2>
+              <p className="text-[12px] text-muted-foreground mt-1">Manage the public access link for your project.</p>
             </div>
-            <div className="p-6 bg-[#0F0F0F]">
-              <label className="text-[12px] font-bold text-white mb-2 block">Public Link (Max 30 chars)</label>
-              <div className="flex items-center w-full border border-[#2A2A2A] rounded-md overflow-hidden focus-within:border-[#0055FF] transition-colors">
-                <div className="bg-[#1A1A1A] px-3 py-2 border-r border-[#2A2A2A] text-[13px] text-white font-mono select-none hidden md:block">
+            <div className="p-6">
+              <label className="text-[12px] font-bold text-foreground mb-2 block">Public Link (Max 30 chars)</label>
+              <div className="flex items-center w-full border border-border rounded-md overflow-hidden focus-within:border-[#0055FF] transition-colors">
+                <div className="bg-muted px-3 py-2 border-r border-border text-[13px] text-muted-foreground font-mono select-none hidden md:block">
                   {window.location.origin}/p/
                 </div>
                 <input
@@ -120,20 +120,20 @@ export default function WorkspaceHeader({
                   maxLength={30}
                   value={tempSlug}
                   onChange={(e) => setTempSlug(e.target.value)}
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-white bg-[#0F0F0F]"
+                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-foreground bg-card"
                   autoFocus
                 />
               </div>
             </div>
-            <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
-              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
+            <div className="p-4 border-t border-border flex justify-end gap-3">
+              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors">Cancel</button>
               <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">Save</button>
             </div>
           </div>
         </div>
       )}
 
-      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-[#0F0F0F]">
+      <header className="flex items-center justify-between px-4 h-[56px] flex-shrink-0 z-30 font-sans w-full bg-card border-b border-border">
 
         {/* LEFT: Mac Dots & Collapse Icon */}
         <div className="flex gap-4 items-center pl-1">
@@ -152,12 +152,12 @@ export default function WorkspaceHeader({
         </div>
 
         {/* CENTER: New pill control */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-2 py-1.5 bg-[#252525] border border-[#3A3A3A] rounded-full shadow-sm">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-2 py-1.5 bg-card border border-border rounded-full shadow-sm">
 
           {/* Refresh iframe button */}
           <button
             onClick={onReloadIframe}
-            className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Refresh preview"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -203,42 +203,42 @@ export default function WorkspaceHeader({
           </button>
 
           {showPublish && (
-            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-[#0F0F0F] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] text-left font-sans p-1 text-white">
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-card border border-border rounded-xl shadow-2xl z-[999] text-left font-sans p-1">
               {publishView === 'main' ? (
                 <>
-                  <div className="p-3 border-b border-[#2A2A2A]">
-                    <h3 className="text-[14px] font-bold text-white">Publish App</h3>
+                  <div className="p-3 border-b border-border">
+                    <h3 className="text-[14px] font-bold text-foreground">Publish App</h3>
                   </div>
 
                   {isPublished && (
                     <div className="px-3 pt-3 pb-1">
-                      <p className="text-[10px] font-bold text-white uppercase tracking-wider mb-1">Live URL</p>
-                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white hover:underline font-mono truncate flex items-center gap-1.5 p-2 bg-[#1A1A1A] rounded-md border border-[#2A2A2A]">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Live URL</p>
+                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-foreground hover:underline font-mono truncate flex items-center gap-1.5 p-2 bg-muted rounded-md border border-border">
                         {window.location.host}/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
                       </a>
                     </div>
                   )}
 
                   <div className="p-2 space-y-1 mt-1">
-                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors">
-                      <h4 className="text-[13px] font-bold text-white">Custom domain</h4>
-                      <p className="text-[11px] text-white/50 mt-0.5">Configure your public routing.</p>
+                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors">
+                      <h4 className="text-[13px] font-bold text-foreground">Custom domain</h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Configure your public routing.</p>
                     </button>
-                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-[#1A1A1A] rounded-md transition-colors">
-                      <h4 className="text-[13px] font-bold text-white">Share your app</h4>
-                      <p className="text-[11px] text-white/50 mt-0.5">Share via email or social networks.</p>
+                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors">
+                      <h4 className="text-[13px] font-bold text-foreground">Share your app</h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Share via email or social networks.</p>
                     </button>
                   </div>
 
-                  <div className="border-t border-[#2A2A2A] pt-3 px-3">
-                    <h4 className="text-[12px] font-bold text-white mb-2">Project Visibility</h4>
-                    <div className="flex items-center justify-between bg-[#1A1A1A] p-2.5 rounded-md border border-[#2A2A2A]">
+                  <div className="border-t border-border pt-3 px-3">
+                    <h4 className="text-[12px] font-bold text-foreground mb-2">Project Visibility</h4>
+                    <div className="flex items-center justify-between bg-muted p-2.5 rounded-md border border-border">
                       <div className="flex items-center gap-2.5">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                           <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
                           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                         </svg>
-                        <span className="text-[12px] font-bold text-white">Public Project</span>
+                        <span className="text-[12px] font-bold text-foreground">Public Project</span>
                       </div>
                       <Toggle enabled={isPublic} onChange={() => setIsPublic(!isPublic)} />
                     </div>
@@ -252,22 +252,22 @@ export default function WorkspaceHeader({
                 </>
               ) : (
                 <>
-                  <div className="p-3 border-b border-[#2A2A2A] flex items-center gap-2">
-                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-[#1A1A1A] rounded-md text-white transition-colors"><ArrowLeft className="w-4 h-4" /></button>
-                    <h3 className="text-[14px] font-bold text-white">Share App</h3>
+                  <div className="p-3 border-b border-border flex items-center gap-2">
+                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-muted rounded-md text-muted-foreground transition-colors"><ArrowLeft className="w-4 h-4" /></button>
+                    <h3 className="text-[14px] font-bold text-foreground">Share App</h3>
                   </div>
                   <div className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 border border-[#2A2A2A] rounded-md p-1.5 bg-[#1A1A1A]">
-                      <div className="px-2 flex-1 text-[12px] font-mono text-white truncate">{shareUrl}</div>
+                    <div className="flex items-center gap-2 border border-border rounded-md p-1.5 bg-muted">
+                      <div className="px-2 flex-1 text-[12px] font-mono text-foreground truncate">{shareUrl}</div>
                       <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded hover:bg-[#0044CC] shadow-sm transition-colors">Copy</button>
                     </div>
-                    <p className="text-[11px] font-bold text-white uppercase tracking-wider text-center">Share via</p>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">Share via</p>
                     <div className="grid grid-cols-5 gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><XIcon /></a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><LinkedInIcon /></a>
-                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><FacebookIcon /></a>
-                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><WhatsAppIcon /></a>
-                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#0055FF] text-white transition-colors"><Mail className="w-4 h-4" /></a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><XIcon /></a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><LinkedInIcon /></a>
+                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><FacebookIcon /></a>
+                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><WhatsAppIcon /></a>
+                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><Mail className="w-4 h-4" /></a>
                     </div>
                   </div>
                 </>

@@ -16,15 +16,17 @@ import { getUserPlan } from '@/lib/plans-config';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
+import { getTheme } from '@/lib/theme';
 
 import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
 import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
+import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 
 import { 
-  X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu
+  X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
 } from 'lucide-react';
 
 
@@ -59,19 +61,19 @@ const IframeModal = ({ open, url, onClose }) => {
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
-      <div className="relative w-[95%] md:w-[480px] bg-[#1A1A1A] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
-        <div className="p-5 border-b border-[#2A2A2A] flex justify-between items-center bg-[#1A1A1A]">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/60 backdrop-blur-sm">
+      <div className="relative w-[95%] md:w-[480px] bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
+        <div className="p-5 border-b border-border flex justify-between items-center">
           <div>
-            <h2 className="text-[16px] font-bold text-white">{title}</h2>
-            {subtitle && <p className="text-[12px] text-gray-400 mt-0.5">{subtitle}</p>}
+            <h2 className="text-[16px] font-bold text-foreground">{title}</h2>
+            {subtitle && <p className="text-[12px] text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-[#2A2A2A] text-white rounded-md transition-colors"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 hover:bg-muted text-muted-foreground rounded-md transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5">{children}</div>
         {actionText && (
-          <div className="p-4 border-t border-[#2A2A2A] bg-[#1A1A1A] flex justify-end gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2A2A2A] rounded-md transition-colors">Cancel</button>
+          <div className="p-4 border-t border-border flex justify-end gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors">Cancel</button>
             <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">{actionText}</button>
           </div>
         )}
@@ -332,7 +334,7 @@ export default function ChatPage() {
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
@@ -739,20 +741,40 @@ export default function ChatPage() {
   //   5.8 RENDER (JSX)
   // ────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex font-sans h-screen w-full bg-[#1C1C1C] overflow-hidden antialiased relative">
-      
-      {/* Profile menu — top right */}
-      <div className="absolute top-4 right-4 z-[999]">
+    <div className="flex font-sans h-screen w-full bg-background overflow-hidden antialiased relative">
+
+      {/* Workspace Sidebar */}
+      <ChatWorkspaceSidebar
+        open={isSidebarOpen}
+        setOpen={setIsSidebarOpen}
+        user={user}
+        convId={conversationId || convId}
+      />
+
+      {/* Profile menu — top left */}
+      <div className="absolute top-3 left-3 z-[999] flex items-center gap-2">
+        <button
+          onClick={() => setIsSidebarOpen(v => !v)}
+          className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold hover:opacity-80 transition-opacity flex-shrink-0"
+          style={{ backgroundColor: getUserColor(user) }}
+          title="Menu"
+        >
+          {user?.full_name ? user.full_name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?'}
+        </button>
+      </div>
+
+      {/* Profile/Credits menu — top right */}
+      <div className="absolute top-3 right-3 z-[999]">
         <ChatProfileMenu user={user} userPlan={userPlan} />
       </div>
 
       {/* ── MODALS & OVERLAYS ── */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
-        <label className="text-[12px] font-semibold text-white mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-[#2A2A2A] bg-[#0F0F0F] text-white rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0055FF] mb-4" autoFocus />
-        <div className="bg-[#0F0F0F] p-4 rounded-lg border border-[#2A2A2A]">
-          <h4 className="text-[12px] font-bold text-white mb-2.5">What happens next?</h4>
-          <ul className="text-[11.5px] text-gray-400 space-y-2">
+        <label className="text-[12px] font-semibold text-foreground mb-1.5 block">Workspace name *</label>
+        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-border bg-background text-foreground rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-[#0055FF] mb-4" autoFocus />
+        <div className="bg-muted p-4 rounded-lg border border-border">
+          <h4 className="text-[12px] font-bold text-foreground mb-2.5">What happens next?</h4>
+          <ul className="text-[11.5px] text-muted-foreground space-y-2">
             <li>• You will be the owner with full management permissions</li>
             <li>• You can invite members and manage licenses</li>
             <li>• Access your workspace dashboard to get started</li>
@@ -761,7 +783,7 @@ export default function ChatPage() {
       </ProModal>
 
       <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
-        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-[#2A2A2A] bg-[#0F0F0F] text-white rounded-md px-3 py-2 text-[13px] focus:outline-none" />
+        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-border bg-background text-foreground rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
 
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
@@ -769,25 +791,24 @@ export default function ChatPage() {
 
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full bg-background">
         
         <div className="flex items-center justify-end p-3 md:hidden">
-          <div className="flex bg-[#1A1A1A] border border-[#2A2A2A] p-1 rounded-md ml-auto z-50">
-            <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'chat' ? 'bg-[#2A2A2A] shadow-sm text-white' : 'text-gray-400'}`}>Chat</button>
-            <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded ${mobileView === 'preview' ? 'bg-[#2A2A2A] shadow-sm text-white' : 'text-gray-400'}`}>Preview</button>
+          <div className="flex bg-card border border-border p-1 rounded-md ml-auto z-50">
+            <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded transition-colors ${mobileView === 'chat' ? 'bg-muted shadow-sm text-foreground' : 'text-muted-foreground'}`}>Chat</button>
+            <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded transition-colors ${mobileView === 'preview' ? 'bg-muted shadow-sm text-foreground' : 'text-muted-foreground'}`}>Preview</button>
           </div>
         </div>
 
         <div className="flex flex-1 overflow-hidden w-full h-full">
           
           {/* ── CHAT PANEL ── */}
-          {/* This is the SINGLE corrected container for the chat panel */}
-          <div className={`flex flex-col bg-[#1C1C1C] overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-[#2A2A2A] z-[100]'}`}> 
+          <div className={`flex flex-col bg-background overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-border z-[100]'}`}> 
             
             {/* The Expand Button (ChevronsLeft) - only visible when the preview is collapsed */}
             {isPreviewCollapsed && hasStarted && (
               <div className="absolute top-4 right-4 z-[999] hidden md:block">
-                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-gray-500 hover:text-white transition-all duration-[200ms] rounded-md bg-[#1A1A1A] border border-[#2A2A2A] shadow-sm flex items-center justify-center" title="Expand Preview">
+                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-muted-foreground hover:text-foreground transition-all duration-[200ms] rounded-md bg-card border border-border shadow-sm flex items-center justify-center" title="Expand Preview">
                   <ChevronsLeft className="w-5 h-5" />
                 </button>
               </div>
@@ -796,20 +817,24 @@ export default function ChatPage() {
             {/* Inner Chat Container centers content beautifully when in full screen mode */}
             <div className={`flex flex-col w-full h-full transition-all duration-[200ms] ${isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
               <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-2 md:px-3 py-6 [&::-webkit-scrollbar]:hidden mt-14`}>
-                {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale brightness-0 invert opacity-60" /><h2 className="text-[24px] font-bold text-white">How can I help you today?</h2></div>}
+                {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale dark:invert opacity-60" /><h2 className="text-[24px] font-bold text-foreground">How can I help you today?</h2></div>}
                 {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className={`flex-shrink-0 p-3 md:p-4 bg-[#0F0F0F] overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+              <div className={`flex-shrink-0 p-3 md:p-4 bg-muted/30 border-t border-border overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
                 <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
               </div>
             </div>
           </div>
           
           {/* ── PREVIEW PANEL — always visible ── */}
-          <div className={`bg-[#1C1C1C] p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
-            <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-[#1C1C1C]">
+          <div className={`bg-muted/20 p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
+            {/* Disable interactions on the preview panel when no content */}
+            {!ficheContent && !isLoading && (
+              <div className="absolute inset-0 z-20 cursor-not-allowed" />
+            )}
+            <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-background">
               <WorkspaceHeader 
                 onReload={handleReload}
                 onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
