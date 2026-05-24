@@ -1,37 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getPlansConfig } from '@/lib/plans-config';
-
-const CheckIcon = () => (
-  <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{color:'#555'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
-);
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const firstRef = useRef(); const lastRef = useRef(); const emailRef = useRef();
-  const websiteRef = useRef(); const roleRef = useRef(); const msgRef = useRef();
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', website: '', role: '', message: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
-      await base44.entities.ContactLead.create({
-        first_name: firstRef.current?.value || '',
-        last_name: lastRef.current?.value || '',
-        email: emailRef.current?.value || '',
-        website: websiteRef.current?.value || '',
-        role: roleRef.current?.value || '',
-        message: msgRef.current?.value || '',
-        status: 'new',
-      });
+      await base44.entities.ContactLead.create({ ...form, status: 'new' });
     } catch {}
-    setSaving(false);
     setSubmitted(true);
   };
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   return (
     <div
@@ -64,37 +47,37 @@ const ContactModal = ({ onClose }) => {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>First Name *</label>
-                  <input ref={firstRef} required placeholder="First Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input required value={form.first_name} onChange={set('first_name')} placeholder="First Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Last Name *</label>
-                  <input ref={lastRef} required placeholder="Last Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input required value={form.last_name} onChange={set('last_name')} placeholder="Last Name" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
               </div>
 
               <div>
                 <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Work Email *</label>
-                <input ref={emailRef} required type="email" placeholder="you@company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                <input required type="email" value={form.email} onChange={set('email')} placeholder="you@company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
               </div>
 
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Website *</label>
-                  <input ref={websiteRef} required placeholder="company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input required value={form.website} onChange={set('website')} placeholder="company.com" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
                 <div>
                   <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>Role *</label>
-                  <input ref={roleRef} required placeholder="e.g., CFO, Director" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                  <input required value={form.role} onChange={set('role')} placeholder="e.g., CFO, Director" style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
                 </div>
               </div>
 
               <div>
                 <label style={{display:'block',fontSize:'13px',color:'#aaa',marginBottom:'6px'}}>What would you like to discuss? *</label>
-                <textarea ref={msgRef} required placeholder="Describe your needs..." rows={4} style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none',resize:'vertical',fontFamily:'inherit'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
+                <textarea required value={form.message} onChange={set('message')} placeholder="Describe your needs..." rows={4} style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#f0f0f0',outline:'none',resize:'vertical',fontFamily:'inherit'}} onFocus={e=>e.target.style.borderColor='#555'} onBlur={e=>e.target.style.borderColor='#2e2e2e'}/>
               </div>
 
-              <button type="submit" disabled={saving} style={{width:'100%',padding:'12px',background:'#f0f0f0',color:'#111',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:500,cursor:'pointer',marginTop:'4px',opacity:saving?0.7:1}}>
-                {saving ? 'Sending…' : 'Send'}
+              <button type="submit" style={{width:'100%',padding:'12px',background:'#f0f0f0',color:'#111',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:500,cursor:'pointer',marginTop:'4px'}}>
+                Send
               </button>
             </form>
           </>
@@ -105,15 +88,15 @@ const ContactModal = ({ onClose }) => {
 };
 
 export default function PricingPage() {
+  const navigate = useNavigate();
   const [currency, setCurrency] = useState('USD');
   const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
 
   const getPrice = (base) => {
     if (base === 0) return '0';
     if (currency === 'EUR') return parseFloat((base * 0.92).toFixed(2));
     if (currency === 'GBP') return parseFloat((base * 0.79).toFixed(2));
-    return base; // Plus besoin de .toFixed(2) car tes prix de base (29, 69) sont déjà ronds
+    return base;
   };
 
   const sym = { USD: '$', EUR: '€', GBP: '£' }[currency];
@@ -125,17 +108,41 @@ export default function PricingPage() {
   const MUTED = '#888';
   const SUBTLE = '#444';
 
-  const rawPlans = getPlansConfig();
-  const plans = rawPlans.map(p => ({
-    ...p,
-    price: p.price_monthly || null,
-    desc: p.features_header || '',
-    btnLabel: p.id === 'enterprise' ? 'Contact Us' : p.price_monthly === 0 ? 'Get Started' : `Choose ${p.name}`,
-    btnStyle: p.badge ? { background: '#f0f0f0', color: '#111', border: 'none' } : { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
-    features: (p.features || []).map(f => f.text),
-    notIncluded: [],
-    checkout_url_monthly: p.checkout_url_monthly,
-  }));
+  const plans = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      price: 29,
+      badge: null,
+      desc: 'For exploration and individual use',
+      btnLabel: 'Get Started',
+      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
+      features: ['50 generations / month', 'Financial analysis', 'PDF export', 'Email support', '1 user'],
+      notIncluded: ['API integrations', 'Teams', 'Custom model'],
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: 69,
+      badge: 'Popular',
+      desc: 'For teams producing at scale',
+      btnLabel: 'Choose Pro',
+      btnStyle: { background: '#f0f0f0', color: '#111', border: 'none' },
+      features: ['500 generations / month', 'Analysis + forecasting', 'PDF & CSV export', 'API integrations', 'Up to 5 users', 'Priority support'],
+      notIncluded: ['Custom model', 'Guaranteed SLA'],
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: null,
+      badge: null,
+      desc: 'Tailor-made for large organizations',
+      btnLabel: 'Contact Us',
+      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
+      features: ['Unlimited generations', 'Custom AI model', 'SSO + advanced security', 'Guaranteed SLA', 'Unlimited users', 'Dedicated onboarding', 'Audit log & compliance'],
+      notIncluded: [],
+    },
+  ];
 
   const tableFeatures = [
     { label: 'Generations / month', vals: ['50', '500', 'Unlimited'] },
@@ -178,7 +185,7 @@ export default function PricingPage() {
 
         {/* Plan cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '3rem' }}>
-          {plans.map((plan, i) => (
+          {plans.map((plan) => (
             <div
               key={plan.id}
               style={{
@@ -192,7 +199,6 @@ export default function PricingPage() {
                 position: 'relative',
               }}
             >
-              {/* New Top-Right Badge */}
               {plan.badge && (
                 <span style={{ 
                   position: 'absolute', 
@@ -217,13 +223,11 @@ export default function PricingPage() {
               </div>
 
               <div>
-                {plan.price_monthly > 0 ? (
+                {plan.price !== null ? (
                   <>
-                    <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price_monthly)}</span>
+                    <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>{sym}{getPrice(plan.price)}</span>
                     <span style={{ fontSize: '13px', color: MUTED }}> / month</span>
                   </>
-                ) : plan.price_monthly === 0 ? (
-                  <span style={{ fontSize: '32px', fontWeight: 500, color: TEXT }}>Gratuit</span>
                 ) : (
                   <span style={{ fontSize: '22px', fontWeight: 500, color: TEXT }}>Custom pricing</span>
                 )}
@@ -232,8 +236,7 @@ export default function PricingPage() {
               <button
                 onClick={() => {
                   if (plan.id === 'enterprise') { setShowModal(true); return; }
-                  const url = plan.checkout_url_monthly;
-                  if (url) navigate(`/checkout?url=${encodeURIComponent(url)}&plan=${encodeURIComponent(plan.name)}`);
+                  navigate(`/checkout?plan=${plan.id}&billing=monthly`);
                 }}
                 style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', transition: 'opacity .15s', ...plan.btnStyle }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '.8'}
@@ -262,12 +265,10 @@ export default function PricingPage() {
 
         {/* Compliance & Security Badges Section */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginBottom: '3rem', userSelect: 'none' }}>
-          {/* ISO 27001 */}
           <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
             <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 22h20L12 2z"/>
-                <circle cx="12" cy="14" r="3"/>
+                <path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="3"/>
               </svg>
             </div>
             <div>
@@ -276,13 +277,11 @@ export default function PricingPage() {
             </div>
           </div>
           
-          {/* SOC 2 Type II */}
           <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
             <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <rect x="10" y="10" width="4" height="5" rx="1"/>
-                <path d="M10 10V9a2 2 0 0 1 4 0v1"/>
+                <rect x="10" y="10" width="4" height="5" rx="1"/><path d="M10 10V9a2 2 0 0 1 4 0v1"/>
               </svg>
             </div>
             <div>
@@ -291,13 +290,11 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* GDPR */}
           <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
             <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
-                <rect x="9" y="11" width="6" height="5" rx="1"/>
-                <path d="M9 11V9a3 3 0 0 1 6 0v2"/>
+                <rect x="9" y="11" width="6" height="5" rx="1"/><path d="M9 11V9a3 3 0 0 1 6 0v2"/>
               </svg>
             </div>
             <div>
@@ -317,7 +314,7 @@ export default function PricingPage() {
                 {plans.map(p => (
                   <th key={p.id} style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500, color: p.badge ? TEXT : MUTED }}>
                     {p.name}
-                    {p.badge && <span style={{ display: 'block', fontSize: '10px', color: '#777', fontWeight: 400 }}>{p.price_monthly > 0 ? `${sym}${getPrice(p.price_monthly)}/mo` : 'Custom pricing'}</span>}
+                    {p.badge && <span style={{ display: 'block', fontSize: '10px', color: '#777', fontWeight: 400 }}>{sym}{p.price ? getPrice(p.price) + '/mo' : 'Custom pricing'}</span>}
                   </th>
                 ))}
               </tr>
