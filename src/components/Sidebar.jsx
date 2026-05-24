@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Home, MessageSquare, Cpu, PanelLeftClose, PanelLeft,
-  Plus, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, Shield
+  Home, LayoutDashboard, PanelLeftClose,
+  Plus, MoreHorizontal, Shield, Settings, CreditCard, LogOut, HelpCircle
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
@@ -14,6 +14,16 @@ export const EXPANDED_W = 260;
 export default function Sidebar({ expanded, setExpanded, user }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfileMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const userInitial = user?.full_name
     ? user.full_name.charAt(0).toUpperCase()
@@ -21,8 +31,7 @@ export default function Sidebar({ expanded, setExpanded, user }) {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions' },
-    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna' },
+    { icon: LayoutDashboard, label: 'Visual Cockpit', path: '/cockpit' },
   ];
 
   return (
@@ -94,19 +103,49 @@ export default function Sidebar({ expanded, setExpanded, user }) {
         </div>
 
         {/* Profile Footer */}
-        <div className="p-4 border-t border-[#2A2A2A] flex-shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="p-4 border-t border-[#2A2A2A] flex-shrink-0 relative" ref={profileRef}>
+          <button
+            onClick={() => setShowProfileMenu(v => !v)}
+            className="w-full flex items-center gap-3 hover:bg-[#1A1A1A] rounded-lg p-1.5 -mx-1.5 transition-colors"
+          >
             <div
-              className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold"
+              className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0"
               style={{ backgroundColor: getUserColor(user) }}
             >
               {userInitial}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-left">
               <p className="text-[13px] font-bold text-white truncate">{user?.full_name || 'User'}</p>
+              <p className="text-[11px] text-gray-500 truncate">{user?.email || ''}</p>
             </div>
-            <MoreHorizontal className="w-4 h-4 text-gray-400" />
-          </div>
+            <MoreHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </button>
+
+          <AnimatePresence>
+            {showProfileMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                transition={{ duration: 0.14 }}
+                className="absolute bottom-[calc(100%-8px)] left-4 right-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden"
+              >
+                <button onClick={() => { navigate('/settings'); setShowProfileMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-gray-300 hover:text-white hover:bg-[#2A2A2A] transition-colors">
+                  <Settings className="w-4 h-4" /> Settings
+                </button>
+                <button onClick={() => { navigate('/pricing'); setShowProfileMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-gray-300 hover:text-white hover:bg-[#2A2A2A] transition-colors">
+                  <CreditCard className="w-4 h-4" /> Upgrade plan
+                </button>
+                <button onClick={() => { navigate('/support'); setShowProfileMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-gray-300 hover:text-white hover:bg-[#2A2A2A] transition-colors">
+                  <HelpCircle className="w-4 h-4" /> Support
+                </button>
+                <div className="h-px bg-[#2A2A2A] my-1" />
+                <button onClick={() => base44.auth.logout('/')} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-red-400 hover:text-red-300 hover:bg-[#2A2A2A] transition-colors">
+                  <LogOut className="w-4 h-4" /> Sign out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.aside>

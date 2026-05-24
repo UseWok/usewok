@@ -99,7 +99,7 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/app' },
-    { icon: LayoutDashboard, label: 'Cockpit', path: '/cockpit' },
+    { icon: LayoutDashboard, label: 'Visual Cockpit', path: '/cockpit' },
   ];
 
   return (

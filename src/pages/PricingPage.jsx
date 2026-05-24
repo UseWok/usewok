@@ -286,40 +286,49 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Comparison table — one column per plan, rows = features of largest plan */}
+        {/* Comparison table — vertical (feature rows × plan columns) */}
         <h2 style={{ fontSize: '16px', fontWeight: 500, color: TEXT, marginBottom: '1rem' }}>Compare all plans</h2>
-        <div style={{ background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '14px', overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400, width: '34%' }}>Plan</th>
-                <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400 }}>Included features</th>
-              </tr>
-            </thead>
-            <tbody>
-              {plans.map((plan, i) => (
-                <tr key={plan.id} style={{ borderBottom: `0.5px solid #1e1e1e`, verticalAlign: 'top' }}>
-                  <td style={{ padding: '16px 20px', color: plan.badge ? TEXT : MUTED, fontWeight: plan.badge ? 600 : 400 }}>
-                    {plan.name}
-                    <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
-                      {plan.price !== null ? `${sym}${getPrice(plan.price)}/mo` : 'Custom'}
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px 20px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {plan.features.map((f, j) => (
-                        <span key={j} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#ccc', background: '#1a1a1a', border: `0.5px solid ${BORDER}`, borderRadius: '6px', padding: '3px 10px' }}>
-                          <svg style={{ width: '11px', height: '11px', flexShrink: 0, color: '#4ade80' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                          {f}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {(() => {
+          // Collect all unique feature strings across all plans
+          const allFeatures = Array.from(new Set(plans.flatMap(p => p.features)));
+          return (
+            <div style={{ background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '14px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                    <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400, width: '34%' }}>Feature</th>
+                    {plans.map(p => (
+                      <th key={p.id} style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500, color: p.badge ? TEXT : MUTED }}>
+                        {p.name}
+                        <div style={{ fontSize: '11px', color: '#555', fontWeight: 400, marginTop: '2px' }}>
+                          {p.price !== null ? `${sym}${getPrice(p.price)}/mo` : 'Custom'}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {allFeatures.map((feature, i) => (
+                    <tr key={i} style={{ borderBottom: `0.5px solid #1e1e1e` }}>
+                      <td style={{ padding: '12px 20px', color: MUTED }}>{feature}</td>
+                      {plans.map(p => {
+                        const has = p.features.includes(feature);
+                        return (
+                          <td key={p.id} style={{ padding: '12px 16px', textAlign: 'center' }}>
+                            {has
+                              ? <svg style={{ width: '15px', height: '15px', display: 'inline-block', color: '#4ade80' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                              : <span style={{ color: '#333', fontSize: '16px' }}>—</span>
+                            }
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
 
         {/* Enterprise CTA banner */}
         <div style={{ marginTop: '2rem', background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '14px', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>

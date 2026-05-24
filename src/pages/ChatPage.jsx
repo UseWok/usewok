@@ -580,7 +580,12 @@ export default function ChatPage() {
          }
       }
 
-      const cost = discussMode ? 1 : 10;
+      // Credit logic: base = 1 credit. If usage already exceeds 2× the average monthly allowance → 2 credits.
+      const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
+      const creditsUsed = user?.credits_used || 0;
+      const avgMonthly = creditsLimit; // average = the plan limit itself
+      const multiplier = creditsUsed >= avgMonthly * 2 ? 2 : 1;
+      const cost = multiplier;
       await handleUpdateCredits(cost);
 
       // Increment project counter for new interfaces
