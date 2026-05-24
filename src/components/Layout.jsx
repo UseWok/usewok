@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import Sidebar, { COLLAPSED_W, EXPANDED_W, SIDEBAR_MARGIN } from './Sidebar';
 import { getUserPlan } from '@/lib/plans-config';
 import { onCreditsUpdate } from '@/lib/credits-events';
 import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { initTheme, getTheme, setTheme } from '@/lib/theme';
+import { initTheme } from '@/lib/theme';
 
 const SESSION_KEY = 'stensor_total_minutes';
 
@@ -33,8 +32,6 @@ export default function Layout() {
   const [expanded, setExpanded] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [currentTheme, setCurrentTheme] = useState(getTheme());
-
   const isMobile = useIsMobile();
   const location = useLocation();
 
@@ -64,12 +61,6 @@ export default function Layout() {
       setUser(prev => prev ? { ...prev, credits_used } : prev);
     });
   }, []);
-
-  const handleThemeToggle = () => {
-    const next = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    setCurrentTheme(next);
-  };
 
   // Width the main content area should shift by
   const sidebarOffset = showSidebar ? (expanded ? EXPANDED_W : COLLAPSED_W) + SIDEBAR_MARGIN * 2 : 0;
@@ -101,19 +92,6 @@ export default function Layout() {
           )}
         </AnimatePresence>
       )}
-
-      {/* Theme toggle — top right, always visible */}
-      <button
-        onClick={handleThemeToggle}
-        className="fixed top-4 right-4 z-50 p-2 bg-card border border-border rounded-xl shadow-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 group overflow-hidden"
-        title={currentTheme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
-      >
-        <span className="absolute inset-0 rounded-xl bg-foreground/8 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
-        {currentTheme === 'dark'
-          ? <Sun className="w-4 h-4" />
-          : <Moon className="w-4 h-4" />
-        }
-      </button>
 
       {/* Main content — shifts right to make room for floating sidebar */}
       <motion.main

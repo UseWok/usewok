@@ -3,19 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, LayoutDashboard, PanelLeftClose, PanelLeft,
-  Plus, MoreHorizontal, Shield, Settings, CreditCard, LogOut, HelpCircle
+  Plus, MoreHorizontal, Shield, Settings, CreditCard, LogOut, HelpCircle,
+  Sun, Moon,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
+import { getTheme, setTheme } from '@/lib/theme';
 
-export const COLLAPSED_W = 64;  // icon-strip width (px)
-export const EXPANDED_W  = 240; // full sidebar width (px)
-export const SIDEBAR_MARGIN = 12; // gap from screen edges (px)
+export const COLLAPSED_W = 56;   // icon-strip width px
+export const EXPANDED_W  = 240;  // full sidebar width px
+export const SIDEBAR_MARGIN = 12;
 
 export default function Sidebar({ expanded, setExpanded, user }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(getTheme());
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -26,6 +29,12 @@ export default function Sidebar({ expanded, setExpanded, user }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const handleTheme = () => {
+    const next = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    setCurrentTheme(next);
+  };
+
   const userInitial = user?.full_name
     ? user.full_name.charAt(0).toUpperCase()
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
@@ -34,6 +43,12 @@ export default function Sidebar({ expanded, setExpanded, user }) {
     { icon: Home, label: 'Home', path: '/app' },
     { icon: LayoutDashboard, label: 'Visual Cockpit', path: '/cockpit' },
   ];
+
+  // Shared style for icon-only vs expanded buttons
+  const btnBase = `relative flex items-center rounded-xl transition-all duration-200 overflow-hidden group`;
+  const iconBtn = expanded
+    ? `${btnBase} gap-3 px-2.5 py-2.5 w-full`
+    : `${btnBase} justify-center w-9 h-9`; // 1:1 aspect ratio when collapsed
 
   return (
     <motion.aside
@@ -51,9 +66,16 @@ export default function Sidebar({ expanded, setExpanded, user }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
       }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between flex-shrink-0 overflow-hidden"
-        style={{ padding: expanded ? '14px 14px 14px 16px' : '14px 0', justifyContent: expanded ? 'space-between' : 'center', borderBottom: '1px solid hsl(var(--border))' }}>
+      {/* ── Header: toggle + theme ── */}
+      <div
+        className="flex flex-shrink-0 items-center"
+        style={{
+          borderBottom: '1px solid hsl(var(--border))',
+          padding: expanded ? '10px 10px 10px 14px' : '10px 0',
+          justifyContent: expanded ? 'space-between' : 'center',
+          gap: 6,
+        }}
+      >
         <AnimatePresence initial={false}>
           {expanded && (
             <motion.h1
@@ -61,22 +83,38 @@ export default function Sidebar({ expanded, setExpanded, user }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.15 }}
-              className="text-xl font-[900] italic tracking-tighter text-foreground whitespace-nowrap"
+              className="text-xl font-[900] italic tracking-tighter text-foreground whitespace-nowrap select-none"
             >
               WOK
             </motion.h1>
           )}
         </AnimatePresence>
-        <button
-          onClick={() => setExpanded(v => !v)}
-          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200 flex-shrink-0"
-        >
-          {expanded ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-        </button>
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Theme toggle — integrated in header, always visible */}
+          <button
+            onClick={handleTheme}
+            title={currentTheme === 'dark' ? 'Light mode' : 'Dark mode'}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 border border-border"
+          >
+            {currentTheme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Collapse / expand toggle */}
+          <button
+            onClick={() => setExpanded(v => !v)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+          >
+            {expanded ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
-      {/* Nav Items */}
-      <nav className="flex flex-col gap-0.5 mt-3 px-2 flex-shrink-0">
+      {/* ── Nav items ── */}
+      <nav
+        className="flex flex-col gap-0.5 mt-3 flex-shrink-0"
+        style={{ padding: expanded ? '0 8px' : '0 8px' }}
+      >
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
           return (
@@ -84,15 +122,14 @@ export default function Sidebar({ expanded, setExpanded, user }) {
               key={item.path}
               onClick={() => navigate(item.path)}
               title={!expanded ? item.label : undefined}
-              className={`relative flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 overflow-hidden group ${
+              className={`${iconBtn} ${
                 isActive
                   ? 'bg-primary text-primary-foreground font-bold shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               style={{ justifyContent: expanded ? 'flex-start' : 'center' }}
             >
-              {/* ripple on click */}
-              <span className="absolute inset-0 rounded-xl bg-white/20 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+              <span className="absolute inset-0 rounded-xl bg-white/20 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
               <item.icon className="w-4 h-4 flex-shrink-0" />
               <AnimatePresence initial={false}>
                 {expanded && (
@@ -101,7 +138,7 @@ export default function Sidebar({ expanded, setExpanded, user }) {
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.18 }}
-                    className="whitespace-nowrap overflow-hidden"
+                    className="whitespace-nowrap overflow-hidden text-[13px] font-medium"
                   >
                     {item.label}
                   </motion.span>
@@ -114,16 +151,16 @@ export default function Sidebar({ expanded, setExpanded, user }) {
 
       <div className="flex-1" />
 
-      {/* Admin */}
+      {/* ── Admin ── */}
       {user?.role === 'admin' && (
-        <div className="px-2 pb-2">
+        <div style={{ padding: expanded ? '0 8px 6px' : '0 8px 6px' }}>
           <button
             onClick={() => navigate('/admin')}
             title={!expanded ? 'Admin' : undefined}
-            className="relative w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 group overflow-hidden"
+            className={`${iconBtn} bg-primary/10 hover:bg-primary/20 border border-primary/20`}
             style={{ justifyContent: expanded ? 'flex-start' : 'center' }}
           >
-            <span className="absolute inset-0 rounded-xl bg-white/15 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+            <span className="absolute inset-0 rounded-xl bg-white/15 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
             <Shield className="w-4 h-4 text-primary flex-shrink-0" />
             <AnimatePresence initial={false}>
               {expanded && (
@@ -142,15 +179,15 @@ export default function Sidebar({ expanded, setExpanded, user }) {
         </div>
       )}
 
-      {/* New Chat CTA */}
-      <div className="px-2 pb-2" style={{ borderTop: '1px solid hsl(var(--border))', paddingTop: 8 }}>
+      {/* ── New Chat CTA ── */}
+      <div style={{ borderTop: '1px solid hsl(var(--border))', padding: expanded ? '8px 8px' : '8px 8px' }}>
         <button
           onClick={() => navigate('/chat')}
           title={!expanded ? 'New chat' : undefined}
-          className="relative flex items-center gap-2 w-full py-2.5 bg-[#0055FF] text-white rounded-xl text-[13px] font-bold hover:bg-[#0044CC] transition-all duration-200 shadow-sm group overflow-hidden"
-          style={{ justifyContent: expanded ? 'center' : 'center' }}
+          className={`${iconBtn} bg-[#0055FF] hover:bg-[#0044CC] text-white shadow-sm`}
+          style={{ justifyContent: 'center', width: expanded ? '100%' : undefined }}
         >
-          <span className="absolute inset-0 rounded-xl bg-white/20 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+          <span className="absolute inset-0 rounded-xl bg-white/20 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
           <Plus className="w-4 h-4 flex-shrink-0" />
           <AnimatePresence initial={false}>
             {expanded && (
@@ -159,7 +196,7 @@ export default function Sidebar({ expanded, setExpanded, user }) {
                 animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.18 }}
-                className="whitespace-nowrap overflow-hidden"
+                className="whitespace-nowrap overflow-hidden text-[13px] font-bold"
               >
                 New chat
               </motion.span>
@@ -168,19 +205,18 @@ export default function Sidebar({ expanded, setExpanded, user }) {
         </button>
       </div>
 
-      {/* Profile Footer */}
+      {/* ── Profile Footer ── */}
       <div
         className="relative flex-shrink-0"
         ref={profileRef}
-        style={{ borderTop: '1px solid hsl(var(--border))', padding: expanded ? '10px 10px' : '10px 6px' }}
+        style={{ borderTop: '1px solid hsl(var(--border))', padding: '8px 8px' }}
       >
         <button
           onClick={() => setShowProfileMenu(v => !v)}
           title={!expanded ? (user?.full_name || 'Profile') : undefined}
-          className="relative w-full flex items-center gap-3 hover:bg-muted rounded-xl p-1.5 transition-all duration-200 group overflow-hidden"
-          style={{ justifyContent: expanded ? 'flex-start' : 'center' }}
+          className={`${expanded ? 'w-full flex items-center gap-3 px-1.5 py-1.5' : 'w-9 h-9 flex items-center justify-center'} hover:bg-muted rounded-xl transition-all duration-200 group overflow-hidden relative`}
         >
-          <span className="absolute inset-0 rounded-xl bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+          <span className="absolute inset-0 rounded-xl bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[12px] font-bold flex-shrink-0"
             style={{ backgroundColor: getUserColor(user) }}
@@ -213,21 +249,23 @@ export default function Sidebar({ expanded, setExpanded, user }) {
               transition={{ duration: 0.15 }}
               className="absolute bottom-[calc(100%+4px)] left-2 right-2 bg-card border border-border rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden"
             >
-              <button onClick={() => { navigate('/settings'); setShowProfileMenu(false); }} className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 overflow-hidden group">
-                <span className="absolute inset-0 bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
-                <Settings className="w-4 h-4" /> Settings
-              </button>
-              <button onClick={() => { navigate('/pricing'); setShowProfileMenu(false); }} className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 overflow-hidden group">
-                <span className="absolute inset-0 bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
-                <CreditCard className="w-4 h-4" /> Upgrade plan
-              </button>
-              <button onClick={() => { navigate('/support'); setShowProfileMenu(false); }} className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 overflow-hidden group">
-                <span className="absolute inset-0 bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
-                <HelpCircle className="w-4 h-4" /> Support
-              </button>
+              {[
+                { icon: Settings, label: 'Settings', action: () => navigate('/settings') },
+                { icon: CreditCard, label: 'Upgrade plan', action: () => navigate('/pricing') },
+                { icon: HelpCircle, label: 'Support', action: () => navigate('/support') },
+              ].map(({ icon: Icon, label, action }) => (
+                <button key={label} onClick={() => { action(); setShowProfileMenu(false); }}
+                  className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 overflow-hidden group"
+                >
+                  <span className="absolute inset-0 bg-foreground/5 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
+                  <Icon className="w-4 h-4" /> {label}
+                </button>
+              ))}
               <div className="h-px bg-border my-1" />
-              <button onClick={() => base44.auth.logout('/')} className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-destructive hover:bg-muted transition-all duration-200 overflow-hidden group">
-                <span className="absolute inset-0 bg-destructive/10 scale-0 group-active:scale-100 transition-transform duration-200 origin-center" />
+              <button onClick={() => base44.auth.logout('/')}
+                className="relative w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-destructive hover:bg-muted transition-all duration-200 overflow-hidden group"
+              >
+                <span className="absolute inset-0 bg-destructive/10 scale-0 group-active:scale-100 transition-transform duration-200 origin-center pointer-events-none" />
                 <LogOut className="w-4 h-4" /> Sign out
               </button>
             </motion.div>
