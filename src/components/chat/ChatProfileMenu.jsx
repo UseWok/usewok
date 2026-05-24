@@ -97,11 +97,14 @@ export default function ChatProfileMenu({ user, userPlan }) {
         {/* Trigger */}
         <button
           onClick={() => setOpen(v => !v)}
-          className="relative overflow-hidden group flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl hover:bg-muted transition-all duration-200 shadow-sm"
+          className="relative overflow-hidden group flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl hover:bg-muted hover:shadow-md active:scale-95 transition-all duration-150 shadow-sm"
         >
           <span className="absolute inset-0 rounded-xl bg-foreground/[0.06] scale-0 opacity-0 group-active:scale-100 group-active:opacity-100 transition-all duration-150 pointer-events-none" />
-          <div className="w-6 h-6 rounded-md flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-black flex-shrink-0">W</div>
-          <span className="text-[13px] font-bold text-foreground tracking-tight">Menu</span>
+          <div className="w-5 h-5 rounded-md flex items-center justify-center bg-primary text-primary-foreground text-[9px] font-black flex-shrink-0">W</div>
+          <span className="text-[12px] font-semibold text-foreground tracking-tight">Wok</span>
+          <svg className="w-3 h-3 text-muted-foreground" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
         </button>
 
         <AnimatePresence>
