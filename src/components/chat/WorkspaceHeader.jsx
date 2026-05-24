@@ -136,16 +136,8 @@ export default function WorkspaceHeader({
       {/* ── Toolbar: no background, no border — floats above the preview card ── */}
       <div className="flex items-center justify-between px-3 h-10 flex-shrink-0 z-30 font-sans w-full">
 
-        {/* LEFT: collapse icon */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onTogglePreview}
-            className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors items-center justify-center"
-            title="Hide Preview"
-          >
-            <ChevronsRight className="w-4 h-4" strokeWidth={2.5} />
-          </button>
-        </div>
+        {/* LEFT: empty spacer */}
+        <div className="w-6" />
 
         {/* CENTER: project pill + refresh */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-background/80 backdrop-blur border border-border rounded-full shadow-sm">

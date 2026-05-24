@@ -793,6 +793,16 @@ export default function ChatPage() {
       {/* "Wok" brand trigger (top left) — opens profile/credits menu */}
       <div className="absolute top-3 left-3 z-[999] flex items-center gap-2">
         <ChatProfileMenu user={user} userPlan={userPlan} />
+        {/* Expand preview button — only visible once chat has started */}
+        {hasStarted && (
+          <button
+            onClick={() => setIsPreviewCollapsed(prev => !prev)}
+            className="hidden md:flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            title={isPreviewCollapsed ? 'Show Preview' : 'Hide Preview'}
+          >
+            <ChevronsLeft className={`w-4 h-4 transition-transform duration-200 ${isPreviewCollapsed ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
       {/* Sidebar toggle (hidden from main UI, opened via sidebar button inside ChatProfileMenu) */}
@@ -833,15 +843,8 @@ export default function ChatPage() {
         <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
 
           {/* Chat panel — desktop */}
-          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out ${isPreviewCollapsed ? 'flex-1' : 'w-[34%] flex-shrink-0'}`}>
-            {isPreviewCollapsed && hasStarted && (
-              <div className="absolute top-4 right-4 z-[999]">
-                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-muted-foreground hover:text-foreground rounded-md bg-card border border-border shadow-sm flex items-center justify-center">
-                  <ChevronsLeft className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-            <div className={`flex flex-col w-full h-full ${isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
+          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'w-[34%] flex-shrink-0'}`}>
+            <div className="flex flex-col w-full h-full">
               <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-6 mt-14 [&::-webkit-scrollbar]:hidden">
                 {!hasStarted && (
                   <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20">
@@ -866,7 +869,7 @@ export default function ChatPage() {
           </div>
 
           {/* Preview panel — desktop: floats as a rounded card with padding */}
-          <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'flex-1 opacity-100'}`}>
+          <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'flex-1 opacity-100' : 'flex-1 opacity-100'}`}>
             {!ficheContent && !isLoading && <div className="absolute inset-0 z-20 cursor-not-allowed" />}
             {/* Toolbar sits directly on background, no border/bg */}
             <WorkspaceHeader
