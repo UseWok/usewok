@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
 import { getUserPlan } from '@/lib/plans-config';
 import { onCreditsUpdate } from '@/lib/credits-events';
 import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { initTheme } from '@/lib/theme';
 
 const SESSION_KEY = 'stensor_total_minutes';
 
@@ -25,20 +26,21 @@ export function getTotalMinutes(userId) {
   return parseFloat(localStorage.getItem(`${SESSION_KEY}_${userId}`) || '0');
 }
 
+// Pages that should NOT show the sidebar
+const NO_SIDEBAR_PATHS = ['/pricing', '/support', '/settings'];
+
 export default function Layout() {
   const [expanded, setExpanded] = useState(false);
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
-  const [activePopover, setActivePopover] = useState(null);
-  const profileRef = useRef(null);
-  const notiRef = useRef(null);
-  const tensorsRef = useRef(null);
 
   const isMobile = useIsMobile();
   const location = useLocation();
-  const isChat = location.pathname === '/chat';
+
+  const hideSidebar = NO_SIDEBAR_PATHS.some(p => location.pathname.startsWith(p));
 
   useEffect(() => {
+    initTheme();
     captureReferralFromUrl();
     base44.auth.me().then(u => {
       if (!u?.id) return;
@@ -55,62 +57,44 @@ export default function Layout() {
     });
   }, []);
 
-  const lastSeen = parseInt(localStorage.getItem('stensor_notifs_last_seen') || '0');
-  const dnaComplete = user ? ['ai_vision', 'ai_personality', 'ai_golden_rule', 'ai_tone', 'ai_depth', 'ai_context'].every(f => user[f] && String(user[f]).trim().length > 0) : true;
-  const hasUnread = !dnaComplete;
-
-  const used = user?.credits_used || 0;
-  const limit = userPlan?.credits_limit || user?.credits_limit || 10;
-  const bonus = user?.credits_bonus || 0;
-  const total = limit + bonus;
-  const pct = Math.min((used / total) * 100, 100);
-
-  const togglePopover = (name) => {
-    if (name === 'noti') localStorage.setItem('stensor_notifs_last_seen', String(Date.now()));
-    setActivePopover(p => p === name ? null : name);
-  };
-
-  const sidebarProps = {
-    expanded, setExpanded,
-    user, userPlan, hasUnread,
-    togglePopover, activePopover,
-    profileRef, notiRef, tensorsRef,
-    pct,
-  };
-
   return (
-    <div className="min-h-screen bg-white flex font-be">
-      {!isMobile && !isChat && <Sidebar {...sidebarProps} />}
+    <div className="min-h-screen bg-background flex font-be">
+      {/* Sidebar — hidden on excluded pages */}
+      {!hideSidebar && !isMobile && (
+        <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />
+      )}
 
-      {isMobile && !isChat && (
+      {/* Mobile sidebar with backdrop */}
+      {!hideSidebar && isMobile && (
         <AnimatePresence>
           {expanded && (
             <>
               <motion.div
-                key="mobile-backdrop"
+                key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.22 }}
-                className="fixed inset-0 z-40 bg-black/40"
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-30 bg-black/50"
                 onClick={() => setExpanded(false)}
               />
-              <Sidebar {...sidebarProps} expanded={true} />
+              <Sidebar expanded={true} setExpanded={setExpanded} user={user} userPlan={userPlan} />
             </>
           )}
         </AnimatePresence>
       )}
 
       <main
-        className="flex-1 min-h-screen overflow-x-hidden relative"
-        style={{ marginLeft: isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W), transition: 'margin-left 0.2s ease' }}
+        className="flex-1 min-h-screen overflow-x-hidden relative transition-all duration-200"
+        style={{ marginLeft: (!hideSidebar && !isMobile) ? (expanded ? EXPANDED_W : COLLAPSED_W) : 0 }}
       >
-        {isMobile && !expanded && (
+        {/* Hamburger toggle — only when sidebar is allowed and collapsed */}
+        {!hideSidebar && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="fixed top-4 left-4 z-30 w-8 h-8 flex items-center justify-center bg-fg text-white rounded-sm"
+            className="fixed top-4 left-4 z-30 p-2 bg-[#1C1C1C] border border-[#2A2A2A] text-gray-400 hover:text-white rounded-md transition-colors shadow-sm"
           >
-            <Menu className="w-4 h-4" />
+            <PanelLeft className="w-4 h-4" />
           </button>
         )}
         <Outlet />
