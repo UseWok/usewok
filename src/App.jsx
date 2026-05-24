@@ -60,6 +60,9 @@ import AdminBlog from './pages/admin/AdminBlog';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UIShowcase from './pages/UIShowcase';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 import SEOHead from './components/SEOHead';
 
@@ -127,6 +130,9 @@ const AuthenticatedApp = () => {
           <Route path="/blog/:slug" element={<BlogPostPage />} />
 
           <Route path="/ui-showcase" element={<UIShowcase />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route path="*" element={<LandingPage />} />
 
@@ -158,6 +164,9 @@ const AuthenticatedApp = () => {
 
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/ui-showcase" element={<UIShowcase />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
 
         <Route path="/p/:id" element={<PublicFiche />} />
