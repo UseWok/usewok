@@ -126,9 +126,6 @@ export default function ChatInputBar({
   const textColor = 'text-[#111111] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-gray-500';
   const iconColor = 'text-[#6B7280] dark:text-gray-400 hover:text-[#111111] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#2A2A2A]';
 
-  const isAtLimit = input.length >= charLimit;
-  const isNearLimit = input.length >= charLimit * 0.85;
-
   return (
     <div className={`flex flex-col w-full relative overflow-visible`} ref={configRef}>
       {aiThemePromptActive && (
@@ -220,18 +217,18 @@ export default function ChatInputBar({
 
       {/* Main input container */}
       <div
-        className={`${containerBg} ${borderStyle} rounded-2xl flex flex-col z-10 w-full overflow-hidden ${transition} shadow-sm`}
+        className={`${containerBg} ${borderStyle} rounded-[28px] flex flex-col z-10 w-full overflow-hidden ${transition} shadow-sm`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        {/* Large image previews — wrapping grid to avoid horizontal scroll hiding send button */}
+        {/* Large image previews */}
         <AnimatePresence>
           {(files?.length || 0) > 0 && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="flex flex-wrap gap-3 px-4 pt-3 pb-1 max-h-[140px] overflow-y-auto"
+              className="flex gap-3 px-4 pt-3 pb-1 overflow-x-auto"
             >
               <AnimatePresence>
                 {files.map((file, i) => (
@@ -313,18 +310,13 @@ export default function ChatInputBar({
           </div>
 
           <div className="flex items-center gap-3 pr-1">
-            <AnimatePresence>
-              {isNearLimit && (
-                <motion.span
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 8 }}
-                  className={`text-[11px] font-medium transition-colors ${isAtLimit ? 'text-red-500' : 'text-amber-500'}`}
-                >
-                  {isAtLimit ? 'Limite atteinte · continuez dans un 2e message' : `${input.length}/${charLimit}`}
-                </motion.span>
-              )}
-            </AnimatePresence>
+            <span
+              className={`text-[11px] font-medium transition-colors ${
+                input.length >= charLimit ? 'text-red-500' : 'text-[#9CA3AF] dark:text-gray-600'
+              }`}
+            >
+              {input.length > 0 ? `${input.length}/${charLimit}` : ''}
+            </span>
 
             {isLoading ? (
               <button

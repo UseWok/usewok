@@ -50,7 +50,7 @@ const CustomUserMessageBubble = ({ msg }) => (
     )}
     {msg.content && (
       <div 
-        className="bg-[#1A1A1A] dark:bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-2xl max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
+        className="bg-[#1A1A1A] dark:bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
         style={{ fontFamily: '"Open Sans", sans-serif' }}
       >
         {msg.content}
@@ -65,7 +65,7 @@ const IframeModal = ({ open, url, onClose }) => {
     <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
       <div className="relative w-[95vw] h-[95vh] bg-[#1A1A1A] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
         <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white rounded-md transition-none shadow-sm">
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
         <iframe src={url} className="w-full h-full border-none bg-white rounded-b-lg" />
       </div>
