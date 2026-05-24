@@ -35,10 +35,10 @@ export default function ChatProfileMenu({ user, userPlan }) {
       {/* "Wok" branded trigger box */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center justify-center px-3 py-1.5 bg-card border border-border rounded-lg hover:bg-muted transition-colors"
+        className="flex items-center justify-center px-4 py-2 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm"
         title="Profile & Settings"
       >
-        <span className="text-[13px] font-bold text-foreground tracking-tight">Wok</span>
+        <span className="text-[15px] font-black text-foreground tracking-tight">Wok</span>
       </button>
 
       <AnimatePresence>

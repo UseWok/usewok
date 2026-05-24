@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -91,6 +92,11 @@ export default function PricingPage() {
   const navigate = useNavigate();
   const [currency, setCurrency] = useState('USD');
   const [showModal, setShowModal] = useState(false);
+  const [configPlans, setConfigPlans] = useState(getPlansConfig());
+
+  useEffect(() => {
+    loadPlansFromDB().then(dbPlans => { if (dbPlans) setConfigPlans(dbPlans); }).catch(() => {});
+  }, []);
 
   const getPrice = (base) => {
     if (base === 0) return '0';
@@ -108,56 +114,28 @@ export default function PricingPage() {
   const MUTED = '#888';
   const SUBTLE = '#444';
 
-  const plans = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: 29,
-      badge: null,
-      desc: 'For exploration and individual use',
-      btnLabel: 'Get Started',
-      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
-      features: ['50 generations / month', 'Financial analysis', 'PDF export', 'Email support', '1 user'],
-      notIncluded: ['API integrations', 'Teams', 'Custom model'],
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 69,
-      badge: 'Popular',
-      desc: 'For teams producing at scale',
-      btnLabel: 'Choose Pro',
-      btnStyle: { background: '#f0f0f0', color: '#111', border: 'none' },
-      features: ['500 generations / month', 'Analysis + forecasting', 'PDF & CSV export', 'API integrations', 'Up to 5 users', 'Priority support'],
-      notIncluded: ['Custom model', 'Guaranteed SLA'],
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: null,
-      badge: null,
-      desc: 'Tailor-made for large organizations',
-      btnLabel: 'Contact Us',
-      btnStyle: { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
-      features: ['Unlimited generations', 'Custom AI model', 'SSO + advanced security', 'Guaranteed SLA', 'Unlimited users', 'Dedicated onboarding', 'Audit log & compliance'],
+  // Map admin plans-config to display format
+  const plans = configPlans.map((p, idx) => {
+    const isEnterprise = !p.price_monthly || p.checkout_url_monthly?.startsWith('mailto');
+    const isHighlighted = !!p.badge;
+    return {
+      id: p.id,
+      name: p.name,
+      price: isEnterprise ? null : p.price_monthly,
+      badge: p.badge || null,
+      desc: p.features_header || '',
+      btnLabel: isEnterprise ? 'Contact Us' : (isHighlighted ? `Choose ${p.name}` : 'Get Started'),
+      btnStyle: isHighlighted
+        ? { background: '#f0f0f0', color: '#111', border: 'none' }
+        : { background: 'transparent', color: TEXT, border: `0.5px solid ${BORDER}` },
+      features: (p.features || []).map(f => f.text || f),
       notIncluded: [],
-    },
-  ];
+      checkout_url_monthly: p.checkout_url_monthly,
+    };
+  });
 
-  const tableFeatures = [
-    { label: 'Generations / month', vals: ['50', '500', 'Unlimited'] },
-    { label: 'Financial analysis', vals: [true, true, true] },
-    { label: 'AI forecasting', vals: [false, true, true] },
-    { label: 'PDF export', vals: [true, true, true] },
-    { label: 'CSV export', vals: [false, true, true] },
-    { label: 'API integrations', vals: [false, true, true] },
-    { label: 'Interface generation', vals: ['Basic', 'Advanced', 'Custom'] },
-    { label: 'Users', vals: ['1', 'Up to 5', 'Unlimited'] },
-    { label: 'Support', vals: ['Email', 'Priority', 'Dedicated'] },
-    { label: 'SSO & advanced security', vals: [false, false, true] },
-    { label: 'Guaranteed SLA', vals: [false, false, true] },
-    { label: 'Audit log', vals: [false, false, true] },
-  ];
+  // Build dynamic table from plan features
+  const tableFeatures = plans.map(p => ({ label: p.name, vals: p.features }));
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: 'system-ui, -apple-system, sans-serif', color: TEXT, paddingBottom: '6rem' }}>
@@ -235,8 +213,12 @@ export default function PricingPage() {
 
               <button
                 onClick={() => {
-                  if (plan.id === 'enterprise') { setShowModal(true); return; }
-                  navigate(`/checkout?plan=${plan.id}&billing=monthly`);
+                  if (!plan.price || plan.checkout_url_monthly?.startsWith('mailto')) { setShowModal(true); return; }
+                  if (plan.checkout_url_monthly && plan.checkout_url_monthly.startsWith('http')) {
+                    window.location.href = plan.checkout_url_monthly;
+                  } else {
+                    navigate(`/checkout?plan=${plan.id}&billing=monthly`);
+                  }
                 }}
                 style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', transition: 'opacity .15s', ...plan.btnStyle }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '.8'}
@@ -304,36 +286,35 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Comparison table */}
+        {/* Comparison table — one column per plan, rows = features of largest plan */}
         <h2 style={{ fontSize: '16px', fontWeight: 500, color: TEXT, marginBottom: '1rem' }}>Compare all plans</h2>
         <div style={{ background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '14px', overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400, width: '34%' }}>Feature</th>
-                {plans.map(p => (
-                  <th key={p.id} style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500, color: p.badge ? TEXT : MUTED }}>
-                    {p.name}
-                    {p.badge && <span style={{ display: 'block', fontSize: '10px', color: '#777', fontWeight: 400 }}>{sym}{p.price ? getPrice(p.price) + '/mo' : 'Custom pricing'}</span>}
-                  </th>
-                ))}
+                <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400, width: '34%' }}>Plan</th>
+                <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400 }}>Included features</th>
               </tr>
             </thead>
             <tbody>
-              {tableFeatures.map((row, i) => (
-                <tr key={i} style={{ borderBottom: `0.5px solid #1e1e1e` }}>
-                  <td style={{ padding: '12px 20px', color: MUTED }}>{row.label}</td>
-                  {row.vals.map((v, j) => (
-                    <td key={j} style={{ padding: '12px 16px', textAlign: 'center', color: '#ccc' }}>
-                      {v === true ? (
-                        <svg style={{ width: '15px', height: '15px', display: 'inline-block', color: '#4ade80' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      ) : v === false ? (
-                        <span style={{ color: '#333', fontSize: '16px' }}>—</span>
-                      ) : (
-                        <span style={{ color: '#ccc' }}>{v}</span>
-                      )}
-                    </td>
-                  ))}
+              {plans.map((plan, i) => (
+                <tr key={plan.id} style={{ borderBottom: `0.5px solid #1e1e1e`, verticalAlign: 'top' }}>
+                  <td style={{ padding: '16px 20px', color: plan.badge ? TEXT : MUTED, fontWeight: plan.badge ? 600 : 400 }}>
+                    {plan.name}
+                    <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                      {plan.price !== null ? `${sym}${getPrice(plan.price)}/mo` : 'Custom'}
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 20px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {plan.features.map((f, j) => (
+                        <span key={j} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#ccc', background: '#1a1a1a', border: `0.5px solid ${BORDER}`, borderRadius: '6px', padding: '3px 10px' }}>
+                          <svg style={{ width: '11px', height: '11px', flexShrink: 0, color: '#4ade80' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -57,6 +57,7 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 
 import AdminBlog from './pages/admin/AdminBlog';
+import CockpitPage from './pages/CockpitPage';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UIShowcase from './pages/UIShowcase';
@@ -196,6 +197,8 @@ const AuthenticatedApp = () => {
           <Route path="/manage-plan" element={<ManagePlanPage />} />
 
           <Route path="/discussions" element={<DiscussionsPage />} />
+          <Route path="/cockpit" element={<CockpitPage />} />
+
 
           <Route path="/ai-dna" element={<AIControlTower />} />
 

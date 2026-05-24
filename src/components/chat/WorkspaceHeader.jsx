@@ -152,7 +152,7 @@ export default function WorkspaceHeader({
         </div>
 
         {/* CENTER: New pill control */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-2 py-1.5 bg-card border border-border rounded-full shadow-sm">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-card border border-border rounded-full shadow-sm max-w-[200px] sm:max-w-none overflow-hidden">
 
           {/* Refresh iframe button */}
           <button
@@ -197,7 +197,7 @@ export default function WorkspaceHeader({
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
           <button
             onClick={() => setShowPublish(!showPublish)}
-            className="px-4 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors"
+            className="px-3 py-1.5 bg-[#0055FF] text-white text-[11px] sm:text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors whitespace-nowrap"
           >
             Publish
           </button>

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, MoreHorizontal, Edit2, Trash2, Check, Home, MessageSquare, Cpu, PanelLeftClose, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Sun, Moon } from 'lucide-react';
 import { getUserColor } from '@/lib/user-color';
+import { getTheme, setTheme } from '@/lib/theme';
 
 const getLocalDiscussions = (workspaceId) => {
   try { return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || []; } catch { return []; }
@@ -89,10 +90,16 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
     ? user.full_name.charAt(0).toUpperCase()
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
+  const [currentTheme, setCurrentTheme] = useState(getTheme());
+
+  const handleTheme = (theme) => {
+    setTheme(theme);
+    setCurrentTheme(theme);
+  };
+
   const navItems = [
     { icon: Home, label: 'Home', path: '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions' },
-    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna' },
+    { icon: LayoutDashboard, label: 'Cockpit', path: '/cockpit' },
   ];
 
   return (
@@ -232,6 +239,21 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
                   {item.label}
                 </button>
               ))}
+              {/* Theme toggle */}
+              <div className="flex items-center gap-1.5 px-2 pt-2">
+                <button
+                  onClick={() => handleTheme('light')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${currentTheme === 'light' ? 'bg-white/15 text-white' : 'text-gray-600 hover:text-gray-400 hover:bg-[#1A1A1A]'}`}
+                >
+                  <Sun className="w-3.5 h-3.5" /> Light
+                </button>
+                <button
+                  onClick={() => handleTheme('dark')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${currentTheme === 'dark' ? 'bg-white/15 text-white' : 'text-gray-600 hover:text-gray-400 hover:bg-[#1A1A1A]'}`}
+                >
+                  <Moon className="w-3.5 h-3.5" /> Dark
+                </button>
+              </div>
             </div>
 
             {/* User footer */}

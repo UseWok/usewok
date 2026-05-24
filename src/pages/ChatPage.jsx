@@ -824,11 +824,18 @@ export default function ChatPage() {
       {/* ── MAIN CONTENT AREA ── */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full bg-background">
         
-        <div className="flex items-center justify-end p-3 md:hidden">
-          <div className="flex bg-card border border-border p-1 rounded-md ml-auto z-50">
-            <button onClick={() => setMobileView('chat')} className={`px-4 py-1 text-[12px] font-bold rounded transition-colors ${mobileView === 'chat' ? 'bg-muted shadow-sm text-foreground' : 'text-muted-foreground'}`}>Chat</button>
-            <button onClick={() => setMobileView('preview')} className={`px-4 py-1 text-[12px] font-bold rounded transition-colors ${mobileView === 'preview' ? 'bg-muted shadow-sm text-foreground' : 'text-muted-foreground'}`}>Preview</button>
+        {/* Mobile top bar */}
+        <div className="flex items-center justify-between px-4 py-2.5 md:hidden border-b border-border bg-background flex-shrink-0">
+          <div className="flex bg-muted border border-border p-1 rounded-xl gap-0.5">
+            <button onClick={() => setMobileView('chat')} className={`px-4 py-1.5 text-[12px] font-bold rounded-lg transition-colors ${mobileView === 'chat' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'}`}>Chat</button>
+            <button onClick={() => setMobileView('preview')} className={`px-4 py-1.5 text-[12px] font-bold rounded-lg transition-colors ${mobileView === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'} ${!ficheContent && !isLoading ? 'opacity-40' : ''}`}>Preview</button>
           </div>
+          {isLoading && (
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+              Generating…
+            </div>
+          )}
         </div>
 
         <div className="flex flex-1 overflow-hidden w-full h-full">
