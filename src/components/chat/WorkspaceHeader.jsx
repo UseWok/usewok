@@ -26,6 +26,7 @@ export default function WorkspaceHeader({
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main');
   const [isPublished, setIsPublished] = useState(false);
+  const [isLive, setIsLive] = useState(false); // true only when is_public === true in DB
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [isPublic, setIsPublic] = useState(false);
@@ -47,8 +48,8 @@ export default function WorkspaceHeader({
           const rec = results[0];
           setConvRecordId(rec.id);
           if (rec.slug) { setCustomSlug(rec.slug); setTempSlug(rec.slug); }
-          if (rec.is_public) setIsPublic(true);
-          if (rec.is_public !== undefined) setIsPublished(true);
+          if (rec.is_public) { setIsPublic(true); setIsLive(true); }
+          setIsPublished(true);
         }
       }).catch(() => {});
     }
@@ -75,12 +76,20 @@ export default function WorkspaceHeader({
         if (convRecordId) {
           await base44.entities.Conversation.update(convRecordId, payload);
         } else {
-          const created = await base44.entities.Conversation.create(payload);
-          setConvRecordId(created.id);
+          // Ensure only 1 record per conv_id
+          const existing = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+          if (existing.length > 0) {
+            await base44.entities.Conversation.update(existing[0].id, payload);
+            setConvRecordId(existing[0].id);
+          } else {
+            const created = await base44.entities.Conversation.create(payload);
+            setConvRecordId(created.id);
+          }
         }
       }
       setIsPublished(true);
-      toast.success(isPublic ? "App is now public — link is live!" : "App saved as private.");
+      setIsLive(isPublic);
+      toast.success(isPublic ? "App publiée — le lien est actif !" : "App sauvegardée en privé.");
       setShowPublish(false);
     } catch {
       toast.error("Could not save. Check your connection.");
@@ -198,6 +207,19 @@ export default function WorkspaceHeader({
 
         {/* RIGHT: Publish */}
         <div className="flex justify-end items-center gap-2 relative" ref={publishRef}>
+          {/* Live indicator badge */}
+          {isLive && (
+            <a
+              href={`${window.location.origin}/p/${customSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-400 border border-emerald-400/40 bg-emerald-400/10 hover:bg-emerald-400/20 transition-colors whitespace-nowrap"
+              title="Page publiée — cliquer pour voir"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live
+            </a>
+          )}
           <button
             onClick={() => setShowPublish(!showPublish)}
             className="px-3 py-1 bg-transparent text-white text-[11px] font-bold rounded-lg border border-white/70 hover:bg-white/10 shadow-sm transition-colors whitespace-nowrap"

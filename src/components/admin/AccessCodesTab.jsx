@@ -17,11 +17,13 @@ export default function AccessCodesTab() {
   const [newCredits, setNewCredits] = useState(10);
   const [newDesc, setNewDesc] = useState('');
   const [newPlanId, setNewPlanId] = useState('');
+  const [newBilling, setNewBilling] = useState('monthly');
   const [plans, setPlans] = useState([]);
   const [tab, setTab] = useState('list'); // 'list' | 'create' | 'bulk'
   const [bulkText, setBulkText] = useState('');
   const [bulkCredits, setBulkCredits] = useState(10);
   const [bulkPlanId, setBulkPlanId] = useState('');
+  const [bulkBilling, setBulkBilling] = useState('monthly');
   const [bulkImporting, setBulkImporting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all' | 'active' | 'used'
@@ -48,11 +50,13 @@ export default function AccessCodesTab() {
       used: false,
       description: newDesc,
       plan_id: newPlanId || null,
+      billing: newPlanId ? newBilling : null,
     });
     toast.success(`Code créé : ${code}`);
     setNewDesc('');
     setNewCredits(10);
     setNewPlanId('');
+    setNewBilling('monthly');
     setCreating(false);
     fetchCodes();
     setTab('list');
@@ -76,6 +80,7 @@ export default function AccessCodesTab() {
             credits: bulkCredits,
             used: false,
             plan_id: bulkPlanId || null,
+            billing: bulkPlanId ? bulkBilling : null,
           });
           success++;
         } catch {
@@ -181,6 +186,19 @@ export default function AccessCodesTab() {
                 ))}
               </select>
             </div>
+            {newPlanId && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Facturation</label>
+                <div className="flex gap-2">
+                  {['monthly', 'yearly'].map(b => (
+                    <button key={b} onClick={() => setNewBilling(b)}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-colors ${newBilling === b ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border hover:border-primary/50'}`}>
+                      {b === 'monthly' ? '📅 Mensuel' : '🗓️ Annuel'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Crédits bonus</label>
               <input type="number" min={0} value={newCredits} onChange={e => setNewCredits(Number(e.target.value))}
@@ -216,6 +234,19 @@ export default function AccessCodesTab() {
                 ))}
               </select>
             </div>
+            {bulkPlanId && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Facturation</label>
+                <div className="flex gap-2">
+                  {['monthly', 'yearly'].map(b => (
+                    <button key={b} onClick={() => setBulkBilling(b)}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-colors ${bulkBilling === b ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border hover:border-primary/50'}`}>
+                      {b === 'monthly' ? '📅 Mensuel' : '🗓️ Annuel'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Crédits par code</label>
               <input type="number" min={0} value={bulkCredits} onChange={e => setBulkCredits(Number(e.target.value))}
@@ -273,6 +304,11 @@ export default function AccessCodesTab() {
                       {c.plan_id && (
                         <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full font-bold">
                           📦 {planName(c.plan_id)}
+                        </span>
+                      )}
+                      {c.plan_id && c.billing && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${c.billing === 'yearly' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-400'}`}>
+                          {c.billing === 'yearly' ? '🗓️ Annuel' : '📅 Mensuel'}
                         </span>
                       )}
                     </div>

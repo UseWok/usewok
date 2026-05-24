@@ -216,16 +216,16 @@ export default function PublicFiche() {
 
       const rec = results[0];
       if (rec) {
-        if (rec.is_public === false) { setIsPrivate(true); setLoading(false); return; }
+        // Require explicit is_public = true
+        if (!rec.is_public) { setIsPrivate(true); setLoading(false); return; }
         // Use the actual conv_id from the DB record to load messages
         const realConvId = rec.conv_id || conversationId;
         const msgs = await loadConversationFromCloud(realConvId).catch(() => null);
         if (msgs?.length > 0) setMessages(msgs);
         setLoading(false);
       } else {
-        // No DB record — try loading messages directly (legacy)
-        const msgs = await loadConversationFromCloud(conversationId).catch(() => null);
-        if (msgs?.length > 0) setMessages(msgs);
+        // No DB record → treat as private (not published)
+        setIsPrivate(true);
         setLoading(false);
       }
     };
@@ -247,8 +247,8 @@ export default function PublicFiche() {
         <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
           <span className="text-2xl">🔒</span>
         </div>
-        <h2 className="text-white font-bold text-xl">Private Discussion</h2>
-        <p className="text-white/40 text-sm">This content is private and not available publicly.</p>
+        <h2 className="text-white font-bold text-xl">Page non publiée</h2>
+        <p className="text-white/40 text-sm text-center max-w-xs">Cette page n'a pas encore été publiée. Utilisez le bouton "Publish" dans l'éditeur pour la rendre publique.</p>
       </div>
     );
   }

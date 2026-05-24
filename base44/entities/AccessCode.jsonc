@@ -15,6 +15,15 @@
       "type": "string",
       "title": "Abonnement associ\u00e9 (optionnel)"
     },
+    "billing": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ],
+      "title": "Facturation",
+      "default": "monthly"
+    },
     "used": {
       "type": "boolean",
       "title": "Utilis\u00e9",
