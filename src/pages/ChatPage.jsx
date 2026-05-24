@@ -823,76 +823,152 @@ export default function ChatPage() {
 
       {/* ── MAIN CONTENT AREA ── */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 w-full bg-background">
-        
-        {/* Mobile top bar */}
-        <div className="flex items-center justify-between px-4 py-2.5 md:hidden border-b border-border bg-background flex-shrink-0">
-          <div className="flex bg-muted border border-border p-1 rounded-xl gap-0.5">
-            <button onClick={() => setMobileView('chat')} className={`px-4 py-1.5 text-[12px] font-bold rounded-lg transition-colors ${mobileView === 'chat' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'}`}>Chat</button>
-            <button onClick={() => setMobileView('preview')} className={`px-4 py-1.5 text-[12px] font-bold rounded-lg transition-colors ${mobileView === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'} ${!ficheContent && !isLoading ? 'opacity-40' : ''}`}>Preview</button>
-          </div>
-          {isLoading && (
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-              Generating…
-            </div>
-          )}
-        </div>
 
-        <div className="flex flex-1 overflow-hidden w-full h-full">
-          
-          {/* ── CHAT PANEL ── */}
-          <div className={`flex flex-col bg-background overflow-visible transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'chat' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'flex-1 w-full border-none z-[100]' : 'flex-shrink-0 w-[45%] border-r border-border z-[100]'}`}> 
-            
-            {/* The Expand Button (ChevronsLeft) - only visible when the preview is collapsed */}
+        {/* ══ DESKTOP LAYOUT (md+) ══ */}
+        <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
+
+          {/* Chat panel — desktop */}
+          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out border-r border-border ${isPreviewCollapsed ? 'flex-1' : 'w-[45%] flex-shrink-0'}`}>
             {isPreviewCollapsed && hasStarted && (
-              <div className="absolute top-4 right-4 z-[999] hidden md:block">
-                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-muted-foreground hover:text-foreground transition-all duration-[200ms] rounded-md bg-card border border-border shadow-sm flex items-center justify-center" title="Expand Preview">
+              <div className="absolute top-4 right-4 z-[999]">
+                <button onClick={() => setIsPreviewCollapsed(false)} className="p-2.5 text-muted-foreground hover:text-foreground rounded-md bg-card border border-border shadow-sm flex items-center justify-center">
                   <ChevronsLeft className="w-5 h-5" />
                 </button>
               </div>
             )}
-
-            {/* Inner Chat Container centers content beautifully when in full screen mode */}
-            <div className={`flex flex-col w-full h-full transition-all duration-[200ms] ${isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
-              <div ref={scrollContainerRef} className={`flex-1 overflow-y-auto px-2 md:px-3 py-6 [&::-webkit-scrollbar]:hidden mt-14`}>
-                {!hasStarted && <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20"><img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale dark:invert opacity-60" /><h2 className="text-[24px] font-bold text-foreground">How can I help you today?</h2></div>}
-                {messages?.map((msg, idx) => (<div key={idx}>{msg.role === 'assistant' ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} /> : <CustomUserMessageBubble msg={msg} />}</div>))}
+            <div className={`flex flex-col w-full h-full ${isPreviewCollapsed ? 'max-w-3xl mx-auto' : ''}`}>
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-6 mt-14 [&::-webkit-scrollbar]:hidden">
+                {!hasStarted && (
+                  <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20">
+                    <img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale dark:invert opacity-60" />
+                    <h2 className="text-[24px] font-bold text-foreground">How can I help you today?</h2>
+                  </div>
+                )}
+                {messages?.map((msg, idx) => (
+                  <div key={idx}>
+                    {msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} />
+                      : <CustomUserMessageBubble msg={msg} />}
+                  </div>
+                ))}
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className={`flex-shrink-0 p-3 md:p-4 bg-muted/30 border-t border-border overflow-visible ${!hasStarted ? 'pb-10 w-full' : ''}`}>
+              <div className="flex-shrink-0 p-4 bg-muted/30 border-t border-border overflow-visible">
                 <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
               </div>
             </div>
           </div>
-          
-          {/* ── PREVIEW PANEL — always visible ── */}
-          <div className={`bg-muted/20 p-0 md:p-0 overflow-hidden flex flex-col transition-all duration-[200ms] ease-[cubic-bezier(0,0,0.2,1)] ${mobileView === 'preview' || window.innerWidth >= 768 ? 'flex' : 'hidden'} ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none' : 'w-[55%] opacity-100'} z-0 relative`}>
-            {/* Disable interactions on the preview panel when no content */}
-            {!ficheContent && !isLoading && (
-              <div className="absolute inset-0 z-20 cursor-not-allowed" />
-            )}
-            <div className="w-full h-full flex flex-col overflow-hidden min-w-full md:min-w-[800px] transition-none bg-background">
-              <WorkspaceHeader 
+
+          {/* Preview panel — desktop */}
+          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'flex-1 opacity-100'}`}>
+            {!ficheContent && !isLoading && <div className="absolute inset-0 z-20 cursor-not-allowed" />}
+            <WorkspaceHeader
+              onReload={handleReload}
+              onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
+              convId={conversationId || convId}
+              projectNumber={projectNumber}
+              discussions={discussions}
+              onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
+              onTogglePreview={() => setIsPreviewCollapsed(true)}
+            />
+            <div className="flex-1 overflow-hidden relative p-4 pt-0">
+              {isLoading && !ficheContent ? (
+                <PreviewSkeleton />
+              ) : (
+                <FichePanel
+                  content={ficheContent}
+                  iframeRefreshKey={iframeRefreshKey}
+                  onError={setRuntimeError}
+                  onSuccess={() => setRuntimeError(null)}
+                  isPublic={false}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  appSettings={appSettings}
+                  onUpdateSettings={handleUpdateAppMeta}
+                  onClone={handleCloneApp}
+                  onDelete={handleDeleteApp}
+                  onUnpublish={handleUnpublishApp}
+                  customSlug={customSlug}
+                  onUpdateContent={setFicheContent}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ══ MOBILE LAYOUT (< md) ══ */}
+        <div className="flex md:hidden flex-col flex-1 overflow-hidden">
+
+          {/* Mobile tab bar */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-background flex-shrink-0 mt-12">
+            <div className="flex bg-muted border border-border p-1 rounded-lg gap-0.5 w-full">
+              <button
+                onClick={() => setMobileView('chat')}
+                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-md transition-colors ${mobileView === 'chat' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'}`}
+              >
+                Chat
+              </button>
+              <button
+                onClick={() => setMobileView('preview')}
+                disabled={!ficheContent && !isLoading}
+                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-md transition-colors ${mobileView === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground'} ${!ficheContent && !isLoading ? 'opacity-30' : ''}`}
+              >
+                Preview {isLoading && mobileView !== 'preview' && <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full ml-1 animate-pulse align-middle" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile: Chat view */}
+          {mobileView === 'chat' && (
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-3 py-4 [&::-webkit-scrollbar]:hidden">
+                {!hasStarted && (
+                  <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-16">
+                    <img src={LOGO_URL} alt="Wok" className="w-10 h-10 object-contain mb-3 grayscale dark:invert opacity-60" />
+                    <h2 className="text-[20px] font-bold text-foreground">How can I help you?</h2>
+                  </div>
+                )}
+                {messages?.map((msg, idx) => (
+                  <div key={idx}>
+                    {msg.role === 'assistant'
+                      ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} />
+                      : <CustomUserMessageBubble msg={msg} />}
+                  </div>
+                ))}
+                <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
+                <div ref={messagesEndRef} className="h-4" />
+              </div>
+              <div className="flex-shrink-0 p-3 bg-muted/30 border-t border-border">
+                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} />
+              </div>
+            </div>
+          )}
+
+          {/* Mobile: Preview view */}
+          {mobileView === 'preview' && (
+            <div className="flex flex-col flex-1 overflow-hidden bg-background relative">
+              {!ficheContent && !isLoading && <div className="absolute inset-0 z-20" />}
+              <WorkspaceHeader
                 onReload={handleReload}
                 onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
                 convId={conversationId || convId}
                 projectNumber={projectNumber}
                 discussions={discussions}
-                onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
-                onTogglePreview={() => setIsPreviewCollapsed(true)}
+                onSelectDiscussion={(id) => { navigate(`/chat?conversationId=${id}`); setMobileView('chat'); }}
+                onTogglePreview={() => setMobileView('chat')}
               />
-              <div className="flex-1 overflow-hidden relative bg-transparent p-4 pt-0">
+              <div className="flex-1 overflow-hidden relative">
                 {isLoading && !ficheContent ? (
                   <PreviewSkeleton />
                 ) : (
-                  <FichePanel 
+                  <FichePanel
                     content={ficheContent}
                     iframeRefreshKey={iframeRefreshKey}
-                    onError={setRuntimeError} 
-                    onSuccess={() => setRuntimeError(null)} 
-                    isPublic={false} 
-                    viewMode={viewMode} 
+                    onError={setRuntimeError}
+                    onSuccess={() => setRuntimeError(null)}
+                    isPublic={false}
+                    viewMode={viewMode}
                     setViewMode={setViewMode}
                     appSettings={appSettings}
                     onUpdateSettings={handleUpdateAppMeta}
@@ -905,8 +981,9 @@ export default function ChatPage() {
                 )}
               </div>
             </div>
-          </div>
+          )}
         </div>
+
       </div>
     </div>
   );
