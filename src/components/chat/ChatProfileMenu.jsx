@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Home, LogOut, Zap } from 'lucide-react';
+import { Sun, Moon, Home, LogOut, Zap, CreditCard, HelpCircle } from 'lucide-react';
 import { getTheme, setTheme } from '@/lib/theme';
 import { base44 } from '@/api/base44Client';
 
@@ -35,10 +35,11 @@ export default function ChatProfileMenu({ user, userPlan }) {
       {/* "Wok" branded trigger box */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center justify-center px-4 py-2 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm"
-        title="Profile & Settings"
+        className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm"
+        title="Menu — Settings, Credits, Theme"
       >
-        <span className="text-[15px] font-black text-foreground tracking-tight">Wok</span>
+        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-black">W</div>
+        <span className="text-[13px] font-bold text-foreground tracking-tight">Menu</span>
       </button>
 
       <AnimatePresence>
@@ -107,19 +108,18 @@ export default function ChatProfileMenu({ user, userPlan }) {
 
             {/* Actions */}
             <div className="p-1.5">
-              <button
-                onClick={() => { setOpen(false); navigate('/app'); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                Back to Home
+              <button onClick={() => { setOpen(false); navigate('/app'); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                <Home className="w-4 h-4" /> Back to Home
               </button>
-              <button
-                onClick={() => base44.auth.logout('/')}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-destructive hover:bg-muted rounded-md transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign out
+              <button onClick={() => { setOpen(false); navigate('/pricing'); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                <CreditCard className="w-4 h-4" /> Upgrade plan
+              </button>
+              <button onClick={() => { setOpen(false); navigate('/support'); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                <HelpCircle className="w-4 h-4" /> Support
+              </button>
+              <div className="h-px bg-border mx-2 my-1" />
+              <button onClick={() => base44.auth.logout('/')} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-destructive hover:bg-muted rounded-md transition-colors">
+                <LogOut className="w-4 h-4" /> Sign out
               </button>
             </div>
           </motion.div>

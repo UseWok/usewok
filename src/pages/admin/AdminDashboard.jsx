@@ -115,6 +115,9 @@ export default function AdminDashboard() {
             <p className="text-xs text-white/30 mt-0.5">Admin Control Panel</p>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/app" className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg text-xs text-white/60 hover:text-white transition-all font-medium">
+              ← Back to App
+            </Link>
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs text-white/40">Live</span>
           </div>
