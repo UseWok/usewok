@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Settings, Sparkles, Image as ImageIcon, X, Check, FileText, ChevronRight } from 'lucide-react';
 
 export default function ChatInputBar({
@@ -11,6 +12,8 @@ export default function ChatInputBar({
   setFiles,
   aiThemePromptActive,
   setAiThemePromptActive,
+  discussMode,
+  setDiscussMode,
 }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
   const [showSkillsMenu, setShowSkillsMenu] = useState(false);
@@ -33,7 +36,7 @@ export default function ChatInputBar({
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // Flawless Auto-resize textarea
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'inherit';
@@ -66,7 +69,10 @@ export default function ChatInputBar({
   }, [handlePaste]);
 
   const handleSend = () => {
-    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input);
+    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) {
+      // Pass files as extra context to onSend
+      onSend(input, { files });
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -91,7 +97,6 @@ export default function ChatInputBar({
 
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
 
-  // Drag-over on textarea to accept files
   const handleDragOver = (e) => e.preventDefault();
   const handleDrop = (e) => {
     e.preventDefault();
@@ -115,19 +120,20 @@ export default function ChatInputBar({
 
   const transition = 'transition-all duration-300 ease-[cubic-bezier(0,0,0.2,1)]';
 
+  // Light mode uses soft off-white; dark mode keeps dark surface
+  const containerBg = 'bg-[#F3F4F6] dark:bg-[#131313] hover:bg-[#EDEDF0] dark:hover:bg-[#181818] focus-within:bg-[#F0F1F4] dark:focus-within:bg-[#1A1A1A]';
+  const borderStyle = 'border border-[#E0E1E6] dark:border-transparent focus-within:border-[#C8CAD2] dark:focus-within:border-[#333333]';
+  const textColor = 'text-[#111111] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-gray-500';
+  const iconColor = 'text-[#6B7280] dark:text-gray-400 hover:text-[#111111] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#2A2A2A]';
+
   return (
     <div className={`flex flex-col w-full relative overflow-visible`} ref={configRef}>
       {aiThemePromptActive && (
         <div className="absolute -top-10 left-4 z-[999]">
-          <div
-            className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}
-          >
+          <div className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}>
             <Sparkles className="w-3.5 h-3.5" />
             Customizing appearance...
-            <button
-              onClick={() => setAiThemePromptActive(false)}
-              className={`hover:bg-[#0055FF]/20 text-white rounded-full p-0.5 ml-1 ${transition}`}
-            >
+            <button onClick={() => setAiThemePromptActive(false)} className={`hover:bg-[#0055FF]/20 rounded-full p-0.5 ml-1 ${transition}`}>
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -140,7 +146,6 @@ export default function ChatInputBar({
           className={`absolute bottom-[calc(100%+16px)] left-0 w-[340px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl font-sans border border-[#333538] select-none z-[999] ${transition}`}
           style={{ animation: 'wok-slide-in 200ms ease-out both' }}
         >
-          {/* Flash Mode (Standard Engine) */}
           <button
             onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
             className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
@@ -154,7 +159,6 @@ export default function ChatInputBar({
             </div>
           </button>
 
-          {/* Expert Mode (Advanced Engine) */}
           <button
             onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
             className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
@@ -168,11 +172,9 @@ export default function ChatInputBar({
             </div>
           </button>
 
-          {/* Divider */}
           <div className="h-[1px] bg-[#333538] my-1 mx-4" />
 
-          {/* Skills Menu Trigger */}
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowSkillsMenu(true)}
             onMouseLeave={() => setShowSkillsMenu(false)}
@@ -193,17 +195,12 @@ export default function ChatInputBar({
               <ChevronRight className="w-4 h-4 text-[#A0A2A5] mr-1" />
             </button>
 
-            {/* Flyout Sub-menu for Skills */}
             {showSkillsMenu && (
               <div className="absolute left-[calc(100%+8px)] bottom-0 w-[260px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl border border-[#333538] z-50">
                 {modes.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => { 
-                      setSelectedStrategy(m.id); 
-                      setShowAIConfig(false); 
-                      setShowSkillsMenu(false); 
-                    }}
+                    onClick={() => { setSelectedStrategy(m.id); setShowAIConfig(false); setShowSkillsMenu(false); }}
                     className="w-full flex items-center text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
                   >
                     <div className="w-8 flex-shrink-0 flex items-center justify-start">
@@ -218,40 +215,53 @@ export default function ChatInputBar({
         </div>
       )}
 
-      {/* Main input container (Sleek Gemini-style) */}
+      {/* Main input container */}
       <div
-        className={`bg-[#131313] hover:bg-[#181818] focus-within:bg-[#1A1A1A] border border-transparent focus-within:border-[#333333] rounded-[28px] flex flex-col z-10 w-full overflow-hidden ${transition} shadow-[0_0_20px_rgba(0,0,0,0.2)]`}
+        className={`${containerBg} ${borderStyle} rounded-[28px] flex flex-col z-10 w-full overflow-hidden ${transition} shadow-sm`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        {/* File previews at top */}
-        {(files?.length || 0) > 0 && (
-          <div className="flex gap-2 px-5 pt-3 pb-1 overflow-x-auto">
-            {files.map((file, i) => (
-              <div
-                key={i}
-                className="group relative flex-shrink-0"
-                style={{ animation: 'wok-slide-in 200ms ease-out both' }}
-              >
-                <div
-                  className={`w-14 h-14 rounded-xl border-2 border-[#1a1a1a] outline outline-1 outline-[#000] flex items-center justify-center bg-[#0F0F0F] overflow-hidden ${transition}`}
-                >
-                  {file.type?.startsWith('image/') ? (
-                    <img src={file.url} className="object-cover w-full h-full" alt="preview" />
-                  ) : (
-                    <FileText className="w-6 h-6 text-gray-500" />
-                  )}
-                </div>
-                <button
-                  onClick={() => removeFile(i)}
-                  className={`absolute -top-1.5 -left-1.5 w-5 h-5 bg-[#0a0a0a] border border-[#3a3a3a] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 ${transition} hover:bg-red-600 hover:border-red-500`}
-                >
-                  <X className="w-2.5 h-2.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Large image previews */}
+        <AnimatePresence>
+          {(files?.length || 0) > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex gap-3 px-4 pt-3 pb-1 overflow-x-auto"
+            >
+              <AnimatePresence>
+                {files.map((file, i) => (
+                  <motion.div
+                    key={`${file.name}-${i}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.7, transition: { duration: 0.22, ease: 'easeInOut' } }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="group relative flex-shrink-0"
+                  >
+                    <div className="w-24 h-24 rounded-2xl border border-[#D1D5DB] dark:border-[#2A2A2A] bg-[#E9EBF0] dark:bg-[#0F0F0F] overflow-hidden shadow-sm">
+                      {file.type?.startsWith('image/') ? (
+                        <img src={file.url} className="object-cover w-full h-full" alt="preview" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                          <FileText className="w-8 h-8 text-[#9CA3AF]" />
+                          <span className="text-[10px] text-[#9CA3AF] font-medium truncate px-2 max-w-full">{file.name}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeFile(i)}
+                      className={`absolute -top-2 -right-2 w-6 h-6 bg-[#111111] dark:bg-[#0a0a0a] border border-[#3a3a3a] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 ${transition} hover:bg-red-600 hover:border-red-500 shadow-md`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <textarea
           ref={textareaRef}
@@ -265,7 +275,7 @@ export default function ChatInputBar({
               ? 'Expert mode activated — ask your question...'
               : 'Message Wok...'
           }
-          className="w-full bg-transparent text-[15px] text-white placeholder:text-gray-500 focus:outline-none resize-none leading-relaxed px-5 pt-3.5 pb-1"
+          className={`w-full bg-transparent text-[15px] ${textColor} focus:outline-none resize-none leading-relaxed px-5 pt-3.5 pb-1`}
           style={{ fontFamily: '"Open Sans", sans-serif' }}
         />
 
@@ -274,7 +284,7 @@ export default function ChatInputBar({
             <button
               onClick={() => setShowAIConfig(!showAIConfig)}
               className={`p-2 rounded-full ${transition} active:scale-95 relative ${
-                showAIConfig ? 'bg-[#2A2A2A] text-white' : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]'
+                showAIConfig ? 'bg-[#E5E7EB] dark:bg-[#2A2A2A] text-[#111] dark:text-white' : `${iconColor}`
               }`}
             >
               <Settings className="w-[18px] h-[18px]" />
@@ -285,7 +295,7 @@ export default function ChatInputBar({
 
             <button
               onClick={() => fileInputRef.current.click()}
-              className={`p-2 text-gray-400 hover:text-white hover:bg-[#2A2A2A] rounded-full ${transition} active:scale-95`}
+              className={`p-2 rounded-full ${transition} active:scale-95 ${iconColor}`}
             >
               <ImageIcon className="w-[18px] h-[18px]" />
             </button>
@@ -302,7 +312,7 @@ export default function ChatInputBar({
           <div className="flex items-center gap-3 pr-1">
             <span
               className={`text-[11px] font-medium transition-colors ${
-                input.length >= charLimit ? 'text-red-500' : 'text-gray-600'
+                input.length >= charLimit ? 'text-red-500' : 'text-[#9CA3AF] dark:text-gray-600'
               }`}
             >
               {input.length > 0 ? `${input.length}/${charLimit}` : ''}
@@ -321,8 +331,8 @@ export default function ChatInputBar({
                 disabled={!input.trim() && (files?.length || 0) === 0}
                 className={`w-9 h-9 rounded-full flex items-center justify-center ${transition} active:scale-95 ${
                   input.trim() || (files?.length || 0) > 0
-                    ? 'bg-white text-[#0F0F0F] hover:bg-gray-200 shadow-md'
-                    : 'bg-[#2A2A2A] text-gray-500 cursor-not-allowed opacity-50'
+                    ? 'bg-[#111111] dark:bg-white text-white dark:text-[#0F0F0F] hover:bg-[#333] dark:hover:bg-gray-200 shadow-md'
+                    : 'bg-[#E5E7EB] dark:bg-[#2A2A2A] text-[#9CA3AF] dark:text-gray-500 cursor-not-allowed opacity-50'
                 }`}
               >
                 <Sparkles className="w-[18px] h-[18px]" />

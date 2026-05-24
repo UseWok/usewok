@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Home, LogOut, Zap } from 'lucide-react';
-import { getUserColor } from '@/lib/user-color';
 import { getTheme, setTheme } from '@/lib/theme';
 import { base44 } from '@/api/base44Client';
 
@@ -17,10 +16,6 @@ export default function ChatProfileMenu({ user, userPlan }) {
   const bonus = user?.credits_bonus || 0;
   const total = limit + bonus;
   const pct = Math.min((used / total) * 100, 100);
-
-  const userInitial = user?.full_name
-    ? user.full_name.charAt(0).toUpperCase()
-    : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
   useEffect(() => {
     const handler = (e) => {
@@ -37,13 +32,13 @@ export default function ChatProfileMenu({ user, userPlan }) {
 
   return (
     <div ref={ref} className="relative">
+      {/* "Wok" branded trigger box */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-lg hover:bg-muted transition-colors text-[12px] font-semibold text-foreground"
-        title="Credits & Settings"
+        className="flex items-center justify-center px-3 py-1.5 bg-card border border-border rounded-lg hover:bg-muted transition-colors"
+        title="Profile & Settings"
       >
-        <Zap className="w-3.5 h-3.5 text-yellow-500" />
-        <span>{Math.max(0, total - used)} left</span>
+        <span className="text-[13px] font-bold text-foreground tracking-tight">Wok</span>
       </button>
 
       <AnimatePresence>
@@ -53,7 +48,7 @@ export default function ChatProfileMenu({ user, userPlan }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.14 }}
-            className="absolute top-[calc(100%+8px)] right-0 w-[220px] bg-card border border-border rounded-xl shadow-2xl z-[200] overflow-hidden"
+            className="absolute top-[calc(100%+8px)] left-0 w-[220px] bg-card border border-border rounded-xl shadow-2xl z-[200] overflow-hidden"
           >
             {/* User info */}
             <div className="px-4 py-3 border-b border-border">

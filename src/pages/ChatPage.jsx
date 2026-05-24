@@ -34,13 +34,28 @@ import {
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
 // ============================================================================
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex justify-end w-full mb-6 font-sans px-1 md:px-0">
-    <div 
-      className="bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
-      style={{ fontFamily: '"Open Sans", sans-serif' }}
-    >
-      {msg.content}
-    </div>
+  <div className="flex flex-col items-end w-full mb-6 font-sans px-1 md:px-0 gap-2">
+    {/* Images above the text bubble */}
+    {(msg.images?.length || 0) > 0 && (
+      <div className="flex flex-wrap gap-2 justify-end max-w-[90%] md:max-w-[85%]">
+        {msg.images.map((imgUrl, i) => (
+          <img
+            key={i}
+            src={imgUrl}
+            alt="attachment"
+            className="max-w-[240px] max-h-[200px] rounded-2xl object-cover shadow-md border border-border"
+          />
+        ))}
+      </div>
+    )}
+    {msg.content && (
+      <div 
+        className="bg-[#1A1A1A] dark:bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
+        style={{ fontFamily: '"Open Sans", sans-serif' }}
+      >
+        {msg.content}
+      </div>
+    )}
   </div>
 );
 
@@ -148,27 +163,39 @@ const getBackgroundGradient = (theme) => {
 // ============================================================================
 
 // ── Ghost skeleton drawn top-to-bottom while AI is generating the preview ──
-const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => (
-  <div
-    style={{
-      width,
-      height,
-      opacity,
-      borderRadius: 8,
-      flexShrink: 0,
-      background: 'linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%)',
-      backgroundSize: '600px 100%',
-      animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
-    }}
-  />
-);
+const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => {
+  const isDark = document.documentElement.classList.contains('dark');
+  const base = isDark ? '#1a1a1a' : '#EAECF0';
+  const highlight = isDark ? '#242424' : '#F3F4F6';
+  return (
+    <div
+      style={{
+        width,
+        height,
+        opacity,
+        borderRadius: 8,
+        flexShrink: 0,
+        background: `linear-gradient(90deg, ${base} 25%, ${highlight} 50%, ${base} 75%)`,
+        backgroundSize: '600px 100%',
+        animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
+      }}
+    />
+  );
+};
 
-const PreviewSkeleton = () => (
+const PreviewSkeleton = () => {
+  const isDark = document.documentElement.classList.contains('dark');
+  const bg = isDark ? '#0F0F0F' : '#F3F4F6';
+  const card1 = isDark ? '#161616' : '#E5E7EB';
+  const card2 = isDark ? '#1f1f1f' : '#EAECF0';
+  const shimmerA = isDark ? '#141414' : '#E5E7EB';
+  const shimmerB = isDark ? '#1d1d1d' : '#EAECF0';
+  return (
   <div
     style={{
       width: '100%',
       height: '100%',
-      background: '#0F0F0F',
+      background: bg,
       borderRadius: 16,
       padding: '28px 24px',
       display: 'flex',
@@ -189,7 +216,7 @@ const PreviewSkeleton = () => (
         <div
           key={i}
           style={{
-            background: 'linear-gradient(90deg, #161616 25%, #1f1f1f 50%, #161616 75%)',
+            background: `linear-gradient(90deg, ${card1} 25%, ${card2} 50%, ${card1} 75%)`,
             backgroundSize: '600px 100%',
             animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both`,
             borderRadius: 12,
@@ -202,7 +229,7 @@ const PreviewSkeleton = () => (
     {/* Chart block */}
     <div
       style={{
-        background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+        background: `linear-gradient(90deg, ${shimmerA} 25%, ${shimmerB} 50%, ${shimmerA} 75%)`,
         backgroundSize: '600px 100%',
         animation: 'wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out 230ms both',
         borderRadius: 14,
@@ -229,7 +256,7 @@ const PreviewSkeleton = () => (
         <div
           key={i}
           style={{
-            background: 'linear-gradient(90deg, #141414 25%, #1d1d1d 50%, #141414 75%)',
+            background: `linear-gradient(90deg, ${shimmerA} 25%, ${shimmerB} 50%, ${shimmerA} 75%)`,
             backgroundSize: '600px 100%',
             animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both`,
             borderRadius: 14,
@@ -239,7 +266,8 @@ const PreviewSkeleton = () => (
       ))}
     </div>
   </div>
-);
+  );
+};
 
 // Add skeleton component for chat loading
 const ChatLoadingSkeleton = () => (
@@ -448,13 +476,19 @@ export default function ChatPage() {
   //   5.5 CORE CHAT LOGIC
   // ────────────────────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text, options = {}) => {
-    if (!text?.trim() || isLoading) return;
+    if ((!text?.trim() && !(options.files?.length)) || isLoading) return;
     
-    const userMsg = { role: 'user', content: text };
+    // Capture image previews from attached files
+    const imageUrls = (options.files || files || [])
+      .filter(f => f.type?.startsWith('image/'))
+      .map(f => f.url);
+
+    const userMsg = { role: 'user', content: text, images: imageUrls.length > 0 ? imageUrls : undefined };
     const newMessages = [...(messages || []), userMsg];
     setMessages(newMessages); 
     setCurrentQuery(text); 
-    setInput(''); 
+    setInput('');
+    setFiles([]);
     setIsLoading(true); 
     abortedRef.current = false;
 
@@ -751,21 +785,18 @@ export default function ChatPage() {
         convId={conversationId || convId}
       />
 
-      {/* Profile menu — top left */}
+      {/* "Wok" brand trigger (top left) — opens profile/credits menu */}
       <div className="absolute top-3 left-3 z-[999] flex items-center gap-2">
-        <button
-          onClick={() => setIsSidebarOpen(v => !v)}
-          className="w-9 h-9 rounded-md flex items-center justify-center text-white text-[13px] font-bold hover:opacity-80 transition-opacity flex-shrink-0"
-          style={{ backgroundColor: getUserColor(user) }}
-          title="Menu"
-        >
-          {user?.full_name ? user.full_name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?'}
-        </button>
+        <ChatProfileMenu user={user} userPlan={userPlan} />
       </div>
 
-      {/* Profile/Credits menu — top right */}
+      {/* Sidebar toggle (hidden from main UI, opened via sidebar button inside ChatProfileMenu) */}
+      {/* Publish button — top right */}
       <div className="absolute top-3 right-3 z-[999]">
-        <ChatProfileMenu user={user} userPlan={userPlan} />
+        <button
+          onClick={() => {/* handled inside WorkspaceHeader */}}
+          className="px-4 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded-lg hover:bg-[#0044CC] shadow-sm transition-colors hidden"
+        />
       </div>
 
       {/* ── MODALS & OVERLAYS ── */}

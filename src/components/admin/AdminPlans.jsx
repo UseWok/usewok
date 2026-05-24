@@ -37,7 +37,7 @@ function FeatureEditor({ features = [], onChange }) {
   );
 }
 
-function PlanCard({ plan, index, onChange }) {
+function PlanCard({ plan, index, onChange, onDelete }) {
   const [expanded, setExpanded] = useState(true);
 
   const set = (key, val) => onChange({ ...plan, [key]: val });
@@ -47,6 +47,7 @@ function PlanCard({ plan, index, onChange }) {
       variants={FADE}
       initial="hidden"
       animate="show"
+      exit={{ opacity: 0, scale: 0.97, y: -8 }}
       transition={{ delay: index * 0.07 }}
       className="bg-[#0d0e14] border border-white/[0.07] rounded-2xl overflow-hidden"
     >
@@ -74,7 +75,16 @@ function PlanCard({ plan, index, onChange }) {
             </p>
           </div>
         </div>
-        {expanded ? <ChevronUp className="w-4 h-4 text-white/30" /> : <ChevronDown className="w-4 h-4 text-white/30" />}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1.5 rounded-lg text-red-500/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            title="Delete plan"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          {expanded ? <ChevronUp className="w-4 h-4 text-white/30" /> : <ChevronDown className="w-4 h-4 text-white/30" />}
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
@@ -191,6 +201,24 @@ export default function AdminPlans() {
     setPlans(prev => prev.map((p, i) => i === idx ? updated : p));
   };
 
+  const deletePlan = (idx) => {
+    setPlans(prev => prev.filter((_, i) => i !== idx));
+    toast.success('Plan removed. Click "Save All Changes" to persist.');
+  };
+
+  const addPlan = () => {
+    const newPlan = {
+      id: `plan_${Date.now()}`,
+      name: 'New Plan',
+      price_monthly: 0,
+      price_yearly: 0,
+      checkout_url_monthly: '',
+      checkout_url_yearly: '',
+      features: [],
+    };
+    setPlans(prev => [...prev, newPlan]);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     savePlansConfig(plans);
@@ -206,14 +234,23 @@ export default function AdminPlans() {
           <h2 className="text-sm font-semibold text-white">Plans & Pricing</h2>
           <p className="text-xs text-white/30 mt-0.5">Edit plans, credits, features, and checkout URLs</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-black text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          Save All Changes
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={addPlan}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white text-sm font-medium hover:bg-white/[0.10] transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Plan
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-black text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save All Changes
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -223,6 +260,7 @@ export default function AdminPlans() {
             plan={plan}
             index={i}
             onChange={updated => updatePlan(i, updated)}
+            onDelete={() => deletePlan(i)}
           />
         ))}
       </div>
