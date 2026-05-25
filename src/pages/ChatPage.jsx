@@ -26,9 +26,9 @@ import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
-import ZoomControl, { LEVELS } from '@/components/chat/ZoomControl';
 import PreviewLoading from '@/components/chat/PreviewLoading';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
+import CornerResizeControl from '@/components/chat/CornerResizeControl';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -393,9 +393,10 @@ export default function ChatPage() {
 
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
-  
-  // NEW STATE: Toggle the preview panel width
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
+  
+  // Panel resize state
+  const [chatPanelSize, setChatPanelSize] = useState(32);
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -853,6 +854,10 @@ export default function ChatPage() {
     { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
   ];
 
+  const handleCornerResize = (newChatSize) => {
+    setChatPanelSize(newChatSize);
+  };
+
 
   // ────────────────────────────────────────────────────────────────────────
   //   5.8 RENDER (JSX)
@@ -904,9 +909,9 @@ export default function ChatPage() {
               LEFT PANEL — resizable chat
           ═══════════════════════════ */}
           <Panel
-            defaultSize={32}
-            minSize={25}
-            maxSize={50}
+            defaultSize={chatPanelSize}
+            minSize={5}
+            maxSize={95}
             className="flex flex-col overflow-hidden bg-white"
           >
           {/* HEADER ROW */}
@@ -999,11 +1004,11 @@ export default function ChatPage() {
           </div>
           </Panel>
 
-          {/* Resize handle — thin, subtle */}
+          {/* Resize handle — modern, visible on hover */}
           <PanelResizeHandle
-            className="w-[1px] hover:w-1.5 bg-transparent hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center"
+            className="w-2 hover:w-3 bg-transparent hover:bg-zinc-100 transition-all duration-200 flex items-center justify-center group"
           >
-            <div className="w-[1px] h-8 bg-zinc-200 rounded-full opacity-0 hover:opacity-100 transition-opacity" />
+            <div className="w-[2px] h-12 bg-zinc-200 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-105" />
           </PanelResizeHandle>
 
           {/* ═══════════════════════════════════════════════════════════
@@ -1054,6 +1059,9 @@ export default function ChatPage() {
           </div>
           </Panel>
         </PanelGroup>
+        
+        {/* Corner resize control */}
+        <CornerResizeControl onSizeChange={handleCornerResize} />
       </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}
