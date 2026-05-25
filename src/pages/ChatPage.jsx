@@ -868,11 +868,11 @@ export default function ChatPage() {
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
-        background: isFullscreen ? '#111111' : '#F4F4F4',
+        background: isFullscreen ? '#111111' : '#FAFAFA',
         backgroundImage: isFullscreen
           ? 'none'
-          : 'radial-gradient(circle, #E2E2E2 1px, transparent 1px)',
-        backgroundSize: '22px 22px',
+          : 'radial-gradient(circle, #CACACA 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
         transition: 'background 300ms ease',
       }}
     >
