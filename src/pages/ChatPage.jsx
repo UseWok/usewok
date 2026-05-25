@@ -931,7 +931,7 @@ export default function ChatPage() {
           {/* MESSAGES SCROLL AREA */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto"
+            className="flex-1 overflow-y-auto flex flex-col"
             style={{ padding: '4px 0 0 0' }}
           >
             <div className="flex flex-col gap-3 px-4 pb-2">
@@ -953,8 +953,8 @@ export default function ChatPage() {
 
             <div ref={messagesEndRef} className="h-1" />
 
-            {/* SUGGESTIONS — below messages, above input */}
-            <div className="px-4 py-3 mt-auto">
+            {/* SUGGESTIONS — moved below messages, above input */}
+            <div className="px-4 py-3">
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -999,11 +999,11 @@ export default function ChatPage() {
           </div>
           </Panel>
 
-          {/* Resize handle — visible grabber */}
+          {/* Resize handle — thin, subtle */}
           <PanelResizeHandle
-            className="w-2 hover:w-2.5 bg-transparent hover:bg-zinc-100 transition-all duration-200 flex items-center justify-center cursor-col-resize"
+            className="w-[1px] hover:w-1.5 bg-transparent hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center"
           >
-            <div className="w-[2px] h-12 bg-zinc-300 rounded-full hover:bg-zinc-400 transition-colors" />
+            <div className="w-[1px] h-8 bg-zinc-200 rounded-full opacity-0 hover:opacity-100 transition-opacity" />
           </PanelResizeHandle>
 
           {/* ═══════════════════════════════════════════════════════════
