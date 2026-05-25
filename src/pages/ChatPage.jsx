@@ -856,10 +856,10 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
 
   const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
-  const [zoomLevel, setZoomLevel] = useState(1); // 0=S, 1=M, 2=L
+  const [zoomLevel, setZoomLevel] = useState(0); // 0=L (default), 1=XL, 2=Fullscreen
   const zl = LEVELS[zoomLevel];
   const isFullscreen = zoomLevel === 2;
-  const CARD_RADIUS = isFullscreen ? 0 : 14;
+  const CARD_RADIUS = isFullscreen ? 0 : 16;
 
   return (
     /* ═══════════════════════════════════════════════════════════════
@@ -868,13 +868,11 @@ export default function ChatPage() {
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
-        background: isFullscreen
-          ? '#111111'
-          : '#FFFFFF',
+        background: isFullscreen ? '#111111' : '#F7F7F7',
         backgroundImage: isFullscreen
           ? 'none'
-          : 'radial-gradient(circle, #CCCCCC 1px, transparent 1px)',
-        backgroundSize: '28px 28px',
+          : 'radial-gradient(circle, #D1D1D1 1.2px, transparent 1.2px)',
+        backgroundSize: '24px 24px',
         transition: 'background 300ms ease',
       }}
     >
@@ -1011,38 +1009,48 @@ export default function ChatPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            RIGHT PANEL — pure white, preview fills edge-to-edge
+            RIGHT PANEL — white bg, preview inset with white border
         ═══════════════════════════════════════════════════════════ */}
         <div
-          className="flex-1 relative overflow-hidden"
-          style={{ background: '#FFFFFF' }}
+          className="flex-1 relative overflow-hidden flex items-center justify-center"
+          style={{ background: '#FFFFFF', padding: isFullscreen ? 0 : 12 }}
         >
-          <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-          {ficheContent ? (
-            <FichePanel
-              content={ficheContent}
-              iframeRefreshKey={iframeRefreshKey}
-              onError={setRuntimeError}
-              onSuccess={() => setRuntimeError(null)}
-              isPublic={false}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              appSettings={appSettings}
-              onUpdateSettings={handleUpdateAppMeta}
-              onClone={handleCloneApp}
-              onDelete={handleDeleteApp}
-              onUnpublish={handleUnpublishApp}
-              customSlug={customSlug}
-              onUpdateContent={setFicheContent}
-            />
-          ) : isLoading ? (
-            <PreviewSkeleton />
-          ) : (
-            /* Empty state — white with subtle label */
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
-            </div>
-          )}
+          {/* Inset preview rect — clean corners matching card, no gray border */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: isFullscreen ? 0 : 12,
+              borderRadius: isFullscreen ? 0 : Math.max(0, CARD_RADIUS - 4),
+              overflow: 'hidden',
+              background: '#FFFFFF',
+            }}
+          >
+            <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
+            {ficheContent ? (
+              <FichePanel
+                content={ficheContent}
+                iframeRefreshKey={iframeRefreshKey}
+                onError={setRuntimeError}
+                onSuccess={() => setRuntimeError(null)}
+                isPublic={false}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                appSettings={appSettings}
+                onUpdateSettings={handleUpdateAppMeta}
+                onClone={handleCloneApp}
+                onDelete={handleDeleteApp}
+                onUnpublish={handleUnpublishApp}
+                customSlug={customSlug}
+                onUpdateContent={setFicheContent}
+              />
+            ) : isLoading ? (
+              <PreviewSkeleton />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
+              </div>
+            )}
+          </div>
         </div>
 
       </motion.div>
