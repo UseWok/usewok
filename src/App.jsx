@@ -61,6 +61,7 @@ import AdminBlog from './pages/admin/AdminBlog';
 import CockpitPage from './pages/CockpitPage';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminPanel from './pages/admin/AdminPanel';
 import UIShowcase from './pages/UIShowcase';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -177,7 +178,7 @@ const AuthenticatedApp = () => {
 
         <Route path="/blog/:slug" element={<BlogPostPage />} />
 
-        <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route path="/admin/*" element={<AdminPanel />} />
 
         <Route element={<Layout />}>
 
