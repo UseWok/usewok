@@ -18,17 +18,14 @@ import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
 import { getTheme } from '@/lib/theme';
 
-import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
-import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
-import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
-import PreviewLoading from '@/components/chat/PreviewLoading';
+import WokHeader from '@/components/chat/WokHeader';
+import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
-import CornerResizeControl from '@/components/chat/CornerResizeControl';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -399,6 +396,7 @@ export default function ChatPage() {
   const [containerSize, setContainerSize] = useState({ width: '97vw', height: '97vh' });
   const [isResizing, setIsResizing] = useState(false);
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
+  const containerRef = useRef(null);
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -898,8 +896,8 @@ export default function ChatPage() {
     if (!isResizing) return;
     const clientX = e.clientX || e.touches?.[0]?.clientX;
     const clientY = e.clientY || e.touches?.[0]?.clientY;
-    const dx = (clientX - resizeStart.current.x) * 2;
-    const dy = (clientY - resizeStart.current.y) * 2;
+    const dx = clientX - resizeStart.current.x;
+    const dy = clientY - resizeStart.current.y;
     
     const newWidth = Math.max(320, Math.min(window.innerWidth, resizeStart.current.w + dx));
     const newHeight = Math.max(400, Math.min(window.innerHeight, resizeStart.current.h + dy));
@@ -930,10 +928,14 @@ export default function ChatPage() {
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
         backgroundColor: '#FAFAFA',
-        backgroundImage: 'radial-gradient(circle, #E8D5E8 1.2px, transparent 1.2px)',
-        backgroundSize: '56px 56px',
+        backgroundImage: 'radial-gradient(circle, #E8D5E8 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+        paddingTop: 56,
       }}
     >
+      {/* Header */}
+      <WokHeader user={user} userPlan={userPlan} onNavigate={navigate} />
+
       {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold mb-1.5 block">Workspace name *</label>
@@ -949,17 +951,18 @@ export default function ChatPage() {
           MAIN CARD — dynamic resizable container (iOS 26 style)
       ═══════════════════════════════════════════════════════════════ */}
       <motion.div
+        ref={containerRef}
         className="flex overflow-hidden relative"
         animate={{
           width: containerSize.width,
           height: containerSize.height,
           borderRadius: CARD_RADIUS,
         }}
-        transition={{ duration: isResizing ? 0 : 0.3, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.15, ease: 'linear' }}
         style={{
-          boxShadow: isResizing ? '0 4px 16px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
-          border: '0.5px solid rgba(229, 229, 229, 0.3)',
+          border: '0.5px solid rgba(229, 229, 229, 0.35)',
           maxWidth: '100vw',
           maxHeight: '100vh',
         }}
@@ -1142,15 +1145,12 @@ export default function ChatPage() {
             style={{
               width: 12,
               height: 12,
-              borderRight: '2px solid rgba(0,0,0,0.2)',
-              borderBottom: '2px solid rgba(0,0,0,0.2)',
+              borderRight: '2px solid rgba(0,0,0,0.15)',
+              borderBottom: '2px solid rgba(0,0,0,0.15)',
               borderRadius: '0 0 2px 0',
             }}
           />
         </div>
-        
-        {/* Corner format control */}
-        <CornerResizeControl onFormatChange={handleFormatChange} />
       </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}
