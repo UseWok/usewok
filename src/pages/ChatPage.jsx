@@ -1006,16 +1006,11 @@ export default function ChatPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            RIGHT PANEL — dot-grid bg, preview inset with white border
+            RIGHT PANEL — white bg, preview inset with white border
         ═══════════════════════════════════════════════════════════ */}
         <div
           className="flex-1 relative overflow-hidden flex items-center justify-center"
-          style={{
-            backgroundColor: '#FAFAFA',
-            backgroundImage: isFullscreen ? 'none' : 'radial-gradient(circle, #D4B8D4 1.5px, transparent 1.5px)',
-            backgroundSize: '28px 28px',
-            padding: isFullscreen ? 0 : 12,
-          }}
+          style={{ background: '#FFFFFF', padding: isFullscreen ? 0 : 12 }}
         >
           {/* Inset preview rect — clean corners matching card, no gray border */}
           <div
