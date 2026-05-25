@@ -942,7 +942,7 @@ export default function ChatPage() {
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
       <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
-        <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
+        <div className="flex items-center gap-1.5" style={{ pointerEvents: 'auto' }}>
           {/* Logo */}
           <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
@@ -951,178 +951,127 @@ export default function ChatPage() {
             </svg>
           </div>
 
-          {/* Wok text trigger */}
+          {/* Wok text */}
+          <span className="text-sm font-bold text-zinc-900">Wok</span>
+
+          {/* Chevron trigger button */}
           <button
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="text-sm font-bold text-zinc-900 hover:text-zinc-600 transition-colors"
+            className="p-1 hover:bg-zinc-100 rounded-md transition-colors"
           >
-            Wok
+            <svg
+              className="w-4 h-4 text-zinc-600"
+              style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transitionDuration: '200ms' }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
         </div>
 
-        {/* Dropdown Menu - 95% viewport modal */}
+        {/* Small dropdown menu */}
         {isProfileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998]"
-              onClick={() => setIsProfileMenuOpen(false)}
-            />
-            {/* Modal */}
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] w-[95vw] h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+          <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-64 mt-1 z-[100000]">
+            <div className="p-2 space-y-0.5">
+              {/* Home */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate('/app');
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
-                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                      <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
-                      <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <span className="text-lg font-bold text-zinc-900">Wok Menu</span>
+                  <Home className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                  <span className="text-sm font-medium text-zinc-900">Home</span>
                 </div>
-                <button
-                  onClick={() => setIsProfileMenuOpen(false)}
-                  className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-zinc-600" />
-                </button>
-              </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+              </button>
 
-              {/* Menu Items */}
-              <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-2xl mx-auto space-y-2">
-                  {/* Home */}
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      navigate('/app');
-                    }}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors text-left group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
-                        <Home className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Home</span>
-                        <p className="text-sm text-zinc-500">Return to dashboard</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
-                  </button>
-
-                  {/* Credits */}
-                  <div className="w-full px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors">
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Credits</span>
-                        <p className="text-sm text-zinc-500">Your usage this month</p>
-                      </div>
-                    </div>
-                    <div className="ml-14">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-zinc-600">Credits used</span>
-                        <span className="text-sm font-bold text-zinc-900">{user?.credits_used || 0} / {userPlan?.credits_limit || user?.credits_limit || 10}</span>
-                      </div>
-                      <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-black rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(100, ((user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
+              {/* Credits Bar */}
+              <div className="px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                    <span className="text-sm font-medium text-zinc-900">Credits</span>
                   </div>
-
-                  {/* Divider */}
-                  <div className="h-px bg-zinc-100 my-4" />
-
-                  {/* Settings */}
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      setFullscreenModal('settings');
-                    }}
-                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Settings</span>
-                        <p className="text-sm text-zinc-500">Manage your account</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
-                  </button>
-
-                  {/* Upgrade Plan */}
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      setFullscreenModal('pricing');
-                    }}
-                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                        <Zap className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Upgrade Plan</span>
-                        <p className="text-sm text-zinc-500">Get more credits and features</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
-                  </button>
-
-                  {/* Documentation */}
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      setFullscreenModal('docs');
-                    }}
-                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                        <BookOpen className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Documentation</span>
-                        <p className="text-sm text-zinc-500">Learn how to use Wok</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
-                  </button>
-
-                  {/* Support */}
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      setFullscreenModal('support');
-                    }}
-                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                        <LifeBuoy className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
-                      </div>
-                      <div>
-                        <span className="text-base font-semibold text-zinc-900">Support</span>
-                        <p className="text-sm text-zinc-500">Get help from our team</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
-                  </button>
+                  <span className="text-xs font-semibold text-zinc-600">{user?.credits_used || 0}/{userPlan?.credits_limit || user?.credits_limit || 10}</span>
+                </div>
+                <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden ml-7">
+                  <div
+                    className="h-full bg-black rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, ((user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10)) * 100)}%` }}
+                  />
                 </div>
               </div>
+
+              {/* Divider */}
+              <div className="h-px bg-zinc-100 my-1" />
+
+              {/* Settings - opens 95% modal */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setFullscreenModal('settings');
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <Settings className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                  <span className="text-sm font-medium text-zinc-900">Settings</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+              </button>
+
+              {/* Upgrade Plan - opens 95% modal */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setFullscreenModal('pricing');
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <Zap className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                  <span className="text-sm font-medium text-zinc-900">Upgrade Plan</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+              </button>
+
+              {/* Documentation - opens 95% modal */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setFullscreenModal('docs');
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                  <span className="text-sm font-medium text-zinc-900">Documentation</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+              </button>
+
+              {/* Support - opens 95% modal */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setFullscreenModal('support');
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <LifeBuoy className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                  <span className="text-sm font-medium text-zinc-900">Support</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -1337,26 +1286,29 @@ export default function ChatPage() {
           </Panel>
         </PanelGroup>
         
-        {/* Resize corner handle - drag to resize entire container */}
+        {/* Resize corner handle - black area, resize only while holding */}
         <div
           onMouseDown={handleResizeStart}
+          onMouseUp={handleResizeEnd}
+          onMouseLeave={handleResizeEnd}
           onTouchStart={handleResizeStart}
-          className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-100 flex items-end justify-end p-1"
+          onTouchEnd={handleResizeEnd}
+          className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-100 flex items-end justify-end p-1"
           style={{
-            background: isResizing ? 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, transparent 100%)' : 'transparent',
+            background: 'rgba(0,0,0,0.8)',
             borderRadius: '0 0 8px 0',
           }}
         >
           <div
             style={{
-              width: 16,
-              height: 16,
-              background: isResizing ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)',
+              width: 12,
+              height: 12,
+              background: isResizing ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)',
               maskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
               WebkitMaskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
-              borderRadius: '0 0 4px 0',
-              transform: isResizing ? 'scale(1.1)' : 'scale(1)',
-              transition: 'transform 200ms, background 200ms',
+              borderRadius: '0 0 3px 0',
+              transform: isResizing ? 'scale(1.2)' : 'scale(1)',
+              transition: 'transform 150ms, background 150ms',
             }}
           />
         </div>
