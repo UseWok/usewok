@@ -544,9 +544,9 @@ export default function FichePanel({
   const shouldShowBadge = appSettings?.showBadge !== false;
 
   const watermarkHTML = shouldShowBadge ? `
-    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-decoration: none; color: #000; font-family: system-ui, sans-serif; transition: transform 0.2s ease; cursor: pointer;" onclick="window.open('https://wok.com', '_blank')">
-      <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.5;">BUILT WITH</span>
-      <span style="font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: -0.5px;">WOK</span>
+    <div onclick="window.open('https://wok.com', '_blank')" style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 6px; background: #1a1a1a; padding: 6px 12px 6px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; font-family: system-ui, -apple-system, sans-serif;">
+      <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" style="width: 14px; height: 14px; object-fit: contain; filter: invert(1);" />
+      <span style="font-size: 12px; font-weight: 600; color: #ffffff; letter-spacing: 0.1px;">Edit with Wok</span>
     </div>
   ` : '';
 
