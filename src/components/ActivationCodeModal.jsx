@@ -56,7 +56,6 @@ export default function ActivationCodeModal({ open, onClose }) {
 
   const handleClose = () => {
     setCode(''); setSuccess(null); onClose();
-    if (success) navigate('/app');
   };
 
   return (
