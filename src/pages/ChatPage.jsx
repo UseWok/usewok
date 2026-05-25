@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
 import { ALL_MODES } from '@/lib/modes-config';
 import { getUserPlan } from '@/lib/plans-config';
+import { formatAIResponse, RESPONSE_FORMAT_PROMPT } from '@/lib/format-response';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
@@ -139,6 +140,19 @@ RULES:
 - Imports: import React, { useState, useEffect } from 'react'; import { motion, AnimatePresence } from 'framer-motion'; import { ArrowRight, CheckCircle2, Zap, Activity, Layers, Rocket, Brain, Target, Globe, Plus } from 'lucide-react'; import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 - Framer: initial={{ opacity:0, y:30 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:false, margin:"-10%" }} transition={{ duration:0.8, ease:"easeOut" }}
 - Component name: 'App'. Output ONLY the jsx block.`;
+
+const PROMPT_DATA_INSIGHT = `You are a data analyst. Present insights with this structure:
+1. One-line framing
+2. Visual suggestion (chart/gauge/card)
+3. Key insight (2-3 sentences, Grade 7 level, active voice)
+4. Recommendations (max 3, ranked): **✦/⚠/→ Bold insight** + support sentence
+5. Optional: one open question
+
+RULES:
+- Max 20 words/sentence
+- No: "leverage", "utilize", "synergy", "robust", "comprehensive", "streamline"
+- Use: "So,", "Here's the thing:", "What this means:"
+- Vary rhythm: short. Then longer. Then short.`;
 
 // ── Easter egg: chocolatine — triggered by "16/06/2010" ──
 const CHOCOLATINE_CODE = `\`\`\`jsx
@@ -657,6 +671,19 @@ export default function ChatPage() {
         model: 'gemini_3_flash'
       });
 
+      // ── Step 3: For data/insight queries, format with recommendations ──
+      const isDataQuery = /\b(data|insight|analytics|metric|kpi|performance|trend|growth|revenue|user|conversion)\b/i.test(text);
+      let formattedInsight = null;
+      
+      if (isDataQuery && !isModification) {
+        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + (messages.slice(-3).map(m => m.content).join(' '));
+        const insightResult = await base44.integrations.Core.InvokeLLM({
+          prompt: insightPrompt,
+          model: 'gemini_3_flash'
+        });
+        formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
+      }
+
       if (abortedRef.current) return;
       let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
 
@@ -695,7 +722,9 @@ export default function ChatPage() {
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
 
-      const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
+      // Append formatted insights if data query
+      const finalContent = formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent;
+      const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
       
