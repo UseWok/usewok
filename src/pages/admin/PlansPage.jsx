@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, Archive, Users, Check, X, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Archive, Users, Check, X, Trash2, Home } from 'lucide-react';
 import { getPlansConfig } from '@/lib/plans-config';
 import { toast } from 'sonner';
 
 export default function PlansPage() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [users, setUsers] = useState([]);
   const [editingPlanId, setEditingPlanId] = useState(null);
@@ -122,7 +124,16 @@ export default function PlansPage() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[20px] font-medium text-[#1A1A1A]">Plans d'abonnement</h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#666666] hover:bg-[#F7F7F8] rounded-lg transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            <span>Retour</span>
+          </button>
+          <h1 className="text-[20px] font-medium text-[#1A1A1A]">Plans d'abonnement</h1>
+        </div>
         <button
           onClick={handleAddNew}
           className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"

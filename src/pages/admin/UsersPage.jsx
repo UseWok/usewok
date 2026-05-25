@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Search, Filter, ChevronLeft, ChevronRight, Pencil, ToggleLeft, CircleSlash, X } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, Pencil, ToggleLeft, CircleSlash, X, Home } from 'lucide-react';
 import UserDetailDrawer from '@/components/admin/UserDetailDrawer';
 import { getUserColor } from '@/lib/user-color';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -16,6 +17,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,7 +72,16 @@ export default function UsersPage() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-8 py-6 border-b border-[#E5E5E5] flex items-center justify-between">
-        <h1 className="text-[20px] font-medium text-[#1A1A1A]">Utilisateurs</h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#666666] hover:bg-[#F7F7F8] rounded-lg transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            <span>Retour</span>
+          </button>
+          <h1 className="text-[20px] font-medium text-[#1A1A1A]">Utilisateurs</h1>
+        </div>
         
         <div className="flex items-center gap-3">
           {/* Search */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Upload, Copy, Edit2, Trash2, Check, X, ChevronDown, ChevronUp,
   RefreshCw, Calendar, Users, Infinity as InfinityIcon, Home,
-  AlertCircle, CheckCircle, XCircle, PauseCircle, PlayCircle
+  AlertCircle, CheckCircle, XCircle, PauseCircle, PlayCircle, FileText
 } from 'lucide-react';
 
 const generateCode = (prefix = '') => {
@@ -49,14 +49,17 @@ const getTypeLabel = (code) => {
 export default function CodesPage() {
   const navigate = useNavigate();
   const [codes, setCodes] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showBulkPasteModal, setShowBulkPasteModal] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(null);
 
   useEffect(() => {
     loadCodes();
+    loadPlans();
   }, []);
 
   const loadCodes = async () => {
@@ -68,6 +71,15 @@ export default function CodesPage() {
       toast.error('Erreur lors du chargement des codes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPlans = async () => {
+    try {
+      const data = await base44.entities.SubscriptionPlan.list();
+      setPlans(data || []);
+    } catch (error) {
+      console.error('Failed to load plans:', error);
     }
   };
 
@@ -127,6 +139,13 @@ export default function CodesPage() {
             >
               <Plus className="w-4 h-4" />
               Générer un code
+            </button>
+            <button
+              onClick={() => setShowBulkPasteModal(true)}
+              className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium border border-[#E5E5E5] bg-white text-[#1A1A1A] rounded-lg hover:bg-[#F7F7F8] transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Coller en masse
             </button>
             <button
               onClick={() => setShowImportModal(true)}
@@ -273,6 +292,14 @@ export default function CodesPage() {
         <GenerateCodeModal
           onClose={() => setShowGenerateModal(false)}
           onCodeGenerated={loadCodes}
+          plans={plans}
+        />
+      )}
+      {showBulkPasteModal && (
+        <BulkPasteModal
+          onClose={() => setShowBulkPasteModal(false)}
+          onPasteComplete={loadCodes}
+          plans={plans}
         />
       )}
       {showImportModal && (
@@ -405,12 +432,12 @@ function CodeDetailPanel({ codeId, onClose }) {
   );
 }
 
-function GenerateCodeModal({ onClose, onCodeGenerated }) {
+function GenerateCodeModal({ onClose, onCodeGenerated, plans }) {
   const [formData, setFormData] = useState({
     code: generateCode(),
     prefix: '',
-    plan_id: '',
-    plan_name: '',
+    plan_id: plans && plans.length > 0 ? plans[0].id : '',
+    plan_name: plans && plans.length > 0 ? plans[0].name : '',
     duration_value: 30,
     duration_type: 'day',
     type: 'single',
@@ -419,24 +446,7 @@ function GenerateCodeModal({ onClose, onCodeGenerated }) {
     expiration_date: '',
     note: ''
   });
-  const [plans, setPlans] = useState([]);
   const [generated, setGenerated] = useState(false);
-
-  useEffect(() => {
-    loadPlans();
-  }, []);
-
-  const loadPlans = async () => {
-    try {
-      const data = await base44.entities.SubscriptionPlan.list();
-      setPlans(data || []);
-      if (data && data.length > 0) {
-        setFormData(prev => ({ ...prev, plan_id: data[0].id, plan_name: data[0].name }));
-      }
-    } catch (error) {
-      console.error('Failed to load plans:', error);
-    }
-  };
 
   const handleRegenerate = () => {
     setFormData(prev => ({
@@ -671,6 +681,220 @@ function GenerateCodeModal({ onClose, onCodeGenerated }) {
             className="px-6 py-2.5 text-[14px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
           >
             Générer le code
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function BulkPasteModal({ onClose, onPasteComplete, plans }) {
+  const [pastedCodes, setPastedCodes] = useState('');
+  const [selectedPlanId, setSelectedPlanId] = useState(plans && plans.length > 0 ? plans[0].id : '');
+  const [selectedPlanName, setSelectedPlanName] = useState(plans && plans.length > 0 ? plans[0].name : '');
+  const [durationValue, setDurationValue] = useState(30);
+  const [durationType, setDurationType] = useState('day');
+  const [maxUses, setMaxUses] = useState(1);
+  const [codeType, setCodeType] = useState('single');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [results, setResults] = useState(null);
+
+  const handlePaste = async () => {
+    if (!pastedCodes.trim()) {
+      toast.error('Veuillez coller des codes');
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    // Parse les codes collés (un par ligne ou séparés par virgules)
+    const codeList = pastedCodes
+      .split(/[\n,;\t]+/)
+      .map(c => c.trim().toUpperCase())
+      .filter(c => c.length > 0);
+
+    const successful = [];
+    const failed = [];
+
+    for (const code of codeList) {
+      try {
+        await base44.entities.AccessCode.create({
+          code: code,
+          plan_id: selectedPlanId,
+          plan_name: selectedPlanName,
+          duration_value: durationType === 'lifetime' ? null : durationValue,
+          duration_type: durationType,
+          max_uses: codeType === 'unlimited' ? null : (codeType === 'multi' ? maxUses : 1),
+          unlimited: codeType === 'unlimited',
+          expiration_date: null,
+          description: 'Import en masse',
+          used: false,
+          used_by: null,
+          billing: 'monthly',
+          visible: true
+        });
+        successful.push(code);
+      } catch (error) {
+        failed.push(code);
+      }
+    }
+
+    setResults({ successful, failed, total: codeList.length });
+    setIsProcessing(false);
+    onPasteComplete();
+  };
+
+  if (results) {
+    return (
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center"
+        >
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-[20px] font-semibold text-[#1A1A1A] mb-2">Import terminé !</h2>
+          <p className="text-[13px] text-[#888888] mb-6">
+            {results.successful.length} sur {results.total} codes ont été créés
+          </p>
+          
+          <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-xl p-4 mb-6 text-left">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[12px] text-[#888888]">Succès</span>
+              <span className="text-[14px] font-semibold text-green-600">{results.successful.length}</span>
+            </div>
+            {results.failed.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] text-[#888888]">Échecs</span>
+                <span className="text-[14px] font-semibold text-red-600">{results.failed.length}</span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2.5 text-[14px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Fermer
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-[20px] font-semibold text-[#1A1A1A]">Coller des codes en masse</h2>
+          <button onClick={onClose} className="p-2 text-[#888888] hover:bg-[#F0F0F0] rounded-lg transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-[12px] font-medium text-[#888888] mb-2">
+              Codes (un par ligne ou séparés par des virgules)
+            </label>
+            <textarea
+              value={pastedCodes}
+              onChange={(e) => setPastedCodes(e.target.value)}
+              className="w-full px-4 py-3 text-[14px] font-mono border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20 resize-none"
+              rows="8"
+              placeholder="CODE-1234-5678&#10;CODE-ABCD-EFGH&#10;CODE-9999-0000"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[12px] font-medium text-[#888888] mb-2">Plan à attribuer *</label>
+            <select
+              value={selectedPlanId}
+              onChange={(e) => {
+                const plan = plans.find(p => p.id === e.target.value);
+                setSelectedPlanId(e.target.value);
+                setSelectedPlanName(plan?.name || '');
+              }}
+              className="w-full px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+            >
+              {plans.map(plan => (
+                <option key={plan.id} value={plan.id}>{plan.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[12px] font-medium text-[#888888] mb-2">Durée d'accès</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={durationValue}
+                  onChange={(e) => setDurationValue(Number(e.target.value))}
+                  disabled={durationType === 'lifetime'}
+                  className="flex-1 px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20 disabled:bg-[#F0F0F0]"
+                  min="1"
+                />
+                <select
+                  value={durationType}
+                  onChange={(e) => setDurationType(e.target.value)}
+                  className="px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+                >
+                  <option value="day">jours</option>
+                  <option value="month">mois</option>
+                  <option value="year">ans</option>
+                  <option value="lifetime">À vie</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-medium text-[#888888] mb-2">Type</label>
+              <select
+                value={codeType}
+                onChange={(e) => setCodeType(e.target.value)}
+                className="w-full px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+              >
+                <option value="single">Usage unique</option>
+                <option value="multi">Multi-usage</option>
+                <option value="unlimited">Illimité</option>
+              </select>
+            </div>
+          </div>
+
+          {codeType === 'multi' && (
+            <div>
+              <label className="block text-[12px] font-medium text-[#888888] mb-2">Nombre max d'utilisations</label>
+              <input
+                type="number"
+                value={maxUses}
+                onChange={(e) => setMaxUses(Number(e.target.value))}
+                className="w-full px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+                min="2"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-[#E5E5E5]">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-[14px] font-medium border border-[#E5E5E5] bg-white text-[#1A1A1A] rounded-lg hover:bg-[#F7F7F8] transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handlePaste}
+            disabled={isProcessing || !pastedCodes.trim()}
+            className="px-6 py-2.5 text-[14px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {isProcessing ? 'Traitement...' : 'Créer les codes'}
           </button>
         </div>
       </motion.div>

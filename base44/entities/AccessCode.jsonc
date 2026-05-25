@@ -13,7 +13,40 @@
     },
     "plan_id": {
       "type": "string",
-      "title": "Abonnement associ\u00e9 (optionnel)"
+      "title": "Abonnement associ\u00e9"
+    },
+    "plan_name": {
+      "type": "string",
+      "title": "Nom du plan"
+    },
+    "duration_value": {
+      "type": "number",
+      "title": "Dur\u00e9e (valeur)"
+    },
+    "duration_type": {
+      "type": "string",
+      "enum": [
+        "day",
+        "month",
+        "year",
+        "lifetime"
+      ],
+      "title": "Type de dur\u00e9e",
+      "default": "day"
+    },
+    "max_uses": {
+      "type": "number",
+      "title": "Nombre max d'utilisations"
+    },
+    "unlimited": {
+      "type": "boolean",
+      "title": "Illimit\u00e9",
+      "default": false
+    },
+    "use_count": {
+      "type": "number",
+      "title": "Nombre d'utilisations",
+      "default": 0
     },
     "billing": {
       "type": "string",
@@ -33,10 +66,25 @@
       "type": "string",
       "title": "Utilis\u00e9 par (email)"
     },
+    "used_by_history": {
+      "type": "string",
+      "format": "textarea",
+      "title": "Historique des utilisations (JSON)"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date d'expiration"
+    },
     "description": {
       "type": "string",
       "maxLength": 1000,
-      "title": "Description"
+      "title": "Note interne"
+    },
+    "visible": {
+      "type": "boolean",
+      "title": "Visible/Actif",
+      "default": true
     }
   },
   "required": [
