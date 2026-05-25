@@ -29,7 +29,7 @@ import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
-  X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
+  X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen
 } from 'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -393,11 +393,10 @@ export default function ChatPage() {
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   
   // Main container resize state
-  const [containerSize, setContainerSize] = useState({ width: '96vw', height: '94vh' });
+  const [containerSize, setContainerSize] = useState({ width: 96, height: 94 }); // vw/vh percentages
   const [isResizing, setIsResizing] = useState(false);
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const containerRef = useRef(null);
-  const lastSize = useRef({ w: 0, h: 0 });
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -891,12 +890,8 @@ export default function ChatPage() {
     resizeStart.current = {
       x: clientX,
       y: clientY,
-      w: parseFloat(containerSize.width) || window.innerWidth * 0.96,
-      h: parseFloat(containerSize.height) || window.innerHeight * 0.94,
-    };
-    lastSize.current = {
-      w: parseFloat(containerSize.width) || window.innerWidth * 0.96,
-      h: parseFloat(containerSize.height) || window.innerHeight * 0.94,
+      w: containerSize.width,
+      h: containerSize.height,
     };
   };
 
@@ -909,20 +904,13 @@ export default function ChatPage() {
     const dx = clientX - resizeStart.current.x;
     const dy = clientY - resizeStart.current.y;
     
-    const newWidth = Math.max(400, Math.min(window.innerWidth - 32, resizeStart.current.w + dx));
-    const newHeight = Math.max(500, Math.min(window.innerHeight - 80, resizeStart.current.h + dy));
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     
-    if (Math.abs(newWidth - lastSize.current.w) > 0.5) {
-      lastSize.current.w = newWidth;
-    }
-    if (Math.abs(newHeight - lastSize.current.h) > 0.5) {
-      lastSize.current.h = newHeight;
-    }
+    const newWidth = Math.max(30, Math.min(98, resizeStart.current.w + (dx / vw * 100)));
+    const newHeight = Math.max(30, Math.min(98, resizeStart.current.h + (dy / vh * 100)));
     
-    setContainerSize({
-      width: `${Math.round(newWidth)}px`,
-      height: `${Math.round(newHeight)}px`,
-    });
+    setContainerSize({ width: newWidth, height: newHeight });
   };
 
   const handleResizeEnd = () => {
@@ -951,8 +939,119 @@ export default function ChatPage() {
       }}
     >
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
-      {/* Wok header - top right */}
-      <WokHeader user={user} userPlan={userPlan} onNavigate={navigate} />
+      {/* Wok header - top left */}
+      <div className="fixed top-4 left-4 z-50">
+        <div className="flex items-center gap-1.5">
+          {/* Logo */}
+          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200/50">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+              <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
+              <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+
+          {/* Trigger button */}
+          <button
+            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+            className="p-1 hover:bg-zinc-100 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-4 h-4 text-zinc-600"
+              style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transitionDuration: '200ms' }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Dropdown Menu */}
+        {isProfileMenuOpen && (
+          <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-52 mt-1">
+            <div className="p-2 space-y-0.5">
+              {/* Home */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate('/app');
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left"
+              >
+                <Home className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                <span className="text-sm font-medium text-zinc-900">Home</span>
+              </button>
+
+              {/* Credits Bar */}
+              <div className="px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                    <span className="text-sm font-medium text-zinc-900">Credits</span>
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-600">{user?.credits_used || 0}/{userPlan?.credits_limit || user?.credits_limit || 10}</span>
+                </div>
+                <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden ml-7">
+                  <div
+                    className="h-full bg-black rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, ((user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10)) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-zinc-100 my-1" />
+
+              {/* Settings */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate('/settings');
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left"
+              >
+                <Settings className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                <span className="text-sm font-medium text-zinc-900">Settings</span>
+              </button>
+
+              {/* Upgrade Plan */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate('/pricing');
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left"
+              >
+                <Zap className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                <span className="text-sm font-medium text-zinc-900">Upgrade Plan</span>
+              </button>
+
+              {/* Documentation */}
+              <button
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left"
+              >
+                <BookOpen className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                <span className="text-sm font-medium text-zinc-900">Documentation</span>
+              </button>
+
+              {/* Support */}
+              <button
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  navigate('/support');
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left"
+              >
+                <LifeBuoy className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
+                <span className="text-sm font-medium text-zinc-900">Support</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
@@ -972,17 +1071,18 @@ export default function ChatPage() {
         ref={containerRef}
         className="flex overflow-hidden relative"
         animate={{
-          width: containerSize.width,
-          height: containerSize.height,
+          width: `${containerSize.width}vw`,
+          height: `${containerSize.height}vh`,
           borderRadius: CARD_RADIUS,
         }}
-        transition={{ duration: 0.15, ease: 'linear' }}
+        transition={{ duration: 0.1, ease: 'easeOut' }}
         style={{
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: isResizing ? '0 20px 60px rgba(0,0,0,0.15)' : '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
-          border: '0.5px solid rgba(229, 229, 229, 0.35)',
+          border: isResizing ? '1px solid rgba(0,0,0,0.2)' : '0.25px solid rgba(229, 229, 229, 0.5)',
           maxWidth: '100vw',
           maxHeight: '100vh',
+          transform: isResizing ? 'scale(1.005)' : 'scale(1)',
         }}
       >
         <PanelGroup direction="horizontal" className="flex w-full h-full">
@@ -1145,27 +1245,22 @@ export default function ChatPage() {
         <div
           onMouseDown={handleResizeStart}
           onTouchStart={handleResizeStart}
+          className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-100 flex items-end justify-end p-1"
           style={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 24,
-            height: 24,
-            cursor: 'se-resize',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'flex-end',
-            padding: 4,
+            background: isResizing ? 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, transparent 100%)' : 'transparent',
+            borderRadius: '0 0 8px 0',
           }}
         >
           <div
             style={{
-              width: 12,
-              height: 12,
-              borderRight: '2px solid rgba(0,0,0,0.15)',
-              borderBottom: '2px solid rgba(0,0,0,0.15)',
-              borderRadius: '0 0 2px 0',
+              width: 16,
+              height: 16,
+              background: isResizing ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)',
+              maskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
+              WebkitMaskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
+              borderRadius: '0 0 4px 0',
+              transform: isResizing ? 'scale(1.1)' : 'scale(1)',
+              transition: 'transform 200ms, background 200ms',
             }}
           />
         </div>
