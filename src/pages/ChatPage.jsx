@@ -978,8 +978,8 @@ export default function ChatPage() {
               onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
               onTogglePreview={() => setIsPreviewCollapsed(true)}
             />
-            <div className="flex-1 overflow-hidden relative px-2 pb-2">
-              <div className="w-full h-full rounded-xl overflow-hidden border border-zinc-200 bg-white relative shadow-sm">
+            <div className="flex-1 overflow-hidden relative">
+              <div className="w-full h-full overflow-hidden bg-white relative">
                 <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
                 {isLoading && !ficheContent ? (
                   <PreviewSkeleton />

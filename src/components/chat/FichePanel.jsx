@@ -614,80 +614,61 @@ export default function FichePanel({
   `;
 
   return (
-    <div className="w-full h-full relative font-sans flex flex-col">
-
-      {/* Clean preview frame — single delimiter border, max space, no chrome */}
-      <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl border border-border" style={{ boxShadow: '0 0 0 1px hsl(var(--border)/0.5)' }}>
-        {hasComponent ? (
-          viewMode === 'preview' ? (
-            <>
-              <AnimatePresence>
-                {isCompiling && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#0F0F0F]/80 backdrop-blur-md"
-                  >
-                    <div className="p-4 bg-[#1A1A1A] rounded-2xl shadow-2xl flex flex-col items-center border border-[#2A2A2A]">
-                      <Loader2 className="w-6 h-6 text-[#0055FF] animate-spin mb-2" />
-                      <span className="text-[11px] font-bold text-[#0055FF] uppercase tracking-widest">Building</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <div className="w-full h-full bg-transparent relative rounded-xl overflow-hidden">
-                <iframe
-                  key={iframeRefreshKey}
-                  title="Wok Live Preview"
-                  srcDoc={srcDoc}
-                  className="w-full h-full border-none absolute inset-0 z-0 bg-transparent"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-              </div>
-            </>
-          ) : viewMode === 'code' ? (
-            <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />
-          ) : (
-            <AppDashboard
-              settings={appSettings}
-              onUpdateSettings={onUpdateSettings}
-              onClone={onClone}
-              onDelete={onDelete}
-              onUnpublish={onUnpublish}
-              dashboardTab={dashboardTab}
-              setDashboardTab={setDashboardTab}
-              content={content}
-              onUpdateContent={onUpdateContent}
+    <div className="w-full h-full relative font-sans overflow-hidden">
+      {hasComponent ? (
+        viewMode === 'preview' ? (
+          <div className="w-full h-full relative bg-white overflow-hidden">
+            <AnimatePresence>
+              {isCompiling && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-zinc-200 shadow-sm">
+                    <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
+                    <span className="text-xs font-medium text-zinc-500">Building…</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.iframe
+              key={iframeRefreshKey}
+              title="Wok Live Preview"
+              srcDoc={srcDoc}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: 'easeIn' }}
+              className="w-full h-full border-none absolute inset-0 bg-white"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             />
-          )
+          </div>
+        ) : viewMode === 'code' ? (
+          <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />
         ) : (
-  /* Ghost skeleton — grey in light mode, dark grey in dark mode. Theme-aware via CSS vars */
-  <div className="w-full h-full bg-muted/40 flex items-center justify-center p-8">
-    <div className="w-full max-w-4xl">
-      <SkeletonBlock w="45%" h={28} delay={0} />
-      <div style={{ marginBottom: 8 }} />
-      <SkeletonBlock w="68%" h={16} delay={60} opacity={0.5} />
-      <div style={{ marginBottom: 32 }} />
-
-      <div className="grid grid-cols-3 gap-4" style={{ marginBottom: 32 }}>
-        {[0,1,2].map(i => <SkeletonBlock key={i} w="100%" h={96} delay={100+i*60} radius={14} />)}
-      </div>
-
-      <SkeletonBlock w="100%" h={220} delay={280} radius={16} />
-      <div style={{ marginBottom: 32 }} />
-
-      <div className="flex flex-col gap-3" style={{ marginBottom: 32 }}>
-        {[{w:'92%',d:380},{w:'78%',d:420},{w:'85%',d:460},{w:'58%',d:500,op:0.45}].map((r,i) => (
-          <SkeletonBlock key={i} w={r.w} h={14} delay={r.d} opacity={r.op} />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {[0,1].map(i => <SkeletonBlock key={i} w="100%" h={140} delay={540+i*70} radius={14} />)}
-      </div>
-    </div>
-  </div>
-)}
-      </div>
+          <AppDashboard
+            settings={appSettings}
+            onUpdateSettings={onUpdateSettings}
+            onClone={onClone}
+            onDelete={onDelete}
+            onUnpublish={onUnpublish}
+            dashboardTab={dashboardTab}
+            setDashboardTab={setDashboardTab}
+            content={content}
+            onUpdateContent={onUpdateContent}
+          />
+        )
+      ) : (
+        /* Empty state */
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ background: '#EFEFEF' }}>
+          <img
+            src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png"
+            alt="Wok"
+            style={{ width: 40, height: 40, objectFit: 'contain', opacity: 0.2 }}
+          />
+          <p className="text-sm text-zinc-400 text-center">Your interface will appear here</p>
+        </div>
+      )}
     </div>
   );
 }
