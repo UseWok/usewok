@@ -608,23 +608,14 @@ export default function ChatPage() {
           ? MODIFY_KEYWORDS.test(text)
           : false;
 
-      // ── Step 2: Data/theme analysis ──
-      const textResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: PROMPT_PSYCHOLOGIST + "\n\nUser Query:\n" + text, 
-        model: 'gemini_3_flash' 
-      });
-
-      if (abortedRef.current) return;
-      const psychologicalText = typeof textResult === 'string' ? textResult : JSON.stringify(textResult);
-
-      // ── Step 3: Code generation — include existing code if modifying ──
+      // ── Step 2: Code generation (direct, no intermediate analysis call) ──
       const architectPrompt = isModification
-        ? PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\n[DATA UPDATE]:\n" + psychologicalText
-        : PROMPT_ARCHITECT + "\n\n[EXPAND THIS DATA INTO A $10K UI]:\n" + psychologicalText;
+        ? PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text
+        : PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
 
-      const codeResult = await base44.integrations.Core.InvokeLLM({ 
-        prompt: architectPrompt, 
-        model: 'gemini_3_flash' 
+      const codeResult = await base44.integrations.Core.InvokeLLM({
+        prompt: architectPrompt,
+        model: 'gemini_3_flash'
       });
 
       if (abortedRef.current) return;
@@ -919,7 +910,7 @@ export default function ChatPage() {
           {/* Chat panel — desktop */}
           <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'w-[34%] flex-shrink-0'}`}>
             <div className="flex flex-col w-full h-full">
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-6 mt-14 [&::-webkit-scrollbar]:hidden">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-4 mt-14 [&::-webkit-scrollbar]:hidden">
                 {!hasStarted && (
                   <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20">
                     <img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale dark:invert opacity-60" />
@@ -929,26 +920,30 @@ export default function ChatPage() {
                 {messages?.map((msg, idx) => (
                   <div key={idx}>
                     {msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} />
+                      ? <AssistantMessage 
+                          content={msg.content} 
+                          isGenerating={false} 
+                          query={msg.content}
+                          rawContent={msg.rawContent}
+                          onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setViewMode('preview'); }}}
+                        />
                       : <CustomUserMessageBubble msg={msg} />}
                   </div>
                 ))}
-                <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
+                {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
               <div className="flex-shrink-0 overflow-visible">
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-                <div className="px-4 pb-4">
+                <div className="px-2 pb-3">
                   <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Preview panel — desktop: floats as a rounded card with padding */}
+          {/* Preview panel — desktop */}
           <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out relative ${isPreviewCollapsed ? 'flex-1 opacity-100' : 'flex-1 opacity-100'}`}>
-            {!ficheContent && !isLoading && <div className="absolute inset-0 z-20 cursor-not-allowed" />}
-            {/* Toolbar sits directly on background, no border/bg */}
             <WorkspaceHeader
               onReload={handleReload}
               onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
@@ -958,9 +953,8 @@ export default function ChatPage() {
               onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
               onTogglePreview={() => setIsPreviewCollapsed(true)}
             />
-            {/* Floating preview card — padded, rounded, no edge touch */}
-            <div className="flex-1 overflow-hidden relative px-4 pb-4">
-              <div className="w-full h-full rounded-2xl overflow-hidden border border-border shadow-md bg-card relative">
+            <div className="flex-1 overflow-hidden relative px-2 pb-2">
+              <div className="w-full h-full rounded-xl overflow-hidden border border-border bg-card relative">
                 <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
                 {isLoading && !ficheContent ? (
                   <PreviewSkeleton />
@@ -1022,16 +1016,22 @@ export default function ChatPage() {
                 {messages?.map((msg, idx) => (
                   <div key={idx}>
                     {msg.role === 'assistant'
-                      ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} />
+                      ? <AssistantMessage 
+                          content={msg.content} 
+                          isGenerating={false} 
+                          query={msg.content}
+                          rawContent={msg.rawContent}
+                          onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setMobileView('preview'); }}}
+                        />
                       : <CustomUserMessageBubble msg={msg} />}
                   </div>
                 ))}
-                <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
+                {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
               <div className="flex-shrink-0">
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-                <div className="px-3 pb-3">
+                <div className="px-2 pb-2">
                   <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
                 </div>
               </div>
