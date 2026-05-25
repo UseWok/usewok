@@ -61,25 +61,24 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
   if (localGenerating) {
     return (
-      <div className="flex justify-start w-full mb-6 font-sans px-1 md:px-0">
-        <div className="w-full max-w-[85%]">
-          <div className="flex items-center gap-2 mb-4">
+      <div className="flex justify-start w-full mb-5 font-sans">
+        <div className="w-full">
+          <div className="flex items-center gap-2 mb-3">
             <div
               style={{
                 width: 2,
-                height: 12,
+                height: 11,
                 borderRadius: 2,
-                background: 'hsl(var(--foreground))',
+                background: 'hsl(var(--primary))',
                 animation: 'wok-pulse-cursor 900ms ease-out infinite',
                 flexShrink: 0,
-                opacity: 0.7,
               }}
             />
-            <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+            <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">
               Building
             </span>
           </div>
-          <div className="flex flex-col gap-[10px]">
+          <div className="flex flex-col gap-[9px]">
             {SKELETON_ROWS.map((row, i) => (
               <SkeletonBlock key={i} {...row} />
             ))}
@@ -100,16 +99,14 @@ export default function AssistantMessage({ content, isGenerating, query }) {
       safeText.includes('successfully recompiled')
     ) {
       return (
-        <div className="flex items-center gap-3 px-4 py-3 bg-card border border-border rounded-xl shadow-sm max-w-fit">
-          <div className="p-1.5 bg-muted rounded-lg">
-            <LayoutTemplate className="w-4 h-4 text-foreground/60" />
-          </div>
+        <div className="inline-flex items-center gap-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3 py-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
           <div className="flex flex-col">
-            <span className="text-[13px] font-semibold text-foreground leading-none mb-1">
+            <span className="text-[12px] font-semibold text-zinc-200 leading-none mb-0.5">
               Interface ready
             </span>
-            <span className="text-[11.5px] text-muted-foreground leading-none">
-              Preview updated in the right panel
+            <span className="text-[11px] text-zinc-500 leading-none">
+              Preview updated →
             </span>
           </div>
         </div>
@@ -118,13 +115,8 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
     return (
       <div
-        className="prose prose-sm max-w-none text-white prose-invert"
-        style={{
-          fontSize: '14.5px',
-          fontWeight: 300,
-          lineHeight: 1.8,
-          fontFamily: '"Open Sans", sans-serif',
-        }}
+        className="border-l-2 border-indigo-500 pl-3 text-zinc-300 text-sm leading-relaxed"
+        style={{ fontFamily: '"Open Sans", sans-serif' }}
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{safeText}</ReactMarkdown>
       </div>
@@ -133,10 +125,10 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
   return (
     <div
-      className="flex justify-start w-full mb-6 px-4 md:px-0"
+      className="flex justify-start w-full mb-5"
       style={{ animation: 'wok-slide-in 200ms ease-out both' }}
     >
-      <div className="w-full max-w-[95%]">{renderContent(content)}</div>
+      <div className="w-full">{renderContent(content)}</div>
     </div>
   );
 }

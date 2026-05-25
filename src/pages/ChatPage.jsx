@@ -36,25 +36,18 @@ import {
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
 // ============================================================================
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex flex-col items-end w-full mb-6 font-sans px-1 md:px-0 gap-2">
-    {/* Images above the text bubble */}
+  <div className="flex flex-col items-end w-full mb-4 gap-2">
     {(msg.images?.length || 0) > 0 && (
-      <div className="flex flex-wrap gap-2 justify-end max-w-[90%] md:max-w-[85%]">
+      <div className="flex flex-wrap gap-2 justify-end max-w-[85%]">
         {msg.images.map((imgUrl, i) => (
-          <img
-            key={i}
-            src={imgUrl}
-            alt="attachment"
-            className="max-w-[240px] max-h-[200px] rounded-2xl object-cover shadow-md border border-border"
-          />
+          <img key={i} src={imgUrl} alt="attachment"
+            className="max-w-[200px] max-h-[160px] rounded-2xl object-cover border border-white/10" />
         ))}
       </div>
     )}
     {msg.content && (
-      <div 
-        className="bg-[#1A1A1A] dark:bg-[#1A1A1A] text-white border border-[#2A2A2A] text-[15px] leading-relaxed px-5 py-3 rounded-[20px] max-w-[90%] md:max-w-[85%] whitespace-pre-wrap shadow-sm"
-        style={{ fontFamily: '"Open Sans", sans-serif' }}
-      >
+      <div className="bg-zinc-800/60 text-zinc-100 text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm max-w-[85%] whitespace-pre-wrap"
+        style={{ fontFamily: '"Open Sans", sans-serif' }}>
         {msg.content}
       </div>
     )}
@@ -908,21 +901,36 @@ export default function ChatPage() {
         <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
 
           {/* Chat panel — desktop */}
-          <div className={`flex flex-col bg-background overflow-hidden transition-all duration-200 ease-out ${isPreviewCollapsed ? 'w-0 opacity-0 flex-none pointer-events-none' : 'w-[34%] flex-shrink-0'}`}>
+          <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out flex-shrink-0 ${isPreviewCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[420px]'}`}
+            style={{ background: '#111118', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="flex flex-col w-full h-full">
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-2 py-4 mt-14 [&::-webkit-scrollbar]:hidden">
+
+              {/* Header */}
+              <div className="flex items-center gap-2.5 px-5 pt-5 pb-4 mt-10 flex-shrink-0">
+                <div className="w-6 h-6 rounded-md bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-black text-black">W</span>
+                </div>
+                <span className="text-white font-semibold text-lg leading-none">Wok</span>
+              </div>
+              <div className="h-px bg-white/5 mx-5 flex-shrink-0" />
+
+              {/* Messages */}
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-4 [&::-webkit-scrollbar]:hidden">
                 {!hasStarted && (
-                  <div className="flex flex-col items-center justify-center text-center opacity-40 w-full mt-20">
-                    <img src={LOGO_URL} alt="Wok" className="w-12 h-12 object-contain mb-4 grayscale dark:invert opacity-60" />
-                    <h2 className="text-[24px] font-bold text-foreground">How can I help you today?</h2>
+                  <div className="flex flex-col items-center justify-center text-center w-full mt-16">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center mb-4">
+                      <span className="text-sm font-black text-black">W</span>
+                    </div>
+                    <h2 className="text-base font-semibold text-zinc-300 mb-1">How can I help you today?</h2>
+                    <p className="text-xs text-zinc-600">Describe the interface you want to build.</p>
                   </div>
                 )}
                 {messages?.map((msg, idx) => (
                   <div key={idx}>
                     {msg.role === 'assistant'
-                      ? <AssistantMessage 
-                          content={msg.content} 
-                          isGenerating={false} 
+                      ? <AssistantMessage
+                          content={msg.content}
+                          isGenerating={false}
                           query={msg.content}
                           rawContent={msg.rawContent}
                           onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setViewMode('preview'); }}}
@@ -933,9 +941,25 @@ export default function ChatPage() {
                 {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className="flex-shrink-0 overflow-visible">
+
+              {/* Bottom zone */}
+              <div className="flex-shrink-0">
+                {/* Suggestion chips */}
+                {!hasStarted && (
+                  <div className="flex gap-2 px-5 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                    {['Dashboard with charts', 'Landing page', 'E-commerce UI', 'SaaS pricing'].map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => setInput(chip)}
+                        className="flex-shrink-0 bg-zinc-800 hover:bg-zinc-700 border border-white/5 rounded-full px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-                <div className="px-2 pb-3">
+                <div className="px-3 pb-3">
                   <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
                 </div>
               </div>
