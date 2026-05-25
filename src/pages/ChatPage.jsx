@@ -947,8 +947,10 @@ export default function ChatPage() {
         backgroundColor: '#FAFAFA',
         backgroundImage: 'radial-gradient(circle, #E8D5E8 1px, transparent 1px)',
         backgroundSize: '48px 48px',
+        scrollbarWidth: 'none',
       }}
     >
+      <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top right */}
       <WokHeader user={user} userPlan={userPlan} onNavigate={navigate} />
 
@@ -1105,7 +1107,7 @@ export default function ChatPage() {
               borderRadius: Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',
-              border: '0.5px solid rgba(229, 229, 229, 0.35)',
+              border: '0.25px solid rgba(229, 229, 229, 0.5)',
             }}
           >
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
