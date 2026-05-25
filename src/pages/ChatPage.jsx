@@ -959,7 +959,7 @@ export default function ChatPage() {
                   </div>
                 )}
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-                <div className="px-3 pb-3">
+                <div className="px-3 pb-4">
                   <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
                 </div>
               </div>
