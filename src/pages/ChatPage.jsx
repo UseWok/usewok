@@ -35,25 +35,37 @@ import {
 // ============================================================================
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
 // ============================================================================
+// Highlight "hovering" with underline as seen in image
+const renderUserText = (text) => {
+  if (!text) return null;
+  return text.split(/(hovering)/g).map((part, i) =>
+    part === 'hovering'
+      ? <span key={i} style={{ textDecoration: 'underline' }}>hovering</span>
+      : part
+  );
+};
+
 const CustomUserMessageBubble = ({ msg }) => (
   <div className="flex flex-col items-end w-full gap-1">
     {(msg.images?.length || 0) > 0 && (
-      <div className="flex flex-wrap gap-2 max-w-[85%] justify-end">
+      <div className="flex flex-wrap gap-2 max-w-[75%] justify-end">
         {msg.images.map((imgUrl, i) => (
           <img key={i} src={imgUrl} alt="attachment"
-            className="max-w-[180px] max-h-[140px] rounded-2xl object-cover border border-zinc-200" />
+            className="max-w-[160px] max-h-[120px] rounded-2xl object-cover" />
         ))}
       </div>
     )}
     {msg.content && (
       <div
-        className="text-sm text-zinc-800 leading-relaxed whitespace-pre-wrap inline-block max-w-[85%] text-left"
-        style={{ background: '#EDEDED', borderRadius: '14px 14px 4px 14px', padding: '10px 14px', fontSize: 13 }}
+        className="inline-block max-w-[75%] text-left whitespace-pre-wrap"
+        style={{ background: '#F0F0F0', borderRadius: 14, padding: '10px 13px', fontSize: 13, color: '#222222', lineHeight: 1.5 }}
       >
-        {msg.content}
+        {renderUserText(msg.content)}
       </div>
     )}
-    <span className="text-[11px] text-zinc-400 mr-0.5">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    <span style={{ fontSize: 11, color: '#AAAAAA', marginRight: 2 }}>
+      {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    </span>
   </div>
 );
 
@@ -843,136 +855,143 @@ export default function ChatPage() {
 
   const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
 
-  // ── Sidebar width from image: ~320px ──
-  const SIDEBAR_W = 320;
-
   return (
-    <div className="flex flex-row h-screen w-screen overflow-hidden font-sans antialiased" style={{ background: '#F0F0F0' }}>
-
-      {/* ── Modals (unchanged logic) ── */}
+    /* ═══════════════════════════════════════════════════════════════
+       OUTER CANVAS — flat uniform light gray, full viewport
+    ═══════════════════════════════════════════════════════════════ */
+    <div
+      className="flex items-center justify-center w-screen h-screen font-sans antialiased"
+      style={{ background: '#E8E8E8' }}
+    >
+      {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
-        <label className="text-[12px] font-semibold text-foreground mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-border bg-background text-foreground rounded-md px-3 py-2 text-[13px] focus:outline-none mb-4" autoFocus />
-        <div className="bg-muted p-4 rounded-lg border border-border">
-          <h4 className="text-[12px] font-bold text-foreground mb-2.5">What happens next?</h4>
-          <ul className="text-[11.5px] text-muted-foreground space-y-2">
-            <li>• You will be the owner with full management permissions</li>
-            <li>• You can invite members and manage licenses</li>
-            <li>• Access your workspace dashboard to get started</li>
-          </ul>
-        </div>
+        <label className="text-[12px] font-semibold mb-1.5 block">Workspace name *</label>
+        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border rounded-md px-3 py-2 text-[13px] focus:outline-none mb-4" autoFocus />
       </ProModal>
       <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
-        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border border-border bg-background text-foreground rounded-md px-3 py-2 text-[13px] focus:outline-none" />
+        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
-      {/* ══════════════════════════════════
-          LEFT SIDEBAR — exact image match
-      ══════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════════════
+          MAIN CARD — white rounded rect with soft shadow, two columns
+      ═══════════════════════════════════════════════════════════════ */}
       <div
-        className="flex flex-col h-screen flex-shrink-0 overflow-hidden"
-        style={{ width: SIDEBAR_W, minWidth: SIDEBAR_W, maxWidth: SIDEBAR_W, background: '#FFFFFF', borderRight: '1px solid #E8E8E8' }}
+        className="flex overflow-hidden"
+        style={{
+          width: '92vw',
+          maxWidth: 1100,
+          height: '88vh',
+          maxHeight: 700,
+          borderRadius: 14,
+          boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
+          background: '#FFFFFF',
+        }}
       >
-        {/* ── HEADER: avatar + name + email ── */}
-        <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-          <div
-            className="flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden"
-            style={{ width: 36, height: 36, background: '#F97316', borderRadius: 10 }}
-          >
-            {/* Orange square logo like image */}
-            <span className="text-white font-black text-sm leading-none">T</span>
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[13px] font-semibold text-zinc-900 leading-tight">{user?.full_name || 'Trailride'}</span>
-            <span className="text-[11px] text-zinc-400 leading-tight">{user?.email || 'alssem@****.com'}</span>
-          </div>
-        </div>
-
-        {/* ── MESSAGES SCROLL AREA ── */}
+        {/* ═══════════════════════════
+            LEFT PANEL — ~32% white
+        ═══════════════════════════ */}
         <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto flex flex-col"
-          style={{ padding: '8px 0' }}
+          className="flex flex-col flex-shrink-0 overflow-hidden"
+          style={{ width: '32%', minWidth: 300, maxWidth: 360, background: '#FFFFFF', borderRight: '1px solid #EBEBEB' }}
         >
-          {/* Messages */}
-          <div className="flex flex-col gap-3 px-4">
-            {messages?.map((msg, idx) => (
-              <div key={idx}>
-                {msg.role === 'assistant'
-                  ? <AssistantMessage
-                      content={msg.content}
-                      isGenerating={false}
-                      query={msg.content}
-                      rawContent={msg.rawContent}
-                      onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setViewMode('preview'); }}}
-                    />
-                  : <CustomUserMessageBubble msg={msg} />}
-              </div>
-            ))}
-            {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
+          {/* HEADER ROW */}
+          <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 flex-shrink-0">
+            {/* Circular avatar ~36px coral-orange #E8522A with ✦ glyph */}
+            <div
+              className="flex-shrink-0 flex items-center justify-center"
+              style={{ width: 36, height: 36, borderRadius: '50%', background: '#E8522A' }}
+            >
+              <span style={{ color: '#FFFFFF', fontSize: 16, lineHeight: 1, fontWeight: 700 }}>✦</span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#111111', lineHeight: 1.3 }}>
+                {user?.full_name || 'Trailride'}
+              </span>
+              <span style={{ fontSize: 12, color: '#888888', lineHeight: 1.3 }}>
+                {user?.email ? user.email.replace(/(?<=.{3}).+(?=@)/, '*****') : 'alessan@*****.com'}
+              </span>
+            </div>
           </div>
 
-          {/* ── SUGGESTIONS (always visible at bottom of scroll) ── */}
-          <div className="px-4 mt-4">
-            <div className="flex items-center gap-1.5 mb-2">
-              {/* Pin icon like image */}
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400 flex-shrink-0">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
-              <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 500 }}>Suggestions</span>
-            </div>
-            <div className="flex flex-row flex-wrap gap-x-4 gap-y-1">
-              {SUGGESTIONS.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setInput(s)}
-                  className="text-left transition cursor-pointer hover:text-zinc-900"
-                  style={{ fontSize: 13, color: '#52525B', lineHeight: 1.5 }}
-                >
-                  {s}
-                </button>
+          {/* MESSAGES SCROLL AREA */}
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto flex flex-col"
+            style={{ padding: '4px 0 0 0' }}
+          >
+            <div className="flex flex-col gap-3 px-4 pb-2">
+              {messages?.map((msg, idx) => (
+                <div key={idx}>
+                  {msg.role === 'assistant'
+                    ? <AssistantMessage
+                        content={msg.content}
+                        isGenerating={false}
+                        query={msg.content}
+                        rawContent={msg.rawContent}
+                        onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setViewMode('preview'); }}}
+                      />
+                    : <CustomUserMessageBubble msg={msg} />}
+                </div>
               ))}
+              {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
             </div>
+
+            {/* SUGGESTIONS — pin icon + label + chip buttons */}
+            <div className="px-4 mt-3 mb-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                {/* Location pin icon */}
+                <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span style={{ fontSize: 12, color: '#888888', fontWeight: 400 }}>Suggestions</span>
+              </div>
+              {/* Chips — white bg, gray border, pill, dark text */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {SUGGESTIONS.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setInput(s)}
+                    style={{
+                      fontSize: 12, color: '#333333', background: '#FFFFFF',
+                      border: '1px solid #DEDEDE', borderRadius: 999,
+                      padding: '5px 11px', cursor: 'pointer', lineHeight: 1.4,
+                      transition: 'background 150ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div ref={messagesEndRef} className="h-1" />
           </div>
 
-          <div ref={messagesEndRef} className="h-2" />
+          {/* INPUT ZONE */}
+          <div className="flex-shrink-0">
+            <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+            <ChatInputBar
+              input={input} setInput={setInput}
+              onSend={sendMessage} onStop={handleStop}
+              isLoading={isLoading}
+              files={files} setFiles={setFiles}
+              discussMode={discussMode} setDiscussMode={setDiscussMode}
+              editMode={editMode} setEditMode={setEditMode}
+            />
+          </div>
         </div>
 
-        {/* ── INPUT ZONE (bottom, fixed inside sidebar) ── */}
-        <div className="flex-shrink-0">
-          <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-          <ChatInputBar
-            input={input} setInput={setInput}
-            onSend={sendMessage} onStop={handleStop}
-            isLoading={isLoading}
-            files={files} setFiles={setFiles}
-            discussMode={discussMode} setDiscussMode={setDiscussMode}
-            editMode={editMode} setEditMode={setEditMode}
-          />
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════
-          RIGHT PREVIEW PANEL — full bleed
-      ══════════════════════════════════ */}
-      <div className="flex-1 h-screen overflow-hidden relative" style={{ background: '#F0F0F0' }}>
-        {/* Top bar overlay (only refresh + route + publish, minimal) */}
-        <WorkspaceHeader
-          onReload={handleReload}
-          onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
-          convId={conversationId || convId}
-          projectNumber={projectNumber}
-          discussions={discussions}
-          onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
-          onTogglePreview={() => setIsPreviewCollapsed(prev => !prev)}
-        />
-        <div className="absolute inset-0 overflow-hidden" style={{ top: 48 }}>
+        {/* ═══════════════════════════
+            RIGHT PANEL — solid #000000, no content
+        ═══════════════════════════ */}
+        <div className="flex-1 relative overflow-hidden" style={{ background: '#000000' }}>
           <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-          {isLoading && !ficheContent ? (
-            <PreviewSkeleton />
-          ) : (
+          {ficheContent ? (
             <FichePanel
               content={ficheContent}
               iframeRefreshKey={iframeRefreshKey}
@@ -989,11 +1008,13 @@ export default function ChatPage() {
               customSlug={customSlug}
               onUpdateContent={setFicheContent}
             />
-          )}
+          ) : isLoading ? (
+            <PreviewSkeleton />
+          ) : null}
         </div>
       </div>
 
-      {/* ══ MOBILE LAYOUT (< md) ══ */}
+      {/* ══ MOBILE LAYOUT ══ */}
       <div className="fixed inset-0 flex md:hidden flex-col bg-white">
         <div className="flex px-3 py-2 border-b border-zinc-200 bg-white flex-shrink-0">
           <div className="flex bg-zinc-100 p-1 rounded-lg gap-0.5 w-full">
@@ -1023,11 +1044,9 @@ export default function ChatPage() {
           </div>
         )}
         {mobileView === 'preview' && (
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative bg-black">
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-            {isLoading && !ficheContent ? <PreviewSkeleton /> : (
-              <FichePanel content={ficheContent} iframeRefreshKey={iframeRefreshKey} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} setViewMode={setViewMode} appSettings={appSettings} onUpdateSettings={handleUpdateAppMeta} onClone={handleCloneApp} onDelete={handleDeleteApp} onUnpublish={handleUnpublishApp} customSlug={customSlug} onUpdateContent={setFicheContent} />
-            )}
+            {ficheContent ? <FichePanel content={ficheContent} iframeRefreshKey={iframeRefreshKey} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} setViewMode={setViewMode} appSettings={appSettings} onUpdateSettings={handleUpdateAppMeta} onClone={handleCloneApp} onDelete={handleDeleteApp} onUnpublish={handleUnpublishApp} customSlug={customSlug} onUpdateContent={setFicheContent} /> : null}
           </div>
         )}
       </div>
