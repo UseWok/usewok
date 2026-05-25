@@ -14,6 +14,7 @@ import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants
 import { ALL_MODES } from '@/lib/modes-config';
 import { getUserPlan } from '@/lib/plans-config';
 import { formatAIResponse, RESPONSE_FORMAT_PROMPT } from '@/lib/format-response';
+import { storage, safeAsync, getElement, logger, runPreflight } from '@/lib/code-quality';
 import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
@@ -124,10 +125,10 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
 // ► 3. UTILITIES, CONSTANTS & PROMPTS
 // ============================================================================
 const getLocalDiscussions = (workspaceId) => {
-  try {return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || [];} catch {return [];}
+  return storage.get(`wok_discussions_${workspaceId}`, []);
 };
 const saveLocalDiscussions = (workspaceId, data) => {
-  localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
+  return storage.set(`wok_discussions_${workspaceId}`, data);
 };
 
 const PROMPT_PSYCHOLOGIST = `Elite UI data compiler. THEME T:X (1=Clean/white, 2=Dark/void, 3=Yuzu/neon, 4=Sand/warm, 5=Brutal). Output: dense telegraphic data, copywriting points, chart arrays with XY axes. RAW TEXT ONLY.`;
@@ -774,18 +775,14 @@ export default function ChatPage() {
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if (convId) {
-      try {
+      await safeAsync(async () => {
         await base44.entities.Conversation.update(convId, {
           title: newSettings.title,
           is_public: newSettings.isPublic
         });
-        // Full sync to ensure everything is saved
         const { syncConversationToCloud } = await import('@/lib/discussions');
-        syncConversationToCloud(convId, messages || [], newSettings);
-      }
-      catch (e) {
-        console.error('Meta update failed:', e);
-      }
+        await syncConversationToCloud(convId, messages || [], newSettings);
+      }, null, 'Update app meta');
     }
     toast.success("Settings updated successfully.");
   };
@@ -794,13 +791,14 @@ export default function ChatPage() {
     const newConvId = `conv_${Date.now()}`;
     saveConversationMessages(newConvId, messages);
     
-    // Clone to cloud immediately
-    const { syncConversationToCloud } = await import('@/lib/discussions');
-    await syncConversationToCloud(newConvId, messages || [], {
-      title: appSettings.title + ' (Copy)',
-      preview: appSettings.description,
-      is_public: false
-    });
+    await safeAsync(async () => {
+      const { syncConversationToCloud } = await import('@/lib/discussions');
+      await syncConversationToCloud(newConvId, messages || [], {
+        title: appSettings.title + ' (Copy)',
+        preview: appSettings.description,
+        is_public: false
+      });
+    }, null, 'Clone conversation');
     
     toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
@@ -810,15 +808,11 @@ export default function ChatPage() {
     const newSettings = { ...appSettings, isPublic: false };
     setAppSettings(newSettings);
     if (convId) {
-      try {
+      await safeAsync(async () => {
         await base44.entities.Conversation.update(convId, { is_public: false });
-        // Full sync
         const { syncConversationToCloud } = await import('@/lib/discussions');
         await syncConversationToCloud(convId, messages || [], newSettings);
-      }
-      catch (e) {
-        console.error('Unpublish failed:', e);
-      }
+      }, null, 'Unpublish app');
     }
     toast.success("Application unpublished.");
   };
@@ -826,16 +820,13 @@ export default function ChatPage() {
   const handleDeleteApp = async () => {
     deleteDiscussion({ stopPropagation: () => {} }, convId);
     
-    // Delete from cloud
     if (convId) {
-      try {
+      await safeAsync(async () => {
         const results = await base44.entities.Conversation.filter({ conv_id: convId });
         if (results.length > 0) {
           await base44.entities.Conversation.delete(results[0].id);
         }
-      } catch (e) {
-        console.error('Cloud delete failed:', e);
-      }
+      }, null, 'Delete conversation');
     }
     
     toast.success("Application deleted permanently.");
@@ -858,13 +849,19 @@ export default function ChatPage() {
   // (removed the effect that was causing unwanted redirects)
 
   useEffect(() => {
-    initAgentsFromDB().catch(() => {});
-    base44.auth.me().then((u) => {
-      setUser(u);
-      if (u?.id) setCurrentUser(u.id);
-      setUserPlan(getUserPlan(u));
-      setProjectNumber(u?.project_count || 0);
-    }).catch(() => {});
+    const initAuth = async () => {
+      await safeAsync(() => initAgentsFromDB(), null, 'Init agents');
+      const user = await safeAsync(() => base44.auth.me(), null, 'Fetch user');
+      
+      if (user) {
+        setUser(user);
+        if (user.id) setCurrentUser(user.id);
+        setUserPlan(getUserPlan(user));
+        setProjectNumber(user.project_count || 0);
+      }
+    };
+    
+    initAuth();
   }, [conversationId]);
 
   useEffect(() => {
@@ -877,20 +874,25 @@ export default function ChatPage() {
       setFicheContent(null);
       return;
     }
-    loadConversationFromCloud(conversationId).then((cloudMsgs) => {
+    
+    const loadConv = async () => {
+      const cloudMsgs = await safeAsync(
+        () => loadConversationFromCloud(conversationId),
+        [],
+        'Load conversation'
+      );
+      
       const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
       if (safeCloudMsgs.length > 0) {
         setMessages(safeCloudMsgs);
         saveConversationMessages(conversationId, safeCloudMsgs);
         const lastAssistantMsg = safeCloudMsgs.filter((m) => m.role === 'assistant').pop();
-        if (lastAssistantMsg) {
-          setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
-        } else {
-          setFicheContent(null);
-        }
+        setFicheContent(lastAssistantMsg?.rawContent || lastAssistantMsg?.content || null);
       }
       setIsLoadingConversation(false);
-    }).catch(() => setIsLoadingConversation(false));
+    };
+    
+    loadConv();
   }, [conversationId]);
 
   useEffect(() => {messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });}, [messages]);
@@ -900,29 +902,24 @@ export default function ChatPage() {
   // ── Global keyboard shortcuts ──
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl/Cmd + S: Save (trigger in code editor if available)
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        if (viewMode === 'code') {
-          // Code editor handles this internally
-          return;
+        if (viewMode !== 'code') {
+          toast.info('Auto-save active — changes sync continuously');
         }
-        toast.info('Auto-save active — changes sync continuously');
       }
 
-      // Ctrl/Cmd + K: Toggle preview collapse
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         if (hasStarted) setIsPreviewCollapsed((prev) => !prev);
       }
 
-      // Ctrl/Cmd + /: Focus input
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
-        document.querySelector('textarea')?.focus();
+        const textarea = document.querySelector('textarea');
+        if (textarea) textarea.focus();
       }
 
-      // Escape: Close preview collapse or fullscreen modal
       if (e.key === 'Escape') {
         if (isPreviewCollapsed && hasStarted) {
           setIsPreviewCollapsed(false);
