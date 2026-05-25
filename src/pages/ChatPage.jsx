@@ -41,13 +41,13 @@ const CustomUserMessageBubble = ({ msg }) => (
       <div className="flex flex-wrap gap-2 justify-end max-w-[85%]">
         {msg.images.map((imgUrl, i) => (
           <img key={i} src={imgUrl} alt="attachment"
-            className="max-w-[200px] max-h-[160px] rounded-2xl object-cover border border-white/10" />
+            className="max-w-[200px] max-h-[160px] rounded-2xl object-cover border border-zinc-200" />
         ))}
       </div>
     )}
     {msg.content && (
-      <div className="bg-zinc-800/60 text-zinc-100 text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm max-w-[85%] whitespace-pre-wrap"
-        style={{ fontFamily: '"Open Sans", sans-serif' }}>
+      <div className="bg-zinc-900 text-white text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm max-w-[85%] whitespace-pre-wrap"
+        style={{ fontFamily: 'Inter, sans-serif' }}>
         {msg.content}
       </div>
     )}
@@ -263,7 +263,7 @@ const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => {
 };
 
 const PreviewSkeleton = () => (
-  <div className="w-full h-full bg-muted/40 rounded-2xl p-6 flex flex-col gap-0 overflow-hidden">
+  <div className="w-full h-full bg-zinc-50 rounded-2xl p-6 flex flex-col gap-0 overflow-hidden">
     {/* Header block */}
     <div className="flex flex-col gap-2.5 mb-8">
       <SkeletonRow width="38%" height={22} delay={0} />
@@ -901,28 +901,28 @@ export default function ChatPage() {
         <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
 
           {/* Chat panel — desktop */}
-          <div className={`flex flex-col overflow-hidden transition-all duration-200 ease-out flex-shrink-0 ${isPreviewCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[420px]'}`}
-            style={{ background: '#111118', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className={`flex flex-col overflow-hidden transition-all duration-150 ease-out flex-shrink-0 ${isPreviewCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[420px]'}`}
+            style={{ background: '#FFFFFF', borderRight: '1px solid #E4E4E7' }}>
             <div className="flex flex-col w-full h-full">
 
               {/* Header */}
               <div className="flex items-center gap-2.5 px-5 pt-5 pb-4 mt-10 flex-shrink-0">
-                <div className="w-6 h-6 rounded-md bg-amber-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-black text-black">W</span>
+                <div className="w-6 h-6 rounded-md bg-amber-400 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-black text-white">W</span>
                 </div>
-                <span className="text-white font-semibold text-lg leading-none">Wok</span>
+                <span className="text-base font-semibold text-zinc-900 leading-none">Wok</span>
               </div>
-              <div className="h-px bg-white/5 mx-5 flex-shrink-0" />
+              <div className="h-px bg-zinc-200 mx-5 flex-shrink-0" />
 
               {/* Messages */}
               <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-4 [&::-webkit-scrollbar]:hidden">
                 {!hasStarted && (
                   <div className="flex flex-col items-center justify-center text-center w-full mt-16">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center mb-4">
-                      <span className="text-sm font-black text-black">W</span>
+                    <div className="w-8 h-8 rounded-lg bg-amber-400 flex items-center justify-center mb-4">
+                      <span className="text-sm font-black text-white">W</span>
                     </div>
-                    <h2 className="text-base font-semibold text-zinc-300 mb-1">How can I help you today?</h2>
-                    <p className="text-xs text-zinc-600">Describe the interface you want to build.</p>
+                    <h2 className="text-base font-semibold text-zinc-900 mb-1">How can I help you today?</h2>
+                    <p className="text-xs text-zinc-400">Describe the interface you want to build.</p>
                   </div>
                 )}
                 {messages?.map((msg, idx) => (
@@ -946,12 +946,12 @@ export default function ChatPage() {
               <div className="flex-shrink-0">
                 {/* Suggestion chips */}
                 {!hasStarted && (
-                  <div className="flex gap-2 px-5 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                  <div className="flex gap-2 px-5 pb-3 overflow-x-auto">
                     {['Dashboard with charts', 'Landing page', 'E-commerce UI', 'SaaS pricing'].map(chip => (
                       <button
                         key={chip}
                         onClick={() => setInput(chip)}
-                        className="flex-shrink-0 bg-zinc-800 hover:bg-zinc-700 border border-white/5 rounded-full px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                        className="flex-shrink-0 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-full px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-all duration-150 shadow-sm"
                       >
                         {chip}
                       </button>
@@ -978,7 +978,7 @@ export default function ChatPage() {
               onTogglePreview={() => setIsPreviewCollapsed(true)}
             />
             <div className="flex-1 overflow-hidden relative px-2 pb-2">
-              <div className="w-full h-full rounded-xl overflow-hidden border border-border bg-card relative">
+              <div className="w-full h-full rounded-xl overflow-hidden border border-zinc-200 bg-white relative shadow-sm">
                 <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
                 {isLoading && !ficheContent ? (
                   <PreviewSkeleton />

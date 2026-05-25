@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,100 +6,95 @@
 
 @layer base {
   :root {
-    /* ── Fonts ─────────────────────────────── */
+    /* ── Fonts ── */
     --font-inter: 'Inter', system-ui, sans-serif;
-    --font-be: 'Inter', system-ui, sans-serif;
-    --font-open: 'Open Sans', sans-serif;
 
     /* ════════════════════════════════════════
-       PREMIUM DARK DESIGN SYSTEM
-       Always-dark — no light mode override
+       CLEAN LIGHT DESIGN SYSTEM
     ════════════════════════════════════════ */
 
-    /* Deep void backgrounds */
-    --background: 240 10% 4%;          /* #0A0A0F */
-    --foreground: 0 0% 93%;            /* #EDEDED — off-white, never pure white */
+    /* Backgrounds */
+    --background: 0 0% 94%;          /* #EFEFEF — app bg */
+    --foreground: 0 0% 4%;           /* #0A0A0A — text primary */
 
-    /* Cards sit one level above background */
-    --card: 240 8% 7%;                 /* #111118 */
-    --card-foreground: 0 0% 88%;
+    /* Cards / surfaces */
+    --card: 0 0% 100%;               /* #FFFFFF */
+    --card-foreground: 0 0% 4%;
 
     /* Popovers / dropdowns */
-    --popover: 240 8% 9%;
-    --popover-foreground: 0 0% 88%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
 
-    /* Primary: Electric Indigo #6366F1 */
-    --primary: 239 84% 67%;
+    /* Primary: black interactive */
+    --primary: 0 0% 4%;              /* #0A0A0A */
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: subtle zinc panel */
-    --secondary: 240 6% 13%;
-    --secondary-foreground: 0 0% 72%;
+    /* Secondary: light surface */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 44%;  /* zinc-600 */
 
-    /* Muted: darkest surface for inputs / inactive states */
-    --muted: 240 6% 11%;
-    --muted-foreground: 0 0% 46%;
+    /* Muted */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 63%;    /* #A1A1AA — text muted */
 
-    /* Accent = same as primary for consistency */
-    --accent: 239 84% 67%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: amber (logo mark only) */
+    --accent: 38 92% 50%;            /* #F59E0B */
+    --accent-foreground: 0 0% 4%;
 
     /* Destructive */
-    --destructive: 0 72% 56%;
-    --destructive-foreground: 0 0% 97%;
+    --destructive: 0 84% 60%;        /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
 
-    /* Borders: white/5 — barely visible, premium feel */
-    --border: 240 6% 14%;
-    --input: 240 6% 12%;
-    --ring: 239 84% 67%;
+    /* Borders */
+    --border: 240 5% 90%;            /* #E4E4E7 */
+    --input: 240 5% 90%;
+    --ring: 0 0% 4%;
 
     /* Radius token */
     --radius: 0.75rem;
 
-    /* Sidebar tokens */
-    --sidebar-background: 240 8% 6%;   /* #0E0E14 — slightly lighter than bg */
-    --sidebar-foreground: 0 0% 55%;
-    --sidebar-primary: 239 84% 67%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%; /* #FFFFFF */
+    --sidebar-foreground: 0 0% 44%;
+    --sidebar-primary: 0 0% 4%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 11%;
-    --sidebar-accent-foreground: 0 0% 80%;
-    --sidebar-border: 240 6% 12%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 240 5% 90%;
+    --sidebar-ring: 0 0% 4%;
   }
 
-  /* Keep .dark identical so toggling class doesn't break layout */
+  /* Mirror to .dark so class-based toggle stays neutral */
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 93%;
-    --card: 240 8% 7%;
-    --card-foreground: 0 0% 88%;
-    --popover: 240 8% 9%;
-    --popover-foreground: 0 0% 88%;
-    --primary: 239 84% 67%;
+    --background: 0 0% 94%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 0 0% 4%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 6% 13%;
-    --secondary-foreground: 0 0% 72%;
-    --muted: 240 6% 11%;
-    --muted-foreground: 0 0% 46%;
-    --accent: 239 84% 67%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 56%;
-    --destructive-foreground: 0 0% 97%;
-    --border: 240 6% 14%;
-    --input: 240 6% 12%;
-    --ring: 239 84% 67%;
-    --sidebar-background: 240 8% 6%;
-    --sidebar-foreground: 0 0% 55%;
-    --sidebar-border: 240 6% 12%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 44%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 63%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5% 90%;
+    --input: 240 5% 90%;
+    --ring: 0 0% 4%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 44%;
+    --sidebar-border: 240 5% 90%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  *, *::before, *::after {
     transition-duration: 150ms;
   }
   body {
@@ -108,68 +102,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
-  /* ── Headings ── */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
-    letter-spacing: -0.02em;
-    color: hsl(var(--foreground));
+    letter-spacing: -0.01em;
+    color: #0A0A0A;
   }
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(240 6% 18%);
-    border-radius: 999px;
+  /* ── Scrollbars: hidden everywhere ── */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(240 6% 24%);
+  *::-webkit-scrollbar {
+    display: none;
   }
-}
-
-/* ── Premium skeleton — uses indigo tint in dark ── */
-.skeleton-block {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 25%,
-    hsl(240 6% 16%) 50%,
-    hsl(var(--muted)) 75%
-  );
-  background-size: 600px 100%;
-  animation: wok-shimmer 1.6s ease-out infinite;
-}
-
-/* ── Indigo glow utility ── */
-.glow-indigo {
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.08);
-}
-
-/* ── Glass panel utility ── */
-.glass-panel {
-  background: hsl(var(--card));
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-}
-
-/* ── Keyframes ── */
-@keyframes wok-shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
-}
-@keyframes wok-slide-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
-}
-@keyframes wok-slide-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-@keyframes wok-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes wok-pulse-cursor {
-  0%, 100% { opacity: 1;    }
-  50%       { opacity: 0.15; }
 }

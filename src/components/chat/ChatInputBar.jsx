@@ -129,23 +129,23 @@ export default function ChatInputBar({
       {/* AI Config panel */}
       {showAIConfig && (
         <div
-          className="absolute bottom-[calc(100%+12px)] left-0 w-[320px] bg-[#13131A] rounded-2xl p-2 shadow-2xl font-sans border border-white/[0.07] select-none z-[999]"
-          style={{ animation: 'wok-slide-in 200ms ease-out both' }}
+          className="absolute bottom-[calc(100%+12px)] left-0 w-[300px] bg-white rounded-xl p-2 shadow-md border border-zinc-200 select-none z-[999]"
+          style={{ animation: 'slide-in 150ms ease-out both' }}
         >
           <button onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-xl hover:bg-white/[0.06] transition-colors">
-            <div className="w-7 flex-shrink-0 pt-0.5">{!expertMode && <Check className="w-4 h-4 text-indigo-400 stroke-[3]" />}</div>
+            className="w-full flex items-start text-left p-3 rounded-lg hover:bg-zinc-50 transition-all duration-150">
+            <div className="w-6 flex-shrink-0 pt-0.5">{!expertMode && <Check className="w-3.5 h-3.5 text-zinc-900 stroke-[3]" />}</div>
             <div>
-              <p className="text-sm font-semibold text-white">Flash</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Fastest versatile assistance</p>
+              <p className="text-sm font-semibold text-zinc-900">Flash</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Fastest versatile assistance</p>
             </div>
           </button>
           <button onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-xl hover:bg-white/[0.06] transition-colors">
-            <div className="w-7 flex-shrink-0 pt-0.5">{expertMode && <Check className="w-4 h-4 text-indigo-400 stroke-[3]" />}</div>
+            className="w-full flex items-start text-left p-3 rounded-lg hover:bg-zinc-50 transition-all duration-150">
+            <div className="w-6 flex-shrink-0 pt-0.5">{expertMode && <Check className="w-3.5 h-3.5 text-zinc-900 stroke-[3]" />}</div>
             <div>
-              <p className="text-sm font-semibold text-white">Expert</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Advanced coding & mathematics</p>
+              <p className="text-sm font-semibold text-zinc-900">Expert</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Advanced coding & mathematics</p>
             </div>
           </button>
         </div>
@@ -153,8 +153,8 @@ export default function ChatInputBar({
 
       {/* Main input container */}
       <div
-        className={`bg-zinc-900 border rounded-2xl px-4 py-3 ${transition} ${
-          hasContent ? 'border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'border-white/10'
+        className={`bg-white border rounded-2xl px-4 py-3 ${transition} shadow-sm ${
+          hasContent ? 'border-zinc-400' : 'border-zinc-200'
         }`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -194,8 +194,8 @@ export default function ChatInputBar({
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))}
           onKeyDown={handleKeyDown}
           placeholder="Describe what to build or change..."
-          className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 resize-none outline-none leading-relaxed"
-          style={{ minHeight: '44px', maxHeight: '160px', fontFamily: '"Open Sans", sans-serif' }}
+          className="w-full bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 resize-none outline-none leading-relaxed"
+          style={{ minHeight: '44px', maxHeight: '160px', fontFamily: 'Inter, sans-serif' }}
         />
 
         {/* Action bar */}
@@ -203,13 +203,13 @@ export default function ChatInputBar({
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowAIConfig(!showAIConfig)}
-              className={`p-1.5 rounded-lg transition-colors relative ${showAIConfig ? 'text-indigo-400' : 'text-zinc-600 hover:text-zinc-300'}`}
+              className={`p-1.5 rounded-lg transition-all duration-150 relative ${showAIConfig ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
             >
               <Settings className="w-4 h-4" />
-              {expertMode && <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-indigo-500 rounded-full" />}
+              {expertMode && <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-400 rounded-full" />}
             </button>
             <button onClick={() => fileInputRef.current.click()}
-              className="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-300 transition-colors">
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 transition-all duration-150">
               <ImageIcon className="w-4 h-4" />
             </button>
             <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
@@ -217,23 +217,23 @@ export default function ChatInputBar({
 
           <div className="flex items-center gap-2">
             {input.length > 0 && (
-              <span className={`text-[10px] ${input.length >= charLimit ? 'text-red-500' : 'text-zinc-700'}`}>
+              <span className={`text-[10px] ${input.length >= charLimit ? 'text-red-500' : 'text-zinc-400'}`}>
                 {input.length}/{charLimit}
               </span>
             )}
             {isLoading ? (
               <button onClick={onStop}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl p-2 transition-colors">
+                className="bg-zinc-900 hover:bg-zinc-700 text-white rounded-xl p-2 transition-all duration-150">
                 <div className="w-3 h-3 bg-white rounded-[2px]" />
               </button>
             ) : (
               <button
                 onClick={handleSend}
                 disabled={!hasContent}
-                className={`rounded-xl p-2 transition-all ${
+                className={`rounded-xl p-2 transition-all duration-150 ${
                   hasContent
-                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]'
-                    : 'bg-indigo-600 text-white opacity-30 cursor-not-allowed'
+                    ? 'bg-zinc-900 hover:bg-zinc-700 text-white'
+                    : 'bg-zinc-900 text-white opacity-30 cursor-not-allowed'
                 }`}
               >
                 <ArrowUp className="w-4 h-4" />

@@ -4,8 +4,8 @@ import App from '@/App.jsx'
 import '@/index.css'
 import { initTheme } from '@/lib/theme'
 
-// Always-dark: force the class so CSS vars are always the dark palette
-document.documentElement.classList.add('dark')
+// Light theme — remove dark class if previously set
+document.documentElement.classList.remove('dark')
 initTheme()
 
 ReactDOM.createRoot(document.getElementById('root')).render(

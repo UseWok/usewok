@@ -6,13 +6,14 @@ import remarkGfm from 'remark-gfm';
 // Ghost skeleton blocks drawn top-to-bottom — psychologically satisfying
 const SkeletonBlock = ({ width, delay, height = 14, opacity = 1 }) => (
   <div
-    className="skeleton-block"
     style={{
       width,
       height,
       opacity,
       borderRadius: 6,
-      animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
+      background: 'linear-gradient(90deg, #E4E4E7 25%, #F1F1F3 50%, #E4E4E7 75%)',
+      backgroundSize: '600px 100%',
+      animation: `shimmer 1.4s ease-out infinite, slide-in 150ms ease-out ${delay}ms both`,
     }}
   />
 );
@@ -61,7 +62,7 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
   if (localGenerating) {
     return (
-      <div className="flex justify-start w-full mb-5 font-sans">
+      <div className="flex justify-start w-full mb-5 font-inter">
         <div className="w-full">
           <div className="flex items-center gap-2 mb-3">
             <div
@@ -69,12 +70,12 @@ export default function AssistantMessage({ content, isGenerating, query }) {
                 width: 2,
                 height: 11,
                 borderRadius: 2,
-                background: 'hsl(var(--primary))',
+                background: '#0A0A0A',
                 animation: 'wok-pulse-cursor 900ms ease-out infinite',
                 flexShrink: 0,
               }}
             />
-            <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">
+            <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400">
               Building
             </span>
           </div>
@@ -99,13 +100,13 @@ export default function AssistantMessage({ content, isGenerating, query }) {
       safeText.includes('successfully recompiled')
     ) {
       return (
-        <div className="inline-flex items-center gap-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3 py-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+        <div className="inline-flex items-center gap-2.5 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
           <div className="flex flex-col">
-            <span className="text-[12px] font-semibold text-zinc-200 leading-none mb-0.5">
+            <span className="text-[12px] font-semibold text-zinc-800 leading-none mb-0.5">
               Interface ready
             </span>
-            <span className="text-[11px] text-zinc-500 leading-none">
+            <span className="text-[11px] text-zinc-400 leading-none">
               Preview updated →
             </span>
           </div>
@@ -115,8 +116,8 @@ export default function AssistantMessage({ content, isGenerating, query }) {
 
     return (
       <div
-        className="border-l-2 border-indigo-500 pl-3 text-zinc-300 text-sm leading-relaxed"
-        style={{ fontFamily: '"Open Sans", sans-serif' }}
+        className="border-l-2 border-zinc-300 pl-3 text-zinc-700 text-sm leading-relaxed"
+        style={{ fontFamily: 'Inter, sans-serif' }}
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{safeText}</ReactMarkdown>
       </div>
