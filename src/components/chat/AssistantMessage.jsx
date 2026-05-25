@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,18 +10,20 @@ function injectStyles() {
   if (_injected) return; _injected = true;
   const s = document.createElement('style');
   s.textContent = `
-    @keyframes ai-shimmer { 0%{background-position:-600px 0}100%{background-position:600px 0} }
+    @keyframes ai-shimmer { 0%{background-position:-600px 0}50%{background-position:600px 0}100%{background-position:-600px 0} }
     @keyframes ai-slide { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes ai-halo { 0%,100%{box-shadow:0 0 0 0 rgba(200,200,200,0)}50%{box-shadow:0 0 20px 8px rgba(220,220,220,0.15)} }
   `;
   document.head.appendChild(s);
 }
 
 const SkeletonLine = ({ width, delay, height = 12, opacity = 1 }) => (
   <div style={{
-    width, height, opacity, borderRadius: 6, flexShrink: 0,
-    background: 'linear-gradient(90deg,#EBEBEB 25%,#F5F5F5 50%,#EBEBEB 75%)',
+    width, height, opacity, borderRadius: 8, flexShrink: 0,
+    background: 'linear-gradient(90deg, #E8E8E8 0%, #F8F8F8 25%, #FFFFFF 50%, #F8F8F8 75%, #E8E8E8 100%)',
     backgroundSize: '600px 100%',
-    animation: `ai-shimmer 1.4s ease-out infinite, ai-slide 150ms ease-out ${delay}ms both`,
+    animation: `ai-shimmer 2s ease-in-out infinite, ai-slide 200ms ease-out ${delay}ms both, ai-halo 2s ease-in-out infinite`,
+    filter: 'blur(0.3px)',
   }} />
 );
 
@@ -132,18 +135,22 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     }
   }, [isGenerating, localGenerating]);
 
-  // ── Generating: thinking row + skeleton ──
+  // ── Generating: thinking row + skeleton with halo ──
   if (localGenerating) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, animation: 'ai-slide 150ms ease-out both' }}>
-        {/* Thinking row — italic gray text with small warm circle icon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: '#F5A623', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: '#999999', fontStyle: 'italic' }}>
-            Thought for {elapsedSecs}s &gt;
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'ai-slide 200ms ease-out both' }}>
+        {/* Thinking row — subtle gray with animated dot */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <motion.span
+            animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: 'linear-gradient(135deg, #E0E0E0, #F5F5F5)', flexShrink: 0 }}
+          />
+          <span style={{ fontSize: 12, color: '#888888', fontStyle: 'italic', fontWeight: 400 }}>
+            Thinking for {elapsedSecs}s...
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {SKELETON_ROWS.map((row, i) => <SkeletonLine key={i} {...row} />)}
         </div>
       </div>

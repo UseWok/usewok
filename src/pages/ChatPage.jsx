@@ -900,8 +900,9 @@ export default function ChatPage() {
         }}
         transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
         style={{
-          boxShadow: isFullscreen ? 'none' : '0 12px 48px rgba(0,0,0,0.14)',
+          boxShadow: isFullscreen ? 'none' : '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
+          border: '0.5px solid rgba(229, 229, 229, 0.3)',
           willChange: 'width, height, border-radius',
         }}
       >
@@ -954,44 +955,39 @@ export default function ChatPage() {
               {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
             </div>
 
-            {/* SUGGESTIONS — pin icon + label + chip buttons */}
-            <div className="px-4 mt-3 mb-2">
+            <div ref={messagesEndRef} className="h-1" />
+
+            {/* SUGGESTIONS — moved below messages, above input */}
+            <div className="px-4 py-3">
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                {/* Location pin icon */}
-                <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
-                <span style={{ fontSize: 12, color: '#888888', fontWeight: 400 }}>Suggestions</span>
+                <span style={{ fontSize: 12, color: '#999999', fontWeight: 500 }}>Suggestions</span>
               </div>
-              {/* Chips — white bg, gray border, pill, dark text */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {SUGGESTIONS.map(s => (
                   <button
                     key={s}
                     onClick={() => setInput(s)}
                     style={{
-                      fontSize: 12, color: '#333333', background: '#FFFFFF',
-                      border: '1px solid #DEDEDE', borderRadius: 999,
-                      padding: '5px 11px', cursor: 'pointer', lineHeight: 1.4,
-                      transition: 'background 150ms',
+                      fontSize: 12, color: '#555555', background: '#F8F8F8',
+                      border: '1px solid #E8E8E8', borderRadius: 999,
+                      padding: '6px 12px', cursor: 'pointer', lineHeight: 1.4,
+                      transition: 'all 150ms',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F0F0F0'; e.currentTarget.style.borderColor = '#D0D0D0'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#F8F8F8'; e.currentTarget.style.borderColor = '#E8E8E8'; }}
                   >
                     {s}
                   </button>
                 ))}
               </div>
             </div>
-
-            <div ref={messagesEndRef} className="h-1" />
           </div>
 
-          {/* ZOOM CONTROL — inside white card, above input */}
-          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 8, paddingTop: 4, flexShrink: 0 }}>
-            <ZoomControl level={zoomLevel} setLevel={setZoomLevel} />
-          </div>
+
 
           {/* INPUT ZONE */}
           <div className="flex-shrink-0">
@@ -1014,7 +1010,7 @@ export default function ChatPage() {
           className="flex-1 relative overflow-hidden flex items-center justify-center"
           style={{ background: '#FFFFFF', padding: 16 }}
         >
-          {/* Inset preview rect — clean corners matching card, no gray border */}
+          {/* Inset preview rect — ultra-thin border */}
           <div
             style={{
               position: 'absolute',
@@ -1022,7 +1018,7 @@ export default function ChatPage() {
               borderRadius: Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',
-              border: '1px solid #E5E5E5',
+              border: '0.5px solid rgba(229, 229, 229, 0.35)',
             }}
           >
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
