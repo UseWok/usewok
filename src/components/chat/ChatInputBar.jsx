@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Settings, ArrowUp, Image as ImageIcon, X, Check, FileText, ChevronRight, Pencil } from 'lucide-react';
+import { Settings, ArrowUp, X, Check, FileText, Plus } from 'lucide-react';
 
 export default function ChatInputBar({
   input,
@@ -124,12 +124,12 @@ export default function ChatInputBar({
   const hasContent = input.trim() || (files?.length || 0) > 0;
 
   return (
-    <div className="flex flex-col w-full relative overflow-visible" ref={configRef}>
+    <div className="flex flex-col w-full relative overflow-visible px-3 pb-3 pt-2" ref={configRef}>
 
       {/* AI Config panel */}
       {showAIConfig && (
         <div
-          className="absolute bottom-[calc(100%+12px)] left-0 w-[300px] bg-white rounded-xl p-2 shadow-md border border-zinc-200 select-none z-[999]"
+          className="absolute bottom-[calc(100%+8px)] left-3 w-[280px] bg-white rounded-xl p-2 shadow-md border border-zinc-200 select-none z-[999]"
           style={{ animation: 'slide-in 150ms ease-out both' }}
         >
           <button onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
@@ -153,9 +153,7 @@ export default function ChatInputBar({
 
       {/* Main input container */}
       <div
-        className={`bg-white border rounded-2xl px-4 py-3 ${transition} shadow-sm ${
-          hasContent ? 'border-zinc-400' : 'border-zinc-200'
-        }`}
+        className="bg-white border border-zinc-200 rounded-2xl px-4 pt-3 pb-2 shadow-sm"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
@@ -163,22 +161,22 @@ export default function ChatInputBar({
         <AnimatePresence>
           {(files?.length || 0) > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-              className="flex gap-2 pb-2 mb-2 overflow-x-auto border-b border-white/5">
+              className="flex gap-2 pb-2 mb-2 overflow-x-auto border-b border-zinc-100">
               {files.map((file, i) => (
                 <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.7 }} className="group relative flex-shrink-0">
-                  <div className="w-16 h-16 rounded-xl border border-white/[0.08] bg-white/[0.05] overflow-hidden">
+                  <div className="w-14 h-14 rounded-xl border border-zinc-200 bg-zinc-50 overflow-hidden">
                     {file.type?.startsWith('image/') ? (
                       <img src={file.url} className="object-cover w-full h-full" alt="preview" />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                        <FileText className="w-5 h-5 text-zinc-500" />
-                        <span className="text-[9px] text-zinc-600 truncate px-1 max-w-full">{file.name}</span>
+                        <FileText className="w-4 h-4 text-zinc-400" />
+                        <span className="text-[9px] text-zinc-500 truncate px-1 max-w-full">{file.name}</span>
                       </div>
                     )}
                   </div>
                   <button onClick={() => removeFile(i)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-zinc-800 border border-white/10 text-zinc-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 hover:text-white transition-all">
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-zinc-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all">
                     <X className="w-2.5 h-2.5" />
                   </button>
                 </motion.div>
@@ -193,50 +191,44 @@ export default function ChatInputBar({
           value={input}
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))}
           onKeyDown={handleKeyDown}
-          placeholder="Describe what to build or change..."
-          className="w-full bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 resize-none outline-none leading-relaxed"
-          style={{ minHeight: '44px', maxHeight: '160px', fontFamily: 'Inter, sans-serif' }}
+          placeholder="What would you like to change?"
+          className="w-full bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 resize-none outline-none leading-relaxed overflow-y-auto"
+          style={{ minHeight: '44px', maxHeight: '120px', fontFamily: 'Inter, sans-serif' }}
         />
 
-        {/* Action bar */}
-        <div className="flex items-center justify-between mt-2">
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-100">
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowAIConfig(!showAIConfig)}
-              className={`p-1.5 rounded-lg transition-all duration-150 relative ${showAIConfig ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition cursor-pointer"
             >
-              <Settings className="w-4 h-4" />
-              {expertMode && <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-400 rounded-full" />}
+              <Settings className="w-5 h-5" />
             </button>
             <button onClick={() => fileInputRef.current.click()}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 transition-all duration-150">
-              <ImageIcon className="w-4 h-4" />
+              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition cursor-pointer">
+              <Plus className="w-5 h-5" />
             </button>
             <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
           </div>
 
           <div className="flex items-center gap-2">
-            {input.length > 0 && (
-              <span className={`text-[10px] ${input.length >= charLimit ? 'text-red-500' : 'text-zinc-400'}`}>
-                {input.length}/{charLimit}
-              </span>
-            )}
             {isLoading ? (
               <button onClick={onStop}
-                className="bg-zinc-900 hover:bg-zinc-700 text-white rounded-xl p-2 transition-all duration-150">
-                <div className="w-3 h-3 bg-white rounded-[2px]" />
+                className="bg-zinc-900 hover:bg-zinc-700 text-white rounded-xl p-2.5 transition shadow-sm">
+                <div className="w-[18px] h-[18px] bg-white rounded-[3px]" />
               </button>
             ) : (
               <button
                 onClick={handleSend}
                 disabled={!hasContent}
-                className={`rounded-xl p-2 transition-all duration-150 ${
+                className={`rounded-xl p-2.5 transition ${
                   hasContent
-                    ? 'bg-zinc-900 hover:bg-zinc-700 text-white'
-                    : 'bg-zinc-900 text-white opacity-30 cursor-not-allowed'
+                    ? 'bg-zinc-900 text-white cursor-pointer hover:bg-zinc-700 shadow-sm'
+                    : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
                 }`}
               >
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp style={{ width: 18, height: 18 }} />
               </button>
             )}
           </div>
