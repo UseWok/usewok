@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import UsersPage from '@/pages/admin/UsersPage';
@@ -57,7 +57,7 @@ export default function AdminPanel() {
       
       <main className="flex-1 overflow-auto">
         <Routes>
-          <Route path="/" element={<DashboardHome />} />
+          <Route path="/" element={<Navigate to="/admin/users" replace />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/roles" element={<UserRolesPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />

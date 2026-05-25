@@ -246,10 +246,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {expanded && (
           <button
             onClick={() => setShowCodeModal(true)}
-            className="mt-1.5 w-full flex items-center gap-2 px-2 py-1.5 text-[12px] font-normal text-muted-foreground hover:text-foreground transition-colors group"
+            className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-[13px] font-medium border border-border rounded-lg hover:bg-muted transition-all group"
           >
-            <Ticket className="w-[14px] h-[14px] text-muted-foreground group-hover:text-foreground" strokeWidth={1.5} />
-            <span className="underline-offset-2 group-hover:underline">Entrer un code</span>
+            <Ticket className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+            <span>Entrer un code</span>
           </button>
         )}
 
@@ -392,37 +392,37 @@ function CodeModal({ open, onClose, user }) {
             >
               {/* Header */}
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                <h2 className="text-[16px] font-medium text-foreground">Entrer un code</h2>
+                <h2 className="text-[18px] font-semibold text-foreground">Entrer un code</h2>
                 <button
                   onClick={handleClose}
-                  className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors"
+                  className="w-7 h-7 flex items-center justify-center hover:bg-muted rounded-lg transition-colors"
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
 
               {/* Content */}
-              <div className="p-5">
+              <div className="p-6">
                 {success ? (
-                  <div className="text-center space-y-4">
-                    <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-green-100">
-                      <Check className="w-7 h-7 text-green-600" />
+                  <div className="text-center space-y-5">
+                    <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-green-100">
+                      <Check className="w-8 h-8 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-[15px] font-medium text-foreground">Code activé avec succès !</p>
-                      <p className="text-sm mt-1 text-muted-foreground">
+                      <p className="text-[16px] font-semibold text-foreground">Code activé avec succès !</p>
+                      <p className="text-sm mt-2 text-muted-foreground">
                         Plan <strong className="text-foreground">{success.planName}</strong> — {success.duration}
                       </p>
                     </div>
                     <button
                       onClick={handleClose}
-                      className="w-full py-2.5 text-[14px] font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                      className="w-full py-3 text-[14px] font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
                     >
                       Fermer
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
                       <input
                         value={code}
@@ -434,12 +434,12 @@ function CodeModal({ open, onClose, user }) {
                         maxLength={20}
                         autoFocus
                         onKeyDown={e => { if (e.key === 'Enter') activate(); }}
-                        className="w-full px-4 py-3 text-[15px] font-mono border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full px-4 py-3.5 text-[15px] font-mono border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                       {error && (
                         <p className="text-sm text-destructive mt-2">{error}</p>
                       )}
-                      <p className="text-[12px] text-muted-foreground mt-2">
+                      <p className="text-[12px] text-muted-foreground mt-2.5">
                         Les codes vous donnent accès à des fonctionnalités premium.
                       </p>
                     </div>
@@ -447,7 +447,7 @@ function CodeModal({ open, onClose, user }) {
                     <button
                       onClick={activate}
                       disabled={loading || !code.trim()}
-                      className="w-full py-2.5 text-[14px] font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 text-[14px] font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <motion.div
