@@ -157,8 +157,8 @@ export default function WorkspaceHeader({
         </div>
       )}
 
-      {/* Top bar */}
-      <div className="bg-white border-b border-zinc-200 h-12 flex items-center px-4 justify-between flex-shrink-0 z-30 w-full">
+      {/* Top bar — fixed across full width */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-zinc-200 h-12 flex items-center px-4 justify-between">
 
         {/* LEFT: spacer */}
         <div className="flex-1" />
