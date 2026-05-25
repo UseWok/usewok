@@ -940,7 +940,7 @@ export default function ChatPage() {
     >
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-4 left-4 z-[9999]">
         <div className="flex items-center gap-1.5">
           {/* Logo */}
           <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200/50">
