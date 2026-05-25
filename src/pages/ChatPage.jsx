@@ -868,11 +868,11 @@ export default function ChatPage() {
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
-        background: isFullscreen ? '#111111' : '#F7F7F7',
+        background: isFullscreen ? '#111111' : '#F4F4F4',
         backgroundImage: isFullscreen
           ? 'none'
-          : 'radial-gradient(circle, #D1D1D1 1.2px, transparent 1.2px)',
-        backgroundSize: '24px 24px',
+          : 'radial-gradient(circle, #E2E2E2 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
         transition: 'background 300ms ease',
       }}
     >
@@ -1019,7 +1019,7 @@ export default function ChatPage() {
           <div
             style={{
               position: 'absolute',
-              inset: isFullscreen ? 0 : 12,
+              inset: isFullscreen ? 0 : 8,
               borderRadius: isFullscreen ? 0 : Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',
