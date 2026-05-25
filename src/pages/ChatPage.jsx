@@ -393,10 +393,11 @@ export default function ChatPage() {
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   
   // Main container resize state
-  const [containerSize, setContainerSize] = useState({ width: '97vw', height: '97vh' });
+  const [containerSize, setContainerSize] = useState({ width: '96vw', height: '94vh' });
   const [isResizing, setIsResizing] = useState(false);
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const containerRef = useRef(null);
+  const lastSize = useRef({ w: 0, h: 0 });
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -883,28 +884,44 @@ export default function ChatPage() {
   };
 
   const handleResizeStart = (e) => {
+    e.preventDefault();
     setIsResizing(true);
+    const clientX = e.clientX || e.touches?.[0]?.clientX;
+    const clientY = e.clientY || e.touches?.[0]?.clientY;
     resizeStart.current = {
-      x: e.clientX || e.touches?.[0]?.clientX,
-      y: e.clientY || e.touches?.[0]?.clientY,
-      w: parseFloat(containerSize.width) || window.innerWidth * 0.97,
-      h: parseFloat(containerSize.height) || window.innerHeight * 0.97,
+      x: clientX,
+      y: clientY,
+      w: parseFloat(containerSize.width) || window.innerWidth * 0.96,
+      h: parseFloat(containerSize.height) || window.innerHeight * 0.94,
+    };
+    lastSize.current = {
+      w: parseFloat(containerSize.width) || window.innerWidth * 0.96,
+      h: parseFloat(containerSize.height) || window.innerHeight * 0.94,
     };
   };
 
   const handleResizeMove = (e) => {
     if (!isResizing) return;
+    e.preventDefault();
     const clientX = e.clientX || e.touches?.[0]?.clientX;
     const clientY = e.clientY || e.touches?.[0]?.clientY;
+    
     const dx = clientX - resizeStart.current.x;
     const dy = clientY - resizeStart.current.y;
     
-    const newWidth = Math.max(320, Math.min(window.innerWidth, resizeStart.current.w + dx));
-    const newHeight = Math.max(400, Math.min(window.innerHeight, resizeStart.current.h + dy));
+    const newWidth = Math.max(400, Math.min(window.innerWidth - 32, resizeStart.current.w + dx));
+    const newHeight = Math.max(500, Math.min(window.innerHeight - 80, resizeStart.current.h + dy));
+    
+    if (Math.abs(newWidth - lastSize.current.w) > 0.5) {
+      lastSize.current.w = newWidth;
+    }
+    if (Math.abs(newHeight - lastSize.current.h) > 0.5) {
+      lastSize.current.h = newHeight;
+    }
     
     setContainerSize({
-      width: `${newWidth}px`,
-      height: `${newHeight}px`,
+      width: `${Math.round(newWidth)}px`,
+      height: `${Math.round(newHeight)}px`,
     });
   };
 
@@ -930,10 +947,9 @@ export default function ChatPage() {
         backgroundColor: '#FAFAFA',
         backgroundImage: 'radial-gradient(circle, #E8D5E8 1px, transparent 1px)',
         backgroundSize: '48px 48px',
-        paddingTop: 56,
       }}
     >
-      {/* Header */}
+      {/* Wok header - top right */}
       <WokHeader user={user} userPlan={userPlan} onNavigate={navigate} />
 
       {/* Modals */}
