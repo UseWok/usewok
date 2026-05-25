@@ -543,12 +543,7 @@ export default function FichePanel({
 
   const shouldShowBadge = appSettings?.showBadge !== false;
 
-  const watermarkHTML = shouldShowBadge ? `
-    <div onclick="window.open('https://wok.com', '_blank')" style="position: fixed; bottom: 16px; right: 16px; z-index: 99999; display: flex; align-items: center; gap: 6px; background: #1a1a1a; padding: 6px 12px 6px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; font-family: system-ui, -apple-system, sans-serif;">
-      <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" style="width: 14px; height: 14px; object-fit: contain; filter: invert(1);" />
-      <span style="font-size: 12px; font-weight: 600; color: #ffffff; letter-spacing: 0.1px;">Edit with Wok</span>
-    </div>
-  ` : '';
+  const watermarkHTML = '';
 
   const srcDoc = `
     <!DOCTYPE html>

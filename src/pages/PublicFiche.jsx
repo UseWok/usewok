@@ -1,13 +1,81 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { loadConversationFromCloud } from '@/lib/discussions';
 import { base44 } from '@/api/base44Client';
 
-const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
+const LOGO_URL = 'https://media.base44.com/images/public/6a12017561bfacd95e612b0d/d38ba30f1_image.png';
+
+function WokBadge() {
+  const [visible, setVisible] = useState(true);
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(() => setVisible(false), 300);
+  };
+
+  if (!visible) return null;
+
+  return (
+    <AnimatePresence>
+      {!closing && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          style={{
+            position: 'fixed', bottom: 16, right: 16, zIndex: 99999,
+            display: 'flex', alignItems: 'center', gap: 0,
+            background: '#111', borderRadius: 8,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+            overflow: 'hidden',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+        >
+          <a
+            href="https://wok.so"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '6px 10px 6px 12px',
+              textDecoration: 'none',
+            }}
+          >
+            <img
+              src={LOGO_URL}
+              alt="Wok"
+              style={{ height: 16, width: 'auto', objectFit: 'contain', filter: 'invert(1)' }}
+            />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', letterSpacing: 0.1, whiteSpace: 'nowrap' }}>
+              Edit with Wok
+            </span>
+          </a>
+          <button
+            onClick={handleClose}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 28, height: '100%', minHeight: 32,
+              background: 'transparent', border: 'none',
+              borderLeft: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 // --- THE PUBLIC LIVE RENDER ENGINE ---
 export function PublicLiveEngine({ content }) {
@@ -266,8 +334,9 @@ export default function PublicFiche() {
   }
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-white">
+    <div className="w-full h-screen overflow-hidden bg-white relative">
       <PublicLiveEngine content={finalContent} />
+      <WokBadge />
     </div>
   );
 }

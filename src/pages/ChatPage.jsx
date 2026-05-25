@@ -25,6 +25,7 @@ import AssistantMessage from '@/components/chat/AssistantMessage';
 import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
+import ErrorNotification from '@/components/chat/ErrorNotification';
 
 import { 
   X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
@@ -795,7 +796,7 @@ export default function ChatPage() {
   }, [conversationId]);
 
   useEffect(() => {
-    if (initialQ && (messages?.length || 0) === 0) sendMessage(initialQ);
+    if (initialQ && (messages?.length || 0) === 0 && !conversationId) sendMessage(initialQ);
   }, []);
 
   useEffect(() => {
@@ -857,15 +858,23 @@ export default function ChatPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, hasStarted, isPreviewCollapsed]);
 
+  const [pendingError, setPendingError] = useState(null);
+
   useEffect(() => {
     if (runtimeError && !isLoading) {
-      const bt = String.fromCharCode(96);
-      const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
-      const savedError = runtimeError;
+      setPendingError(runtimeError);
       setRuntimeError(null);
-      sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
     }
-  }, [runtimeError, isLoading, sendMessage]);
+  }, [runtimeError, isLoading]);
+
+  const handleFixError = () => {
+    if (!pendingError) return;
+    const savedError = pendingError;
+    setPendingError(null);
+    const bt = String.fromCharCode(96);
+    const promptMsg = `The following errors happened in the app:\n\n${bt}${bt}${bt}\n${savedError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`;
+    sendMessage(promptMsg, { isCorrection: true, rawError: savedError });
+  };
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
@@ -960,8 +969,11 @@ export default function ChatPage() {
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className="flex-shrink-0 p-4 overflow-visible">
-                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
+              <div className="flex-shrink-0 overflow-visible">
+                <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+                <div className="px-4 pb-4">
+                  <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
+                </div>
               </div>
             </div>
           </div>
@@ -1050,8 +1062,11 @@ export default function ChatPage() {
                 <AssistantMessage content={ficheContent} isGenerating={isLoading} query={currentQuery} />
                 <div ref={messagesEndRef} className="h-4" />
               </div>
-              <div className="flex-shrink-0 p-3">
-                <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
+              <div className="flex-shrink-0">
+                <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+                <div className="px-3 pb-3">
+                  <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
+                </div>
               </div>
             </div>
           )}
