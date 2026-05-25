@@ -36,24 +36,24 @@ import {
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
 // ============================================================================
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex flex-col items-start w-full gap-1">
+  <div className="flex flex-col items-end w-full gap-1">
     {(msg.images?.length || 0) > 0 && (
-      <div className="flex flex-wrap gap-2 max-w-[90%]">
+      <div className="flex flex-wrap gap-2 max-w-[85%] justify-end">
         {msg.images.map((imgUrl, i) => (
           <img key={i} src={imgUrl} alt="attachment"
-            className="max-w-[200px] max-h-[160px] rounded-2xl object-cover border border-zinc-200" />
+            className="max-w-[180px] max-h-[140px] rounded-2xl object-cover border border-zinc-200" />
         ))}
       </div>
     )}
     {msg.content && (
       <div
-        className="text-sm text-zinc-800 leading-relaxed whitespace-pre-wrap inline-block max-w-[90%] self-start"
-        style={{ background: '#EBEBEB', borderRadius: '16px 16px 16px 4px', padding: '10px 14px' }}
+        className="text-sm text-zinc-800 leading-relaxed whitespace-pre-wrap inline-block max-w-[85%] text-left"
+        style={{ background: '#EDEDED', borderRadius: '14px 14px 4px 14px', padding: '10px 14px', fontSize: 13 }}
       >
         {msg.content}
       </div>
     )}
-    <span className="text-xs text-zinc-400 ml-1">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    <span className="text-[11px] text-zinc-400 mr-0.5">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
   </div>
 );
 
@@ -841,12 +841,15 @@ export default function ChatPage() {
   //   5.8 RENDER (JSX)
   // ────────────────────────────────────────────────────────────────────────
 
-  const SUGGESTIONS = ['Dashboard with charts', 'Landing page', 'E-commerce UI', 'SaaS pricing'];
+  const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
+
+  // ── Sidebar width from image: ~320px ──
+  const SIDEBAR_W = 320;
 
   return (
-    <div className="flex flex-row h-screen w-screen overflow-hidden font-sans antialiased" style={{ background: '#EFEFEF' }}>
+    <div className="flex flex-row h-screen w-screen overflow-hidden font-sans antialiased" style={{ background: '#F0F0F0' }}>
 
-      {/* Modals */}
+      {/* ── Modals (unchanged logic) ── */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
         <label className="text-[12px] font-semibold text-foreground mb-1.5 block">Workspace name *</label>
         <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border border-border bg-background text-foreground rounded-md px-3 py-2 text-[13px] focus:outline-none mb-4" autoFocus />
@@ -865,59 +868,36 @@ export default function ChatPage() {
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
-      {/* ══ FIXED TOP BAR ══ */}
-      <WorkspaceHeader
-        onReload={handleReload}
-        onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
-        convId={conversationId || convId}
-        projectNumber={projectNumber}
-        discussions={discussions}
-        onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
-        onTogglePreview={() => setIsPreviewCollapsed(prev => !prev)}
-      />
-
-      {/* ══ BODY (below fixed bar) ══ */}
-      <div className="flex flex-row w-full h-full" style={{ paddingTop: 48 }}>
-
-        {/* ── LEFT SIDEBAR ── */}
-        <div
-          className="flex flex-col overflow-hidden flex-shrink-0 h-full"
-          style={{ width: 440, minWidth: 440, maxWidth: 440, background: '#F8F8F8', borderRight: '1px solid #E5E5E5' }}
-        >
-          {/* Header */}
-          <div className="flex flex-col px-4 pt-4">
-            {/* Row 1: menu nav */}
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center flex-shrink-0"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-              <span className="text-sm font-medium text-zinc-700">Menu</span>
-            </div>
-
-            {/* Row 2: identity */}
-            <div className="flex items-center gap-3 py-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center flex-shrink-0">
-                <span className="text-base font-black text-white">W</span>
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-base font-semibold text-zinc-900">Wok</span>
-                {user?.email && <span className="text-xs text-zinc-400">{user.email}</span>}
-              </div>
-            </div>
-          </div>
-
-          {/* Separator */}
-          <div style={{ borderBottom: '1px solid #E8E8E8', margin: '0 0 8px 0' }} />
-
-          {/* Messages scroll area */}
+      {/* ══════════════════════════════════
+          LEFT SIDEBAR — exact image match
+      ══════════════════════════════════ */}
+      <div
+        className="flex flex-col h-screen flex-shrink-0 overflow-hidden"
+        style={{ width: SIDEBAR_W, minWidth: SIDEBAR_W, maxWidth: SIDEBAR_W, background: '#FFFFFF', borderRight: '1px solid #E8E8E8' }}
+      >
+        {/* ── HEADER: avatar + name + email ── */}
+        <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
           <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto flex flex-col gap-3"
-            style={{ padding: '12px 16px' }}
+            className="flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden"
+            style={{ width: 36, height: 36, background: '#F97316', borderRadius: 10 }}
           >
+            {/* Orange square logo like image */}
+            <span className="text-white font-black text-sm leading-none">T</span>
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-[13px] font-semibold text-zinc-900 leading-tight">{user?.full_name || 'Trailride'}</span>
+            <span className="text-[11px] text-zinc-400 leading-tight">{user?.email || 'alssem@****.com'}</span>
+          </div>
+        </div>
+
+        {/* ── MESSAGES SCROLL AREA ── */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto flex flex-col"
+          style={{ padding: '8px 0' }}
+        >
+          {/* Messages */}
+          <div className="flex flex-col gap-3 px-4">
             {messages?.map((msg, idx) => (
               <div key={idx}>
                 {msg.role === 'assistant'
@@ -932,45 +912,63 @@ export default function ChatPage() {
               </div>
             ))}
             {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
-
-            {/* Suggestions — shown inside scroll area when no messages */}
-            {!hasStarted && (
-              <div className="mt-2">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400 flex-shrink-0">
-                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                  </svg>
-                  <span className="text-xs text-zinc-400">Suggestions</span>
-                </div>
-                <div className="grid gap-y-1" style={{ gridTemplateColumns: '1fr 1fr', columnGap: 16 }}>
-                  {SUGGESTIONS.map(s => (
-                    <button key={s} onClick={() => setInput(s)} className="text-sm text-zinc-600 hover:text-zinc-900 transition text-left cursor-pointer">
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} className="h-1" />
           </div>
 
-          {/* Input zone */}
-          <div className="flex-shrink-0">
-            <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-            <ChatInputBar
-              input={input} setInput={setInput}
-              onSend={sendMessage} onStop={handleStop}
-              isLoading={isLoading}
-              files={files} setFiles={setFiles}
-              discussMode={discussMode} setDiscussMode={setDiscussMode}
-              editMode={editMode} setEditMode={setEditMode}
-            />
+          {/* ── SUGGESTIONS (always visible at bottom of scroll) ── */}
+          <div className="px-4 mt-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              {/* Pin icon like image */}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400 flex-shrink-0">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 500 }}>Suggestions</span>
+            </div>
+            <div className="flex flex-row flex-wrap gap-x-4 gap-y-1">
+              {SUGGESTIONS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setInput(s)}
+                  className="text-left transition cursor-pointer hover:text-zinc-900"
+                  style={{ fontSize: 13, color: '#52525B', lineHeight: 1.5 }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <div ref={messagesEndRef} className="h-2" />
         </div>
 
-        {/* ── RIGHT PREVIEW PANEL ── */}
-        <div className="flex-1 overflow-hidden relative" style={{ background: '#EFEFEF' }}>
+        {/* ── INPUT ZONE (bottom, fixed inside sidebar) ── */}
+        <div className="flex-shrink-0">
+          <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+          <ChatInputBar
+            input={input} setInput={setInput}
+            onSend={sendMessage} onStop={handleStop}
+            isLoading={isLoading}
+            files={files} setFiles={setFiles}
+            discussMode={discussMode} setDiscussMode={setDiscussMode}
+            editMode={editMode} setEditMode={setEditMode}
+          />
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════
+          RIGHT PREVIEW PANEL — full bleed
+      ══════════════════════════════════ */}
+      <div className="flex-1 h-screen overflow-hidden relative" style={{ background: '#F0F0F0' }}>
+        {/* Top bar overlay (only refresh + route + publish, minimal) */}
+        <WorkspaceHeader
+          onReload={handleReload}
+          onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
+          convId={conversationId || convId}
+          projectNumber={projectNumber}
+          discussions={discussions}
+          onSelectDiscussion={(id) => navigate(`/chat?conversationId=${id}`)}
+          onTogglePreview={() => setIsPreviewCollapsed(prev => !prev)}
+        />
+        <div className="absolute inset-0 overflow-hidden" style={{ top: 48 }}>
           <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
           {isLoading && !ficheContent ? (
             <PreviewSkeleton />
@@ -996,18 +994,7 @@ export default function ChatPage() {
       </div>
 
       {/* ══ MOBILE LAYOUT (< md) ══ */}
-      <div className="fixed inset-0 flex md:hidden flex-col" style={{ background: '#EFEFEF', paddingTop: 48 }}>
-        <WorkspaceHeader
-          onReload={handleReload}
-          onReloadIframe={() => setIframeRefreshKey(k => k + 1)}
-          convId={conversationId || convId}
-          projectNumber={projectNumber}
-          discussions={discussions}
-          onSelectDiscussion={(id) => { navigate(`/chat?conversationId=${id}`); setMobileView('chat'); }}
-          onTogglePreview={() => setMobileView('chat')}
-        />
-
-        {/* Mobile tab bar */}
+      <div className="fixed inset-0 flex md:hidden flex-col bg-white">
         <div className="flex px-3 py-2 border-b border-zinc-200 bg-white flex-shrink-0">
           <div className="flex bg-zinc-100 p-1 rounded-lg gap-0.5 w-full">
             <button onClick={() => setMobileView('chat')} className={`flex-1 py-1.5 text-[13px] font-semibold rounded-md transition-colors ${mobileView === 'chat' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Chat</button>
@@ -1016,21 +1003,9 @@ export default function ChatPage() {
             </button>
           </div>
         </div>
-
         {mobileView === 'chat' && (
-          <div className="flex flex-col flex-1 overflow-hidden" style={{ background: '#F8F8F8' }}>
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3" style={{ padding: '12px 16px' }}>
-              {!hasStarted && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    <span className="text-xs text-zinc-400">Suggestions</span>
-                  </div>
-                  <div className="grid gap-y-1" style={{ gridTemplateColumns: '1fr 1fr', columnGap: 16 }}>
-                    {SUGGESTIONS.map(s => <button key={s} onClick={() => setInput(s)} className="text-sm text-zinc-600 hover:text-zinc-900 transition text-left cursor-pointer">{s}</button>)}
-                  </div>
-                </div>
-              )}
+          <div className="flex flex-col flex-1 overflow-hidden bg-white">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-4 py-3">
               {messages?.map((msg, idx) => (
                 <div key={idx}>
                   {msg.role === 'assistant'
@@ -1047,7 +1022,6 @@ export default function ChatPage() {
             </div>
           </div>
         )}
-
         {mobileView === 'preview' && (
           <div className="flex-1 overflow-hidden relative">
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />

@@ -10,17 +10,13 @@ export default function ChatInputBar({
   isLoading,
   files = [],
   setFiles,
-  aiThemePromptActive,
-  setAiThemePromptActive,
   discussMode,
   setDiscussMode,
   editMode,
   setEditMode,
 }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
-  const [showSkillsMenu, setShowSkillsMenu] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
-  const [selectedStrategy, setSelectedStrategy] = useState('balanced');
   const configRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -29,10 +25,7 @@ export default function ChatInputBar({
   // Close config on outside click
   useEffect(() => {
     const h = (e) => {
-      if (configRef.current && !configRef.current.contains(e.target)) {
-        setShowAIConfig(false);
-        setShowSkillsMenu(false);
-      }
+      if (configRef.current && !configRef.current.contains(e.target)) setShowAIConfig(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -41,29 +34,23 @@ export default function ChatInputBar({
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'inherit';
+      textareaRef.current.style.height = 'auto';
       const sh = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(Math.max(sh, 48), 168)}px`;
+      textareaRef.current.style.height = `${Math.min(Math.max(sh, 40), 120)}px`;
     }
   }, [input]);
 
-  // Paste: images/files from clipboard
-  const handlePaste = useCallback(
-    (e) => {
-      const items = Array.from(e.clipboardData?.items || []);
-      const mediaItems = items.filter(
-        (it) => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf')
-      );
-      if (mediaItems.length === 0) return;
-      e.preventDefault();
-      const parsed = mediaItems.map((it) => {
-        const file = it.getAsFile();
-        return { file, name: file.name || 'pasted', url: URL.createObjectURL(file), type: file.type };
-      });
-      setFiles((p) => [...(p || []), ...parsed]);
-    },
-    [setFiles]
-  );
+  // Paste images/files
+  const handlePaste = useCallback((e) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const mediaItems = items.filter(it => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf'));
+    if (!mediaItems.length) return;
+    e.preventDefault();
+    setFiles(p => [...(p || []), ...mediaItems.map(it => {
+      const file = it.getAsFile();
+      return { file, name: file.name || 'pasted', url: URL.createObjectURL(file), type: file.type };
+    })]);
+  }, [setFiles]);
 
   useEffect(() => {
     document.addEventListener('paste', handlePaste);
@@ -72,112 +59,110 @@ export default function ChatInputBar({
 
   const handleSend = () => {
     if (!isLoading && (input.trim() || (files?.length || 0) > 0)) {
-      // Pass files as extra context to onSend
       onSend(input, { files });
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   const handleFileChange = (e) => {
     const dropped = Array.from(e.target.files || []);
     if (dropped.length > 0) {
-      const parsed = dropped.map((file) => ({
-        file,
-        name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type,
-      }));
-      setFiles((p) => [...(p || []), ...parsed]);
+      setFiles(p => [...(p || []), ...dropped.map(file => ({ file, name: file.name, url: URL.createObjectURL(file), type: file.type }))]);
     }
   };
 
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
-
   const handleDragOver = (e) => e.preventDefault();
   const handleDrop = (e) => {
     e.preventDefault();
     const dropped = Array.from(e.dataTransfer.files || []);
     if (dropped.length > 0) {
-      const parsed = dropped.map((file) => ({
-        file,
-        name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type,
-      }));
-      setFiles((p) => [...(p || []), ...parsed]);
+      setFiles(p => [...(p || []), ...dropped.map(file => ({ file, name: file.name, url: URL.createObjectURL(file), type: file.type }))]);
     }
   };
 
-  const modes = [
-    { id: 'creative', name: 'Creative' },
-    { id: 'balanced', name: 'Balanced' },
-    { id: 'precise', name: 'Precise' },
-  ];
-
-  const transition = 'transition-all duration-200';
-  const hasContent = input.trim() || (files?.length || 0) > 0;
+  const hasContent = !!(input.trim() || (files?.length || 0) > 0);
 
   return (
-    <div className="flex flex-col w-full relative overflow-visible px-3 pb-3 pt-2" ref={configRef}>
-
-      {/* AI Config panel */}
+    <div
+      ref={configRef}
+      style={{ padding: '8px 12px 14px 12px', position: 'relative' }}
+    >
+      {/* AI Config popup */}
       {showAIConfig && (
         <div
-          className="absolute bottom-[calc(100%+8px)] left-3 w-[280px] bg-white rounded-xl p-2 shadow-md border border-zinc-200 select-none z-[999]"
-          style={{ animation: 'slide-in 150ms ease-out both' }}
+          style={{
+            position: 'absolute', bottom: 'calc(100% + 6px)', left: 12,
+            width: 260, background: '#FFFFFF', borderRadius: 12, padding: 8,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.10)', border: '1px solid #E5E5E5',
+            zIndex: 999,
+          }}
         >
-          <button onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-lg hover:bg-zinc-50 transition-all duration-150">
-            <div className="w-6 flex-shrink-0 pt-0.5">{!expertMode && <Check className="w-3.5 h-3.5 text-zinc-900 stroke-[3]" />}</div>
-            <div>
-              <p className="text-sm font-semibold text-zinc-900">Flash</p>
-              <p className="text-xs text-zinc-400 mt-0.5">Fastest versatile assistance</p>
-            </div>
-          </button>
-          <button onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-lg hover:bg-zinc-50 transition-all duration-150">
-            <div className="w-6 flex-shrink-0 pt-0.5">{expertMode && <Check className="w-3.5 h-3.5 text-zinc-900 stroke-[3]" />}</div>
-            <div>
-              <p className="text-sm font-semibold text-zinc-900">Expert</p>
-              <p className="text-xs text-zinc-400 mt-0.5">Advanced coding & mathematics</p>
-            </div>
-          </button>
+          {[
+            { id: false, label: 'Flash', desc: 'Fastest versatile assistance' },
+            { id: true,  label: 'Expert', desc: 'Advanced coding & mathematics' },
+          ].map(({ id, label, desc }) => (
+            <button
+              key={label}
+              onClick={() => { setExpertMode(id); setShowAIConfig(false); }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '10px 12px', borderRadius: 8, border: 'none', background: 'transparent',
+                cursor: 'pointer', textAlign: 'left',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F4F4F5'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ width: 16, flexShrink: 0, paddingTop: 2 }}>
+                {expertMode === id && <Check style={{ width: 13, height: 13, color: '#18181B', strokeWidth: 3 }} />}
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#18181B' }}>{label}</p>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#A1A1AA' }}>{desc}</p>
+              </div>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Main input container */}
+      {/* Input container — white card, rounded, subtle border */}
       <div
-        className="bg-white border border-zinc-200 rounded-2xl px-4 pt-3 pb-2 shadow-sm"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E2E2',
+          borderRadius: 18,
+          padding: '12px 14px 10px 14px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+        }}
       >
         {/* File previews */}
         <AnimatePresence>
           {(files?.length || 0) > 0 && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-              className="flex gap-2 pb-2 mb-2 overflow-x-auto border-b border-zinc-100">
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              style={{ display: 'flex', gap: 8, paddingBottom: 10, marginBottom: 8, overflowX: 'auto', borderBottom: '1px solid #F0F0F0' }}
+            >
               {files.map((file, i) => (
-                <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.7 }} className="group relative flex-shrink-0">
-                  <div className="w-14 h-14 rounded-xl border border-zinc-200 bg-zinc-50 overflow-hidden">
+                <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
+                  style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 10, border: '1px solid #E5E5E5', background: '#F4F4F5', overflow: 'hidden' }}>
                     {file.type?.startsWith('image/') ? (
-                      <img src={file.url} className="object-cover w-full h-full" alt="preview" />
+                      <img src={file.url} style={{ objectFit: 'cover', width: '100%', height: '100%' }} alt="preview" />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                        <FileText className="w-4 h-4 text-zinc-400" />
-                        <span className="text-[9px] text-zinc-500 truncate px-1 max-w-full">{file.name}</span>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <FileText style={{ width: 14, height: 14, color: '#A1A1AA' }} />
+                        <span style={{ fontSize: 9, color: '#71717A', maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
                       </div>
                     )}
                   </div>
                   <button onClick={() => removeFile(i)}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-zinc-800 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all">
-                    <X className="w-2.5 h-2.5" />
+                    style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, background: '#18181B', color: '#FFF', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <X style={{ width: 10, height: 10 }} />
                   </button>
                 </motion.div>
               ))}
@@ -192,46 +177,70 @@ export default function ChatInputBar({
           onChange={(e) => setInput(e.target.value.substring(0, charLimit))}
           onKeyDown={handleKeyDown}
           placeholder="What would you like to change?"
-          className="w-full bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 resize-none outline-none leading-relaxed overflow-y-auto"
-          style={{ minHeight: '44px', maxHeight: '120px', fontFamily: 'Inter, sans-serif' }}
+          style={{
+            width: '100%', background: 'transparent', outline: 'none', border: 'none',
+            resize: 'none', minHeight: 40, maxHeight: 120, overflowY: 'auto',
+            fontSize: 14, color: '#18181B', lineHeight: 1.5,
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+          className="placeholder:text-zinc-400"
         />
 
-        {/* Bottom bar */}
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-100">
-          <div className="flex items-center gap-1">
+        {/* Bottom action bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1px solid #F0F0F0' }}>
+          {/* Left: gear + plus */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
-              onClick={() => setShowAIConfig(!showAIConfig)}
-              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition cursor-pointer"
+              onClick={() => setShowAIConfig(v => !v)}
+              style={{ padding: 4, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#A1A1AA', display: 'flex', alignItems: 'center', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#52525B'}
+              onMouseLeave={e => e.currentTarget.style.color = '#A1A1AA'}
             >
-              <Settings className="w-5 h-5" />
+              <Settings style={{ width: 18, height: 18 }} />
             </button>
-            <button onClick={() => fileInputRef.current.click()}
-              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition cursor-pointer">
-              <Plus className="w-5 h-5" />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{ padding: 4, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#A1A1AA', display: 'flex', alignItems: 'center', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#52525B'}
+              onMouseLeave={e => e.currentTarget.style.color = '#A1A1AA'}
+            >
+              <Plus style={{ width: 18, height: 18 }} />
             </button>
-            <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
           </div>
 
-          <div className="flex items-center gap-2">
-            {isLoading ? (
-              <button onClick={onStop}
-                className="bg-zinc-900 hover:bg-zinc-700 text-white rounded-xl p-2.5 transition shadow-sm">
-                <div className="w-[18px] h-[18px] bg-white rounded-[3px]" />
-              </button>
-            ) : (
-              <button
-                onClick={handleSend}
-                disabled={!hasContent}
-                className={`rounded-xl p-2.5 transition ${
-                  hasContent
-                    ? 'bg-zinc-900 text-white cursor-pointer hover:bg-zinc-700 shadow-sm'
-                    : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-                }`}
-              >
-                <ArrowUp style={{ width: 18, height: 18 }} />
-              </button>
-            )}
-          </div>
+          {/* Right: send / stop */}
+          {isLoading ? (
+            <button
+              onClick={onStop}
+              style={{
+                width: 36, height: 36, borderRadius: 10, background: '#18181B', border: 'none',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'background 150ms',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#3F3F46'}
+              onMouseLeave={e => e.currentTarget.style.background = '#18181B'}
+            >
+              <div style={{ width: 14, height: 14, background: '#FFFFFF', borderRadius: 3 }} />
+            </button>
+          ) : (
+            <button
+              onClick={handleSend}
+              disabled={!hasContent}
+              style={{
+                width: 36, height: 36, borderRadius: 10, border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: hasContent ? '#18181B' : '#18181B',
+                opacity: hasContent ? 1 : 0.45,
+                boxShadow: hasContent ? '0 1px 3px rgba(0,0,0,0.20)' : 'none',
+                transition: 'opacity 150ms, background 150ms',
+              }}
+              onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = '#3F3F46'; }}
+              onMouseLeave={e => { if (hasContent) e.currentTarget.style.background = '#18181B'; }}
+            >
+              <ArrowUp style={{ width: 18, height: 18, color: '#FFFFFF' }} />
+            </button>
+          )}
         </div>
       </div>
     </div>
