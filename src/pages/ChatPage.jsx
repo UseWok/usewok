@@ -392,10 +392,8 @@ export default function ChatPage() {
   const [viewMode, setViewMode] = useState('preview');
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
 
-  // Main container resize state
-  const [containerSize, setContainerSize] = useState({ width: 96, height: 94 }); // vw/vh percentages
-  const [isResizing, setIsResizing] = useState(false);
-  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
+  // Main container size (fixed, no resizing)
+  const [containerSize, setContainerSize] = useState({ width: 96, height: 94 });
   const containerRef = useRef(null);
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
@@ -796,21 +794,7 @@ export default function ChatPage() {
 
   useEffect(() => {messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });}, [messages]);
 
-  // Resize handlers
-  useEffect(() => {
-    if (isResizing) {
-      window.addEventListener('mousemove', handleResizeMove);
-      window.addEventListener('mouseup', handleResizeEnd);
-      window.addEventListener('touchmove', handleResizeMove);
-      window.addEventListener('touchend', handleResizeEnd);
-      return () => {
-        window.removeEventListener('mousemove', handleResizeMove);
-        window.removeEventListener('mouseup', handleResizeEnd);
-        window.removeEventListener('touchmove', handleResizeMove);
-        window.removeEventListener('touchend', handleResizeEnd);
-      };
-    }
-  }, [isResizing]);
+  {/* Removed complex resize system */}
 
   // ── Global keyboard shortcuts ──
   useEffect(() => {
@@ -883,58 +867,7 @@ export default function ChatPage() {
     setContainerSize({ width: FORMAT_PRESETS[format].width, height: FORMAT_PRESETS[format].height });
   };
 
-  const handleResizeStart = (e) => {
-    e.preventDefault();
-    setIsResizing(true);
-    const clientX = e.clientX || e.touches?.[0]?.clientX;
-    const clientY = e.clientY || e.touches?.[0]?.clientY;
-    resizeStart.current = {
-      x: clientX,
-      y: clientY,
-      w: containerSize.width,
-      h: containerSize.height
-    };
-  };
-
-  const handleResizeMove = (e) => {
-    if (!isResizing) return;
-    e.preventDefault();
-    const clientX = e.clientX || e.touches?.[0]?.clientX;
-    const clientY = e.clientY || e.touches?.[0]?.clientY;
-
-    const dx = clientX - resizeStart.current.x;
-    const dy = clientY - resizeStart.current.y;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let newWidth = resizeStart.current.w + dx / vw * 100;
-    let newHeight = resizeStart.current.h + dy / vh * 100;
-
-    // Snap zones with resistance
-    // Right drag: snap at 50%, can force to 100%
-    if (newWidth > 50 && newWidth < 90) {
-      newWidth = 50; // Soft lock at 50%
-    }
-    if (newWidth > 90) newWidth = 100; // Force to 100% when dragging far enough
-    
-    // Left drag: snap at 20%, can force to 100%
-    if (newWidth < 20 && newWidth > 10) {
-      newWidth = 20; // Soft lock at 20%
-    }
-    if (newWidth < 10) newWidth = 100; // Force to 100% when dragging far enough
-
-    // Height snap
-    if (newHeight > 95) newHeight = 100;
-    newWidth = Math.max(10, Math.min(newWidth, 100));
-    newHeight = Math.max(20, Math.min(newHeight, 100));
-
-    setContainerSize({ width: newWidth, height: newHeight });
-  };
-
-  const handleResizeEnd = () => {
-    setIsResizing(false);
-  };
+  {/* Removed resize handlers - simplified interface */}
 
 
   // ────────────────────────────────────────────────────────────────────────
@@ -1120,16 +1053,17 @@ export default function ChatPage() {
                 <X className="w-5 h-5 text-zinc-600" />
               </button>
             </div>
-            {/* Content iframe */}
+            {/* Content iframe - navigate to actual pages */}
             <iframe
             src={
             fullscreenModal === 'settings' ? '/settings' :
             fullscreenModal === 'pricing' ? '/pricing' :
-            fullscreenModal === 'docs' ? '#' :
+            fullscreenModal === 'docs' ? '/blog' :
             fullscreenModal === 'support' ? '/support' : '#'
             }
             className="flex-1 w-full h-full border-none bg-white"
-            title={fullscreenModal} />
+            title={fullscreenModal}
+            style={{ colorScheme: 'light' }} />
           
           </div>
         </div>
@@ -1148,12 +1082,11 @@ export default function ChatPage() {
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
         style={{
-          boxShadow: isResizing ? '0 20px 60px rgba(0,0,0,0.15)' : '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
-          border: isResizing ? '1px solid rgba(0,0,0,0.2)' : '0.25px solid rgba(229, 229, 229, 0.5)',
+          border: '0.5px solid rgba(255, 255, 255, 0.6)',
           maxWidth: '100vw',
           maxHeight: '100vh',
-          transform: isResizing ? 'scale(1.005)' : 'scale(1)'
         }}>
         
         <PanelGroup direction="horizontal" className="flex w-full h-full">
@@ -1295,32 +1228,7 @@ export default function ChatPage() {
           </Panel>
         </PanelGroup>
         
-        {/* Resize corner handle - black area, resize only while holding */}
-        <div
-          onMouseDown={handleResizeStart}
-          onMouseUp={handleResizeEnd}
-          onMouseLeave={handleResizeEnd}
-          onTouchStart={handleResizeStart}
-          onTouchEnd={handleResizeEnd}
-          className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-100 flex items-end justify-end p-1"
-          style={{
-            background: 'rgba(0,0,0,0.8)',
-            borderRadius: '0 0 8px 0'
-          }}>
-          
-          <div
-            style={{
-              width: 12,
-              height: 12,
-              background: isResizing ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)',
-              maskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
-              WebkitMaskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
-              borderRadius: '0 0 3px 0',
-              transform: isResizing ? 'scale(1.2)' : 'scale(1)',
-              transition: 'transform 150ms, background 150ms'
-            }} />
-          
-        </div>
+        {/* Removed resize handle - simplified interface */}
       </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}
