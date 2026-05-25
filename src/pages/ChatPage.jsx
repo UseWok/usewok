@@ -26,6 +26,7 @@ import ErrorNotification from '@/components/chat/ErrorNotification';
 import WokHeader from '@/components/chat/WokHeader';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
+import Modal from '@/components/chat/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -441,6 +442,7 @@ export default function ChatPage() {
   const [editMode, setEditMode] = useState(false);
 
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  const [showTestModal, setShowTestModal] = useState(true);
 
   // ────────────────────────────────────────────────────────────────────────
   //   5.3 REFS & HELPERS
@@ -1028,6 +1030,17 @@ export default function ChatPage() {
           </div>
         }
       </div>
+
+      {/* Test Modal - visible for verification */}
+      <Modal open={showTestModal} onClose={() => setShowTestModal(false)}>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-[#1A1A1A]">Test Modal</h2>
+          <p className="text-[#1A1A1A]">This is a reusable modal component. Click the X or press Escape to close.</p>
+          <div className="p-4 bg-[#F7F7F8] rounded-lg">
+            <p className="text-sm text-[#666666]">Content area with overflow-y auto and 24px padding.</p>
+          </div>
+        </div>
+      </Modal>
 
       {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
