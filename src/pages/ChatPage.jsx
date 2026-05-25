@@ -27,11 +27,12 @@ import WokHeader from '@/components/chat/WokHeader';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Panel, PanelGroup } from 'react-resizable-panels';
 
 import {
   X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen } from
 'lucide-react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
 
 
 // ============================================================================
@@ -74,15 +75,21 @@ const CustomUserMessageBubble = ({ msg }) =>
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-[#0A0A0A]/80 backdrop-blur-sm">
-      <div className="relative w-[95vw] h-[95vh] bg-[#1A1A1A] rounded-lg shadow-2xl overflow-hidden flex flex-col border border-[#2A2A2A]">
-        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 bg-[#2A2A2A] hover:bg-[#3A3A3A] text-white rounded-md transition-none shadow-sm">
-          <X className="w-5 h-5" strokeWidth={2.5} />
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans" style={{ background: 'rgba(0, 0, 0, 0.45)' }} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.1, ease: 'ease-out' }}
+        className="relative w-[95vw] max-w-[1100px] h-[95vh] bg-white rounded-lg overflow-hidden flex flex-col"
+        style={{ borderRadius: '12px' }}
+        onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 z-[99999] p-2 hover:bg-[#F7F7F8] rounded transition-colors" style={{ width: 20, height: 20 }}>
+          <X className="w-5 h-5 text-[#1A1A1A]" strokeWidth={2} />
         </button>
-        <iframe src={url} className="w-full h-full border-none bg-white rounded-b-lg" />
-      </div>
+        <iframe src={url} className="w-full h-full border-none bg-white" />
+      </motion.div>
     </div>);
-
 };
 
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
@@ -821,15 +828,20 @@ export default function ChatPage() {
         document.querySelector('textarea')?.focus();
       }
 
-      // Escape: Close preview collapse
-      if (e.key === 'Escape' && isPreviewCollapsed && hasStarted) {
-        setIsPreviewCollapsed(false);
+      // Escape: Close preview collapse or fullscreen modal
+      if (e.key === 'Escape') {
+        if (isPreviewCollapsed && hasStarted) {
+          setIsPreviewCollapsed(false);
+        }
+        if (fullscreenModal) {
+          setFullscreenModal(null);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, hasStarted, isPreviewCollapsed]);
+  }, [viewMode, hasStarted, isPreviewCollapsed, fullscreenModal]);
 
   const [pendingError, setPendingError] = useState(null);
 
@@ -916,101 +928,101 @@ export default function ChatPage() {
 
         {/* Small dropdown menu */}
         {isProfileMenuOpen &&
-        <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-56 mt-1 z-[1 mt-1 z-[100000]">
-            <div className="p-1.5 space-y-0.5">
+        <div className="absolute top-10 left-0 bg-white rounded-lg shadow-lg border border-zinc-200 overflow-hidden w-56 mt-1 z-[100000]">
+            <div className="p-2.5 space-y-1">
               {/* Home */}
               <button
               onClick={() => {
                 setIsProfileMenuOpen(false);
                 navigate('/app');
               }}
-              className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
               
-                <div className="flex items-center gap-2.5">
-                  <Home className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                  <span className="text-xs font-medium text-zinc-900">Home</span>
+                <div className="flex items-center gap-2">
+                  <Home className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                  <span className="text-[13px] font-normal text-[#1A1A1A]">Home</span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#999999] group-hover:text-[#666666] transition-colors" />
               </button>
 
               {/* Credits Bar */}
-              <div className="px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2.5">
-                    <CreditCard className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                    <span className="text-xs font-medium text-zinc-900">Credits</span>
+              <div className="px-2 py-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                    <span className="text-[13px] font-normal text-[#1A1A1A]">Credits</span>
                   </div>
-                  <span className="text-[10px] font-semibold text-zinc-700">{user?.credits_used || 0}/{userPlan?.credits_limit || user?.credits_limit || 10}</span>
+                  <span className="text-[11px] font-normal text-[#666666]">{user?.credits_used || 0}/{userPlan?.credits_limit || user?.credits_limit || 10}</span>
                 </div>
-                <div className="h-1 bg-zinc-100 rounded-full overflow-hidden ml-6">
+                <div className="h-1 bg-[#F0F0F0] rounded-full overflow-hidden ml-6">
                   <div
-                  className="h-full bg-zinc-800 rounded-full transition-all duration-300"
+                  className="h-full bg-[#1A1A1A] rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(100, (user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10) * 100)}%` }} />
                 
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-zinc-100 my-0.5" />
+              <div className="h-px bg-[#E5E5E5] my-1" />
 
-              {/* Settings - opens 95% modal */}
+              {/* Settings - opens modal */}
               <button
               onClick={() => {
                 setIsProfileMenuOpen(false);
                 setFullscreenModal('settings');
               }}
-              className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
               
-                <div className="flex items-center gap-2.5">
-                  <Settings className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                  <span className="text-xs font-medium text-zinc-900">Settings</span>
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                  <span className="text-[13px] font-normal text-[#1A1A1A]">Settings</span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#999999] group-hover:text-[#666666] transition-colors" />
               </button>
 
-              {/* Upgrade Plan - opens 95% modal */}
+              {/* Upgrade Plan - opens modal */}
               <button
               onClick={() => {
                 setIsProfileMenuOpen(false);
                 setFullscreenModal('pricing');
               }}
-              className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
               
-                <div className="flex items-center gap-2.5">
-                  <Zap className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                  <span className="text-xs font-medium text-zinc-900">Upgrade Plan</span>
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                  <span className="text-[13px] font-normal text-[#1A1A1A]">Upgrade your plan</span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#999999] group-hover:text-[#666666] transition-colors" />
               </button>
 
-              {/* Documentation - opens 95% modal */}
+              {/* Documentation - opens modal */}
               <button
               onClick={() => {
                 setIsProfileMenuOpen(false);
                 setFullscreenModal('docs');
               }}
-              className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
               
-                <div className="flex items-center gap-2.5">
-                  <BookOpen className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                  <span className="text-xs font-medium text-zinc-900">Documentation</span>
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                  <span className="text-[13px] font-normal text-[#1A1A1A]">Documentation</span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#999999] group-hover:text-[#666666] transition-colors" />
               </button>
 
-              {/* Support - opens 95% modal */}
+              {/* Support - opens modal */}
               <button
               onClick={() => {
                 setIsProfileMenuOpen(false);
                 setFullscreenModal('support');
               }}
-              className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
               
-                <div className="flex items-center gap-2.5">
-                  <LifeBuoy className="w-3.5 h-3.5 text-zinc-800" strokeWidth={2.5} />
-                  <span className="text-xs font-medium text-zinc-900">Support</span>
+                <div className="flex items-center gap-2">
+                  <LifeBuoy className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
+                  <span className="text-[13px] font-normal text-[#1A1A1A]">Support</span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#999999] group-hover:text-[#666666] transition-colors" />
               </button>
             </div>
           </div>
@@ -1028,46 +1040,47 @@ export default function ChatPage() {
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
       
-      {/* Fullscreen 95% modal for Settings/Pricing/Docs/Support */}
+      {/* Fullscreen modal for Settings/Pricing/Docs/Support */}
+      <AnimatePresence>
       {fullscreenModal &&
-      <div className="fixed inset-0 z-[100000] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFullscreenModal(null)} />
-          <div className="relative w-[95vw] h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
-                  <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                    <rect width="40" height="40" rx="10" fill="#FFFFFF" />
-                    <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="text-lg font-bold text-zinc-900">
-                  {fullscreenModal === 'settings' && 'Settings'}
-                  {fullscreenModal === 'pricing' && 'Upgrade Plan'}
-                  {fullscreenModal === 'docs' && 'Documentation'}
-                  {fullscreenModal === 'support' && 'Support'}
-                </span>
-              </div>
-              <button onClick={() => setFullscreenModal(null)} className="p-2 hover:bg-zinc-100 rounded-lg transition-colors">
-                <X className="w-5 h-5 text-zinc-600" />
-              </button>
-            </div>
-            {/* Content iframe - navigate to actual pages */}
+      <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.1, ease: 'ease-out' }}
+          className="fixed inset-0 z-[99998]"
+          style={{ background: 'rgba(0, 0, 0, 0.45)' }}
+          onClick={() => setFullscreenModal(null)}
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.1, ease: 'ease-out' }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none">
+          <div
+            className="relative w-[95vw] max-w-[1100px] h-[95vh] bg-white rounded-lg overflow-hidden flex flex-col pointer-events-auto"
+            style={{ borderRadius: '12px' }}
+            onClick={e => e.stopPropagation()}>
+            <button onClick={() => setFullscreenModal(null)} className="absolute top-4 right-4 z-[100000] p-2 hover:bg-[#F7F7F8] rounded transition-colors" style={{ width: 20, height: 20 }}>
+              <X className="w-5 h-5 text-[#1A1A1A]" strokeWidth={2} />
+            </button>
             <iframe
             src={
             fullscreenModal === 'settings' ? '/settings' :
             fullscreenModal === 'pricing' ? '/pricing' :
-            fullscreenModal === 'docs' ? '/blog' :
+            fullscreenModal === 'docs' ? '/about:blank' :
             fullscreenModal === 'support' ? '/support' : '#'
             }
             className="flex-1 w-full h-full border-none bg-white"
             title={fullscreenModal}
             style={{ colorScheme: 'light' }} />
-          
           </div>
-        </div>
+        </motion.div>
+      </>
       }
+      </AnimatePresence>
 
       {/* ═══════════════════════════════════════════════════════════════
               MAIN CARD — dynamic resizable container (iOS 26 style)
@@ -1091,12 +1104,10 @@ export default function ChatPage() {
         
         <PanelGroup direction="horizontal" className="flex w-full h-full">
           {/* ═══════════════════════════
-                  LEFT PANEL — resizable chat
+                  LEFT PANEL — chat
                ═══════════════════════════ */}
           <Panel
             defaultSize={32}
-            minSize={20}
-            maxSize={50}
             className="flex flex-col overflow-hidden bg-white">
             
 
@@ -1128,7 +1139,7 @@ export default function ChatPage() {
           </div>
 
           {/* SUGGESTIONS — permanently fixed at bottom, above input */}
-          <div className="flex-shrink-0 px-4 py-3 border-t border-zinc-100 bg-white">
+          <div className="flex-shrink-0 px-4 py-3 bg-white">
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -1172,15 +1183,10 @@ export default function ChatPage() {
           </div>
           </Panel>
 
-          {/* Resize handle — modern, visible on hover */}
-          <PanelResizeHandle
-            className="w-2 hover:w-3 bg-transparent hover:bg-zinc-100 transition-all duration-200 flex items-center justify-center group">
-            
-            <div className="w-[2px] h-12 bg-zinc-200 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-105" />
-          </PanelResizeHandle>
+
 
           {/* ═══════════════════════════════════════════════════════════
-                  RIGHT PANEL — resizable preview
+                  RIGHT PANEL — preview
                ═══════════════════════════════════════════════════════════ */}
           <Panel
             defaultSize={68}
