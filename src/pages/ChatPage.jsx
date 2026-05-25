@@ -110,40 +110,16 @@ const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
 };
 
-// ── Analysis agent: fast binary decision — 1=modify existing, 2=create new ──
-const PROMPT_ANALYST = `You are a routing agent. Analyze the user prompt.
-Reply with ONLY a single digit:
-1 = The user wants to MODIFY or improve an existing interface (words like "change", "fix", "update", "add to", "improve", "make it", "can you", etc.)
-2 = The user wants to CREATE a completely NEW interface from scratch (new topic, different subject).
-Reply with 1 or 2 only. No explanation.`;
+const PROMPT_PSYCHOLOGIST = `Elite UI data compiler. THEME T:X (1=Clean/white, 2=Dark/void, 3=Yuzu/neon, 4=Sand/warm, 5=Brutal). Output: dense telegraphic data, copywriting points, chart arrays with XY axes. RAW TEXT ONLY.`;
 
-const PROMPT_PSYCHOLOGIST = `You are an elite backend data compiler.
-TOKEN REDUCTION & DATA PROTOCOL:
-1. THEME SELECTION: Evaluate user intent. Output MUST start with T:X (X is 1 to 5).
-   T:1=Wok Clean, T:2=Deep Void, T:3=Yuzu Accent, T:4=Corp Sand, T:5=Brutalism.
-2. Output ONLY ultra-dense telegraphic shorthand. ZERO sentences.
-3. Provide exact ELI5 copywriting points.
-4. Generate realistic, comparative DATA ARRAYS for charts. Include explicit X and Y axis data points.
-5. RAW TEXT ONLY.`;
-
-const PROMPT_ARCHITECT = `You are a Principal UI Developer building a $10,000 interactive dashboard.
-CRITICAL RULES:
-1. READ THE THEME (T:X) AND APPLY EXACT STYLES:
-   T:1 (Clean): min-h-screen bg-[#FAFAFA], text-zinc-900, rounded-[24px].
-   T:2 (Deep Void): min-h-screen bg-[#050505], text-zinc-100, border-zinc-800.
-   T:3 (Yuzu): min-h-screen bg-[#0A0A0A], text-white, neon accents (#E6FF00), rounded-[32px].
-   T:4 (Sand): min-h-screen bg-[#FDFBF7], text-zinc-800, rounded-[32px].
-   T:5 (Brutalism): min-h-screen bg-[#E5E5E5], text-black, sharp edges, solid shadows.
-2. TYPOGRAPHY: ALL <p> tags MUST use \`leading-[1.8]\`. Append a '+' symbol to major section titles. Use massive whitespace (p-12 md:p-24, space-y-24).
-3. COMPLEX CHARTS: Render 3 DIFFERENT Recharts. Must include <XAxis>, <YAxis>, <Tooltip>, <linearGradient>. Map to the data provided. Wrap in <div className="w-full h-80">.
-4. NO BOILERPLATE: Zero navbars, footers. 
-5. IMPORTS: Exactly this:
-   import React, { useState, useEffect, useRef } from 'react';
-   import { motion, AnimatePresence } from 'framer-motion';
-   import { ArrowRight, CheckCircle2, Zap, Sparkles, Activity, Layers, Rocket, Brain, BarChart, Target, Globe, Plus } from 'lucide-react';
-   import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-6. ANIMATION: Use exact Framer snippet: <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-10%" }} transition={{ duration: 0.8, ease: "easeOut" }}>
-7. Component MUST be named 'App'. Output ONLY the jsx code block.`;
+const PROMPT_ARCHITECT = `Senior UI Engineer. Build a world-class interactive React dashboard.
+RULES:
+- Theme from T:X: T:1 bg-[#FAFAFA] text-zinc-900; T:2 bg-[#050505] text-zinc-100; T:3 bg-[#0A0A0A] text-white accent #E6FF00; T:4 bg-[#FDFBF7] text-zinc-800; T:5 bg-[#E5E5E5] text-black sharp shadows.
+- p tags: leading-[1.8]. Titles end with '+'. Generous whitespace.
+- 3 distinct Recharts with XAxis, YAxis, Tooltip, linearGradient, h-80.
+- Imports: import React, { useState, useEffect } from 'react'; import { motion, AnimatePresence } from 'framer-motion'; import { ArrowRight, CheckCircle2, Zap, Activity, Layers, Rocket, Brain, Target, Globe, Plus } from 'lucide-react'; import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+- Framer: initial={{ opacity:0, y:30 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:false, margin:"-10%" }} transition={{ duration:0.8, ease:"easeOut" }}
+- Component name: 'App'. Output ONLY the jsx block.`;
 
 // ── Easter egg: chocolatine — triggered by "16/06/2010" ──
 const CHOCOLATINE_CODE = `\`\`\`jsx
@@ -617,29 +593,20 @@ export default function ChatPage() {
         setIsLoading(false);
         setFicheContent(newContent);
         
-        const chatDisplayContent = "✨ Architecture successfully recompiled to bypass silent runtime exceptions.";
+        const chatDisplayContent = "✨ Architecture successfully recompiled.";
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
         return; 
       }
 
-      // ── Step 1: Analysis agent — binary decision (modify=1 vs new=2) ──
-      // If editMode is ON, force modification regardless of analyst
-      let isModification;
-      if (editMode && ficheContent) {
-        isModification = true;
-      } else if (!editMode && ficheContent) {
-        const analystResult = await base44.integrations.Core.InvokeLLM({
-          prompt: PROMPT_ANALYST + "\n\nUser prompt: " + text + "\n\n[Existing interface: YES]",
-          model: 'gemini_3_flash'
-        });
-        if (abortedRef.current) return;
-        const decision = String(typeof analystResult === 'string' ? analystResult : JSON.stringify(analystResult)).trim();
-        isModification = decision === '1';
-      } else {
-        isModification = false;
-      }
+      // ── Step 1: Heuristic routing — no API call needed ──
+      const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
+      let isModification = editMode && ficheContent
+        ? true
+        : ficheContent
+          ? MODIFY_KEYWORDS.test(text)
+          : false;
 
       // ── Step 2: Data/theme analysis ──
       const textResult = await base44.integrations.Core.InvokeLLM({ 
@@ -675,7 +642,7 @@ export default function ChatPage() {
       if (chatDisplayContent.match(codeBlockRegex)) {
          chatDisplayContent = chatDisplayContent.replace(codeBlockRegex, '');
          if (chatDisplayContent.trim() === '') {
-             chatDisplayContent = "✨ Architecture generated successfully. View your interactive experience in the preview panel.";
+             chatDisplayContent = "✨ Architecture generated successfully.";
          }
       }
 

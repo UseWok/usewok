@@ -6,13 +6,12 @@ import remarkGfm from 'remark-gfm';
 // Ghost skeleton blocks drawn top-to-bottom — psychologically satisfying
 const SkeletonBlock = ({ width, delay, height = 14, opacity = 1 }) => (
   <div
+    className="skeleton-block"
     style={{
       width,
       height,
       opacity,
       borderRadius: 6,
-      background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
-      backgroundSize: '600px 100%',
       animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
     }}
   />
@@ -64,27 +63,22 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     return (
       <div className="flex justify-start w-full mb-6 font-sans px-1 md:px-0">
         <div className="w-full max-w-[85%]">
-          {/* Organic "thinking" indicator — pulsing cursor instead of spinner */}
           <div className="flex items-center gap-2 mb-4">
             <div
               style={{
                 width: 2,
-                height: 14,
+                height: 12,
                 borderRadius: 2,
-                background: '#0055FF',
+                background: 'hsl(var(--foreground))',
                 animation: 'wok-pulse-cursor 900ms ease-out infinite',
                 flexShrink: 0,
+                opacity: 0.7,
               }}
             />
-            <span
-              className="text-[11px] font-bold tracking-widest uppercase"
-              style={{ color: '#0055FF' }}
-            >
-              Wok réfléchit
+            <span className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+              Building
             </span>
           </div>
-
-          {/* Ghost skeleton blocks drawn top-to-bottom */}
           <div className="flex flex-col gap-[10px]">
             {SKELETON_ROWS.map((row, i) => (
               <SkeletonBlock key={i} {...row} />
@@ -100,20 +94,22 @@ export default function AssistantMessage({ content, isGenerating, query }) {
     const safeText = typeof text === 'string' ? text : JSON.stringify(text);
 
     if (
-      safeText.includes('✨ Architecture générée avec succès') ||
-      safeText.includes('✨ Architecture recompilée avec succès')
+      safeText.includes('✨ Architecture') ||
+      safeText.includes('Architecture generated') ||
+      safeText.includes('Architecture successfully') ||
+      safeText.includes('successfully recompiled')
     ) {
       return (
-        <div className="flex items-center gap-3 px-4 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.2)] max-w-fit">
-          <div className="p-2 bg-[#0055FF]/10 rounded-lg">
-            <LayoutTemplate className="w-5 h-5 text-[#0055FF]" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-card border border-border rounded-xl shadow-sm max-w-fit">
+          <div className="p-1.5 bg-muted rounded-lg">
+            <LayoutTemplate className="w-4 h-4 text-foreground/60" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">
-              Architecture compilée
+            <span className="text-[13px] font-semibold text-foreground leading-none mb-1">
+              Interface ready
             </span>
-            <span className="text-[11.5px] font-medium text-gray-400 leading-none">
-              Afficher le résultat dans le panneau d'aperçu
+            <span className="text-[11.5px] text-muted-foreground leading-none">
+              Preview updated in the right panel
             </span>
           </div>
         </div>

@@ -26,11 +26,11 @@ export default function WorkspaceHeader({
   const [showPublish, setShowPublish] = useState(false);
   const [publishView, setPublishView] = useState('main');
   const [isPublished, setIsPublished] = useState(false);
-  const [isLive, setIsLive] = useState(false); // true only when is_public === true in DB
+  const [isLive, setIsLive] = useState(false);
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [tempSlug, setTempSlug] = useState(customSlug);
   const [isPublic, setIsPublic] = useState(false);
-  const [convRecordId, setConvRecordId] = useState(null); // DB record id (≠ convId)
+  const [convRecordId, setConvRecordId] = useState(null);
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
 
@@ -41,7 +41,11 @@ export default function WorkspaceHeader({
     const slug = convId || `conv_${Date.now().toString().slice(-6)}`;
     setCustomSlug(slug);
     setTempSlug(slug);
-    // Load existing record to restore published state & real slug
+    // Reset state for new convId
+    setIsLive(false);
+    setIsPublic(false);
+    setIsPublished(false);
+    setConvRecordId(null);
     if (convId) {
       base44.entities.Conversation.filter({ conv_id: convId }).then(results => {
         if (results.length > 0) {
@@ -222,7 +226,7 @@ export default function WorkspaceHeader({
           )}
           <button
             onClick={() => setShowPublish(!showPublish)}
-            className="px-3 py-1 bg-transparent text-white text-[11px] font-bold rounded-lg border border-white/70 hover:bg-white/10 shadow-sm transition-colors whitespace-nowrap"
+            className="px-3 py-1 bg-foreground text-background text-[11px] font-medium rounded-lg hover:opacity-80 shadow-sm transition-opacity whitespace-nowrap tracking-wide"
           >
             Publish
           </button>
