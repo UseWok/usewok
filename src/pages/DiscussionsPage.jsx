@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useDiscussions, useDeleteDiscussion } from '@/lib/useDiscussions';
+import DiscussionsHeader from '@/components/DiscussionsHeader';
 
 const FG = '#0A0A0A';
 
@@ -162,16 +164,18 @@ function FichesTab() {
 
 export default function DiscussionsPage() {
   const { data: discussions = [], isLoading } = useDiscussions();
+  const { user, userPlan } = useAuth();
   const [tab, setTab] = useState('conversations');
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
-
-
   return (
     <div className="min-h-screen font-open" style={{ background: 'white' }}>
+      {/* Professional Header */}
+      <DiscussionsHeader user={user} userPlan={userPlan} onNavigate={navigate} />
+
       <div className="max-w-3xl mx-auto px-6 py-10">
-        {/* Header */}
+        {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-black mb-1" style={{ color: FG }}>All conversations</h1>
