@@ -210,7 +210,7 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
           {plan.features.slice(0, 4).map((feature, i) => (
             <li key={i} className="flex items-start gap-2 text-[12px] text-[#444444]">
               <Check className="w-3.5 h-3.5 text-green-600 flex-shrink-0 mt-0.5" />
-              <span>{feature}</span>
+              <span>{typeof feature === 'string' ? feature : feature.text || ''}</span>
             </li>
           ))}
           {plan.features.length > 4 && (
