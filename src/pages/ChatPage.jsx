@@ -905,7 +905,7 @@ export default function ChatPage() {
       
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
-      <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
+      <div className="fixed top-4 left-4 z-[99999]" style={{ position: 'relative' }}>
         {/* Merged clickable area: Wok text + chevron as single button */}
         <button
           onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -929,7 +929,7 @@ export default function ChatPage() {
 
         {/* Small dropdown menu */}
         {isProfileMenuOpen &&
-        <div className="absolute top-10 left-0 bg-white rounded-lg shadow-lg border border-zinc-200 overflow-hidden w-56 mt-1 z-[100000]">
+        <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-zinc-200 overflow-hidden w-56 z-[100000]">
             <div className="p-2.5 space-y-1">
               {/* Home */}
               <button
