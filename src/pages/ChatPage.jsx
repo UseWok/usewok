@@ -27,6 +27,7 @@ import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
 import ZoomControl, { LEVELS } from '@/components/chat/ZoomControl';
+import PreviewLoading from '@/components/chat/PreviewLoading';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -869,7 +870,7 @@ export default function ChatPage() {
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
         backgroundColor: '#FAFAFA',
-        backgroundImage: 'radial-gradient(circle, #D4B8D4 1.2px, transparent 1.2px)',
+        backgroundImage: 'radial-gradient(circle, #E8D5E8 1.2px, transparent 1.2px)',
         backgroundSize: '56px 56px',
       }}
     >
@@ -1020,6 +1021,7 @@ export default function ChatPage() {
               borderRadius: isFullscreen ? 0 : Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',
+              border: '1px solid #E5E5E5',
             }}
           >
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
@@ -1040,6 +1042,8 @@ export default function ChatPage() {
                 customSlug={customSlug}
                 onUpdateContent={setFicheContent}
               />
+            ) : isLoading && messages.length === 0 ? (
+              <PreviewLoading />
             ) : isLoading ? (
               <PreviewSkeleton />
             ) : (
