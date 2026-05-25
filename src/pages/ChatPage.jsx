@@ -414,6 +414,7 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState('chat');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [fullscreenModal, setFullscreenModal] = useState(null); // 'settings' | 'pricing' | 'docs' | 'support'
   
   const [runtimeError, setRuntimeError] = useState(null);
   const [draggedItemIdx, setDraggedItemIdx] = useState(null);
@@ -941,30 +942,21 @@ export default function ChatPage() {
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
       <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
-        <div className="flex items-center gap-1" style={{ pointerEvents: 'auto' }}>
+        <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
           {/* Logo */}
-          <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center shadow-sm border border-zinc-200">
+          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
               <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
               <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
 
-          {/* Trigger button */}
+          {/* Wok text trigger */}
           <button
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="p-0.5 hover:bg-zinc-100 rounded-md transition-colors"
+            className="text-sm font-bold text-zinc-900 hover:text-zinc-600 transition-colors"
           >
-            <svg
-              className="w-3.5 h-3.5 text-zinc-600"
-              style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transitionDuration: '200ms' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+            Wok
           </button>
         </div>
 
@@ -1052,12 +1044,12 @@ export default function ChatPage() {
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
-                      navigate('/settings');
+                      setFullscreenModal('settings');
                     }}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors text-left group"
+                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                         <Settings className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
                       </div>
                       <div>
@@ -1065,19 +1057,19 @@ export default function ChatPage() {
                         <p className="text-sm text-zinc-500">Manage your account</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
                   </button>
 
                   {/* Upgrade Plan */}
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
-                      navigate('/pricing');
+                      setFullscreenModal('pricing');
                     }}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors text-left group"
+                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                         <Zap className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
                       </div>
                       <div>
@@ -1085,16 +1077,19 @@ export default function ChatPage() {
                         <p className="text-sm text-zinc-500">Get more credits and features</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
                   </button>
 
                   {/* Documentation */}
                   <button
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors text-left group"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      setFullscreenModal('docs');
+                    }}
+                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                         <BookOpen className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
                       </div>
                       <div>
@@ -1102,19 +1097,19 @@ export default function ChatPage() {
                         <p className="text-sm text-zinc-500">Learn how to use Wok</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
                   </button>
 
                   {/* Support */}
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
-                      navigate('/support');
+                      setFullscreenModal('support');
                     }}
-                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 rounded-xl transition-colors text-left group"
+                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-left group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                         <LifeBuoy className="w-5 h-5 text-zinc-600" strokeWidth={2.5} />
                       </div>
                       <div>
@@ -1122,7 +1117,7 @@ export default function ChatPage() {
                         <p className="text-sm text-zinc-500">Get help from our team</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
                   </button>
                 </div>
               </div>
@@ -1141,6 +1136,46 @@ export default function ChatPage() {
       </ProModal>
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
+      
+      {/* Fullscreen 95% modal for Settings/Pricing/Docs/Support */}
+      {fullscreenModal && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFullscreenModal(null)} />
+          <div className="relative w-[95vw] h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
+                  <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                    <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
+                    <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="text-lg font-bold text-zinc-900">
+                  {fullscreenModal === 'settings' && 'Settings'}
+                  {fullscreenModal === 'pricing' && 'Upgrade Plan'}
+                  {fullscreenModal === 'docs' && 'Documentation'}
+                  {fullscreenModal === 'support' && 'Support'}
+                </span>
+              </div>
+              <button onClick={() => setFullscreenModal(null)} className="p-2 hover:bg-zinc-100 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-zinc-600" />
+              </button>
+            </div>
+            {/* Content iframe */}
+            <iframe
+              src={
+                fullscreenModal === 'settings' ? '/settings' :
+                fullscreenModal === 'pricing' ? '/pricing' :
+                fullscreenModal === 'docs' ? '#' :
+                fullscreenModal === 'support' ? '/support' : '#'
+              }
+              className="flex-1 w-full h-full border-none bg-white"
+              title={fullscreenModal}
+            />
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           MAIN CARD — dynamic resizable container (iOS 26 style)
