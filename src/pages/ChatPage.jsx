@@ -28,6 +28,7 @@ import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
 import ZoomControl, { LEVELS } from '@/components/chat/ZoomControl';
 import PreviewLoading from '@/components/chat/PreviewLoading';
+import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -860,7 +861,7 @@ export default function ChatPage() {
   const [zoomLevel, setZoomLevel] = useState(0); // 0=XL, 1=Fullscreen
   const zl = LEVELS[zoomLevel];
   const isFullscreen = zoomLevel === 1;
-  const CARD_RADIUS = isFullscreen ? 0 : 16;
+  const CARD_RADIUS = 16;
 
   return (
     /* ═══════════════════════════════════════════════════════════════
@@ -1011,14 +1012,14 @@ export default function ChatPage() {
         ═══════════════════════════════════════════════════════════ */}
         <div
           className="flex-1 relative overflow-hidden flex items-center justify-center"
-          style={{ background: '#FFFFFF', padding: isFullscreen ? 16 : 12 }}
+          style={{ background: '#FFFFFF', padding: 16 }}
         >
           {/* Inset preview rect — clean corners matching card, no gray border */}
           <div
             style={{
               position: 'absolute',
-              inset: isFullscreen ? 16 : 8,
-              borderRadius: isFullscreen ? 0 : Math.max(0, CARD_RADIUS - 4),
+              inset: 16,
+              borderRadius: Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',
               border: '1px solid #E5E5E5',
@@ -1043,7 +1044,7 @@ export default function ChatPage() {
                 onUpdateContent={setFicheContent}
               />
             ) : isLoading && messages.length === 0 ? (
-              <PreviewLoading />
+              <PreviewLoadingFeature />
             ) : isLoading ? (
               <PreviewSkeleton />
             ) : (
