@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -9,65 +8,90 @@
 @layer base {
   :root {
     /* ── Fonts ─────────────────────────────── */
-    --font-inter: 'Be Vietnam Pro', sans-serif;
-    --font-be: 'Be Vietnam Pro', sans-serif;
+    --font-inter: 'Inter', system-ui, sans-serif;
+    --font-be: 'Inter', system-ui, sans-serif;
     --font-open: 'Open Sans', sans-serif;
 
-    /* ── Light palette — no pure white/black ── */
-    --background: 220 20% 97%;       /* very soft cool white */
-    --foreground: 220 15% 14%;       /* warm dark slate, not #000 */
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 14%;
-    --primary: 55 100% 47%;
-    --primary-foreground: 220 15% 10%;
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 220 15% 20%;
-    --muted: 220 14% 93%;
-    --muted-foreground: 220 10% 42%;  /* legible grey, not washed out */
-    --accent: 55 100% 47%;
-    --accent-foreground: 220 15% 10%;
-    --destructive: 0 80% 54%;
+    /* ════════════════════════════════════════
+       PREMIUM DARK DESIGN SYSTEM
+       Always-dark — no light mode override
+    ════════════════════════════════════════ */
+
+    /* Deep void backgrounds */
+    --background: 240 10% 4%;          /* #0A0A0F */
+    --foreground: 0 0% 93%;            /* #EDEDED — off-white, never pure white */
+
+    /* Cards sit one level above background */
+    --card: 240 8% 7%;                 /* #111118 */
+    --card-foreground: 0 0% 88%;
+
+    /* Popovers / dropdowns */
+    --popover: 240 8% 9%;
+    --popover-foreground: 0 0% 88%;
+
+    /* Primary: Electric Indigo #6366F1 */
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: subtle zinc panel */
+    --secondary: 240 6% 13%;
+    --secondary-foreground: 0 0% 72%;
+
+    /* Muted: darkest surface for inputs / inactive states */
+    --muted: 240 6% 11%;
+    --muted-foreground: 0 0% 46%;
+
+    /* Accent = same as primary for consistency */
+    --accent: 239 84% 67%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 72% 56%;
     --destructive-foreground: 0 0% 97%;
-    --border: 220 14% 84%;            /* visible but soft */
-    --input: 220 14% 88%;
-    --ring: 55 100% 47%;
-    --radius: 0.25rem;
-    --sidebar-background: 220 20% 97%;
-    --sidebar-foreground: 220 15% 30%;
-    --sidebar-primary: 55 100% 47%;
-    --sidebar-primary-foreground: 220 15% 10%;
-    --sidebar-accent: 220 14% 93%;
-    --sidebar-accent-foreground: 220 15% 14%;
-    --sidebar-border: 220 14% 86%;
-    --sidebar-ring: 55 100% 47%;
+
+    /* Borders: white/5 — barely visible, premium feel */
+    --border: 240 6% 14%;
+    --input: 240 6% 12%;
+    --ring: 239 84% 67%;
+
+    /* Radius token */
+    --radius: 0.75rem;
+
+    /* Sidebar tokens */
+    --sidebar-background: 240 8% 6%;   /* #0E0E14 — slightly lighter than bg */
+    --sidebar-foreground: 0 0% 55%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 6% 11%;
+    --sidebar-accent-foreground: 0 0% 80%;
+    --sidebar-border: 240 6% 12%;
+    --sidebar-ring: 239 84% 67%;
   }
 
+  /* Keep .dark identical so toggling class doesn't break layout */
   .dark {
-    /* ── Dark palette — comfortable dark slate, no pure #000 ── */
-    --background: 222 16% 10%;       /* deep slate, not pitch black */
-    --foreground: 220 12% 90%;       /* warm light grey, not #fff */
-    --card: 222 16% 13%;
-    --card-foreground: 220 12% 90%;
-    --popover: 222 16% 13%;
-    --popover-foreground: 220 12% 90%;
-    --primary: 55 100% 50%;
-    --primary-foreground: 222 16% 8%;
-    --secondary: 222 14% 18%;
-    --secondary-foreground: 220 12% 80%;
-    --muted: 222 14% 18%;
-    --muted-foreground: 220 10% 56%;
-    --accent: 55 100% 50%;
-    --accent-foreground: 222 16% 8%;
-    --destructive: 0 68% 56%;
-    --destructive-foreground: 220 12% 95%;
-    --border: 222 14% 22%;           /* visible separator */
-    --input: 222 14% 20%;
-    --ring: 55 100% 50%;
-    --sidebar-background: 222 16% 10%;
-    --sidebar-foreground: 220 10% 70%;
-    --sidebar-border: 222 14% 20%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 93%;
+    --card: 240 8% 7%;
+    --card-foreground: 0 0% 88%;
+    --popover: 240 8% 9%;
+    --popover-foreground: 0 0% 88%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 6% 13%;
+    --secondary-foreground: 0 0% 72%;
+    --muted: 240 6% 11%;
+    --muted-foreground: 0 0% 46%;
+    --accent: 239 84% 67%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 56%;
+    --destructive-foreground: 0 0% 97%;
+    --border: 240 6% 14%;
+    --input: 240 6% 12%;
+    --ring: 239 84% 67%;
+    --sidebar-background: 240 8% 6%;
+    --sidebar-foreground: 0 0% 55%;
+    --sidebar-border: 240 6% 12%;
   }
 }
 
@@ -77,36 +101,58 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
   *, *::before, *::after {
-    transition-duration: 200ms;
+    transition-duration: 150ms;
   }
   body {
     @apply bg-background text-foreground font-inter;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  .dark ::-webkit-scrollbar-thumb {
-    background: hsl(222 14% 26%);
+
+  /* ── Headings ── */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(240 6% 18%);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(240 6% 24%);
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
-
-/* Ghost/skeleton — light mode uses grey, dark uses dark grey */
+/* ── Premium skeleton — uses indigo tint in dark ── */
 .skeleton-block {
   background: linear-gradient(
     90deg,
     hsl(var(--muted)) 25%,
-    hsl(var(--secondary)) 50%,
+    hsl(240 6% 16%) 50%,
     hsl(var(--muted)) 75%
   );
   background-size: 600px 100%;
   animation: wok-shimmer 1.6s ease-out infinite;
 }
 
-/* ── Keyframes ──────────────────────────────── */
+/* ── Indigo glow utility ── */
+.glow-indigo {
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.08);
+}
+
+/* ── Glass panel utility ── */
+.glass-panel {
+  background: hsl(var(--card));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Keyframes ── */
 @keyframes wok-shimmer {
   0%   { background-position: -600px 0; }
   100% { background-position:  600px 0; }
@@ -114,6 +160,14 @@
 @keyframes wok-slide-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes wok-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes wok-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 @keyframes wok-pulse-cursor {
   0%, 100% { opacity: 1;    }

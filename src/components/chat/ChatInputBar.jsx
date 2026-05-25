@@ -123,16 +123,16 @@ export default function ChatInputBar({
   const transition = 'transition-all duration-300 ease-[cubic-bezier(0,0,0.2,1)]';
 
   // Light mode uses soft off-white; dark mode keeps dark surface
-  const containerBg = 'bg-[#F3F4F6] dark:bg-[#131313] hover:bg-[#EDEDF0] dark:hover:bg-[#181818] focus-within:bg-[#F0F1F4] dark:focus-within:bg-[#1A1A1A]';
-  const borderStyle = 'border border-[#E0E1E6] dark:border-transparent focus-within:border-[#C8CAD2] dark:focus-within:border-[#333333]';
-  const textColor = 'text-[#111111] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-gray-500';
-  const iconColor = 'text-[#6B7280] dark:text-gray-400 hover:text-[#111111] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#2A2A2A]';
+  const containerBg = 'bg-white/[0.04] hover:bg-white/[0.055] focus-within:bg-white/[0.06]';
+  const borderStyle = 'border border-white/[0.07] focus-within:border-white/[0.12]';
+  const textColor = 'text-zinc-100 placeholder:text-zinc-600';
+  const iconColor = 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.07]';
 
   return (
     <div className={`flex flex-col w-full relative overflow-visible`} ref={configRef}>
       {aiThemePromptActive && (
         <div className="absolute -top-10 left-4 z-[999]">
-          <div className={`bg-[#0055FF]/10 border border-[#0055FF]/30 text-[#0055FF] text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}>
+          <div className={`bg-primary/10 border border-primary/30 text-primary text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm ${transition}`}>
             <Sparkles className="w-3.5 h-3.5" />
             Customizing appearance...
             <button onClick={() => setAiThemePromptActive(false)} className={`hover:bg-[#0055FF]/20 rounded-full p-0.5 ml-1 ${transition}`}>
@@ -145,36 +145,36 @@ export default function ChatInputBar({
       {/* AI Config panel */}
       {showAIConfig && (
         <div
-          className={`absolute bottom-[calc(100%+16px)] left-0 w-[340px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl font-sans border border-[#333538] select-none z-[999] ${transition}`}
+          className={`absolute bottom-[calc(100%+16px)] left-0 w-[340px] bg-[#13131A] rounded-2xl p-2 shadow-2xl font-sans border border-white/[0.07] select-none z-[999] ${transition}`}
           style={{ animation: 'wok-slide-in 200ms ease-out both' }}
         >
           <button
             onClick={() => { setExpertMode(false); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+            className="w-full flex items-start text-left p-3 rounded-xl transition-colors duration-200 hover:bg-white/[0.06]"
           >
             <div className="w-8 flex-shrink-0 flex items-center justify-start pt-0.5">
               {!expertMode && <Check className="w-5 h-5 text-white stroke-[3]" />}
             </div>
             <div className="flex flex-col">
               <span className="text-[15px] font-semibold text-white leading-snug">Flash</span>
-              <span className="text-[14px] text-[#A0A2A5] mt-0.5">Fastest versatile assistance</span>
+              <span className="text-[14px] text-zinc-500 mt-0.5">Fastest versatile assistance</span>
             </div>
           </button>
 
           <button
             onClick={() => { setExpertMode(true); setShowAIConfig(false); }}
-            className="w-full flex items-start text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+            className="w-full flex items-start text-left p-3 rounded-xl transition-colors duration-200 hover:bg-white/[0.06]"
           >
             <div className="w-8 flex-shrink-0 flex items-center justify-start pt-0.5">
               {expertMode && <Check className="w-5 h-5 text-white stroke-[3]" />}
             </div>
             <div className="flex flex-col">
               <span className="text-[15px] font-semibold text-white leading-snug">Expert</span>
-              <span className="text-[14px] text-[#A0A2A5] mt-0.5">Advanced coding and mathematics</span>
+              <span className="text-[14px] text-zinc-500 mt-0.5">Advanced coding and mathematics</span>
             </div>
           </button>
 
-          <div className="h-[1px] bg-[#333538] my-1 mx-4" />
+          <div className="h-[1px] bg-white/[0.06] my-1 mx-4" />
 
           <div
             className="relative"
@@ -183,27 +183,27 @@ export default function ChatInputBar({
           >
             <button
               onClick={() => setShowSkillsMenu(!showSkillsMenu)}
-              className="w-full flex items-center justify-between text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+              className="w-full flex items-center justify-between text-left p-3 rounded-xl transition-colors duration-200 hover:bg-white/[0.06]"
             >
               <div className="flex items-start">
                 <div className="w-8 flex-shrink-0" />
                 <div className="flex flex-col">
                   <span className="text-[15px] font-semibold text-white leading-snug">Skills</span>
-                  <span className="text-[14px] text-[#A0A2A5] mt-0.5 capitalize">
+                  <span className="text-[14px] text-zinc-500 mt-0.5 capitalize">
                     {modes.find((m) => m.id === selectedStrategy)?.name || 'Standard'}
                   </span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-[#A0A2A5] mr-1" />
+              <ChevronRight className="w-4 h-4 text-zinc-500 mr-1" />
             </button>
 
             {showSkillsMenu && (
-              <div className="absolute left-[calc(100%+8px)] bottom-0 w-[260px] bg-[#1E1F22] rounded-[24px] p-2 shadow-2xl border border-[#333538] z-50">
+              <div className="absolute left-[calc(100%+8px)] bottom-0 w-[260px] bg-[#13131A] rounded-2xl p-2 shadow-2xl border border-white/[0.07] z-50">
                 {modes.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => { setSelectedStrategy(m.id); setShowAIConfig(false); setShowSkillsMenu(false); }}
-                    className="w-full flex items-center text-left p-3 rounded-[16px] transition-colors duration-200 hover:bg-[#2A2B2E]"
+                    className="w-full flex items-center text-left p-3 rounded-xl transition-colors duration-200 hover:bg-white/[0.06]"
                   >
                     <div className="w-8 flex-shrink-0 flex items-center justify-start">
                       {selectedStrategy === m.id && <Check className="w-5 h-5 text-white stroke-[3]" />}
@@ -242,7 +242,7 @@ export default function ChatInputBar({
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                     className="group relative flex-shrink-0"
                   >
-                    <div className="w-24 h-24 rounded-2xl border border-[#D1D5DB] dark:border-[#2A2A2A] bg-[#E9EBF0] dark:bg-[#0F0F0F] overflow-hidden shadow-sm">
+                    <div className="w-24 h-24 rounded-2xl border border-white/[0.08] bg-white/[0.05] overflow-hidden shadow-sm">
                       {file.type?.startsWith('image/') ? (
                         <img src={file.url} className="object-cover w-full h-full" alt="preview" />
                       ) : (
@@ -254,7 +254,7 @@ export default function ChatInputBar({
                     </div>
                     <button
                       onClick={() => removeFile(i)}
-                      className={`absolute -top-2 -right-2 w-6 h-6 bg-[#111111] dark:bg-[#0a0a0a] border border-[#3a3a3a] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 ${transition} hover:bg-red-600 hover:border-red-500 shadow-md`}
+                      className={`absolute -top-2 -right-2 w-6 h-6 bg-[#13131A] border border-white/[0.12] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 ${transition} hover:bg-red-600 hover:border-red-500 shadow-md`}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -286,12 +286,12 @@ export default function ChatInputBar({
             <button
               onClick={() => setShowAIConfig(!showAIConfig)}
               className={`p-2 rounded-full ${transition} active:scale-95 relative ${
-                showAIConfig ? 'bg-[#E5E7EB] dark:bg-[#2A2A2A] text-[#111] dark:text-white' : `${iconColor}`
+                showAIConfig ? 'bg-white/[0.10] text-white' : `${iconColor}`
               }`}
             >
               <Settings className="w-[18px] h-[18px]" />
               {expertMode && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#0055FF] rounded-full" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
               )}
             </button>
 
@@ -327,9 +327,9 @@ export default function ChatInputBar({
 
           <div className="flex items-center gap-3 pr-1">
             <span
-              className={`text-[11px] font-medium transition-colors ${
-                input.length >= charLimit ? 'text-red-500' : 'text-[#9CA3AF] dark:text-gray-600'
-              }`}
+            className={`text-[11px] font-medium transition-colors ${
+            input.length >= charLimit ? 'text-red-500' : 'text-zinc-600'
+            }`}
             >
               {input.length > 0 ? `${input.length}/${charLimit}` : ''}
             </span>
@@ -337,7 +337,7 @@ export default function ChatInputBar({
             {isLoading ? (
               <button
                 onClick={onStop}
-                className={`w-9 h-9 bg-[#0055FF] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#0044CC] active:scale-95 ${transition}`}
+                className={`w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-indigo hover:bg-primary/90 active:scale-95 ${transition}`}
               >
                 <div className="w-3 h-3 bg-white rounded-[2px]" />
               </button>
@@ -347,8 +347,8 @@ export default function ChatInputBar({
                 disabled={!input.trim() && (files?.length || 0) === 0}
                 className={`w-9 h-9 rounded-full flex items-center justify-center ${transition} active:scale-95 ${
                   input.trim() || (files?.length || 0) > 0
-                    ? 'bg-[#111111] dark:bg-white text-white dark:text-[#0F0F0F] hover:bg-[#333] dark:hover:bg-gray-200 shadow-md'
-                    : 'bg-[#E5E7EB] dark:bg-[#2A2A2A] text-[#9CA3AF] dark:text-gray-500 cursor-not-allowed opacity-50'
+                    ? 'bg-primary text-white hover:bg-primary/90 shadow-indigo'
+                    : 'bg-white/[0.06] text-zinc-600 cursor-not-allowed opacity-40'
                 }`}
               >
                 <Sparkles className="w-[18px] h-[18px]" />

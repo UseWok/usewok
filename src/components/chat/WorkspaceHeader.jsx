@@ -135,15 +135,15 @@ export default function WorkspaceHeader({
       {/* ── Domain Modal ── */}
       {showDomainModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/60 backdrop-blur-sm">
-          <div className="relative w-[95%] md:w-[520px] bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
-            <div className="p-5 border-b border-border">
-              <h2 className="text-[16px] font-bold text-foreground">Custom Domain Configuration</h2>
-              <p className="text-[12px] text-muted-foreground mt-1">Manage the public access link for your project.</p>
+          <div className="relative w-[95%] md:w-[520px] bg-[#13131A] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-white/[0.07]">
+            <div className="p-5 border-b border-white/[0.06]">
+              <h2 className="text-[16px] font-semibold text-white">Custom Domain Configuration</h2>
+              <p className="text-[12px] text-zinc-500 mt-1">Manage the public access link for your project.</p>
             </div>
             <div className="p-6">
-              <label className="text-[12px] font-bold text-foreground mb-2 block">Public Link (Max 30 chars)</label>
-              <div className="flex items-center w-full border border-border rounded-md overflow-hidden focus-within:border-[#0055FF] transition-colors">
-                <div className="bg-muted px-3 py-2 border-r border-border text-[13px] text-muted-foreground font-mono select-none hidden md:block">
+              <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-2 block">Public Link (Max 30 chars)</label>
+              <div className="flex items-center w-full border border-white/[0.07] rounded-xl overflow-hidden focus-within:border-primary/50 transition-colors">
+                <div className="bg-white/[0.04] px-3 py-2 border-r border-white/[0.07] text-[13px] text-zinc-500 font-mono select-none hidden md:block">
                   {window.location.origin}/p/
                 </div>
                 <input
@@ -151,30 +151,30 @@ export default function WorkspaceHeader({
                   maxLength={30}
                   value={tempSlug}
                   onChange={(e) => setTempSlug(e.target.value)}
-                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-foreground bg-card"
+                  className="flex-1 px-3 py-2 text-[13px] font-mono focus:outline-none text-zinc-100 bg-transparent"
                   autoFocus
                 />
               </div>
             </div>
-            <div className="p-4 border-t border-border flex justify-end gap-3">
-              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors">Cancel</button>
-              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">Save</button>
+            <div className="p-4 border-t border-white/[0.06] flex justify-end gap-3">
+              <button onClick={() => setShowDomainModal(false)} className="px-4 py-2 text-[13px] font-medium text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.05] rounded-xl transition-colors">Cancel</button>
+              <button onClick={handleSaveDomain} className="px-4 py-2 text-[13px] font-semibold text-white bg-primary hover:bg-primary/90 rounded-full transition-colors shadow-indigo">Save</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ── Toolbar: no background, no border — floats above the preview card ── */}
-      <div className="flex items-center justify-between px-4 h-12 flex-shrink-0 z-30 font-sans w-full">
+      <div className="flex items-center justify-between px-4 h-11 flex-shrink-0 z-30 font-sans w-full">
 
         {/* LEFT: empty spacer */}
         <div className="w-6" />
 
         {/* CENTER: project pill + refresh */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-background/80 backdrop-blur border border-border rounded-full shadow-sm">
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 px-1.5 py-1 bg-card/90 backdrop-blur border border-white/[0.07] rounded-full shadow-md">
           <button
             onClick={onReloadIframe}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="p-1.5 rounded-full text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.07] transition-colors"
             title="Refresh preview"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -185,22 +185,22 @@ export default function WorkspaceHeader({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowProjectDropdown(v => !v)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-muted transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-white/[0.07] transition-colors"
             >
-              <span className="text-[12px] font-bold text-foreground font-mono">/project{displayNumber}</span>
-              <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
+              <span className="text-[12px] font-semibold text-zinc-200 font-mono">/project{displayNumber}</span>
+              <ChevronDown className={`w-3 h-3 text-zinc-500 transition-transform ${showProjectDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {showProjectDropdown && discussions.length > 0 && (
-              <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[220px] bg-card border border-border rounded-xl shadow-2xl z-[999] py-1.5 overflow-hidden">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-1.5">Projects in this session</p>
+              <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[220px] bg-[#13131A] border border-white/[0.07] rounded-2xl shadow-2xl z-[999] py-1.5 overflow-hidden">
+                <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest px-3 py-1.5">Projects in this session</p>
                 {discussions.map((d, i) => (
                   <button
                     key={d.id}
                     onClick={() => { onSelectDiscussion && onSelectDiscussion(d.id); setShowProjectDropdown(false); }}
-                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-muted flex items-center gap-2.5 transition-colors ${d.id === convId ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}
+                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-white/[0.05] flex items-center gap-2.5 transition-colors ${d.id === convId ? 'text-white font-semibold' : 'text-zinc-500'}`}
                   >
-                    <span className="text-[10px] font-mono text-muted-foreground w-8 flex-shrink-0">/p{i + 1}</span>
+                    <span className="text-[10px] font-mono text-zinc-600 w-8 flex-shrink-0">/p{i + 1}</span>
                     <span className="truncate">{d.title || d.preview || 'New chat'}</span>
                   </button>
                 ))}
@@ -226,77 +226,77 @@ export default function WorkspaceHeader({
           )}
           <button
             onClick={() => setShowPublish(!showPublish)}
-            className="px-3 py-1 bg-foreground text-background text-[11px] font-medium rounded-lg hover:opacity-80 shadow-sm transition-opacity whitespace-nowrap tracking-wide"
+            className="px-3 py-1.5 bg-primary text-white text-[11px] font-semibold rounded-full hover:bg-primary/90 shadow-indigo transition-colors whitespace-nowrap tracking-wide"
           >
             Publish
           </button>
 
           {showPublish && (
-            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-card border border-border rounded-xl shadow-2xl z-[999] text-left font-sans p-1">
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-[#13131A] border border-white/[0.07] rounded-2xl shadow-2xl z-[999] text-left font-sans p-1">
               {publishView === 'main' ? (
                 <>
-                  <div className="p-3 border-b border-border">
-                    <h3 className="text-[14px] font-bold text-foreground">Publish App</h3>
+                  <div className="p-3 border-b border-white/[0.06]">
+                    <h3 className="text-[14px] font-semibold text-white">Publish App</h3>
                   </div>
 
                   {isPublished && (
                     <div className="px-3 pt-3 pb-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Live URL</p>
-                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-foreground hover:underline font-mono truncate flex items-center gap-1.5 p-2 bg-muted rounded-md border border-border">
+                      <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1">Live URL</p>
+                      <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] text-zinc-300 hover:underline font-mono truncate flex items-center gap-1.5 p-2 bg-white/[0.04] rounded-xl border border-white/[0.06]">
                         {window.location.host}/p/{customSlug} <ExternalLink className="w-3 h-3 flex-shrink-0" />
                       </a>
                     </div>
                   )}
 
                   <div className="p-2 space-y-1 mt-1">
-                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors">
-                      <h4 className="text-[13px] font-bold text-foreground">Custom domain</h4>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Configure your public routing.</p>
+                    <button onClick={() => { setShowPublish(false); setShowDomainModal(true); }} className="w-full text-left px-3 py-2 hover:bg-white/[0.05] rounded-xl transition-colors">
+                      <h4 className="text-[13px] font-semibold text-zinc-100">Custom domain</h4>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">Configure your public routing.</p>
                     </button>
-                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors">
-                      <h4 className="text-[13px] font-bold text-foreground">Share your app</h4>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Share via email or social networks.</p>
+                    <button onClick={() => setPublishView('share')} className="w-full text-left px-3 py-2 hover:bg-white/[0.05] rounded-xl transition-colors">
+                      <h4 className="text-[13px] font-semibold text-zinc-100">Share your app</h4>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">Share via email or social networks.</p>
                     </button>
                   </div>
 
-                  <div className="border-t border-border pt-3 px-3">
-                    <h4 className="text-[12px] font-bold text-foreground mb-2">Project Visibility</h4>
-                    <div className="flex items-center justify-between bg-muted p-2.5 rounded-md border border-border">
+                  <div className="border-t border-white/[0.06] pt-3 px-3">
+                    <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Project Visibility</h4>
+                    <div className="flex items-center justify-between bg-white/[0.04] p-2.5 rounded-xl border border-white/[0.06]">
                       <div className="flex items-center gap-2.5">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                           <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
                           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                         </svg>
-                        <span className="text-[12px] font-bold text-foreground">Public Project</span>
+                        <span className="text-[12px] font-semibold text-zinc-200">Public Project</span>
                       </div>
                       <Toggle enabled={isPublic} onChange={() => setIsPublic(!isPublic)} />
                     </div>
                   </div>
 
                   <div className="px-3 pb-2 pt-1">
-                    <button onClick={handlePublish} className="w-full py-2 bg-[#0055FF] text-white text-[13px] font-bold rounded-md hover:bg-[#0044CC] shadow-sm mt-3">
+                    <button onClick={handlePublish} className="w-full py-2 bg-primary text-white text-[13px] font-semibold rounded-full hover:bg-primary/90 shadow-indigo mt-3">
                       {isPublished ? 'Update Live Build' : 'Deploy'}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="p-3 border-b border-border flex items-center gap-2">
-                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-muted rounded-md text-muted-foreground transition-colors"><ArrowLeft className="w-4 h-4" /></button>
-                    <h3 className="text-[14px] font-bold text-foreground">Share App</h3>
+                  <div className="p-3 border-b border-white/[0.06] flex items-center gap-2">
+                    <button onClick={() => setPublishView('main')} className="p-1 hover:bg-white/[0.06] rounded-lg text-zinc-500 transition-colors"><ArrowLeft className="w-4 h-4" /></button>
+                    <h3 className="text-[14px] font-semibold text-white">Share App</h3>
                   </div>
                   <div className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 border border-border rounded-md p-1.5 bg-muted">
-                      <div className="px-2 flex-1 text-[12px] font-mono text-foreground truncate">{shareUrl}</div>
-                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-[#0055FF] text-white text-[12px] font-bold rounded hover:bg-[#0044CC] shadow-sm transition-colors">Copy</button>
+                    <div className="flex items-center gap-2 border border-white/[0.07] rounded-xl p-1.5 bg-white/[0.04]">
+                      <div className="px-2 flex-1 text-[12px] font-mono text-zinc-400 truncate">{shareUrl}</div>
+                      <button onClick={copyToClipboard} className="px-3 py-1.5 bg-primary text-white text-[12px] font-semibold rounded-full hover:bg-primary/90 shadow-indigo transition-colors">Copy</button>
                     </div>
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">Share via</p>
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest text-center">Share via</p>
                     <div className="grid grid-cols-5 gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><XIcon /></a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><LinkedInIcon /></a>
-                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><FacebookIcon /></a>
-                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><WhatsAppIcon /></a>
-                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-md border border-border bg-muted hover:bg-[#0055FF] hover:text-white text-foreground transition-colors"><Mail className="w-4 h-4" /></a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-400 transition-colors"><XIcon /></a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-400 transition-colors"><LinkedInIcon /></a>
+                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-400 transition-colors"><FacebookIcon /></a>
+                      <a href={`https://api.whatsapp.com/send?text=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="aspect-square flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-400 transition-colors"><WhatsAppIcon /></a>
+                      <a href={`mailto:?body=${shareUrl}`} className="aspect-square flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-400 transition-colors"><Mail className="w-4 h-4" /></a>
                     </div>
                   </div>
                 </>
