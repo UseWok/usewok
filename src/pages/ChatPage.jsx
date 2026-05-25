@@ -868,12 +868,9 @@ export default function ChatPage() {
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
-        background: isFullscreen ? '#111111' : '#FAFAFA',
-        backgroundImage: isFullscreen
-          ? 'none'
-          : 'radial-gradient(circle, #E8D4E8 1.5px, transparent 1.5px)',
+        backgroundColor: '#FAFAFA',
+        backgroundImage: 'radial-gradient(circle, #D4B8D4 1.5px, transparent 1.5px)',
         backgroundSize: '28px 28px',
-        transition: 'background 300ms ease',
       }}
     >
       {/* Modals */}
@@ -901,8 +898,8 @@ export default function ChatPage() {
         }}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
         style={{
-          boxShadow: isFullscreen ? 'none' : '0 12px 48px rgba(0,0,0,0.16)',
-          background: '#FFFFFF',
+          boxShadow: isFullscreen ? 'none' : '0 12px 48px rgba(0,0,0,0.14)',
+          background: 'transparent',
           willChange: 'width, height, border-radius',
         }}
       >
