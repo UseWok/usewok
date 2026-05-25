@@ -1304,7 +1304,6 @@ export default function ChatPage() {
 
       {/* Resize Widget */}
       <ResizeWidget
-        containerRef={containerRef}
         containerSize={containerSize}
         setContainerSize={setContainerSize}
       />
