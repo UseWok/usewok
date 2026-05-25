@@ -26,6 +26,8 @@ import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
+import ZoomControl, { LEVELS } from '@/components/chat/ZoomControl';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
   X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
@@ -854,14 +856,20 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
 
   const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
+  const [zoomLevel, setZoomLevel] = useState(1); // 0=S, 1=M, 2=L
+  const zl = LEVELS[zoomLevel];
+  const isFullscreen = zoomLevel === 2;
+  const CARD_RADIUS = isFullscreen ? 0 : 14;
+  // Preview inset inside right panel — white border = same radius as card
+  const PREVIEW_BORDER = 10; // white border thickness
 
   return (
     /* ═══════════════════════════════════════════════════════════════
        OUTER CANVAS — flat uniform light gray, full viewport
     ═══════════════════════════════════════════════════════════════ */
     <div
-      className="flex items-center justify-center w-screen h-screen font-sans antialiased"
-      style={{ background: '#E8E8E8' }}
+      className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
+      style={{ background: isFullscreen ? '#111111' : '#E8E8E8', transition: 'background 300ms ease' }}
     >
       {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
@@ -875,18 +883,22 @@ export default function ChatPage() {
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
       {/* ═══════════════════════════════════════════════════════════════
-          MAIN CARD — white rounded rect with soft shadow, two columns
+          MAIN CARD — animated zoom, white rounded rect, two columns
       ═══════════════════════════════════════════════════════════════ */}
-      <div
-        className="flex overflow-hidden"
+      <motion.div
+        className="flex overflow-hidden relative"
+        animate={{
+          width: zl.w,
+          maxWidth: zl.maxW,
+          height: zl.h,
+          maxHeight: zl.maxH,
+          borderRadius: CARD_RADIUS,
+        }}
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
         style={{
-          width: '92vw',
-          maxWidth: 1100,
-          height: '88vh',
-          maxHeight: 700,
-          borderRadius: 14,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
+          boxShadow: isFullscreen ? 'none' : '0 8px 40px rgba(0,0,0,0.14)',
           background: '#FFFFFF',
+          willChange: 'width, height, border-radius',
         }}
       >
         {/* ═══════════════════════════
@@ -894,7 +906,7 @@ export default function ChatPage() {
         ═══════════════════════════ */}
         <div
           className="flex flex-col flex-shrink-0 overflow-hidden"
-          style={{ width: '32%', minWidth: 300, maxWidth: 360, background: '#FFFFFF', borderRight: '1px solid #EBEBEB' }}
+          style={{ width: '32%', minWidth: 300, maxWidth: 360, background: '#FFFFFF' }}
         >
           {/* HEADER ROW */}
           <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 flex-shrink-0">
@@ -972,6 +984,11 @@ export default function ChatPage() {
             <div ref={messagesEndRef} className="h-1" />
           </div>
 
+          {/* ZOOM CONTROL — inside white card, above input */}
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 8, paddingTop: 4, flexShrink: 0 }}>
+            <ZoomControl level={zoomLevel} setLevel={setZoomLevel} />
+          </div>
+
           {/* INPUT ZONE */}
           <div className="flex-shrink-0">
             <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
@@ -986,33 +1003,56 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* ═══════════════════════════
-            RIGHT PANEL — solid #000000, no content
-        ═══════════════════════════ */}
-        <div className="flex-1 relative overflow-hidden" style={{ background: '#000000' }}>
-          <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-          {ficheContent ? (
-            <FichePanel
-              content={ficheContent}
-              iframeRefreshKey={iframeRefreshKey}
-              onError={setRuntimeError}
-              onSuccess={() => setRuntimeError(null)}
-              isPublic={false}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              appSettings={appSettings}
-              onUpdateSettings={handleUpdateAppMeta}
-              onClone={handleCloneApp}
-              onDelete={handleDeleteApp}
-              onUnpublish={handleUnpublishApp}
-              customSlug={customSlug}
-              onUpdateContent={setFicheContent}
-            />
-          ) : isLoading ? (
-            <PreviewSkeleton />
-          ) : null}
+        {/* ═══════════════════════════════════════════════════════════
+            RIGHT PANEL — same bg as canvas, preview as inset rect
+            with white border matching card corners
+        ═══════════════════════════════════════════════════════════ */}
+        <div
+          className="flex-1 relative overflow-hidden flex items-center justify-center"
+          style={{ background: isFullscreen ? '#111111' : '#E8E8E8', transition: 'background 300ms ease' }}
+        >
+          {/* Preview inset — white border, then iframe, border-radius matches card */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: PREVIEW_BORDER,
+              borderRadius: Math.max(0, CARD_RADIUS - 2),
+              background: '#FFFFFF',
+              overflow: 'hidden',
+              boxShadow: 'inset 0 0 0 0 transparent',
+            }}
+          >
+            <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
+            {ficheContent ? (
+              <FichePanel
+                content={ficheContent}
+                iframeRefreshKey={iframeRefreshKey}
+                onError={setRuntimeError}
+                onSuccess={() => setRuntimeError(null)}
+                isPublic={false}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                appSettings={appSettings}
+                onUpdateSettings={handleUpdateAppMeta}
+                onClone={handleCloneApp}
+                onDelete={handleDeleteApp}
+                onUnpublish={handleUnpublishApp}
+                customSlug={customSlug}
+                onUpdateContent={setFicheContent}
+              />
+            ) : isLoading ? (
+              <PreviewSkeleton />
+            ) : (
+              /* Empty state */
+              <div style={{ width: '100%', height: '100%', background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ fontSize: 13, color: '#BBBBBB', fontFamily: 'Inter, sans-serif' }}>Your interface will appear here</p>
+              </div>
+            )}
+          </div>
+
         </div>
-      </div>
+
+      </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}
       <div className="fixed inset-0 flex md:hidden flex-col bg-white">
