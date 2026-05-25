@@ -36,9 +36,9 @@ import {
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
 // ============================================================================
 const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex flex-col items-end w-full mb-4 gap-2">
+  <div className="flex flex-col items-start w-full gap-2">
     {(msg.images?.length || 0) > 0 && (
-      <div className="flex flex-wrap gap-2 justify-end max-w-[85%]">
+      <div className="flex flex-wrap gap-2 max-w-[90%]">
         {msg.images.map((imgUrl, i) => (
           <img key={i} src={imgUrl} alt="attachment"
             className="max-w-[200px] max-h-[160px] rounded-2xl object-cover border border-zinc-200" />
@@ -46,7 +46,7 @@ const CustomUserMessageBubble = ({ msg }) => (
       </div>
     )}
     {msg.content && (
-      <div className="bg-zinc-900 text-white text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm max-w-[85%] whitespace-pre-wrap"
+      <div className="bg-zinc-100 text-zinc-800 text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-tl-sm max-w-[90%] whitespace-pre-wrap"
         style={{ fontFamily: 'Inter, sans-serif' }}>
         {msg.content}
       </div>
@@ -901,28 +901,43 @@ export default function ChatPage() {
         <div className="hidden md:flex flex-1 overflow-hidden w-full h-full">
 
           {/* Chat panel — desktop */}
-          <div className={`flex flex-col overflow-hidden transition-all duration-150 ease-out flex-shrink-0 ${isPreviewCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[420px]'}`}
+          <div className={`flex flex-col overflow-hidden transition-all duration-150 ease-out flex-shrink-0 ${isPreviewCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[440px]'}`}
             style={{ background: '#FFFFFF', borderRight: '1px solid #E4E4E7' }}>
             <div className="flex flex-col w-full h-full">
 
-              {/* Header */}
-              <div className="flex items-center gap-2.5 px-5 pt-5 pb-4 mt-10 flex-shrink-0">
-                <div className="w-6 h-6 rounded-md bg-amber-400 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-black text-white">W</span>
+              {/* Header — 64px, sits below the absolute profile menu (mt accounts for top buttons) */}
+              <div className="flex items-center px-4 gap-3 flex-shrink-0 border-b border-zinc-100" style={{ height: 64, marginTop: 48 }}>
+                <div className="w-8 h-8 rounded-lg bg-amber-400 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-black text-white">W</span>
                 </div>
-                <span className="text-base font-semibold text-zinc-900 leading-none">Wok</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-base font-semibold text-zinc-900">Wok</span>
+                  {user?.email && <span className="text-xs text-zinc-400">{user.email}</span>}
+                </div>
               </div>
-              <div className="h-px bg-zinc-200 mx-5 flex-shrink-0" />
 
               {/* Messages */}
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-4 [&::-webkit-scrollbar]:hidden">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
                 {!hasStarted && (
-                  <div className="flex flex-col items-center justify-center text-center w-full mt-16">
-                    <div className="w-8 h-8 rounded-lg bg-amber-400 flex items-center justify-center mb-4">
-                      <span className="text-sm font-black text-white">W</span>
+                  <div className="flex flex-col mt-8">
+                    {/* Suggestions section */}
+                    <div className="mb-3 flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-400">
+                        <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                      </svg>
+                      <span className="text-xs text-zinc-400">Suggestions</span>
                     </div>
-                    <h2 className="text-base font-semibold text-zinc-900 mb-1">How can I help you today?</h2>
-                    <p className="text-xs text-zinc-400">Describe the interface you want to build.</p>
+                    <div className="flex flex-row gap-4 flex-wrap">
+                      {['Dashboard with charts', 'Landing page', 'E-commerce UI', 'SaaS pricing'].map(chip => (
+                        <button
+                          key={chip}
+                          onClick={() => setInput(chip)}
+                          className="text-sm text-zinc-600 hover:text-zinc-900 cursor-pointer transition-all duration-150"
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {messages?.map((msg, idx) => (
@@ -939,25 +954,11 @@ export default function ChatPage() {
                   </div>
                 ))}
                 {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
-                <div ref={messagesEndRef} className="h-4" />
+                <div ref={messagesEndRef} className="h-2" />
               </div>
 
               {/* Bottom zone */}
               <div className="flex-shrink-0">
-                {/* Suggestion chips */}
-                {!hasStarted && (
-                  <div className="flex gap-2 px-5 pb-3 overflow-x-auto">
-                    {['Dashboard with charts', 'Landing page', 'E-commerce UI', 'SaaS pricing'].map(chip => (
-                      <button
-                        key={chip}
-                        onClick={() => setInput(chip)}
-                        className="flex-shrink-0 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-full px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-all duration-150 shadow-sm"
-                      >
-                        {chip}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
                 <div className="px-3 pb-4">
                   <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
