@@ -242,16 +242,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {expanded && <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />}
         </button>
 
-        {/* "Entrer un code" button - secondary action below profile */}
-        {expanded && (
-          <button
-            onClick={() => setShowCodeModal(true)}
-            className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-[13px] font-medium border border-border rounded-lg hover:bg-muted transition-all group"
-          >
-            <Ticket className="w-4 h-4 text-foreground" strokeWidth={1.5} />
-            <span>Entrer un code</span>
-          </button>
-        )}
+
 
         <AnimatePresence>
           {showProfileMenu && (
@@ -263,6 +254,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               className="absolute bottom-[calc(100%+4px)] left-2 right-2 bg-card border border-border rounded-xl shadow-xl z-[999] py-1.5 overflow-hidden"
             >
               {[
+                { icon: Ticket, label: 'Redeem code', action: () => { setShowCodeModal(true); setShowProfileMenu(false); } },
                 { icon: Settings, label: 'Settings', action: () => navigate('/settings') },
                 { icon: CreditCard, label: 'Upgrade plan', action: () => navigate('/pricing') },
                 { icon: HelpCircle, label: 'Support', action: () => navigate('/support') },
@@ -276,6 +268,24 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                   <Icon className="w-3.5 h-3.5" /> {label}
                 </button>
               ))}
+              
+              {/* Divider */}
+              <div className="h-px bg-border my-1.5" />
+              
+              {/* Logout button - gray like others */}
+              <button
+                onClick={async () => {
+                  await base44.auth.logout();
+                  window.location.reload();
+                }}
+                className="relative overflow-hidden group w-full flex items-center gap-3 px-3 py-2.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+              >
+                <span className="absolute inset-0 bg-foreground/[0.05] scale-0 opacity-0 group-active:scale-100 group-active:opacity-100 transition-all duration-150 pointer-events-none" />
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -304,9 +314,9 @@ function CodeModal({ open, onClose, user }) {
       if (results.length === 0) {
         const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
         if (any.length > 0) {
-          setError('Ce code a déjà été utilisé.');
+          setError('This code has already been used.');
         } else {
-          setError('Code invalide.');
+          setError('Invalid code.');
         }
         setLoading(false);
         return;
@@ -317,7 +327,7 @@ function CodeModal({ open, onClose, user }) {
       const newPlan = plans.find(p => p.id === codeRecord.plan_id);
       
       if (!newPlan) {
-        setError('Plan non trouvé.');
+        setError('Plan not found.');
         setLoading(false);
         return;
       }
@@ -325,13 +335,13 @@ function CodeModal({ open, onClose, user }) {
       // Calculate duration text
       let durationText = '';
       if (codeRecord.duration_type === 'lifetime') {
-        durationText = 'accès à vie';
+        durationText = 'lifetime access';
       } else if (codeRecord.duration_type === 'day') {
-        durationText = `${codeRecord.duration_value} jours`;
+        durationText = `${codeRecord.duration_value} days`;
       } else if (codeRecord.duration_type === 'month') {
-        durationText = `${codeRecord.duration_value} mois`;
+        durationText = `${codeRecord.duration_value} months`;
       } else if (codeRecord.duration_type === 'year') {
-        durationText = `${codeRecord.duration_value} an${codeRecord.duration_value > 1 ? 's' : ''}`;
+        durationText = `${codeRecord.duration_value} year${codeRecord.duration_value > 1 ? 's' : ''}`;
       }
 
       // Apply the plan
@@ -352,9 +362,9 @@ function CodeModal({ open, onClose, user }) {
       });
 
       setSuccess({ planName: newPlan.name, duration: durationText });
-      toast.success(`Code activé : ${newPlan.name}`);
+      toast.success(`Code activated: ${newPlan.name}`);
     } catch (err) {
-      setError('Une erreur est survenue.');
+      setError('An error occurred.');
     } finally {
       setLoading(false);
     }
@@ -392,7 +402,7 @@ function CodeModal({ open, onClose, user }) {
             >
               {/* Header */}
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                <h2 className="text-[18px] font-semibold text-foreground">Entrer un code</h2>
+                <h2 className="text-[18px] font-semibold text-foreground">Redeem Code</h2>
                 <button
                   onClick={handleClose}
                   className="w-7 h-7 flex items-center justify-center hover:bg-muted rounded-lg transition-colors"
@@ -409,7 +419,7 @@ function CodeModal({ open, onClose, user }) {
                       <Check className="w-8 h-8 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-[16px] font-semibold text-foreground">Code activé avec succès !</p>
+                      <p className="text-[16px] font-semibold text-foreground">Code activated successfully!</p>
                       <p className="text-sm mt-2 text-muted-foreground">
                         Plan <strong className="text-foreground">{success.planName}</strong> — {success.duration}
                       </p>
@@ -418,7 +428,7 @@ function CodeModal({ open, onClose, user }) {
                       onClick={handleClose}
                       className="w-full py-3 text-[14px] font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
                     >
-                      Fermer
+                      Close
                     </button>
                   </div>
                 ) : (
@@ -440,7 +450,7 @@ function CodeModal({ open, onClose, user }) {
                         <p className="text-sm text-destructive mt-2">{error}</p>
                       )}
                       <p className="text-[12px] text-muted-foreground mt-2.5">
-                        Les codes vous donnent accès à des fonctionnalités premium.
+                        Codes give you access to premium features.
                       </p>
                     </div>
 
@@ -458,7 +468,7 @@ function CodeModal({ open, onClose, user }) {
                       ) : (
                         <>
                           <Zap className="w-4 h-4" />
-                          Activer le code
+                          Activate Code
                         </>
                       )}
                     </button>
