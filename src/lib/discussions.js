@@ -38,16 +38,41 @@ export const saveConversationMessages = (convId, msgs) => {
 };
 
 // Cloud sync — saves full conversation to DB for cross-device access
+// ALWAYS syncs everything: messages, title, preview, metadata
 export async function syncConversationToCloud(convId, messages, meta = {}) {
   try {
     const results = await base44.entities.Conversation.filter({ conv_id: convId });
-    const data = { conv_id: convId, messages_json: JSON.stringify(messages), ...meta };
+    const data = {
+      conv_id: convId,
+      messages_json: JSON.stringify(messages),
+      title: meta.title || 'New Chat',
+      preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
+      is_public: meta.is_public || false,
+      model: meta.model || 'default',
+      agent: meta.agent || 'default'
+    };
     if (results.length > 0) {
       await base44.entities.Conversation.update(results[0].id, data);
     } else {
       await base44.entities.Conversation.create(data);
     }
-  } catch {}
+  } catch (err) {
+    console.error('Cloud sync failed:', err);
+  }
+}
+
+// Save preview content (ficheContent) to cloud
+export async function savePreviewToCloud(convId, rawContent) {
+  try {
+    const results = await base44.entities.Conversation.filter({ conv_id: convId });
+    if (results.length > 0) {
+      await base44.entities.Conversation.update(results[0].id, {
+        messages_json: JSON.stringify([{ role: 'system', content: 'preview_saved', rawContent }])
+      });
+    }
+  } catch (err) {
+    console.error('Preview save failed:', err);
+  }
 }
 
 // Load messages from cloud — tries owner first, then public fallback

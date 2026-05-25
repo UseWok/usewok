@@ -517,7 +517,14 @@ export default function ChatPage() {
       stored.unshift(disc);
       saveLocalDiscussions(currentWorkspace.id, stored);
       setDiscussions(stored);
-    } catch {}
+      
+      // ALWAYS sync to cloud immediately
+      import('@/lib/discussions').then(({ syncConversationToCloud }) => {
+        syncConversationToCloud(convId, messages || [], { title: convTitle, preview: text });
+      });
+    } catch (err) {
+      console.error('Save to cloud failed:', err);
+    }
   };
 
   const handleUpdateCredits = async (cost) => {
@@ -556,10 +563,15 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
       setFicheContent(CHOCOLATINE_CODE);
-      // Make it public automatically
+      
+      // ALWAYS sync to cloud
       if (convId) {
         const { syncConversationToCloud } = await import('@/lib/discussions');
-        syncConversationToCloud(convId, finalMsgs, { title: 'Chocolatine vs Pain au Chocolat', preview: 'Le débat ultime', is_public: true });
+        await syncConversationToCloud(convId, finalMsgs, {
+          title: 'Chocolatine vs Pain au Chocolat',
+          preview: 'Le débat ultime',
+          is_public: true
+        });
         if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       }
       setIsLoading(false);
@@ -618,6 +630,11 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
+        
+        // ALWAYS sync to cloud
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        await syncConversationToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed' });
+        
         return;
       }
 
@@ -680,9 +697,15 @@ export default function ChatPage() {
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
-      // Sync to cloud so refresh always restores the conversation
+      
+      // ALWAYS sync EVERYTHING to cloud immediately
       const { syncConversationToCloud } = await import('@/lib/discussions');
-      syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 80), preview: text.slice(0, 120) });
+      syncConversationToCloud(convId, finalMsgs, {
+        title: text.slice(0, 80),
+        preview: text.slice(0, 120),
+        is_public: appSettings.isPublic
+      });
+      
       saveToDiscussionsLogic("New Chat", text);
       // Update URL to include conversationId without triggering re-render
       if (!conversationId) {
@@ -721,30 +744,70 @@ export default function ChatPage() {
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
     if (convId) {
-      try {await base44.entities.Conversation.update(convId, { title: newSettings.title });}
-      catch (e) {}
+      try {
+        await base44.entities.Conversation.update(convId, {
+          title: newSettings.title,
+          is_public: newSettings.isPublic
+        });
+        // Full sync to ensure everything is saved
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        syncConversationToCloud(convId, messages || [], newSettings);
+      }
+      catch (e) {
+        console.error('Meta update failed:', e);
+      }
     }
     toast.success("Settings updated successfully.");
   };
 
-  const handleCloneApp = () => {
+  const handleCloneApp = async () => {
     const newConvId = `conv_${Date.now()}`;
     saveConversationMessages(newConvId, messages);
+    
+    // Clone to cloud immediately
+    const { syncConversationToCloud } = await import('@/lib/discussions');
+    await syncConversationToCloud(newConvId, messages || [], {
+      title: appSettings.title + ' (Copy)',
+      preview: appSettings.description,
+      is_public: false
+    });
+    
     toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
   };
 
   const handleUnpublishApp = async () => {
-    setAppSettings({ ...appSettings, isPublic: false });
+    const newSettings = { ...appSettings, isPublic: false };
+    setAppSettings(newSettings);
     if (convId) {
-      try {await base44.entities.Conversation.update(convId, { is_public: false });}
-      catch (e) {}
+      try {
+        await base44.entities.Conversation.update(convId, { is_public: false });
+        // Full sync
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        await syncConversationToCloud(convId, messages || [], newSettings);
+      }
+      catch (e) {
+        console.error('Unpublish failed:', e);
+      }
     }
     toast.success("Application unpublished.");
   };
 
-  const handleDeleteApp = () => {
+  const handleDeleteApp = async () => {
     deleteDiscussion({ stopPropagation: () => {} }, convId);
+    
+    // Delete from cloud
+    if (convId) {
+      try {
+        const results = await base44.entities.Conversation.filter({ conv_id: convId });
+        if (results.length > 0) {
+          await base44.entities.Conversation.delete(results[0].id);
+        }
+      } catch (e) {
+        console.error('Cloud delete failed:', e);
+      }
+    }
+    
     toast.success("Application deleted permanently.");
   };
 
