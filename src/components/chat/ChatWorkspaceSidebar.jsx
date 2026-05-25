@@ -16,7 +16,7 @@ const getWorkspaces = () => {
 };
 const saveWorkspaces = (ws) => localStorage.setItem('wok_workspaces', JSON.stringify(ws));
 
-export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
+export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidden = false }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,6 +25,7 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
   const [discussions, setDiscussions] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const [currentTheme, setCurrentTheme] = useState(getTheme());
 
   const wsRef = useRef(null);
 
@@ -41,6 +42,8 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  if (hidden) return null;
 
   const switchWorkspace = (id) => {
     const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
@@ -89,8 +92,6 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId }) {
   const userInitial = user?.full_name
     ? user.full_name.charAt(0).toUpperCase()
     : user?.email ? user.email.charAt(0).toUpperCase() : '?';
-
-  const [currentTheme, setCurrentTheme] = useState(getTheme());
 
   const handleTheme = (theme) => {
     setTheme(theme);

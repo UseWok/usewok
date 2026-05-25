@@ -904,8 +904,8 @@ export default function ChatPage() {
       }}>
       
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
-      {/* Wok header - top left */}
-      <div className="fixed top-4 left-4 z-[99999]" style={{ position: 'relative' }}>
+      {/* Wok header - fixed to viewport, not canvas */}
+      <div style={{ position: 'fixed', top: '4px', left: '4px', zIndex: 99999 }}>
         {/* Merged clickable area: Wok text + chevron as single button */}
         <button
           onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -1039,9 +1039,9 @@ export default function ChatPage() {
         <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border rounded-md px-3 py-2 text-[13px] focus:outline-none" />
       </ProModal>
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
-      <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
+      <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
       
-      {/* Fullscreen modal for Settings/Pricing/Docs/Support */}
+      {/* Fullscreen modal for Settings/Pricing/Docs/Support - hides sidebar */}
       <AnimatePresence>
       {fullscreenModal &&
       <>
@@ -1064,8 +1064,8 @@ export default function ChatPage() {
             className="relative w-[95vw] max-w-[1100px] h-[95vh] bg-white rounded-lg overflow-hidden flex flex-col pointer-events-auto"
             style={{ borderRadius: '12px' }}
             onClick={e => e.stopPropagation()}>
-            <button onClick={() => setFullscreenModal(null)} className="absolute top-4 right-4 z-[100000] p-2 hover:bg-[#F7F7F8] rounded transition-colors" style={{ width: 20, height: 20 }}>
-              <X className="w-5 h-5 text-[#1A1A1A]" strokeWidth={2} />
+            <button onClick={() => setFullscreenModal(null)} className="absolute top-4 right-4 z-[100001] p-0 hover:bg-[#F7F7F8] rounded transition-colors" style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X className="w-5 h-5 text-[#1A1A1A]" strokeWidth={2} style={{ pointerEvents: 'none' }} />
             </button>
             <iframe
             src={
