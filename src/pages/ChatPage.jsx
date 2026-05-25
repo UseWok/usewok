@@ -28,9 +28,9 @@ import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { 
-  X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen
-} from 'lucide-react';
+import {
+  X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen } from
+'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 
@@ -41,35 +41,35 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 const renderUserText = (text) => {
   if (!text) return null;
   return text.split(/(hovering)/g).map((part, i) =>
-    part === 'hovering'
-      ? <span key={i} style={{ textDecoration: 'underline' }}>hovering</span>
-      : part
+  part === 'hovering' ?
+  <span key={i} style={{ textDecoration: 'underline' }}>hovering</span> :
+  part
   );
 };
 
-const CustomUserMessageBubble = ({ msg }) => (
-  <div className="flex flex-col items-end w-full gap-1">
-    {(msg.images?.length || 0) > 0 && (
-      <div className="flex flex-wrap gap-2 max-w-[75%] justify-end">
-        {msg.images.map((imgUrl, i) => (
-          <img key={i} src={imgUrl} alt="attachment"
-            className="max-w-[160px] max-h-[120px] rounded-2xl object-cover" />
-        ))}
-      </div>
+const CustomUserMessageBubble = ({ msg }) =>
+<div className="flex flex-col items-end w-full gap-1">
+    {(msg.images?.length || 0) > 0 &&
+  <div className="flex flex-wrap gap-2 max-w-[75%] justify-end">
+        {msg.images.map((imgUrl, i) =>
+    <img key={i} src={imgUrl} alt="attachment"
+    className="max-w-[160px] max-h-[120px] rounded-2xl object-cover" />
     )}
-    {msg.content && (
-      <div
-        className="inline-block max-w-[75%] text-left whitespace-pre-wrap"
-        style={{ background: '#F0F0F0', borderRadius: 14, padding: '10px 13px', fontSize: 13, color: '#222222', lineHeight: 1.5 }}
-      >
+      </div>
+  }
+    {msg.content &&
+  <div
+    className="inline-block max-w-[75%] text-left whitespace-pre-wrap"
+    style={{ background: '#F0F0F0', borderRadius: 14, padding: '10px 13px', fontSize: 13, color: '#222222', lineHeight: 1.5 }}>
+    
         {renderUserText(msg.content)}
       </div>
-    )}
+  }
     <span style={{ fontSize: 11, color: '#AAAAAA', marginRight: 2 }}>
       {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
     </span>
-  </div>
-);
+  </div>;
+
 
 const IframeModal = ({ open, url, onClose }) => {
   if (!open) return null;
@@ -81,8 +81,8 @@ const IframeModal = ({ open, url, onClose }) => {
         </button>
         <iframe src={url} className="w-full h-full border-none bg-white rounded-b-lg" />
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionText }) => {
@@ -98,15 +98,15 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
           <button onClick={onClose} className="p-1.5 hover:bg-muted text-muted-foreground rounded-md transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5">{children}</div>
-        {actionText && (
-          <div className="p-4 border-t border-border flex justify-end gap-3">
+        {actionText &&
+        <div className="p-4 border-t border-border flex justify-end gap-3">
             <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors">Cancel</button>
             <button onClick={onAction} className="px-4 py-2 text-[13px] font-bold text-white bg-[#0055FF] hover:bg-[#0044CC] rounded-md transition-colors shadow-sm">{actionText}</button>
           </div>
-        )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 
@@ -114,7 +114,7 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
 // ► 3. UTILITIES, CONSTANTS & PROMPTS
 // ============================================================================
 const getLocalDiscussions = (workspaceId) => {
-  try { return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || []; } catch { return []; }
+  try {return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || [];} catch {return [];}
 };
 const saveLocalDiscussions = (workspaceId, data) => {
   localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
@@ -247,13 +247,13 @@ const PROMPT_AUTO_FIX = `You are a React Debugger. Fix the runtime error.
 RULES: Output ONLY the raw jsx block. Keep exact design, '+' symbols, 1.8 leading, and whitespace. Replace crashing lucide/recharts imports with 'Activity' or native Tailwind shapes. Component name: 'App'.`;
 
 const getBackgroundGradient = (theme) => {
-  switch(theme) {
-    case 'wok_clean': return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
-    case 'deep_void': return 'linear-gradient(180deg, #050505 0%, #121212 100%)';
-    case 'yuzu_accent': return 'linear-gradient(180deg, #0A0A0A 0%, #1A1C00 100%)';
-    case 'corporate_sand': return 'linear-gradient(180deg, #FDFBF7 0%, #EFEBE0 100%)';
-    case 'brutalism': return 'linear-gradient(180deg, #E5E5E5 0%, #C0C0C0 100%)';
-    default: return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+  switch (theme) {
+    case 'wok_clean':return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
+    case 'deep_void':return 'linear-gradient(180deg, #050505 0%, #121212 100%)';
+    case 'yuzu_accent':return 'linear-gradient(180deg, #0A0A0A 0%, #1A1C00 100%)';
+    case 'corporate_sand':return 'linear-gradient(180deg, #FDFBF7 0%, #EFEBE0 100%)';
+    case 'brutalism':return 'linear-gradient(180deg, #E5E5E5 0%, #C0C0C0 100%)';
+    default:return 'linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)';
   }
 };
 
@@ -273,14 +273,14 @@ const SkeletonRow = ({ width, height = 14, delay = 0, opacity = 1 }) => {
         opacity,
         borderRadius: 8,
         flexShrink: 0,
-        animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`,
-      }}
-    />
-  );
+        animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both`
+      }} />);
+
+
 };
 
-const PreviewSkeleton = () => (
-  <div className="w-full h-full bg-zinc-50 rounded-2xl p-6 flex flex-col gap-0 overflow-hidden">
+const PreviewSkeleton = () =>
+<div className="w-full h-full bg-zinc-50 rounded-2xl p-6 flex flex-col gap-0 overflow-hidden">
     {/* Header block */}
     <div className="flex flex-col gap-2.5 mb-8">
       <SkeletonRow width="38%" height={22} delay={0} />
@@ -289,9 +289,9 @@ const PreviewSkeleton = () => (
 
     {/* Stat cards row */}
     <div className="grid grid-cols-3 gap-3 mb-7">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="skeleton-block rounded-xl h-20" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both` }} />
-      ))}
+      {[0, 1, 2].map((i) =>
+    <div key={i} className="skeleton-block rounded-xl h-20" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${80 + i * 50}ms both` }} />
+    )}
     </div>
 
     {/* Chart block */}
@@ -299,66 +299,66 @@ const PreviewSkeleton = () => (
 
     {/* Text lines */}
     <div className="flex flex-col gap-2.5 mb-6">
-      {[{ w: '91%', d: 310 }, { w: '76%', d: 350 }, { w: '83%', d: 390 }, { w: '55%', d: 430, op: 0.5 }].map((r, i) => (
-        <SkeletonRow key={i} width={r.w} height={13} delay={r.d} opacity={r.op || 1} />
-      ))}
+      {[{ w: '91%', d: 310 }, { w: '76%', d: 350 }, { w: '83%', d: 390 }, { w: '55%', d: 430, op: 0.5 }].map((r, i) =>
+    <SkeletonRow key={i} width={r.w} height={13} delay={r.d} opacity={r.op || 1} />
+    )}
     </div>
 
     {/* Bottom grid */}
     <div className="grid grid-cols-2 gap-3">
-      {[0, 1].map((i) => (
-        <div key={i} className="skeleton-block rounded-2xl h-28" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both` }} />
-      ))}
+      {[0, 1].map((i) =>
+    <div key={i} className="skeleton-block rounded-2xl h-28" style={{ animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${470 + i * 60}ms both` }} />
+    )}
     </div>
-  </div>
-);
+  </div>;
+
 
 // Add skeleton component for chat loading
-const ChatLoadingSkeleton = () => (
-  <div className="flex-1 flex flex-col justify-end p-6 space-y-6">
+const ChatLoadingSkeleton = () =>
+<div className="flex-1 flex flex-col justify-end p-6 space-y-6">
     <div className="space-y-4 max-w-2xl mx-auto w-full">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex justify-start">
+      {[0, 1, 2].map((i) =>
+    <div key={i} className="flex justify-start">
           <div
-            style={{
-              width: `${70 + (i * 10)}%`,
-              height: 60,
-              borderRadius: 20,
-              background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
-              backgroundSize: '600px 100%',
-              animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 100}ms both`,
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const SidebarLoadingSkeleton = () => (
-  <div className="px-4 space-y-2 mt-6">
-    {[0, 1, 2, 3, 4].map((i) => (
-      <div
-        key={i}
         style={{
-          width: '100%',
-          height: 40,
-          borderRadius: 8,
+          width: `${70 + i * 10}%`,
+          height: 60,
+          borderRadius: 20,
           background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
           backgroundSize: '600px 100%',
-          animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 80}ms both`,
-        }}
-      />
-    ))}
-  </div>
-);
+          animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 100}ms both`
+        }} />
+      
+        </div>
+    )}
+    </div>
+  </div>;
+
+
+const SidebarLoadingSkeleton = () =>
+<div className="px-4 space-y-2 mt-6">
+    {[0, 1, 2, 3, 4].map((i) =>
+  <div
+    key={i}
+    style={{
+      width: '100%',
+      height: 40,
+      borderRadius: 8,
+      background: 'linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%)',
+      backgroundSize: '600px 100%',
+      animation: `wok-shimmer 1.4s ease-out infinite, wok-slide-in 200ms ease-out ${i * 80}ms both`
+    }} />
+
+  )}
+  </div>;
+
 
 
 // ============================================================================
 // ► 5. MAIN COMPONENT: ChatPage
 // ============================================================================
 export default function ChatPage() {
-  
+
   // ────────────────────────────────────────────────────────────────────────
   //   5.1 ROUTING & URL PARAMS
   // ────────────────────────────────────────────────────────────────────────
@@ -377,13 +377,13 @@ export default function ChatPage() {
   const [userPlan, setUserPlan] = useState(null);
   const [projectNumber, setProjectNumber] = useState(null);
   const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
-  
+
   const [workspaces, setWorkspaces] = useState(() => {
     const saved = localStorage.getItem('wok_workspaces');
     return saved ? JSON.parse(saved) : [{ id: 'default', name: 'My Workspace', current: true }];
   });
-  const currentWorkspace = workspaces.find(w => w.current) || workspaces[0];
-  
+  const currentWorkspace = workspaces.find((w) => w.current) || workspaces[0];
+
   const [discussions, setDiscussions] = useState(() => getLocalDiscussions(currentWorkspace.id) || []);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
@@ -391,7 +391,7 @@ export default function ChatPage() {
   const [appearance, setAppearance] = useState({ theme: 'wok_clean', font: 'Inter', edges: 'soft' });
   const [viewMode, setViewMode] = useState('preview');
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
-  
+
   // Main container resize state
   const [containerSize, setContainerSize] = useState({ width: 96, height: 94 }); // vw/vh percentages
   const [isResizing, setIsResizing] = useState(false);
@@ -415,7 +415,7 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [fullscreenModal, setFullscreenModal] = useState(null); // 'settings' | 'pricing' | 'docs' | 'support'
-  
+
   const [runtimeError, setRuntimeError] = useState(null);
   const [draggedItemIdx, setDraggedItemIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
@@ -424,17 +424,17 @@ export default function ChatPage() {
     const initial = conversationId ? getConversationMessages(conversationId) : [];
     return Array.isArray(initial) ? initial : [];
   });
-  
+
   const [isLoadingConversation, setIsLoadingConversation] = useState(() => !!conversationId && (getConversationMessages(conversationId)?.length || 0) === 0);
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState(''); 
+  const [currentQuery, setCurrentQuery] = useState('');
   const [files, setFiles] = useState([]);
   const [ficheContent, setFicheContent] = useState(null);
   const [discussMode, setDiscussMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  
+
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
 
   // ────────────────────────────────────────────────────────────────────────
@@ -453,44 +453,44 @@ export default function ChatPage() {
   //   5.4 WORKSPACE & DISCUSSION HANDLERS
   // ────────────────────────────────────────────────────────────────────────
   const handleCreateWorkspace = () => {
-    if (newWorkspaceName.trim().length < 3) { toast.error("Workspace name must be at least 3 characters."); return; }
-    if (workspaces.length >= 4) { toast.error("Maximum limit of 4 workspaces reached."); return; }
+    if (newWorkspaceName.trim().length < 3) {toast.error("Workspace name must be at least 3 characters.");return;}
+    if (workspaces.length >= 4) {toast.error("Maximum limit of 4 workspaces reached.");return;}
     const newWs = { id: `ws_${Date.now()}`, name: newWorkspaceName.trim(), current: true };
-    const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
+    const updated = workspaces.map((w) => ({ ...w, current: false })).concat(newWs);
     setWorkspaces(updated);
     localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    setDiscussions([]); 
+    setDiscussions([]);
     setShowWorkspaceModal(false);
     setNewWorkspaceName('');
-    navigate('/app'); 
+    navigate('/app');
     toast.success("Workspace created.");
   };
 
   const handleSwitchWorkspace = (id) => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
+    const updated = workspaces.map((w) => ({ ...w, current: w.id === id }));
     setWorkspaces(updated);
     localStorage.setItem('wok_workspaces', JSON.stringify(updated));
     setDiscussions(getLocalDiscussions(id) || []);
     setShowWorkspaceSwitcher(false);
-    navigate('/app'); 
+    navigate('/app');
   };
 
   const updateDiscussion = (id, updates) => {
-    const updated = discussions.map(d => d.id === id ? { ...d, ...updates } : d);
+    const updated = discussions.map((d) => d.id === id ? { ...d, ...updates } : d);
     setDiscussions(updated);
     saveLocalDiscussions(currentWorkspace.id, updated);
   };
 
   const deleteDiscussion = (e, id) => {
     e.stopPropagation();
-    const updated = discussions.filter(d => d.id !== id);
+    const updated = discussions.filter((d) => d.id !== id);
     setDiscussions(updated);
     saveLocalDiscussions(currentWorkspace.id, updated);
     if (conversationId === id) navigate('/');
   };
 
-  const startEditing = (e, d) => { e.stopPropagation(); setEditingId(d.id); setEditTitle(d.title || d.preview || 'New Chat'); };
-  const saveEdit = (id) => { if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() }); setEditingId(null); };
+  const startEditing = (e, d) => {e.stopPropagation();setEditingId(d.id);setEditTitle(d.title || d.preview || 'New Chat');};
+  const saveEdit = (id) => {if (editTitle.trim()) updateDiscussion(id, { title: editTitle.trim() });setEditingId(null);};
 
   const handleDrop = (idx) => {
     if (draggedItemIdx === null || draggedItemIdx === idx) return;
@@ -499,7 +499,7 @@ export default function ChatPage() {
     newDiscussions.splice(idx, 0, draggedItem);
     setDiscussions(newDiscussions);
     saveLocalDiscussions(currentWorkspace.id, newDiscussions);
-    setDraggedItemIdx(null); setDragOverIdx(null);
+    setDraggedItemIdx(null);setDragOverIdx(null);
   };
 
   const saveToDiscussionsLogic = (convTitle, text) => {
@@ -515,10 +515,10 @@ export default function ChatPage() {
   };
 
   const handleUpdateCredits = async (cost) => {
-      if(!user) return;
-      const newUsed = (user.credits_used || 0) + cost;
-      await base44.entities.User.update(user.id, { credits_used: newUsed });
-      setUser(prev => ({...prev, credits_used: newUsed}));
+    if (!user) return;
+    const newUsed = (user.credits_used || 0) + cost;
+    await base44.entities.User.update(user.id, { credits_used: newUsed });
+    setUser((prev) => ({ ...prev, credits_used: newUsed }));
   };
 
 
@@ -526,7 +526,7 @@ export default function ChatPage() {
   //   5.5 CORE CHAT LOGIC
   // ────────────────────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text, options = {}) => {
-    if ((!text?.trim() && !(options.files?.length)) || isLoading) return;
+    if (!text?.trim() && !options.files?.length || isLoading) return;
 
     // ── Easter egg: date 16/06/2010 triggers chocolatine ──
     if (text.trim() === '16/06/2010') {
@@ -539,9 +539,9 @@ export default function ChatPage() {
       setIsLoading(true);
       abortedRef.current = false;
       // Fake 20s loading with abort support
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         const timer = setTimeout(resolve, 20000);
-        const check = setInterval(() => { if (abortedRef.current) { clearTimeout(timer); clearInterval(check); resolve(); } }, 200);
+        const check = setInterval(() => {if (abortedRef.current) {clearTimeout(timer);clearInterval(check);resolve();}}, 200);
       });
       if (abortedRef.current) return;
       await handleUpdateCredits(1);
@@ -559,19 +559,19 @@ export default function ChatPage() {
       setIsLoading(false);
       return;
     }
-    
+
     // Capture image previews from attached files
-    const imageUrls = (options.files || files || [])
-      .filter(f => f.type?.startsWith('image/'))
-      .map(f => f.url);
+    const imageUrls = (options.files || files || []).
+    filter((f) => f.type?.startsWith('image/')).
+    map((f) => f.url);
 
     const userMsg = { role: 'user', content: text, images: imageUrls.length > 0 ? imageUrls : undefined };
     const newMessages = [...(messages || []), userMsg];
-    setMessages(newMessages); 
-    setCurrentQuery(text); 
+    setMessages(newMessages);
+    setCurrentQuery(text);
     setInput('');
     setFiles([]);
-    setIsLoading(true); 
+    setIsLoading(true);
     abortedRef.current = false;
 
     try {
@@ -581,20 +581,20 @@ export default function ChatPage() {
         let codeMatch = null;
         const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
         const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
-        
+
         if (startIdx !== -1 && endIdx !== -1 && startIdx !== endIdx) {
           codeMatch = codeToFix.substring(startIdx, endIdx + 3);
           codeToFix = codeMatch;
         }
 
-        const fixResult = await base44.integrations.Core.InvokeLLM({ 
-          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix, 
-          model: 'gemini_3_flash' 
+        const fixResult = await base44.integrations.Core.InvokeLLM({
+          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix,
+          model: 'gemini_3_flash'
         });
 
         if (abortedRef.current) return;
         const fixedCodeBlock = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
-        
+
         let newContent = ficheContent;
         if (codeMatch) {
           let finalFixedCode = fixedCodeBlock;
@@ -604,29 +604,29 @@ export default function ChatPage() {
           newContent = fixedCodeBlock;
         }
 
-        await handleUpdateCredits(0); 
+        await handleUpdateCredits(0);
         setIsLoading(false);
         setFicheContent(newContent);
-        
+
         const chatDisplayContent = "✨ Architecture successfully recompiled.";
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
-        return; 
+        return;
       }
 
       // ── Step 1: Heuristic routing — no API call needed ──
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
-      let isModification = editMode && ficheContent
-        ? true
-        : ficheContent
-          ? MODIFY_KEYWORDS.test(text)
-          : false;
+      let isModification = editMode && ficheContent ?
+      true :
+      ficheContent ?
+      MODIFY_KEYWORDS.test(text) :
+      false;
 
       // ── Step 2: Code generation (direct, no intermediate analysis call) ──
-      const architectPrompt = isModification
-        ? PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text
-        : PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
+      const architectPrompt = isModification ?
+      PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
+      PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
 
       const codeResult = await base44.integrations.Core.InvokeLLM({
         prompt: architectPrompt,
@@ -635,7 +635,7 @@ export default function ChatPage() {
 
       if (abortedRef.current) return;
       let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
-      
+
       const bt = String.fromCharCode(96);
       if (!finalCode.includes(bt)) {
         finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
@@ -643,13 +643,13 @@ export default function ChatPage() {
 
       const rawContent = finalCode;
       let chatDisplayContent = finalCode;
-      
+
       const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
       if (chatDisplayContent.match(codeBlockRegex)) {
-         chatDisplayContent = chatDisplayContent.replace(codeBlockRegex, '');
-         if (chatDisplayContent.trim() === '') {
-             chatDisplayContent = "✨ Architecture generated successfully.";
-         }
+        chatDisplayContent = chatDisplayContent.replace(codeBlockRegex, '');
+        if (chatDisplayContent.trim() === '') {
+          chatDisplayContent = "✨ Architecture generated successfully.";
+        }
       }
 
       // Credit logic: base = 1 credit. If usage already exceeds 2× the average monthly allowance → 2 credits.
@@ -665,12 +665,12 @@ export default function ChatPage() {
         const newCount = (user.project_count || 0) + 1;
         setProjectNumber(newCount);
         base44.entities.User.update(user.id, { project_count: newCount }).catch(() => {});
-        setUser(prev => ({ ...prev, project_count: newCount }));
+        setUser((prev) => ({ ...prev, project_count: newCount }));
       }
 
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
-      
+
       const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
@@ -682,25 +682,25 @@ export default function ChatPage() {
       if (!conversationId) {
         window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       }
-      
+
       if (window.innerWidth < 768 && !discussMode) {
         setMobileView('preview');
       }
 
     } catch (err) {
-      setIsLoading(false); 
+      setIsLoading(false);
       setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
 
   const handleStop = useCallback(() => {
-    abortedRef.current = true; setIsLoading(false);
+    abortedRef.current = true;setIsLoading(false);
     setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Stopped.' }]);
   }, []);
 
   const handleReload = () => {
-    const lastUserMsg = [...(messages || [])].reverse().find(m => m.role === 'user');
+    const lastUserMsg = [...(messages || [])].reverse().find((m) => m.role === 'user');
     if (lastUserMsg) {
       const filteredMsgs = messages.slice(0, messages.lastIndexOf(lastUserMsg));
       setMessages(filteredMsgs);
@@ -714,8 +714,8 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
-    if(convId) {
-      try { await base44.entities.Conversation.update(convId, { title: newSettings.title }); } 
+    if (convId) {
+      try {await base44.entities.Conversation.update(convId, { title: newSettings.title });}
       catch (e) {}
     }
     toast.success("Settings updated successfully.");
@@ -729,10 +729,10 @@ export default function ChatPage() {
   };
 
   const handleUnpublishApp = async () => {
-    setAppSettings({...appSettings, isPublic: false});
+    setAppSettings({ ...appSettings, isPublic: false });
     if (convId) {
-      try { await base44.entities.Conversation.update(convId, { is_public: false }); } 
-      catch(e){}
+      try {await base44.entities.Conversation.update(convId, { is_public: false });}
+      catch (e) {}
     }
     toast.success("Application unpublished.");
   };
@@ -780,21 +780,21 @@ export default function ChatPage() {
     }
     loadConversationFromCloud(conversationId).then((cloudMsgs) => {
       const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
-      if (safeCloudMsgs.length > 0) { 
-        setMessages(safeCloudMsgs); 
-        saveConversationMessages(conversationId, safeCloudMsgs); 
-        const lastAssistantMsg = safeCloudMsgs.filter(m => m.role === 'assistant').pop();
+      if (safeCloudMsgs.length > 0) {
+        setMessages(safeCloudMsgs);
+        saveConversationMessages(conversationId, safeCloudMsgs);
+        const lastAssistantMsg = safeCloudMsgs.filter((m) => m.role === 'assistant').pop();
         if (lastAssistantMsg) {
-            setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
+          setFicheContent(lastAssistantMsg.rawContent || lastAssistantMsg.content);
         } else {
-            setFicheContent(null);
+          setFicheContent(null);
         }
       }
       setIsLoadingConversation(false);
     }).catch(() => setIsLoadingConversation(false));
   }, [conversationId]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });}, [messages]);
 
   // Resize handlers
   useEffect(() => {
@@ -824,25 +824,25 @@ export default function ChatPage() {
         }
         toast.info('Auto-save active — changes sync continuously');
       }
-      
+
       // Ctrl/Cmd + K: Toggle preview collapse
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        if (hasStarted) setIsPreviewCollapsed(prev => !prev);
+        if (hasStarted) setIsPreviewCollapsed((prev) => !prev);
       }
-      
+
       // Ctrl/Cmd + /: Focus input
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         document.querySelector('textarea')?.focus();
       }
-      
+
       // Escape: Close preview collapse
       if (e.key === 'Escape' && isPreviewCollapsed && hasStarted) {
         setIsPreviewCollapsed(false);
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, hasStarted, isPreviewCollapsed]);
@@ -866,17 +866,17 @@ export default function ChatPage() {
   };
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
-    { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
-  ];
+  { icon: Home, label: 'Home', path: '/app', active: location.pathname === '/app' },
+  { icon: MessageSquare, label: 'Discussions', path: '/discussions', active: location.pathname === '/discussions' },
+  { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' }];
+
 
   // Format presets (iOS 26 style)
   const FORMAT_PRESETS = {
     phone: { width: '420px', height: '92vh', label: 'Phone' },
     tablet: { width: '768px', height: '90vh', label: 'Tablet' },
     desktop: { width: '97vw', height: '97vh', label: 'Desktop' },
-    fullscreen: { width: '100vw', height: '100vh', label: 'Fullscreen' },
+    fullscreen: { width: '100vw', height: '100vh', label: 'Fullscreen' }
   };
 
   const handleFormatChange = (format) => {
@@ -892,7 +892,7 @@ export default function ChatPage() {
       x: clientX,
       y: clientY,
       w: containerSize.width,
-      h: containerSize.height,
+      h: containerSize.height
     };
   };
 
@@ -901,16 +901,16 @@ export default function ChatPage() {
     e.preventDefault();
     const clientX = e.clientX || e.touches?.[0]?.clientX;
     const clientY = e.clientY || e.touches?.[0]?.clientY;
-    
+
     const dx = clientX - resizeStart.current.x;
     const dy = clientY - resizeStart.current.y;
-    
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    
-    const newWidth = Math.max(30, Math.min(98, resizeStart.current.w + (dx / vw * 100)));
-    const newHeight = Math.max(30, Math.min(98, resizeStart.current.h + (dy / vh * 100)));
-    
+
+    const newWidth = Math.max(30, Math.min(98, resizeStart.current.w + dx / vw * 100));
+    const newHeight = Math.max(30, Math.min(98, resizeStart.current.h + dy / vh * 100));
+
     setContainerSize({ width: newWidth, height: newHeight });
   };
 
@@ -936,18 +936,18 @@ export default function ChatPage() {
         backgroundColor: '#FAFAFA',
         backgroundImage: 'radial-gradient(circle, #E8D5E8 1px, transparent 1px)',
         backgroundSize: '48px 48px',
-        scrollbarWidth: 'none',
-      }}
-    >
+        scrollbarWidth: 'none'
+      }}>
+      
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
       <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
         <div className="flex items-center gap-1.5" style={{ pointerEvents: 'auto' }}>
           {/* Logo */}
-          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
+          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200 hidden">
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
-              <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
-              <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect width="40" height="40" rx="10" fill="#FFFFFF" />
+              <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
 
@@ -957,33 +957,33 @@ export default function ChatPage() {
           {/* Chevron trigger button */}
           <button
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="p-1 hover:bg-zinc-100 rounded-md transition-colors"
-          >
+            className="p-1 hover:bg-zinc-100 rounded-md transition-colors">
+            
             <svg
               className="w-4 h-4 text-zinc-600"
               style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transitionDuration: '200ms' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2.5}
-            >
+              strokeWidth={2.5}>
+              
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
 
         {/* Small dropdown menu */}
-        {isProfileMenuOpen && (
-          <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-64 mt-1 z-[100000]">
+        {isProfileMenuOpen &&
+        <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-64 mt-1 z-[100000]">
             <div className="p-2 space-y-0.5">
               {/* Home */}
               <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  navigate('/app');
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
-              >
+              onClick={() => {
+                setIsProfileMenuOpen(false);
+                navigate('/app');
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              
                 <div className="flex items-center gap-3">
                   <Home className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
                   <span className="text-sm font-medium text-zinc-900">Home</span>
@@ -1002,9 +1002,9 @@ export default function ChatPage() {
                 </div>
                 <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden ml-7">
                   <div
-                    className="h-full bg-black rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, ((user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10)) * 100)}%` }}
-                  />
+                  className="h-full bg-black rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10) * 100)}%` }} />
+                
                 </div>
               </div>
 
@@ -1013,12 +1013,12 @@ export default function ChatPage() {
 
               {/* Settings - opens 95% modal */}
               <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  setFullscreenModal('settings');
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
-              >
+              onClick={() => {
+                setIsProfileMenuOpen(false);
+                setFullscreenModal('settings');
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              
                 <div className="flex items-center gap-3">
                   <Settings className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
                   <span className="text-sm font-medium text-zinc-900">Settings</span>
@@ -1028,12 +1028,12 @@ export default function ChatPage() {
 
               {/* Upgrade Plan - opens 95% modal */}
               <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  setFullscreenModal('pricing');
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
-              >
+              onClick={() => {
+                setIsProfileMenuOpen(false);
+                setFullscreenModal('pricing');
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              
                 <div className="flex items-center gap-3">
                   <Zap className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
                   <span className="text-sm font-medium text-zinc-900">Upgrade Plan</span>
@@ -1043,12 +1043,12 @@ export default function ChatPage() {
 
               {/* Documentation - opens 95% modal */}
               <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  setFullscreenModal('docs');
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
-              >
+              onClick={() => {
+                setIsProfileMenuOpen(false);
+                setFullscreenModal('docs');
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
                   <span className="text-sm font-medium text-zinc-900">Documentation</span>
@@ -1058,12 +1058,12 @@ export default function ChatPage() {
 
               {/* Support - opens 95% modal */}
               <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  setFullscreenModal('support');
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group"
-              >
+              onClick={() => {
+                setIsProfileMenuOpen(false);
+                setFullscreenModal('support');
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-50 rounded-lg transition-colors text-left group">
+              
                 <div className="flex items-center gap-3">
                   <LifeBuoy className="w-4 h-4 text-zinc-600" strokeWidth={2.5} />
                   <span className="text-sm font-medium text-zinc-900">Support</span>
@@ -1072,7 +1072,7 @@ export default function ChatPage() {
               </button>
             </div>
           </div>
-        )}
+        }
       </div>
 
       {/* Modals */}
@@ -1087,8 +1087,8 @@ export default function ChatPage() {
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
       
       {/* Fullscreen 95% modal for Settings/Pricing/Docs/Support */}
-      {fullscreenModal && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+      {fullscreenModal &&
+      <div className="fixed inset-0 z-[100000] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFullscreenModal(null)} />
           <div className="relative w-[95vw] h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             {/* Header */}
@@ -1096,8 +1096,8 @@ export default function ChatPage() {
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200">
                   <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                    <rect width="40" height="40" rx="10" fill="#FFFFFF"/>
-                    <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect width="40" height="40" rx="10" fill="#FFFFFF" />
+                    <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <span className="text-lg font-bold text-zinc-900">
@@ -1113,29 +1113,29 @@ export default function ChatPage() {
             </div>
             {/* Content iframe */}
             <iframe
-              src={
-                fullscreenModal === 'settings' ? '/settings' :
-                fullscreenModal === 'pricing' ? '/pricing' :
-                fullscreenModal === 'docs' ? '#' :
-                fullscreenModal === 'support' ? '/support' : '#'
-              }
-              className="flex-1 w-full h-full border-none bg-white"
-              title={fullscreenModal}
-            />
+            src={
+            fullscreenModal === 'settings' ? '/settings' :
+            fullscreenModal === 'pricing' ? '/pricing' :
+            fullscreenModal === 'docs' ? '#' :
+            fullscreenModal === 'support' ? '/support' : '#'
+            }
+            className="flex-1 w-full h-full border-none bg-white"
+            title={fullscreenModal} />
+          
           </div>
         </div>
-      )}
+      }
 
       {/* ═══════════════════════════════════════════════════════════════
-          MAIN CARD — dynamic resizable container (iOS 26 style)
-      ═══════════════════════════════════════════════════════════════ */}
+           MAIN CARD — dynamic resizable container (iOS 26 style)
+        ═══════════════════════════════════════════════════════════════ */}
       <motion.div
         ref={containerRef}
         className="flex overflow-hidden relative"
         animate={{
           width: `${containerSize.width}vw`,
           height: `${containerSize.height}vh`,
-          borderRadius: CARD_RADIUS,
+          borderRadius: CARD_RADIUS
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
         style={{
@@ -1144,41 +1144,41 @@ export default function ChatPage() {
           border: isResizing ? '1px solid rgba(0,0,0,0.2)' : '0.25px solid rgba(229, 229, 229, 0.5)',
           maxWidth: '100vw',
           maxHeight: '100vh',
-          transform: isResizing ? 'scale(1.005)' : 'scale(1)',
-        }}
-      >
+          transform: isResizing ? 'scale(1.005)' : 'scale(1)'
+        }}>
+        
         <PanelGroup direction="horizontal" className="flex w-full h-full">
           {/* ═══════════════════════════
-              LEFT PANEL — resizable chat
-          ═══════════════════════════ */}
+               LEFT PANEL — resizable chat
+            ═══════════════════════════ */}
           <Panel
             defaultSize={32}
             minSize={5}
             maxSize={95}
-            className="flex flex-col overflow-hidden bg-white"
-          >
+            className="flex flex-col overflow-hidden bg-white">
+            
 
 
           {/* MESSAGES SCROLL AREA */}
           <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto flex flex-col"
-            style={{ padding: '4px 0 0 0' }}
-          >
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto flex flex-col"
+              style={{ padding: '4px 0 0 0' }}>
+              
             <div className="flex flex-col gap-3 px-4 pb-2">
-              {messages?.map((msg, idx) => (
+              {messages?.map((msg, idx) =>
                 <div key={idx}>
-                  {msg.role === 'assistant'
-                    ? <AssistantMessage
-                        content={msg.content}
-                        isGenerating={false}
-                        query={msg.content}
-                        rawContent={msg.rawContent}
-                        onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setViewMode('preview'); }}}
-                      />
-                    : <CustomUserMessageBubble msg={msg} />}
+                  {msg.role === 'assistant' ?
+                  <AssistantMessage
+                    content={msg.content}
+                    isGenerating={false}
+                    query={msg.content}
+                    rawContent={msg.rawContent}
+                    onPreviewClick={() => {if (msg.rawContent) {setFicheContent(msg.rawContent);setViewMode('preview');}}} /> :
+
+                  <CustomUserMessageBubble msg={msg} />}
                 </div>
-              ))}
+                )}
               {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
             </div>
 
@@ -1188,13 +1188,13 @@ export default function ChatPage() {
             <div className="px-4 py-3">
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span style={{ fontSize: 12, color: '#999999', fontWeight: 500 }}>Suggestions</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {SUGGESTIONS.map(s => (
+                {SUGGESTIONS.map((s) =>
                   <button
                     key={s}
                     onClick={() => setInput(s)}
@@ -1202,14 +1202,14 @@ export default function ChatPage() {
                       fontSize: 12, color: '#555555', background: '#F8F8F8',
                       border: '1px solid #E8E8E8', borderRadius: 999,
                       padding: '6px 12px', cursor: 'pointer', lineHeight: 1.4,
-                      transition: 'all 150ms',
+                      transition: 'all 150ms'
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#F0F0F0'; e.currentTarget.style.borderColor = '#D0D0D0'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#F8F8F8'; e.currentTarget.style.borderColor = '#E8E8E8'; }}
-                  >
+                    onMouseEnter={(e) => {e.currentTarget.style.background = '#F0F0F0';e.currentTarget.style.borderColor = '#D0D0D0';}}
+                    onMouseLeave={(e) => {e.currentTarget.style.background = '#F8F8F8';e.currentTarget.style.borderColor = '#E8E8E8';}}>
+                    
                     {s}
                   </button>
-                ))}
+                  )}
               </div>
             </div>
           </div>
@@ -1220,43 +1220,43 @@ export default function ChatPage() {
           <div className="flex-shrink-0">
             <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
             <ChatInputBar
-              input={input} setInput={setInput}
-              onSend={sendMessage} onStop={handleStop}
-              isLoading={isLoading}
-              files={files} setFiles={setFiles}
-              discussMode={discussMode} setDiscussMode={setDiscussMode}
-              editMode={editMode} setEditMode={setEditMode}
-            />
+                input={input} setInput={setInput}
+                onSend={sendMessage} onStop={handleStop}
+                isLoading={isLoading}
+                files={files} setFiles={setFiles}
+                discussMode={discussMode} setDiscussMode={setDiscussMode}
+                editMode={editMode} setEditMode={setEditMode} />
+              
           </div>
           </Panel>
 
           {/* Resize handle — modern, visible on hover */}
           <PanelResizeHandle
-            className="w-2 hover:w-3 bg-transparent hover:bg-zinc-100 transition-all duration-200 flex items-center justify-center group"
-          >
+            className="w-2 hover:w-3 bg-transparent hover:bg-zinc-100 transition-all duration-200 flex items-center justify-center group">
+            
             <div className="w-[2px] h-12 bg-zinc-200 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-105" />
           </PanelResizeHandle>
 
           {/* ═══════════════════════════════════════════════════════════
-              RIGHT PANEL — resizable preview
-          ═══════════════════════════════════════════════════════════ */}
+               RIGHT PANEL — resizable preview
+            ═══════════════════════════════════════════════════════════ */}
           <Panel
             defaultSize={68}
-            className="relative overflow-hidden bg-white"
-          >
+            className="relative overflow-hidden bg-white">
+            
           {/* Inset preview rect — ultra-thin border */}
           <div
-            style={{
-              position: 'absolute',
-              inset: 16,
-              borderRadius: Math.max(0, CARD_RADIUS - 4),
-              overflow: 'hidden',
-              background: '#FFFFFF',
-              border: '0.25px solid rgba(229, 229, 229, 0.5)',
-            }}
-          >
+              style={{
+                position: 'absolute',
+                inset: 16,
+                borderRadius: Math.max(0, CARD_RADIUS - 4),
+                overflow: 'hidden',
+                background: '#FFFFFF',
+                border: '0.25px solid rgba(229, 229, 229, 0.5)'
+              }}>
+              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-            {ficheContent ? (
+            {ficheContent ?
               <FichePanel
                 content={ficheContent}
                 iframeRefreshKey={iframeRefreshKey}
@@ -1271,17 +1271,17 @@ export default function ChatPage() {
                 onDelete={handleDeleteApp}
                 onUnpublish={handleUnpublishApp}
                 customSlug={customSlug}
-                onUpdateContent={setFicheContent}
-              />
-            ) : isLoading && messages.length === 0 ? (
-              <PreviewLoadingFeature />
-            ) : isLoading ? (
-              <PreviewSkeleton />
-            ) : (
+                onUpdateContent={setFicheContent} /> :
+
+              isLoading && messages.length === 0 ?
+              <PreviewLoadingFeature /> :
+              isLoading ?
+              <PreviewSkeleton /> :
+
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
               </div>
-            )}
+              }
           </div>
           </Panel>
         </PanelGroup>
@@ -1296,9 +1296,9 @@ export default function ChatPage() {
           className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-100 flex items-end justify-end p-1"
           style={{
             background: 'rgba(0,0,0,0.8)',
-            borderRadius: '0 0 8px 0',
-          }}
-        >
+            borderRadius: '0 0 8px 0'
+          }}>
+          
           <div
             style={{
               width: 12,
@@ -1308,9 +1308,9 @@ export default function ChatPage() {
               WebkitMaskImage: 'linear-gradient(135deg, transparent 40%, black 40%, black 60%, transparent 60%)',
               borderRadius: '0 0 3px 0',
               transform: isResizing ? 'scale(1.2)' : 'scale(1)',
-              transition: 'transform 150ms, background 150ms',
-            }}
-          />
+              transition: 'transform 150ms, background 150ms'
+            }} />
+          
         </div>
       </motion.div>
 
@@ -1324,16 +1324,16 @@ export default function ChatPage() {
             </button>
           </div>
         </div>
-        {mobileView === 'chat' && (
-          <div className="flex flex-col flex-1 overflow-hidden bg-white">
+        {mobileView === 'chat' &&
+        <div className="flex flex-col flex-1 overflow-hidden bg-white">
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-4 py-3">
-              {messages?.map((msg, idx) => (
-                <div key={idx}>
-                  {msg.role === 'assistant'
-                    ? <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} rawContent={msg.rawContent} onPreviewClick={() => { if (msg.rawContent) { setFicheContent(msg.rawContent); setMobileView('preview'); }}} />
-                    : <CustomUserMessageBubble msg={msg} />}
+              {messages?.map((msg, idx) =>
+            <div key={idx}>
+                  {msg.role === 'assistant' ?
+              <AssistantMessage content={msg.content} isGenerating={false} query={msg.content} rawContent={msg.rawContent} onPreviewClick={() => {if (msg.rawContent) {setFicheContent(msg.rawContent);setMobileView('preview');}}} /> :
+              <CustomUserMessageBubble msg={msg} />}
                 </div>
-              ))}
+            )}
               {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} />}
               <div ref={messagesEndRef} className="h-1" />
             </div>
@@ -1342,14 +1342,14 @@ export default function ChatPage() {
               <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
             </div>
           </div>
-        )}
-        {mobileView === 'preview' && (
-          <div className="flex-1 overflow-hidden relative bg-black">
+        }
+        {mobileView === 'preview' &&
+        <div className="flex-1 overflow-hidden relative bg-black">
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
             {ficheContent ? <FichePanel content={ficheContent} iframeRefreshKey={iframeRefreshKey} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} setViewMode={setViewMode} appSettings={appSettings} onUpdateSettings={handleUpdateAppMeta} onClone={handleCloneApp} onDelete={handleDeleteApp} onUnpublish={handleUnpublishApp} customSlug={customSlug} onUpdateContent={setFicheContent} /> : null}
           </div>
-        )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 }
