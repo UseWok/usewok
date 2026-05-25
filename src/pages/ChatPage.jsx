@@ -871,7 +871,7 @@ export default function ChatPage() {
         background: isFullscreen ? '#111111' : '#FAFAFA',
         backgroundImage: isFullscreen
           ? 'none'
-          : 'radial-gradient(circle, #CACACA 1px, transparent 1px)',
+          : 'radial-gradient(circle, #E8D4E8 1.5px, transparent 1.5px)',
         backgroundSize: '28px 28px',
         transition: 'background 300ms ease',
       }}
