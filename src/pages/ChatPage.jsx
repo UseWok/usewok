@@ -857,9 +857,9 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
 
   const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
-  const [zoomLevel, setZoomLevel] = useState(0); // 0=L (default), 1=XL, 2=Fullscreen
+  const [zoomLevel, setZoomLevel] = useState(0); // 0=XL, 1=Fullscreen
   const zl = LEVELS[zoomLevel];
-  const isFullscreen = zoomLevel === 2;
+  const isFullscreen = zoomLevel === 1;
   const CARD_RADIUS = isFullscreen ? 0 : 16;
 
   return (
@@ -1011,13 +1011,13 @@ export default function ChatPage() {
         ═══════════════════════════════════════════════════════════ */}
         <div
           className="flex-1 relative overflow-hidden flex items-center justify-center"
-          style={{ background: '#FFFFFF', padding: isFullscreen ? 0 : 12 }}
+          style={{ background: '#FFFFFF', padding: isFullscreen ? 16 : 12 }}
         >
           {/* Inset preview rect — clean corners matching card, no gray border */}
           <div
             style={{
               position: 'absolute',
-              inset: isFullscreen ? 0 : 8,
+              inset: isFullscreen ? 16 : 8,
               borderRadius: isFullscreen ? 0 : Math.max(0, CARD_RADIUS - 4),
               overflow: 'hidden',
               background: '#FFFFFF',

@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion';
 
 const LEVELS = [
-  { label: 'L',  title: 'Large',      w: '88vw',  maxW: 1200,  h: '90vh',  maxH: 800 },
-  { label: 'XL', title: 'X-Large',    w: '96vw',  maxW: 1600,  h: '96vh',  maxH: 1080 },
+  { label: 'XL', title: 'X-Large',    w: '97vw',  maxW: 1520,  h: '97vh',  maxH: 1050 },
   { label: '↗',  title: 'Fullscreen', w: '100vw', maxW: 99999, h: '100vh', maxH: 99999 },
 ];
 
