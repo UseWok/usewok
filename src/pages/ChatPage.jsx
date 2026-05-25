@@ -29,8 +29,7 @@ import WokHeader from '@/components/chat/WokHeader';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import Modal from '@/components/chat/Modal';
-import ResizeWidget from '@/components/chat/ResizeWidget';
-import FullscreenToggle from '@/components/chat/FullscreenToggle';
+import ZoomToggle from '@/components/chat/ZoomToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -1317,14 +1316,12 @@ export default function ChatPage() {
         {/* Removed resize handle - simplified interface */}
       </motion.div>
 
-      {/* Resize Widget */}
-      <ResizeWidget
+      {/* Zoom Toggle - single button with 2 modes */}
+      <ZoomToggle
+        containerRef={containerRef}
         containerSize={containerSize}
         setContainerSize={setContainerSize}
       />
-
-      {/* Fullscreen Toggle - true fullscreen, no background visible */}
-      <FullscreenToggle containerRef={containerRef} />
 
       {/* ══ MOBILE LAYOUT ══ */}
       <div className="fixed inset-0 flex md:hidden flex-col bg-white">
