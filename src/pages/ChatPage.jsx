@@ -395,8 +395,10 @@ export default function ChatPage() {
   const [viewMode, setViewMode] = useState('preview');
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
   
-  // Panel resize state
-  const [chatPanelSize, setChatPanelSize] = useState(32);
+  // Main container resize state
+  const [containerSize, setContainerSize] = useState({ width: '97vw', height: '97vh' });
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
   const [customSlug, setCustomSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
 
@@ -795,6 +797,22 @@ export default function ChatPage() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
+  // Resize handlers
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('mouseup', handleResizeEnd);
+      window.addEventListener('touchmove', handleResizeMove);
+      window.addEventListener('touchend', handleResizeEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleResizeMove);
+        window.removeEventListener('mouseup', handleResizeEnd);
+        window.removeEventListener('touchmove', handleResizeMove);
+        window.removeEventListener('touchend', handleResizeEnd);
+      };
+    }
+  }, [isResizing]);
+
   // ── Global keyboard shortcuts ──
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -854,8 +872,46 @@ export default function ChatPage() {
     { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' },
   ];
 
-  const handleCornerResize = (newChatSize) => {
-    setChatPanelSize(newChatSize);
+  // Format presets (iOS 26 style)
+  const FORMAT_PRESETS = {
+    phone: { width: '420px', height: '85vh', label: 'Phone' },
+    tablet: { width: '768px', height: '85vh', label: 'Tablet' },
+    desktop: { width: '97vw', height: '97vh', label: 'Desktop' },
+    fullscreen: { width: '100vw', height: '100vh', label: 'Fullscreen' },
+  };
+
+  const handleFormatChange = (format) => {
+    setContainerSize({ width: FORMAT_PRESETS[format].width, height: FORMAT_PRESETS[format].height });
+  };
+
+  const handleResizeStart = (e) => {
+    setIsResizing(true);
+    resizeStart.current = {
+      x: e.clientX || e.touches?.[0]?.clientX,
+      y: e.clientY || e.touches?.[0]?.clientY,
+      w: parseFloat(containerSize.width) || window.innerWidth * 0.97,
+      h: parseFloat(containerSize.height) || window.innerHeight * 0.97,
+    };
+  };
+
+  const handleResizeMove = (e) => {
+    if (!isResizing) return;
+    const clientX = e.clientX || e.touches?.[0]?.clientX;
+    const clientY = e.clientY || e.touches?.[0]?.clientY;
+    const dx = clientX - resizeStart.current.x;
+    const dy = clientY - resizeStart.current.y;
+    
+    const newWidth = Math.max(320, resizeStart.current.w + dx * 2);
+    const newHeight = Math.max(400, resizeStart.current.h + dy * 2);
+    
+    setContainerSize({
+      width: newWidth > window.innerWidth * 0.98 ? '100vw' : `${newWidth}px`,
+      height: newHeight > window.innerHeight * 0.98 ? '100vh' : `${newHeight}px`,
+    });
+  };
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
   };
 
 
@@ -890,18 +946,22 @@ export default function ChatPage() {
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
       {/* ═══════════════════════════════════════════════════════════════
-          MAIN CARD — resizable panels with Apple-style drag handle
+          MAIN CARD — dynamic resizable container (iOS 26 style)
       ═══════════════════════════════════════════════════════════════ */}
       <motion.div
-        className="flex overflow-hidden relative w-[97vw] max-w-[1520px] h-[97vh] max-h-[1050px]"
+        className="flex overflow-hidden relative"
         animate={{
+          width: containerSize.width,
+          height: containerSize.height,
           borderRadius: CARD_RADIUS,
         }}
-        transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
         style={{
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
           border: '0.5px solid rgba(229, 229, 229, 0.3)',
+          maxWidth: '100vw',
+          maxHeight: '100vh',
         }}
       >
         <PanelGroup direction="horizontal" className="flex w-full h-full">
@@ -909,7 +969,7 @@ export default function ChatPage() {
               LEFT PANEL — resizable chat
           ═══════════════════════════ */}
           <Panel
-            defaultSize={chatPanelSize}
+            defaultSize={32}
             minSize={5}
             maxSize={95}
             className="flex flex-col overflow-hidden bg-white"
@@ -1060,8 +1120,37 @@ export default function ChatPage() {
           </Panel>
         </PanelGroup>
         
-        {/* Corner resize control */}
-        <CornerResizeControl onSizeChange={handleCornerResize} />
+        {/* Resize corner handle - drag to resize entire container */}
+        <div
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            width: 24,
+            height: 24,
+            cursor: 'se-resize',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'flex-end',
+            padding: 4,
+          }}
+        >
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              borderRight: '2px solid rgba(0,0,0,0.2)',
+              borderBottom: '2px solid rgba(0,0,0,0.2)',
+              borderRadius: '0 0 2px 0',
+            }}
+          />
+        </div>
+        
+        {/* Corner format control */}
+        <CornerResizeControl onFormatChange={handleFormatChange} />
       </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}

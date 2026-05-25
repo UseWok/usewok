@@ -6,15 +6,16 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Maximize2, Smartphone, Tablet } from 'lucide-react';
 
-const SNAP_POINTS = [
-  { label: 'Phone', icon: Smartphone, chatSize: 75 },
-  { label: 'Tablet', icon: Tablet, chatSize: 55 },
-  { label: 'Desktop', icon: Maximize2, chatSize: 32 },
+const FORMAT_PRESETS = [
+  { label: 'Phone', icon: Smartphone, value: 'phone' },
+  { label: 'Tablet', icon: Tablet, value: 'tablet' },
+  { label: 'Desktop', icon: Maximize2, value: 'desktop' },
+  { label: 'Fullscreen', icon: Maximize2, value: 'fullscreen' },
 ];
 
-export default function CornerResizeControl({ onSizeChange }) {
+export default function CornerResizeControl({ onFormatChange }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIdx, setSelectedIdx] = useState(2);
+  const [selectedIdx, setSelectedIdx] = useState(2); // Desktop default
   const controlRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -87,7 +88,7 @@ export default function CornerResizeControl({ onSizeChange }) {
 
   const handleSelect = (idx) => {
     setSelectedIdx(idx);
-    onSizeChange(SNAP_POINTS[idx].chatSize);
+    onFormatChange(FORMAT_PRESETS[idx].value);
     setIsOpen(false);
   };
 
@@ -119,12 +120,12 @@ export default function CornerResizeControl({ onSizeChange }) {
             padding: 6,
             boxShadow: '0 8px 32px rgba(0,0,0,0.24)',
             border: '1px solid rgba(255,255,255,0.08)',
-            minWidth: 140,
+            minWidth: 150,
           }}
         >
-          {SNAP_POINTS.map((point, idx) => (
+          {FORMAT_PRESETS.map((preset, idx) => (
             <button
-              key={point.label}
+              key={preset.label}
               onClick={() => handleSelect(idx)}
               style={{
                 display: 'flex',
@@ -145,7 +146,7 @@ export default function CornerResizeControl({ onSizeChange }) {
                 if (selectedIdx !== idx) e.currentTarget.style.background = 'transparent';
               }}
             >
-              <point.icon
+              <preset.icon
                 className={selectedIdx === idx ? 'text-white' : 'text-zinc-400'}
                 size={16}
                 strokeWidth={2.5}
@@ -154,7 +155,7 @@ export default function CornerResizeControl({ onSizeChange }) {
                 className={selectedIdx === idx ? 'text-white font-semibold' : 'text-zinc-400'}
                 style={{ fontSize: 13 }}
               >
-                {point.label}
+                {preset.label}
               </span>
             </button>
           ))}
