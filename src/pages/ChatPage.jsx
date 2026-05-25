@@ -874,8 +874,8 @@ export default function ChatPage() {
 
   // Format presets (iOS 26 style)
   const FORMAT_PRESETS = {
-    phone: { width: '420px', height: '85vh', label: 'Phone' },
-    tablet: { width: '768px', height: '85vh', label: 'Tablet' },
+    phone: { width: '420px', height: '92vh', label: 'Phone' },
+    tablet: { width: '768px', height: '90vh', label: 'Tablet' },
     desktop: { width: '97vw', height: '97vh', label: 'Desktop' },
     fullscreen: { width: '100vw', height: '100vh', label: 'Fullscreen' },
   };
@@ -898,15 +898,15 @@ export default function ChatPage() {
     if (!isResizing) return;
     const clientX = e.clientX || e.touches?.[0]?.clientX;
     const clientY = e.clientY || e.touches?.[0]?.clientY;
-    const dx = clientX - resizeStart.current.x;
-    const dy = clientY - resizeStart.current.y;
+    const dx = (clientX - resizeStart.current.x) * 2;
+    const dy = (clientY - resizeStart.current.y) * 2;
     
-    const newWidth = Math.max(320, resizeStart.current.w + dx * 2);
-    const newHeight = Math.max(400, resizeStart.current.h + dy * 2);
+    const newWidth = Math.max(320, Math.min(window.innerWidth, resizeStart.current.w + dx));
+    const newHeight = Math.max(400, Math.min(window.innerHeight, resizeStart.current.h + dy));
     
     setContainerSize({
-      width: newWidth > window.innerWidth * 0.98 ? '100vw' : `${newWidth}px`,
-      height: newHeight > window.innerHeight * 0.98 ? '100vh' : `${newHeight}px`,
+      width: `${newWidth}px`,
+      height: `${newHeight}px`,
     });
   };
 
@@ -955,9 +955,9 @@ export default function ChatPage() {
           height: containerSize.height,
           borderRadius: CARD_RADIUS,
         }}
-        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: isResizing ? 0 : 0.3, ease: [0.32, 0.72, 0, 1] }}
         style={{
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: isResizing ? '0 4px 16px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
           border: '0.5px solid rgba(229, 229, 229, 0.3)',
           maxWidth: '100vw',
