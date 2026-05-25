@@ -860,16 +860,23 @@ export default function ChatPage() {
   const zl = LEVELS[zoomLevel];
   const isFullscreen = zoomLevel === 2;
   const CARD_RADIUS = isFullscreen ? 0 : 14;
-  // Preview inset inside right panel — white border = same radius as card
-  const PREVIEW_BORDER = 10; // white border thickness
 
   return (
     /* ═══════════════════════════════════════════════════════════════
-       OUTER CANVAS — flat uniform light gray, full viewport
+       OUTER CANVAS — dot-grid white background, full viewport
     ═══════════════════════════════════════════════════════════════ */
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ background: isFullscreen ? '#111111' : '#E8E8E8', transition: 'background 300ms ease' }}
+      style={{
+        background: isFullscreen
+          ? '#111111'
+          : '#FFFFFF',
+        backgroundImage: isFullscreen
+          ? 'none'
+          : 'radial-gradient(circle, #CCCCCC 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+        transition: 'background 300ms ease',
+      }}
     >
       {/* Modals */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
@@ -896,7 +903,7 @@ export default function ChatPage() {
         }}
         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
         style={{
-          boxShadow: isFullscreen ? 'none' : '0 8px 40px rgba(0,0,0,0.14)',
+          boxShadow: isFullscreen ? 'none' : '0 12px 48px rgba(0,0,0,0.16)',
           background: '#FFFFFF',
           willChange: 'width, height, border-radius',
         }}
@@ -1004,52 +1011,38 @@ export default function ChatPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            RIGHT PANEL — same bg as canvas, preview as inset rect
-            with white border matching card corners
+            RIGHT PANEL — pure white, preview fills edge-to-edge
         ═══════════════════════════════════════════════════════════ */}
         <div
-          className="flex-1 relative overflow-hidden flex items-center justify-center"
-          style={{ background: isFullscreen ? '#111111' : '#E8E8E8', transition: 'background 300ms ease' }}
+          className="flex-1 relative overflow-hidden"
+          style={{ background: '#FFFFFF' }}
         >
-          {/* Preview inset — white border, then iframe, border-radius matches card */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: PREVIEW_BORDER,
-              borderRadius: Math.max(0, CARD_RADIUS - 2),
-              background: '#FFFFFF',
-              overflow: 'hidden',
-              boxShadow: 'inset 0 0 0 0 transparent',
-            }}
-          >
-            <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-            {ficheContent ? (
-              <FichePanel
-                content={ficheContent}
-                iframeRefreshKey={iframeRefreshKey}
-                onError={setRuntimeError}
-                onSuccess={() => setRuntimeError(null)}
-                isPublic={false}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-                appSettings={appSettings}
-                onUpdateSettings={handleUpdateAppMeta}
-                onClone={handleCloneApp}
-                onDelete={handleDeleteApp}
-                onUnpublish={handleUnpublishApp}
-                customSlug={customSlug}
-                onUpdateContent={setFicheContent}
-              />
-            ) : isLoading ? (
-              <PreviewSkeleton />
-            ) : (
-              /* Empty state */
-              <div style={{ width: '100%', height: '100%', background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ fontSize: 13, color: '#BBBBBB', fontFamily: 'Inter, sans-serif' }}>Your interface will appear here</p>
-              </div>
-            )}
-          </div>
-
+          <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
+          {ficheContent ? (
+            <FichePanel
+              content={ficheContent}
+              iframeRefreshKey={iframeRefreshKey}
+              onError={setRuntimeError}
+              onSuccess={() => setRuntimeError(null)}
+              isPublic={false}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              appSettings={appSettings}
+              onUpdateSettings={handleUpdateAppMeta}
+              onClone={handleCloneApp}
+              onDelete={handleDeleteApp}
+              onUnpublish={handleUnpublishApp}
+              customSlug={customSlug}
+              onUpdateContent={setFicheContent}
+            />
+          ) : isLoading ? (
+            <PreviewSkeleton />
+          ) : (
+            /* Empty state — white with subtle label */
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
+            </div>
+          )}
         </div>
 
       </motion.div>
