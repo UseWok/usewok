@@ -18,17 +18,15 @@ import { initAgentsFromDB } from '@/lib/agents-config';
 import { getUserColor } from '@/lib/user-color';
 import { getTheme } from '@/lib/theme';
 
-import WorkspaceHeader from '@/components/chat/WorkspaceHeader';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 import AssistantMessage from '@/components/chat/AssistantMessage';
-import ChatProfileMenu from '@/components/chat/ChatProfileMenu';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import ErrorNotification from '@/components/chat/ErrorNotification';
-import PreviewLoading from '@/components/chat/PreviewLoading';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import CornerResizeControl from '@/components/chat/CornerResizeControl';
+import WokTopBar from '@/components/chat/WokTopBar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
@@ -885,12 +883,14 @@ export default function ChatPage() {
   };
 
   const handleResizeStart = (e) => {
+    e.preventDefault();
     setIsResizing(true);
+    const rect = e.currentTarget.parentElement.getBoundingClientRect();
     resizeStart.current = {
       x: e.clientX || e.touches?.[0]?.clientX,
       y: e.clientY || e.touches?.[0]?.clientY,
-      w: parseFloat(containerSize.width) || window.innerWidth * 0.97,
-      h: parseFloat(containerSize.height) || window.innerHeight * 0.97,
+      w: rect.width,
+      h: rect.height,
     };
   };
 
@@ -935,14 +935,6 @@ export default function ChatPage() {
       }}
     >
       {/* Modals */}
-      <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace" subtitle="Start collaborating with your workspace members" actionText="Create workspace" onAction={handleCreateWorkspace}>
-        <label className="text-[12px] font-semibold mb-1.5 block">Workspace name *</label>
-        <input type="text" value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} placeholder="Choose a name..." className="w-full border rounded-md px-3 py-2 text-[13px] focus:outline-none mb-4" autoFocus />
-      </ProModal>
-      <ProModal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Redeem Code" actionText="Apply" onAction={() => setShowCodeModal(false)}>
-        <input type="text" placeholder="XXXX-XXXX-XXXX" className="w-full border rounded-md px-3 py-2 text-[13px] focus:outline-none" />
-      </ProModal>
-      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
       {/* ═══════════════════════════════════════════════════════════════
@@ -974,24 +966,8 @@ export default function ChatPage() {
             maxSize={95}
             className="flex flex-col overflow-hidden bg-white"
           >
-          {/* HEADER ROW */}
-          <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 flex-shrink-0">
-            {/* Circular avatar ~36px coral-orange #E8522A with ✦ glyph */}
-            <div
-              className="flex-shrink-0 flex items-center justify-center"
-              style={{ width: 36, height: 36, borderRadius: '50%', background: '#E8522A' }}
-            >
-              <span style={{ color: '#FFFFFF', fontSize: 16, lineHeight: 1, fontWeight: 700 }}>✦</span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#111111', lineHeight: 1.3 }}>
-                {user?.full_name || 'Trailride'}
-              </span>
-              <span style={{ fontSize: 12, color: '#888888', lineHeight: 1.3 }}>
-                {user?.email ? user.email.replace(/(?<=.{3}).+(?=@)/, '*****') : 'alessan@*****.com'}
-              </span>
-            </div>
-          </div>
+          {/* Wok Top Bar */}
+          <WokTopBar onResizeStart={handleResizeStart} />
 
           {/* MESSAGES SCROLL AREA */}
           <div
