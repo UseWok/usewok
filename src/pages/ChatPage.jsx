@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, ChevronDown, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu
 } from 'lucide-react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 
 // ============================================================================
@@ -858,9 +859,6 @@ export default function ChatPage() {
   // ────────────────────────────────────────────────────────────────────────
 
   const SUGGESTIONS = ['Add 3D Model Viewer', 'Interactive Part Highlighting', 'Build Customizable Options'];
-  const [zoomLevel, setZoomLevel] = useState(0); // 0=XL, 1=Fullscreen
-  const zl = LEVELS[zoomLevel];
-  const isFullscreen = zoomLevel === 1;
   const CARD_RADIUS = 16;
 
   return (
@@ -887,32 +885,30 @@ export default function ChatPage() {
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} />
 
       {/* ═══════════════════════════════════════════════════════════════
-          MAIN CARD — animated zoom, white rounded rect, two columns
+          MAIN CARD — resizable panels with Apple-style drag handle
       ═══════════════════════════════════════════════════════════════ */}
       <motion.div
-        className="flex overflow-hidden relative"
+        className="flex overflow-hidden relative w-[97vw] max-w-[1520px] h-[97vh] max-h-[1050px]"
         animate={{
-          width: zl.w,
-          maxWidth: zl.maxW,
-          height: zl.h,
-          maxHeight: zl.maxH,
           borderRadius: CARD_RADIUS,
         }}
         transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
         style={{
-          boxShadow: isFullscreen ? 'none' : '0 8px 32px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           background: 'transparent',
           border: '0.5px solid rgba(229, 229, 229, 0.3)',
-          willChange: 'width, height, border-radius',
         }}
       >
-        {/* ═══════════════════════════
-            LEFT PANEL — ~32% white
-        ═══════════════════════════ */}
-        <div
-          className="flex flex-col flex-shrink-0 overflow-hidden"
-          style={{ width: '32%', minWidth: 300, maxWidth: 360, background: '#FFFFFF' }}
-        >
+        <PanelGroup direction="horizontal" className="flex w-full h-full">
+          {/* ═══════════════════════════
+              LEFT PANEL — resizable chat
+          ═══════════════════════════ */}
+          <Panel
+            defaultSize={32}
+            minSize={25}
+            maxSize={50}
+            className="flex flex-col overflow-hidden bg-white"
+          >
           {/* HEADER ROW */}
           <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 flex-shrink-0">
             {/* Circular avatar ~36px coral-orange #E8522A with ✦ glyph */}
@@ -1001,15 +997,22 @@ export default function ChatPage() {
               editMode={editMode} setEditMode={setEditMode}
             />
           </div>
-        </div>
+          </Panel>
 
-        {/* ═══════════════════════════════════════════════════════════
-            RIGHT PANEL — white bg, preview inset with white border
-        ═══════════════════════════════════════════════════════════ */}
-        <div
-          className="flex-1 relative overflow-hidden flex items-center justify-center"
-          style={{ background: '#FFFFFF', padding: 16 }}
-        >
+          {/* Resize handle — thin, subtle */}
+          <PanelResizeHandle
+            className="w-[1px] hover:w-1.5 bg-transparent hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center"
+          >
+            <div className="w-[1px] h-8 bg-zinc-200 rounded-full opacity-0 hover:opacity-100 transition-opacity" />
+          </PanelResizeHandle>
+
+          {/* ═══════════════════════════════════════════════════════════
+              RIGHT PANEL — resizable preview
+          ═══════════════════════════════════════════════════════════ */}
+          <Panel
+            defaultSize={68}
+            className="relative overflow-hidden bg-white"
+          >
           {/* Inset preview rect — ultra-thin border */}
           <div
             style={{
@@ -1049,8 +1052,8 @@ export default function ChatPage() {
               </div>
             )}
           </div>
-        </div>
-
+          </Panel>
+        </PanelGroup>
       </motion.div>
 
       {/* ══ MOBILE LAYOUT ══ */}
