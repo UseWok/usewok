@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, Activity, Settings, ChevronRight,
-  TrendingUp, Shield, Zap, CreditCard, Inbox
+  TrendingUp, Shield, Zap, CreditCard, Inbox, Ticket
 } from 'lucide-react';
 import AdminOverview from '@/components/admin/AdminOverview';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -14,13 +14,13 @@ import AccessCodesTab from '@/components/admin/AccessCodesTab';
 import SupportPage from '@/pages/SupportPage';
 
 const NAV = [
-  { label: 'Overview',  path: '/admin',           icon: LayoutDashboard },
-  { label: 'Users',     path: '/admin/users',      icon: Users           },
-  { label: 'Activity',  path: '/admin/activity',   icon: Activity        },
-  { label: 'Plans',     path: '/admin/plans',      icon: CreditCard      },
-  { label: 'Leads',     path: '/admin/leads',      icon: Inbox           },
-  { label: 'Codes',     path: '/admin/codes',      icon: Zap             },
-  { label: 'Support',   path: '/admin/support',    icon: Shield          },
+  { label: 'Overview',     path: '/admin',           icon: LayoutDashboard },
+  { label: 'Users',        path: '/admin/users',      icon: Users           },
+  { label: 'Activity',     path: '/admin/activity',   icon: Activity        },
+  { label: 'Plans',        path: '/admin/plans',      icon: CreditCard      },
+  { label: 'Codes',        path: '/admin/codes',      icon: Ticket          },
+  { label: 'Leads',        path: '/admin/leads',      icon: Inbox           },
+  { label: 'Support',      path: '/admin/support',    icon: Shield          },
 ];
 
 export default function AdminDashboard() {
@@ -114,16 +114,20 @@ export default function AdminDashboard() {
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* Topbar */}
         <header className="h-16 flex items-center justify-between px-8 border-b border-white/[0.06] bg-[#0a0b0f] flex-shrink-0">
-          <div>
-            <h1 className="text-sm font-semibold text-white">{active.label}</h1>
-            <p className="text-xs text-white/30 mt-0.5">Admin Control Panel</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-sm font-semibold text-white">{active.label}</h1>
+              <p className="text-xs text-white/30 mt-0.5">Professional Admin Panel</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Link to="/app" className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg text-xs text-white/60 hover:text-white transition-all font-medium">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs text-emerald-400 font-medium">System Online</span>
+            </div>
+            <Link to="/app" className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg text-xs text-white/60 hover:text-white transition-all font-medium">
               ← Back to App
             </Link>
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-white/40">Live</span>
           </div>
         </header>
 

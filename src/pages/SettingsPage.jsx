@@ -222,10 +222,8 @@ export default function SettingsPage() {
 
   const navItems = [
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'plan', label: 'Plan & billing', icon: CreditCard },
+    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
     { id: 'usage', label: 'Usage', icon: Zap },
-    { id: 'ai_skills', label: 'AI skills', icon: Brain, modal: true },
-    { id: 'ai_control', label: 'AI control', icon: Cpu, modal: true },
   ];
 
   const sharedProps = { user, setUser, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, fmtN, setShowInvoiceModal, cancelTicket };
@@ -262,6 +260,38 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <SectionContent section={activeSection} {...sharedProps} desktop />
           </div>
+        </div>
+
+        {/* Modern Code Redemption Section - Full Width */}
+        <div className="mt-8 pt-8 border-t border-[#E5E5E5]">
+          <div className="max-w-2xl">
+            <h2 className="text-sm font-semibold text-[#1A1A1A] mb-4">Redeem Code</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <AccessCodeRedeemer user={user} setUser={setUser} />
+              <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
+                <div className="flex items-center gap-2 mb-2">
+                  <Gift className="w-4 h-4 text-[#1A1A1A]" />
+                  <p className="text-xs font-medium text-[#666666]">Activation Code</p>
+                </div>
+                <p className="text-xs mb-3 text-[#666666]">Activate a subscription plan with a code.</p>
+                <div className="flex gap-2">
+                  <input
+                    value={activationCode}
+                    onChange={e => { setActivationCode(e.target.value.toUpperCase()); setCodeError(''); }}
+                    placeholder="Ex: 4F7K-9M2X-1R8P"
+                    maxLength={20}
+                    onKeyDown={e => { if (e.key === 'Enter') activateCode(); }}
+                    className={`flex-1 px-3 py-2 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-200' : 'border-[#E5E5E5] focus:ring-[#1A1A1A]/20'}`}
+                  />
+                  <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
+                    className="px-4 py-2 text-sm font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
+                    {codeLoading ? '...' : 'Activate'}
+                  </button>
+                </div>
+                {codeError && <p className="text-xs text-red-500 mt-2">{codeError}</p>}
+              </div>
+            </div>
+        </div>
         </div>
       </div>
 
@@ -450,7 +480,7 @@ function SectionContent({ section, desktop, user, setUser, userPlan, fullName, s
 
         <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-[#666666]">Flash this month</p>
+            <p className="text-xs font-medium text-[#666666]">Flash Credits</p>
             <p className="text-xs font-medium text-[#1A1A1A]">{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
           </div>
           <div className="w-full h-2 bg-[#F7F7F8] rounded-full overflow-hidden">
@@ -462,7 +492,7 @@ function SectionContent({ section, desktop, user, setUser, userPlan, fullName, s
         {deepLimit > 0 && (
           <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-[#666666]">Deep this month</p>
+              <p className="text-xs font-medium text-[#666666]">Deep Credits</p>
               <p className="text-xs font-medium text-[#1A1A1A]">{deepUsed} / {deepLimit}</p>
             </div>
             <div className="w-full h-2 bg-[#F7F7F8] rounded-full overflow-hidden">
@@ -473,7 +503,7 @@ function SectionContent({ section, desktop, user, setUser, userPlan, fullName, s
         )}
 
         <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-          <p className="text-xs font-medium mb-4 text-[#666666]">Activity — last 7 days</p>
+          <p className="text-xs font-medium mb-4 text-[#666666]">Activity — Last 7 Days</p>
           <ResponsiveContainer width="100%" height={90}>
             <BarChart data={getDailyUsage()} barSize={14}>
               <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#999' }} axisLine={false} tickLine={false} />
@@ -482,24 +512,6 @@ function SectionContent({ section, desktop, user, setUser, userPlan, fullName, s
             </BarChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-          <p className="text-xs font-medium mb-1 text-[#666666]">Activation code</p>
-          <p className="text-xs mb-3 text-[#666666]">Enter a code received by email to activate a subscription.</p>
-          <div className="flex gap-2">
-            <input value={activationCode} onChange={e => setActivationCode(e.target.value.toUpperCase())}
-              placeholder="Ex: 4F7K9M2X1R8P" maxLength={16}
-              className={`flex-1 px-3 py-2 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-200' : 'border-[#E5E5E5] focus:ring-[#1A1A1A]/20'}`}
-              onKeyDown={e => { if (e.key === 'Enter') activateCode(); }} />
-            <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
-              className="px-4 py-2 text-sm font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors disabled:opacity-50">
-              {codeLoading ? '...' : 'Activate'}
-            </button>
-          </div>
-          {codeError && <p className="text-xs text-red-500 mt-2">{codeError}</p>}
-        </div>
-
-        <AccessCodeRedeemer user={user} setUser={setUser} />
       </div>
     );
   }
