@@ -30,6 +30,7 @@ import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
 import Modal from '@/components/chat/Modal';
 import ResizeWidget from '@/components/chat/ResizeWidget';
+import FullscreenToggle from '@/components/chat/FullscreenToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -958,18 +959,6 @@ export default function ChatPage() {
   { icon: Cpu, label: 'DNA Wok', path: '/ai-dna', active: location.pathname === '/ai-dna' }];
 
 
-  // Format presets (iOS 26 style)
-  const FORMAT_PRESETS = {
-    phone: { width: '420px', height: '92vh', label: 'Phone' },
-    tablet: { width: '768px', height: '90vh', label: 'Tablet' },
-    desktop: { width: '97vw', height: '97vh', label: 'Desktop' },
-    fullscreen: { width: '100vw', height: '100vh', label: 'Fullscreen' }
-  };
-
-  const handleFormatChange = (format) => {
-    setContainerSize({ width: FORMAT_PRESETS[format].width, height: FORMAT_PRESETS[format].height });
-  };
-
   {/* Removed resize handlers - simplified interface */}
 
 
@@ -1333,6 +1322,9 @@ export default function ChatPage() {
         containerSize={containerSize}
         setContainerSize={setContainerSize}
       />
+
+      {/* Fullscreen Toggle - true fullscreen, no background visible */}
+      <FullscreenToggle containerRef={containerRef} />
 
       {/* ══ MOBILE LAYOUT ══ */}
       <div className="fixed inset-0 flex md:hidden flex-col bg-white">
