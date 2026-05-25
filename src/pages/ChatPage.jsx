@@ -908,16 +908,25 @@ export default function ChatPage() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Smooth resize with snap zones
     let newWidth = resizeStart.current.w + dx / vw * 100;
     let newHeight = resizeStart.current.h + dy / vh * 100;
 
-    // Snap to 100% when going beyond 95%
-    if (newWidth > 95) newWidth = 100;
-    if (newHeight > 95) newHeight = 100;
+    // Snap zones with resistance
+    // Right drag: snap at 50%, can force to 100%
+    if (newWidth > 50 && newWidth < 90) {
+      newWidth = 50; // Soft lock at 50%
+    }
+    if (newWidth > 90) newWidth = 100; // Force to 100% when dragging far enough
+    
+    // Left drag: snap at 20%, can force to 100%
+    if (newWidth < 20 && newWidth > 10) {
+      newWidth = 20; // Soft lock at 20%
+    }
+    if (newWidth < 10) newWidth = 100; // Force to 100% when dragging far enough
 
-    // Clamp to min/max bounds (20% min for chat, 50% max for chat = 50% min for preview)
-    newWidth = Math.max(20, Math.min(newWidth, 100));
+    // Height snap
+    if (newHeight > 95) newHeight = 100;
+    newWidth = Math.max(10, Math.min(newWidth, 100));
     newHeight = Math.max(20, Math.min(newHeight, 100));
 
     setContainerSize({ width: newWidth, height: newHeight });
@@ -951,38 +960,30 @@ export default function ChatPage() {
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - top left */}
       <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
-        <div className="flex items-center gap-2" style={{ pointerEvents: 'auto' }}>
-          {/* Logo */}
+        {/* Merged clickable area: Wok text + chevron as single button */}
+        <button
+          onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+          className="flex items-center gap-1 hover:bg-zinc-100 rounded-lg transition-colors p-1.5"
+          style={{ pointerEvents: 'auto' }}>
           
-
-
-
-
-          
-
           {/* Wok text */}
-          <span className="text-base font-bold text-zinc-900">Wok</span>
+          <span className="text-sm font-bold text-zinc-900">Wok</span>
 
-          {/* Chevron trigger button */}
-          <button
-            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="p-1 hover:bg-zinc-100 rounded-md transition-colors">
+          {/* Chevron icon - smaller and closer */}
+          <svg
+            className="w-3.5 h-3.5 text-zinc-900"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}>
             
-            <svg
-              className="w-5 h-5 text-zinc-900"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}>
-              
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
         {/* Small dropdown menu */}
         {isProfileMenuOpen &&
-        <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-56 mt-1 z-[100000]">
+        <div className="absolute top-10 left-0 bg-white rounded-xl shadow-lg border border-zinc-200 overflow-hidden w-56 mt-1 z-[1 mt-1 z-[100000]">
             <div className="p-1.5 space-y-0.5">
               {/* Home */}
               <button
@@ -1191,34 +1192,34 @@ export default function ChatPage() {
             </div>
 
             <div ref={messagesEndRef} className="h-1" />
+          </div>
 
-            {/* SUGGESTIONS — moved below messages, above input */}
-            <div className="px-4 py-3">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span style={{ fontSize: 12, color: '#999999', fontWeight: 500 }}>Suggestions</span>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {SUGGESTIONS.map((s) =>
-                  <button
-                    key={s}
-                    onClick={() => setInput(s)}
-                    style={{
-                      fontSize: 12, color: '#555555', background: '#F8F8F8',
-                      border: '1px solid #E8E8E8', borderRadius: 999,
-                      padding: '6px 12px', cursor: 'pointer', lineHeight: 1.4,
-                      transition: 'all 150ms'
-                    }}
-                    onMouseEnter={(e) => {e.currentTarget.style.background = '#F0F0F0';e.currentTarget.style.borderColor = '#D0D0D0';}}
-                    onMouseLeave={(e) => {e.currentTarget.style.background = '#F8F8F8';e.currentTarget.style.borderColor = '#E8E8E8';}}>
-                    
-                    {s}
-                  </button>
-                  )}
-              </div>
+          {/* SUGGESTIONS — permanently fixed at bottom, above input */}
+          <div className="flex-shrink-0 px-4 py-3 border-t border-zinc-100 bg-white">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="#999999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span style={{ fontSize: 12, color: '#999999', fontWeight: 500 }}>Suggestions</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {SUGGESTIONS.map((s) =>
+                <button
+                  key={s}
+                  onClick={() => setInput(s)}
+                  style={{
+                    fontSize: 12, color: '#555555', background: '#F8F8F8',
+                    border: '1px solid #E8E8E8', borderRadius: 999,
+                    padding: '6px 12px', cursor: 'pointer', lineHeight: 1.4,
+                    transition: 'all 150ms'
+                  }}
+                  onMouseEnter={(e) => {e.currentTarget.style.background = '#F0F0F0';e.currentTarget.style.borderColor = '#D0D0D0';}}
+                  onMouseLeave={(e) => {e.currentTarget.style.background = '#F8F8F8';e.currentTarget.style.borderColor = '#E8E8E8';}}>
+                  
+                  {s}
+                </button>
+                )}
             </div>
           </div>
 

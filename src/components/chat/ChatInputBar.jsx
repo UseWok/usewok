@@ -9,6 +9,7 @@ export default function ChatInputBar({
 }) {
   const [showAIConfig, setShowAIConfig] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
+  const [editModeEnabled, setEditModeEnabled] = useState(false);
   const configRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -82,6 +83,29 @@ export default function ChatInputBar({
               </div>
             </button>
           ))}
+          
+          {/* Divider */}
+          <div style={{ height: '1px', background: '#E0E0E0', margin: '6px 0' }} />
+          
+          {/* Edit mode button */}
+          <button
+            onClick={() => {
+              setEditModeEnabled(!editModeEnabled);
+              if (setEditMode) setEditMode(!editModeEnabled);
+              setShowAIConfig(false);
+            }}
+            style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 10px', borderRadius: 7, border: 'none', background: editModeEnabled ? '#F0F0F0' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.background = editModeEnabled ? '#E8E8E8' : '#F5F5F5'}
+            onMouseLeave={e => e.currentTarget.style.background = editModeEnabled ? '#F0F0F0' : 'transparent'}
+          >
+            <div style={{ width: 14, flexShrink: 0, paddingTop: 2 }}>
+              {editModeEnabled && <Check style={{ width: 12, height: 12, color: '#111', strokeWidth: 3 }} />}
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111' }}>Edit</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#999' }}>Modify existing project</p>
+            </div>
+          </button>
         </div>
       )}
 
@@ -120,20 +144,20 @@ export default function ChatInputBar({
         borderRadius: 24, padding: '0 12px', height: 44,
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
-        {/* Left icons: gear + plus */}
+        {/* Left icons: gear + plus - BLACK color */}
         <button
           onClick={() => setShowAIConfig(v => !v)}
-          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#999', display: 'flex', alignItems: 'center', padding: 2 }}
-          onMouseEnter={e => e.currentTarget.style.color = '#555'}
-          onMouseLeave={e => e.currentTarget.style.color = '#999'}
+          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#111111', display: 'flex', alignItems: 'center', padding: 2 }}
+          onMouseEnter={e => e.currentTarget.style.color = '#333333'}
+          onMouseLeave={e => e.currentTarget.style.color = '#111111'}
         >
           <Settings style={{ width: 16, height: 16 }} />
         </button>
         <button
           onClick={() => fileInputRef.current?.click()}
-          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#999', display: 'flex', alignItems: 'center', padding: 2 }}
-          onMouseEnter={e => e.currentTarget.style.color = '#555'}
-          onMouseLeave={e => e.currentTarget.style.color = '#999'}
+          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#111111', display: 'flex', alignItems: 'center', padding: 2 }}
+          onMouseEnter={e => e.currentTarget.style.color = '#333333'}
+          onMouseLeave={e => e.currentTarget.style.color = '#111111'}
         >
           <Plus style={{ width: 16, height: 16 }} />
         </button>
