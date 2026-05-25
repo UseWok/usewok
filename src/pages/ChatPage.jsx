@@ -1061,7 +1061,7 @@ export default function ChatPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.1, ease: 'ease-out' }}
+          transition={{ duration: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className="fixed inset-0 z-[99998]"
           style={{ background: 'rgba(0, 0, 0, 0.45)' }}
           onClick={() => setFullscreenModal(null)}
@@ -1070,7 +1070,7 @@ export default function ChatPage() {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.97 }}
-          transition={{ duration: 0.1, ease: 'ease-out' }}
+          transition={{ duration: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className="fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none">
           <div
             className="relative w-[95vw] max-w-[1100px] h-[95vh] bg-white rounded-lg overflow-hidden flex flex-col pointer-events-auto"
