@@ -869,8 +869,8 @@ export default function ChatPage() {
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
       style={{
         backgroundColor: '#FAFAFA',
-        backgroundImage: 'radial-gradient(circle, #D4B8D4 1.5px, transparent 1.5px)',
-        backgroundSize: '28px 28px',
+        backgroundImage: 'radial-gradient(circle, #D4B8D4 1.2px, transparent 1.2px)',
+        backgroundSize: '56px 56px',
       }}
     >
       {/* Modals */}
@@ -896,7 +896,7 @@ export default function ChatPage() {
           maxHeight: zl.maxH,
           borderRadius: CARD_RADIUS,
         }}
-        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
         style={{
           boxShadow: isFullscreen ? 'none' : '0 12px 48px rgba(0,0,0,0.14)',
           background: 'transparent',
