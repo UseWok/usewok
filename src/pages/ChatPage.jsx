@@ -908,8 +908,17 @@ export default function ChatPage() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    const newWidth = Math.max(30, Math.min(98, resizeStart.current.w + dx / vw * 100));
-    const newHeight = Math.max(30, Math.min(98, resizeStart.current.h + dy / vh * 100));
+    // Smooth resize with snap zones
+    let newWidth = resizeStart.current.w + dx / vw * 100;
+    let newHeight = resizeStart.current.h + dy / vh * 100;
+
+    // Snap to 100% when going beyond 95%
+    if (newWidth > 95) newWidth = 100;
+    if (newHeight > 95) newHeight = 100;
+
+    // Clamp to min/max bounds (20% min for chat, 50% max for chat = 50% min for preview)
+    newWidth = Math.max(20, Math.min(newWidth, 100));
+    newHeight = Math.max(20, Math.min(newHeight, 100));
 
     setContainerSize({ width: newWidth, height: newHeight });
   };
@@ -1152,8 +1161,8 @@ export default function ChatPage() {
                ═══════════════════════════ */}
           <Panel
             defaultSize={32}
-            minSize={5}
-            maxSize={95}
+            minSize={20}
+            maxSize={50}
             className="flex flex-col overflow-hidden bg-white">
             
 
