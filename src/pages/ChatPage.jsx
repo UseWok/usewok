@@ -944,12 +944,12 @@ export default function ChatPage() {
       <div className="fixed top-4 left-4 z-[99999]" style={{ pointerEvents: 'none' }}>
         <div className="flex items-center gap-1.5" style={{ pointerEvents: 'auto' }}>
           {/* Logo */}
-          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-zinc-200 hidden">
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
-              <rect width="40" height="40" rx="10" fill="#FFFFFF" />
-              <path d="M12 20L18 26L28 14" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
+          
+
+
+
+
+          
 
           {/* Wok text */}
           <span className="text-sm font-bold text-zinc-900">Wok</span>
@@ -1127,8 +1127,8 @@ export default function ChatPage() {
       }
 
       {/* ═══════════════════════════════════════════════════════════════
-           MAIN CARD — dynamic resizable container (iOS 26 style)
-        ═══════════════════════════════════════════════════════════════ */}
+            MAIN CARD — dynamic resizable container (iOS 26 style)
+         ═══════════════════════════════════════════════════════════════ */}
       <motion.div
         ref={containerRef}
         className="flex overflow-hidden relative"
@@ -1149,8 +1149,8 @@ export default function ChatPage() {
         
         <PanelGroup direction="horizontal" className="flex w-full h-full">
           {/* ═══════════════════════════
-               LEFT PANEL — resizable chat
-            ═══════════════════════════ */}
+                LEFT PANEL — resizable chat
+             ═══════════════════════════ */}
           <Panel
             defaultSize={32}
             minSize={5}
@@ -1238,8 +1238,8 @@ export default function ChatPage() {
           </PanelResizeHandle>
 
           {/* ═══════════════════════════════════════════════════════════
-               RIGHT PANEL — resizable preview
-            ═══════════════════════════════════════════════════════════ */}
+                RIGHT PANEL — resizable preview
+             ═══════════════════════════════════════════════════════════ */}
           <Panel
             defaultSize={68}
             className="relative overflow-hidden bg-white">
