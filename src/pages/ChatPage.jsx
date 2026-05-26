@@ -118,6 +118,9 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
 
 const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished }) => {
   const [activeTab, setActiveTab] = useState('web');
+  // Dans le composant PublishAppModal, ajoute ces deux lignes sous activeTab :
+  const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
+  const [visibilityChoice, setVisibilityChoice] = useState('Public (no login)');
 
   if (!open) return null;
 
