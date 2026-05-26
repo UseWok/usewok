@@ -1513,10 +1513,22 @@ export default function ChatPage() {
             {ficheContent && (
               <div className="absolute top-3 right-3 z-[99999] pointer-events-auto flex flex-col items-end">
                 <button
-                  onClick={() => setShowPublishModal(true)}
-                  className="px-[18px] py-[6px] bg-white border-[2.5px] border-zinc-900 text-zinc-900 font-bold rounded-[12px] hover:bg-zinc-50 shadow-sm transition-colors text-[14px]"
+                  onClick={() => {
+                    if (isAppPublished) {
+                      // Navigate directly to destination if already published
+                      window.open(`https://wok.base44.app/tools/${customSlug || convId}`, '_blank');
+                    } else {
+                      // Open modal to publish
+                      setShowPublishModal(true);
+                    }
+                  }}
+                  className={`px-[18px] py-[6px] border-[2.5px] font-bold rounded-[12px] shadow-sm transition-all text-[14px] ${
+                    isAppPublished 
+                      ? 'bg-white border-zinc-900 text-zinc-900 hover:bg-zinc-50' // Style for published
+                      : 'bg-[#1A1A1A] text-white hover:bg-black border-zinc-900' // Style for unpublished
+                  }`}
                 >
-                  Publish
+                  {isAppPublished ? 'View App' : 'Publish'}
                 </button>
                 
                 {/* Dynamically attached modal - No backdrop veiled, opens right below */}
