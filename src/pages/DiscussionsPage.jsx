@@ -1,317 +1,230 @@
-import { useState } from 'react';
-import { User, CreditCard, Zap, ArrowLeft, Save, Trash2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Search, Trash2, Plus, Globe, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { useDiscussions, useDeleteDiscussion } from '@/lib/useDiscussions';
+import DiscussionsHeader from '@/components/DiscussionsHeader';
 
 const FG = '#0A0A0A';
 
-function ProfileSection({ user, onSave }) {
-  const [fullName, setFullName] = useState(user?.name || '');
-  const [isDirty, setIsDirty] = useState(false);
-
-  const handleNameChange = (value) => {
-    setFullName(value);
-    setIsDirty(value !== user?.name);
-  };
-
-  const handleSave = () => {
-    onSave({ fullName });
-    setIsDirty(false);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-black mb-1" style={{ color: FG }}>Profile</h2>
-        <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>Manage your account information</p>
-      </div>
-
-      <div className="space-y-5">
-        {/* Email field */}
-        <div>
-          <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(0,0,0,0.5)' }}>
-            Email <span className="font-normal" style={{ color: 'rgba(0,0,0,0.3)' }}>(read-only)</span>
-          </label>
-          <div className="px-4 py-3 rounded-xl border"
-            style={{ 
-              background: 'rgba(0,0,0,0.02)', 
-              borderColor: 'rgba(0,0,0,0.07)',
-              cursor: 'not-allowed'
-            }}>
-            <p className="text-sm" style={{ color: 'rgba(0,0,0,0.4)' }}>
-              {user?.email || 'antoinevalton954@gmail.com'}
-            </p>
-          </div>
-        </div>
-
-        {/* Full name field */}
-        <div>
-          <label className="block text-xs font-bold mb-2" style={{ color: 'rgba(0,0,0,0.5)' }}>
-            Full name
-          </label>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => handleNameChange(e.target.value)}
-            className="w-full px-4 py-3 text-sm rounded-xl border transition-all focus:outline-none focus:border-opacity-30"
-            style={{ 
-              background: 'white', 
-              borderColor: 'rgba(0,0,0,0.1)',
-              color: FG
-            }}
-            placeholder="Enter your full name"
-          />
-        </div>
-
-        {/* Save button */}
-        {isDirty && (
-          <motion.button
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={handleSave}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-black rounded-xl transition-all hover:opacity-90"
-            style={{ background: FG, color: 'white' }}>
-            <Save className="w-3.5 h-3.5" />
-            Save changes
-          </motion.button>
-        )}
-      </div>
-    </div>
-  );
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return `${diff}d ago`;
+  return d.toLocaleDateString('en', { day: 'numeric', month: 'short' });
 }
 
-function PlanSection({ userPlan }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-black mb-1" style={{ color: FG }}>Plan & Billing</h2>
-        <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>Manage your subscription and billing</p>
-      </div>
-
-      <div className="p-5 rounded-xl border" 
-        style={{ 
-          background: 'rgba(0,0,0,0.02)', 
-          borderColor: 'rgba(0,0,0,0.07)' 
-        }}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs font-black uppercase tracking-wider mb-1" 
-              style={{ color: 'rgba(0,0,0,0.4)' }}>Current plan</p>
-            <p className="text-lg font-black" style={{ color: FG }}>
-              {userPlan?.name || 'Free'}
-            </p>
-          </div>
-          <div className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider"
-            style={{ 
-              background: 'rgba(16, 185, 129, 0.1)', 
-              color: '#10b981' 
-            }}>
-            Active
-          </div>
-        </div>
-        
-        <button className="w-full px-4 py-2.5 text-sm font-black rounded-xl transition-all"
-          style={{ 
-            background: 'rgba(0,0,0,0.05)', 
-            color: FG 
-          }}>
-          Upgrade plan
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function UsageSection() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-black mb-1" style={{ color: FG }}>Usage</h2>
-        <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>Track your API and conversation usage</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl border"
-          style={{ 
-            background: 'white', 
-            borderColor: 'rgba(0,0,0,0.07)' 
-          }}>
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2"
-            style={{ color: 'rgba(0,0,0,0.4)' }}>Conversations</p>
-          <p className="text-2xl font-black" style={{ color: FG }}>24</p>
-          <p className="text-[10px] mt-1" style={{ color: 'rgba(0,0,0,0.3)' }}>this month</p>
-        </div>
-
-        <div className="p-4 rounded-xl border"
-          style={{ 
-            background: 'white', 
-            borderColor: 'rgba(0,0,0,0.07)' 
-          }}>
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2"
-            style={{ color: 'rgba(0,0,0,0.4)' }}>API calls</p>
-          <p className="text-2xl font-black" style={{ color: FG }}>1.2k</p>
-          <p className="text-[10px] mt-1" style={{ color: 'rgba(0,0,0,0.3)' }}>this month</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DangerZone({ onDelete }) {
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-black mb-1" style={{ color: '#ef4444' }}>Danger zone</h2>
-        <p className="text-xs" style={{ color: 'rgba(0,0,0,0.35)' }}>
-          Irreversible actions - proceed with caution
-        </p>
-      </div>
-
-      <div className="p-5 rounded-xl border" 
-        style={{ 
-          background: 'rgba(239, 68, 68, 0.03)', 
-          borderColor: 'rgba(239, 68, 68, 0.2)' 
-        }}>
-        <p className="text-sm font-bold mb-2" style={{ color: FG }}>Delete account</p>
-        <p className="text-xs mb-4" style={{ color: 'rgba(0,0,0,0.5)' }}>
-          This action is irreversible. All your data will be permanently deleted.
-        </p>
-        
-        {!showConfirm ? (
-          <button 
-            onClick={() => setShowConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-black rounded-xl transition-all hover:opacity-90"
-            style={{ 
-              background: 'rgba(239, 68, 68, 0.1)', 
-              color: '#ef4444' 
-            }}>
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete account
-          </button>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-3">
-            <p className="text-xs font-bold" style={{ color: '#ef4444' }}>
-              Are you absolutely sure?
-            </p>
-            <div className="flex gap-2">
-              <button 
-                onClick={onDelete}
-                className="flex-1 px-4 py-2.5 text-sm font-black rounded-xl transition-all hover:opacity-90"
-                style={{ background: '#ef4444', color: 'white' }}>
-                Yes, delete my account
-              </button>
-              <button 
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-2.5 text-sm font-black rounded-xl transition-all"
-                style={{ 
-                  background: 'rgba(0,0,0,0.05)', 
-                  color: FG 
-                }}>
-                Cancel
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function SettingsPage() {
+function ConversationsTab({ discussions, isLoading, search, setSearch }) {
+  const deleteDiscussion = useDeleteDiscussion();
+  const [hovered, setHovered] = useState(null);
+  const [navigating, setNavigating] = useState(null);
   const navigate = useNavigate();
+
+  const filtered = discussions.filter(d =>
+    !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.preview?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleOpen = (disc) => {
+    setNavigating(disc.id);
+    setTimeout(() => {
+      const params = new URLSearchParams({ conversationId: disc.id });
+      if (disc.agent) params.set('agent', disc.agent);
+      navigate(`/chat?${params.toString()}`);
+    }, 180);
+  };
+
+  return (
+    <>
+      {isLoading && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && filtered.length === 0 && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-sm font-bold mb-1" style={{ color: 'rgba(0,0,0,0.25)' }}>
+            {search ? 'No results' : 'No conversations yet'}
+          </p>
+          {!search && (
+            <button onClick={() => navigate('/chat')}
+              className="mt-4 px-5 py-2 text-sm font-black rounded-xl transition-all hover:opacity-90"
+              style={{ background: FG, color: 'white' }}>Start a conversation →</button>
+          )}
+        </motion.div>
+      )}
+
+      {!isLoading && filtered.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <AnimatePresence>
+            {filtered.map((disc, i) => (
+              <motion.div key={disc.id} layout
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: navigating === disc.id ? 0 : 1, y: navigating === disc.id ? -4 : 0, scale: navigating === disc.id ? 0.97 : 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ delay: i * 0.03, duration: navigating === disc.id ? 0.15 : 0.25 }}
+                onMouseEnter={() => setHovered(disc.id)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => handleOpen(disc)}
+                className="relative p-4 bg-white border rounded-xl cursor-pointer transition-all"
+                style={{
+                  borderColor: hovered === disc.id ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.07)',
+                  boxShadow: hovered === disc.id ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
+                  minHeight: '90px',
+                }}>
+                <p className="text-xs font-bold leading-snug line-clamp-2 mb-2" style={{ color: FG }}>
+                  {disc.title || 'Untitled'}
+                </p>
+                <p className="text-[10px]" style={{ color: 'rgba(0,0,0,0.25)' }}>{formatDate(disc.date)}</p>
+
+                {hovered === disc.id && (
+                  <button
+                    onClick={e => { e.stopPropagation(); deleteDiscussion.mutate(disc.id); }}
+                    className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-lg transition-colors hover:bg-red-50"
+                    style={{ background: 'rgba(0,0,0,0.04)' }}>
+                    <Trash2 className="w-3 h-3 text-red-400" />
+                  </button>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </>
+  );
+}
+
+function FichesTab() {
+  const navigate = useNavigate();
+  const [hovered, setHovered] = useState(null);
+  const [navigating, setNavigating] = useState(null);
+
+  const { data: fiches = [], isLoading } = useQuery({
+    queryKey: ['public-fiches'],
+    queryFn: () => base44.entities.Conversation.filter({ is_public: true }, '-updated_date', 30),
+  });
+
+  const handleOpen = (fiche) => {
+    setNavigating(fiche.id);
+    setTimeout(() => navigate(`/p/${fiche.conv_id}`), 180);
+  };
+
+  if (isLoading) return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {[1,2,3,4,5,6].map(i => <div key={i} className="h-28 rounded-xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />)}
+    </div>
+  );
+
+  if (fiches.length === 0) return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-20 text-center">
+      <Globe className="w-8 h-8 mb-3" style={{ color: 'rgba(0,0,0,0.15)' }} />
+      <p className="text-sm font-bold mb-1" style={{ color: 'rgba(0,0,0,0.25)' }}>No published fiches yet</p>
+      <p className="text-xs" style={{ color: 'rgba(0,0,0,0.18)' }}>Publish a conversation from the chat to share it here</p>
+    </motion.div>
+  );
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {fiches.map((fiche, i) => (
+        <motion.div key={fiche.id} layout
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: navigating === fiche.id ? 0 : 1, scale: navigating === fiche.id ? 0.97 : 1 }}
+          transition={{ delay: i * 0.03 }}
+          onMouseEnter={() => setHovered(fiche.id)}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => handleOpen(fiche)}
+          className="relative p-4 bg-white border rounded-xl cursor-pointer transition-all"
+          style={{
+            borderColor: hovered === fiche.id ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.07)',
+            boxShadow: hovered === fiche.id ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
+            minHeight: '100px',
+          }}>
+          <div className="flex items-center gap-1.5 mb-2">
+            <Globe className="w-2.5 h-2.5" style={{ color: '#16a34a' }} />
+            <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: '#16a34a' }}>Public</span>
+          </div>
+          <p className="text-xs font-bold leading-snug line-clamp-2 mb-2" style={{ color: FG }}>
+            {fiche.title || 'Untitled fiche'}
+          </p>
+          {fiche.preview && <p className="text-[10px] line-clamp-1" style={{ color: 'rgba(0,0,0,0.35)' }}>{fiche.preview}</p>}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+export default function DiscussionsPage() {
+  const { data: discussions = [], isLoading } = useDiscussions();
   const { user, userPlan } = useAuth();
-  const [activeSection, setActiveSection] = useState('profile');
-
-  const sections = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
-    { id: 'usage', label: 'Usage', icon: Zap },
-  ];
-
-  const handleSave = (data) => {
-    console.log('Saving:', data);
-    // Add your save logic here
-  };
-
-  const handleDelete = () => {
-    console.log('Deleting account...');
-    // Add your delete logic here
-  };
+  const [tab, setTab] = useState('conversations');
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen font-open" style={{ background: 'white' }}>
-      {/* Header */}
-      <div className="border-b" style={{ borderColor: 'rgba(0,0,0,0.07)' }}>
-        <div className="max-w-6xl mx-auto px-6 py-5">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-bold transition-opacity hover:opacity-60"
-            style={{ color: 'rgba(0,0,0,0.5)' }}>
-            <ArrowLeft className="w-4 h-4" />
-            Back
+      {/* Professional Header */}
+      <DiscussionsHeader user={user} userPlan={userPlan} onNavigate={navigate} />
+
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        {/* Section Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-black mb-1" style={{ color: FG }}>All conversations</h1>
+            <p className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''}</p>
+          </div>
+          <button onClick={() => navigate('/chat')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-black rounded-xl transition-all hover:opacity-90"
+            style={{ background: FG, color: 'white' }}>
+            <Plus className="w-3.5 h-3.5" /> New
           </button>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Page title */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-black mb-2" style={{ color: FG }}>Settings</h1>
-          <p className="text-sm" style={{ color: 'rgba(0,0,0,0.35)' }}>
-            Manage your account settings and preferences
-          </p>
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 p-1 rounded-xl w-fit"
+          style={{ background: 'rgba(0,0,0,0.04)' }}>
+          {[
+            { id: 'conversations', label: 'Conversations', icon: MessageSquare },
+            { id: 'fiches', label: 'Fiches', icon: Globe },
+          ].map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setTab(id)}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all"
+              style={{
+                background: tab === id ? 'white' : 'transparent',
+                color: tab === id ? FG : 'rgba(0,0,0,0.4)',
+                boxShadow: tab === id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              }}>
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-12 gap-8">
-          {/* Sidebar */}
-          <div className="col-span-3">
-            <nav className="sticky top-6 space-y-1">
-              {sections.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveSection(id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all text-left"
-                  style={{
-                    background: activeSection === id ? 'rgba(0,0,0,0.04)' : 'transparent',
-                    color: activeSection === id ? FG : 'rgba(0,0,0,0.4)',
-                  }}>
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  {label}
-                </button>
-              ))}
-            </nav>
+        {/* Search — only for conversations */}
+        {tab === 'conversations' && (
+          <div className="flex items-center gap-2 px-4 py-2.5 mb-6 rounded-xl border"
+            style={{ background: 'rgba(0,0,0,0.02)', borderColor: 'rgba(0,0,0,0.07)' }}>
+            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.2)' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search conversations…"
+              className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: FG }} />
+            {search && <button onClick={() => setSearch('')} className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>✕</button>}
           </div>
+        )}
 
-          {/* Content */}
-          <div className="col-span-9">
-            <div className="max-w-2xl space-y-12">
-              {activeSection === 'profile' && (
-                <ProfileSection user={user} onSave={handleSave} />
-              )}
-              
-              {activeSection === 'plan' && (
-                <PlanSection userPlan={userPlan} />
-              )}
-              
-              {activeSection === 'usage' && (
-                <UsageSection />
-              )}
-
-              {/* Danger zone always at bottom */}
-              {activeSection === 'profile' && (
-                <div className="pt-8 border-t" style={{ borderColor: 'rgba(0,0,0,0.07)' }}>
-                  <DangerZone onDelete={handleDelete} />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Content */}
+        {tab === 'conversations'
+          ? <ConversationsTab discussions={discussions} isLoading={isLoading} search={search} setSearch={setSearch} />
+          : <FichesTab />
+        }
       </div>
     </div>
   );
