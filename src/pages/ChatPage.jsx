@@ -34,7 +34,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
 import {
-  X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen, Share, Copy, Download, Globe 
+  X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen, Share, Copy, Download, Globe, ChevronLeft, Send, Link as LinkIcon
 } from 'lucide-react';
 
 // ============================================================================
@@ -121,146 +121,224 @@ const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished })
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibilityChoice, setVisibilityChoice] = useState('Public (no login)');
 
-  if (!open) return null;
+  // Engine for the blur transition and view swapping
+  const [view, setView] = useState('main'); // 'main' | 'share'
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Reset to main view if closed
+  useEffect(() => {
+    if (!open) {
+      setTimeout(() => { setView('main'); setActiveTab('web'); setIsVisibilityMenuOpen(false); }, 200);
+    }
+  }, [open]);
+
+  const handleShareClick = () => {
+     setIsTransitioning(true);
+     setTimeout(() => {
+        setView('share');
+        setIsTransitioning(false);
+     }, 150); // Fluid fast transition
+  };
+
+  const handleBackClick = () => {
+     setIsTransitioning(true);
+     setTimeout(() => {
+        setView('main');
+        setIsTransitioning(false);
+     }, 150);
+  };
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center font-sans bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.1, ease: 'ease-out' }}
-        className="relative w-[95%] md:w-[480px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col border border-zinc-200"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="px-5 pt-5 pb-0 flex justify-between items-start">
-          <div className="w-full">
-            <h2 className="text-[18px] font-bold text-zinc-900 mb-4">Publish Your App</h2>
-            <div className="flex gap-4 border-b border-zinc-200 w-full">
-              <button onClick={() => setActiveTab('web')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'web' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Web</button>
-              <button onClick={() => setActiveTab('mobile')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'mobile' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Mobile app</button>
-              <button onClick={() => setActiveTab('pdf')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'pdf' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>PDF Export</button>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-zinc-100 text-zinc-500 rounded-md transition-colors ml-4"><X className="w-5 h-5" /></button>
-        </div>
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Invisible backdrop strictly to catch outside clicks. No dark veil. */}
+          <div className="fixed inset-0 z-[99998]" onClick={onClose} />
+          
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute top-[calc(100%+12px)] right-0 w-[420px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-200 overflow-hidden flex flex-col z-[99999]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div 
+              className={`relative w-full transition-all duration-150 ease-in-out ${isTransitioning ? 'opacity-0 blur-sm' : 'opacity-100 blur-none'}`}
+            >
+              {view === 'main' ? (
+                /* ── MAIN PUBLISH VIEW ── */
+                <div className="flex flex-col">
+                  <div className="px-5 pt-5 pb-0 flex justify-between items-start">
+                    <div className="w-full">
+                      <h2 className="text-[18px] font-bold text-zinc-900 mb-4">Publish Your App</h2>
+                      <div className="flex gap-4 border-b border-zinc-200 w-full">
+                        <button onClick={() => setActiveTab('web')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'web' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Web</button>
+                        <button onClick={() => setActiveTab('mobile')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'mobile' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Mobile app</button>
+                        <button onClick={() => setActiveTab('pdf')} className={`pb-2 text-[14px] font-medium transition-colors ${activeTab === 'pdf' ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>PDF Export</button>
+                      </div>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 hover:bg-zinc-100 text-zinc-500 rounded-md transition-colors ml-4"><X className="w-5 h-5" /></button>
+                  </div>
 
-        <div className="p-5 flex flex-col gap-4">
-          {activeTab === 'web' && (
-            <>
-              <div className={`flex items-center justify-between p-2 rounded-lg border ${isPublished ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-200 bg-zinc-100 opacity-60'}`}>
-                <span className="text-[13px] font-mono text-zinc-500 truncate select-none">
-                  {isPublished ? appUrl : 'https://wok.base44.app/...?'}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={!isPublished}
-                    onClick={() => {
-                        navigator.clipboard.writeText(appUrl);
-                        toast.success("Link copied to clipboard!");
-                    }}
-                    className="p-1.5 hover:bg-white rounded border border-transparent hover:border-zinc-200 transition-all disabled:opacity-50"
-                  >
-                    <Copy className="w-4 h-4 text-zinc-600"/>
-                  </button>
+                  <div className="p-5 flex flex-col gap-4">
+                    {activeTab === 'web' && (
+                      <>
+                        <div className={`flex items-center justify-between p-2 rounded-lg border ${isPublished ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-200 bg-zinc-100 opacity-60'}`}>
+                          <span className="text-[13px] font-mono text-zinc-500 truncate select-none">
+                            {isPublished ? appUrl : 'https://wok.base44.app/...?'}
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={!isPublished}
+                              onClick={() => {
+                                  navigator.clipboard.writeText(appUrl);
+                                  toast.success("Link copied to clipboard!");
+                              }}
+                              className="p-1.5 hover:bg-white rounded border border-transparent hover:border-zinc-200 transition-all disabled:opacity-50"
+                            >
+                              <Copy className="w-4 h-4 text-zinc-600"/>
+                            </button>
+                          </div>
+                        </div>
+
+                        {!isPublished && (
+                          <div className="text-[12px] text-amber-600 bg-amber-50 p-2.5 rounded-md flex items-center gap-2 border border-amber-100">
+                            <span className="font-medium">Not published yet.</span> Click below to generate your link.
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-3 mt-1 border border-zinc-200 border-dashed rounded-lg p-4">
+                          <div className="flex items-center gap-2 text-[14px] font-semibold text-zinc-800">
+                              <Zap className="w-4 h-4 text-orange-500" /> Connect a custom domain
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <input type="text" disabled placeholder="https://wok.io" className="flex-1 min-w-0 border border-zinc-200 rounded-md px-3 py-1.5 text-[13px] bg-zinc-50 cursor-not-allowed" />
+                            <button disabled className="shrink-0 px-3 py-1.5 bg-white border border-zinc-200 rounded-md text-[13px] font-medium text-zinc-700 opacity-50">Get Domain</button>
+                          </div>
+                        </div>
+
+                        <div onClick={handleShareClick} className="flex items-center justify-between mt-1 cursor-pointer hover:bg-zinc-50 p-2 -mx-2 rounded-lg transition-colors">
+                          <div className="flex items-center gap-3">
+                              <span className="text-[18px]">🎉</span>
+                              <div className="flex flex-col">
+                                  <span className="text-[14px] font-medium text-zinc-900">Share your app</span>
+                                  <span className="text-[13px] text-zinc-500">Share a link by email or on social</span>
+                              </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-zinc-400" />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTab === 'mobile' && (
+                      <div className="flex flex-col gap-3 py-4 text-center">
+                        <p className="text-[13px] text-zinc-600">Mobile app generation is available on Pro plans.</p>
+                      </div>
+                    )}
+
+                    {activeTab === 'pdf' && (
+                      <div className="flex flex-col gap-3 py-2">
+                        <p className="text-[13px] text-zinc-600">Export your interactive tool as a static PDF document (great for lead magnets).</p>
+                        <button disabled={!isPublished} className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                          <Download className="w-4 h-4" /> Download PDF
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[13px] font-medium text-zinc-700 flex items-center gap-2"><Globe className="w-4 h-4" /> App Visibility</span>
+                      
+                      {/* --- DOWNWARD CUSTOM SELECT --- */}
+                      <div className="relative">
+                        <button 
+                          onClick={() => setIsVisibilityMenuOpen(!isVisibilityMenuOpen)}
+                          className="flex items-center justify-between gap-6 text-[13px] border border-zinc-200 rounded-md px-3 py-1.5 bg-white hover:bg-zinc-50 transition-colors focus:outline-none"
+                        >
+                          {visibilityChoice}
+                          <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+                        </button>
+
+                        {isVisibilityMenuOpen && (
+                          <div className="absolute top-full right-0 mt-1 w-[180px] bg-white border border-zinc-200 shadow-[0_4px_20px_rgb(0,0,0,0.1)] rounded-md overflow-hidden z-[100000]">
+                            <button 
+                              onClick={() => { setVisibilityChoice('Public (no login)'); setIsVisibilityMenuOpen(false); }}
+                              className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
+                            >
+                              Public (no login)
+                              {visibilityChoice === 'Public (no login)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
+                            </button>
+                            
+                            <button 
+                              onClick={() => { setVisibilityChoice('Private (password)'); setIsVisibilityMenuOpen(false); }}
+                              className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
+                            >
+                              Private (password)
+                              {visibilityChoice === 'Private (password)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {/* --- END DOWNWARD SELECT --- */}
+
+                    </div>
+                    <button
+                      onClick={() => {
+                          setIsPublished(true);
+                          toast.success(isPublished ? "App settings updated!" : "App successfully published!");
+                      }}
+                      className={`w-full py-2.5 rounded-lg text-[14px] font-bold transition-all ${isPublished ? 'bg-zinc-900 hover:bg-black text-white shadow-sm' : 'bg-[#1A1A24] hover:bg-black text-white shadow-sm'}`}
+                    >
+                      {isPublished ? 'Update App' : 'Publish App'}
+                    </button>
+                    {isPublished && <div className="text-center text-[11px] text-zinc-400">Last published just now</div>}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ── SHARE APP VIEW ── */
+                <div className="flex flex-col w-full">
+                   <div className="px-5 pt-5 pb-3 flex items-center gap-3">
+                      <button onClick={handleBackClick} className="p-1.5 hover:bg-zinc-100 border border-zinc-200 rounded-md transition-colors text-zinc-600"><ChevronLeft className="w-4 h-4" /></button>
+                      <div className="flex flex-col">
+                         <h2 className="text-[16px] font-bold text-zinc-900 leading-tight">Share your app</h2>
+                         <p className="text-[13px] text-zinc-500 leading-tight mt-0.5">Share a link by email or on social</p>
+                      </div>
+                   </div>
+                   
+                   <div className="px-5 pb-5 pt-2 flex flex-col gap-3">
+                      <label className="text-[14px] font-semibold text-zinc-900">Send invite</label>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="Enter emails, separated by commas" className="flex-1 w-full min-w-0 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-zinc-400" />
+                        <div className="relative shrink-0">
+                           <button className="h-full flex items-center gap-2 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] hover:bg-zinc-50 font-medium text-zinc-700">User <ChevronDown className="w-3.5 h-3.5"/></button>
+                        </div>
+                      </div>
+                      <button className="w-full py-2.5 bg-[#8C8C8C] hover:bg-[#7A7A7A] text-white rounded-lg text-[14px] font-medium flex justify-center items-center gap-2 transition-colors mt-1">
+                        Send Invitation <Send className="w-4 h-4" />
+                      </button>
+                   </div>
 
-              {!isPublished && (
-                <div className="text-[12px] text-amber-600 bg-amber-50 p-2.5 rounded-md flex items-center gap-2 border border-amber-100">
-                  <span className="font-medium">Not published yet.</span> Click below to generate your public link.
+                   <div className="px-5 py-4 border-t border-zinc-100 flex items-center gap-2.5">
+                      <button className="flex items-center gap-2 px-3 py-2 border border-zinc-200 rounded-lg text-[13px] font-bold text-zinc-800 hover:bg-zinc-50 shadow-sm mr-auto transition-colors">
+                        <LinkIcon className="w-4 h-4" /> Copy link
+                      </button>
+
+                      {/* Precise Social SVG Implementation */}
+                      <button className="w-9 h-9 shrink-0 rounded-lg border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 text-[#1877F2] transition-colors"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></button>
+                      <button className="w-9 h-9 shrink-0 rounded-lg border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 text-[#0A66C2] transition-colors"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></button>
+                      <button className="w-9 h-9 shrink-0 rounded-lg border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 text-[#000000] transition-colors"><svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>
+                      <button className="w-9 h-9 shrink-0 rounded-lg border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 text-[#25D366] transition-colors"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.996 2.001A10 10 0 0 0 2.68 15.5l-1.32 4.81 4.92-1.29a9.99 9.99 0 0 0 5.716 1.78c5.52 0 10-4.48 10-10.01a10 10 0 0 0-10-9.99zm5.54 14.18c-.23.64-1.29 1.19-1.8 1.25-.43.06-1 .11-3.23-.81-2.69-1.12-4.43-3.92-4.57-4.1-.14-.18-1.09-1.45-1.09-2.76s.69-1.95.94-2.22c.24-.26.54-.33.72-.33s.36 0 .52.01c.17.02.4.04.59.45.2.43.51 1.25.56 1.36.05.11.08.23.01.37-.08.14-.11.23-.23.36-.11.13-.24.28-.34.39-.11.12-.22.25-.1.48.12.22.54.91 1.19 1.48.84.74 1.52.97 1.74 1.08.22.12.35.1.48-.04.14-.15.58-.68.74-.91.16-.24.32-.2.53-.12.21.08 1.34.63 1.57.75.23.11.38.17.44.27.06.1.06.56-.17 1.2z"/></svg></button>
+                      <button className="w-9 h-9 shrink-0 rounded-lg border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 text-[#FF4500] transition-colors"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249c0-.688-.561-1.249-1.248-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249c0-.688-.561-1.25-1.25-1.25zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg></button>
+                   </div>
                 </div>
               )}
-
-              <div className="flex flex-col gap-3 mt-1 border border-zinc-200 border-dashed rounded-lg p-4">
-                 <div className="flex items-center gap-2 text-[14px] font-semibold text-zinc-800">
-                    <Zap className="w-4 h-4 text-orange-500" /> Connect a custom domain
-                 </div>
-                 <div className="flex gap-2 items-center">
-                   <input type="text" disabled placeholder="https://wok.io" className="flex-1 border border-zinc-200 rounded-md px-3 py-1.5 text-[13px] bg-zinc-50 cursor-not-allowed" />
-                   <button disabled className="px-3 py-1.5 bg-white border border-zinc-200 rounded-md text-[13px] font-medium text-zinc-700 opacity-50">Get Domain</button>
-                 </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-1 cursor-pointer hover:bg-zinc-50 p-2 -mx-2 rounded-lg transition-colors">
-                 <div className="flex items-center gap-3">
-                    <span className="text-[18px]">🎉</span>
-                    <div className="flex flex-col">
-                        <span className="text-[14px] font-medium text-zinc-900">Share your app</span>
-                        <span className="text-[13px] text-zinc-500">Share a link by email or on social</span>
-                    </div>
-                 </div>
-                 <ChevronRight className="w-4 h-4 text-zinc-400" />
-              </div>
-            </>
-          )}
-
-          {activeTab === 'mobile' && (
-             <div className="flex flex-col gap-3 py-4 text-center">
-               <p className="text-[13px] text-zinc-600">Mobile app generation is available on Pro plans.</p>
-             </div>
-          )}
-
-          {activeTab === 'pdf' && (
-            <div className="flex flex-col gap-3 py-2">
-              <p className="text-[13px] text-zinc-600">Export your interactive tool as a static PDF document (great for lead magnets).</p>
-              <button disabled={!isPublished} className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-                <Download className="w-4 h-4" /> Download PDF
-              </button>
             </div>
-          )}
-        </div>
-
-        <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-             <span className="text-[13px] font-medium text-zinc-700 flex items-center gap-2"><Globe className="w-4 h-4" /> App Visibility</span>
-             
-             {/* --- CUSTOM SELECT DROPDOWN --- */}
-             <div className="relative">
-               <button 
-                 onClick={() => setIsVisibilityMenuOpen(!isVisibilityMenuOpen)}
-                 className="flex items-center justify-between gap-6 text-[13px] border border-zinc-200 rounded-md px-3 py-1.5 bg-white hover:bg-zinc-50 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-900"
-               >
-                 {visibilityChoice}
-                 <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
-               </button>
-
-               {isVisibilityMenuOpen && (
-                 <div className="absolute bottom-full right-0 mb-1 w-[180px] bg-white border border-zinc-200 shadow-lg rounded-md overflow-hidden z-[100000]">
-                   <button 
-                     onClick={() => { setVisibilityChoice('Public (no login)'); setIsVisibilityMenuOpen(false); }}
-                     className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
-                   >
-                     Public (no login)
-                     {visibilityChoice === 'Public (no login)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
-                   </button>
-                   
-                   <button 
-                     onClick={() => { setVisibilityChoice('Private (password)'); setIsVisibilityMenuOpen(false); }}
-                     className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
-                   >
-                     Private (password)
-                     {visibilityChoice === 'Private (password)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
-                   </button>
-                 </div>
-               )}
-             </div>
-             {/* --- FIN CUSTOM SELECT --- */}
-
-          </div>
-          <button
-            onClick={() => {
-                setIsPublished(true);
-                toast.success(isPublished ? "App settings updated!" : "App successfully published!");
-            }}
-            className={`w-full py-2.5 rounded-lg text-[14px] font-bold transition-all ${isPublished ? 'bg-zinc-900 hover:bg-black text-white shadow-sm' : 'bg-[#1A1A24] hover:bg-black text-white shadow-sm'}`}
-          >
-            {isPublished ? 'Update App' : 'Publish App'}
-          </button>
-          {isPublished && <div className="text-center text-[11px] text-zinc-400">Last published just now</div>}
-        </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -1266,15 +1344,6 @@ export default function ChatPage() {
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
      
-      {/* New Publish Modal Added Here */}
-      <PublishAppModal
-        open={showPublishModal}
-        onClose={() => setShowPublishModal(false)}
-        appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
-        isPublished={isAppPublished}
-        setIsPublished={setIsAppPublished}
-      />
-     
       {/* Fullscreen modal for Settings/Pricing/Docs/Support - hides sidebar */}
       <AnimatePresence>
       {fullscreenModal &&
@@ -1440,15 +1509,24 @@ export default function ChatPage() {
              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
-            {/* 🔥 LE BOUTON PASSE PAR-DESSUS SANS DÉPLACER L'INTERFACE 🔥 */}
+            {/* 🔥 PUBLISH BUTTON & MODAL LOGIC 🔥 */}
             {ficheContent && (
-              <div className="absolute top-4 right-4 z-[99999] pointer-events-auto">
+              <div className="absolute top-3 right-3 z-[99999] pointer-events-auto flex flex-col items-end">
                 <button
                   onClick={() => setShowPublishModal(true)}
-                  className="px-4 py-1.5 bg-[#1A1A1A] hover:bg-black text-white text-[13px] font-medium rounded-md shadow-sm transition-all"
+                  className="px-[18px] py-[6px] bg-white border-[2.5px] border-zinc-900 text-zinc-900 font-bold rounded-[12px] hover:bg-zinc-50 shadow-sm transition-colors text-[14px]"
                 >
                   Publish
                 </button>
+                
+                {/* Dynamically attached modal - No backdrop veiled, opens right below */}
+                <PublishAppModal
+                  open={showPublishModal}
+                  onClose={() => setShowPublishModal(false)}
+                  appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
+                  isPublished={isAppPublished}
+                  setIsPublished={setIsAppPublished}
+                />
               </div>
             )}
 
