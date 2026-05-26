@@ -1395,12 +1395,29 @@ export default function ChatPage() {
           <Panel
             defaultSize={68}
             className="relative overflow-hidden bg-white">
+
+          {/* 🔥 BOUTON PUBLISH : Sorti de l'iframe, z-index maximum 🔥 */}
+          <div className="absolute top-6 right-6 z-[99999]">
+            <button
+              onClick={() => setShowPublishModal(true)}
+              disabled={!ficheContent}
+              className={`flex items-center gap-2 px-3 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${
+                ficheContent 
+                  ? 'bg-[#1A1A1A] hover:bg-black text-white shadow-sm' 
+                  : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+              }`}
+            >
+              <Share className="w-3.5 h-3.5" />
+              Publish
+            </button>
+          </div>
            
           {/* Inset preview rect — ultra-thin border */}
           <div
               style={{
                 position: 'absolute',
                 inset: 16,
+                marginTop: 40, /* Petit espace ajouté pour laisser respirer le bouton au-dessus */
                 borderRadius: Math.max(0, CARD_RADIUS - 4),
                 overflow: 'hidden',
                 background: '#FFFFFF',
@@ -1409,22 +1426,11 @@ export default function ChatPage() {
              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
-            {/* 🔥 PUBLISH BUTTON ADDED HERE 🔥 */}
-            {ficheContent && (
-              <div className="absolute top-4 right-4 z-[50]">
-                <button
-                  onClick={() => setShowPublishModal(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-white text-[13px] font-semibold rounded-lg shadow-sm transition-all"
-                >
-                  <Share className="w-3.5 h-3.5" />
-                  Publish
-                </button>
-              </div>
-            )}
-
+            {/* (Le reste du code FichePanel, PreviewSkeleton, etc. reste identique ici) */}
             {ficheContent ?
               <FichePanel
                 content={ficheContent}
+              
                 iframeRefreshKey={iframeRefreshKey}
                 onError={setRuntimeError}
                 onSuccess={() => setRuntimeError(null)}
