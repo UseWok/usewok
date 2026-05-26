@@ -1509,26 +1509,26 @@ export default function ChatPage() {
              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
-            {/* 🔥 PUBLISH BUTTON & MODAL LOGIC 🔥 */}
-            {ficheContent && (
-              <div className="absolute top-3 right-3 z-[99999] pointer-events-auto flex flex-col items-end">
-                <button
-                  onClick={() => setShowPublishModal(true)}
-                  className="px-[18px] py-[6px] bg-white border-[2.5px] border-zinc-900 text-zinc-900 font-bold rounded-[12px] hover:bg-zinc-50 shadow-sm transition-colors text-[14px]"
-                >
-                  Publish
-                </button>
-                
-                {/* Dynamically attached modal - No backdrop veiled, opens right below */}
-                <PublishAppModal
-                  open={showPublishModal}
-                  onClose={() => setShowPublishModal(false)}
-                  appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
-                  isPublished={isAppPublished}
-                  setIsPublished={setIsAppPublished}
-                />
-              </div>
-            )}
+            {/* 🔥 PUBLISH / VIEW APP BUTTON 🔥 */}
+{ficheContent && (
+  <div className="absolute top-3 right-3 z-[99999] pointer-events-auto">
+    <button
+      onClick={() => {
+        if (isAppPublished) {
+          window.open(`https://wok.base44.app/tools/${customSlug || convId}`, '_blank');
+        } else {
+          setShowPublishModal(true);
+        }
+      }}
+      className="group relative px-[18px] py-[6px] bg-white border-[2.5px] border-zinc-900 text-zinc-900 font-bold rounded-[12px] hover:bg-zinc-50 shadow-sm transition-all text-[14px]"
+    >
+      {isAppPublished ? 'View App' : 'Publish'}
+      
+      {/* The thin black line that appears on hover when it's a clickable link */}
+      <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-black transition-all group-hover:w-full"></span>
+    </button>
+  </div>
+)}
 
             {/* (Le reste du code FichePanel, PreviewSkeleton, etc. reste identique ici) */}
             {ficheContent ?
