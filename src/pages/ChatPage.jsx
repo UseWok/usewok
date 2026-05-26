@@ -118,7 +118,6 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
 
 const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished }) => {
   const [activeTab, setActiveTab] = useState('web');
-  // Dans le composant PublishAppModal, ajoute ces deux lignes sous activeTab :
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibilityChoice, setVisibilityChoice] = useState('Public (no login)');
 
@@ -215,10 +214,39 @@ const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished })
         <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex flex-col gap-4">
           <div className="flex justify-between items-center">
              <span className="text-[13px] font-medium text-zinc-700 flex items-center gap-2"><Globe className="w-4 h-4" /> App Visibility</span>
-             <select className="text-[13px] border border-zinc-200 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900">
-                <option>Public (no login)</option>
-                <option>Private (password)</option>
-             </select>
+             
+             {/* --- CUSTOM SELECT DROPDOWN --- */}
+             <div className="relative">
+               <button 
+                 onClick={() => setIsVisibilityMenuOpen(!isVisibilityMenuOpen)}
+                 className="flex items-center justify-between gap-6 text-[13px] border border-zinc-200 rounded-md px-3 py-1.5 bg-white hover:bg-zinc-50 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-900"
+               >
+                 {visibilityChoice}
+                 <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+               </button>
+
+               {isVisibilityMenuOpen && (
+                 <div className="absolute bottom-full right-0 mb-1 w-[180px] bg-white border border-zinc-200 shadow-lg rounded-md overflow-hidden z-[100000]">
+                   <button 
+                     onClick={() => { setVisibilityChoice('Public (no login)'); setIsVisibilityMenuOpen(false); }}
+                     className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
+                   >
+                     Public (no login)
+                     {visibilityChoice === 'Public (no login)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
+                   </button>
+                   
+                   <button 
+                     onClick={() => { setVisibilityChoice('Private (password)'); setIsVisibilityMenuOpen(false); }}
+                     className="w-full text-left px-3 py-2 text-[13px] text-zinc-700 hover:bg-zinc-100 transition-colors flex items-center justify-between"
+                   >
+                     Private (password)
+                     {visibilityChoice === 'Private (password)' && <Check className="w-3.5 h-3.5 text-zinc-900" />}
+                   </button>
+                 </div>
+               )}
+             </div>
+             {/* --- FIN CUSTOM SELECT --- */}
+
           </div>
           <button
             onClick={() => {
@@ -1237,7 +1265,7 @@ export default function ChatPage() {
       </ProModal>
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
-      
+     
       {/* New Publish Modal Added Here */}
       <PublishAppModal
         open={showPublishModal}
@@ -1398,22 +1426,6 @@ export default function ChatPage() {
           <Panel
             defaultSize={68}
             className="relative overflow-hidden bg-white">
-
-          {/* 🔥 BOUTON PUBLISH : Sorti de l'iframe, z-index maximum 🔥 */}
-          <div className="absolute top-6 right-6 z-[99999]">
-            <button
-              onClick={() => setShowPublishModal(true)}
-              disabled={!ficheContent}
-              className={`flex items-center gap-2 px-3 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${
-                ficheContent 
-                  ? 'bg-[#1A1A1A] hover:bg-black text-white shadow-sm' 
-                  : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
-              }`}
-            >
-              <Share className="w-3.5 h-3.5" />
-              Publish
-            </button>
-          </div>
            
           {/* Inset preview rect — ultra-thin border */}
           <div
@@ -1433,9 +1445,8 @@ export default function ChatPage() {
               <div className="absolute top-4 right-4 z-[99999] pointer-events-auto">
                 <button
                   onClick={() => setShowPublishModal(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-white text-[13px] font-semibold rounded-lg shadow-sm transition-all"
+                  className="px-4 py-1.5 bg-[#1A1A1A] hover:bg-black text-white text-[13px] font-medium rounded-md shadow-sm transition-all"
                 >
-                  <Share className="w-3.5 h-3.5" />
                   Publish
                 </button>
               </div>
@@ -1445,7 +1456,7 @@ export default function ChatPage() {
             {ficheContent ?
               <FichePanel
                 content={ficheContent}
-              
+             
                 iframeRefreshKey={iframeRefreshKey}
                 onError={setRuntimeError}
                 onSuccess={() => setRuntimeError(null)}
