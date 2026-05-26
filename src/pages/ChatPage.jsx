@@ -1419,13 +1419,31 @@ export default function ChatPage() {
           <div
               style={{
                 position: 'absolute',
-                inset: 16,
-                marginTop: 40, /* Petit espace ajouté pour laisser respirer le bouton au-dessus */
+                inset: 16, /* <--- Retient sa taille maximale d'origine (16px partout) */
                 borderRadius: Math.max(0, CARD_RADIUS - 4),
                 overflow: 'hidden',
                 background: '#FFFFFF',
                 border: '0.25px solid rgba(229, 229, 229, 0.5)'
               }}>
+             
+            <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
+
+            {/* 🔥 LE BOUTON PASSE PAR-DESSUS SANS DÉPLACER L'INTERFACE 🔥 */}
+            {ficheContent && (
+              <div className="absolute top-4 right-4 z-[99999] pointer-events-auto">
+                <button
+                  onClick={() => setShowPublishModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-white text-[13px] font-semibold rounded-lg shadow-sm transition-all"
+                >
+                  <Share className="w-3.5 h-3.5" />
+                  Publish
+                </button>
+              </div>
+            )}
+
+            {ficheContent ?
+              <FichePanel
+                content={ficheContent}
              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
