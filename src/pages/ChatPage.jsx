@@ -1441,12 +1441,6 @@ export default function ChatPage() {
               </div>
             )}
 
-            {ficheContent ?
-              <FichePanel
-                content={ficheContent}
-             
-            <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-
             {/* (Le reste du code FichePanel, PreviewSkeleton, etc. reste identique ici) */}
             {ficheContent ?
               <FichePanel
