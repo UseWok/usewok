@@ -3,7 +3,17 @@ import { Plus, Share2, Mic, ArrowUp } from 'lucide-react';
 
 export default function ChatInputBarNew({ input, setInput, onSend, isLoading, onStop }) {
   const textareaRef = useRef(null);
+  const abortControllerRef = useRef(null); // Added AbortController reference
   const charLimit = 300;
+
+  // Cleanup abort controller on component unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -13,7 +23,18 @@ export default function ChatInputBarNew({ input, setInput, onSend, isLoading, on
   }, [input]);
 
   const handleSend = () => {
-    if (!isLoading && input.trim()) onSend(input);
+    if (!isLoading && input.trim()) {
+      abortControllerRef.current = new AbortController();
+      // Pass the signal to the parent function to abort the fetch request
+      onSend(input, { signal: abortControllerRef.current.signal });
+    }
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    if (onStop) onStop();
   };
 
   const handleKeyDown = (e) => {
@@ -136,7 +157,7 @@ export default function ChatInputBarNew({ input, setInput, onSend, isLoading, on
         {/* Send button */}
         {isLoading ? (
           <button
-            onClick={onStop}
+            onClick={handleStop}
             style={{
               flexShrink: 0,
               width: 40,
