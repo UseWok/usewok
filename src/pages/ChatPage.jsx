@@ -7,227 +7,10 @@
 // ============================================================================
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { base44, cachedAIRequest } from '@/api/base44Client'; // CHANGED: Added cachedAIRequest import
+import { base44, cachedAIRequest } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 // ... (Rest of imports remain identical)
-
-  // ────────────────────────────────────────────────────────────────────────
-  //   5.5 CORE CHAT LOGIC (Replace this section in your ChatPage.jsx)
-  // ────────────────────────────────────────────────────────────────────────
-  
-  const sendMessage = useCallback(async (text, options = {}) => {
-    if (!text?.trim() && !options.files?.length || isLoading) return;
-
-    // ── Easter egg: date 16/06/2010 triggers chocolatine ──
-    if (text.trim() === '16/06/2010') {
-      const userMsg = { role: 'user', content: text };
-      const newMessages = [...(messages || []), userMsg];
-      setMessages(newMessages);
-      setCurrentQuery(text);
-      setInput('');
-      setFiles([]);
-      setIsLoading(true);
-      abortedRef.current = false;
-      
-      await new Promise((resolve) => {
-        const timer = setTimeout(resolve, 20000);
-        const check = setInterval(() => {if (abortedRef.current) {clearTimeout(timer);clearInterval(check);resolve();}}, 200);
-      });
-      
-      if (abortedRef.current) return;
-      await handleUpdateCredits(1);
-      const chatMsg = "🥐 Analyse complète générée. Débat résolu définitivement.";
-      const finalMsgs = [...newMessages, { role: 'assistant', content: chatMsg, rawContent: CHOCOLATINE_CODE }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
-      setFicheContent(CHOCOLATINE_CODE);
-      
-      if (convId) {
-        const { syncConversationToCloud } = await import('@/lib/discussions');
-        await syncConversationToCloud(convId, finalMsgs, {
-          title: 'Chocolatine vs Pain au Chocolat',
-          preview: 'Le débat ultime',
-          is_public: true
-        });
-        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
-      }
-      setIsLoading(false);
-      return;
-    }
-
-    const imageUrls = (options.files || files || []).
-    filter((f) => f.type?.startsWith('image/')).
-    map((f) => f.url);
-
-    const userMsg = { role: 'user', content: text, images: imageUrls.length > 0 ? imageUrls : undefined };
-    const newMessages = [...(messages || []), userMsg];
-    setMessages(newMessages);
-    setCurrentQuery(text);
-    setInput('');
-    setFiles([]);
-    setIsLoading(true);
-    abortedRef.current = false;
-
-    try {
-      if (options.isCorrection) {
-        const bt = String.fromCharCode(96);
-        let codeToFix = ficheContent || "";
-        let codeMatch = null;
-        const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
-        const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
-
-        if (startIdx !== -1 && endIdx !== -1 && startIdx !== endIdx) {
-          codeMatch = codeToFix.substring(startIdx, endIdx + 3);
-          codeToFix = codeMatch;
-        }
-
-        const fixPayload = {
-          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix,
-          model: 'gemini_3_flash'
-        };
-
-        const fixResult = await cachedAIRequest(fixPayload, () =>
-          base44.integrations.Core.InvokeLLM({ ...fixPayload, signal: options.signal })
-        );
-
-        if (abortedRef.current) return;
-        const fixedCodeBlock = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
-
-        let newContent = ficheContent;
-        if (codeMatch) {
-          let finalFixedCode = fixedCodeBlock;
-          if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}${bt}${bt}jsx\n${finalFixedCode}\n${bt}${bt}${bt}`;
-          newContent = ficheContent.replace(codeMatch, finalFixedCode);
-        } else {
-          newContent = fixedCodeBlock;
-        }
-
-        await handleUpdateCredits(0);
-        setIsLoading(false);
-        setFicheContent(newContent);
-
-        const chatDisplayContent = "✨ Architecture successfully recompiled.";
-        const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
-        setMessages(finalMsgs);
-        saveConversationMessages(convId, finalMsgs);
-        
-        const { syncConversationToCloud } = await import('@/lib/discussions');
-        await syncConversationToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed' });
-        
-        return;
-      }
-
-      const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
-      let isModification = editMode && ficheContent ?
-      true :
-      ficheContent ?
-      MODIFY_KEYWORDS.test(text) :
-      false;
-
-      const architectPrompt = isModification ?
-      PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
-      PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
-
-      const codePayload = {
-        prompt: architectPrompt,
-        model: 'gemini_3_flash'
-      };
-      
-      const codeResult = await cachedAIRequest(codePayload, () =>
-        base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal })
-      );
-
-      const isDataQuery = /\b(data|insight|analytics|metric|kpi|performance|trend|growth|revenue|user|conversion)\b/i.test(text);
-      let formattedInsight = null;
-      
-      if (isDataQuery && !isModification) {
-        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + (messages.slice(-3).map(m => m.content).join(' '));
-        const insightPayload = {
-          prompt: insightPrompt,
-          model: 'gemini_3_flash'
-        };
-        const insightResult = await cachedAIRequest(insightPayload, () =>
-          base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal })
-        );
-        formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
-      }
-
-      if (abortedRef.current) return;
-      let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
-
-      const bt = String.fromCharCode(96);
-      if (!finalCode.includes(bt)) {
-        finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
-      }
-
-      const rawContent = finalCode;
-      let chatDisplayContent = finalCode;
-
-      const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
-      if (chatDisplayContent.match(codeBlockRegex)) {
-        chatDisplayContent = chatDisplayContent.replace(codeBlockRegex, '');
-        if (chatDisplayContent.trim() === '') {
-          chatDisplayContent = "✨ Architecture generated successfully.";
-        }
-      }
-
-      const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
-      const creditsUsed = user?.credits_used || 0;
-      const avgMonthly = creditsLimit; 
-      const multiplier = creditsUsed >= avgMonthly * 2 ? 2 : 1;
-      const cost = multiplier;
-      await handleUpdateCredits(cost);
-
-      if (!isModification && !discussMode && user) {
-        const newCount = (user.project_count || 0) + 1;
-        setProjectNumber(newCount);
-        base44.entities.User.update(user.id, { project_count: newCount }).catch(() => {});
-        setUser((prev) => ({ ...prev, project_count: newCount }));
-      }
-
-      setIsLoading(false);
-      if (!discussMode) setFicheContent(rawContent);
-
-      const finalContent = formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent;
-      const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent: rawContent }];
-      setMessages(finalMsgs);
-      saveConversationMessages(convId, finalMsgs);
-      
-      const { syncConversationToCloud } = await import('@/lib/discussions');
-      syncConversationToCloud(convId, finalMsgs, {
-        title: text.slice(0, 80),
-        preview: text.slice(0, 120),
-        is_public: appSettings.isPublic
-      });
-      
-      saveToDiscussionsLogic("New Chat", text);
-      
-      if (!conversationId) {
-        window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
-      }
-
-      if (window.innerWidth < 768 && !discussMode) {
-        setMobileView('preview');
-      }
-
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        console.log('Fetch aborted by user');
-        return;
-      }
-      setIsLoading(false);
-      setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
-      return;
-    }
-  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
-
-  const handleStop = useCallback(() => {
-    abortedRef.current = true;
-    setIsLoading(false);
-  }, []);
-
-// ... (Rest of the component remains completely untouched)
 
 // ============================================================================
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
@@ -947,7 +730,7 @@ export default function ChatPage() {
       stored.unshift(disc);
       saveLocalDiscussions(currentWorkspace.id, stored);
       setDiscussions(stored);
-     
+      
       // ALWAYS sync to cloud immediately
       import('@/lib/discussions').then(({ syncConversationToCloud }) => {
         syncConversationToCloud(convId, messages || [], { title: convTitle, preview: text });
@@ -981,11 +764,12 @@ export default function ChatPage() {
       setFiles([]);
       setIsLoading(true);
       abortedRef.current = false;
-      // Fake 20s loading with abort support
+      
       await new Promise((resolve) => {
         const timer = setTimeout(resolve, 20000);
         const check = setInterval(() => {if (abortedRef.current) {clearTimeout(timer);clearInterval(check);resolve();}}, 200);
       });
+      
       if (abortedRef.current) return;
       await handleUpdateCredits(1);
       const chatMsg = "🥐 Analyse complète générée. Débat résolu définitivement.";
@@ -993,8 +777,7 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
       setFicheContent(CHOCOLATINE_CODE);
-     
-      // ALWAYS sync to cloud
+      
       if (convId) {
         const { syncConversationToCloud } = await import('@/lib/discussions');
         await syncConversationToCloud(convId, finalMsgs, {
@@ -1008,7 +791,6 @@ export default function ChatPage() {
       return;
     }
 
-    // Capture image previews from attached files
     const imageUrls = (options.files || files || []).
     filter((f) => f.type?.startsWith('image/')).
     map((f) => f.url);
@@ -1035,10 +817,14 @@ export default function ChatPage() {
           codeToFix = codeMatch;
         }
 
-        const fixResult = await base44.integrations.Core.InvokeLLM({
+        const fixPayload = {
           prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix,
           model: 'gemini_3_flash'
-        });
+        };
+
+        const fixResult = await cachedAIRequest(fixPayload, () =>
+          base44.integrations.Core.InvokeLLM({ ...fixPayload, signal: options.signal })
+        );
 
         if (abortedRef.current) return;
         const fixedCodeBlock = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
@@ -1060,15 +846,13 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
-       
-        // ALWAYS sync to cloud
+        
         const { syncConversationToCloud } = await import('@/lib/discussions');
         await syncConversationToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed' });
-       
+        
         return;
       }
 
-      // ── Step 1: Heuristic routing — no API call needed ──
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
       let isModification = editMode && ficheContent ?
       true :
@@ -1076,26 +860,32 @@ export default function ChatPage() {
       MODIFY_KEYWORDS.test(text) :
       false;
 
-      // ── Step 2: Code generation (direct, no intermediate analysis call) ──
       const architectPrompt = isModification ?
       PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
       PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
 
-      const codeResult = await base44.integrations.Core.InvokeLLM({
+      const codePayload = {
         prompt: architectPrompt,
         model: 'gemini_3_flash'
-      });
+      };
+      
+      const codeResult = await cachedAIRequest(codePayload, () =>
+        base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal })
+      );
 
-      // ── Step 3: For data/insight queries, format with recommendations ──
       const isDataQuery = /\b(data|insight|analytics|metric|kpi|performance|trend|growth|revenue|user|conversion)\b/i.test(text);
       let formattedInsight = null;
-     
+      
       if (isDataQuery && !isModification) {
-        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + (messages.slice(-3).map(m => m.content).join(' '));
-        const insightResult = await base44.integrations.Core.InvokeLLM({
+        // Safe mapping to prevent slice on undefined
+        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + ((messages || []).slice(-3).map(m => m.content).join(' '));
+        const insightPayload = {
           prompt: insightPrompt,
           model: 'gemini_3_flash'
-        });
+        };
+        const insightResult = await cachedAIRequest(insightPayload, () =>
+          base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal })
+        );
         formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
       }
 
@@ -1118,15 +908,13 @@ export default function ChatPage() {
         }
       }
 
-      // Credit logic: base = 1 credit. If usage already exceeds 2× the average monthly allowance → 2 credits.
       const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
       const creditsUsed = user?.credits_used || 0;
-      const avgMonthly = creditsLimit; // average = the plan limit itself
+      const avgMonthly = creditsLimit; 
       const multiplier = creditsUsed >= avgMonthly * 2 ? 2 : 1;
       const cost = multiplier;
       await handleUpdateCredits(cost);
 
-      // Increment project counter for new interfaces
       if (!isModification && !discussMode && user) {
         const newCount = (user.project_count || 0) + 1;
         setProjectNumber(newCount);
@@ -1137,22 +925,20 @@ export default function ChatPage() {
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
 
-      // Append formatted insights if data query
       const finalContent = formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent;
       const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent: rawContent }];
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
-     
-      // ALWAYS sync EVERYTHING to cloud immediately
+      
       const { syncConversationToCloud } = await import('@/lib/discussions');
       syncConversationToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
         is_public: appSettings.isPublic
       });
-     
+      
       saveToDiscussionsLogic("New Chat", text);
-      // Update URL to include conversationId without triggering re-render
+      
       if (!conversationId) {
         window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       }
@@ -1162,6 +948,10 @@ export default function ChatPage() {
       }
 
     } catch (err) {
+      if (err.name === 'AbortError') {
+        console.log('Fetch aborted by user');
+        return;
+      }
       setIsLoading(false);
       setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
       return;
@@ -1204,7 +994,7 @@ export default function ChatPage() {
   const handleCloneApp = async () => {
     const newConvId = `conv_${Date.now()}`;
     saveConversationMessages(newConvId, messages);
-   
+    
     await safeAsync(async () => {
       const { syncConversationToCloud } = await import('@/lib/discussions');
       await syncConversationToCloud(newConvId, messages || [], {
@@ -1213,7 +1003,7 @@ export default function ChatPage() {
         is_public: false
       });
     }, null, 'Clone conversation');
-   
+    
     toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
   };
@@ -1233,7 +1023,7 @@ export default function ChatPage() {
 
   const handleDeleteApp = async () => {
     deleteDiscussion({ stopPropagation: () => {} }, convId);
-   
+    
     if (convId) {
       await safeAsync(async () => {
         const results = await base44.entities.Conversation.filter({ conv_id: convId });
@@ -1242,7 +1032,7 @@ export default function ChatPage() {
         }
       }, null, 'Delete conversation');
     }
-   
+    
     toast.success("Application deleted permanently.");
   };
 
@@ -1274,7 +1064,7 @@ export default function ChatPage() {
         setProjectNumber(user.project_count || 0);
       }
     };
-   
+    
     initAuth();
   }, [conversationId]);
 
@@ -1288,14 +1078,14 @@ export default function ChatPage() {
       setFicheContent(null);
       return;
     }
-   
+    
     const loadConv = async () => {
       const cloudMsgs = await safeAsync(
         () => loadConversationFromCloud(conversationId),
         [],
         'Load conversation'
       );
-     
+      
       const safeCloudMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
       if (safeCloudMsgs.length > 0) {
         setMessages(safeCloudMsgs);
@@ -1305,7 +1095,7 @@ export default function ChatPage() {
       }
       setIsLoadingConversation(false);
     };
-   
+    
     loadConv();
   }, [conversationId]);
 
@@ -1397,7 +1187,7 @@ export default function ChatPage() {
         backgroundSize: '48px 48px',
         scrollbarWidth: 'none'
       }}>
-     
+      
       <style>{`html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }`}</style>
       {/* Wok header - fixed to viewport, not canvas */}
       <div style={{ position: 'fixed', top: '4px', left: '4px', zIndex: 99999 }}>
@@ -1406,7 +1196,7 @@ export default function ChatPage() {
           onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
           className="flex items-center gap-1 hover:bg-zinc-100 rounded-lg transition-colors p-1.5"
           style={{ pointerEvents: 'auto' }}>
-         
+          
           {/* Wok text */}
           <span className="text-sm font-bold text-zinc-900">Wok</span>
 
@@ -1417,7 +1207,7 @@ export default function ChatPage() {
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2.5}>
-           
+            
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -1433,7 +1223,7 @@ export default function ChatPage() {
                 navigate('/app');
               }}
               className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
-             
+              
                 <div className="flex items-center gap-2">
                   <Home className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
                   <span className="text-[13px] font-normal text-[#1A1A1A]">Home</span>
@@ -1454,7 +1244,7 @@ export default function ChatPage() {
                   <div
                   className="h-full bg-[#1A1A1A] rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(100, (user?.credits_used || 0) / (userPlan?.credits_limit || user?.credits_limit || 10) * 100)}%` }} />
-               
+                
                 </div>
               </div>
 
@@ -1468,7 +1258,7 @@ export default function ChatPage() {
                 setFullscreenModal('settings');
               }}
               className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
-             
+              
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
                   <span className="text-[13px] font-normal text-[#1A1A1A]">Settings</span>
@@ -1483,7 +1273,7 @@ export default function ChatPage() {
                 setFullscreenModal('pricing');
               }}
               className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
-             
+              
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
                   <span className="text-[13px] font-normal text-[#1A1A1A]">Upgrade your plan</span>
@@ -1498,7 +1288,7 @@ export default function ChatPage() {
                 setFullscreenModal('docs');
               }}
               className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
-             
+              
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
                   <span className="text-[13px] font-normal text-[#1A1A1A]">Documentation</span>
@@ -1513,7 +1303,7 @@ export default function ChatPage() {
                 setFullscreenModal('support');
               }}
               className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-[#F7F7F8] rounded transition-colors text-left group">
-             
+              
                 <div className="flex items-center gap-2">
                   <LifeBuoy className="w-4 h-4 text-[#1A1A1A]" strokeWidth={2} />
                   <span className="text-[13px] font-normal text-[#1A1A1A]">Support</span>
@@ -1535,7 +1325,7 @@ export default function ChatPage() {
       </ProModal>
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
-     
+      
       {/* Fullscreen modal for Settings/Pricing/Docs/Support - hides sidebar */}
       <AnimatePresence>
       {fullscreenModal &&
@@ -1597,7 +1387,7 @@ export default function ChatPage() {
           maxWidth: '100vw',
           maxHeight: '100vh',
         }}>
-       
+        
         <PanelGroup direction="horizontal" className="flex w-full h-full">
           {/* ═══════════════════════════
                   LEFT PANEL — chat
@@ -1605,7 +1395,7 @@ export default function ChatPage() {
           <Panel
             defaultSize={32}
             className="flex flex-col overflow-hidden bg-white">
-           
+            
 
 
           {/* MESSAGES SCROLL AREA */}
@@ -1613,7 +1403,7 @@ export default function ChatPage() {
               ref={scrollContainerRef}
               className="flex-1 overflow-y-auto flex flex-col"
               style={{ padding: '4px 0 0 0' }}>
-             
+              
             <div className="flex flex-col gap-3 px-4 pb-2">
               {messages?.map((msg, idx) =>
                 <div key={idx}>
@@ -1656,7 +1446,7 @@ export default function ChatPage() {
                   }}
                   onMouseEnter={(e) => {e.currentTarget.style.background = '#F0F0F0';e.currentTarget.style.borderColor = '#D0D0D0';}}
                   onMouseLeave={(e) => {e.currentTarget.style.background = '#F8F8F8';e.currentTarget.style.borderColor = '#E8E8E8';}}>
-                 
+                  
                   {s}
                 </button>
                 )}
@@ -1675,7 +1465,7 @@ export default function ChatPage() {
                 files={files} setFiles={setFiles}
                 discussMode={discussMode} setDiscussMode={setDiscussMode}
                 editMode={editMode} setEditMode={setEditMode} />
-             
+              
           </div>
           </Panel>
 
@@ -1687,7 +1477,7 @@ export default function ChatPage() {
           <Panel
             defaultSize={68}
             className="relative overflow-hidden bg-white">
-           
+            
           {/* Inset preview rect — ultra-thin border */}
           <div
               style={{
@@ -1698,7 +1488,7 @@ export default function ChatPage() {
                 background: '#FFFFFF',
                 border: '0.25px solid rgba(229, 229, 229, 0.5)'
               }}>
-             
+              
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
             {/* 🔥 PUBLISH BUTTON & MODAL LOGIC 🔥 */}
@@ -1726,7 +1516,7 @@ export default function ChatPage() {
             {ficheContent ?
               <FichePanel
                 content={ficheContent}
-             
+              
                 iframeRefreshKey={iframeRefreshKey}
                 onError={setRuntimeError}
                 onSuccess={() => setRuntimeError(null)}
@@ -1753,7 +1543,7 @@ export default function ChatPage() {
           </div>
           </Panel>
         </PanelGroup>
-       
+        
         {/* Removed resize handle - simplified interface */}
       </motion.div>
 
