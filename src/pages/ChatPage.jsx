@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44, cachedAIRequest } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { storage } from '@/lib/storage'; // Ajuste le chemin selon ton projet
 
 // ... (Rest of imports remain identical)
 
