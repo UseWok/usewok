@@ -10,10 +10,22 @@ export default function ChatInputBar({
   const [showAIConfig, setShowAIConfig] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
   const [editModeEnabled, setEditModeEnabled] = useState(false);
+  
   const configRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const abortControllerRef = useRef(null); // Added AbortController reference
+  
   const charLimit = 300;
+
+  // Cleanup abort controller on component unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const h = (e) => { if (configRef.current && !configRef.current.contains(e.target)) setShowAIConfig(false); };
@@ -42,7 +54,18 @@ export default function ChatInputBar({
   }, [handlePaste]);
 
   const handleSend = () => {
-    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files });
+    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) {
+      abortControllerRef.current = new AbortController();
+      // Pass the signal to the parent function to abort the fetch request
+      onSend(input, { files, signal: abortControllerRef.current.signal }); 
+    }
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    if (onStop) onStop();
   };
 
   const handleKeyDown = (e) => {
@@ -183,7 +206,7 @@ export default function ChatInputBar({
         {/* Right: send button — solid black circle */}
         {isLoading ? (
           <button
-            onClick={onStop}
+            onClick={handleStop}
             style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: '#111', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onMouseEnter={e => e.currentTarget.style.background = '#333'}
             onMouseLeave={e => e.currentTarget.style.background = '#111'}
