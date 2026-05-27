@@ -24,6 +24,7 @@ import ZoomToggle from '@/components/chat/ZoomToggle';
 import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
 import { safeAsync } from '@/lib/code-quality';
 import { initAgentsFromDB } from '@/lib/agents-config';
+import { COMPONENT_PACKET, PROACTIVE_INTELLIGENCE_LAYER, buildPreferenceHints } from '@/lib/wok-prompt-packets';
 import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 
@@ -106,7 +107,7 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
     </div>);
 };
 
-const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished, onPublish }) => {
+const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished }) => {
   const [activeTab, setActiveTab] = useState('web');
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibilityChoice, setVisibilityChoice] = useState('Public (no login)');
@@ -276,10 +277,9 @@ const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished, o
                     </div>
                     <button
                       onClick={() => {
-  setIsPublished(true);
-  onPublish?.({ visibility: visibilityChoice });
-  toast.success(isPublished ? "App settings updated!" : "App successfully published!");
-}}
+                          setIsPublished(true);
+                          toast.success(isPublished ? "App settings updated!" : "App successfully published!");
+                      }}
                       className={`w-full py-2.5 rounded-lg text-[14px] font-bold transition-all ${isPublished ? 'bg-zinc-900 hover:bg-black text-white shadow-sm' : 'bg-[#1A1A24] hover:bg-black text-white shadow-sm'}`}
                     >
                       {isPublished ? 'Update App' : 'Publish App'}
@@ -385,6 +385,26 @@ DESIGN PRINCIPLES
 - Generous whitespace. Content breathes. No cramped layouts.
 - 3 distinct data visualizations using Recharts (AreaChart, BarChart, PieChart, RadarChart, etc.) with real-looking data, linearGradient fills, h-64 or h-80.
 - At least one interactive state: tabs, toggles, expandable sections, or a stepper.
+
+INTELLIGENCE LAYER — enforced on every output:
+
+[9] BUILT-IN CONTRARIANISM
+For every major design decision, silently ask: where could this fail? Encode the answer into the UI as a collapsed one-line note: e.g. 'Why not a single scroll? — tabs reduce discoverability for first-time users.' Never present one solution as the only solution.
+
+[10] HIERARCHICAL SOURCING
+In a subtle Design Notes section or inline tags, distinguish three tiers: [User req] what was explicitly asked / [Best practice] established UX convention / [AI interpretation] your inference or creative extension. The user must know what is required vs what is inferred.
+
+[13] MULTI-SCALE TEMPORAL THINKING
+Every layout decision must serve three horizons simultaneously: Immediate — primary CTA, key data above the fold (next 60s) / Medium-term — navigation clarity, return-visit structure (2 weeks) / Long-term — component modularity, scalable layout (12 months). Reflect these priorities in the UI hierarchy. Never flatten all decisions onto one time horizon.
+
+[14] CROSS-ELEMENT CORRELATION
+Automatically surface cascading impacts: adding a sidebar compresses main content / heavy hero increases load cost / tabs reduce content discoverability. Weave these as micro-labels or a collapsible 'Design Impact' panel. The user should see what each decision costs elsewhere.
+
+[15] PROBABILISTIC DESIGN SCENARIOS
+Never lock in a single layout as final. At the bottom of the interface, include a collapsed 'Alternative Scenarios' panel with weighted options: Scenario A (primary, ~60%) your main proposal / Scenario B (~30%) a structurally different approach for a different user priority / Scenario C (~10%) a radical alternative worth considering. Train the user to think in options, not absolutes.
+
+[20] END WITH A DECISION PROMPT
+Every interface must close with an active, clearly visible user prompt — not decorative. A question, a selector, or an input that puts the next move in the user's hands: 'What should this section prioritize?' / 'Choose your layout density:' / 'Which scenario fits your users best?' The interface does not end. It continues the conversation.
 
 IMPORTS (always include all of these):
 import React, { useState, useEffect, useCallback } from 'react';
@@ -923,15 +943,16 @@ export default function ChatPage() {
       }
 
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
-      let isModification = editMode && ficheContent ?
-      true :
-      ficheContent ?
-      MODIFY_KEYWORDS.test(text) :
-      false;
+      let isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
 
-      const architectPrompt = isModification ?
-      PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
-      PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
+      // [19] Implicit preference learning — infer style from session history
+      const preferenceHints = buildPreferenceHints(messages);
+      // [18] Proactive UX alerts + [4] Data-anchored reasoning + component library
+      const contextSuffix = PROACTIVE_INTELLIGENCE_LAYER + preferenceHints + '\n\nCOMPONENT LIBRARY (remix freely):\n' + COMPONENT_PACKET;
+
+      const architectPrompt = isModification
+        ? PROMPT_ARCHITECT + contextSuffix + '\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text
+        : PROMPT_ARCHITECT + contextSuffix + '\n\n[BUILD THIS INTO A $10K UI]: ' + text;
 
       const codePayload = {
         prompt: architectPrompt,
@@ -1572,13 +1593,12 @@ export default function ChatPage() {
                 
                 {/* Dynamically attached modal - No backdrop veiled, opens right below */}
                 <PublishAppModal
-  open={showPublishModal}
-  onClose={() => setShowPublishModal(false)}
-  appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
-  isPublished={isAppPublished}
-  setIsPublished={setIsAppPublished}
-  onPublish={handlePublishApp}
-/>
+                  open={showPublishModal}
+                  onClose={() => setShowPublishModal(false)}
+                  appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
+                  isPublished={isAppPublished}
+                  setIsPublished={setIsAppPublished}
+                />
               </div>
             )}
 
