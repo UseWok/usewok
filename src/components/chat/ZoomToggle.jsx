@@ -55,35 +55,30 @@ export default function ZoomToggle({ containerRef, containerSize, setContainerSi
         exit={{ opacity: 0, scale: 0.8 }}
         transition={{ duration: 0.15 }}
         onClick={toggleZoom}
-        className="fixed top-3 right-3 z-[9999] p-2"
+        className="fixed bottom-6 right-6 z-[9999] p-2.5 rounded-full shadow-lg backdrop-blur-sm"
         style={{
-          background: 'transparent',
-          border: 'none',
-          opacity: 0.35,
-          cursor: 'pointer',
-          lineHeight: 0,
+          background: isFullscreen ? 'rgba(26, 26, 26, 0.9)' : 'rgba(255, 255, 255, 0.92)',
+          border: '1px solid rgba(0, 0, 0, 0.06)',
+          opacity: 0.5,
+          cursor: 'pointer'
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.35'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '1';
+          e.currentTarget.style.transform = 'scale(1.08)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = '0.5';
+          e.currentTarget.style.transform = 'scale(1)';
+        }}
         aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
         
-        {isFullscreen ? (
-          /* Compress icon — corners pointing inward */
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 1v4H1" />
-            <path d="M15 5h-4V1" />
-            <path d="M5 15v-4H1" />
-            <path d="M11 15v-4h4" />
-          </svg>
-        ) : (
-          /* Expand icon — corners pointing outward */
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 5V1h4" />
-            <path d="M11 1h4v4" />
-            <path d="M1 11v4h4" />
-            <path d="M15 11v4h-4" />
-          </svg>
-        )}
+        {/* 4 bars in a square icon */}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isFullscreen ? '#FFFFFF' : '#1A1A1A'} strokeWidth="2.5" strokeLinecap="square">
+          <path d="M4 4h7v7H4z" />
+          <path d="M13 4h7v7h-7z" />
+          <path d="M4 13h7v7H4z" />
+          <path d="M13 13h7v7h-7z" />
+        </svg>
       </motion.button>
     </AnimatePresence>
   );
