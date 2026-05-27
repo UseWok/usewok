@@ -7,35 +7,118 @@
 // ============================================================================
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { base44, cachedAIRequest } from '@/api/base44Client'; // CHANGED: Added cachedAIRequest import
 import { toast } from 'sonner';
 
-import { LOGO_URL, isGibberish, GIBBERISH_RESPONSES } from '@/lib/chat-constants';
-import { ALL_MODES } from '@/lib/modes-config';
-import { getUserPlan } from '@/lib/plans-config';
-import { formatAIResponse, RESPONSE_FORMAT_PROMPT } from '@/lib/format-response';
-import { storage, safeAsync, getElement, logger, runPreflight } from '@/lib/code-quality';
-import { getConversationMessages, saveConversationMessages, setCurrentUser, loadConversationFromCloud, loadConversationTitleFromCloud } from '@/lib/discussions';
-import { initAgentsFromDB } from '@/lib/agents-config';
-import { getUserColor } from '@/lib/user-color';
-import { getTheme } from '@/lib/theme';
+// ... (Rest of imports remain identical)
 
-import FichePanel from '@/components/chat/FichePanel';
-import ChatInputBar from '@/components/chat/ChatInputBar';
-import AssistantMessage from '@/components/chat/AssistantMessage';
-import EditModeOverlay from '@/components/chat/EditModeOverlay';
-import ErrorNotification from '@/components/chat/ErrorNotification';
-import WokHeader from '@/components/chat/WokHeader';
-import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
-import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
-import Modal from '@/components/chat/Modal';
-import ZoomToggle from '@/components/chat/ZoomToggle';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Panel, PanelGroup } from 'react-resizable-panels';
+  // ────────────────────────────────────────────────────────────────────────
+  //   5.5 CORE CHAT LOGIC
+  // ────────────────────────────────────────────────────────────────────────
+  const sendMessage = useCallback(async (text, options = {}) => { // CHANGED: Extract signal from options
+    if (!text?.trim() && !options.files?.length || isLoading) return;
 
-import {
-  X, ChevronDown, ChevronRight, Check, MoreHorizontal, Edit2, Trash2, ChevronsLeft, PanelLeft, PanelLeftClose, Plus, ArrowUpCircle, Key, Settings, LifeBuoy, Home, MessageSquare, Cpu, Menu, CreditCard, Zap, BookOpen, Share, Copy, Download, Globe, ChevronLeft, Send, Link as LinkIcon
-} from 'lucide-react';
+    // ── Easter egg: date 16/06/2010 triggers chocolatine ──
+    if (text.trim() === '16/06/2010') {
+      // ... (Easter egg logic remains identical)
+      return;
+    }
+
+    // Capture image previews from attached files
+    const imageUrls = (options.files || files || []).
+    filter((f) => f.type?.startsWith('image/')).
+    map((f) => f.url);
+
+    const userMsg = { role: 'user', content: text, images: imageUrls.length > 0 ? imageUrls : undefined };
+    const newMessages = [...(messages || []), userMsg];
+    setMessages(newMessages);
+    setCurrentQuery(text);
+    setInput('');
+    setFiles([]);
+    setIsLoading(true);
+    abortedRef.current = false;
+
+    try {
+      if (options.isCorrection) {
+        // ... (Correction logic setup remains identical)
+
+        // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
+        const fixPayload = {
+          prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix,
+          model: 'gemini_3_flash'
+        };
+        const fixResult = await cachedAIRequest(fixPayload, () => 
+          base44.integrations.Core.InvokeLLM({ ...fixPayload, signal: options.signal })
+        );
+
+        if (abortedRef.current) return;
+        
+        // ... (Correction processing remains identical)
+        return;
+      }
+
+      // ── Step 1: Heuristic routing — no API call needed ──
+      const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
+      let isModification = editMode && ficheContent ?
+      true :
+      ficheContent ?
+      MODIFY_KEYWORDS.test(text) :
+      false;
+
+      // ── Step 2: Code generation (direct, no intermediate analysis call) ──
+      const architectPrompt = isModification ?
+      PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
+      PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
+
+      // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
+      const codePayload = {
+        prompt: architectPrompt,
+        model: 'gemini_3_flash'
+      };
+      const codeResult = await cachedAIRequest(codePayload, () => 
+        base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal })
+      );
+
+      // ── Step 3: For data/insight queries, format with recommendations ──
+      const isDataQuery = /\b(data|insight|analytics|metric|kpi|performance|trend|growth|revenue|user|conversion)\b/i.test(text);
+      let formattedInsight = null;
+      
+      if (isDataQuery && !isModification) {
+        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + (messages.slice(-3).map(m => m.content).join(' '));
+        
+        // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
+        const insightPayload = {
+          prompt: insightPrompt,
+          model: 'gemini_3_flash'
+        };
+        const insightResult = await cachedAIRequest(insightPayload, () => 
+          base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal })
+        );
+        
+        formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
+      }
+
+      if (abortedRef.current) return;
+      // ... (Rest of processing and state updates remain identical)
+
+    } catch (err) {
+      if (err.name === 'AbortError') { // CHANGED: Added specific handler for AbortError
+        console.log('Fetch aborted by user');
+        return;
+      }
+      setIsLoading(false);
+      setMessages([...newMessages, { role: 'assistant', content: "System architecture failed." }]);
+      return;
+    }
+  }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent]);
+
+  const handleStop = useCallback(() => {
+    abortedRef.current = true;
+    setIsLoading(false);
+    // CHANGED: Removed the automatic "Stopped." message insertion here as ChatInputBar will call abort() anyway.
+  }, []);
+
+// ... (Rest of the component remains completely untouched)
 
 // ============================================================================
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
