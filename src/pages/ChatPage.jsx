@@ -24,7 +24,10 @@ import ZoomToggle from '@/components/chat/ZoomToggle';
 import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
 import { safeAsync } from '@/lib/code-quality';
 import { initAgentsFromDB } from '@/lib/agents-config';
-import { COMPONENT_PACKET, PROACTIVE_INTELLIGENCE_LAYER, buildPreferenceHints } from '@/lib/wok-prompt-packets';
+// Remplacement temporaire pour fonctionner sans le fichier wok-prompt-packets
+const COMPONENT_PACKET = {};
+const PROACTIVE_INTELLIGENCE_LAYER = {};
+const buildPreferenceHints = () => "";
 import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 
