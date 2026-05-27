@@ -13,18 +13,49 @@ import { toast } from 'sonner';
 // ... (Rest of imports remain identical)
 
   // ────────────────────────────────────────────────────────────────────────
-  //   5.5 CORE CHAT LOGIC
+  //   5.5 CORE CHAT LOGIC (Replace this section in your ChatPage.jsx)
   // ────────────────────────────────────────────────────────────────────────
-  const sendMessage = useCallback(async (text, options = {}) => { // CHANGED: Extract signal from options
+  
+  const sendMessage = useCallback(async (text, options = {}) => {
     if (!text?.trim() && !options.files?.length || isLoading) return;
 
     // ── Easter egg: date 16/06/2010 triggers chocolatine ──
     if (text.trim() === '16/06/2010') {
-      // ... (Easter egg logic remains identical)
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...(messages || []), userMsg];
+      setMessages(newMessages);
+      setCurrentQuery(text);
+      setInput('');
+      setFiles([]);
+      setIsLoading(true);
+      abortedRef.current = false;
+      
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 20000);
+        const check = setInterval(() => {if (abortedRef.current) {clearTimeout(timer);clearInterval(check);resolve();}}, 200);
+      });
+      
+      if (abortedRef.current) return;
+      await handleUpdateCredits(1);
+      const chatMsg = "🥐 Analyse complète générée. Débat résolu définitivement.";
+      const finalMsgs = [...newMessages, { role: 'assistant', content: chatMsg, rawContent: CHOCOLATINE_CODE }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      setFicheContent(CHOCOLATINE_CODE);
+      
+      if (convId) {
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        await syncConversationToCloud(convId, finalMsgs, {
+          title: 'Chocolatine vs Pain au Chocolat',
+          preview: 'Le débat ultime',
+          is_public: true
+        });
+        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+      }
+      setIsLoading(false);
       return;
     }
 
-    // Capture image previews from attached files
     const imageUrls = (options.files || files || []).
     filter((f) => f.type?.startsWith('image/')).
     map((f) => f.url);
@@ -40,24 +71,53 @@ import { toast } from 'sonner';
 
     try {
       if (options.isCorrection) {
-        // ... (Correction logic setup remains identical)
+        const bt = String.fromCharCode(96);
+        let codeToFix = ficheContent || "";
+        let codeMatch = null;
+        const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
+        const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
 
-        // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
+        if (startIdx !== -1 && endIdx !== -1 && startIdx !== endIdx) {
+          codeMatch = codeToFix.substring(startIdx, endIdx + 3);
+          codeToFix = codeMatch;
+        }
+
         const fixPayload = {
           prompt: PROMPT_AUTO_FIX + "\n\nError reported:\n" + options.rawError + "\n\nCode to fix:\n" + codeToFix,
           model: 'gemini_3_flash'
         };
-        const fixResult = await cachedAIRequest(fixPayload, () => 
+
+        const fixResult = await cachedAIRequest(fixPayload, () =>
           base44.integrations.Core.InvokeLLM({ ...fixPayload, signal: options.signal })
         );
 
         if (abortedRef.current) return;
+        const fixedCodeBlock = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
+
+        let newContent = ficheContent;
+        if (codeMatch) {
+          let finalFixedCode = fixedCodeBlock;
+          if (!finalFixedCode.includes(bt)) finalFixedCode = `${bt}${bt}${bt}jsx\n${finalFixedCode}\n${bt}${bt}${bt}`;
+          newContent = ficheContent.replace(codeMatch, finalFixedCode);
+        } else {
+          newContent = fixedCodeBlock;
+        }
+
+        await handleUpdateCredits(0);
+        setIsLoading(false);
+        setFicheContent(newContent);
+
+        const chatDisplayContent = "✨ Architecture successfully recompiled.";
+        const finalMsgs = [...newMessages, { role: 'assistant', content: chatDisplayContent, rawContent: newContent }];
+        setMessages(finalMsgs);
+        saveConversationMessages(convId, finalMsgs);
         
-        // ... (Correction processing remains identical)
+        const { syncConversationToCloud } = await import('@/lib/discussions');
+        await syncConversationToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed' });
+        
         return;
       }
 
-      // ── Step 1: Heuristic routing — no API call needed ──
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
       let isModification = editMode && ficheContent ?
       true :
@@ -65,44 +125,94 @@ import { toast } from 'sonner';
       MODIFY_KEYWORDS.test(text) :
       false;
 
-      // ── Step 2: Code generation (direct, no intermediate analysis call) ──
       const architectPrompt = isModification ?
       PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
       PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
 
-      // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
       const codePayload = {
         prompt: architectPrompt,
         model: 'gemini_3_flash'
       };
-      const codeResult = await cachedAIRequest(codePayload, () => 
+      
+      const codeResult = await cachedAIRequest(codePayload, () =>
         base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal })
       );
 
-      // ── Step 3: For data/insight queries, format with recommendations ──
       const isDataQuery = /\b(data|insight|analytics|metric|kpi|performance|trend|growth|revenue|user|conversion)\b/i.test(text);
       let formattedInsight = null;
       
       if (isDataQuery && !isModification) {
         const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + (messages.slice(-3).map(m => m.content).join(' '));
-        
-        // CHANGED: Wrapped base44 call with cachedAIRequest and passed signal
         const insightPayload = {
           prompt: insightPrompt,
           model: 'gemini_3_flash'
         };
-        const insightResult = await cachedAIRequest(insightPayload, () => 
+        const insightResult = await cachedAIRequest(insightPayload, () =>
           base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal })
         );
-        
         formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
       }
 
       if (abortedRef.current) return;
-      // ... (Rest of processing and state updates remain identical)
+      let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
+
+      const bt = String.fromCharCode(96);
+      if (!finalCode.includes(bt)) {
+        finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
+      }
+
+      const rawContent = finalCode;
+      let chatDisplayContent = finalCode;
+
+      const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
+      if (chatDisplayContent.match(codeBlockRegex)) {
+        chatDisplayContent = chatDisplayContent.replace(codeBlockRegex, '');
+        if (chatDisplayContent.trim() === '') {
+          chatDisplayContent = "✨ Architecture generated successfully.";
+        }
+      }
+
+      const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
+      const creditsUsed = user?.credits_used || 0;
+      const avgMonthly = creditsLimit; 
+      const multiplier = creditsUsed >= avgMonthly * 2 ? 2 : 1;
+      const cost = multiplier;
+      await handleUpdateCredits(cost);
+
+      if (!isModification && !discussMode && user) {
+        const newCount = (user.project_count || 0) + 1;
+        setProjectNumber(newCount);
+        base44.entities.User.update(user.id, { project_count: newCount }).catch(() => {});
+        setUser((prev) => ({ ...prev, project_count: newCount }));
+      }
+
+      setIsLoading(false);
+      if (!discussMode) setFicheContent(rawContent);
+
+      const finalContent = formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent;
+      const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent: rawContent }];
+      setMessages(finalMsgs);
+      saveConversationMessages(convId, finalMsgs);
+      
+      const { syncConversationToCloud } = await import('@/lib/discussions');
+      syncConversationToCloud(convId, finalMsgs, {
+        title: text.slice(0, 80),
+        preview: text.slice(0, 120),
+        is_public: appSettings.isPublic
+      });
+      
+      saveToDiscussionsLogic("New Chat", text);
+      
+      if (!conversationId) {
+        window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+      }
+
+      if (window.innerWidth < 768 && !discussMode) {
+        setMobileView('preview');
+      }
 
     } catch (err) {
-      if (err.name === 'AbortError') { // CHANGED: Added specific handler for AbortError
+      if (err.name === 'AbortError') {
         console.log('Fetch aborted by user');
         return;
       }
@@ -115,7 +225,6 @@ import { toast } from 'sonner';
   const handleStop = useCallback(() => {
     abortedRef.current = true;
     setIsLoading(false);
-    // CHANGED: Removed the automatic "Stopped." message insertion here as ChatInputBar will call abort() anyway.
   }, []);
 
 // ... (Rest of the component remains completely untouched)
