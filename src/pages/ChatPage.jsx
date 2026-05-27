@@ -106,7 +106,7 @@ const ProModal = ({ open, title, subtitle, children, onClose, onAction, actionTe
     </div>);
 };
 
-const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished }) => {
+const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished, onPublish }) => {
   const [activeTab, setActiveTab] = useState('web');
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibilityChoice, setVisibilityChoice] = useState('Public (no login)');
