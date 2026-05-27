@@ -323,10 +323,19 @@ const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished })
 // ► 3. UTILITIES, CONSTANTS & PROMPTS
 // ============================================================================
 const getLocalDiscussions = (workspaceId) => {
-  return storage.get(`wok_discussions_${workspaceId}`, []);
+  try {
+    const raw = localStorage.getItem(`wok_discussions_${workspaceId}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 };
 const saveLocalDiscussions = (workspaceId, data) => {
-  return storage.set(`wok_discussions_${workspaceId}`, data);
+  try {
+    localStorage.setItem(`wok_discussions_${workspaceId}`, JSON.stringify(data));
+  } catch (err) {
+    console.error('saveLocalDiscussions failed:', err);
+  }
 };
 
 const PROMPT_PSYCHOLOGIST = `Elite UI data compiler. THEME T:X (1=Clean/white, 2=Dark/void, 3=Yuzu/neon, 4=Sand/warm, 5=Brutal). Output: dense telegraphic data, copywriting points, chart arrays with XY axes. RAW TEXT ONLY.`;
