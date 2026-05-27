@@ -276,9 +276,10 @@ const PublishAppModal = ({ open, onClose, appUrl, isPublished, setIsPublished })
                     </div>
                     <button
                       onClick={() => {
-                          setIsPublished(true);
-                          toast.success(isPublished ? "App settings updated!" : "App successfully published!");
-                      }}
+  setIsPublished(true);
+  onPublish?.({ visibility: visibilityChoice });
+  toast.success(isPublished ? "App settings updated!" : "App successfully published!");
+}}
                       className={`w-full py-2.5 rounded-lg text-[14px] font-bold transition-all ${isPublished ? 'bg-zinc-900 hover:bg-black text-white shadow-sm' : 'bg-[#1A1A24] hover:bg-black text-white shadow-sm'}`}
                     >
                       {isPublished ? 'Update App' : 'Publish App'}
