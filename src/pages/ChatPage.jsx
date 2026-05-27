@@ -11,7 +11,21 @@ import { base44, cachedAIRequest } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 
-// ... (Rest of imports remain identical)
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, MessageSquare, Cpu, X, Copy, ChevronRight, ChevronDown, ChevronLeft, Zap, Globe, Download, Check, Send, CreditCard, Settings, BookOpen, LifeBuoy, Link as LinkIcon } from 'lucide-react';
+import AssistantMessage from '@/components/chat/AssistantMessage';
+import ErrorNotification from '@/components/chat/ErrorNotification';
+import ChatInputBar from '@/components/chat/ChatInputBar';
+import EditModeOverlay from '@/components/chat/EditModeOverlay';
+import FichePanel from '@/components/chat/FichePanel';
+import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
+import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
+import ZoomToggle from '@/components/chat/ZoomToggle';
+import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
+import { safeAsync } from '@/lib/code-quality';
+import { initAgentsFromDB } from '@/lib/agents-config';
+import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
+import { getUserPlan } from '@/lib/plans-config';
 
 // ============================================================================
 // ► 2. SUB-COMPONENTS (BUBBLES & MODALS)
