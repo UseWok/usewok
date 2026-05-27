@@ -338,6 +338,23 @@ const saveLocalDiscussions = (workspaceId, data) => {
   }
 };
 
+const getConversationMessages = (conversationId) => {
+  try {
+    const raw = localStorage.getItem(`wok_messages_${conversationId}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveConversationMessages = (conversationId, messages) => {
+  try {
+    localStorage.setItem(`wok_messages_${conversationId}`, JSON.stringify(messages));
+  } catch (err) {
+    console.error('saveConversationMessages failed:', err);
+  }
+};
+
 const PROMPT_PSYCHOLOGIST = `Elite UI data compiler. THEME T:X (1=Clean/white, 2=Dark/void, 3=Yuzu/neon, 4=Sand/warm, 5=Brutal). Output: dense telegraphic data, copywriting points, chart arrays with XY axes. RAW TEXT ONLY.`;
 
 const PROMPT_ARCHITECT = `Senior UI Engineer. Build a world-class interactive React dashboard.
