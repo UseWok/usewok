@@ -24,6 +24,7 @@ import ZoomToggle from '@/components/chat/ZoomToggle';
 import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
 import { safeAsync } from '@/lib/code-quality';
 import { initAgentsFromDB } from '@/lib/agents-config';
+import { COMPONENT_PACKET, PROACTIVE_INTELLIGENCE_LAYER, buildPreferenceHints } from '@/lib/wok-prompt-packets';
 import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 
@@ -942,15 +943,16 @@ export default function ChatPage() {
       }
 
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
-      let isModification = editMode && ficheContent ?
-      true :
-      ficheContent ?
-      MODIFY_KEYWORDS.test(text) :
-      false;
+      let isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
 
-      const architectPrompt = isModification ?
-      PROMPT_ARCHITECT + "\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n" + ficheContent + "\n\nUser request: " + text :
-      PROMPT_ARCHITECT + "\n\n[BUILD THIS INTO A $10K UI]: " + text;
+      // [19] Implicit preference learning — infer style from session history
+      const preferenceHints = buildPreferenceHints(messages);
+      // [18] Proactive UX alerts + [4] Data-anchored reasoning + component library
+      const contextSuffix = PROACTIVE_INTELLIGENCE_LAYER + preferenceHints + '\n\nCOMPONENT LIBRARY (remix freely):\n' + COMPONENT_PACKET;
+
+      const architectPrompt = isModification
+        ? PROMPT_ARCHITECT + contextSuffix + '\n\n[MODIFICATION REQUEST — update the existing code, return the full updated component]\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text
+        : PROMPT_ARCHITECT + contextSuffix + '\n\n[BUILD THIS INTO A $10K UI]: ' + text;
 
       const codePayload = {
         prompt: architectPrompt,
