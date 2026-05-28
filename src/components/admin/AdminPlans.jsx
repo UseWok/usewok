@@ -132,7 +132,7 @@ function PlanCard({ plan, index, onChange, onDelete }) {
               {/* Pricing */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-semibold text-white/40 uppercase tracking-wider block mb-2">Monthly Price (€)</label>
+                  <label className="text-[11px] font-semibold text-white/40 uppercase tracking-wider block mb-2">Monthly Price ($)</label>
                   <input
                     type="number"
                     value={plan.price_monthly ?? 0}
@@ -141,7 +141,7 @@ function PlanCard({ plan, index, onChange, onDelete }) {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-white/40 uppercase tracking-wider block mb-2">Yearly Price (€)</label>
+                  <label className="text-[11px] font-semibold text-white/40 uppercase tracking-wider block mb-2">Yearly Price ($)</label>
                   <input
                     type="number"
                     value={plan.price_yearly ?? 0}
