@@ -956,7 +956,7 @@ Determine:
 2. Or is it too vague, too short, or ambiguous?
 
 Reply with a JSON: { "sufficient": true/false, "reply": "one polite sentence in the user's language if NOT sufficient, explaining what is missing. No emojis. Bold key words with **word**. Empty string if sufficient." }`,
-        model: 'gpt_5_mini',
+        model: 'gpt_4o_mini',
         response_json_schema: {
           type: 'object',
           properties: {
