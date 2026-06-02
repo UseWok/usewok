@@ -1,6 +1,6 @@
 /**
  * CODE QUALITY — ZERO ERROR TOLERANCE
- * Pre-flight checks and error prevention utilities
+ * Pre-flight checks, security guards, rate-limiting, and error prevention utilities.
  */
 import React from 'react';
 
@@ -57,14 +57,61 @@ export const getElement = (selector, required = true) => {
   return element;
 };
 
-// ── Safe async operation wrapper
+// ── Safe async operation wrapper with structured error context
 export const safeAsync = async (operation, fallback = null, context = 'Operation') => {
   try {
     return await operation();
   } catch (err) {
-    logger.error(`${context} failed:`, err.message);
+    logger.error(`[${context}] failed:`, err?.message || err);
     return fallback;
   }
+};
+
+// ── Rate limiter — prevents burst abuse on AI calls
+const _rateLimitMap = new Map();
+/**
+ * Returns true if the action is allowed, false if rate-limited.
+ * @param {string} key — unique action key (e.g. 'sendMessage')
+ * @param {number} maxCalls — max calls allowed within windowMs
+ * @param {number} windowMs — sliding window in milliseconds
+ */
+export const checkRateLimit = (key, maxCalls = 5, windowMs = 10000) => {
+  const now = Date.now();
+  const timestamps = (_rateLimitMap.get(key) || []).filter(t => now - t < windowMs);
+  if (timestamps.length >= maxCalls) return false;
+  timestamps.push(now);
+  _rateLimitMap.set(key, timestamps);
+  return true;
+};
+
+// ── In-flight request deduplication — prevents double-submits
+const _inflightSet = new Set();
+/**
+ * Wraps an async operation so only one instance runs per key at a time.
+ * Subsequent calls with the same key are silently dropped until the first resolves.
+ */
+export const dedupRequest = async (key, operation, fallback = null) => {
+  if (_inflightSet.has(key)) {
+    logger.warn(`[dedupRequest] Duplicate request blocked: ${key}`);
+    return fallback;
+  }
+  _inflightSet.add(key);
+  try {
+    return await operation();
+  } finally {
+    _inflightSet.delete(key);
+  }
+};
+
+// ── Input sanitizer — strips script injections and trims content
+export const sanitizeInput = (input, maxLength = 4000) => {
+  if (typeof input !== 'string') return '';
+  return input
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')  // strip script tags
+    .replace(/javascript:/gi, '')                          // strip JS proto handlers
+    .replace(/on\w+\s*=/gi, '')                           // strip inline event handlers
+    .trim()
+    .slice(0, maxLength);
 };
 
 // ── IntersectionObserver with fallback

@@ -29,7 +29,8 @@ import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
 
 // ── Lib ──
-import { safeAsync } from '@/lib/code-quality';
+import { safeAsync, checkRateLimit, sanitizeInput } from '@/lib/code-quality';
+import { classifyError } from '@/lib/error-handler';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
@@ -225,6 +226,18 @@ export default function ChatPage() {
   const sendMessage = useCallback(async (text, options = {}) => {
     if ((!text?.trim() && !options.files?.length) || isLoading) return;
 
+    // ── Security: sanitize & rate-limit ──
+    const safeText = sanitizeInput(text, 4000);
+    if (!safeText && !options.files?.length) return;
+
+    if (!checkRateLimit('sendMessage', 8, 15000)) {
+      toast.error("Slow down — too many requests. Wait a moment before sending.");
+      return;
+    }
+
+    // Re-assign text to sanitized version
+    text = safeText;
+
     // Easter egg
     if (text.trim() === '16/06/2010') {
       const userMsg = { role: 'user', content: text };
@@ -383,8 +396,11 @@ Reply with a JSON: { "sufficient": true/false, "reply": "one polite sentence in 
     } catch (err) {
       if (err.name === 'AbortError') return;
       setIsLoading(false);
-      const errMsg = err?.message ? `Generation failed: ${err.message}` : "Generation failed. Please try again.";
-      setMessages([...newMessages, { role: 'assistant', content: errMsg }]);
+      const classified = classifyError(err, 'Code generation');
+      // Surface contextual error in the notification banner (not chat)
+      setRuntimeError(classified.raw || classified.title);
+      // Add a concise chat message — no raw stack traces exposed to users
+      setMessages([...newMessages, { role: 'assistant', content: classified.hint || classified.title }]);
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent, editMode]);
 
