@@ -314,16 +314,18 @@ export default function ChatPage() {
 
       // ── Pre-analysis gatekeeper ──
       const preAnalysisPayload = {
-        prompt: `You are a terse reasoning model. Think like o1: be precise, use minimal tokens, draw conclusions only from evidence.
+        prompt: `You are the creative director of Wok — a next-generation AI interface studio. Users describe what they want to build and you decide if there is enough signal to begin.
 
-A user sent this message to an AI UI builder: "${text}"
+User message: "${text}"
 
-Determine:
-1. Is this message clear and specific enough to build a UI? (needs a subject, a purpose, or a concrete idea)
-2. Or is it too vague, too short, or ambiguous?
+Rules:
+- Be GENEROUS. Even a vague idea like "a dashboard" or "a landing page" is sufficient — Wok will creatively interpret it.
+- Only return sufficient=false if the message is truly empty, nonsensical, or completely unrelated to building any kind of interface, tool, or experience.
+- If sufficient=false, your reply must: (1) acknowledge what the user said, (2) give ONE concrete example of what a buildable version would look like, (3) be written in the user's language, max 2 sentences, no emojis.
+- If sufficient=true, return an empty reply string.
 
-Reply with a JSON: { "sufficient": true/false, "reply": "one polite sentence in the user's language if NOT sufficient, explaining what is missing. No emojis. Bold key words with **word**. Empty string if sufficient." }`,
-        model: 'gpt_4o_mini',
+Reply JSON: { "sufficient": true/false, "reply": "..." }`,
+        model: 'gpt_5_mini',
         response_json_schema: { type: 'object', properties: { sufficient: { type: 'boolean' }, reply: { type: 'string' } } }
       };
       const preAnalysis = await cachedAIRequest(preAnalysisPayload, () => base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload }));
@@ -340,10 +342,18 @@ Reply with a JSON: { "sufficient": true/false, "reply": "one polite sentence in 
       // ── Build / modify path ──
       const isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
       const preferenceHints = buildPreferenceHints(messages);
-      const contextSuffix = PROACTIVE_INTELLIGENCE_LAYER + preferenceHints + '\n\nCOMPONENT LIBRARY:\n' + COMPONENT_PACKET;
+      const contextSuffix = preferenceHints ? `\n\nUSER CONTEXT:\n${preferenceHints}` : '';
+
+      // Conversation history for continuity (last 4 exchanges, no code blobs)
+      const historyContext = (messages || []).slice(-8)
+        .filter(m => m.role === 'user' || (m.role === 'assistant' && !m.rawContent))
+        .map(m => `${m.role === 'user' ? 'User' : 'Wok'}: ${m.content?.slice(0, 200)}`)
+        .join('\n');
+      const historySuffix = historyContext ? `\n\nCONVERSATION HISTORY (for continuity only):\n${historyContext}` : '';
+
       const architectPrompt = isModification
-        ? PROMPT_ARCHITECT + contextSuffix + '\n\n[MODIFICATION REQUEST]\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text
-        : PROMPT_ARCHITECT + contextSuffix + '\n\n[BUILD THIS INTO A $10K UI]: ' + text;
+        ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
+        : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
 
       const codePayload = { prompt: architectPrompt, model: 'gemini_3_flash' };
       const codeResult = await cachedAIRequest(codePayload, () => base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal }));
