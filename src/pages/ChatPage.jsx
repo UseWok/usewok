@@ -370,13 +370,26 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       if (abortedRef.current) return;
 
       const bt = String.fromCharCode(96);
-      let finalCode = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
-      if (!finalCode.includes(bt)) finalCode = `${bt}${bt}${bt}jsx\n${finalCode}\n${bt}${bt}${bt}`;
+      let fullLLMResponse = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
 
-      const rawContent = finalCode;
+      // Extract <thinking> block to pass to the chat message
+      const thinkingMatch = fullLLMResponse.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+      const thinkingBlock = thinkingMatch ? thinkingMatch[0] : '';
+
+      // Strip thinking block to get clean code response
+      let codeOnly = fullLLMResponse.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+      if (!codeOnly.includes(bt)) codeOnly = `${bt}${bt}${bt}jsx\n${codeOnly}\n${bt}${bt}${bt}`;
+
+      // rawContent = clean code for the preview iframe
+      const rawContent = codeOnly;
+
+      // chatDisplayContent = thinking block + human-readable message (no code blobs)
       const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
-      let chatDisplayContent = finalCode.replace(codeBlockRegex, '').trim() || "Architecture generated successfully.";
-      const finalContent = formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent;
+      let chatDisplayContent = codeOnly.replace(codeBlockRegex, '').trim() || "Architecture generated successfully.";
+      // Prepend thinking block so AssistantMessage can parse and show it
+      const finalContent = thinkingBlock
+        ? thinkingBlock + '\n\n' + (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent)
+        : (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent);
 
       const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
       const creditsUsed = user?.credits_used || 0;

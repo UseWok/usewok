@@ -163,7 +163,7 @@ function parseThinking(rawText) {
   return { thinkingText, finalText };
 }
 
-export default function AssistantMessage({ content, isGenerating, query }) {
+export default function AssistantMessage({ content, isGenerating, query, rawContent }) {
   const [localGenerating, setLocalGenerating] = useState(isGenerating);
   const [elapsedSecs, setElapsedSecs] = useState(0);
   const [approved, setApproved] = useState(false);
@@ -212,7 +212,7 @@ export default function AssistantMessage({ content, isGenerating, query }) {
   if (!content) return null;
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);
 
-  // ── Parse thinking blocks ──
+  // ── Parse thinking blocks from content (thinking block is injected into content by ChatPage) ──
   const { thinkingText, finalText } = parseThinking(safeText);
 
   // ── "Interface ready" success indicator ──
