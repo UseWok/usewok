@@ -223,10 +223,14 @@ export default function AssistantMessage({ content, isGenerating, query }) {
   if (approved) return <p style={{ fontSize: 13, color: '#22C55E', margin: 0 }}>✓ Packages approved — installing…</p>;
   if (rejected) return <p style={{ fontSize: 13, color: '#EF4444', margin: 0 }}>✗ Installation cancelled.</p>;
 
+  // Strip emojis from all AI text output
+  const stripEmojis = (str) => str.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F1E0}-\u{1F1FF}✨✓✗]/gu, '').trim();
+  const cleanText = stripEmojis(safeText);
+
   // ── Normal plain text — no bubble, no background ──
   return (
     <div style={{ animation: 'ai-slide 150ms ease-out both', fontSize: 13, color: '#333333', lineHeight: 1.65, fontFamily: 'Inter, sans-serif' }}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{safeText}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
     </div>
   );
 }

@@ -945,6 +945,41 @@ export default function ChatPage() {
         return;
       }
 
+        // ── PRE-ANALYSIS: check if message is clear enough to build ──
+      const preAnalysisPayload = {
+        prompt: `You are a terse reasoning model. Think like o1: be precise, use minimal tokens, draw conclusions only from evidence.
+
+A user sent this message to an AI UI builder: "${text}"
+
+Determine:
+1. Is this message clear and specific enough to build a UI? (needs a subject, a purpose, or a concrete idea)
+2. Or is it too vague, too short, or ambiguous?
+
+Reply with a JSON: { "sufficient": true/false, "reply": "one polite sentence in the user's language if NOT sufficient, explaining what is missing. No emojis. Bold key words with **word**. Empty string if sufficient." }`,
+        model: 'gpt_5_mini',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            sufficient: { type: 'boolean' },
+            reply: { type: 'string' }
+          }
+        }
+      };
+
+      const preAnalysis = await cachedAIRequest(preAnalysisPayload, () =>
+        base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload })
+      );
+
+      if (!preAnalysis?.sufficient && preAnalysis?.reply) {
+        setIsLoading(false);
+        const clarifyMsgs = [...newMessages, { role: 'assistant', content: preAnalysis.reply }];
+        setMessages(clarifyMsgs);
+        saveConversationMessages(convId, clarifyMsgs);
+        saveToDiscussionsLogic("New Chat", text);
+        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+        return;
+      }
+
       const MODIFY_KEYWORDS = /\b(change|fix|update|add|remove|improve|make|adjust|edit|modify|replace|rename|move|resize|color|style|font|align|center|delete|show|hide|increase|decrease|bigger|smaller|darker|lighter)\b/i;
       let isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
 
