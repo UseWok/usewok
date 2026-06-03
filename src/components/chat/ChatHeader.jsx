@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  Globe, FileText, MoreHorizontal, RefreshCw, Maximize2,
-  BarChart2, Settings2, Search, Pencil, Check, X
+  Globe, MoreHorizontal, RefreshCw,
+  BarChart2, Settings2, Search, Pencil, Check, X,
+  Smartphone, Monitor,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getUserColor } from '@/lib/user-color';
 
 const HistoryIcon = () => (
@@ -89,12 +91,12 @@ export default function ChatHeader({
   onRefresh,
   appTitle,
   onTitleChange,
+  mobilePreview,
+  setMobilePreview,
 }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(appTitle || 'My App');
   const [showMore, setShowMore] = useState(false);
-
-  const avatarBg = getUserColor ? getUserColor(user) : '#7C3AED';
 
   const btnBase = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -217,7 +219,13 @@ export default function ChatHeader({
 
       {/* ── Right group ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-        {iconBtn(undefined, <Maximize2 style={{ width: 14, height: 14 }} />, 'Fullscreen')}
+        {iconBtn(
+          () => setMobilePreview && setMobilePreview(v => !v),
+          mobilePreview
+            ? <Monitor style={{ width: 14, height: 14 }} />
+            : <Smartphone style={{ width: 14, height: 14 }} />,
+          mobilePreview ? 'Desktop view' : 'Mobile view'
+        )}
         {iconBtn(onRefresh, <RefreshCw style={{ width: 14, height: 14 }} />, 'Refresh')}
 
         <div style={{ width: 1, height: 18, background: '#E0E0DE', margin: '0 3px', flexShrink: 0 }} />

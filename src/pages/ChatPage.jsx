@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44, cachedAIRequest } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+// motion already imported above
 
 // ── Components ──
 import AssistantMessage from '@/components/chat/AssistantMessage';
@@ -16,9 +17,9 @@ import EditModeOverlay from '@/components/chat/EditModeOverlay';
 import FichePanel from '@/components/chat/FichePanel';
 import ChatWorkspaceSidebar from '@/components/chat/ChatWorkspaceSidebar';
 import PreviewLoadingFeature from '@/components/chat/PreviewLoadingFeature';
-import ZoomToggle from '@/components/chat/ZoomToggle';
+// ZoomToggle removed
 import MessageList from '@/components/chat/MessageList';
-import SuggestionsBar from '@/components/chat/SuggestionsBar';
+// SuggestionsBar removed
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import PublishAppModal from '@/components/chat/PublishAppModal';
 import WokHeaderMenu from '@/components/chat/WokHeaderMenu';
@@ -75,7 +76,6 @@ export default function ChatPage() {
 
   // ── UI state ──
   const [viewMode, setViewMode] = useState('preview');
-  const [containerSize, setContainerSize] = useState({ width: 77, height: 75 });
   const containerRef = useRef(null);
   const [customSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [appSettings, setAppSettings] = useState({
@@ -93,6 +93,7 @@ export default function ChatPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [fullscreenModal, setFullscreenModal] = useState(null);
+  const [mobilePreview, setMobilePreview] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [isAppPublished, setIsAppPublished] = useState(false);
   const [chatVisible, setChatVisible] = useState(true);
@@ -529,8 +530,8 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   // ── Render ──
   return (
     <div
-      className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#FAFAFA' }}>
+      className="flex w-screen h-screen font-sans antialiased overflow-hidden"
+      style={{ backgroundColor: '#F8F8F7' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -551,13 +552,11 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       {/* Sidebar */}
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
 
-      {/* ── Main card ── */}
-      <motion.div
+      {/* ── Main layout: fills entire screen ── */}
+      <div
         ref={containerRef}
-        className="flex overflow-hidden relative"
-        animate={{ width: `${containerSize.width}vw`, height: `${containerSize.height}vh`, borderRadius: CARD_RADIUS }}
-        transition={{ duration: 0.1, ease: 'easeOut' }}
-        style={{ boxShadow: 'none', background: '#FAFAFA', border: 'none', maxWidth: '100vw', maxHeight: '100vh' }}>
+        className="flex w-full h-full overflow-hidden"
+        style={{ background: '#F8F8F7' }}>
 
         <div className="flex w-full h-full">
           {/* ── Left: Chat panel ── */}
@@ -570,7 +569,6 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                 setFicheContent={setFicheContent}
                 setViewMode={setViewMode}
               />
-              <SuggestionsBar setInput={setInput} />
               <div className="flex-shrink-0">
                 <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
                 <ChatInputBar
@@ -598,16 +596,24 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               onRefresh={() => setIframeRefreshKey(k => k + 1)}
               appTitle={appSettings?.title || 'My App'}
               onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
+              mobilePreview={mobilePreview}
+              setMobilePreview={setMobilePreview}
             />
 
             {/* Preview area — offset by header height (44px), snug padding, no border/shadow */}
             <div style={{
               position: 'absolute', top: 44, left: 10, right: 10, bottom: 10,
-              borderRadius: 10, overflow: 'hidden',
-              background: '#FFFFFF',
-              border: 'none',
-              boxShadow: 'none',
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
             }}>
+            {/* Animated inner preview container */}
+            <motion.div
+              animate={mobilePreview
+                ? { width: 390, height: '100%', borderRadius: 16 }
+                : { width: '100%', height: '100%', borderRadius: 10 }
+              }
+              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              style={{ overflow: 'hidden', background: '#FFFFFF', flexShrink: 0 }}
+            >
               <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
               <PublishAppModal
@@ -644,12 +650,11 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                   <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
                 </div>
               )}
+            </motion.div>
             </div>
           </div>
         </div>
-      </motion.div>
-
-      <ZoomToggle containerRef={containerRef} containerSize={containerSize} setContainerSize={setContainerSize} />
+      </div>
 
       {/* ── Mobile layout ── */}
       <div className="fixed inset-0 flex md:hidden flex-col bg-white">
