@@ -36,7 +36,8 @@ import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
 import { getUserPlan } from '@/lib/plans-config';
 import {
   getLocalDiscussions, saveLocalDiscussions,
-  getConversationMessages, saveConversationMessages
+  getConversationMessages, saveConversationMessages,
+  syncToCloud, loadFromCloud, loadDiscussionsFromCloud,
 } from '@/lib/chat-storage';
 import {
   PROMPT_ARCHITECT, PROMPT_DATA_INSIGHT, PROMPT_AUTO_FIX, PROMPT_THINKING,
@@ -130,22 +131,17 @@ export default function ChatPage() {
     setUser((prev) => ({ ...prev, credits_used: newUsed }));
   };
 
-  // ── Persist discussion to local + cloud ──
-  const saveToDiscussionsLogic = (convTitle, text) => {
+  // ── Persist discussion to local cache + cloud ──
+  const saveToDiscussionsLogic = (convTitle, text, rawContent = null) => {
     try {
       const stored = getLocalDiscussions(currentWorkspace.id);
-      const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), emoji: '📄' };
+      const disc = { id: convId, title: convTitle, preview: text, date: new Date().toISOString().slice(0, 10), updatedAt: Date.now(), emoji: '💬' };
       const idx = stored.findIndex((d) => d.id === convId);
       if (idx >= 0) stored.splice(idx, 1);
       stored.unshift(disc);
       saveLocalDiscussions(currentWorkspace.id, stored);
       setDiscussions(stored);
-      import('@/lib/discussions').then(({ syncConversationToCloud }) => {
-        syncConversationToCloud(convId, messages || [], { title: convTitle, preview: text });
-      });
-    } catch (err) {
-      console.error('saveToDiscussionsLogic failed:', err);
-    }
+    } catch {}
   };
 
   // ── Workspace handlers ──
@@ -265,8 +261,7 @@ export default function ChatPage() {
       saveConversationMessages(convId, finalMsgs);
       setFicheContent(CHOCOLATINE_CODE);
       if (convId) {
-        const { syncConversationToCloud } = await import('@/lib/discussions');
-        await syncConversationToCloud(convId, finalMsgs, { title: 'Chocolatine', preview: 'Le debat ultime', is_public: true });
+        await syncToCloud(convId, finalMsgs, { title: 'Chocolatine', preview: 'Le debat ultime', is_public: true, rawContent: CHOCOLATINE_CODE });
         if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       }
       setIsLoading(false);
@@ -313,8 +308,7 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content: "Architecture successfully recompiled.", rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
-        const { syncConversationToCloud } = await import('@/lib/discussions');
-        await syncConversationToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed' });
+        await syncToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed', rawContent: newContent });
         return;
       }
 
@@ -341,6 +335,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         setMessages(clarifyMsgs);
         saveConversationMessages(convId, clarifyMsgs);
         saveToDiscussionsLogic("New Chat", text);
+        await syncToCloud(convId, clarifyMsgs, { title: text.slice(0, 80), preview: text.slice(0, 120) });
         if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
         return;
       }
@@ -417,9 +412,14 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
 
-      const { syncConversationToCloud } = await import('@/lib/discussions');
-      syncConversationToCloud(convId, finalMsgs, { title: text.slice(0, 80), preview: text.slice(0, 120), is_public: appSettings.isPublic });
-      saveToDiscussionsLogic("New Chat", text);
+      // Cloud sync — includes rawContent for cross-device preview restore
+      syncToCloud(convId, finalMsgs, {
+        title: text.slice(0, 80),
+        preview: text.slice(0, 120),
+        is_public: appSettings.isPublic,
+        rawContent: rawContent || null,
+      });
+      saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
 
       if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       if (window.innerWidth < 768 && !discussMode) setMobileView('preview');
@@ -463,29 +463,46 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
     if (initialQ && (messages?.length || 0) === 0 && !conversationId) sendMessage(initialQ);
   }, []);
 
+  // Load conversation from cloud on mount (cross-device)
   useEffect(() => {
     if (!conversationId) { setMessages([]); setFicheContent(null); return; }
     const loadConv = async () => {
-      const cloudMsgs = await safeAsync(() => loadConversationFromCloud(conversationId), [], 'Load conversation');
-      const safe = Array.isArray(cloudMsgs) ? cloudMsgs : [];
-      if (safe.length > 0) {
-        setMessages(safe);
-        saveConversationMessages(conversationId, safe);
-        const last = safe.filter((m) => m.role === 'assistant' && m.rawContent).pop();
-        const restoredContent = last?.rawContent || null;
-        if (restoredContent) {
-          setFicheContent(restoredContent);
-          localStorage.setItem(`fiche_${conversationId}`, restoredContent);
+      const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
+      if (cloud) {
+        const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
+        if (safe.length > 0) {
+          setMessages(safe);
+          saveConversationMessages(conversationId, safe);
+        }
+        if (cloud.rawContent) {
+          setFicheContent(cloud.rawContent);
+          localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
         } else {
-          // Try localStorage fallback
-          const stored = localStorage.getItem(`fiche_${conversationId}`);
-          if (stored) setFicheContent(stored);
+          // Fallback: try to restore from last assistant message rawContent
+          const last = safe.filter((m) => m.role === 'assistant' && m.rawContent).pop();
+          if (last?.rawContent) {
+            setFicheContent(last.rawContent);
+            localStorage.setItem(`fiche_${conversationId}`, last.rawContent);
+          } else {
+            const stored = localStorage.getItem(`fiche_${conversationId}`);
+            if (stored) setFicheContent(stored);
+          }
         }
       }
       setIsLoadingConversation(false);
     };
     loadConv();
   }, [conversationId]);
+
+  // Load discussions list from cloud for sidebar (cross-device)
+  useEffect(() => {
+    loadDiscussionsFromCloud().then(cloudDiscs => {
+      if (cloudDiscs.length > 0) {
+        setDiscussions(cloudDiscs);
+        saveLocalDiscussions(currentWorkspace.id, cloudDiscs);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (runtimeError && !isLoading) { setPendingError(runtimeError); setRuntimeError(null); }

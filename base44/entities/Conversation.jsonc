@@ -31,8 +31,14 @@
       "title": "Messages JSON",
       "format": "textarea"
     },
+    "raw_content": {
+      "type": "string",
+      "title": "Generated UI Code",
+      "format": "textarea"
+    },
     "description": {
       "type": "string",
+      "title": "Description / Raw Content (legacy)",
       "maxLength": 1000
     }
   },

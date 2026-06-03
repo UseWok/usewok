@@ -10,7 +10,7 @@ import {
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
 import { getPlansConfig } from '@/lib/plans-config';
-import { getLocalDiscussions } from '@/lib/chat-storage';
+import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 
 export const COLLAPSED_W = 54;
@@ -311,9 +311,23 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   }, []);
 
   useEffect(() => {
-    const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
-    const wsId = wsData.find(w => w.current)?.id || 'default';
-    setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
+    // Load recents from cloud first, fallback to local cache
+    loadDiscussionsFromCloud().then(cloudDiscs => {
+      if (cloudDiscs.length > 0) {
+        setRecents(cloudDiscs.slice(0, 5));
+        const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
+        const wsId = wsData.find(w => w.current)?.id || 'default';
+        saveLocalDiscussions(wsId, cloudDiscs);
+      } else {
+        const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
+        const wsId = wsData.find(w => w.current)?.id || 'default';
+        setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
+      }
+    }).catch(() => {
+      const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
+      const wsId = wsData.find(w => w.current)?.id || 'default';
+      setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
+    });
   }, [expanded]);
 
   useEffect(() => {
