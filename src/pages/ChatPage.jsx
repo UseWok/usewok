@@ -22,11 +22,12 @@ import SuggestionsBar from '@/components/chat/SuggestionsBar';
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import PublishAppModal from '@/components/chat/PublishAppModal';
 import WokHeaderMenu from '@/components/chat/WokHeaderMenu';
+import ChatHeader from '@/components/chat/ChatHeader';
 import IframeModal from '@/components/chat/IframeModal';
 import ProModal from '@/components/chat/ProModal';
 import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
-import { ResizablePanelGroup as PanelGroup, ResizablePanel as Panel } from '@/components/ui/resizable';
+
 
 // ── Lib ──
 import { safeAsync, checkRateLimit, sanitizeInput } from '@/lib/code-quality';
@@ -94,6 +95,8 @@ export default function ChatPage() {
   const [fullscreenModal, setFullscreenModal] = useState(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [isAppPublished, setIsAppPublished] = useState(false);
+  const [chatVisible, setChatVisible] = useState(true);
+  const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
 
   // ── Chat state ──
@@ -531,14 +534,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
-      {/* Header menu */}
-      <WokHeaderMenu
-        isOpen={isProfileMenuOpen}
-        setIsOpen={setIsProfileMenuOpen}
-        user={user}
-        userPlan={userPlan}
-        setFullscreenModal={setFullscreenModal}
-      />
+      {/* (WokHeaderMenu removed — replaced by ChatHeader inside preview panel) */}
 
       {/* Workspace modal */}
       <ProModal open={showWorkspaceModal} onClose={() => setShowWorkspaceModal(false)} title="Create a workspace"
@@ -563,55 +559,69 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         transition={{ duration: 0.1, ease: 'easeOut' }}
         style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.6)', maxWidth: '100vw', maxHeight: '100vh' }}>
 
-        <PanelGroup direction="horizontal" className="flex w-full h-full">
+        <div className="flex w-full h-full">
           {/* ── Left: Chat panel ── */}
-          <Panel defaultSize={32} className="flex flex-col overflow-hidden bg-white">
-            <MessageList
-              messages={messages}
-              isLoading={isLoading}
-              currentQuery={currentQuery}
-              setFicheContent={setFicheContent}
-              setViewMode={setViewMode}
-            />
-            <SuggestionsBar setInput={setInput} />
-            <div className="flex-shrink-0">
-              <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-              <ChatInputBar
-                input={input} setInput={setInput}
-                onSend={sendMessage} onStop={handleStop}
+          {chatVisible && (
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff', borderRight: '1px solid #E8E8E6' }}>
+              <MessageList
+                messages={messages}
                 isLoading={isLoading}
-                files={files} setFiles={setFiles}
-                discussMode={discussMode} setDiscussMode={setDiscussMode}
-                editMode={editMode} setEditMode={setEditMode}
+                currentQuery={currentQuery}
+                setFicheContent={setFicheContent}
+                setViewMode={setViewMode}
               />
+              <SuggestionsBar setInput={setInput} />
+              <div className="flex-shrink-0">
+                <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+                <ChatInputBar
+                  input={input} setInput={setInput}
+                  onSend={sendMessage} onStop={handleStop}
+                  isLoading={isLoading}
+                  files={files} setFiles={setFiles}
+                  discussMode={discussMode} setDiscussMode={setDiscussMode}
+                  editMode={editMode} setEditMode={setEditMode}
+                />
+              </div>
             </div>
-          </Panel>
+          )}
 
           {/* ── Right: Preview panel ── */}
-          <Panel defaultSize={68} className="relative overflow-hidden bg-white">
-            <div style={{ position: 'absolute', inset: 8, borderRadius: Math.max(0, CARD_RADIUS - 4), overflow: 'hidden', background: '#FFFFFF', border: '0.25px solid rgba(229,229,229,0.5)' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F5F5F5' }}>
+            {/* Header bar */}
+            <ChatHeader
+              user={user}
+              chatVisible={chatVisible}
+              setChatVisible={setChatVisible}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              onPublish={() => setShowPublishModal(true)}
+              onRefresh={() => setIframeRefreshKey(k => k + 1)}
+              appTitle={appSettings?.title || 'My App'}
+              onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
+            />
+
+            {/* Preview area — offset by header height (44px), with padding so content never touches edges */}
+            <div style={{
+              position: 'absolute', top: 44, left: 12, right: 12, bottom: 12,
+              borderRadius: 10, overflow: 'hidden',
+              background: '#FFFFFF',
+              border: '1px solid #E8E8E6',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}>
               <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
-              {ficheContent && (
-                <div className="absolute top-3 right-3 z-[99999] pointer-events-auto flex flex-col items-end">
-                  <button
-                    onClick={() => setShowPublishModal(true)}
-                    className="px-[18px] py-[6px] bg-white border-[2.5px] border-zinc-900 text-zinc-900 font-bold rounded-[12px] hover:bg-zinc-50 shadow-sm transition-colors text-[14px]">
-                    Publish
-                  </button>
-                  <PublishAppModal
-                    open={showPublishModal}
-                    onClose={() => setShowPublishModal(false)}
-                    appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
-                    isPublished={isAppPublished}
-                    setIsPublished={setIsAppPublished}
-                  />
-                </div>
-              )}
+              <PublishAppModal
+                open={showPublishModal}
+                onClose={() => setShowPublishModal(false)}
+                appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
+                isPublished={isAppPublished}
+                setIsPublished={setIsAppPublished}
+              />
 
               {ficheContent ? (
                 <FichePanel
                   content={ficheContent}
+                  iframeRefreshKey={iframeRefreshKey}
                   onError={setRuntimeError}
                   onSuccess={() => setRuntimeError(null)}
                   isPublic={false}
@@ -635,8 +645,8 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                 </div>
               )}
             </div>
-          </Panel>
-        </PanelGroup>
+          </div>
+        </div>
       </motion.div>
 
       <ZoomToggle containerRef={containerRef} containerSize={containerSize} setContainerSize={setContainerSize} />
