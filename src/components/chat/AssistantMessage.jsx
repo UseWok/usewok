@@ -152,7 +152,7 @@ function CodePreviewBox({ code }) {
   );
 }
 
-// ── Task 2: Structured spacious thinking accordion — Claude-style, English ──
+// ── Thinking accordion — clean, integrated, smooth ──
 function ThinkingAccordion({ thinkingText, autoOpen = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasAutoOpened = useRef(false);
@@ -161,7 +161,7 @@ function ThinkingAccordion({ thinkingText, autoOpen = false }) {
     if (autoOpen && !hasAutoOpened.current && thinkingText) {
       hasAutoOpened.current = true;
       setIsOpen(true);
-      const t = setTimeout(() => setIsOpen(false), 4500);
+      const t = setTimeout(() => setIsOpen(false), 4000);
       return () => clearTimeout(t);
     }
   }, [autoOpen, thinkingText]);
@@ -169,92 +169,69 @@ function ThinkingAccordion({ thinkingText, autoOpen = false }) {
   if (!thinkingText) return null;
 
   return (
-    <div style={{ marginBottom: 14 }}>
-      {/* Header trigger */}
+    <div style={{ marginBottom: 12 }}>
+      {/* Trigger row */}
       <button
         onClick={() => setIsOpen(o => !o)}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 7,
+          display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'none', border: 'none', cursor: 'pointer',
-          padding: '2px 0', outline: 'none',
+          padding: '3px 0', outline: 'none',
+          userSelect: 'none',
         }}
       >
-        <Brain style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} />
-        <span style={{ fontSize: 12.5, fontWeight: 500, color: '#6B7280', letterSpacing: '0.01em' }}>
-          Reflection
+        <Brain style={{ width: 13, height: 13, color: '#C4B5FD', flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.01em', fontFamily: 'Inter, sans-serif' }}>
+          Thinking
         </span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
-          style={{ display: 'inline-flex', color: '#9CA3AF' }}
+          transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+          style={{ display: 'inline-flex', color: '#C4B5FD' }}
         >
-          <ChevronDown style={{ width: 13, height: 13 }} />
+          <ChevronDown style={{ width: 12, height: 12 }} />
         </motion.span>
       </button>
 
       {/* Accordion body */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.26, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ overflow: 'hidden' }}
           >
-            {/* Spacious content — Claude-style */}
             <div style={{
-              marginTop: 8,
-              padding: '20px 24px',
-              background: '#FAFAFA',
-              border: '1px solid #EBEBEB',
-              borderRadius: 10,
-              fontSize: 13,
-              color: '#374151',
-              lineHeight: 2,
-              maxHeight: 400,
+              marginTop: 6,
+              padding: '14px 16px',
+              background: '#FAFAF9',
+              border: '1px solid #EBEBEA',
+              borderLeft: '2px solid #C4B5FD',
+              borderRadius: 8,
+              fontSize: 12.5,
+              color: '#4B5563',
+              lineHeight: 1.85,
+              maxHeight: 360,
               overflowY: 'auto',
+              fontFamily: 'Inter, sans-serif',
             }}>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  p: ({ children }) => (
-                    <p style={{ margin: '0 0 14px 0', color: '#374151', lineHeight: 2 }}>{children}</p>
-                  ),
-                  li: ({ children }) => (
-                    <li style={{ marginBottom: 8, color: '#374151', lineHeight: 1.9 }}>{children}</li>
-                  ),
-                  ul: ({ children }) => (
-                    <ul style={{ paddingLeft: 20, marginBottom: 14 }}>{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol style={{ paddingLeft: 20, marginBottom: 14 }}>{children}</ol>
-                  ),
-                  strong: ({ children }) => (
-                    <strong style={{ color: '#111827', fontWeight: 600 }}>{children}</strong>
-                  ),
-                  h1: ({ children }) => (
-                    <h1 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '18px 0 8px' }}>{children}</h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: '16px 0 6px' }}>{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 style={{ fontSize: 13, fontWeight: 600, color: '#374151', margin: '12px 0 4px' }}>{children}</h3>
-                  ),
+                  p: ({ children }) => <p style={{ margin: '0 0 10px 0', color: '#4B5563', lineHeight: 1.85 }}>{children}</p>,
+                  li: ({ children }) => <li style={{ marginBottom: 6, color: '#4B5563', lineHeight: 1.8 }}>{children}</li>,
+                  ul: ({ children }) => <ul style={{ paddingLeft: 18, marginBottom: 10 }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ paddingLeft: 18, marginBottom: 10 }}>{children}</ol>,
+                  strong: ({ children }) => <strong style={{ color: '#111827', fontWeight: 600 }}>{children}</strong>,
+                  h1: ({ children }) => <h1 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '14px 0 6px' }}>{children}</h1>,
+                  h2: ({ children }) => <h2 style={{ fontSize: 12.5, fontWeight: 700, color: '#111827', margin: '12px 0 5px' }}>{children}</h2>,
+                  h3: ({ children }) => <h3 style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '10px 0 4px' }}>{children}</h3>,
                 }}
               >
                 {thinkingText}
               </ReactMarkdown>
-            </div>
-
-            {/* "Done" footer */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              marginTop: 6, paddingLeft: 2,
-            }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#D1D5DB' }} />
-              <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>Done</span>
             </div>
           </motion.div>
         )}

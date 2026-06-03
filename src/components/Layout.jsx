@@ -62,43 +62,44 @@ export default function Layout() {
     });
   }, []);
 
-  // Width the main content area should shift by
-  const sidebarOffset = showSidebar ? (expanded ? EXPANDED_W : COLLAPSED_W) + SIDEBAR_MARGIN * 2 : 0;
+  // Sidebar slides in over content — no offset needed
+  const sidebarOffset = expanded ? EXPANDED_W : 0;
 
   return (
     <div className="min-h-screen bg-background flex font-be">
 
-      {/* Floating Sidebar — desktop */}
-      {showSidebar && (
-        <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />
-      )}
+      {/* Sidebar — always rendered, slides in/out */}
+      <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />
 
-      {/* Mobile sidebar with backdrop */}
-      {isMobile && (
-        <AnimatePresence>
-          {expanded && (
-            <>
-              <motion.div
-                key="backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
-                onClick={() => setExpanded(false)}
-              />
-              <Sidebar expanded={true} setExpanded={setExpanded} user={user} userPlan={userPlan} />
-            </>
-          )}
-        </AnimatePresence>
-      )}
-
-      {/* Main content — shifts right to make room for floating sidebar */}
+      {/* Main content — shifts right when sidebar is open (desktop only) */}
       <motion.main
         className="flex-1 min-h-screen overflow-x-hidden relative"
-        animate={{ marginLeft: sidebarOffset }}
-        transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+        animate={{ marginLeft: isMobile ? 0 : sidebarOffset }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       >
+        {/* Hamburger toggle button — visible when sidebar is closed */}
+        <AnimatePresence>
+          {!expanded && (
+            <motion.button
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => setExpanded(true)}
+              style={{
+                position: 'fixed', top: 14, left: 14, zIndex: 38,
+                width: 32, height: 32, borderRadius: 8,
+                background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
         <Outlet />
       </motion.main>
     </div>
