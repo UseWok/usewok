@@ -62,15 +62,15 @@ export default function Layout() {
     });
   }, []);
 
-  // Content shifts by sidebar width (collapsed = 52px rail, expanded = 240px)
+  // Sidebar is position:fixed so we push main content with marginLeft
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
 
   return (
-    <div className="min-h-screen bg-background flex font-be">
+    <div className="min-h-screen bg-background font-be">
       <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />
 
       <motion.main
-        className="flex-1 min-h-screen overflow-x-hidden relative"
+        className="min-h-screen overflow-x-hidden relative"
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.28, ease: [0.05, 0.7, 0.1, 1.0] }}
       >

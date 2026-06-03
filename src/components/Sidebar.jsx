@@ -12,7 +12,7 @@ import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 
-export const COLLAPSED_W = 52;
+export const COLLAPSED_W = 54;
 export const EXPANDED_W  = 240;
 export const SIDEBAR_MARGIN = 0;
 
@@ -173,104 +173,88 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           background: '#FFFFFF',
           borderRight: '1px solid #EBEBEB',
           fontFamily: 'Inter, system-ui, sans-serif',
+          minWidth: COLLAPSED_W,
         }}
       >
-        {/* ── Header: Logo + toggle ── */}
+        {/* ── Header: toggle button (collapsed) or Logo + collapse (expanded) ── */}
         <div style={{
           flexShrink: 0, borderBottom: '1px solid #EBEBEB',
-          padding: expanded ? '13px 12px 13px 14px' : '13px 0',
+          height: 52,
           display: 'flex', alignItems: 'center',
+          padding: expanded ? '0 12px 0 14px' : '0',
           justifyContent: expanded ? 'space-between' : 'center',
           overflow: 'hidden',
         }}>
-          {/* WOK wordmark — text logo */}
-          <button
-            onClick={() => setExpanded(v => !v)}
-            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {expanded ? (
-                <motion.span
-                  key="wordmark"
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.18, delay: 0.05 }}
-                  style={{ fontSize: 20, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, fontFamily: 'Inter, system-ui, sans-serif' }}
-                >
-                  WOK
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="icon"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.12 }}
-                  style={{ fontSize: 16, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, fontFamily: 'Inter, system-ui, sans-serif' }}
-                >
-                  W
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-
-          {/* Collapse arrow — only when expanded */}
-          <AnimatePresence>
-            {expanded && (
-              <motion.button
-                initial={{ opacity: 0, x: 6 }}
+          {expanded ? (
+            <>
+              {/* WOK wordmark */}
+              <motion.span
+                initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 6 }}
-                transition={{ duration: 0.15, delay: 0.06 }}
-                onClick={() => setExpanded(false)}
-                style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#BBBBBB', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#555'}
-                onMouseLeave={e => e.currentTarget.style.color = '#BBBBBB'}
+                transition={{ duration: 0.18, delay: 0.05 }}
+                style={{ fontSize: 20, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, fontFamily: 'Inter, system-ui, sans-serif', userSelect: 'none' }}
               >
-                {/* ◁ sidebar collapse icon */}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                WOK
+              </motion.span>
+              {/* Collapse ← arrow */}
+              <button
+                onClick={() => setExpanded(false)}
+                style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#C0C0C0', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#555'}
+                onMouseLeave={e => e.currentTarget.style.color = '#C0C0C0'}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 18l-6-6 6-6"/>
                 </svg>
-              </motion.button>
-            )}
-          </AnimatePresence>
+              </button>
+            </>
+          ) : (
+            /* Sidebar toggle icon — centered in the rail */
+            <button
+              onClick={() => setExpanded(true)}
+              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {/* sidebar/panel toggle icon */}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 3v18"/>
+              </svg>
+            </button>
+          )}
         </div>
 
-        {/* ── User workspace row ── */}
-        <div style={{ flexShrink: 0, padding: expanded ? '8px 8px 4px' : '8px 5px 4px' }}>
-          <button
-            onClick={() => expanded && setShowProfileMenu(v => !v)}
-            title={!expanded ? (user?.full_name || 'Profile') : undefined}
-            style={{
-              display: 'flex', alignItems: 'center', gap: expanded ? 8 : 0,
-              justifyContent: expanded ? 'flex-start' : 'center',
-              width: '100%', padding: expanded ? '6px 8px' : '7px 0',
-              borderRadius: 8, border: 'none', background: 'transparent',
-              cursor: 'pointer', transition: 'background 120ms',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Avatar user={user} size={26} />
-            <AnimatePresence>
-              {expanded && (
-                <motion.span
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15, delay: 0.06 }}
-                  style={{ fontSize: 13, fontWeight: 600, color: '#111', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}
-                >
+        {/* ── User workspace row (only in expanded) ── */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, delay: 0.05 }}
+              style={{ flexShrink: 0, padding: '8px 8px 0' }}
+            >
+              <button
+                onClick={() => setShowProfileMenu(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  width: '100%', padding: '6px 8px',
+                  borderRadius: 8, border: 'none', background: 'transparent',
+                  cursor: 'pointer', transition: 'background 120ms',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <Avatar user={user} size={26} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#111', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
                   {user?.full_name?.split(' ')[0] || 'My'}'s Workspace
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-        </div>
+                </span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Divider ── */}
-        <div style={{ height: 1, background: '#F0F0F0', margin: expanded ? '4px 12px' : '4px 8px', flexShrink: 0 }} />
+        <div style={{ height: 1, background: '#F0F0F0', margin: expanded ? '8px 12px 4px' : '8px 8px 4px', flexShrink: 0 }} />
 
         {/* ── Main nav ── */}
         <div style={{ padding: expanded ? '4px 8px 0' : '4px 5px 0', flexShrink: 0 }}>
