@@ -614,7 +614,6 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               style={{ overflow: 'hidden', background: '#FFFFFF', flexShrink: 0 }}
             >
-              <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
               <PublishAppModal
                 open={showPublishModal}
