@@ -164,19 +164,17 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
 }
 
 // ── Profile dropdown ──
-function ProfileMenu({ user, onClose }) {
-  const navigate = useNavigate();
+function ProfileMenu({ user, onClose, navigate }) {
   const email = user?.email || '';
   const truncatedEmail = email.length > 18 ? email.slice(0, 18) + '...' : email;
 
-  const links = [
-    { icon: User, label: 'Profile', action: () => { navigate('/settings'); onClose(); } },
-    { icon: svgSettings, label: 'Settings', action: () => { navigate('/settings'); onClose(); } },
-    { icon: Palette, label: 'Appearance', action: () => { navigate('/settings'); onClose(); } },
-    { icon: BookOpen, label: 'Support', action: () => { navigate('/support'); onClose(); } },
-    { icon: BookOpen, label: 'Documentation', action: () => { toast.info('Coming soon'); onClose(); } },
-    { icon: Home, label: 'Home', action: () => { navigate('/app'); onClose(); } },
-  ];
+  const menuBtn = (label, action) => (
+    <button key={label} onClick={action}
+      style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
+      onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    >{label}</button>
+  );
 
   return (
     <motion.div
@@ -191,6 +189,7 @@ function ProfileMenu({ user, onClose }) {
       }}
       onClick={e => e.stopPropagation()}
     >
+      {/* User info */}
       <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 10 }}>
         <Avatar user={user} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -200,27 +199,45 @@ function ProfileMenu({ user, onClose }) {
           <div style={{ fontSize: 11, color: '#888' }} title={email}>{truncatedEmail}</div>
         </div>
       </div>
-      <div style={{ padding: '4px 0' }}>
-        {[
-          { label: 'Profile', action: () => { navigate('/settings'); onClose(); } },
-          { label: 'Settings', action: () => { navigate('/settings'); onClose(); } },
-          { label: 'Appearance', action: () => { navigate('/settings'); onClose(); } },
-          { label: 'Support', action: () => { navigate('/support'); onClose(); } },
-          { label: 'Documentation', action: () => { toast.info('Coming soon'); onClose(); } },
-          { label: 'Home', action: () => { navigate('/app'); onClose(); } },
-        ].map(({ label, action }) => (
-          <button key={label} onClick={action}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >{label}</button>
-        ))}
+
+      {/* Upgrade to Pro — top promo */}
+      <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #F0F0F0' }}>
+        <button
+          onClick={() => navigate('/pricing')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 12px', borderRadius: 9, background: '#F0F4FF', border: '1px solid #D4E0FF', cursor: 'pointer', transition: 'background 120ms' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#E4EDFF'}
+          onMouseLeave={e => e.currentTarget.style.background = '#F0F4FF'}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <Zap style={{ width: 14, height: 14, color: '#2563EB' }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#1D3A8A' }}>Upgrade to Pro</span>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#2563EB', background: '#DBEAFE', borderRadius: 6, padding: '2px 7px' }}>Upgrade</span>
+        </button>
       </div>
+
+      {/* Nav items group 1 */}
+      <div style={{ padding: '4px 0' }}>
+        {menuBtn('Profile', () => navigate('/settings'))}
+        {menuBtn('Settings', () => navigate('/settings'))}
+        {menuBtn('Appearance', () => navigate('/settings'))}
+      </div>
+
+      {/* Separator */}
+      <div style={{ height: 1, background: '#F0F0F0', margin: '0 0' }} />
+
+      {/* Nav items group 2 */}
+      <div style={{ padding: '4px 0' }}>
+        {menuBtn('Support', () => navigate('/support'))}
+        {menuBtn('Documentation', () => toast.info('Coming soon'))}
+        {menuBtn('Home', () => navigate('/app'))}
+      </div>
+
       <div style={{ height: 1, background: '#F0F0F0' }} />
       <div style={{ padding: '4px 0 4px' }}>
         <button
           onClick={async () => { await base44.auth.logout(); window.location.reload(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
           onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -233,6 +250,76 @@ function ProfileMenu({ user, onClose }) {
 
 // dummy ref to avoid unused var warning
 const svgSettings = null;
+
+// ── Sidebar Builds Section (Favorites + Recents collapsible) ──
+function SidebarBuildsSection({ recents, nav }) {
+  const [favorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('wok_favorites') || '[]'); } catch { return []; }
+  });
+  const [recentsOpen, setRecentsOpen] = useState(false);
+
+  const favBuilds = recents.filter(d => favorites.includes(d.id));
+  const allBuilds = recents;
+
+  const itemStyle = (active) => ({
+    display: 'flex', alignItems: 'center', width: '100%', height: 32,
+    padding: '0 10px', borderRadius: 8, border: 'none',
+    background: active ? '#F0F0EE' : 'transparent',
+    cursor: 'pointer', transition: 'background 120ms', textAlign: 'left',
+    fontSize: 13, color: '#333', fontWeight: 400, fontFamily: 'inherit',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+  });
+
+  return (
+    <div style={{ padding: '8px 8px 0', flexShrink: 0 }}>
+      {/* Favorites */}
+      <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px' }}>Favorites</p>
+      {favBuilds.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#CCCCCC', padding: '0 10px', marginBottom: 6 }}>No favorites yet</p>
+      ) : favBuilds.map(d => (
+        <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+          style={itemStyle(false)}
+          onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <Star style={{ width: 12, height: 12, marginRight: 6, color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+          {d.title || 'Untitled'}
+        </button>
+      ))}
+
+      {/* Recents — collapsible, closed by default */}
+      <button
+        onClick={() => setRecentsOpen(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px 4px', marginTop: 6 }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA' }}>Recents</span>
+        <ChevronDown style={{ width: 12, height: 12, color: '#AAAAAA', transform: recentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+      </button>
+      <AnimatePresence initial={false}>
+        {recentsOpen && (
+          <motion.div
+            key="recents"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            {allBuilds.map(d => (
+              <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+                style={itemStyle(false)}
+                onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {d.title || 'Untitled'}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 // ── Create Workspace Modal ──
 function CreateWorkspaceModal({ open, onClose, onCreate }) {
@@ -523,28 +610,16 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={UsersRound} label="Shared with me" onClick={() => nav('/projects')} />
           </div>
 
-          {/* Recents */}
+          {/* Favorites + Recents */}
           {expanded && recents.length > 0 && (
-            <div style={{ padding: '8px 8px 0', flexShrink: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px' }}>Recents</p>
-              {recents.map(d => (
-                <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', width: '100%', height: 34, padding: '0 10px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <span style={{ fontSize: 14, color: '#333', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.title || 'Untitled'}</span>
-                </button>
-              ))}
-            </div>
+            <SidebarBuildsSection recents={recents} nav={nav} />
           )}
 
           <div style={{ flex: 1 }} />
 
-          {/* Bottom cards */}
+          {/* Share card only */}
           {expanded && (
-            <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {/* Share card */}
+            <div style={{ padding: '8px 10px' }}>
               <button onClick={() => toast.info('Referral program coming soon')}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 13px', borderRadius: 10, background: '#fff', border: '1px solid #E8E8E8', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#F8F8F8'}
@@ -556,20 +631,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 </div>
                 <div style={{ width: 34, height: 34, borderRadius: 999, background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Gift style={{ width: 16, height: 16, color: '#555' }} />
-                </div>
-              </button>
-              {/* Upgrade card */}
-              <button onClick={() => nav('/pricing')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 13px', borderRadius: 10, background: '#fff', border: '1px solid #E8E8E8', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F8F8F8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-              >
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111', marginBottom: 2 }}>Upgrade to Pro</div>
-                  <div style={{ fontSize: 11.5, color: '#888' }}>Unlock more features</div>
-                </div>
-                <div style={{ width: 34, height: 34, borderRadius: 999, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Zap style={{ width: 16, height: 16, color: '#4F46E5' }} />
                 </div>
               </button>
             </div>
@@ -599,7 +660,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           </div>
           <AnimatePresence>
             {showProfileMenu && (
-              <ProfileMenu user={user} onClose={() => setShowProfileMenu(false)} />
+              <ProfileMenu user={user} onClose={() => setShowProfileMenu(false)} navigate={navigate} />
             )}
           </AnimatePresence>
         </div>

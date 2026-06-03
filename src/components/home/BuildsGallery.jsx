@@ -1,91 +1,147 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, ArrowRight } from 'lucide-react';
-import { loadDiscussionsFromCloud } from '@/lib/chat-storage';
-import { getLocalDiscussions } from '@/lib/chat-storage';
+import { Clock, ArrowRight, Layout } from 'lucide-react';
+import { loadDiscussionsFromCloud, getLocalDiscussions } from '@/lib/chat-storage';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+}
+
+// Render an actual live preview inside a scaled iframe
+function BuildPreview({ build }) {
+  const rawContent = (() => {
+    try { return localStorage.getItem(`fiche_${build.id}`) || null; } catch { return null; }
+  })();
+
+  if (!rawContent) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F7F7F5', gap: 8 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EBEBEA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Layout size={16} color="#BBBBBB" />
+        </div>
+        <span style={{ fontSize: 11, color: '#CCCCCC' }}>No preview</span>
+      </div>
+    );
+  }
+
+  // Strip code fences if any, wrap in a full HTML doc
+  const code = rawContent
+    .replace(/^```(?:jsx|javascript|react|html)?\n?/m, '')
+    .replace(/\n?```$/m, '');
+
+  const htmlDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    try {
+      ${code}
+    } catch(e) {
+      document.body.innerHTML = '<div style="padding:20px;color:#999;font-size:12px">Preview unavailable</div>';
+    }
+  </script>
+</body>
+</html>`;
+
+  return (
+    <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
+      <iframe
+        srcDoc={htmlDoc}
+        style={{
+          width: '300%',
+          height: '300%',
+          border: 'none',
+          transformOrigin: 'top left',
+          transform: 'scale(0.333)',
+          pointerEvents: 'none',
+          background: '#fff',
+        }}
+        sandbox="allow-scripts"
+        title={build.title}
+      />
+    </div>
+  );
 }
 
 function BuildCard({ build, index }) {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
 
-  // Try to get a preview iframe from rawContent stored in localStorage
-  const rawContent = (() => {
-    try { return localStorage.getItem(`fiche_${build.id}`) || null; } catch { return null; }
-  })();
-
-  const hasPreview = !!rawContent;
+  const initial = (build.title || build.preview || 'U').charAt(0).toUpperCase();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="flex flex-col gap-3 cursor-pointer group"
+      transition={{ duration: 0.35, delay: index * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
       onClick={() => navigate(`/chat?conversationId=${build.id}`)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10 }}
     >
-      {/* Preview thumbnail */}
-      <div
-        className="relative rounded-xl overflow-hidden border border-[#E8E8E6] bg-[#F7F7F5]"
-        style={{
-          aspectRatio: '16/10',
-          boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
-          transition: 'box-shadow 220ms ease, transform 220ms ease',
-          transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        }}
-      >
-        {hasPreview ? (
-          <iframe
-            srcDoc={`<!DOCTYPE html><html><head><script src="https://cdn.tailwindcss.com"></script><style>body{margin:0;overflow:hidden;pointer-events:none;transform-origin:top left;transform:scale(0.35);width:285%;height:285%;}</style></head><body>${rawContent.replace(/```(?:jsx|javascript|react)?\n?/g, '').replace(/```$/g, '')}</body></html>`}
-            className="w-full h-full border-0 pointer-events-none"
-            title={build.title}
-            sandbox="allow-scripts"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-8 h-8 rounded-lg bg-[#EBEBEA] flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBBBBB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M9 9h6M9 12h6M9 15h4"/>
-              </svg>
-            </div>
-          </div>
-        )}
+      {/* Thumbnail */}
+      <div style={{
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: '1px solid #E8E8E6',
+        aspectRatio: '16/10',
+        background: '#F7F7F5',
+        position: 'relative',
+        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.10)' : '0 2px 6px rgba(0,0,0,0.04)',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        transition: 'box-shadow 200ms ease, transform 200ms ease',
+      }}>
+        <BuildPreview build={build} />
 
         {/* Hover overlay */}
-        <div
-          className="absolute inset-0 flex items-center justify-center transition-opacity duration-200"
-          style={{ opacity: hovered ? 1 : 0, background: 'rgba(0,0,0,0.04)' }}
-        >
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full shadow-md text-[12px] font-semibold text-[#1A1A1A]">
-            Open <ArrowRight className="w-3 h-3" />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0,0,0,0.05)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 180ms ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fff', borderRadius: 999, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#1A1A1A', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
+            Open <ArrowRight size={12} />
           </div>
         </div>
       </div>
 
       {/* Meta */}
-      <div className="px-0.5">
-        <p className="text-[13px] font-semibold text-[#1A1A1A] truncate leading-snug">
-          {build.title || 'Untitled build'}
-        </p>
-        <p className="text-[11px] text-[#999999] flex items-center gap-1 mt-0.5">
-          <Clock className="w-3 h-3" />
-          {timeAgo(build.date || build.updatedAt)}
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Avatar */}
+        <div style={{ width: 26, height: 26, borderRadius: 999, background: '#8B9EB0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+          {initial}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+            {build.title || 'Untitled build'}
+          </p>
+          <p style={{ fontSize: 11, color: '#999', margin: 0, marginTop: 1 }}>
+            Edited {timeAgo(build.date || build.updatedAt)}
+          </p>
+        </div>
       </div>
     </motion.div>
   );
@@ -97,7 +153,6 @@ export default function BuildsGallery() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from cloud first, fallback to local
     loadDiscussionsFromCloud().then(cloudBuilds => {
       if (cloudBuilds.length > 0) {
         setBuilds(cloudBuilds.slice(0, 6));
@@ -116,23 +171,34 @@ export default function BuildsGallery() {
   if (loading || builds.length === 0) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 pb-12">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-[13px] font-semibold text-[#1A1A1A] tracking-tight">My builds</h2>
-        <button
-          onClick={() => navigate('/discussions')}
-          className="text-[12px] text-[#999999] hover:text-[#1A1A1A] transition-colors flex items-center gap-1"
-        >
-          View all <ArrowRight className="w-3 h-3" />
-        </button>
-      </div>
+    <div style={{ width: '100%', maxWidth: 720, margin: '0 auto', padding: '0 24px 48px' }}>
+      {/* Encadré card */}
+      <div style={{
+        background: '#fff',
+        border: '1px solid #E8E8E6',
+        borderRadius: 20,
+        padding: '20px 20px 24px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: 0 }}>My projects</h2>
+          <button
+            onClick={() => navigate('/discussions')}
+            style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0, fontFamily: 'inherit' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#1A1A1A'}
+            onMouseLeave={e => e.currentTarget.style.color = '#888'}
+          >
+            Browse all <ArrowRight size={13} />
+          </button>
+        </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {builds.map((build, i) => (
-          <BuildCard key={build.id} build={build} index={i} />
-        ))}
+        {/* Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {builds.map((build, i) => (
+            <BuildCard key={build.id} build={build} index={i} />
+          ))}
+        </div>
       </div>
     </div>
   );
