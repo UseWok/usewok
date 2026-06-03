@@ -10,68 +10,117 @@ function injectStyles() {
   if (_injected) return; _injected = true;
   const s = document.createElement('style');
   s.textContent = `
-    @keyframes ai-slide { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes ai-slide { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
     @keyframes shimmer-text {
       0%   { background-position: -400px 0; }
       100% { background-position:  400px 0; }
     }
-    @keyframes progress-bar {
-      from { width: 0%; }
-      to   { width: 100%; }
+    @keyframes streaming-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
   `;
   document.head.appendChild(s);
 }
 
-// ── Task 1: "Thinking..." with typewriter + Brain icon + shimmer light ──
+// ── Thinking indicator (while generating) ──
 function ThinkingIndicator() {
-  const FULL_TEXT = 'Thinking...';
-  const [displayed, setDisplayed] = useState('');
-  const idxRef = useRef(0);
-
-  useEffect(() => {
-    injectStyles();
-    idxRef.current = 0;
-    setDisplayed('');
-    const interval = setInterval(() => {
-      idxRef.current += 1;
-      setDisplayed(FULL_TEXT.slice(0, idxRef.current));
-      if (idxRef.current >= FULL_TEXT.length) clearInterval(interval);
-    }, 60);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 9, animation: 'ai-slide 200ms ease-out both' }}>
-      {/* Brain icon — same color as text, no effects */}
-      <Brain style={{ width: 15, height: 15, flexShrink: 0, color: '#9CA3AF' }} />
-
-      {/* Shimmer typewriter text */}
+      <Brain style={{ width: 14, height: 14, flexShrink: 0, color: '#9CA3AF' }} />
       <span style={{
-        fontSize: 13,
-        fontWeight: 500,
-        letterSpacing: '0.01em',
-        background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #C4B5FD 50%, #9CA3AF 70%, #6B7280 100%)',
+        fontSize: 13, fontWeight: 500, letterSpacing: '0.01em',
+        background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #A8B5C8 50%, #9CA3AF 70%, #6B7280 100%)',
         backgroundSize: '400px 100%',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        animation: 'shimmer-text 2s linear infinite',
-        minWidth: 80,
+        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text', animation: 'shimmer-text 2s linear infinite',
       }}>
-        {displayed}
+        Thinking...
       </span>
     </div>
   );
 }
 
-// ── Task 3: Code preview box — real rawContent, simulated scroll ──
+// ── Thinking accordion — open by default, collapsible ──
+function ThinkingAccordion({ thinkingText }) {
+  const [isOpen, setIsOpen] = useState(true); // always open by default
+
+  if (!thinkingText) return null;
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setIsOpen(o => !o)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '3px 0', outline: 'none', userSelect: 'none',
+        }}
+      >
+        <Brain style={{ width: 13, height: 13, color: '#9CA3AF', flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.01em', fontFamily: 'Inter, sans-serif' }}>
+          Thinking
+        </span>
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          style={{ display: 'inline-flex', color: '#BBBBBB' }}
+        >
+          <ChevronDown style={{ width: 12, height: 12 }} />
+        </motion.span>
+      </button>
+
+      {/* Body — smooth height animation, no bounce */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="thinking-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{
+              marginTop: 6,
+              padding: '12px 14px',
+              background: '#F9FAFB',
+              border: '1px solid #E5E7EB',
+              borderLeft: '3px solid #D1D5DB',
+              borderRadius: 8,
+              fontSize: 12.5,
+              color: '#4B5563',
+              lineHeight: 1.8,
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => <p style={{ margin: '0 0 8px 0', color: '#4B5563', lineHeight: 1.8 }}>{children}</p>,
+                  li: ({ children }) => <li style={{ marginBottom: 4, color: '#4B5563' }}>{children}</li>,
+                  ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ol>,
+                  strong: ({ children }) => <strong style={{ color: '#111827', fontWeight: 600 }}>{children}</strong>,
+                }}
+              >
+                {thinkingText}
+              </ReactMarkdown>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Code preview box — open by default, scrollable, metadata outside ──
 function CodePreviewBox({ code }) {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
   const preRef = useRef(null);
   const idxRef = useRef(0);
-  const SPEED = 4; // chars per tick (fast scroll feel)
+  const SPEED = 12; // faster streaming feel
 
   useEffect(() => {
     if (!code) return;
@@ -82,10 +131,7 @@ function CodePreviewBox({ code }) {
       idxRef.current = Math.min(idxRef.current + SPEED, code.length);
       setDisplayed(code.slice(0, idxRef.current));
       if (preRef.current) preRef.current.scrollTop = preRef.current.scrollHeight;
-      if (idxRef.current >= code.length) {
-        clearInterval(interval);
-        setDone(true);
-      }
+      if (idxRef.current >= code.length) { clearInterval(interval); setDone(true); }
     }, 16);
     return () => clearInterval(interval);
   }, [code]);
@@ -93,149 +139,64 @@ function CodePreviewBox({ code }) {
   const progress = code ? Math.round((displayed.length / code.length) * 100) : 0;
 
   return (
-    <div style={{ marginTop: 10, marginBottom: 4 }}>
-      {/* Code box — 6 lines tall */}
-      <div style={{
-        border: '1px solid #E5E7EB',
-        borderRadius: 8,
-        background: '#FFFFFF',
-        overflow: 'hidden',
-      }}>
+    <div style={{ marginTop: 6 }}>
+      {/* Code box — scrollable content */}
+      <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, background: '#FFFFFF', overflow: 'hidden' }}>
+        {/* Top bar */}
+        <div style={{ padding: '7px 14px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 999, background: '#F87171', display: 'block' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 999, background: '#FBBF24', display: 'block' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 999, background: '#34D399', display: 'block' }} />
+          </div>
+          <span style={{ fontSize: 10.5, color: '#9CA3AF', fontFamily: 'ui-monospace, monospace', marginLeft: 4 }}>
+            component.jsx
+          </span>
+        </div>
+
+        {/* Scrollable code area */}
         <pre ref={preRef} style={{
-          margin: 0,
-          padding: '10px 14px',
-          height: 126, // ~6 lines at 21px each
-          overflowY: 'hidden',
-          fontSize: 11,
-          lineHeight: '21px',
+          margin: 0, padding: '12px 14px',
+          height: 160,
+          overflowY: 'auto',
+          fontSize: 11, lineHeight: '20px',
           color: '#374151',
           fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
-          whiteSpace: 'pre',
-          wordBreak: 'normal',
+          whiteSpace: 'pre', wordBreak: 'normal',
           background: 'transparent',
         }}>
           {displayed}
+          {!done && <span style={{ animation: 'streaming-cursor 0.8s ease-in-out infinite', color: '#6B7280' }}>▌</span>}
         </pre>
 
-        {/* Progress bar — single grey line */}
-        <div style={{ height: 1, background: '#F3F4F6', position: 'relative' }}>
+        {/* Progress bar */}
+        <div style={{ height: 2, background: '#F3F4F6', position: 'relative' }}>
           <div style={{
             position: 'absolute', top: 0, left: 0, height: '100%',
-            background: '#9CA3AF',
+            background: done ? '#10B981' : '#6B7280',
             width: `${progress}%`,
-            transition: 'width 0.1s linear',
+            transition: 'width 0.08s linear, background 0.3s ease',
             borderRadius: 1,
           }} />
         </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: '5px 14px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <span style={{ fontSize: 10, color: '#9CA3AF', fontFamily: 'ui-monospace, monospace' }}>
-            {done ? `${code.length.toLocaleString()} chars` : `${displayed.length.toLocaleString()} / ${code.length.toLocaleString()}`}
-          </span>
-          {done && (
-            <motion.span
-              initial={{ opacity: 0, y: 3 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ fontSize: 10.5, color: '#6B7280', fontWeight: 500 }}
-            >
-              Done
-            </motion.span>
-          )}
-        </div>
       </div>
-    </div>
-  );
-}
 
-// ── Thinking accordion — clean, integrated, smooth ──
-function ThinkingAccordion({ thinkingText, autoOpen = false }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const hasAutoOpened = useRef(false);
-
-  useEffect(() => {
-    if (autoOpen && !hasAutoOpened.current && thinkingText) {
-      hasAutoOpened.current = true;
-      setIsOpen(true);
-      const t = setTimeout(() => setIsOpen(false), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [autoOpen, thinkingText]);
-
-  if (!thinkingText) return null;
-
-  return (
-    <div style={{ marginBottom: 12 }}>
-      {/* Trigger row */}
-      <button
-        onClick={() => setIsOpen(o => !o)}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: 'none', border: 'none', cursor: 'pointer',
-          padding: '3px 0', outline: 'none',
-          userSelect: 'none',
-        }}
-      >
-        <Brain style={{ width: 13, height: 13, color: '#C4B5FD', flexShrink: 0 }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', letterSpacing: '0.01em', fontFamily: 'Inter, sans-serif' }}>
-          Thinking
+      {/* Metadata — outside the box */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 5, padding: '0 2px' }}>
+        <span style={{ fontSize: 11, color: '#AAAAAA', fontFamily: 'ui-monospace, monospace' }}>
+          {done ? `${code.length.toLocaleString()} chars` : `${displayed.length.toLocaleString()} / ${code.length.toLocaleString()} chars`}
         </span>
-        <motion.span
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-          style={{ display: 'inline-flex', color: '#C4B5FD' }}
-        >
-          <ChevronDown style={{ width: 12, height: 12 }} />
-        </motion.span>
-      </button>
-
-      {/* Accordion body */}
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{ overflow: 'hidden' }}
+        {done && (
+          <motion.span
+            initial={{ opacity: 0, y: 2 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ fontSize: 11, color: '#10B981', fontWeight: 500 }}
           >
-            <div style={{
-              marginTop: 6,
-              padding: '14px 16px',
-              background: '#FAFAF9',
-              border: '1px solid #EBEBEA',
-              borderLeft: '2px solid #C4B5FD',
-              borderRadius: 8,
-              fontSize: 12.5,
-              color: '#4B5563',
-              lineHeight: 1.85,
-              maxHeight: 360,
-              overflowY: 'auto',
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  p: ({ children }) => <p style={{ margin: '0 0 10px 0', color: '#4B5563', lineHeight: 1.85 }}>{children}</p>,
-                  li: ({ children }) => <li style={{ marginBottom: 6, color: '#4B5563', lineHeight: 1.8 }}>{children}</li>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: 18, marginBottom: 10 }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: 18, marginBottom: 10 }}>{children}</ol>,
-                  strong: ({ children }) => <strong style={{ color: '#111827', fontWeight: 600 }}>{children}</strong>,
-                  h1: ({ children }) => <h1 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '14px 0 6px' }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ fontSize: 12.5, fontWeight: 700, color: '#111827', margin: '12px 0 5px' }}>{children}</h2>,
-                  h3: ({ children }) => <h3 style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '10px 0 4px' }}>{children}</h3>,
-                }}
-              >
-                {thinkingText}
-              </ReactMarkdown>
-            </div>
-          </motion.div>
+            ✓ Done
+          </motion.span>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -296,47 +257,43 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     }
   }, [isGenerating, localGenerating]);
 
-  // Task 1: While generating → Brain + shimmer typewriter "Thinking..."
-  if (localGenerating) {
-    return <ThinkingIndicator />;
-  }
-
+  // While generating → shimmer "Thinking..." indicator
+  if (localGenerating) return <ThinkingIndicator />;
   if (!content) return null;
+
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);
   const { thinkingText, finalText } = parseThinking(safeText);
-
   const shouldAutoOpen = isNewMessage.current;
   if (shouldAutoOpen) isNewMessage.current = false;
 
-  // ── "Interface ready" — show thinking accordion + real code preview ──
-  if (
+  // ── Code generation result ──
+  const isCodeResult =
     finalText.includes('Architecture generated') ||
     finalText.includes('Architecture successfully') ||
     finalText.includes('successfully recompiled') ||
-    finalText.includes('✨ Architecture')
-  ) {
-    // Extract raw code from rawContent (strip fences if present)
+    finalText.includes('✨ Architecture');
+
+  if (isCodeResult) {
     let codeForPreview = rawContent || '';
     const fenceMatch = codeForPreview.match(/```(?:jsx|javascript|react)?\n?([\s\S]*?)```/);
     if (fenceMatch) codeForPreview = fenceMatch[1];
 
     return (
       <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
-        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} autoOpen={shouldAutoOpen} />}
-        {/* Task 3: real code scrolling box */}
+        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
         {codeForPreview && <CodePreviewBox code={codeForPreview} />}
       </div>
     );
   }
 
-  // ── Package install detection ──
+  // ── Package install ──
   const packageLines = finalText.match(/@[\w\-/.]+@[\^~\d.]+/g);
   if (packageLines && packageLines.length > 0 && !approved && !rejected) {
     const installIdx = finalText.search(/install\s+\d*\s*packages?:/i);
     const beforeInstall = installIdx > 0 ? finalText.substring(0, installIdx).trim() : null;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, animation: 'ai-slide 150ms ease-out both' }}>
-        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} autoOpen={shouldAutoOpen} />}
+        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
         {beforeInstall && <p style={{ fontSize: 13, color: '#333333', lineHeight: 1.65, margin: 0 }}>{beforeInstall}</p>}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4A90D9', flexShrink: 0, display: 'inline-block' }} />
@@ -355,7 +312,7 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
 
   return (
     <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
-      {thinkingText && <ThinkingAccordion thinkingText={thinkingText} autoOpen={shouldAutoOpen} />}
+      {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
       <div style={{ fontSize: 13, color: '#333333', lineHeight: 1.65, fontFamily: 'Inter, sans-serif' }}>
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
       </div>

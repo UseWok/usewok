@@ -107,7 +107,13 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [files, setFiles] = useState([]);
-  const [ficheContent, setFicheContent] = useState(null);
+  // Restore last generated content on mount (F5 persistence)
+  const [ficheContent, setFicheContent] = useState(() => {
+    try {
+      const key = `fiche_${conversationId || convIdRef.current}`;
+      return localStorage.getItem(key) || null;
+    } catch { return null; }
+  });
   const [discussMode, setDiscussMode] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [runtimeError, setRuntimeError] = useState(null);
@@ -465,8 +471,16 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       if (safe.length > 0) {
         setMessages(safe);
         saveConversationMessages(conversationId, safe);
-        const last = safe.filter((m) => m.role === 'assistant').pop();
-        setFicheContent(last?.rawContent || last?.content || null);
+        const last = safe.filter((m) => m.role === 'assistant' && m.rawContent).pop();
+        const restoredContent = last?.rawContent || null;
+        if (restoredContent) {
+          setFicheContent(restoredContent);
+          localStorage.setItem(`fiche_${conversationId}`, restoredContent);
+        } else {
+          // Try localStorage fallback
+          const stored = localStorage.getItem(`fiche_${conversationId}`);
+          if (stored) setFicheContent(stored);
+        }
       }
       setIsLoadingConversation(false);
     };
@@ -476,6 +490,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   useEffect(() => {
     if (runtimeError && !isLoading) { setPendingError(runtimeError); setRuntimeError(null); }
   }, [runtimeError, isLoading]);
+
+  // Persist ficheContent to localStorage for F5 reload
+  useEffect(() => {
+    const key = `fiche_${conversationId || convId}`;
+    if (ficheContent) localStorage.setItem(key, ficheContent);
+  }, [ficheContent, conversationId, convId]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
