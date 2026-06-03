@@ -552,7 +552,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
 
           {/* ── Right: Preview panel ── */}
           <Panel defaultSize={68} className="relative overflow-hidden bg-white">
-            <div style={{ position: 'absolute', inset: 16, borderRadius: Math.max(0, CARD_RADIUS - 4), overflow: 'hidden', background: '#FFFFFF', border: '0.25px solid rgba(229,229,229,0.5)' }}>
+            <div style={{ position: 'absolute', inset: 13, borderRadius: Math.max(0, CARD_RADIUS - 4), overflow: 'hidden', background: '#FFFFFF', border: '0.25px solid rgba(229,229,229,0.5)' }}>
               <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
               {ficheContent && (
