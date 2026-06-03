@@ -16,9 +16,8 @@ export const COLLAPSED_W = 54;
 export const EXPANDED_W  = 240;
 export const SIDEBAR_MARGIN = 0;
 
-// ── Claude-style spring: tiny fake delay, very fast, decelerates at the end ──
-const OPEN_TRANSITION  = { duration: 0.28, ease: [0.05, 0.7, 0.1, 1.0], delay: 0.04 };
-const CLOSE_TRANSITION = { duration: 0.22, ease: [0.4, 0, 0.8, 0.2], delay: 0 };
+// ── Single transition — no delay so buttons don't lag ──
+const SIDEBAR_TRANSITION = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
 
 // ── Section label (only visible when expanded) ──
 const SectionLabel = ({ children, visible }) => (
@@ -48,53 +47,54 @@ const NavItem = ({ icon: Icon, label, onClick, active, shortcut, expanded }) => 
     title={!expanded ? label : undefined}
     style={{
       display: 'flex', alignItems: 'center',
-      gap: expanded ? 10 : 0,
-      justifyContent: expanded ? 'flex-start' : 'center',
       width: '100%',
-      padding: expanded ? '7px 12px' : '9px 0',
+      height: 34,
+      padding: expanded ? '0 12px' : '0',
+      justifyContent: expanded ? 'flex-start' : 'center',
       borderRadius: 8,
       background: active ? '#F0F0EE' : 'transparent',
       border: 'none', cursor: 'pointer',
       transition: 'background 120ms',
       color: active ? '#111' : '#555',
       flexShrink: 0,
+      overflow: 'hidden',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F5F5F5'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    {Icon && (
+    {/* Icon — always centered in a fixed 22px slot */}
+    {Icon ? (
       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, flexShrink: 0 }}>
-        <Icon style={{ width: 17, height: 17, color: active ? '#111' : '#555' }} />
+        <Icon style={{ width: 17, height: 17 }} />
+      </span>
+    ) : (
+      /* No-icon items (recents) get a dot placeholder */
+      expanded ? <span style={{ width: 6, height: 6, borderRadius: 999, background: '#D0D0D0', flexShrink: 0, marginLeft: 8 }} /> : null
+    )}
+    {/* Label — hidden via opacity/width, no AnimatePresence to avoid layout jumps */}
+    <span style={{
+      fontSize: 13.5, fontWeight: active ? 600 : 450,
+      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      marginLeft: Icon ? 10 : 8,
+      opacity: expanded ? 1 : 0,
+      maxWidth: expanded ? 160 : 0,
+      transition: 'opacity 0.18s ease, max-width 0.18s ease',
+      flex: expanded ? 1 : '0 0 0',
+    }}>
+      {label}
+    </span>
+    {/* Shortcut keys */}
+    {shortcut && (
+      <span style={{
+        display: 'flex', gap: 3, flexShrink: 0, marginLeft: 'auto',
+        opacity: expanded ? 1 : 0,
+        transition: 'opacity 0.15s ease',
+      }}>
+        {shortcut.map((k, i) => (
+          <kbd key={i} style={{ fontSize: 10, fontFamily: 'monospace', background: '#EDEDED', border: '1px solid #D9D9D9', borderRadius: 4, padding: '1px 5px', color: '#777' }}>{k}</kbd>
+        ))}
       </span>
     )}
-    <AnimatePresence>
-      {expanded && (
-        <motion.span
-          initial={{ opacity: 0, x: -6 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -4 }}
-          transition={{ duration: 0.16, delay: 0.06 }}
-          style={{ fontSize: 13.5, fontWeight: active ? 600 : 450, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {label}
-        </motion.span>
-      )}
-    </AnimatePresence>
-    <AnimatePresence>
-      {expanded && shortcut && (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.12, delay: 0.1 }}
-          style={{ display: 'flex', gap: 3, flexShrink: 0 }}
-        >
-          {shortcut.map((k, i) => (
-            <kbd key={i} style={{ fontSize: 10, fontFamily: 'monospace', background: '#EDEDED', border: '1px solid #D9D9D9', borderRadius: 4, padding: '1px 5px', color: '#777' }}>{k}</kbd>
-          ))}
-        </motion.span>
-      )}
-    </AnimatePresence>
   </button>
 );
 
@@ -145,7 +145,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   }, []);
 
   const isFree = !userPlan || userPlan.price_monthly === 0;
-  const trans = expanded ? OPEN_TRANSITION : CLOSE_TRANSITION;
 
   return (
     <>
@@ -165,7 +164,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       <motion.aside
         initial={false}
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
-        transition={trans}
+        transition={SIDEBAR_TRANSITION}
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0,
           zIndex: 40, overflow: 'hidden',
@@ -192,7 +191,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.18, delay: 0.05 }}
-                style={{ fontSize: 20, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.03em', lineHeight: 1, fontFamily: 'Inter, system-ui, sans-serif', userSelect: 'none' }}
+                style={{ fontSize: 22, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.01em', lineHeight: 1, fontFamily: "'Barlow Condensed', system-ui, sans-serif", fontStyle: 'italic', userSelect: 'none' }}
               >
                 WOK
               </motion.span>
