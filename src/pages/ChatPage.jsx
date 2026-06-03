@@ -39,7 +39,7 @@ import {
   getConversationMessages, saveConversationMessages
 } from '@/lib/chat-storage';
 import {
-  PROMPT_ARCHITECT, PROMPT_DATA_INSIGHT, PROMPT_AUTO_FIX,
+  PROMPT_ARCHITECT, PROMPT_DATA_INSIGHT, PROMPT_AUTO_FIX, PROMPT_THINKING,
   CHOCOLATINE_CODE, MODIFY_KEYWORDS, DATA_QUERY_KEYWORDS
 } from '@/lib/chat-prompts';
 
@@ -73,7 +73,7 @@ export default function ChatPage() {
 
   // ── UI state ──
   const [viewMode, setViewMode] = useState('preview');
-  const [containerSize, setContainerSize] = useState({ width: 96, height: 94 });
+  const [containerSize, setContainerSize] = useState({ width: 77, height: 75 });
   const containerRef = useRef(null);
   const [customSlug] = useState(convId || `conv_${Date.now().toString().slice(-6)}`);
   const [appSettings, setAppSettings] = useState({
@@ -312,7 +312,7 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Pre-analysis gatekeeper ──
+      // ── Pre-analysis gatekeeper (gpt_5_mini) ──
       const preAnalysisPayload = {
         prompt: `You are the creative director of Wok — a next-generation AI interface studio. Users describe what they want to build and you decide if there is enough signal to begin.
 
@@ -325,7 +325,7 @@ Rules:
 - If sufficient=true, return an empty reply string.
 
 Reply JSON: { "sufficient": true/false, "reply": "..." }`,
-        model: 'gpt_5_mini', // thinking/routing — 4o mini
+        model: 'gpt_5_mini',
         response_json_schema: { type: 'object', properties: { sufficient: { type: 'boolean' }, reply: { type: 'string' } } }
       };
       const preAnalysis = await cachedAIRequest(preAnalysisPayload, () => base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload }));
@@ -355,6 +355,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
         : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
 
+      // ── Thinking layer (gpt_5_mini — o1-mini style) ──
+      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: 'gpt_5_mini' };
+      const thinkingResult = await cachedAIRequest(thinkingPayload, () => base44.integrations.Core.InvokeLLM({ ...thinkingPayload }));
+      const thinkingBlock = typeof thinkingResult === 'string' ? thinkingResult : '';
+
+      // ── Architect builder (gemini_3_1_pro) ──
       const codePayload = { prompt: architectPrompt, model: 'gemini_3_1_pro' };
       const codeResult = await cachedAIRequest(codePayload, () => base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal }));
 
@@ -372,21 +378,17 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       const bt = String.fromCharCode(96);
       let fullLLMResponse = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
 
-      // Extract <thinking> block to pass to the chat message
-      const thinkingMatch = fullLLMResponse.match(/<thinking>([\s\S]*?)<\/thinking>/i);
-      const thinkingBlock = thinkingMatch ? thinkingMatch[0] : '';
-
-      // Strip thinking block to get clean code response
+      // Strip any thinking block the architect may have emitted (we use our dedicated one)
       let codeOnly = fullLLMResponse.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
       if (!codeOnly.includes(bt)) codeOnly = `${bt}${bt}${bt}jsx\n${codeOnly}\n${bt}${bt}${bt}`;
 
       // rawContent = clean code for the preview iframe
       const rawContent = codeOnly;
 
-      // chatDisplayContent = thinking block + human-readable message (no code blobs)
+      // chatDisplayContent — strip code blobs, keep only readable text
       const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
       let chatDisplayContent = codeOnly.replace(codeBlockRegex, '').trim() || "Architecture generated successfully.";
-      // Prepend thinking block so AssistantMessage can parse and show it
+      // Prepend dedicated thinking block (from gpt_5_mini) so AssistantMessage can parse it
       const finalContent = thinkingBlock
         ? thinkingBlock + '\n\n' + (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent)
         : (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent);
