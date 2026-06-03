@@ -61,6 +61,7 @@ import AdminBlog from './pages/admin/AdminBlog';
 import CockpitPage from './pages/CockpitPage';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import WorkspaceSettings from './pages/WorkspaceSettings';
 import AdminPanel from './pages/admin/AdminPanel';
 import UIShowcase from './pages/UIShowcase';
 import Register from './pages/Register';
@@ -200,6 +201,7 @@ const AuthenticatedApp = () => {
 
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/cockpit" element={<CockpitPage />} />
+          <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
 
           <Route path="/ai-dna" element={<AIControlTower />} />

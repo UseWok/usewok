@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Home, Search, Layers, Zap, MessageSquare, Star,
-  Settings, CreditCard, HelpCircle, X, Check, Ticket,
-  Users, Plus, LogOut, User, Palette, BookOpen, ChevronDown,
+  Home, Search, Star, Zap, X, Check, Ticket,
+  Users, Plus, LogOut, User, Palette, BookOpen,
+  ChevronDown, LayoutGrid, Gift, Inbox, Compass,
+  Network, UserRound, UsersRound,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
@@ -13,188 +14,149 @@ import { getLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 
 export const COLLAPSED_W = 54;
-export const EXPANDED_W  = 240;
+export const EXPANDED_W  = 256;
 export const SIDEBAR_MARGIN = 0;
 
 const SIDEBAR_TRANSITION = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
 
-// ── Section label ──
-const SectionLabel = ({ children }) => (
-  <p style={{
-    fontSize: 11, fontWeight: 600, color: '#B0B0B0',
-    textTransform: 'uppercase', letterSpacing: '0.07em',
-    padding: '14px 14px 5px', margin: 0, whiteSpace: 'nowrap',
-  }}>
-    {children}
-  </p>
-);
-
-// ── Nav item ──
-const NavItem = ({ icon: Icon, label, onClick, active, shortcut, expanded, hideWhenCollapsed }) => {
-  if (!expanded && hideWhenCollapsed) return null;
-  return (
-    <button
-      onClick={onClick}
-      title={!expanded ? label : undefined}
-      style={{
-        display: 'flex', alignItems: 'center',
-        width: '100%', height: 34,
-        padding: expanded ? '0 12px' : '0',
-        justifyContent: expanded ? 'flex-start' : 'center',
-        borderRadius: 8,
-        background: active ? '#F0F0EE' : 'transparent',
-        border: 'none', cursor: 'pointer',
-        transition: 'background 120ms',
-        color: active ? '#111' : '#555',
-        flexShrink: 0, overflow: 'hidden',
-        textAlign: 'left',
-      }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F5F5F5'; }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-    >
-      {Icon ? (
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, flexShrink: 0 }}>
-          <Icon style={{ width: 17, height: 17 }} />
-        </span>
-      ) : (
-        expanded ? <span style={{ width: 6, height: 6, borderRadius: 999, background: '#D0D0D0', flexShrink: 0, marginLeft: 8 }} /> : null
-      )}
-      <span style={{
-        fontSize: 13.5, fontWeight: active ? 600 : 450,
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        marginLeft: Icon ? 10 : 8,
-        opacity: expanded ? 1 : 0,
-        maxWidth: expanded ? 160 : 0,
-        transition: 'opacity 0.18s ease, max-width 0.18s ease',
-        flex: expanded ? 1 : '0 0 0',
-      }}>
-        {label}
-      </span>
-      {shortcut && (
-        <span style={{
-          display: 'flex', gap: 3, flexShrink: 0, marginLeft: 'auto',
-          opacity: expanded ? 1 : 0, transition: 'opacity 0.15s ease',
-        }}>
-          {shortcut.map((k, i) => (
-            <kbd key={i} style={{ fontSize: 10, fontFamily: 'monospace', background: '#EDEDED', border: '1px solid #D9D9D9', borderRadius: 4, padding: '1px 5px', color: '#777' }}>{k}</kbd>
-          ))}
-        </span>
-      )}
-    </button>
-  );
-};
-
-// ── Avatar ──
-function Avatar({ user, size = 28, forceRed = false }) {
+// ── Avatar (circle) ──
+function Avatar({ user, size = 28, forceRed = false, square = false }) {
   const initial = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
-  const bg = forceRed ? '#E53935' : getUserColor(user);
+  const bg = forceRed ? '#C0392B' : '#8B9EB0';
   return (
     <div style={{
-      width: size, height: size, borderRadius: 999,
+      width: size, height: size,
+      borderRadius: square ? 8 : 999,
       background: bg, color: '#fff',
       fontSize: size * 0.42, fontWeight: 700,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexShrink: 0,
+      flexShrink: 0, letterSpacing: '-0.01em',
     }}>
       {initial}
     </div>
   );
 }
 
-// ── Workspace dropdown (inside sidebar, no overflow) ──
-function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreateWorkspace, onClose, creditsUsed, creditsLimit }) {
+// ── Workspace Dropdown Menu ──
+function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreateWorkspace, onClose, creditsUsed, creditsLimit, onSettings }) {
   const navigate = useNavigate();
+  const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
   const pct = creditsLimit > 0 ? Math.min(100, Math.round((creditsUsed / creditsLimit) * 100)) : 0;
-  const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: "My Workspace" };
+  const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'My Workspace' };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+      initial={{ opacity: 0, y: -4, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+      exit={{ opacity: 0, y: -4, scale: 0.98 }}
       transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
       style={{
-        position: 'absolute', top: '100%', left: 4, right: 4,
-        background: '#fff', border: '1px solid #E8E8E6', borderRadius: 12,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 999,
-        overflow: 'hidden', marginTop: 4,
+        position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+        background: '#fff', border: '1px solid #E8E8E6', borderRadius: 14,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 999,
+        overflow: 'hidden',
       }}
       onClick={e => e.stopPropagation()}
     >
       {/* Header */}
-      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid #F0F0F0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <Avatar user={user} size={32} forceRed />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {currentWs.name}
-            </div>
-            <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>
-              {userPlan?.name || 'Free'} · {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
-            </div>
+      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #F2F2F2' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0 }}>
+            {currentWs.name?.charAt(0).toUpperCase() || 'W'}
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#111', lineHeight: 1.3 }}>{currentWs.name}</div>
+            <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{userPlan?.name || 'Free'} Plan · 1 member</div>
           </div>
         </div>
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => { navigate('/settings'); onClose(); }}
-            style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 500, color: '#444', background: '#F5F5F5', border: '1px solid #E8E8E6', borderRadius: 7, cursor: 'pointer', textAlign: 'left', paddingLeft: 10, display: 'flex', alignItems: 'center', gap: 5 }}
+            onClick={() => { onSettings(); onClose(); }}
+            style={{ flex: 1, padding: '7px 10px', fontSize: 13, fontWeight: 500, color: '#333', background: '#F5F5F5', border: '1px solid #E8E8E6', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = '#ECECEC'}
             onMouseLeave={e => e.currentTarget.style.background = '#F5F5F5'}
           >
-            <Settings style={{ width: 12, height: 12 }} /> Settings
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            Settings
           </button>
           <button
             onClick={() => { toast.info('Invite members coming soon'); onClose(); }}
-            style={{ flex: 1, padding: '5px 0', fontSize: 12, fontWeight: 500, color: '#444', background: '#F5F5F5', border: '1px solid #E8E8E6', borderRadius: 7, cursor: 'pointer', textAlign: 'right', paddingRight: 10, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}
+            style={{ flex: 1, padding: '7px 10px', fontSize: 13, fontWeight: 500, color: '#333', background: '#F5F5F5', border: '1px solid #E8E8E6', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = '#ECECEC'}
             onMouseLeave={e => e.currentTarget.style.background = '#F5F5F5'}
           >
-            <Users style={{ width: 12, height: 12 }} /> Invite
+            <UserRound style={{ width: 14, height: 14 }} /> Invite members
+          </button>
+        </div>
+      </div>
+
+      {/* Turn Pro */}
+      <div style={{ padding: '10px 12px', borderBottom: '1px solid #F2F2F2' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8F8F8', borderRadius: 10, padding: '10px 12px', border: '1px solid #EBEBEB' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Zap style={{ width: 16, height: 16, color: '#111' }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Turn Pro</span>
+          </div>
+          <button
+            onClick={() => { navigate('/pricing'); onClose(); }}
+            style={{ padding: '6px 14px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#2563EB', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'background 120ms' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#1D4ED8'}
+            onMouseLeave={e => e.currentTarget.style.background = '#2563EB'}
+          >
+            Upgrade
           </button>
         </div>
       </div>
 
       {/* Credits */}
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid #F5F5F5' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-          <span style={{ fontSize: 11, color: '#888' }}>Credits</span>
-          <span style={{ fontSize: 11, color: '#555', fontWeight: 600 }}>{creditsUsed} / {creditsLimit}</span>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid #F2F2F2' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Credits</span>
+          <span style={{ fontSize: 13, color: '#555', cursor: 'pointer' }}>{creditsLeft} left &gt;</span>
         </div>
-        <div style={{ height: 4, background: '#F0F0F0', borderRadius: 999, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: pct > 80 ? '#EF4444' : '#6366F1', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        <div style={{ height: 8, background: '#E8E8E8', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 7, height: 7, borderRadius: 999, background: '#BBBBBB', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: '#888' }}>Daily credits reset at midnight UTC</span>
         </div>
       </div>
 
-      {/* Workspaces list */}
-      <div style={{ padding: '6px 0' }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: '#BBBBBB', textTransform: 'uppercase', letterSpacing: '0.07em', padding: '4px 14px 6px' }}>All Workspaces</div>
+      {/* All workspaces */}
+      <div style={{ padding: '8px 0' }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', padding: '4px 16px 8px' }}>All workspaces</div>
         {workspaces.map(ws => (
           <button
             key={ws.id}
             onClick={() => { onSwitchWorkspace(ws.id); onClose(); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: ws.current ? '#F5F5FF' : 'transparent', cursor: 'pointer', fontSize: 13, color: '#333', transition: 'background 100ms', textAlign: 'left' }}
-            onMouseEnter={e => { if (!ws.current) e.currentTarget.style.background = '#F7F7F7'; }}
-            onMouseLeave={e => { if (!ws.current) e.currentTarget.style.background = 'transparent'; }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 16px', border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 100ms', textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F7F7F7'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: ws.current ? '#6366F1' : '#E0E0E0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: ws.current ? '#fff' : '#777', flexShrink: 0 }}>
-              {ws.name?.charAt(0).toUpperCase() || 'W'}
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {ws.name?.charAt(0).toUpperCase()}
             </div>
-            <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-            {ws.current && <div style={{ width: 6, height: 6, borderRadius: 999, background: '#6366F1', flexShrink: 0 }} />}
+            <span style={{ flex: 1, fontSize: 14, color: '#111', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#666', background: '#F0F0F0', borderRadius: 5, padding: '2px 7px', flexShrink: 0 }}>{ws.current ? 'FREE' : 'INACTIVE'}</span>
+            {ws.current && <Check style={{ width: 15, height: 15, color: '#666', flexShrink: 0 }} />}
           </button>
         ))}
       </div>
 
       {/* Create workspace */}
-      <div style={{ padding: '4px 6px 8px', borderTop: '1px solid #F0F0F0' }}>
+      <div style={{ borderTop: '1px solid #F2F2F2', padding: '4px 0' }}>
         <button
           onClick={() => { onCreateWorkspace(); onClose(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#555', borderRadius: 8, transition: 'background 100ms' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 14, color: '#333', fontWeight: 500, transition: 'background 100ms' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#F7F7F7'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <Plus style={{ width: 14, height: 14 }} /> Create a workspace
+          <Plus style={{ width: 16, height: 16 }} /> Create new workspace
         </button>
       </div>
     </motion.div>
@@ -209,10 +171,10 @@ function ProfileMenu({ user, onClose }) {
 
   const links = [
     { icon: User, label: 'Profile', action: () => { navigate('/settings'); onClose(); } },
-    { icon: Settings, label: 'Settings', action: () => { navigate('/settings'); onClose(); } },
+    { icon: svgSettings, label: 'Settings', action: () => { navigate('/settings'); onClose(); } },
     { icon: Palette, label: 'Appearance', action: () => { navigate('/settings'); onClose(); } },
-    { icon: HelpCircle, label: 'Support', action: () => { navigate('/support'); onClose(); } },
-    { icon: BookOpen, label: 'Documentation', action: () => { toast.info('Documentation coming soon'); onClose(); } },
+    { icon: BookOpen, label: 'Support', action: () => { navigate('/support'); onClose(); } },
+    { icon: BookOpen, label: 'Documentation', action: () => { toast.info('Coming soon'); onClose(); } },
     { icon: Home, label: 'Home', action: () => { navigate('/app'); onClose(); } },
   ];
 
@@ -221,46 +183,40 @@ function ProfileMenu({ user, onClose }) {
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.97 }}
-      transition={{ duration: 0.14, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.14 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 4px)', left: 4, right: 4,
+        position: 'absolute', bottom: 'calc(100% + 6px)', left: 4, right: 4,
         background: '#fff', border: '1px solid #E8E8E6', borderRadius: 12,
         boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 999, overflow: 'hidden',
       }}
       onClick={e => e.stopPropagation()}
     >
-      {/* Header */}
       <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 10 }}>
         <Avatar user={user} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {user?.full_name || 'User'}
           </div>
-          <div style={{ fontSize: 11, color: '#888', whiteSpace: 'nowrap' }} title={email}>
-            {truncatedEmail}
-          </div>
+          <div style={{ fontSize: 11, color: '#888' }} title={email}>{truncatedEmail}</div>
         </div>
       </div>
-
-      {/* Nav links */}
       <div style={{ padding: '4px 0' }}>
-        {links.map(({ icon: Icon, label, action }) => (
-          <button
-            key={label} onClick={action}
+        {[
+          { label: 'Profile', action: () => { navigate('/settings'); onClose(); } },
+          { label: 'Settings', action: () => { navigate('/settings'); onClose(); } },
+          { label: 'Appearance', action: () => { navigate('/settings'); onClose(); } },
+          { label: 'Support', action: () => { navigate('/support'); onClose(); } },
+          { label: 'Documentation', action: () => { toast.info('Coming soon'); onClose(); } },
+          { label: 'Home', action: () => { navigate('/app'); onClose(); } },
+        ].map(({ label, action }) => (
+          <button key={label} onClick={action}
             style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left' }}
             onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Icon style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} />
-            {label}
-          </button>
+          >{label}</button>
         ))}
       </div>
-
-      {/* Separator */}
-      <div style={{ height: 1, background: '#F0F0F0', margin: '2px 0' }} />
-
-      {/* Log out — NOT red */}
+      <div style={{ height: 1, background: '#F0F0F0' }} />
       <div style={{ padding: '4px 0 4px' }}>
         <button
           onClick={async () => { await base44.auth.logout(); window.location.reload(); }}
@@ -268,76 +224,55 @@ function ProfileMenu({ user, onClose }) {
           onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <LogOut style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} />
-          Log out
+          <LogOut style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} /> Log out
         </button>
       </div>
     </motion.div>
   );
 }
 
+// dummy ref to avoid unused var warning
+const svgSettings = null;
+
 // ── Create Workspace Modal ──
 function CreateWorkspaceModal({ open, onClose, onCreate }) {
   const [name, setName] = useState('');
-
   const handleCreate = () => {
     if (name.trim().length < 2) { toast.error('Name must be at least 2 characters'); return; }
-    onCreate(name.trim());
-    setName('');
-    onClose();
+    onCreate(name.trim()); setName(''); onClose();
   };
-
   return (
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
             style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
-            onClick={onClose}
-          />
+            onClick={onClose} />
           <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
               style={{ background: '#fff', borderRadius: 16, boxShadow: '0 24px 64px rgba(0,0,0,0.15)', width: '100%', maxWidth: 400, padding: 24, position: 'relative' }}
               onClick={e => e.stopPropagation()}
             >
-              <button
-                onClick={onClose}
+              <button onClick={onClose}
                 style={{ position: 'absolute', top: 16, right: 16, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#999' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <X style={{ width: 16, height: 16 }} />
               </button>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: '0 0 6px' }}>Create a workspace</h2>
               <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>Organize your projects in a dedicated space.</p>
               <label style={{ fontSize: 12, fontWeight: 600, color: '#555', display: 'block', marginBottom: 6 }}>Workspace name *</label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                placeholder="e.g. Marketing Team"
-                autoFocus
-                style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #E0E0E0', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: 'Inter, sans-serif' }}
-              />
+              <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                placeholder="e.g. Marketing Team" autoFocus
+                style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #E0E0E0', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: 'Inter, sans-serif' }} />
               <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={onClose}
-                  style={{ flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#555', background: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: 8, cursor: 'pointer' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreate}
+                <button onClick={onClose} style={{ flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#555', background: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={handleCreate}
                   style={{ flex: 2, padding: '10px 0', fontSize: 14, fontWeight: 600, color: '#fff', background: '#111', border: 'none', borderRadius: 8, cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#333'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#111'}
-                >
+                  onMouseLeave={e => e.currentTarget.style.background = '#111'}>
                   Create workspace
                 </button>
               </div>
@@ -355,12 +290,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const location = useLocation();
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showCodeModal, setShowCodeModal] = useState(false);
   const [showCreateWsModal, setShowCreateWsModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
   const [recents, setRecents] = useState([]);
   const [workspaces, setWorkspaces] = useState(() => {
     const saved = localStorage.getItem('wok_workspaces');
-    return saved ? JSON.parse(saved) : [{ id: 'default', name: 'My Workspace', current: true }];
+    return saved ? JSON.parse(saved) : [{ id: 'default', name: "Antoine's Lovable", current: true }];
   });
 
   const wsRef = useRef(null);
@@ -376,8 +311,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   }, []);
 
   useEffect(() => {
-    const workspacesData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
-    const wsId = workspacesData.find(w => w.current)?.id || 'default';
+    const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
+    const wsId = wsData.find(w => w.current)?.id || 'default';
     setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
   }, [expanded]);
 
@@ -396,224 +331,258 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
   const handleSwitchWorkspace = (wsId) => {
     const updated = workspaces.map(w => ({ ...w, current: w.id === wsId }));
-    setWorkspaces(updated);
-    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
+    setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
   };
-
   const handleCreateWorkspace = (name) => {
     if (workspaces.length >= 4) { toast.error('Maximum 4 workspaces'); return; }
     const newWs = { id: `ws_${Date.now()}`, name, current: true };
     const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
-    setWorkspaces(updated);
-    localStorage.setItem('wok_workspaces', JSON.stringify(updated));
+    setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
     toast.success('Workspace created');
   };
 
-  // Nav click: navigate without closing sidebar
-  const nav = (path) => { navigate(path); };
+  const nav = (path) => navigate(path);
+
+  // NavItem inline
+  const NavItem = ({ icon: Icon, label, onClick, active, shortcut, hideCollapsed }) => {
+    if (!expanded && hideCollapsed) return null;
+    return (
+      <button onClick={onClick} title={!expanded ? label : undefined}
+        style={{
+          display: 'flex', alignItems: 'center', width: '100%', height: 36,
+          padding: expanded ? '0 10px' : '0',
+          justifyContent: expanded ? 'flex-start' : 'center',
+          borderRadius: 8,
+          background: active ? '#F0F0EE' : 'transparent',
+          border: 'none', cursor: 'pointer', transition: 'background 120ms',
+          color: active ? '#111' : '#444', flexShrink: 0,
+        }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F5F5F5'; }}
+        onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+      >
+        {Icon && (
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, flexShrink: 0 }}>
+            <Icon style={{ width: 16, height: 16 }} />
+          </span>
+        )}
+        {expanded && (
+          <>
+            <span style={{ fontSize: 14, fontWeight: active ? 500 : 400, whiteSpace: 'nowrap', marginLeft: Icon ? 10 : 0, flex: 1, textAlign: 'left', color: active ? '#111' : '#333' }}>
+              {label}
+            </span>
+            {shortcut && (
+              <span style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                {shortcut.map((k, i) => (
+                  <kbd key={i} style={{ fontSize: 10.5, fontFamily: 'monospace', background: '#F0F0F0', border: '1px solid #DCDCDC', borderRadius: 4, padding: '1px 5px', color: '#666', fontWeight: 500 }}>{k}</kbd>
+                ))}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+    );
+  };
 
   return (
     <>
-      {/* Mobile backdrop */}
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={() => setExpanded(false)}
-            className="md:hidden"
-            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.15)' }}
-          />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }} onClick={() => setExpanded(false)} className="md:hidden"
+            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.15)' }} />
         )}
       </AnimatePresence>
 
-      <motion.aside
-        initial={false}
-        animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
+      <motion.aside initial={false} animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={SIDEBAR_TRANSITION}
         style={{
-          position: 'fixed', top: 0, bottom: 0, left: 0,
-          zIndex: 40, overflow: 'hidden',
-          display: 'flex', flexDirection: 'column',
-          background: '#FFFFFF',
-          borderRight: '1px solid #EBEBEB',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40, overflow: 'hidden',
+          display: 'flex', flexDirection: 'column', background: '#FAFAFA',
+          borderRight: '1px solid #EBEBEB', fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: COLLAPSED_W,
         }}
       >
         {/* ── Header ── */}
-        <div style={{
-          flexShrink: 0, borderBottom: '1px solid #EBEBEB',
-          height: 52, display: 'flex', alignItems: 'center',
-          padding: expanded ? '0 12px 0 8px' : '0',
-          justifyContent: expanded ? 'space-between' : 'center',
-          overflow: 'hidden',
-        }}>
+        <div style={{ height: 52, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: expanded ? '0 14px' : '0', paddingLeft: expanded ? 14 : 0, justifyContent: expanded ? 'space-between' : 'center' }}>
           {expanded ? (
             <>
-              {/* WOK logo — clickable, hover bg */}
-              <button
-                onClick={() => nav('/app')}
-                style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+              {/* Multicolor logo */}
+              <button onClick={() => nav('/app')}
+                style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 8, transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <span style={{ fontSize: 22, fontWeight: 900, color: '#0A0A0A', letterSpacing: '-0.01em', lineHeight: 1, fontFamily: "'Barlow Condensed', system-ui, sans-serif", fontStyle: 'italic', userSelect: 'none' }}>
-                  WOK
-                </span>
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 4C10 4 6 8 6 14C6 18 8 21 12 23L16 28L20 23C24 21 26 18 26 14C26 8 22 4 16 4Z" fill="url(#grad1)"/>
+                  <defs>
+                    <linearGradient id="grad1" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#FF6B6B"/>
+                      <stop offset="50%" stopColor="#FF9A3C"/>
+                      <stop offset="100%" stopColor="#A855F7"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
               </button>
-              {/* Collapse ← */}
-              <button
-                onClick={() => setExpanded(false)}
-                style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#C0C0C0', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#555'}
-                onMouseLeave={e => e.currentTarget.style.color = '#C0C0C0'}
+              {/* Collapse button */}
+              <button onClick={() => setExpanded(false)}
+                style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#AAAAAA', transition: 'color 120ms, background 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = '#F0F0F0'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#AAAAAA'; e.currentTarget.style.background = 'transparent'; }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6"/>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
                 </svg>
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setExpanded(true)}
-              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+            <button onClick={() => setExpanded(true)}
+              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555', transition: 'background 120ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M9 3v18"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
               </svg>
             </button>
           )}
         </div>
 
-        {/* ── Workspace row (always visible, triggers dropdown) ── */}
-        <div ref={wsRef} style={{ flexShrink: 0, padding: expanded ? '8px 8px 0' : '8px 5px 0', position: 'relative' }}>
-          <button
-            onClick={() => { if (expanded) setShowWorkspaceMenu(v => !v); else setExpanded(true); }}
-            title={!expanded ? currentWs?.name || 'Workspace' : undefined}
-            style={{
-              display: 'flex', alignItems: 'center',
-              gap: expanded ? 8 : 0,
-              justifyContent: expanded ? 'flex-start' : 'center',
-              width: '100%', padding: expanded ? '6px 8px' : '7px 0',
-              borderRadius: 8, border: 'none', background: 'transparent',
-              cursor: 'pointer', transition: 'background 120ms',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Avatar user={user} size={26} forceRed />
-            <span style={{
-              fontSize: 13, fontWeight: 600, color: '#111', flex: 1,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left',
-              opacity: expanded ? 1 : 0, maxWidth: expanded ? 140 : 0,
-              transition: 'opacity 0.18s ease, max-width 0.18s ease',
-            }}>
-              {currentWs?.name || "My Workspace"}
-            </span>
-            {expanded && <ChevronDown style={{ width: 14, height: 14, color: '#BBBBBB', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />}
-          </button>
+        {/* ── Scrollable body ── */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-          <AnimatePresence>
-            {showWorkspaceMenu && expanded && (
-              <WorkspaceMenu
-                user={user}
-                userPlan={userPlan}
-                workspaces={workspaces}
-                onSwitchWorkspace={handleSwitchWorkspace}
-                onCreateWorkspace={() => setShowCreateWsModal(true)}
-                onClose={() => setShowWorkspaceMenu(false)}
-                creditsUsed={creditsUsed}
-                creditsLimit={creditsLimit}
-              />
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* ── Divider ── */}
-        <div style={{ height: 1, background: '#F0F0F0', margin: expanded ? '8px 12px 4px' : '8px 8px 4px', flexShrink: 0 }} />
-
-        {/* ── Main nav ── */}
-        <div style={{ padding: expanded ? '4px 8px 0' : '4px 5px 0', flexShrink: 0 }}>
-          <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={location.pathname === '/app'} expanded={expanded} />
-          <NavItem icon={Search} label="Search" onClick={() => nav('/discussions')} shortcut={expanded ? ['⌘', 'K'] : null} expanded={expanded} />
-          {/* Discussions hidden when collapsed */}
-          <NavItem icon={MessageSquare} label="Discussions" onClick={() => nav('/discussions')} active={location.pathname === '/discussions'} expanded={expanded} hideWhenCollapsed />
-        </div>
-
-        {/* ── Projects section ── */}
-        <div style={{ padding: expanded ? '0 8px' : '0 5px', flexShrink: 0 }}>
-          {expanded && <SectionLabel>Projects</SectionLabel>}
-          {!expanded && <div style={{ height: 8 }} />}
-          <NavItem icon={Layers} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} expanded={expanded} />
-          <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} expanded={expanded} />
-        </div>
-
-        {/* ── Recents (expanded only) ── */}
-        {expanded && recents.length > 0 && (
-          <div style={{ padding: '0 8px', flexShrink: 0 }}>
-            <SectionLabel>Recents</SectionLabel>
-            {recents.map((d) => (
-              <NavItem
-                key={d.id} icon={null} label={d.title || 'Untitled'}
-                onClick={() => nav(`/chat?conversationId=${d.id}`)}
-                active={false} expanded={true}
-              />
-            ))}
-          </div>
-        )}
-
-        <div style={{ flex: 1 }} />
-
-        {/* ── Upgrade CTA ── */}
-        {expanded && isFree && (
-          <div style={{ padding: '0 10px 8px' }}>
+          {/* Workspace selector */}
+          <div ref={wsRef} style={{ padding: expanded ? '0 8px 4px' : '0 5px 4px', flexShrink: 0, position: 'relative' }}>
             <button
-              onClick={() => nav('/pricing')}
-              style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 11px', borderRadius: 10, background: '#F7F7F7', border: '1px solid #EBEBEB', cursor: 'pointer', textAlign: 'left', transition: 'background 120ms' }}
+              onClick={() => { if (expanded) setShowWorkspaceMenu(v => !v); else setExpanded(true); }}
+              title={!expanded ? currentWs?.name : undefined}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                justifyContent: expanded ? 'flex-start' : 'center',
+                width: '100%', padding: expanded ? '8px 10px' : '8px 0',
+                borderRadius: 8, border: 'none', background: 'transparent',
+                cursor: 'pointer', transition: 'background 120ms',
+              }}
               onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
-              onMouseLeave={e => e.currentTarget.style.background = '#F7F7F7'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Zap style={{ width: 14, height: 14, color: '#6366F1' }} />
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                {currentWs?.name?.charAt(0).toUpperCase() || 'W'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 12.5, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.3 }}>Upgrade to Pro</p>
-                <p style={{ fontSize: 11, color: '#AAAAAA', margin: 0, lineHeight: 1.3 }}>Unlock more features</p>
-              </div>
+              {expanded && (
+                <>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                    {currentWs?.name || 'My Workspace'}
+                  </span>
+                  <ChevronDown style={{ width: 15, height: 15, color: '#BBBBBB', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
+                </>
+              )}
             </button>
+            <AnimatePresence>
+              {showWorkspaceMenu && expanded && (
+                <WorkspaceMenu
+                  user={user} userPlan={userPlan} workspaces={workspaces}
+                  onSwitchWorkspace={handleSwitchWorkspace}
+                  onCreateWorkspace={() => setShowCreateWsModal(true)}
+                  onClose={() => setShowWorkspaceMenu(false)}
+                  onSettings={() => nav('/workspace-settings')}
+                  creditsUsed={creditsUsed} creditsLimit={creditsLimit}
+                />
+              )}
+            </AnimatePresence>
           </div>
-        )}
 
-        {/* ── Profile footer ── */}
-        <div
-          ref={profileRef}
-          style={{ borderTop: '1px solid #EBEBEB', flexShrink: 0, padding: expanded ? '8px 8px 10px' : '8px 5px 10px', position: 'relative' }}
-        >
-          <button
-            onClick={() => setShowProfileMenu(v => !v)}
-            title={!expanded ? 'Profile' : undefined}
-            style={{
-              display: 'flex', alignItems: 'center', gap: expanded ? 9 : 0,
-              justifyContent: expanded ? 'flex-start' : 'center',
-              width: '100%', padding: expanded ? '6px 8px' : '7px 0',
-              borderRadius: 8, border: 'none', background: 'transparent',
-              cursor: 'pointer', transition: 'background 120ms',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Avatar user={user} size={28} />
+          {/* Main nav */}
+          <div style={{ padding: expanded ? '2px 8px' : '2px 5px', flexShrink: 0 }}>
+            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={location.pathname === '/app'} />
+            <NavItem icon={Search} label="Search" onClick={() => nav('/discussions')} shortcut={['Ctrl', 'K']} />
+            <NavItem icon={Compass} label="Resources" onClick={() => nav('/app')} />
+            <NavItem icon={Network} label="Connectors" onClick={() => nav('/app')} />
+          </div>
+
+          {/* Projects */}
+          <div style={{ padding: expanded ? '8px 8px 0' : '8px 5px 0', flexShrink: 0 }}>
+            {expanded && <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px', letterSpacing: '0.01em' }}>Projects</p>}
+            {!expanded && <div style={{ height: 6 }} />}
+            <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
+            <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />
+            <NavItem icon={UserRound} label="Created by me" onClick={() => nav('/projects')} />
+            <NavItem icon={UsersRound} label="Shared with me" onClick={() => nav('/projects')} />
+          </div>
+
+          {/* Recents */}
+          {expanded && recents.length > 0 && (
+            <div style={{ padding: '8px 8px 0', flexShrink: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px' }}>Recents</p>
+              {recents.map(d => (
+                <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%', height: 34, padding: '0 10px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span style={{ fontSize: 14, color: '#333', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.title || 'Untitled'}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* Bottom cards */}
+          {expanded && (
+            <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* Share card */}
+              <button onClick={() => toast.info('Referral program coming soon')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 13px', borderRadius: 10, background: '#fff', border: '1px solid #E8E8E8', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F8F8F8'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+              >
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111', marginBottom: 2 }}>Share Lovable</div>
+                  <div style={{ fontSize: 11.5, color: '#888' }}>100 credits per paid referral</div>
+                </div>
+                <div style={{ width: 34, height: 34, borderRadius: 999, background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Gift style={{ width: 16, height: 16, color: '#555' }} />
+                </div>
+              </button>
+              {/* Upgrade card */}
+              <button onClick={() => nav('/pricing')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 13px', borderRadius: 10, background: '#fff', border: '1px solid #E8E8E8', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F8F8F8'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+              >
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111', marginBottom: 2 }}>Upgrade to Pro</div>
+                  <div style={{ fontSize: 11.5, color: '#888' }}>Unlock more features</div>
+                </div>
+                <div style={{ width: 34, height: 34, borderRadius: 999, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Zap style={{ width: 16, height: 16, color: '#4F46E5' }} />
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{ borderTop: '1px solid #EBEBEB', flexShrink: 0, padding: expanded ? '8px 12px 10px' : '8px 5px 10px', position: 'relative' }}
+          ref={profileRef}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center' }}>
+            <button onClick={() => setShowProfileMenu(v => !v)} title={!expanded ? 'Profile' : undefined}
+              style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '5px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 120ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <Avatar user={user} size={30} />
+            </button>
             {expanded && (
-              <svg style={{ width: 15, height: 15, color: '#BBBBBB', marginLeft: 'auto', flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
+              <button title="Inbox"
+                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#AAAAAA', transition: 'background 120ms, color 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F0F0F0'; e.currentTarget.style.color = '#555'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#AAAAAA'; }}
+              >
+                <Inbox style={{ width: 17, height: 17 }} />
+              </button>
             )}
-          </button>
-
+          </div>
           <AnimatePresence>
             {showProfileMenu && (
               <ProfileMenu user={user} onClose={() => setShowProfileMenu(false)} />
@@ -622,11 +591,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         </div>
       </motion.aside>
 
-      <CreateWorkspaceModal
-        open={showCreateWsModal}
-        onClose={() => setShowCreateWsModal(false)}
-        onCreate={handleCreateWorkspace}
-      />
+      <CreateWorkspaceModal open={showCreateWsModal} onClose={() => setShowCreateWsModal(false)} onCreate={handleCreateWorkspace} />
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
     </>
   );
@@ -640,16 +605,12 @@ function CodeModal({ open, onClose, user }) {
   const [error, setError] = useState('');
 
   const activate = async () => {
-    setError('');
-    if (!code.trim()) return;
-    setLoading(true);
+    setError(''); if (!code.trim()) return; setLoading(true);
     try {
       const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), used: false, visible: true });
       if (results.length === 0) {
         const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
-        setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.');
-        setLoading(false);
-        return;
+        setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.'); setLoading(false); return;
       }
       const codeRecord = results[0];
       const plans = getPlansConfig();
@@ -659,19 +620,11 @@ function CodeModal({ open, onClose, user }) {
         : codeRecord.duration_type === 'day' ? `${codeRecord.duration_value} days`
         : codeRecord.duration_type === 'month' ? `${codeRecord.duration_value} months`
         : `${codeRecord.duration_value} year${codeRecord.duration_value > 1 ? 's' : ''}`;
-      await base44.auth.updateMe({
-        subscription_plan: newPlan.id,
-        credits_limit: newPlan.credits_limit || codeRecord.credits || 10,
-        credits_used: 0,
-        credits_bonus: codeRecord.credits > 0 ? (user?.credits_bonus || 0) + codeRecord.credits : (user?.credits_bonus || 0),
-        billing_cycle: codeRecord.billing || 'monthly',
-        subscription_date: new Date().toISOString(),
-      });
+      await base44.auth.updateMe({ subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit || codeRecord.credits || 10, credits_used: 0, credits_bonus: codeRecord.credits > 0 ? (user?.credits_bonus || 0) + codeRecord.credits : (user?.credits_bonus || 0), billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString() });
       await base44.entities.AccessCode.update(codeRecord.id, { used: true, used_by: user?.email, use_count: (codeRecord.use_count || 0) + 1 });
       setSuccess({ planName: newPlan.name, duration: durationText });
       toast.success(`Code activated: ${newPlan.name}`);
-    } catch { setError('An error occurred.'); }
-    finally { setLoading(false); }
+    } catch { setError('An error occurred.'); } finally { setLoading(false); }
   };
 
   const handleClose = () => { setCode(''); setSuccess(null); setError(''); onClose(); };
@@ -684,12 +637,10 @@ function CodeModal({ open, onClose, user }) {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[99998] bg-black/50 backdrop-blur-sm" onClick={handleClose} />
           <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            <motion.div initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.96 }} transition={{ duration: 0.2, ease: [0.4,0,0.2,1] }}
               className="relative w-full bg-card rounded-xl shadow-2xl border border-border overflow-hidden"
-              style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}
-            >
+              style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-foreground">Redeem Code</h2>
                 <button onClick={handleClose} className="w-7 h-7 flex items-center justify-center hover:bg-muted rounded-lg transition-colors">
