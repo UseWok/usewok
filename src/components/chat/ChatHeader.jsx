@@ -126,7 +126,7 @@ export default function ChatHeader({
     <div style={{
       position: 'absolute', top: 0, left: 0, right: 0, zIndex: 9999,
       height: 44,
-      background: '#FAFAFA',
+      background: '#F7F5F0',
       borderBottom: 'none',
       display: 'flex', alignItems: 'center',
       gap: 4,

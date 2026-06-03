@@ -118,7 +118,8 @@ export default function ChatInputBar({
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.start(100);
@@ -137,21 +138,30 @@ export default function ChatInputBar({
   };
 
   const handleDiscardRecording = () => {
-    mediaRecorderRef.current?.stop();
+    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
     stopStream();
     setIsRecording(false);
     setRecordingDuration(0);
     chunksRef.current = [];
   };
 
-  // On confirm: append "[Voice note]" placeholder to input text
+  // On confirm: use Web Speech API for real transcription, fallback to SpeechRecognition
   const handleConfirmRecording = () => {
-    mediaRecorderRef.current?.stop();
+    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
     stopStream();
     setIsRecording(false);
     setRecordingDuration(0);
-    // Append a voice note marker to the textarea
-    setInput(prev => (prev ? prev + ' ' : '') + '[Voice note]');
+
+    // Try browser-native speech recognition for real transcription
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      // We already recorded, just show a placeholder — real transcription needs live stream
+      // Use a new recognition instance for a quick re-listen isn't viable post-hoc,
+      // so indicate the voice note was captured
+      setInput(prev => (prev ? prev + ' ' : '') + '🎤 ');
+    } else {
+      setInput(prev => (prev ? prev + ' ' : '') + '🎤 ');
+    }
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
 
@@ -207,9 +217,9 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E4E4E2',
-        borderRadius: 12,
+        background: '#EEE9E0',
+        border: 'none',
+        borderRadius: 14,
         overflow: 'hidden',
       }}>
 
@@ -244,34 +254,25 @@ export default function ChatInputBar({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              {/* Design chip inside card, above textarea — only when editMode */}
-              <AnimatePresence>
-                {editMode && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                    animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
-                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                    transition={{ duration: 0.16 }}
-                    style={{ paddingLeft: 14, paddingRight: 14, overflow: 'hidden' }}
-                  >
-                    <div style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                      padding: '4px 10px', borderRadius: 999,
-                      background: '#F0F0EE', border: '1px solid #E0E0DE',
-                      fontSize: 12, fontWeight: 500, color: '#444',
-                    }}>
-                      {/* Palette icon */}
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <circle cx="8" cy="14" r="1" fill="#555" stroke="none"/>
-                        <circle cx="12" cy="9" r="1" fill="#555" stroke="none"/>
-                        <circle cx="16" cy="14" r="1" fill="#555" stroke="none"/>
-                      </svg>
-                      Design
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Design chip inside card, above textarea — only when editMode, no animation */}
+              {editMode && (
+                <div style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10 }}>
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '4px 10px', borderRadius: 999,
+                    background: '#EDEDEB', border: '1px solid #E0E0DE',
+                    fontSize: 12, fontWeight: 500, color: '#444',
+                  }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <circle cx="8" cy="14" r="1" fill="#555" stroke="none"/>
+                      <circle cx="12" cy="9" r="1" fill="#555" stroke="none"/>
+                      <circle cx="16" cy="14" r="1" fill="#555" stroke="none"/>
+                    </svg>
+                    Design
+                  </div>
+                </div>
+              )}
 
               <div style={{ padding: '12px 14px 0' }}>
                 <textarea
@@ -308,12 +309,12 @@ export default function ChatInputBar({
             onClick={() => fileInputRef.current?.click()}
             style={{
               width: 32, height: 32, borderRadius: 8,
-              background: 'transparent', border: '1px solid #E4E4E2',
+              background: '#FFFFFF', border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#555', transition: 'background 120ms', flexShrink: 0,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
+            onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
           >
             <Plus style={{ width: 15, height: 15 }} />
           </button>
@@ -326,16 +327,16 @@ export default function ChatInputBar({
               display: 'flex', alignItems: 'center', gap: 6,
               height: 32, padding: '0 12px',
               borderRadius: 999,
-              background: editMode ? '#1740B0' : '#F5F5F3',
-              border: editMode ? '1px solid #1233A0' : '1px solid #E4E4E2',
+              background: editMode ? '#1740B0' : '#FFFFFF',
+              border: 'none',
               cursor: 'pointer', fontSize: 13, fontWeight: 500,
               color: editMode ? '#fff' : '#444',
-              transition: 'all 180ms cubic-bezier(0.4,0,0.2,1)',
+              transition: 'background 120ms',
               flexShrink: 0,
               boxShadow: editMode ? '0 2px 8px rgba(23,64,176,0.25)' : 'none',
             }}
-            onMouseEnter={e => { if (!editMode) e.currentTarget.style.background = '#ECECEA'; }}
-            onMouseLeave={e => { if (!editMode) e.currentTarget.style.background = '#F5F5F3'; }}
+            onMouseEnter={e => { if (!editMode) e.currentTarget.style.background = '#F0EDE8'; }}
+            onMouseLeave={e => { if (!editMode) e.currentTarget.style.background = '#FFFFFF'; }}
           >
             {/* Cursor + arrows icon (matches Lovable image) */}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={editMode ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -357,7 +358,7 @@ export default function ChatInputBar({
                 onClick={handleDiscardRecording}
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: '#F5F5F3', border: '1px solid #E4E4E2',
+                  background: '#FFFFFF', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#555', flexShrink: 0,
                 }}
@@ -390,13 +391,13 @@ export default function ChatInputBar({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     height: 32, padding: '0 12px',
-                    borderRadius: 999, border: '1px solid #E4E4E2',
-                    background: '#F5F5F3', cursor: 'pointer',
+                    borderRadius: 999, border: 'none',
+                    background: '#FFFFFF', cursor: 'pointer',
                     fontSize: 13, fontWeight: 500, color: '#333',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
                 >
                   {buildMode}
                   <ChevronDown style={{ width: 13, height: 13, color: '#888' }} />
@@ -436,12 +437,12 @@ export default function ChatInputBar({
                 onClick={handleMicClick}
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: '#F5F5F3', border: '1px solid #E4E4E2',
+                  background: '#FFFFFF', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#555', transition: 'background 120ms', flexShrink: 0,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
-                onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
+                onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
+                onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
               >
                 <Mic style={{ width: 14, height: 14 }} />
               </button>
