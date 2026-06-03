@@ -51,14 +51,21 @@ function BuildPreview({ build }) {
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script type="text/babel">
+  <script type="text/babel" data-type="module">
     try {
+      const { useState, useEffect, useRef, useCallback, useMemo } = React;
+      const { motion, AnimatePresence } = window.Motion || {};
       ${code}
+      const rootEl = document.getElementById('root');
+      if (typeof App !== 'undefined') {
+        const root = ReactDOM.createRoot(rootEl);
+        root.render(React.createElement(App));
+      }
     } catch(e) {
-      document.body.innerHTML = '<div style="padding:20px;color:#999;font-size:12px">Preview unavailable</div>';
+      document.getElementById('root').innerHTML = '<div style="padding:20px;color:#999;font-size:12px">Preview unavailable</div>';
     }
   </script>
 </body>
@@ -104,13 +111,12 @@ function BuildCard({ build, index }) {
       <div style={{
         borderRadius: 12,
         overflow: 'hidden',
-        border: '1px solid #E8E8E6',
+        border: hovered ? '1px solid #D0D0CE' : '1px solid #E8E8E6',
         aspectRatio: '16/10',
         background: '#F7F7F5',
         position: 'relative',
-        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.10)' : '0 2px 6px rgba(0,0,0,0.04)',
         transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        transition: 'box-shadow 200ms ease, transform 200ms ease',
+        transition: 'border-color 200ms ease, transform 200ms ease',
       }}>
         <BuildPreview build={build} />
 
@@ -178,7 +184,6 @@ export default function BuildsGallery() {
         border: '1px solid #E8E8E6',
         borderRadius: 20,
         padding: '20px 20px 24px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

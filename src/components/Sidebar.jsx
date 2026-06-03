@@ -166,14 +166,17 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
 // ── Profile dropdown ──
 function ProfileMenu({ user, onClose, navigate }) {
   const email = user?.email || '';
-  const truncatedEmail = email.length > 18 ? email.slice(0, 18) + '...' : email;
+  const truncatedEmail = email.length > 22 ? email.slice(0, 22) + '…' : email;
 
-  const menuBtn = (label, action) => (
+  const menuBtn = (IconComp, label, action) => (
     <button key={label} onClick={action}
-      style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#333', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
       onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-    >{label}</button>
+    >
+      <IconComp style={{ width: 14, height: 14, color: '#888', flexShrink: 0 }} />
+      {label}
+    </button>
   );
 
   return (
@@ -200,53 +203,57 @@ function ProfileMenu({ user, onClose, navigate }) {
         </div>
       </div>
 
-      {/* Upgrade to Pro — top promo */}
-      <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #F0F0F0' }}>
-        <button
-          onClick={() => navigate('/pricing')}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 12px', borderRadius: 9, background: '#F0F4FF', border: '1px solid #D4E0FF', cursor: 'pointer', transition: 'background 120ms' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#E4EDFF'}
-          onMouseLeave={e => e.currentTarget.style.background = '#F0F4FF'}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <Zap style={{ width: 14, height: 14, color: '#2563EB' }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#1D3A8A' }}>Upgrade to Pro</span>
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#2563EB', background: '#DBEAFE', borderRadius: 6, padding: '2px 7px' }}>Upgrade</span>
-        </button>
-      </div>
-
       {/* Nav items group 1 */}
       <div style={{ padding: '4px 0' }}>
-        {menuBtn('Profile', () => navigate('/settings'))}
-        {menuBtn('Settings', () => navigate('/settings'))}
-        {menuBtn('Appearance', () => navigate('/settings'))}
+        {menuBtn(User, 'Profile', () => navigate('/settings'))}
+        {menuBtn(Settings2Icon, 'Settings', () => navigate('/settings'))}
+        {menuBtn(Palette, 'Appearance', () => navigate('/settings'))}
       </div>
 
       {/* Separator */}
-      <div style={{ height: 1, background: '#F0F0F0', margin: '0 0' }} />
+      <div style={{ height: 1, background: '#F0F0F0' }} />
 
-      {/* Nav items group 2 */}
+      {/* Upgrade Plan — above Support */}
       <div style={{ padding: '4px 0' }}>
-        {menuBtn('Support', () => navigate('/support'))}
-        {menuBtn('Documentation', () => toast.info('Coming soon'))}
-        {menuBtn('Home', () => navigate('/app'))}
+        <button
+          onClick={() => navigate('/pricing')}
+          style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#333', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          {/* Blue circle with white arrow */}
+          <span style={{ width: 18, height: 18, borderRadius: 999, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 6L6 10M2 6H10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </span>
+          Upgrade Plan
+        </button>
+        {menuBtn(BookOpen, 'Support', () => navigate('/support'))}
+        {menuBtn(Compass, 'Documentation', () => toast.info('Coming soon'))}
+        {menuBtn(Home, 'Home', () => navigate('/app'))}
       </div>
 
       <div style={{ height: 1, background: '#F0F0F0' }} />
       <div style={{ padding: '4px 0 4px' }}>
         <button
           onClick={async () => { await base44.auth.logout(); window.location.reload(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#444', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+          style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#C0392B', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <LogOut style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} /> Log out
+          <LogOut style={{ width: 14, height: 14, color: '#C0392B', flexShrink: 0 }} /> Log out
         </button>
       </div>
     </motion.div>
   );
 }
+
+// Settings icon (inline since lucide Settings may conflict)
+const Settings2Icon = ({ style }) => (
+  <svg style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
 
 // dummy ref to avoid unused var warning
 const svgSettings = null;
@@ -447,6 +454,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   // NavItem inline
   const NavItem = ({ icon: Icon, label, onClick, active, shortcut, hideCollapsed }) => {
     if (!expanded && hideCollapsed) return null;
+    // Collapsed active: square 34×34, darker background
+    const collapsedActiveStyle = !expanded && active ? {
+      width: 34, height: 34, borderRadius: 7, background: '#DCDCDA', justifyContent: 'center',
+    } : {};
     return (
       <button onClick={onClick} title={!expanded ? label : undefined}
         style={{
@@ -454,7 +465,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           padding: expanded ? '0 10px' : '0',
           justifyContent: expanded ? 'flex-start' : 'center',
           borderRadius: 8,
-          background: active ? '#F0F0EE' : 'transparent',
+          background: active ? (expanded ? '#F0F0EE' : 'transparent') : 'transparent',
           border: 'none', cursor: 'pointer', transition: 'background 120ms',
           color: active ? '#111' : '#444', flexShrink: 0,
         }}
@@ -462,7 +473,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
       >
         {Icon && (
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, flexShrink: 0 }}>
+          <span style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: !expanded && active ? 34 : 22,
+            height: !expanded && active ? 34 : 22,
+            borderRadius: !expanded && active ? 7 : 0,
+            background: !expanded && active ? '#DCDCDA' : 'transparent',
+            flexShrink: 0, transition: 'background 120ms, width 120ms, height 120ms',
+          }}>
             <Icon style={{ width: 16, height: 16 }} />
           </span>
         )}
@@ -557,27 +575,32 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               onClick={() => { if (expanded) setShowWorkspaceMenu(v => !v); else setExpanded(true); }}
               title={!expanded ? currentWs?.name : undefined}
               style={{
-                display: 'flex', alignItems: 'center', gap: 10,
+                display: 'flex', alignItems: 'center', gap: 8,
                 justifyContent: expanded ? 'flex-start' : 'center',
-                width: '100%', padding: expanded ? '8px 10px' : '8px 0',
-                borderRadius: 8, border: 'none', background: 'transparent',
+                width: '100%', padding: expanded ? '7px 8px' : '7px 0',
+                borderRadius: 9,
+                border: expanded ? '1px solid #E4E4E2' : 'none',
+                background: 'transparent',
                 cursor: 'pointer', transition: 'background 120ms',
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#F0F0F0'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
+              {/* Colored avatar */}
               <div style={{ width: 26, height: 26, borderRadius: 7, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                 {currentWs?.name?.charAt(0).toUpperCase() || 'W'}
               </div>
               {expanded && (
                 <>
-                  <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
                     {currentWs?.name || 'My Workspace'}
                   </span>
-                  <ChevronDown style={{ width: 15, height: 15, color: '#BBBBBB', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
+                  <ChevronDown style={{ width: 14, height: 14, color: '#AAAAAA', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
                 </>
               )}
             </button>
+            {/* Always-visible separator line below workspace */}
+            <div style={{ height: 1, background: '#EBEBEB', margin: expanded ? '4px 2px 0' : '4px 6px 0' }} />
             <AnimatePresence>
               {showWorkspaceMenu && expanded && (
                 <WorkspaceMenu
@@ -606,8 +629,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             {!expanded && <div style={{ height: 6 }} />}
             <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
             <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />
-            <NavItem icon={UserRound} label="Created by me" onClick={() => nav('/projects')} />
-            <NavItem icon={UsersRound} label="Shared with me" onClick={() => nav('/projects')} />
           </div>
 
           {/* Favorites + Recents */}
@@ -616,25 +637,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           )}
 
           <div style={{ flex: 1 }} />
-
-          {/* Share card only */}
-          {expanded && (
-            <div style={{ padding: '8px 10px' }}>
-              <button onClick={() => toast.info('Referral program coming soon')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 13px', borderRadius: 10, background: '#fff', border: '1px solid #E8E8E8', cursor: 'pointer', transition: 'background 120ms', textAlign: 'left', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F8F8F8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-              >
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111', marginBottom: 2 }}>Share Lovable</div>
-                  <div style={{ fontSize: 11.5, color: '#888' }}>100 credits per paid referral</div>
-                </div>
-                <div style={{ width: 34, height: 34, borderRadius: 999, background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Gift style={{ width: 16, height: 16, color: '#555' }} />
-                </div>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* ── Footer ── */}
@@ -668,6 +670,34 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
       <CreateWorkspaceModal open={showCreateWsModal} onClose={() => setShowCreateWsModal(false)} onCreate={handleCreateWorkspace} />
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
+
+      {/* Floating Share Lovable */}
+      <motion.div
+        initial={false}
+        animate={{ left: (expanded ? EXPANDED_W : COLLAPSED_W) + 12, opacity: 1 }}
+        transition={SIDEBAR_TRANSITION}
+        style={{ position: 'fixed', bottom: 24, zIndex: 50, pointerEvents: 'auto' }}
+      >
+        <button
+          onClick={() => toast.info('Referral program coming soon')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '9px 14px', borderRadius: 999,
+            background: '#fff', border: '1px solid #E0E0E0',
+            cursor: 'pointer', transition: 'background 120ms, box-shadow 120ms',
+            fontSize: 13, fontWeight: 600, color: '#111',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#F8F8F8'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
+        >
+          <Gift style={{ width: 15, height: 15, color: '#555', flexShrink: 0 }} />
+          Share Lovable
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#888', background: '#F0F0F0', borderRadius: 5, padding: '2px 6px' }}>100 cr</span>
+        </button>
+      </motion.div>
     </>
   );
 }
