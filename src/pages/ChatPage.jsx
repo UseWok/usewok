@@ -530,7 +530,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   return (
     <div
       className="flex items-center justify-center w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#FAFAFA', backgroundImage: 'radial-gradient(circle, #E8D5E8 1px, transparent 1px)', backgroundSize: '48px 48px' }}>
+      style={{ backgroundColor: '#FAFAFA' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -557,12 +557,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         className="flex overflow-hidden relative"
         animate={{ width: `${containerSize.width}vw`, height: `${containerSize.height}vh`, borderRadius: CARD_RADIUS }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
-        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.6)', maxWidth: '100vw', maxHeight: '100vh' }}>
+        style={{ boxShadow: 'none', background: '#FAFAFA', border: 'none', maxWidth: '100vw', maxHeight: '100vh' }}>
 
         <div className="flex w-full h-full">
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff', borderRight: '1px solid #E8E8E6' }}>
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#FAFAFA' }}>
               <MessageList
                 messages={messages}
                 isLoading={isLoading}
@@ -586,7 +586,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
           )}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F5F5F5' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#FAFAFA' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
@@ -600,13 +600,13 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
             />
 
-            {/* Preview area — offset by header height (44px), with padding so content never touches edges */}
+            {/* Preview area — offset by header height (44px), snug padding, no border/shadow */}
             <div style={{
-              position: 'absolute', top: 44, left: 12, right: 12, bottom: 12,
+              position: 'absolute', top: 44, left: 10, right: 10, bottom: 10,
               borderRadius: 10, overflow: 'hidden',
               background: '#FFFFFF',
-              border: '1px solid #E8E8E6',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+              border: 'none',
+              boxShadow: 'none',
             }}>
               <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
 
