@@ -289,7 +289,7 @@ export default function ChatPage() {
           codeMatch = codeToFix.substring(startIdx, endIdx + 3);
           codeToFix = codeMatch;
         }
-        const fixPayload = { prompt: PROMPT_AUTO_FIX + "\n\nError:\n" + options.rawError + "\n\nCode:\n" + codeToFix, model: 'gemini_3_flash' };
+        const fixPayload = { prompt: PROMPT_AUTO_FIX + "\n\nError:\n" + options.rawError + "\n\nCode:\n" + codeToFix, model: 'gemini_3_1_pro' };
         const fixResult = await cachedAIRequest(fixPayload, () => base44.integrations.Core.InvokeLLM({ ...fixPayload }));
         if (abortedRef.current) return;
         const fixedCode = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
@@ -325,7 +325,7 @@ Rules:
 - If sufficient=true, return an empty reply string.
 
 Reply JSON: { "sufficient": true/false, "reply": "..." }`,
-        model: 'gpt_5_mini',
+        model: 'gpt_5_mini', // thinking/routing — 4o mini
         response_json_schema: { type: 'object', properties: { sufficient: { type: 'boolean' }, reply: { type: 'string' } } }
       };
       const preAnalysis = await cachedAIRequest(preAnalysisPayload, () => base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload }));
@@ -355,14 +355,14 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
         : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
 
-      const codePayload = { prompt: architectPrompt, model: 'gemini_3_flash' };
+      const codePayload = { prompt: architectPrompt, model: 'gemini_3_1_pro' };
       const codeResult = await cachedAIRequest(codePayload, () => base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal }));
 
       // ── Optional data insight ──
       let formattedInsight = null;
       if (DATA_QUERY_KEYWORDS.test(text) && !isModification) {
         const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + ((messages || []).slice(-3).map(m => m.content).join(' '));
-        const insightPayload = { prompt: insightPrompt, model: 'gemini_3_flash' };
+        const insightPayload = { prompt: insightPrompt, model: 'gpt_5_mini' };
         const insightResult = await cachedAIRequest(insightPayload, () => base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal }));
         formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
       }

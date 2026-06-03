@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown, Brain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -11,204 +11,250 @@ function injectStyles() {
   const s = document.createElement('style');
   s.textContent = `
     @keyframes ai-slide { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes thinking-dot {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
-      30% { transform: translateY(-4px); opacity: 1; }
+    @keyframes shimmer-text {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
     }
-    @keyframes thinking-pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-    @keyframes scan-line {
-      0% { transform: translateY(-100%); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translateY(500%); opacity: 0; }
+    @keyframes progress-bar {
+      from { width: 0%; }
+      to   { width: 100%; }
     }
   `;
   document.head.appendChild(s);
 }
 
-// ── Animated "Thinking..." indicator shown while isGenerating ──
+// ── Task 1: "Thinking..." with typewriter + Brain icon + shimmer light ──
 function ThinkingIndicator() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, animation: 'ai-slide 200ms ease-out both' }}>
-      {/* Thinking label with animated dots */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          background: 'linear-gradient(135deg, #F0EAFF 0%, #E8F0FF 100%)',
-          border: '1px solid rgba(139,92,246,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Sparkles style={{ width: 13, height: 13, color: '#8B5CF6' }} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ fontSize: 12.5, color: '#6B7280', fontWeight: 500, letterSpacing: '0.01em' }}>Thinking</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 1 }}>
-            {[0, 1, 2].map(i => (
-              <span key={i} style={{
-                width: 4, height: 4, borderRadius: '50%', background: '#8B5CF6',
-                display: 'inline-block',
-                animation: `thinking-dot 1.4s ease-in-out ${i * 0.16}s infinite`,
-              }} />
-            ))}
-          </div>
-        </div>
-      </div>
+  const FULL_TEXT = 'Thinking...';
+  const [displayed, setDisplayed] = useState('');
+  const idxRef = useRef(0);
 
-      {/* Skeleton lines */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 2 }}>
-        {[
-          { width: '82%', opacity: 0.9, delay: 0 },
-          { width: '67%', opacity: 0.7, delay: 80 },
-          { width: '45%', opacity: 0.4, delay: 160 },
-        ].map((row, i) => (
-          <div key={i} style={{
-            width: row.width, height: 10, borderRadius: 6, opacity: row.opacity,
-            background: 'linear-gradient(90deg, #F3F4F6 0%, #E5E7EB 40%, #F9FAFB 60%, #E5E7EB 100%)',
-            backgroundSize: '400px 100%',
-            animation: `thinking-pulse 1.8s ease-in-out ${row.delay}ms infinite`,
+  useEffect(() => {
+    injectStyles();
+    idxRef.current = 0;
+    setDisplayed('');
+    const interval = setInterval(() => {
+      idxRef.current += 1;
+      setDisplayed(FULL_TEXT.slice(0, idxRef.current));
+      if (idxRef.current >= FULL_TEXT.length) clearInterval(interval);
+    }, 60);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, animation: 'ai-slide 200ms ease-out both' }}>
+      {/* Brain icon — same color as text, no effects */}
+      <Brain style={{ width: 15, height: 15, flexShrink: 0, color: '#9CA3AF' }} />
+
+      {/* Shimmer typewriter text */}
+      <span style={{
+        fontSize: 13,
+        fontWeight: 500,
+        letterSpacing: '0.01em',
+        background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #C4B5FD 50%, #9CA3AF 70%, #6B7280 100%)',
+        backgroundSize: '400px 100%',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        animation: 'shimmer-text 2s linear infinite',
+        minWidth: 80,
+      }}>
+        {displayed}
+      </span>
+    </div>
+  );
+}
+
+// ── Task 3: Code preview box — real rawContent, simulated scroll ──
+function CodePreviewBox({ code }) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const preRef = useRef(null);
+  const idxRef = useRef(0);
+  const SPEED = 4; // chars per tick (fast scroll feel)
+
+  useEffect(() => {
+    if (!code) return;
+    idxRef.current = 0;
+    setDisplayed('');
+    setDone(false);
+    const interval = setInterval(() => {
+      idxRef.current = Math.min(idxRef.current + SPEED, code.length);
+      setDisplayed(code.slice(0, idxRef.current));
+      if (preRef.current) preRef.current.scrollTop = preRef.current.scrollHeight;
+      if (idxRef.current >= code.length) {
+        clearInterval(interval);
+        setDone(true);
+      }
+    }, 16);
+    return () => clearInterval(interval);
+  }, [code]);
+
+  const progress = code ? Math.round((displayed.length / code.length) * 100) : 0;
+
+  return (
+    <div style={{ marginTop: 10, marginBottom: 4 }}>
+      {/* Code box — 6 lines tall */}
+      <div style={{
+        border: '1px solid #E5E7EB',
+        borderRadius: 8,
+        background: '#FFFFFF',
+        overflow: 'hidden',
+      }}>
+        <pre ref={preRef} style={{
+          margin: 0,
+          padding: '10px 14px',
+          height: 126, // ~6 lines at 21px each
+          overflowY: 'hidden',
+          fontSize: 11,
+          lineHeight: '21px',
+          color: '#374151',
+          fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
+          whiteSpace: 'pre',
+          wordBreak: 'normal',
+          background: 'transparent',
+        }}>
+          {displayed}
+        </pre>
+
+        {/* Progress bar — single grey line */}
+        <div style={{ height: 1, background: '#F3F4F6', position: 'relative' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, height: '100%',
+            background: '#9CA3AF',
+            width: `${progress}%`,
+            transition: 'width 0.1s linear',
+            borderRadius: 1,
           }} />
-        ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '5px 14px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span style={{ fontSize: 10, color: '#9CA3AF', fontFamily: 'ui-monospace, monospace' }}>
+            {done ? `${code.length.toLocaleString()} chars` : `${displayed.length.toLocaleString()} / ${code.length.toLocaleString()}`}
+          </span>
+          {done && (
+            <motion.span
+              initial={{ opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ fontSize: 10.5, color: '#6B7280', fontWeight: 500 }}
+            >
+              Done
+            </motion.span>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Ultra-modern Thinking Accordion ──
+// ── Task 2: Structured spacious thinking accordion — Claude-style, English ──
 function ThinkingAccordion({ thinkingText, autoOpen = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasAutoOpened = useRef(false);
 
-  // Auto-open once when the component mounts with autoOpen=true
   useEffect(() => {
     if (autoOpen && !hasAutoOpened.current && thinkingText) {
       hasAutoOpened.current = true;
       setIsOpen(true);
-      // Auto-close after 3.5s
-      const t = setTimeout(() => setIsOpen(false), 3500);
+      const t = setTimeout(() => setIsOpen(false), 4500);
       return () => clearTimeout(t);
     }
   }, [autoOpen, thinkingText]);
 
   if (!thinkingText) return null;
 
-  const lineCount = thinkingText.split('\n').filter(l => l.trim()).length;
-
   return (
-    <div style={{ marginBottom: 12 }}>
-      {/* Header button */}
+    <div style={{ marginBottom: 14 }}>
+      {/* Header trigger */}
       <button
         onClick={() => setIsOpen(o => !o)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 7, width: '100%',
-          background: isOpen
-            ? 'linear-gradient(135deg, #FAF5FF 0%, #F0F4FF 100%)'
-            : 'linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%)',
-          border: isOpen ? '1px solid rgba(139,92,246,0.2)' : '1px solid #EBEBEB',
-          borderRadius: isOpen ? '10px 10px 0 0' : 10,
-          padding: '8px 12px',
-          cursor: 'pointer',
-          transition: 'all 0.18s ease',
-          outline: 'none',
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '2px 0', outline: 'none',
         }}
       >
-        {/* Icon */}
-        <div style={{
-          width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-          background: isOpen
-            ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)'
-            : 'linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'all 0.18s ease',
-          boxShadow: isOpen ? '0 2px 8px rgba(139,92,246,0.3)' : 'none',
-        }}>
-          <Sparkles style={{ width: 11, height: 11, color: '#FFFFFF' }} />
-        </div>
-
-        {/* Label */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, textAlign: 'left' }}>
-          <span style={{
-            fontSize: 12, fontWeight: 600, letterSpacing: '0.02em',
-            color: isOpen ? '#7C3AED' : '#6B7280',
-            transition: 'color 0.18s',
-          }}>
-            Thinking process
-          </span>
-          <span style={{
-            fontSize: 10.5, color: isOpen ? '#A78BFA' : '#9CA3AF',
-            fontWeight: 400, letterSpacing: '0.01em',
-          }}>
-            · {lineCount} step{lineCount !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {/* Chevron */}
-        <motion.div
+        <Brain style={{ width: 14, height: 14, color: '#9CA3AF', flexShrink: 0 }} />
+        <span style={{ fontSize: 12.5, fontWeight: 500, color: '#6B7280', letterSpacing: '0.01em' }}>
+          Reflection
+        </span>
+        <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
+          style={{ display: 'inline-flex', color: '#9CA3AF' }}
         >
-          <ChevronDown style={{ width: 14, height: 14, color: isOpen ? '#8B5CF6' : '#9CA3AF' }} />
-        </motion.div>
+          <ChevronDown style={{ width: 13, height: 13 }} />
+        </motion.span>
       </button>
 
-      {/* Body */}
+      {/* Accordion body */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.26, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ overflow: 'hidden' }}
           >
+            {/* Spacious content — Claude-style */}
             <div style={{
-              background: 'linear-gradient(135deg, #FAF5FF 0%, #F0F4FF 100%)',
-              border: '1px solid rgba(139,92,246,0.15)',
-              borderTop: 'none',
-              borderRadius: '0 0 10px 10px',
-              padding: '12px 14px',
-              position: 'relative',
-              overflow: 'hidden',
+              marginTop: 8,
+              padding: '20px 24px',
+              background: '#FAFAFA',
+              border: '1px solid #EBEBEB',
+              borderRadius: 10,
+              fontSize: 13,
+              color: '#374151',
+              lineHeight: 2,
+              maxHeight: 400,
+              overflowY: 'auto',
             }}>
-              {/* Subtle scan line animation */}
-              <div style={{
-                position: 'absolute', left: 0, right: 0, height: 1,
-                background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.3), transparent)',
-                animation: 'scan-line 3s ease-in-out infinite',
-                pointerEvents: 'none',
-              }} />
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => (
+                    <p style={{ margin: '0 0 14px 0', color: '#374151', lineHeight: 2 }}>{children}</p>
+                  ),
+                  li: ({ children }) => (
+                    <li style={{ marginBottom: 8, color: '#374151', lineHeight: 1.9 }}>{children}</li>
+                  ),
+                  ul: ({ children }) => (
+                    <ul style={{ paddingLeft: 20, marginBottom: 14 }}>{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol style={{ paddingLeft: 20, marginBottom: 14 }}>{children}</ol>
+                  ),
+                  strong: ({ children }) => (
+                    <strong style={{ color: '#111827', fontWeight: 600 }}>{children}</strong>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '18px 0 8px' }}>{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: '16px 0 6px' }}>{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 style={{ fontSize: 13, fontWeight: 600, color: '#374151', margin: '12px 0 4px' }}>{children}</h3>
+                  ),
+                }}
+              >
+                {thinkingText}
+              </ReactMarkdown>
+            </div>
 
-              {/* Left accent bar */}
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0, width: 2,
-                background: 'linear-gradient(180deg, #8B5CF6 0%, #6366F1 50%, transparent 100%)',
-                borderRadius: '0 0 0 10px',
-              }} />
-
-              {/* Content */}
-              <div style={{
-                paddingLeft: 10,
-                fontSize: 11.5,
-                color: '#6B7280',
-                lineHeight: 1.75,
-                fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                maxHeight: 280,
-                overflowY: 'auto',
-              }}>
-                {thinkingText.split('\n').map((line, i) => (
-                  <div key={i} style={{
-                    padding: '1px 0',
-                    color: line.match(/^\d+\./) ? '#7C3AED' : '#6B7280',
-                    fontWeight: line.match(/^\d+\./) ? 600 : 400,
-                  }}>
-                    {line || '\u00A0'}
-                  </div>
-                ))}
-              </div>
+            {/* "Done" footer */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              marginTop: 6, paddingLeft: 2,
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#D1D5DB' }} />
+              <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>Done</span>
             </div>
           </motion.div>
         )}
@@ -247,9 +293,6 @@ const PackageApprovalCard = ({ packages = [], onApprove, onReject }) => (
   </div>
 );
 
-/**
- * Parse <thinking>...</thinking> from text.
- */
 function parseThinking(rawText) {
   if (!rawText || typeof rawText !== 'string') return { thinkingText: null, finalText: rawText || '' };
   const thinkMatch = rawText.match(/<thinking>([\s\S]*?)<\/thinking>/i);
@@ -262,7 +305,6 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
   const [localGenerating, setLocalGenerating] = useState(isGenerating);
   const [approved, setApproved] = useState(false);
   const [rejected, setRejected] = useState(false);
-  // Track if this is a freshly-received message (for auto-open)
   const isNewMessage = useRef(true);
 
   useEffect(() => { injectStyles(); }, []);
@@ -277,38 +319,35 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     }
   }, [isGenerating, localGenerating]);
 
-  // While generating → show animated thinking indicator
+  // Task 1: While generating → Brain + shimmer typewriter "Thinking..."
   if (localGenerating) {
     return <ThinkingIndicator />;
   }
 
   if (!content) return null;
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);
-
-  // Parse <thinking> block from content
   const { thinkingText, finalText } = parseThinking(safeText);
 
-  // Determine if this render is the first time content appears (for auto-open)
   const shouldAutoOpen = isNewMessage.current;
   if (shouldAutoOpen) isNewMessage.current = false;
 
-  // ── "Interface ready" success indicator ──
+  // ── "Interface ready" — show thinking accordion + real code preview ──
   if (
     finalText.includes('Architecture generated') ||
     finalText.includes('Architecture successfully') ||
     finalText.includes('successfully recompiled') ||
     finalText.includes('✨ Architecture')
   ) {
+    // Extract raw code from rawContent (strip fences if present)
+    let codeForPreview = rawContent || '';
+    const fenceMatch = codeForPreview.match(/```(?:jsx|javascript|react)?\n?([\s\S]*?)```/);
+    if (fenceMatch) codeForPreview = fenceMatch[1];
+
     return (
       <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
         {thinkingText && <ThinkingAccordion thinkingText={thinkingText} autoOpen={shouldAutoOpen} />}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 10, padding: '10px 14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', display: 'inline-block', flexShrink: 0 }} />
-          <div>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111111', lineHeight: 1.2 }}>Interface ready</p>
-            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#888888', lineHeight: 1.2 }}>Preview updated →</p>
-          </div>
-        </div>
+        {/* Task 3: real code scrolling box */}
+        {codeForPreview && <CodePreviewBox code={codeForPreview} />}
       </div>
     );
   }
@@ -334,11 +373,9 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
   if (approved) return <p style={{ fontSize: 13, color: '#22C55E', margin: 0 }}>✓ Packages approved — installing…</p>;
   if (rejected) return <p style={{ fontSize: 13, color: '#EF4444', margin: 0 }}>✗ Installation cancelled.</p>;
 
-  // Strip emojis
   const stripEmojis = (str) => str.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F1E0}-\u{1F1FF}✨✓✗]/gu, '').trim();
   const cleanText = stripEmojis(finalText);
 
-  // ── Normal message ──
   return (
     <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
       {thinkingText && <ThinkingAccordion thinkingText={thinkingText} autoOpen={shouldAutoOpen} />}
