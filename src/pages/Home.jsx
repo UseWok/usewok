@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import { X } from 'lucide-react';
+import BuildsGallery from '../components/home/BuildsGallery';
 
 const PENDING_KEY = 'stensor_pending_query';
 
@@ -207,6 +208,9 @@ export default function Home() {
           </motion.div>
         </div>
       </div>
+
+      {/* Builds gallery */}
+      <BuildsGallery />
     </div>
   );
 }

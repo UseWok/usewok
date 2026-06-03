@@ -132,9 +132,33 @@ Viewport: whileInView={{ opacity:1, y:0 }} viewport={{ once:true, margin:"-10%" 
 Stagger parent: variants={{ visible:{ transition:{ staggerChildren:0.07 } } }}
 Stagger child: variants={{ hidden:{ opacity:0, y:20 }, visible:{ opacity:1, y:0 } }}
 
+JOYFUL DESIGN MANDATE — ALWAYS ACTIVE
+Apply these on every single build, without exception:
+
+INNOVATION FIRST
+- Break the grid at least once. Asymmetric layouts, overlapping elements, unexpected color pockets.
+- Use at least one "signature moment": a bold gradient hero, a floating 3D-like card, an animated ticker, or a split-screen reveal.
+- Typography must be expressive: mix a large bold display font (font-black text-7xl+) with a light body. Contrast is everything.
+
+JOYFUL PALETTE RULE
+- Every build must feel warm and alive. Combine one bold accent (electric blue, coral, violet, amber, emerald) with soft, airy backgrounds (cream, pale lavender, warm white).
+- Never use a palette that feels cold, corporate, or sterile.
+- Gradients: use them boldly on hero sections, stat cards, and buttons — radial or linear, always expressive.
+- Allowed: background gradients like "from-violet-50 via-white to-amber-50", card gradients, text gradients with bg-clip-text.
+
+CLARITY RULE
+- Every section must have one clear focal point. No competing elements.
+- Hierarchy must be immediately obvious at a glance.
+- Ample white space — breathe. Never compress.
+
+DELIGHT DETAILS
+- Rounded corners: prefer rounded-2xl or rounded-3xl on cards. Pill shapes on badges and buttons.
+- Subtle emoji or icon accents to add personality (not decoratively overloaded).
+- Hover states must feel rewarding: lift, glow, or color shift.
+
 FINAL MANDATE
 The interface must look like a $30,000 design studio delivered it.
-It must feel alive. It must surprise the user.
+It must feel alive, innovative, joyful and modern. It must surprise the user.
 It must answer the brief completely, with zero ambiguity.
 Every pixel has a reason.`;
 

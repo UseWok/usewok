@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Star } from 'lucide-react';
 import { getUserColor } from '@/lib/user-color';
 import { getTheme, setTheme } from '@/lib/theme';
 
@@ -26,6 +26,11 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidd
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [currentTheme, setCurrentTheme] = useState(getTheme());
+  const [buildsCollapsed, setBuildsCollapsed] = useState(false);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('wok_favorites') || '[]'); } catch { return []; }
+  });
 
   const wsRef = useRef(null);
 
@@ -73,6 +78,17 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidd
     saveLocalDiscussions(currentWs.id, updated);
     if (convId === id) navigate('/chat');
   };
+
+  const toggleFavorite = (e, id) => {
+    e.stopPropagation();
+    const updated = favorites.includes(id)
+      ? favorites.filter(f => f !== id)
+      : [...favorites, id];
+    setFavorites(updated);
+    localStorage.setItem('wok_favorites', JSON.stringify(updated));
+  };
+
+  const favBuilds = discussions.filter(d => favorites.includes(d.id));
 
   const startEdit = (e, d) => {
     e.stopPropagation();
@@ -186,46 +202,94 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidd
                 onClick={() => navigate('/chat')}
                 className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-white rounded-full text-[13px] font-semibold hover:bg-primary/90 transition-colors shadow-indigo"
               >
-                <Plus className="w-4 h-4" /> New chat
+                <Plus className="w-4 h-4" /> New build
               </button>
             </div>
 
-            {/* Discussions list */}
+            {/* Builds list — favorites only */}
             <div className="flex-1 overflow-y-auto px-2 py-2">
-              {discussions.length > 0 && (
-                <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest px-2 mb-2">Recents</p>
-              )}
-              {discussions.map((d) => (
-                <div
-                  key={d.id}
-                  onClick={() => navigate(`/chat?conversationId=${d.id}`)}
-                  className={`group flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer transition-colors mb-0.5 ${d.id === convId ? 'bg-white/[0.06] border border-white/[0.07]' : 'hover:bg-white/[0.04]'}`}
-                >
-                  {editingId === d.id ? (
-                    <input
-                      value={editTitle}
-                      onChange={e => setEditTitle(e.target.value)}
-                      onBlur={() => saveEdit(d.id)}
-                      onKeyDown={e => e.key === 'Enter' && saveEdit(d.id)}
-                      onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-white/[0.08] text-white text-[13px] rounded-lg px-2 py-0.5 focus:outline-none"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className={`flex-1 text-[13px] truncate ${d.id === convId ? 'text-white font-medium' : 'text-zinc-500'}`}>
-                      {d.title || d.preview || 'New chat'}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <button onClick={(e) => startEdit(e, d)} className="p-1 text-gray-500 hover:text-white rounded transition-colors">
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                    <button onClick={(e) => deleteDiscussion(e, d.id)} className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {/* Section header */}
+              <button
+                onClick={() => setBuildsCollapsed(v => !v)}
+                className="w-full flex items-center justify-between px-2 mb-2 group"
+              >
+                <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Builds</span>
+                <ChevronDown className={`w-3 h-3 text-zinc-600 transition-transform ${buildsCollapsed ? '-rotate-90' : ''}`} />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {!buildsCollapsed && (
+                  <motion.div
+                    key="builds-list"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    {favBuilds.length === 0 ? (
+                      <p className="text-[11px] text-zinc-600 px-2 py-2 leading-relaxed">
+                        Hover a build and click ★ to pin it here.
+                      </p>
+                    ) : (
+                      favBuilds.map((d) => (
+                        <div
+                          key={d.id}
+                          onClick={() => navigate(`/chat?conversationId=${d.id}`)}
+                          onMouseEnter={() => setHoveredId(d.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                          className={`group flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer transition-colors mb-0.5 ${d.id === convId ? 'bg-white/[0.06] border border-white/[0.07]' : 'hover:bg-white/[0.04]'}`}
+                        >
+                          <Star className="w-3 h-3 flex-shrink-0 fill-amber-400 text-amber-400" />
+                          <span className={`flex-1 text-[13px] truncate ${d.id === convId ? 'text-white font-medium' : 'text-zinc-400'}`}>
+                            {d.title || d.preview || 'Untitled build'}
+                          </span>
+                          <button
+                            onClick={(e) => toggleFavorite(e, d.id)}
+                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+
+                    {/* All builds with hover star */}
+                    {discussions.length > 0 && (
+                      <>
+                        <p className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest px-2 mt-4 mb-2">All builds</p>
+                        {discussions.map((d) => (
+                          <div
+                            key={d.id}
+                            onClick={() => navigate(`/chat?conversationId=${d.id}`)}
+                            onMouseEnter={() => setHoveredId(d.id)}
+                            onMouseLeave={() => setHoveredId(null)}
+                            className={`group flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer transition-colors mb-0.5 ${d.id === convId ? 'bg-white/[0.06] border border-white/[0.07]' : 'hover:bg-white/[0.04]'}`}
+                          >
+                            <span className={`flex-1 text-[13px] truncate ${d.id === convId ? 'text-white font-medium' : 'text-zinc-500'}`}>
+                              {d.title || d.preview || 'Untitled build'}
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                              <button
+                                onClick={(e) => toggleFavorite(e, d.id)}
+                                className="p-1 rounded transition-colors"
+                                title="Star this build"
+                              >
+                                <Star
+                                  className={`w-3 h-3 transition-colors ${favorites.includes(d.id) ? 'fill-amber-400 text-amber-400' : 'text-zinc-500 hover:text-amber-400'}`}
+                                />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); deleteDiscussion(e, d.id); }} className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Nav links */}
