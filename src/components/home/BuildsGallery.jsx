@@ -105,7 +105,7 @@ function BuildCard({ build, index }) {
       onClick={() => navigate(`/chat?conversationId=${build.id}`)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10 }}
+      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}
     >
       {/* Thumbnail */}
       <div style={{
@@ -187,7 +187,7 @@ export default function BuildsGallery() {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: 0 }}>My projects</h2>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: 0 }}>Mes builds</h2>
           <button
             onClick={() => navigate('/discussions')}
             style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0, fontFamily: 'inherit' }}

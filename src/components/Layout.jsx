@@ -38,11 +38,12 @@ export default function Layout() {
   // Sidebar always shown in Layout routes (excluded pages use different routes)
   const showSidebar = !isMobile;
 
-  // Auto-expand sidebar on "standard" pages, collapse on chat-like pages
+  // Auto-expand sidebar ONLY on first load — never reset on navigation
   useEffect(() => {
     const shouldExpand = SIDEBAR_EXPANDED_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
     setExpanded(shouldExpand);
-  }, [location.pathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount only
 
   useEffect(() => {
     initTheme();

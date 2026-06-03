@@ -7,6 +7,7 @@ import {
   ChevronDown, LayoutGrid, Gift, Inbox, Compass,
   Network, UserRound, UsersRound,
 } from 'lucide-react';
+import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -232,16 +233,8 @@ function ProfileMenu({ user, onClose, navigate }) {
         {menuBtn(Home, 'Home', () => navigate('/app'))}
       </div>
 
-      <div style={{ height: 1, background: '#F0F0F0' }} />
       <div style={{ padding: '4px 0 4px' }}>
-        <button
-          onClick={async () => { await base44.auth.logout(); window.location.reload(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#C0392B', transition: 'background 100ms', textAlign: 'left', fontFamily: 'inherit' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <LogOut style={{ width: 14, height: 14, color: '#C0392B', flexShrink: 0 }} /> Log out
-        </button>
+        {menuBtn(LogOut, 'Log out', async () => { await base44.auth.logout(); window.location.reload(); })}
       </div>
     </motion.div>
   );
@@ -386,6 +379,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCreateWsModal, setShowCreateWsModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [recents, setRecents] = useState([]);
   const [workspaces, setWorkspaces] = useState(() => {
     const saved = localStorage.getItem('wok_workspaces');
@@ -426,7 +420,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
   useEffect(() => {
     const handler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); navigate('/discussions'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearchModal(true); }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -459,24 +453,25 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       width: 34, height: 34, borderRadius: 7, background: '#DCDCDA', justifyContent: 'center',
     } : {};
     return (
+      <div style={{ padding: '1px 4px' }}>
       <button onClick={onClick} title={!expanded ? label : undefined}
         style={{
-          display: 'flex', alignItems: 'center', width: '100%', height: 36,
-          padding: expanded ? '0 10px' : '0',
+          display: 'flex', alignItems: 'center', width: 'calc(100% - 0px)', height: 34,
+          padding: expanded ? '0 8px' : '0',
           justifyContent: expanded ? 'flex-start' : 'center',
-          borderRadius: 8,
-          background: active ? (expanded ? '#F0F0EE' : 'transparent') : 'transparent',
+          borderRadius: 7,
+          background: active ? (expanded ? '#EBEBEA' : 'transparent') : 'transparent',
           border: 'none', cursor: 'pointer', transition: 'background 120ms',
           color: active ? '#111' : '#444', flexShrink: 0,
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F5F5F5'; }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F0F0EF'; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
       >
         {Icon && (
           <span style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: !expanded && active ? 34 : 22,
-            height: !expanded && active ? 34 : 22,
+            width: !expanded && active ? 30 : 22,
+            height: !expanded && active ? 30 : 22,
             borderRadius: !expanded && active ? 7 : 0,
             background: !expanded && active ? '#DCDCDA' : 'transparent',
             flexShrink: 0, transition: 'background 120ms, width 120ms, height 120ms',
@@ -486,7 +481,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         )}
         {expanded && (
           <>
-            <span style={{ fontSize: 14, fontWeight: active ? 500 : 400, whiteSpace: 'nowrap', marginLeft: Icon ? 10 : 0, flex: 1, textAlign: 'left', color: active ? '#111' : '#333' }}>
+            <span style={{ fontSize: 13.5, fontWeight: active ? 500 : 400, whiteSpace: 'nowrap', marginLeft: Icon ? 9 : 0, flex: 1, textAlign: 'left', color: active ? '#111' : '#333' }}>
               {label}
             </span>
             {shortcut && (
@@ -499,6 +494,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           </>
         )}
       </button>
+      </div>
     );
   };
 
@@ -618,14 +614,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {/* Main nav */}
           <div style={{ padding: expanded ? '2px 8px' : '2px 5px', flexShrink: 0 }}>
             <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={location.pathname === '/app'} />
-            <NavItem icon={Search} label="Search" onClick={() => nav('/discussions')} shortcut={['Ctrl', 'K']} />
+            <NavItem icon={Search} label="Search" onClick={() => setShowSearchModal(true)} shortcut={['Ctrl', 'K']} />
             <NavItem icon={Compass} label="Resources" onClick={() => nav('/app')} />
             <NavItem icon={Network} label="Connectors" onClick={() => nav('/app')} />
           </div>
 
           {/* Projects */}
           <div style={{ padding: expanded ? '8px 8px 0' : '8px 5px 0', flexShrink: 0 }}>
-            {expanded && <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px', letterSpacing: '0.01em' }}>Projects</p>}
+            {expanded && <p style={{ fontSize: 12, fontWeight: 500, color: '#AAAAAA', margin: '4px 10px 6px', letterSpacing: '0.01em' }}>Mes builds</p>}
             {!expanded && <div style={{ height: 6 }} />}
             <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
             <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />
@@ -670,6 +666,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
       <CreateWorkspaceModal open={showCreateWsModal} onClose={() => setShowCreateWsModal(false)} onCreate={handleCreateWorkspace} />
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
+      <SearchModal open={showSearchModal} onClose={() => setShowSearchModal(false)} />
 
       {/* Floating Share Lovable */}
       <motion.div
