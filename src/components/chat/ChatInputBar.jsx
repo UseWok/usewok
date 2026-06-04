@@ -156,9 +156,9 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
       transition={{ duration: 0.1 }}
       style={{
         position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-        background: '#fff', border: '1px solid #E0E0E0',
+        background: '#F0ECE3', border: '1px solid #D8D3C9',
         borderRadius: 12, padding: '4px', minWidth: 200,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 9999,
+        boxShadow: 'none', zIndex: 9999,
       }}
     >
       {MODES.map(m => {
@@ -173,7 +173,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
               borderRadius: 8, cursor: 'pointer', textAlign: 'left',
               fontFamily: 'Inter, sans-serif', gap: 8,
             }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8F8F7'; }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#E6E1D7'; }}
             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
           >
             <div>
@@ -194,17 +194,17 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
           background: 'transparent', borderRadius: 8, cursor: 'pointer',
           fontFamily: 'Inter, sans-serif', marginTop: 2,
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#F8F8F7'}
+        onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <span style={{
           width: 18, height: 18, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #A855F7, #EC4899)',
+          background: '#8F41FD',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <ArrowRight style={{ width: 10, height: 10, color: '#fff' }} />
         </span>
-        <span style={{ fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, #A855F7, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#8F41FD' }}>
           Upgrade plan
         </span>
       </button>
@@ -380,8 +380,9 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{
-        background: '#E8E2D8',
+        background: '#F0ECE3',
         border: 'none',
+        borderTop: '1px solid #E5E0D6',
         borderRadius: 14,
         overflow: 'visible',
         position: 'relative',
@@ -484,12 +485,12 @@ export default function ChatInputBar({
               onClick={() => setShowPlusMenu(v => !v)}
               style={{
                 width: 32, height: 32, borderRadius: '50%',
-                background: '#FFFFFF', border: 'none',
+                background: 'rgba(255,255,255,0.7)', border: 'none',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#555', transition: 'background 120ms', flexShrink: 0,
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
-              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+              onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
             >
               <Plus style={{ width: 15, height: 15 }} />
             </button>
@@ -521,7 +522,7 @@ export default function ChatInputBar({
               display: 'flex', alignItems: 'center', gap: 6,
               height: 32, padding: '0 12px',
               borderRadius: 999,
-              background: visualEditActive ? '#2563EB' : '#FFFFFF',
+              background: visualEditActive ? '#2563EB' : 'rgba(255,255,255,0.7)',
               border: 'none',
               cursor: editActivating ? 'wait' : 'pointer',
               fontSize: 13, fontWeight: 500,
@@ -531,8 +532,8 @@ export default function ChatInputBar({
               flexShrink: 0,
               opacity: editActivating ? 0.7 : 1,
             }}
-            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#EAE5DC'; }}
-            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = '#FFFFFF'; }}
+            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#E6E1D7'; }}
+            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = 'rgba(255,255,255,0.7)'; }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={visualEditActive ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 3l14 9-7 1-3 7L5 3z"/>
@@ -585,12 +586,12 @@ export default function ChatInputBar({
                     display: 'flex', alignItems: 'center', gap: 5,
                     height: 32, padding: '0 12px',
                     borderRadius: 999, border: 'none',
-                    background: '#FFFFFF', cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
                     fontSize: 13, fontWeight: 500, color: '#333',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
                 >
                   {buildMode}
                   <ChevronDown style={{ width: 13, height: 13, color: '#888' }} />
@@ -612,12 +613,12 @@ export default function ChatInputBar({
                 onClick={handleMicClick}
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: '#FFFFFF', border: 'none',
+                  background: 'rgba(255,255,255,0.7)', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#555', transition: 'background 120ms', flexShrink: 0,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
-                onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
               >
                 <Mic style={{ width: 14, height: 14 }} />
               </button>

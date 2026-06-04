@@ -28,6 +28,10 @@ import IframeModal from '@/components/chat/IframeModal';
 import ProModal from '@/components/chat/ProModal';
 import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
+import HistoryPanel from '@/components/chat/HistoryPanel';
+import AnalyticsPanel from '@/components/chat/AnalyticsPanel';
+import LogsPanel from '@/components/chat/LogsPanel';
+import { appendLog } from '@/components/chat/LogsPanel';
 
 
 // ── Lib ──
@@ -99,6 +103,7 @@ export default function ChatPage() {
   const [chatVisible, setChatVisible] = useState(true);
   const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
+  const [showHistory, setShowHistory] = useState(false);
 
   // ── Chat state ──
   const [messages, setMessages] = useState(() => {
@@ -110,6 +115,8 @@ export default function ChatPage() {
   );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Chat bar background
+  const CHAT_BG = '#FAF9F5';
   const [currentQuery, setCurrentQuery] = useState('');
   const [files, setFiles] = useState([]);
   // Restore last generated content on mount (F5 persistence)
@@ -454,6 +461,19 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ── Telemetry logging ──
+  useEffect(() => {
+    appendLog('INFO', `APP_START path=${window.location.pathname}`);
+    const handleUnload = () => appendLog('INFO', 'APP_CLOSE');
+    const handleVisibility = () => appendLog('INFO', `VISIBILITY_CHANGE state=${document.visibilityState}`);
+    window.addEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   useEffect(() => {
     const initAuth = async () => {
       await safeAsync(() => initAgentsFromDB(), null, 'Init agents');
@@ -531,7 +551,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#F0EDE6' }}>
+      style={{ backgroundColor: '#FAF9F5' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -556,12 +576,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#F0EDE6' }}>
+        style={{ background: '#FAF9F5' }}>
 
         <div className="flex w-full h-full">
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F0EDE6' }}>
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#FAF9F5' }}>
               <MessageList
                 messages={messages}
                 isLoading={isLoading}
@@ -584,7 +604,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
           )}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F0EDE6' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#FAF9F5' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
@@ -598,6 +618,8 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
               mobilePreview={mobilePreview}
               setMobilePreview={setMobilePreview}
+              showHistory={showHistory}
+              setShowHistory={setShowHistory}
             />
 
             {/* Preview area — offset by header height (44px), snug padding, no border/shadow */}
@@ -605,6 +627,28 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               position: 'absolute', top: 44, left: 10, right: 10, bottom: 10,
               display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
             }}>
+
+            {/* History panel replaces chat panel area — overlays preview */}
+            {showHistory && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 100, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
+                <HistoryPanel messages={messages} ficheContent={ficheContent} setFicheContent={setFicheContent} />
+              </div>
+            )}
+
+            {/* Analytics panel */}
+            {viewMode === 'analytics' && !showHistory && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
+                <AnalyticsPanel />
+              </div>
+            )}
+
+            {/* Logs panel */}
+            {viewMode === 'logs' && !showHistory && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
+                <LogsPanel />
+              </div>
+            )}
+
             {/* Animated inner preview container */}
             <motion.div
               animate={mobilePreview
