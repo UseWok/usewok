@@ -598,6 +598,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                   files={files} setFiles={setFiles}
                   discussMode={discussMode} setDiscussMode={setDiscussMode}
                   editMode={editMode} setEditMode={setEditMode}
+                  onUpgrade={() => {/* ChatHeader handles upgrade modal */}}
                 />
               </div>
             </div>
@@ -665,6 +666,9 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                 appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
                 isPublished={isAppPublished}
                 setIsPublished={setIsAppPublished}
+                customSlug={customSlug || convId}
+                appSettings={appSettings}
+                onUpdateSettings={handleUpdateAppMeta}
               />
 
               {ficheContent ? (

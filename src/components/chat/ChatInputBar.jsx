@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, ChevronDown, Check, Settings, History, Camera, Paperclip, ArrowRight, Zap } from 'lucide-react';
+import { ArrowUp, X, FileText, Plus, Mic, ChevronDown, Check, Settings, History, Camera, Paperclip } from 'lucide-react';
 
 // ── Real-time waveform using AnalyserNode ──
 function LiveWaveform({ analyserRef }) {
@@ -23,26 +23,39 @@ function LiveWaveform({ analyserRef }) {
       if (analyser) {
         const data = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(data);
-        const step = Math.floor(data.length / BAR_COUNT);
+        // Check if any sound is detected
+        const maxVal = Math.max(...data);
         const barW = W / BAR_COUNT;
         for (let i = 0; i < BAR_COUNT; i++) {
-          const val = data[i * step] / 255;
-          const barH = Math.max(2, val * H);
-          const x = i * barW;
-          // Dark bars matching the reference image
-          ctx.fillStyle = `rgba(30, 30, 30, ${0.3 + val * 0.7})`;
-          ctx.beginPath();
-          ctx.roundRect(x + 1, (H - barH) / 2, barW - 2, barH, 2);
-          ctx.fill();
+          if (maxVal < 5) {
+            // Strictly frozen when silent — no animation
+            ctx.fillStyle = 'rgba(30,30,30,0.15)';
+            ctx.beginPath();
+            ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);
+            ctx.fill();
+          } else {
+            // Map bars so peak is at center
+            const center = BAR_COUNT / 2;
+            const dist = Math.abs(i - center) / center; // 0=center, 1=edge
+            const mirrorIdx = Math.floor(Math.abs(i - center) / center * (data.length / 2));
+            const rawVal = data[mirrorIdx] / 255;
+            // Bell-shaped envelope — center peaks higher
+            const envelope = Math.pow(1 - dist, 1.5);
+            const val = rawVal * envelope;
+            const barH = Math.max(2, val * H * 0.9);
+            ctx.fillStyle = `rgba(30, 30, 30, ${0.25 + val * 0.75})`;
+            ctx.beginPath();
+            ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 2);
+            ctx.fill();
+          }
         }
       } else {
-        // Fallback idle animation
+        // No analyser yet — static flat bars
+        const barW = W / BAR_COUNT;
         for (let i = 0; i < BAR_COUNT; i++) {
-          const barH = 2 + Math.abs(Math.sin(Date.now() / 600 + i * 0.3)) * 6;
-          const barW = W / BAR_COUNT;
-          ctx.fillStyle = 'rgba(30,30,30,0.2)';
+          ctx.fillStyle = 'rgba(30,30,30,0.15)';
           ctx.beginPath();
-          ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 1);
+          ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);
           ctx.fill();
         }
       }
@@ -134,7 +147,7 @@ function PlusMenu({ onClose, onAttachFile, onScreenshot }) {
 }
 
 // ── Build mode dropdown (Flash / Expert + Upgrade) ──
-function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
+function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade }) {
   const ref = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
@@ -156,9 +169,9 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
       transition={{ duration: 0.1 }}
       style={{
         position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-        background: '#F0ECE3', border: '1px solid #D8D3C9',
-        borderRadius: 12, padding: '4px', minWidth: 200,
-        boxShadow: 'none', zIndex: 9999,
+        background: '#FFFFFF', border: '1px solid #E4E0D9',
+        borderRadius: 12, padding: '4px', minWidth: 210,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.10)', zIndex: 9999,
       }}
     >
       {MODES.map(m => {
@@ -169,11 +182,11 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
             style={{
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
               width: '100%', padding: '9px 12px', border: 'none',
-              background: isActive ? '#F0F0EE' : 'transparent',
+              background: isActive ? '#F5F3F0' : 'transparent',
               borderRadius: 8, cursor: 'pointer', textAlign: 'left',
               fontFamily: 'Inter, sans-serif', gap: 8,
             }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#E6E1D7'; }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F5F3F0'; }}
             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
           >
             <div>
@@ -185,16 +198,17 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         );
       })}
 
-      {/* Upgrade button — no separator line */}
+      {/* Promo / Upgrade row */}
+      <div style={{ height: 1, background: '#EEEBE5', margin: '4px 0' }} />
       <button
-        onClick={onClose}
+        onClick={() => { onUpgrade?.(); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           width: '100%', padding: '8px 12px', border: 'none',
           background: 'transparent', borderRadius: 8, cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif', marginTop: 2,
+          fontFamily: 'Inter, sans-serif',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
+        onMouseEnter={e => e.currentTarget.style.background = '#F5F3F0'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <span style={{
@@ -202,10 +216,13 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
           background: '#8F41FD',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <ArrowRight style={{ width: 10, height: 10, color: '#fff' }} />
+          {/* Arrow pointing UP */}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
         </span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#8F41FD' }}>
-          Upgrade plan
+          Upgrade to Pro — get more models
         </span>
       </button>
     </motion.div>
@@ -216,6 +233,7 @@ export default function ChatInputBar({
   input, setInput, onSend, onStop, isLoading,
   files = [], setFiles,
   discussMode, setDiscussMode, editMode, setEditMode,
+  onUpgrade,
 }) {
   const [buildMode, setBuildMode] = useState('Flash');
   const [showBuildMenu, setShowBuildMenu] = useState(false);
@@ -603,6 +621,7 @@ export default function ChatInputBar({
                       setBuildMode={setBuildMode}
                       setDiscussMode={setDiscussMode}
                       onClose={() => setShowBuildMenu(false)}
+                      onUpgrade={onUpgrade}
                     />
                   )}
                 </AnimatePresence>

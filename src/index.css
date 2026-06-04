@@ -54,7 +54,7 @@
     --radius: 0.75rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 100%; /* #FFFFFF */
+    --sidebar-background: 40 33% 97%; /* #FAF9F5 */
     --sidebar-foreground: 0 0% 44%;
     --sidebar-primary: 0 0% 4%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -85,7 +85,7 @@
     --border: 240 5% 90%;
     --input: 240 5% 90%;
     --ring: 0 0% 4%;
-    --sidebar-background: 0 0% 100%;
+    --sidebar-background: 40 33% 97%;
     --sidebar-foreground: 0 0% 44%;
     --sidebar-border: 240 5% 90%;
   }
@@ -101,6 +101,7 @@
     @apply bg-background text-foreground font-inter;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-weight: 500;
   }
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
