@@ -1,67 +1,214 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, ChevronDown, Check } from 'lucide-react';
+import { ArrowUp, X, FileText, Plus, Mic, ChevronDown, Check, Settings, History, Camera, Paperclip, ArrowRight, Zap } from 'lucide-react';
 
-// ── Visual Edits icon (cursor + rotate, matches Lovable) ──
-const VisualEditsIcon = ({ active }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 2H3v16h5v4l4-4h5l4-4V2zM11 11V7M16 11V7" />
-    <path d="M8 11V9"/>
-  </svg>
-);
+// ── Real-time waveform using AnalyserNode ──
+function LiveWaveform({ analyserRef }) {
+  const canvasRef = useRef(null);
+  const rafRef = useRef(null);
 
-// Simpler, cleaner icon matching the image (palette/cursor hybrid)
-const EditIcon = ({ active }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : '#555'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-  </svg>
-);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const BAR_COUNT = 60;
 
-// ── Waveform: expressive, varied heights, fluid ──
-const BAR_COUNT = 28;
-const BAR_HEIGHTS = Array.from({ length: BAR_COUNT }, (_, i) => {
-  const center = BAR_COUNT / 2;
-  const dist = Math.abs(i - center) / center;
-  return Math.max(6, Math.round((1 - dist * 0.5) * 28 + Math.sin(i * 1.3) * 8));
-});
+    const draw = () => {
+      rafRef.current = requestAnimationFrame(draw);
+      const analyser = analyserRef.current;
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
 
-function Waveform() {
+      if (analyser) {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        const step = Math.floor(data.length / BAR_COUNT);
+        const barW = W / BAR_COUNT;
+        for (let i = 0; i < BAR_COUNT; i++) {
+          const val = data[i * step] / 255;
+          const barH = Math.max(2, val * H);
+          const x = i * barW;
+          // Dark bars matching the reference image
+          ctx.fillStyle = `rgba(30, 30, 30, ${0.3 + val * 0.7})`;
+          ctx.beginPath();
+          ctx.roundRect(x + 1, (H - barH) / 2, barW - 2, barH, 2);
+          ctx.fill();
+        }
+      } else {
+        // Fallback idle animation
+        for (let i = 0; i < BAR_COUNT; i++) {
+          const barH = 2 + Math.abs(Math.sin(Date.now() / 600 + i * 0.3)) * 6;
+          const barW = W / BAR_COUNT;
+          ctx.fillStyle = 'rgba(30,30,30,0.2)';
+          ctx.beginPath();
+          ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 1);
+          ctx.fill();
+        }
+      }
+    };
+
+    draw();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [analyserRef]);
+
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: 3, height: 36, padding: '0 8px',
-    }}>
-      {BAR_HEIGHTS.map((baseH, i) => (
-        <motion.div
-          key={i}
-          animate={{
-            height: [
-              baseH * 0.4,
-              baseH * (0.8 + Math.random() * 0.8),
-              baseH * 0.3,
-              baseH * (1 + Math.random() * 0.6),
-              baseH * 0.4,
-            ],
-            opacity: [0.5, 1, 0.6, 1, 0.5],
-          }}
-          transition={{
-            duration: 0.9 + (i % 5) * 0.15,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: i * 0.038,
-          }}
-          style={{
-            width: 3,
-            borderRadius: 999,
-            background: `hsl(${220 + i * 1.5}, 70%, 45%)`,
-            flexShrink: 0,
-            minHeight: 3,
-          }}
-        />
-      ))}
+    <canvas
+      ref={canvasRef}
+      width={280}
+      height={36}
+      style={{ flex: 1, display: 'block', height: 36 }}
+    />
+  );
+}
+
+// ── Plus dropdown menu ──
+function PlusMenu({ onClose, onAttachFile, onScreenshot }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  const menuStyle = {
+    position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
+    background: '#fff',
+    border: '1.5px solid #1A1A1A',
+    borderRadius: 10, padding: '4px', minWidth: 200,
+    boxShadow: '0 6px 24px rgba(0,0,0,0.14)', zIndex: 9999,
+  };
+  const itemStyle = {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%', padding: '8px 10px', border: 'none',
+    background: 'transparent', borderRadius: 7, cursor: 'pointer',
+    fontSize: 13, color: '#111', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+  };
+
+  return (
+    <div ref={ref} style={menuStyle}>
+      <button style={itemStyle}
+        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onClick={onClose}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Settings style={{ width: 14, height: 14, color: '#555' }} />
+          Settings
+        </span>
+        <span style={{ fontSize: 11, color: '#888', fontFamily: 'ui-monospace, monospace', background: '#F0F0F0', borderRadius: 4, padding: '1px 5px' }}>Ctrl.</span>
+      </button>
+      <button style={itemStyle}
+        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onClick={onClose}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <History style={{ width: 14, height: 14, color: '#555' }} />
+          History
+        </span>
+      </button>
+      <div style={{ height: 1, background: '#E0E0E0', margin: '4px 0' }} />
+      <button style={itemStyle}
+        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onClick={() => { onScreenshot?.(); onClose(); }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Camera style={{ width: 14, height: 14, color: '#555' }} />
+          Take a screenshot
+        </span>
+      </button>
+      <button style={itemStyle}
+        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onClick={() => { onAttachFile?.(); onClose(); }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Paperclip style={{ width: 14, height: 14, color: '#555' }} />
+          Attach a file
+        </span>
+      </button>
     </div>
+  );
+}
+
+// ── Build mode dropdown (Flash / Expert + Upgrade) ──
+function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  const MODES = [
+    { id: 'Flash', label: 'Flash', desc: 'Fast, direct changes' },
+    { id: 'Expert', label: 'Expert', desc: 'Deep reasoning mode' },
+  ];
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 4, scale: 0.97 }}
+      transition={{ duration: 0.1 }}
+      style={{
+        position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
+        background: '#fff', border: '1px solid #E0E0E0',
+        borderRadius: 12, padding: '4px', minWidth: 200,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.12)', zIndex: 9999,
+      }}
+    >
+      {MODES.map(m => {
+        const isActive = buildMode === m.id;
+        return (
+          <button key={m.id}
+            onClick={() => { setBuildMode(m.id); setDiscussMode?.(false); onClose(); }}
+            style={{
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+              width: '100%', padding: '9px 12px', border: 'none',
+              background: isActive ? '#F0F0EE' : 'transparent',
+              borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+              fontFamily: 'Inter, sans-serif', gap: 8,
+            }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8F8F7'; }}
+            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+          >
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{m.label}</div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>{m.desc}</div>
+            </div>
+            {isActive && <Check style={{ width: 13, height: 13, color: '#111', marginTop: 2, flexShrink: 0 }} />}
+          </button>
+        );
+      })}
+
+      {/* Upgrade button — no separator line */}
+      <button
+        onClick={onClose}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '8px 12px', border: 'none',
+          background: 'transparent', borderRadius: 8, cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif', marginTop: 2,
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = '#F8F8F7'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <span style={{
+          width: 18, height: 18, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #A855F7, #EC4899)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <ArrowRight style={{ width: 10, height: 10, color: '#fff' }} />
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, #A855F7, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Upgrade plan
+        </span>
+      </button>
+    </motion.div>
   );
 }
 
@@ -70,16 +217,21 @@ export default function ChatInputBar({
   files = [], setFiles,
   discussMode, setDiscussMode, editMode, setEditMode,
 }) {
-  const [buildMode, setBuildMode] = useState('Build');
+  const [buildMode, setBuildMode] = useState('Flash');
   const [showBuildMenu, setShowBuildMenu] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [editActivating, setEditActivating] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const buildMenuRef = useRef(null);
+  const plusBtnRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const analyserRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
@@ -88,15 +240,8 @@ export default function ChatInputBar({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.max(20 * 4, el.scrollHeight)}px`;
+    el.style.height = `${Math.max(80, el.scrollHeight)}px`;
   }, [input]);
-
-  // Close build dropdown on outside click
-  useEffect(() => {
-    const h = (e) => { if (buildMenuRef.current && !buildMenuRef.current.contains(e.target)) setShowBuildMenu(false); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, []);
 
   const handlePaste = useCallback((e) => {
     const items = Array.from(e.clipboardData?.items || []);
@@ -111,13 +256,23 @@ export default function ChatInputBar({
     return () => document.removeEventListener('paste', handlePaste);
   }, [handlePaste]);
 
-  // ── Mic ──
+  // ── Mic with real AnalyserNode for live spectrum ──
   const handleMicClick = async () => {
     if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
+
+      // Real-time analyser
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtxRef.current = audioCtx;
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
       const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
@@ -135,6 +290,9 @@ export default function ChatInputBar({
     clearInterval(timerRef.current);
     streamRef.current?.getTracks().forEach(t => t.stop());
     streamRef.current = null;
+    audioCtxRef.current?.close();
+    audioCtxRef.current = null;
+    analyserRef.current = null;
   };
 
   const handleDiscardRecording = () => {
@@ -145,23 +303,11 @@ export default function ChatInputBar({
     chunksRef.current = [];
   };
 
-  // On confirm: use Web Speech API for real transcription, fallback to SpeechRecognition
   const handleConfirmRecording = () => {
     if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
     stopStream();
     setIsRecording(false);
     setRecordingDuration(0);
-
-    // Try browser-native speech recognition for real transcription
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SR) {
-      // We already recorded, just show a placeholder — real transcription needs live stream
-      // Use a new recognition instance for a quick re-listen isn't viable post-hoc,
-      // so indicate the voice note was captured
-      setInput(prev => (prev ? prev + ' ' : '') + '🎤 ');
-    } else {
-      setInput(prev => (prev ? prev + ' ' : '') + '🎤 ');
-    }
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
 
@@ -180,9 +326,26 @@ export default function ChatInputBar({
     if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
   };
 
+  // Visual Edits: activate with micro-delay, deactivate instantly
+  const handleVisualEditToggle = () => {
+    if (editMode) {
+      // Instant deactivation
+      setEditMode(false);
+      setEditActivating(false);
+    } else {
+      // Micro-delay activation
+      setEditActivating(true);
+      setTimeout(() => {
+        setEditActivating(false);
+        setEditMode(true);
+      }, 320);
+    }
+  };
+
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
   const hasContent = !!(input.trim() || (files?.length || 0) > 0);
-  const BUILD_MODES = ['Build', 'Discuss'];
+
+  const visualEditActive = editMode || editActivating;
 
   return (
     <div style={{ padding: '0 10px 10px', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -217,10 +380,11 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{
-        background: '#EEE9E0',
+        background: '#E8E2D8',
         border: 'none',
         borderRadius: 14,
-        overflow: 'hidden',
+        overflow: 'visible',
+        position: 'relative',
       }}>
 
         {/* ── Recording mode ── */}
@@ -232,7 +396,7 @@ export default function ChatInputBar({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
-              style={{ padding: '10px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}
+              style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}
             >
               {/* Red pulsing dot */}
               <motion.div
@@ -240,7 +404,8 @@ export default function ChatInputBar({
                 transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }}
               />
-              <Waveform />
+              {/* Live spectrum waveform */}
+              <LiveWaveform analyserRef={analyserRef} />
               {/* Duration */}
               <span style={{ fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', flexShrink: 0, minWidth: 36 }}>
                 {formatDuration(recordingDuration)}
@@ -254,25 +419,34 @@ export default function ChatInputBar({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              {/* Design chip inside card, above textarea — only when editMode, no animation */}
-              {editMode && (
-                <div style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10 }}>
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    padding: '4px 10px', borderRadius: 999,
-                    background: '#EDEDEB', border: '1px solid #E0E0DE',
-                    fontSize: 12, fontWeight: 500, color: '#444',
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <circle cx="8" cy="14" r="1" fill="#555" stroke="none"/>
-                      <circle cx="12" cy="9" r="1" fill="#555" stroke="none"/>
-                      <circle cx="16" cy="14" r="1" fill="#555" stroke="none"/>
-                    </svg>
-                    Design
-                  </div>
-                </div>
-              )}
+              {/* Design chip — dark bg when active, animated slide-down */}
+              <AnimatePresence>
+                {editMode && (
+                  <motion.div
+                    key="design-chip"
+                    initial={{ opacity: 0, y: -8, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}
+                  >
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 10px', borderRadius: 999,
+                      background: '#2A2A2A', border: 'none',
+                      fontSize: 12, fontWeight: 500, color: '#fff',
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
+                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/>
+                        <circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
+                      </svg>
+                      Design
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div style={{ padding: '12px 14px 0' }}>
                 <textarea
@@ -280,7 +454,7 @@ export default function ChatInputBar({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask Lovable..."
+                  placeholder="Ask anything..."
                   style={{
                     width: '100%',
                     background: 'transparent',
@@ -304,42 +478,63 @@ export default function ChatInputBar({
         {/* ── Bottom toolbar ── */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '10px 10px', gap: 6 }}>
 
-          {/* Plus */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: '#FFFFFF', border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#555', transition: 'background 120ms', flexShrink: 0,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
-            onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
-          >
-            <Plus style={{ width: 15, height: 15 }} />
-          </button>
+          {/* Plus — perfectly round, with dropdown */}
+          <div ref={plusBtnRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => setShowPlusMenu(v => !v)}
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: '#FFFFFF', border: 'none',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#555', transition: 'background 120ms', flexShrink: 0,
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+            >
+              <Plus style={{ width: 15, height: 15 }} />
+            </button>
+            <AnimatePresence>
+              {showPlusMenu && (
+                <motion.div
+                  key="plus-menu"
+                  initial={{ opacity: 0, y: 4, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                  transition={{ duration: 0.1 }}
+                >
+                  <PlusMenu
+                    onClose={() => setShowPlusMenu(false)}
+                    onAttachFile={() => fileInputRef.current?.click()}
+                    onScreenshot={null}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
 
-          {/* Visual edits pill */}
+          {/* Visual edits pill — assertive blue, no shadow */}
           <button
-            onClick={() => { if (setEditMode) setEditMode(v => !v); }}
+            onClick={handleVisualEditToggle}
+            disabled={editActivating}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               height: 32, padding: '0 12px',
               borderRadius: 999,
-              background: editMode ? '#1740B0' : '#FFFFFF',
+              background: visualEditActive ? '#2563EB' : '#FFFFFF',
               border: 'none',
-              cursor: 'pointer', fontSize: 13, fontWeight: 500,
-              color: editMode ? '#fff' : '#444',
+              cursor: editActivating ? 'wait' : 'pointer',
+              fontSize: 13, fontWeight: 500,
+              color: visualEditActive ? '#fff' : '#444',
+              boxShadow: 'none',
               transition: 'background 120ms',
               flexShrink: 0,
-              boxShadow: editMode ? '0 2px 8px rgba(23,64,176,0.25)' : 'none',
+              opacity: editActivating ? 0.7 : 1,
             }}
-            onMouseEnter={e => { if (!editMode) e.currentTarget.style.background = '#F0EDE8'; }}
-            onMouseLeave={e => { if (!editMode) e.currentTarget.style.background = '#FFFFFF'; }}
+            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#EAE5DC'; }}
+            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = '#FFFFFF'; }}
           >
-            {/* Cursor + arrows icon (matches Lovable image) */}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={editMode ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={visualEditActive ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 3l14 9-7 1-3 7L5 3z"/>
               <path d="M19 3l-3 3M21 8l-3-1M19 13l-3-2"/>
             </svg>
@@ -351,7 +546,6 @@ export default function ChatInputBar({
           {/* ── Recording controls ── */}
           {isRecording ? (
             <>
-              {/* Discard */}
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -366,7 +560,6 @@ export default function ChatInputBar({
                 <X style={{ width: 14, height: 14 }} />
               </motion.button>
 
-              {/* Confirm */}
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -396,7 +589,7 @@ export default function ChatInputBar({
                     fontSize: 13, fontWeight: 500, color: '#333',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
                   onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
                 >
                   {buildMode}
@@ -404,30 +597,12 @@ export default function ChatInputBar({
                 </button>
                 <AnimatePresence>
                   {showBuildMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                      transition={{ duration: 0.1 }}
-                      style={{
-                        position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-                        background: '#fff', border: '1px solid #E4E4E2',
-                        borderRadius: 10, padding: 4, minWidth: 130,
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.10)', zIndex: 999,
-                      }}
-                    >
-                      {BUILD_MODES.map(m => (
-                        <button key={m}
-                          onClick={() => { setBuildMode(m); setShowBuildMenu(false); if (setDiscussMode) setDiscussMode(m === 'Discuss'); }}
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '7px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#333', fontFamily: 'Inter, sans-serif' }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          {m}
-                          {buildMode === m && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#111', display: 'inline-block' }} />}
-                        </button>
-                      ))}
-                    </motion.div>
+                    <BuildMenu
+                      buildMode={buildMode}
+                      setBuildMode={setBuildMode}
+                      setDiscussMode={setDiscussMode}
+                      onClose={() => setShowBuildMenu(false)}
+                    />
                   )}
                 </AnimatePresence>
               </div>
@@ -441,13 +616,13 @@ export default function ChatInputBar({
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#555', transition: 'background 120ms', flexShrink: 0,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F0EDE8'}
+                onMouseEnter={e => e.currentTarget.style.background = '#EAE5DC'}
                 onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
               >
                 <Mic style={{ width: 14, height: 14 }} />
               </button>
 
-              {/* Send / Stop */}
+              {/* Send / Stop — no transition animation when hasContent changes */}
               {isLoading ? (
                 <button onClick={onStop}
                   style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: '#111', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -457,10 +632,10 @@ export default function ChatInputBar({
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
                     flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
-                    background: hasContent ? '#111' : '#DDDDD9',
+                    background: hasContent ? '#111' : '#D4CFC7',
                     border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 150ms',
+                    // No transition — instant state change
                   }}>
                   <ArrowUp style={{ width: 15, height: 15, color: '#FFF' }} />
                 </button>

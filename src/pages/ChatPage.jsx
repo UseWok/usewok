@@ -531,7 +531,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#F7F5F0' }}>
+      style={{ backgroundColor: '#F0EDE6' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -556,12 +556,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#F7F5F0' }}>
+        style={{ background: '#F0EDE6' }}>
 
         <div className="flex w-full h-full">
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F7F5F0' }}>
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F0EDE6' }}>
               <MessageList
                 messages={messages}
                 isLoading={isLoading}
@@ -584,7 +584,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
           )}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F7F5F0' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F0EDE6' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
@@ -612,7 +612,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
                 : { width: '100%', height: '100%', borderRadius: 10 }
               }
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-              style={{ overflow: 'hidden', background: '#FFFFFF', flexShrink: 0, border: '1px solid #E0D8CC', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+              style={{ overflow: 'hidden', background: '#FFFFFF', flexShrink: 0, boxShadow: 'none' }}
             >
 
               <PublishAppModal
