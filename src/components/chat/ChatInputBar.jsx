@@ -602,14 +602,14 @@ export default function ChatInputBar({
                   onClick={() => setShowBuildMenu(v => !v)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
-                    height: 32, padding: '0 12px',
-                    borderRadius: 999, border: 'none',
-                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    height: 32, padding: '0 8px',
+                    borderRadius: 6, border: 'none',
+                    background: 'transparent', cursor: 'pointer',
                     fontSize: 13, fontWeight: 500, color: '#333',
                     transition: 'background 120ms',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   {buildMode}
                   <ChevronDown style={{ width: 13, height: 13, color: '#888' }} />

@@ -578,8 +578,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         className="flex w-full h-full overflow-hidden"
         style={{ background: '#FAF9F5' }}>
 
-        {/* BORDER_COLOR = #F5F2EB darkened 10% ≈ #D9D5CC */}
-        <div className="flex w-full h-full" style={{ gap: 4 }}>
+        <div className="flex w-full h-full" style={{ gap: 6, padding: '0 8px 8px 0' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
             <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#FAF9F5' }}>
