@@ -222,7 +222,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
           </svg>
         </span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#8F41FD' }}>
-          Upgrade to Pro — get more models
+          Upgrade to Creator
         </span>
       </button>
     </motion.div>
@@ -366,7 +366,7 @@ export default function ChatInputBar({
   const visualEditActive = editMode || editActivating;
 
   return (
-    <div style={{ padding: '0 10px 10px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '0 8px 8px', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* File previews */}
       <AnimatePresence>
@@ -399,11 +399,11 @@ export default function ChatInputBar({
       {/* ── Main input card ── */}
       <div style={{
         background: '#F0ECE3',
-        border: 'none',
-        borderTop: '1px solid #E5E0D6',
-        borderRadius: 14,
+        border: '1px solid #D9D5CC',
+        borderRadius: 10,
         overflow: 'visible',
         position: 'relative',
+        boxShadow: 'none',
       }}>
 
         {/* ── Recording mode ── */}

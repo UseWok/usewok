@@ -578,29 +578,39 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         className="flex w-full h-full overflow-hidden"
         style={{ background: '#FAF9F5' }}>
 
-        <div className="flex w-full h-full">
+        {/* BORDER_COLOR = #F5F2EB darkened 10% ≈ #D9D5CC */}
+        <div className="flex w-full h-full" style={{ gap: 4 }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
             <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#FAF9F5' }}>
-              <MessageList
-                messages={messages}
-                isLoading={isLoading}
-                currentQuery={currentQuery}
-                setFicheContent={setFicheContent}
-                setViewMode={setViewMode}
-              />
-              <div className="flex-shrink-0">
-                <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-                <ChatInputBar
-                  input={input} setInput={setInput}
-                  onSend={sendMessage} onStop={handleStop}
-                  isLoading={isLoading}
-                  files={files} setFiles={setFiles}
-                  discussMode={discussMode} setDiscussMode={setDiscussMode}
-                  editMode={editMode} setEditMode={setEditMode}
-                  onUpgrade={() => {/* ChatHeader handles upgrade modal */}}
-                />
-              </div>
+              {/* History panel replaces chat when open — stays in chat column, never over preview */}
+              {showHistory ? (
+                <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #D9D5CC', background: '#FAF9F5', margin: '0 0 0 8px' }}>
+                  <HistoryPanel messages={messages} ficheContent={ficheContent} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
+                </div>
+              ) : (
+                <>
+                  <MessageList
+                    messages={messages}
+                    isLoading={isLoading}
+                    currentQuery={currentQuery}
+                    setFicheContent={setFicheContent}
+                    setViewMode={setViewMode}
+                  />
+                  <div className="flex-shrink-0">
+                    <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+                    <ChatInputBar
+                      input={input} setInput={setInput}
+                      onSend={sendMessage} onStop={handleStop}
+                      isLoading={isLoading}
+                      files={files} setFiles={setFiles}
+                      discussMode={discussMode} setDiscussMode={setDiscussMode}
+                      editMode={editMode} setEditMode={setEditMode}
+                      onUpgrade={() => {}}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -623,41 +633,38 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               setShowHistory={setShowHistory}
             />
 
-            {/* Preview area — offset by header height (44px), snug padding, no border/shadow */}
+            {/* Preview area — offset by header height (44px), tight padding */}
             <div style={{
-              position: 'absolute', top: 44, left: 10, right: 10, bottom: 10,
+              position: 'absolute', top: 44, left: 4, right: 4, bottom: 4,
               display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
             }}>
 
-            {/* History panel replaces chat panel area — overlays preview */}
-            {showHistory && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 100, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
-                <HistoryPanel messages={messages} ficheContent={ficheContent} setFicheContent={setFicheContent} />
-              </div>
-            )}
-
             {/* Analytics panel */}
-            {viewMode === 'analytics' && !showHistory && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
+            {viewMode === 'analytics' && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 8, overflow: 'hidden', border: '1px solid #D9D5CC' }}>
                 <AnalyticsPanel />
               </div>
             )}
 
             {/* Logs panel */}
-            {viewMode === 'logs' && !showHistory && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 10, overflow: 'hidden' }}>
+            {viewMode === 'logs' && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 8, overflow: 'hidden', border: '1px solid #D9D5CC' }}>
                 <LogsPanel />
               </div>
             )}
 
-            {/* Animated inner preview container */}
+            {/* Animated inner preview container — border matches chat bar border-radius */}
             <motion.div
               animate={mobilePreview
-                ? { width: 390, height: '100%', borderRadius: 16 }
+                ? { width: 390, height: '100%', borderRadius: 12 }
                 : { width: '100%', height: '100%', borderRadius: 10 }
               }
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-              style={{ overflow: 'hidden', background: '#FFFFFF', flexShrink: 0, boxShadow: 'none' }}
+              style={{
+                overflow: 'hidden', background: '#FFFFFF', flexShrink: 0,
+                boxShadow: 'none',
+                border: '1px solid #D9D5CC',
+              }}
             >
 
               <PublishAppModal
