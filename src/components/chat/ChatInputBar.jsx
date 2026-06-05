@@ -398,8 +398,8 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{
-        background: '#F0ECE3',
-        border: '1px solid #D9D5CC',
+        background: '#242424',
+        border: '1px solid #333',
         borderRadius: 10,
         overflow: 'visible',
         position: 'relative',
@@ -452,7 +452,7 @@ export default function ChatInputBar({
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
                       padding: '4px 10px', borderRadius: 999,
-                      background: '#2A2A2A', border: 'none',
+                      background: '#333', border: 'none',
                       fontSize: 12, fontWeight: 500, color: '#fff',
                     }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -481,13 +481,13 @@ export default function ChatInputBar({
                     border: 'none',
                     resize: 'none',
                     fontSize: 14,
-                    color: '#111',
+                    color: '#fff',
                     lineHeight: '20px',
                     fontFamily: 'Inter, system-ui, sans-serif',
                     boxSizing: 'border-box',
                     display: 'block',
                   }}
-                  className="placeholder:text-[#BBBBBA]"
+                  className="placeholder:text-[#666]"
                 />
               </div>
             </motion.div>
@@ -503,12 +503,12 @@ export default function ChatInputBar({
               onClick={() => setShowPlusMenu(v => !v)}
               style={{
                 width: 32, height: 32, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.7)', border: 'none',
+                background: '#333', border: 'none',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#555', transition: 'background 120ms', flexShrink: 0,
+                color: '#aaa', transition: 'background 120ms', flexShrink: 0,
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
+              onMouseEnter={e => e.currentTarget.style.background = '#3a3a3a'}
+              onMouseLeave={e => e.currentTarget.style.background = '#333'}
             >
               <Plus style={{ width: 15, height: 15 }} />
             </button>
@@ -540,18 +540,18 @@ export default function ChatInputBar({
               display: 'flex', alignItems: 'center', gap: 6,
               height: 32, padding: '0 12px',
               borderRadius: 999,
-              background: visualEditActive ? '#F95738' : 'rgba(255,255,255,0.7)',
+              background: visualEditActive ? '#F95738' : '#333',
               border: 'none',
               cursor: editActivating ? 'wait' : 'pointer',
               fontSize: 13, fontWeight: 500,
-              color: visualEditActive ? '#fff' : '#444',
+              color: visualEditActive ? '#fff' : '#aaa',
               boxShadow: 'none',
               transition: 'background 120ms',
               flexShrink: 0,
               opacity: editActivating ? 0.7 : 1,
             }}
-            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#E6E1D7'; }}
-            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = 'rgba(255,255,255,0.7)'; }}
+            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#3a3a3a'; }}
+            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = '#333'; }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={visualEditActive ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 3l14 9-7 1-3 7L5 3z"/>
@@ -605,10 +605,10 @@ export default function ChatInputBar({
                     height: 32, padding: '0 8px',
                     borderRadius: 6, border: 'none',
                     background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 500, color: '#333',
+                    fontSize: 13, fontWeight: 500, color: '#aaa',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#333'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   {buildMode}
@@ -632,14 +632,14 @@ export default function ChatInputBar({
                 onClick={handleMicClick}
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.7)', border: 'none',
+                  background: '#333', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#555', transition: 'background 120ms', flexShrink: 0,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#E6E1D7'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.7)'}
-              >
-                <Mic style={{ width: 14, height: 14 }} />
+                  color: '#aaa', transition: 'background 120ms', flexShrink: 0,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#3a3a3a'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#333'}
+                  >
+                  <Mic style={{ width: 14, height: 14 }} />
               </button>
 
               {/* Send / Stop — no transition animation when hasContent changes */}
@@ -652,12 +652,11 @@ export default function ChatInputBar({
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
                     flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
-                    background: hasContent ? '#F95738' : '#D4CFC7',
+                    background: hasContent ? '#FFFFFF' : '#3A3A3A',
                     border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    // No transition — instant state change
                   }}>
-                  <ArrowUp style={{ width: 15, height: 15, color: '#FFF' }} />
+                  <ArrowUp style={{ width: 15, height: 15, color: hasContent ? '#111' : '#888' }} />
                 </button>
               )}
             </>

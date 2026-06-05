@@ -551,7 +551,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#F5F0E8' }}>
+      style={{ backgroundColor: '#181818' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -576,15 +576,15 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#F5F0E8' }}>
+        style={{ background: '#181818' }}>
 
-        <div className="flex w-full h-full" style={{ gap: 6, padding: '0 8px 8px 0' }}>
+        <div className="flex w-full h-full" style={{ gap: 6, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F5F0E8' }}>
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818' }}>
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
-                <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #D9D5CC', background: '#FAF9F5', margin: '0 0 0 8px' }}>
+                <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '0 0 0 8px' }}>
                   <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
                 </div>
               ) : (
@@ -614,7 +614,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
           )}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F5F0E8' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#181818' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
@@ -632,10 +632,10 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               setShowHistory={setShowHistory}
             />
 
-            {/* Preview area — offset by header height (44px), tight padding */}
+            {/* Preview area — equal top/bottom/right padding so bottom margin matches chat bottom margin */}
             <div style={{
-              position: 'absolute', top: 44, left: 4, right: 4, bottom: 4,
-              display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
+              position: 'absolute', top: 44, left: 4, right: 0, bottom: 0,
+              display: 'flex', alignItems: 'stretch', justifyContent: 'center',
             }}>
 
             {/* Analytics panel */}
@@ -652,17 +652,19 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               </div>
             )}
 
-            {/* Animated inner preview container — border matches chat bar border-radius */}
+            {/* Preview container — mobile mode centers the phone, desktop fills full width */}
             <motion.div
               animate={mobilePreview
-                ? { width: 390, height: '100%', borderRadius: 12 }
-                : { width: '100%', height: '100%', borderRadius: 10 }
+                ? { width: 390, borderRadius: 20 }
+                : { width: '100%', borderRadius: 10 }
               }
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               style={{
                 overflow: 'hidden', background: '#FFFFFF', flexShrink: 0,
+                alignSelf: mobilePreview ? 'center' : 'stretch',
                 boxShadow: 'none',
-                border: '1px solid #D9D5CC',
+                border: '1px solid #2A2A2A',
+                height: mobilePreview ? 'calc(100% - 0px)' : '100%',
               }}
             >
 

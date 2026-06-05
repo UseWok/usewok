@@ -263,14 +263,13 @@ export default function ChatHeader({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     border: 'none', background: 'transparent', cursor: 'pointer',
     borderRadius: 6, transition: 'background 120ms', flexShrink: 0,
-    color: '#555', fontFamily: 'Inter, sans-serif',
+    color: '#aaa', fontFamily: 'Inter, sans-serif',
   };
 
   const activeTab = viewMode === 'analytics' ? 'analytics' : viewMode === 'preview' ? 'preview' : 'more';
 
-  // BORDER_COLOR: #F5F2EB darkened by 10% → roughly #DDD9D0
-  const HEADER_BG = '#F5F0E8';
-  const BORDER_COLOR = '#D3CFC5';
+  const HEADER_BG = '#181818';
+  const BORDER_COLOR = '#2A2A2A';
 
   return (
     <>
@@ -287,7 +286,7 @@ export default function ChatHeader({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '0 12px 0 14px', height: '100%', flexShrink: 0,
-          background: '#F5F0E8',
+          background: '#181818',
         }}>
           {/* WOK logo */}
           <div style={{
@@ -300,8 +299,8 @@ export default function ChatHeader({
           <div ref={projectAreaRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setShowProjectMenu(v => !v)}
-              style={{ ...btnBase, height: 28, padding: '0 8px', gap: 4, fontSize: 13, fontWeight: 500, color: '#222', maxWidth: 200 }}
-              onMouseEnter={e => e.currentTarget.style.background = '#EDEAE4'}
+              style={{ ...btnBase, height: 28, padding: '0 8px', gap: 4, fontSize: 13, fontWeight: 500, color: '#ddd', maxWidth: 200 }}
+              onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appTitle || 'My App'}</span>
@@ -320,15 +319,15 @@ export default function ChatHeader({
           </div>
 
           {/* Vertical separator */}
-          <div style={{ width: 1, height: 18, background: '#E0DDD6', margin: '0 2px', flexShrink: 0 }} />
+          <div style={{ width: 1, height: 18, background: '#333', margin: '0 2px', flexShrink: 0 }} />
 
           {/* History / Versions button — outside preview, to its left */}
           <button
             title={showHistory ? 'Hide versions' : 'Show versions'}
             onClick={() => setShowHistory && setShowHistory(v => !v)}
-            style={{ ...btnBase, width: 28, height: 28, background: showHistory ? '#E0DDD6' : 'transparent' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDEAE4'}
-            onMouseLeave={e => e.currentTarget.style.background = showHistory ? '#E0DDD6' : 'transparent'}
+            style={{ ...btnBase, width: 28, height: 28, background: showHistory ? '#2A2A2A' : 'transparent' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
+            onMouseLeave={e => e.currentTarget.style.background = showHistory ? '#2A2A2A' : 'transparent'}
           >
             <HistoryIcon />
           </button>
@@ -348,7 +347,7 @@ export default function ChatHeader({
             title={chatVisible ? 'Expand preview' : 'Show chat'}
             onClick={() => setChatVisible(v => !v)}
             style={{ ...btnBase, width: 28, height: 28 }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDEAE4'}
+            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             {/* Original sidebar/panel toggle icon */}
@@ -361,7 +360,7 @@ export default function ChatHeader({
           {/* Tab pill group */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 1,
-            background: '#EAE6DF', borderRadius: 9, padding: 3, flexShrink: 0, marginLeft: 2,
+            background: '#242424', borderRadius: 9, padding: 3, flexShrink: 0, marginLeft: 2,
           }}>
             {TABS.map(({ id, icon: Icon, label, iconColor }) => {
               const isActive = activeTab === id;
@@ -373,12 +372,12 @@ export default function ChatHeader({
                     style={{
                       ...btnBase, height: 27,
                       padding: isActive ? '0 10px' : '0 7px', gap: 5,
-                      background: isActive ? '#fff' : 'transparent',
-                      boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      background: isActive ? '#333' : 'transparent',
+                      boxShadow: 'none',
                       borderRadius: 7, fontSize: 13, fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#111' : '#777',
+                      color: isActive ? '#fff' : '#777',
                     }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#DDD9D3'; }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#2A2A2A'; }}
                     onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                   >
                     <Icon style={{ width: 13, height: 13, color: isActive ? iconColor : '#888' }} />
@@ -395,7 +394,7 @@ export default function ChatHeader({
           {/* Refresh — right side, before smartphone */}
           <button title="Refresh preview" onClick={onRefresh}
             style={{ ...btnBase, width: 28, height: 28 }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDEAE4'}
+            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <RefreshCw style={{ width: 14, height: 14 }} />
@@ -405,14 +404,14 @@ export default function ChatHeader({
           <button
             title={mobilePreview ? 'Desktop view' : 'Mobile view'}
             onClick={() => setMobilePreview && setMobilePreview(v => !v)}
-            style={{ ...btnBase, width: 28, height: 28, background: mobilePreview ? '#EDEAE4' : 'transparent' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDEAE4'}
-            onMouseLeave={e => e.currentTarget.style.background = mobilePreview ? '#EDEAE4' : 'transparent'}
+            style={{ ...btnBase, width: 28, height: 28, background: mobilePreview ? '#333' : 'transparent' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
+            onMouseLeave={e => e.currentTarget.style.background = mobilePreview ? '#333' : 'transparent'}
           >
             {mobilePreview ? <Monitor style={{ width: 14, height: 14 }} /> : <Smartphone style={{ width: 14, height: 14 }} />}
           </button>
 
-          <div style={{ width: 1, height: 18, background: '#E0DDD6', margin: '0 2px', flexShrink: 0 }} />
+          <div style={{ width: 1, height: 18, background: '#333', margin: '0 2px', flexShrink: 0 }} />
 
           {/* Upgrade */}
           <button onClick={() => setShowUpgrade(true)} style={{
@@ -421,7 +420,7 @@ export default function ChatHeader({
             background: 'transparent', color: '#7B4FE0', fontSize: 13, fontWeight: 600,
             boxShadow: 'none', flexShrink: 0,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDE5FF'}
+            onMouseEnter={e => e.currentTarget.style.background = '#2a1f44'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

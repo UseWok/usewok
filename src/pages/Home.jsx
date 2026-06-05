@@ -207,7 +207,7 @@ export default function Home() {
       background: '#121212',
       display: 'flex',
       alignItems: 'stretch',
-      padding: '10px 10px 10px 0', // top/right/bottom banding; left = sidebar lives there
+      padding: '8px 8px 8px 0', // top/right/bottom banding; left = sidebar lives there
       boxSizing: 'border-box',
       fontFamily: 'Inter, system-ui, sans-serif',
       overflow: 'hidden',
@@ -223,7 +223,7 @@ export default function Home() {
         flex: 1,
         borderRadius: 16,
         overflow: 'hidden',
-        border: '1px solid rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.03)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
