@@ -585,7 +585,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
                 <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #D9D5CC', background: '#FAF9F5', margin: '0 0 0 8px' }}>
-                  <HistoryPanel messages={messages} ficheContent={ficheContent} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
+                  <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
                 </div>
               ) : (
                 <>

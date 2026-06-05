@@ -9,60 +9,56 @@ import PlansPage from '@/pages/admin/PlansPage';
 import CodesPage from '@/pages/admin/CodesPage';
 import LogsPage from '@/pages/admin/LogsPage';
 import SettingsPage from '@/pages/admin/SettingsPage';
-import DashboardHome from '@/pages/admin/DashboardHome';
+import AdminOverviewPage from '@/pages/admin/AdminOverviewPage';
+import AdminMessagingPage from '@/pages/admin/AdminMessagingPage';
+import AdminAnalyticsPage from '@/pages/admin/AdminAnalyticsPage';
+import AdminFeatureFlagsPage from '@/pages/admin/AdminFeatureFlagsPage';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isAuthorized, setIsAuthorized] = useState(null);
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const checkAccess = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        
-        if (!currentUser || currentUser.role !== 'admin') {
-          navigate('/chat', { replace: true });
-          return;
-        }
-        
+        if (!currentUser || currentUser.role !== 'admin') { navigate('/app', { replace: true }); return; }
         setIsAuthorized(true);
-      } catch (error) {
-        navigate('/chat', { replace: true });
-      }
+        // Count unread messages from users
+        const msgs = await base44.entities.AdminMessage.filter({ is_from_admin: false, read: false });
+        setUnreadCount(msgs.length);
+      } catch { navigate('/app', { replace: true }); }
     };
-
     checkAccess();
   }, [navigate]);
 
-  // Show nothing while checking authorization
-  if (isAuthorized === null) {
-    return (
-      <div className="w-screen h-screen flex items-center justify-center bg-white">
-        <div className="w-6 h-6 border-2 border-[#E5E5E5] border-t-[#1A1A1A] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (isAuthorized === null) return (
+    <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
+      <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid #333', borderTopColor: '#F95738', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
-  // Should not render if not authorized (redirect happens in useEffect)
-  if (!isAuthorized) {
-    return null;
-  }
+  if (!isAuthorized) return null;
 
   return (
-    <div className="flex w-screen h-screen bg-white font-sans">
-      <AdminSidebar user={user} />
-      
-      <main className="flex-1 overflow-auto">
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0D0D0D', fontFamily: 'Inter, sans-serif' }}>
+      <AdminSidebar user={user} unreadCount={unreadCount} />
+      <main style={{ flex: 1, overflowY: 'auto', background: '#0D0D0D' }}>
         <Routes>
-          <Route path="/" element={<Navigate to="/admin/users" replace />} />
+          <Route path="/" element={<Navigate to="/admin/overview" replace />} />
+          <Route path="/overview" element={<AdminOverviewPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/roles" element={<UserRolesPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/subscriptions/plans" element={<PlansPage />} />
           <Route path="/codes" element={<CodesPage />} />
+          <Route path="/messaging" element={<AdminMessagingPage />} />
+          <Route path="/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/flags" element={<AdminFeatureFlagsPage />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>

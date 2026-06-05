@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
+import { Check, ExternalLink, Shield, Zap, Gift } from 'lucide-react';
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -9,77 +10,56 @@ const ContactModal = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await base44.entities.ContactLead.create({ ...form, status: 'new' });
-    } catch {}
+    try { await base44.entities.ContactLead.create({ ...form, status: 'new' }); } catch {}
     setSubmitted(true);
   };
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   return (
-    <div
-      style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div style={{background:'#FFFFFF',border:'0.5px solid #E5E5E5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px',position:'relative'}}>
-        <button
-          onClick={onClose}
-          style={{position:'absolute',top:'1rem',right:'1rem',background:'none',border:'none',cursor:'pointer',color:'#666',fontSize:'20px',lineHeight:1,padding:'4px'}}
-        >×</button>
-
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 16, padding: 32, width: '100%', maxWidth: 480, position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
         {submitted ? (
-          <div style={{textAlign:'center',padding:'2rem 0'}}>
-            <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'#1e3a2e',border:'0.5px solid #2a5a40',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1rem'}}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#1e3a2e', border: '1px solid #2a5a40', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+              <Check size={22} color="#4ade80" />
             </div>
-            <h3 style={{fontSize:'18px',fontWeight:500,color:'#111111',marginBottom:'.5rem'}}>Thank you for reaching out!</h3>
-            <p style={{fontSize:'14px',color:'#666666',lineHeight:1.6}}>We've received your message and our team will get back to you within 24 hours. We're excited to help you with your Wok journey!</p>
-            <button onClick={onClose} style={{marginTop:'1.5rem',padding:'10px 28px',background:'#111111',color:'#FFFFFF',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:500,cursor:'pointer'}}>Close</button>
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Message received!</h3>
+            <p style={{ fontSize: 14, color: '#888', lineHeight: 1.6 }}>Our team will get back to you within 24 hours.</p>
+            <button onClick={onClose} style={{ marginTop: 24, padding: '10px 28px', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Close</button>
           </div>
         ) : (
           <>
-            <h2 style={{fontSize:'22px',fontWeight:500,color:'#111111',marginBottom:'.4rem'}}>Let's talk</h2>
-            <p style={{fontSize:'14px',color:'#666666',marginBottom:'1.5rem',lineHeight:1.6,borderBottom:'0.5px solid #E5E5E5',paddingBottom:'1.25rem'}}>
-              Connect with our team to see how Base44 can help your organization.
-            </p>
-
-            <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div>
-                  <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>First Name *</label>
-                  <input required value={form.first_name} onChange={set('first_name')} placeholder="First Name" style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
-                </div>
-                <div>
-                  <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>Last Name *</label>
-                  <input required value={form.last_name} onChange={set('last_name')} placeholder="Last Name" style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
-                </div>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Book a demo</h2>
+            <p style={{ fontSize: 14, color: '#888', marginBottom: 24, lineHeight: 1.6, borderBottom: '1px solid #2A2A2A', paddingBottom: 20 }}>Connect with our team to see how WOK can help your organization.</p>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[['first_name','First Name'],['last_name','Last Name']].map(([k,l]) => (
+                  <div key={k}>
+                    <label style={{ display: 'block', fontSize: 12, color: '#888', marginBottom: 6 }}>{l} *</label>
+                    <input required value={form[k]} onChange={set(k)} placeholder={l}
+                      style={{ width: '100%', background: '#111', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                      onFocus={e => e.target.style.borderColor = '#F95738'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
+                  </div>
+                ))}
               </div>
-
+              {[['email','Work Email','email'],['website','Website','text'],['role','Your Role','text']].map(([k,l,t]) => (
+                <div key={k}>
+                  <label style={{ display: 'block', fontSize: 12, color: '#888', marginBottom: 6 }}>{l} *</label>
+                  <input required type={t} value={form[k]} onChange={set(k)} placeholder={l}
+                    style={{ width: '100%', background: '#111', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                    onFocus={e => e.target.style.borderColor = '#F95738'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
+                </div>
+              ))}
               <div>
-                <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>Work Email *</label>
-                <input required type="email" value={form.email} onChange={set('email')} placeholder="you@company.com" style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
+                <label style={{ display: 'block', fontSize: 12, color: '#888', marginBottom: 6 }}>What would you like to discuss? *</label>
+                <textarea required value={form.message} onChange={set('message')} placeholder="Describe your needs..." rows={3}
+                  style={{ width: '100%', background: '#111', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#fff', outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                  onFocus={e => e.target.style.borderColor = '#F95738'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
               </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div>
-                  <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>Website *</label>
-                  <input required value={form.website} onChange={set('website')} placeholder="company.com" style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
-                </div>
-                <div>
-                  <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>Role *</label>
-                  <input required value={form.role} onChange={set('role')} placeholder="e.g., CFO, Director" style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
-                </div>
-              </div>
-
-              <div>
-                <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'6px'}}>What would you like to discuss? *</label>
-                <textarea required value={form.message} onChange={set('message')} placeholder="Describe your needs..." rows={4} style={{width:'100%',background:'#FAFAFA',border:'0.5px solid #E5E5E5',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#111111',outline:'none',resize:'vertical',fontFamily:'inherit'}} onFocus={e=>e.target.style.borderColor='#999'} onBlur={e=>e.target.style.borderColor='#E5E5E5'}/>
-              </div>
-
-              <button type="submit" style={{width:'100%',padding:'12px',background:'#111111',color:'#FFFFFF',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:500,cursor:'pointer',marginTop:'4px'}}>
-                Send
-              </button>
+              <button type="submit" style={{ width: '100%', padding: 12, background: '#F95738', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Send message</button>
             </form>
           </>
         )}
@@ -90,153 +70,188 @@ const ContactModal = ({ onClose }) => {
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const [currency, setCurrency] = useState('USD');
   const [showModal, setShowModal] = useState(false);
   const [configPlans, setConfigPlans] = useState(getPlansConfig());
+  const [user, setUser] = useState(null);
+  const [billingAnnual, setBillingAnnual] = useState(false);
 
   useEffect(() => {
     loadPlansFromDB().then(dbPlans => { if (dbPlans) setConfigPlans(dbPlans); }).catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const getPrice = (base) => {
-    if (base === 0) return '0';
-    if (currency === 'EUR') return parseFloat((base * 0.92).toFixed(2));
-    if (currency === 'GBP') return parseFloat((base * 0.79).toFixed(2));
-    return base;
-  };
-
-  const sym = { USD: '$', EUR: '€', GBP: '£' }[currency];
-
-  const BG = '#FFFFFF';
-  const CARD = '#FAFAFA';
-  const BORDER = '#E5E5E5';
-  const TEXT = '#111111';
-  const MUTED = '#666666';
-  const SUBTLE = '#A1A1AA';
-
-  // Map admin plans-config to display format
-  const plans = configPlans.map((p, idx) => {
+  const plans = configPlans.map((p) => {
     const isEnterprise = !p.price_monthly || p.checkout_url_monthly?.startsWith('mailto');
-    const isHighlighted = !!p.badge;
+    const price = billingAnnual ? Math.round((p.price_monthly || 0) * 0.8) : (p.price_monthly || 0);
     return {
-    id: p.id,
-    name: p.name,
-    price: isEnterprise ? null : p.price_monthly,
-    badge: p.badge || null,
-    desc: p.features_header || '',
-    btnLabel: isEnterprise ? 'Contact Us' : (isHighlighted ? `Choose ${p.name}` : 'Get Started'),
-    btnStyle: isHighlighted
-      ? { background: '#111111', color: '#FFFFFF', border: 'none' }
-      : { background: 'transparent', color: '#111111', border: `0.5px solid ${BORDER}` },
+      id: p.id,
+      name: p.name,
+      price: isEnterprise ? null : price,
+      originalPrice: billingAnnual ? p.price_monthly : null,
+      badge: p.badge || null,
+      desc: p.features_header || '',
+      isEnterprise,
       features: (p.features || []).map(f => f.text || f),
-      notIncluded: [],
       checkout_url_monthly: p.checkout_url_monthly,
     };
   });
 
-  // Build dynamic table from plan features
-  const tableFeatures = plans.map(p => ({ label: p.name, vals: p.features }));
+  const freeCredits = user?.credits_limit || 5;
+  const usedCredits = user?.credits_used || 0;
+  const remainingCredits = Math.max(0, freeCredits - usedCredits);
+  const pct = freeCredits > 0 ? Math.min(100, Math.round((usedCredits / freeCredits) * 100)) : 0;
+
+  const handleUpgrade = (plan) => {
+    if (plan.isEnterprise || plan.checkout_url_monthly?.startsWith('mailto')) { setShowModal(true); return; }
+    if (plan.checkout_url_monthly?.startsWith('http')) { window.location.href = plan.checkout_url_monthly; return; }
+    navigate(`/checkout?plan=${plan.id}&billing=${billingAnnual ? 'yearly' : 'monthly'}`);
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, fontFamily: 'system-ui, -apple-system, sans-serif', color: TEXT, paddingBottom: '6rem' }}>
+    <div style={{ minHeight: '100vh', background: '#111111', fontFamily: 'Inter, system-ui, sans-serif', color: '#fff', paddingBottom: 80 }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
 
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 2rem' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px' }}>
 
-        {/* Header */}
-        <div style={{ paddingTop: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+        {/* ── Header ── */}
+        <div style={{ padding: '32px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
-            <p style={{ fontSize: '12px', letterSpacing: '.08em', color: '#666666', textTransform: 'uppercase', marginBottom: '.4rem' }}>Pricing</p>
-            <h1 style={{ fontSize: '30px', fontWeight: 500, color: '#111111', lineHeight: 1.1 }}>Choose your plan</h1>
-            <p style={{ fontSize: '15px', color: '#666666', marginTop: '.4rem' }}>Finance AI · Interface Generation</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.3px' }}>Plans &amp; credits</h1>
+            <p style={{ fontSize: 13, color: '#888', marginTop: 4 }}>Manage your subscription plan and credit balance.</p>
           </div>
-          <select
-            value={currency}
-            onChange={e => setCurrency(e.target.value)}
-            style={{ background: '#FFFFFF', border: '0.5px solid #E5E5E5', borderRadius: '999px', padding: '6px 14px', fontSize: '12px', color: '#666666', cursor: 'pointer', outline: 'none' }}
-          >
-            <option>USD</option>
-            <option>EUR</option>
-            <option>GBP</option>
-          </select>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 8 }}
+            onMouseEnter={e => e.currentTarget.style.background = '#1A1A1A'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+            Open docs <ExternalLink size={13} />
+          </button>
         </div>
 
-        {/* Plan cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '3rem' }}>
+        {/* ── Current plan card ── */}
+        {user && (
+          <div style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 12, padding: '20px 24px', marginBottom: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            {/* Left */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                  {user.full_name?.charAt(0)?.toUpperCase() || 'W'}
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', margin: 0 }}>You're on Free plan</p>
+                  <p style={{ fontSize: 12, color: '#F95738', margin: 0, cursor: 'pointer' }}>Upgrade anytime</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#4ade80' }}>
+                <Check size={14} /> <span style={{ color: '#ccc' }}>{freeCredits} daily credits (up to 30/month)</span>
+              </div>
+              <button onClick={() => {}} style={{ marginTop: 12, fontSize: 13, color: '#888', background: 'none', border: '1px solid #2A2A2A', borderRadius: 7, padding: '6px 14px', cursor: 'pointer' }}>Manage</button>
+            </div>
+            {/* Right — Credits bar */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Credits remaining</p>
+                <span style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>{remainingCredits}</span>
+              </div>
+              <div style={{ height: 8, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
+                <div style={{ height: '100%', width: `${100 - pct}%`, background: '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
+              </div>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Daily credits</p>
+              <p style={{ fontSize: 12, color: '#666', margin: '2px 0 0' }}>Resets to {freeCredits} credits in 4 hours</p>
+              <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>{remainingCredits}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Billing toggle ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
+          <span style={{ fontSize: 13, color: billingAnnual ? '#888' : '#fff', fontWeight: billingAnnual ? 400 : 600 }}>Monthly</span>
+          <button onClick={() => setBillingAnnual(v => !v)} style={{
+            width: 44, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: billingAnnual ? '#F95738' : '#2A2A2A',
+            position: 'relative', transition: 'background 200ms',
+          }}>
+            <div style={{
+              position: 'absolute', top: 3, left: billingAnnual ? 23 : 3,
+              width: 18, height: 18, borderRadius: '50%', background: '#fff',
+              transition: 'left 200ms',
+            }} />
+          </button>
+          <span style={{ fontSize: 13, color: billingAnnual ? '#fff' : '#888', fontWeight: billingAnnual ? 600 : 400 }}>
+            Annual <span style={{ fontSize: 11, color: '#4ade80', fontWeight: 700, marginLeft: 4 }}>–20%</span>
+          </span>
+        </div>
+
+        {/* ── Plan cards ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 32 }}>
           {plans.map((plan) => (
-            <div
-              key={plan.id}
-              style={{
-                background: CARD,
-                border: plan.badge ? `1.5px solid #3a3a3a` : `0.5px solid ${BORDER}`,
-                borderRadius: '14px',
-                padding: '1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                position: 'relative',
-              }}
-            >
+            <div key={plan.id} style={{
+              background: '#1A1A1A',
+              border: plan.badge ? '1px solid #F95738' : '1px solid #2A2A2A',
+              borderRadius: 14, padding: '24px 20px',
+              display: 'flex', flexDirection: 'column', gap: 16, position: 'relative',
+            }}>
               {plan.badge && (
-                <span style={{ 
-                  position: 'absolute', 
-                  top: '1.5rem', 
-                  right: '1.5rem', 
-                  background: '#ffffff', 
-                  color: '#000000', 
-                  borderRadius: '6px', 
-                  fontSize: '12px', 
-                  fontWeight: 600,
-                  padding: '4px 10px', 
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '-0.2px'
-                }}>
-                  Popular
+                <span style={{ position: 'absolute', top: 16, right: 16, background: '#7B4FE0', color: '#fff', borderRadius: 6, fontSize: 11, fontWeight: 700, padding: '3px 8px', letterSpacing: '0.02em' }}>
+                  {plan.badge}
                 </span>
               )}
 
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 500, color: '#111111', marginBottom: '.3rem' }}>{plan.name}</h3>
-                <p style={{ fontSize: '13px', color: '#666666', lineHeight: 1.5 }}>{plan.desc}</p>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>{plan.name}</h3>
+                <p style={{ fontSize: 13, color: '#888', lineHeight: 1.5, margin: 0 }}>{plan.desc}</p>
               </div>
 
               <div>
                 {plan.price !== null ? (
-                  <>
-                    <span style={{ fontSize: '32px', fontWeight: 500, color: '#111111' }}>{sym}{getPrice(plan.price)}</span>
-                    <span style={{ fontSize: '13px', color: '#666666' }}> / month</span>
-                  </>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{ fontSize: 34, fontWeight: 700, color: '#fff', lineHeight: 1 }}>€{plan.price}</span>
+                    <span style={{ fontSize: 13, color: '#888' }}>per month</span>
+                    {plan.originalPrice && <span style={{ fontSize: 12, color: '#555', textDecoration: 'line-through', marginLeft: 4 }}>€{plan.originalPrice}</span>}
+                  </div>
                 ) : (
-                  <span style={{ fontSize: '22px', fontWeight: 500, color: '#111111' }}>Custom pricing</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>Platform fee</span>
+                )}
+                {plan.price !== null && <p style={{ fontSize: 12, color: '#555', margin: '4px 0 0' }}>shared across unlimited users</p>}
+                {plan.price !== null && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
+                    <div style={{ width: 20, height: 10, borderRadius: 999, background: billingAnnual ? '#F95738' : '#2A2A2A', border: '1px solid #333', position: 'relative', cursor: 'pointer' }}
+                      onClick={() => setBillingAnnual(v => !v)}>
+                      <div style={{ position: 'absolute', top: 1, left: billingAnnual ? 11 : 1, width: 8, height: 8, borderRadius: '50%', background: '#fff', transition: 'left 200ms' }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: '#888' }}>Annual</span>
+                  </div>
                 )}
               </div>
 
-              <button
-                onClick={() => {
-                  if (!plan.price || plan.checkout_url_monthly?.startsWith('mailto')) { setShowModal(true); return; }
-                  if (plan.checkout_url_monthly && plan.checkout_url_monthly.startsWith('http')) {
-                    window.location.href = plan.checkout_url_monthly;
-                  } else {
-                    navigate(`/checkout?plan=${plan.id}&billing=monthly`);
-                  }
-                }}
-                style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', transition: 'opacity .15s', ...plan.btnStyle }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '.8'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                {plan.btnLabel}
-              </button>
+              {plan.isEnterprise ? (
+                <button onClick={() => setShowModal(true)} style={{ width: '100%', padding: '11px 0', borderRadius: 9, fontSize: 14, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#fff', border: '1px solid #2A2A2A', transition: 'border-color 150ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                  Book a demo
+                </button>
+              ) : (
+                <button onClick={() => handleUpgrade(plan)} style={{ width: '100%', padding: '11px 0', borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: 'pointer', background: plan.badge ? '#7B4FE0' : '#F95738', color: '#fff', border: 'none', transition: 'opacity 150ms' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                  Upgrade
+                </button>
+              )}
 
-              <div style={{ borderTop: `0.5px solid ${BORDER}`, paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Credits selector */}
+              {!plan.isEnterprise && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111', border: '1px solid #2A2A2A', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: '#ccc' }}>
+                  100 credits / month
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              )}
+
+              {/* Features */}
+              <div style={{ borderTop: '1px solid #222', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ fontSize: 12, color: '#888', margin: '0 0 6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  All features in {plan.id === 'free' ? 'Free' : plan.id === 'pro' ? 'Free' : 'Pro'}, plus:
+                </p>
                 {plan.features.map((f, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#111111' }}>
-                    <svg style={{ width: '14px', height: '14px', flexShrink: 0, marginTop: '2px', color: '#16a34a' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    {f}
-                  </div>
-                ))}
-                {plan.notIncluded.map((f, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: SUBTLE }}>
-                    <svg style={{ width: '14px', height: '14px', flexShrink: 0, marginTop: '2px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#ccc' }}>
+                    <Check size={14} color="#4ade80" style={{ marginTop: 2, flexShrink: 0 }} />
                     {f}
                   </div>
                 ))}
@@ -245,105 +260,59 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Compliance & Security Badges Section */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginBottom: '3rem', userSelect: 'none' }}>
-          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
-            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="3"/>
-              </svg>
+        {/* ── Gift Cards section ── */}
+        <div style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 14, padding: '24px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <Gift size={18} color="#F95738" />
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: 0 }}>Gift cards</h3>
             </div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>ISO 27001</div>
-              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>ISO Security Management</div>
-            </div>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 12px' }}>Send a gift card to your friends.</p>
+            <button style={{ fontSize: 13, color: '#fff', background: 'none', border: '1px solid #2A2A2A', borderRadius: 7, padding: '7px 16px', cursor: 'pointer', fontWeight: 500 }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+              See all gift cards
+            </button>
           </div>
-          
-          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
-            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <rect x="10" y="10" width="4" height="5" rx="1"/><path d="M10 10V9a2 2 0 0 1 4 0v1"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>SOC 2 Type II</div>
-              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>SOC for Service Organizations</div>
-            </div>
-          </div>
-
-          <div style={{ background: CARD, border: `0.5px solid ${BORDER}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px', maxWidth: '300px', cursor: 'default' }}>
-            <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '8px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <rect x="9" y="11" width="6" height="5" rx="1"/><path d="M9 11V9a3 3 0 0 1 6 0v2"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: TEXT, marginBottom: '2px' }}>GDPR</div>
-              <div style={{ fontSize: '12px', color: MUTED, lineHeight: 1.3 }}>Data Protection & Privacy Regulation</div>
-            </div>
-          </div>
+          <div style={{ fontSize: 48 }}>🎁</div>
         </div>
 
-        {/* Comparison table — vertical (feature rows × plan columns) */}
-        <h2 style={{ fontSize: '16px', fontWeight: 500, color: TEXT, marginBottom: '1rem' }}>Compare all plans</h2>
-        {(() => {
-          // Collect all unique feature strings across all plans
-          const allFeatures = Array.from(new Set(plans.flatMap(p => p.features)));
-          return (
-            <div style={{ background: '#111', border: `0.5px solid ${BORDER}`, borderRadius: '14px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                    <th style={{ padding: '14px 20px', textAlign: 'left', color: MUTED, fontWeight: 400, width: '34%' }}>Feature</th>
-                    {plans.map(p => (
-                      <th key={p.id} style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500, color: p.badge ? TEXT : MUTED }}>
-                        {p.name}
-                        <div style={{ fontSize: '11px', color: '#555', fontWeight: 400, marginTop: '2px' }}>
-                          {p.price !== null ? `${sym}${getPrice(p.price)}/mo` : 'Custom'}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {allFeatures.map((feature, i) => (
-                    <tr key={i} style={{ borderBottom: `0.5px solid #1e1e1e` }}>
-                      <td style={{ padding: '12px 20px', color: MUTED }}>{feature}</td>
-                      {plans.map(p => {
-                        const has = p.features.includes(feature);
-                        return (
-                          <td key={p.id} style={{ padding: '12px 16px', textAlign: 'center' }}>
-                            {has
-                              ? <svg style={{ width: '15px', height: '15px', display: 'inline-block', color: '#4ade80' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                              : <span style={{ color: '#333', fontSize: '16px' }}>—</span>
-                            }
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* ── Special Programs ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+          {[
+            { title: 'WOK for students', desc: 'Verify student status and get access to up to 50% off WOK Pro.', cta: 'Get started' },
+            { title: 'WOK for campus', desc: 'Billing and administrative controls for universities and colleges.', cta: 'Contact sales' },
+            { title: 'WOK for kids', desc: 'Compliant access & curriculum for schools in partnership with omep.', cta: 'Learn more' },
+          ].map(p => (
+            <div key={p.title} style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 14, padding: 20 }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>{p.title}</h4>
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 16px', lineHeight: 1.5 }}>{p.desc}</p>
+              <button style={{ fontSize: 13, color: '#fff', background: 'none', border: '1px solid #2A2A2A', borderRadius: 7, padding: '7px 14px', cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                {p.cta}
+              </button>
             </div>
-          );
-        })()}
+          ))}
+        </div>
 
-        {/* Enterprise CTA banner */}
-        <div style={{ marginTop: '2rem', background: '#FAFAFA', border: '0.5px solid #E5E5E5', borderRadius: '14px', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#111111', marginBottom: '.3rem' }}>Have specific requirements?</h3>
-            <p style={{ fontSize: '13px', color: '#666666', lineHeight: 1.5 }}>Our team can create a custom plan tailored to your organization.</p>
+        {/* ── Security & Compliance ── */}
+        <div style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 14, padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Shield size={20} color="#888" />
+            <div>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Security and compliance</h4>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Enterprise-grade security and compliance certifications</p>
+            </div>
+            <div style={{ display: 'flex', gap: 16, marginLeft: 16 }}>
+              {['SOC 2\nType', 'GDPR', 'ISO\n27001'].map(badge => (
+                <div key={badge} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#888', textAlign: 'center', whiteSpace: 'pre-line' }}>
+                  {badge}
+                </div>
+              ))}
+            </div>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ background: '#111111', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '11px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >
-            Contact Us
-          </button>
+          <button style={{ fontSize: 13, color: '#fff', background: 'none', border: '1px solid #2A2A2A', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>Learn more</button>
         </div>
 
       </div>

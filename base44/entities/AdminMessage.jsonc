@@ -1,0 +1,79 @@
+{
+  "name": "AdminMessage",
+  "type": "object",
+  "properties": {
+    "from_user_id": {
+      "type": "string",
+      "title": "From User ID"
+    },
+    "from_email": {
+      "type": "string",
+      "title": "From Email"
+    },
+    "to_user_id": {
+      "type": "string",
+      "title": "To User ID"
+    },
+    "to_email": {
+      "type": "string",
+      "title": "To Email"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject"
+    },
+    "body": {
+      "type": "string",
+      "title": "Body",
+      "format": "textarea"
+    },
+    "is_from_admin": {
+      "type": "boolean",
+      "title": "Sent by Admin",
+      "default": false
+    },
+    "read": {
+      "type": "boolean",
+      "title": "Read",
+      "default": false
+    }
+  },
+  "required": [
+    "body"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.to_user_id": "{{user.id}}"
+        },
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.to_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

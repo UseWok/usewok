@@ -1,0 +1,76 @@
+{
+  "name": "AppVersion",
+  "type": "object",
+  "properties": {
+    "conv_id": {
+      "type": "string",
+      "title": "Conversation ID"
+    },
+    "version_index": {
+      "type": "number",
+      "title": "Version Index"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label"
+    },
+    "raw_content": {
+      "type": "string",
+      "title": "Raw Content (code)",
+      "format": "textarea"
+    },
+    "bookmarked": {
+      "type": "boolean",
+      "title": "Bookmarked",
+      "default": false
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt that generated this version",
+      "maxLength": 300
+    }
+  },
+  "required": [
+    "conv_id",
+    "raw_content"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

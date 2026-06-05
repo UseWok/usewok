@@ -69,6 +69,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
 import SEOHead from './components/SEOHead';
+import GlobalNotifications from './components/GlobalNotifications';
 
 
 
@@ -180,6 +181,7 @@ const AuthenticatedApp = () => {
         <Route path="/blog/:slug" element={<BlogPostPage />} />
 
         <Route path="/admin/*" element={<AdminPanel />} />
+        {/* GlobalNotifications needs user — rendered at root level */}
 
         <Route element={<Layout />}>
 
@@ -237,6 +239,7 @@ function App() {
 
           </Router>
 
+          <GlobalNotifications user={null} />
           <Toaster />
 
         </QueryClientProvider>
