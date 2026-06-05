@@ -36,11 +36,11 @@ module.exports = {
           foreground: 'hsl(var(--popover-foreground))',
         },
         primary: {
-          DEFAULT:    'hsl(var(--primary))',
+          DEFAULT:    'hsl(var(--primary))',    /* #F95738 coral */
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT:    'hsl(var(--secondary))',
+          DEFAULT:    'hsl(var(--secondary))',  /* #7B4FE0 violet */
           foreground: 'hsl(var(--secondary-foreground))',
         },
         muted: {
@@ -48,7 +48,7 @@ module.exports = {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT:    'hsl(var(--accent))',
+          DEFAULT:    'hsl(var(--accent))',     /* #E8184A rose-red */
           foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {
@@ -58,6 +58,10 @@ module.exports = {
         border:  'hsl(var(--border))',
         input:   'hsl(var(--input))',
         ring:    'hsl(var(--ring))',
+        support: {
+          DEFAULT:    'hsl(var(--support))',    /* #3B8BEB blue */
+          foreground: 'hsl(var(--support-foreground))',
+        },
         sidebar: {
           DEFAULT:              'hsl(var(--sidebar-background))',
           foreground:           'hsl(var(--sidebar-foreground))',
@@ -68,9 +72,16 @@ module.exports = {
           border:               'hsl(var(--sidebar-border))',
           ring:                 'hsl(var(--sidebar-ring))',
         },
+        /* Named palette shortcuts */
+        coral:   '#F95738',
+        rose:    '#E8184A',
+        violet:  '#7B4FE0',
+        blue:    '#3B8BEB',
+        cream:   '#F5F0E8',
+        dark:    '#1A1A1A',
       },
 
-      /* ── Shadows — light, no colored glows ── */
+      /* ── Shadows — crisp, no colored glows ── */
       boxShadow: {
         sm:      '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         DEFAULT: '0 2px 6px rgba(0,0,0,0.06)',

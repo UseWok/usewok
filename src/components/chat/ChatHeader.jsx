@@ -242,7 +242,7 @@ function MoreMenu({ onClose, setViewMode }) {
 }
 
 const TABS = [
-  { id: 'preview', icon: Globe, label: 'Preview', iconColor: '#4F46E5' },
+  { id: 'preview', icon: Globe, label: 'Preview', iconColor: '#F95738' },
   { id: 'analytics', icon: BarChart2, label: 'Analytics', iconColor: '#555' },
   { id: 'more', icon: MoreHorizontal, label: 'More', iconColor: '#555' },
 ];
@@ -269,7 +269,7 @@ export default function ChatHeader({
   const activeTab = viewMode === 'analytics' ? 'analytics' : viewMode === 'preview' ? 'preview' : 'more';
 
   // BORDER_COLOR: #F5F2EB darkened by 10% → roughly #DDD9D0
-  const HEADER_BG = '#FAF9F5';
+  const HEADER_BG = '#F5F0E8';
   const BORDER_COLOR = '#D3CFC5';
 
   return (
@@ -287,12 +287,12 @@ export default function ChatHeader({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '0 12px 0 14px', height: '100%', flexShrink: 0,
-          background: '#FAF9F5',
+          background: '#F5F0E8',
         }}>
           {/* WOK logo */}
           <div style={{
             width: 24, height: 24, borderRadius: 6,
-            background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 10, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', flexShrink: 0,
           }}>W</div>
 
@@ -418,13 +418,13 @@ export default function ChatHeader({
           <button onClick={() => setShowUpgrade(true)} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             height: 29, padding: '0 11px', border: 'none', borderRadius: 8, cursor: 'pointer',
-            background: 'transparent', color: '#8F41FD', fontSize: 13, fontWeight: 600,
+            background: 'transparent', color: '#7B4FE0', fontSize: 13, fontWeight: 600,
             boxShadow: 'none', flexShrink: 0,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F0E9FF'}
+            onMouseEnter={e => e.currentTarget.style.background = '#EDE5FF'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#8F41FD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <UpArrowIcon />
             </span>
             Upgrade
@@ -434,11 +434,11 @@ export default function ChatHeader({
           <button onClick={onPublish} style={{
             display: 'flex', alignItems: 'center', height: 29, padding: '0 14px',
             border: 'none', borderRadius: 8, cursor: 'pointer',
-            background: '#2563EB', color: '#fff', fontSize: 13, fontWeight: 600,
+            background: '#F95738', color: '#fff', fontSize: 13, fontWeight: 600,
             boxShadow: 'none', flexShrink: 0,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1D4ED8'}
-            onMouseLeave={e => e.currentTarget.style.background = '#2563EB'}
+            onMouseEnter={e => e.currentTarget.style.background = '#e04a2e'}
+            onMouseLeave={e => e.currentTarget.style.background = '#F95738'}
           >
             Publish
           </button>

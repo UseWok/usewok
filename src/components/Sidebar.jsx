@@ -23,7 +23,7 @@ const SIDEBAR_TRANSITION = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
 // ── Avatar (circle) ──
 function Avatar({ user, size = 28, forceRed = false, square = false }) {
   const initial = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
-  const bg = forceRed ? '#C0392B' : '#8B9EB0';
+  const bg = forceRed ? '#F95738' : '#F95738';
   return (
     <div style={{
       width: size, height: size,
@@ -62,7 +62,7 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
       {/* Header */}
       <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #F2F2F2' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0 }}>
             {currentWs.name?.charAt(0).toUpperCase() || 'W'}
           </div>
           <div>
@@ -104,9 +104,9 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
           </div>
           <button
             onClick={() => { navigate('/pricing'); onClose(); }}
-            style={{ padding: '6px 14px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#2563EB', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'background 120ms' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1D4ED8'}
-            onMouseLeave={e => e.currentTarget.style.background = '#2563EB'}
+            style={{ padding: '6px 14px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'background 120ms' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#e04a2e'}
+            onMouseLeave={e => e.currentTarget.style.background = '#F95738'}
           >
             Upgrade
           </button>
@@ -120,7 +120,7 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
           <span style={{ fontSize: 13, color: '#555', cursor: 'pointer' }}>{creditsLeft} left &gt;</span>
         </div>
         <div style={{ height: 8, background: '#E8E8E8', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        <div style={{ height: '100%', width: `${pct}%`, background: '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 7, height: 7, borderRadius: 999, background: '#BBBBBB', flexShrink: 0 }} />
@@ -139,7 +139,7 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
             onMouseEnter={e => e.currentTarget.style.background = '#F7F7F7'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
               {ws.name?.charAt(0).toUpperCase()}
             </div>
             <span style={{ flex: 1, fontSize: 14, color: '#111', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
@@ -223,7 +223,7 @@ function ProfileMenu({ user, onClose, navigate }) {
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
           {/* Blue circle with white arrow */}
-          <span style={{ width: 18, height: 18, borderRadius: 999, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ width: 18, height: 18, borderRadius: 999, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 6L6 10M2 6H10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </span>
           Upgrade Plan
@@ -460,11 +460,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           padding: expanded ? '0 8px' : '0',
           justifyContent: expanded ? 'flex-start' : 'center',
           borderRadius: 7,
-          background: active ? (expanded ? '#EBEBEA' : 'transparent') : 'transparent',
+          background: active ? (expanded ? '#F95738' : 'transparent') : 'transparent',
           border: 'none', cursor: 'pointer', transition: 'background 120ms',
-          color: active ? '#111' : '#444', flexShrink: 0,
+          color: active ? '#fff' : '#444', flexShrink: 0,
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F0F0EF'; }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F0ECE3'; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
       >
         {Icon && (
@@ -473,7 +473,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             width: !expanded && active ? 30 : 22,
             height: !expanded && active ? 30 : 22,
             borderRadius: !expanded && active ? 7 : 0,
-            background: !expanded && active ? '#DCDCDA' : 'transparent',
+            background: !expanded && active ? '#F95738' : 'transparent',
             flexShrink: 0, transition: 'background 120ms, width 120ms, height 120ms',
           }}>
             <Icon style={{ width: 16, height: 16 }} />
@@ -481,7 +481,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         )}
         {expanded && (
           <>
-            <span style={{ fontSize: 13.5, fontWeight: active ? 500 : 400, whiteSpace: 'nowrap', marginLeft: Icon ? 9 : 0, flex: 1, textAlign: 'left', color: active ? '#111' : '#333' }}>
+            <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap', marginLeft: Icon ? 9 : 0, flex: 1, textAlign: 'left', color: active ? '#fff' : '#333' }}>
               {label}
             </span>
             {shortcut && (
@@ -512,7 +512,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         transition={SIDEBAR_TRANSITION}
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40, overflow: 'hidden',
-          display: 'flex', flexDirection: 'column', background: '#FAFAFA',
+          display: 'flex', flexDirection: 'column', background: '#F5F0E8',
           borderRight: '1px solid #EBEBEB', fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: COLLAPSED_W,
         }}
@@ -583,7 +583,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               {/* Colored avatar */}
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#C0392B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                 {currentWs?.name?.charAt(0).toUpperCase() || 'W'}
               </div>
               {expanded && (

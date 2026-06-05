@@ -551,7 +551,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#FAF9F5' }}>
+      style={{ backgroundColor: '#F5F0E8' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -576,12 +576,12 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#FAF9F5' }}>
+        style={{ background: '#F5F0E8' }}>
 
         <div className="flex w-full h-full" style={{ gap: 6, padding: '0 8px 8px 0' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#FAF9F5' }}>
+            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F5F0E8' }}>
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
                 <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #D9D5CC', background: '#FAF9F5', margin: '0 0 0 8px' }}>
@@ -614,7 +614,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
           )}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#FAF9F5' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#F5F0E8' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}

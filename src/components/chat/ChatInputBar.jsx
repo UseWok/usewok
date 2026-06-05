@@ -540,7 +540,7 @@ export default function ChatInputBar({
               display: 'flex', alignItems: 'center', gap: 6,
               height: 32, padding: '0 12px',
               borderRadius: 999,
-              background: visualEditActive ? '#2563EB' : 'rgba(255,255,255,0.7)',
+              background: visualEditActive ? '#F95738' : 'rgba(255,255,255,0.7)',
               border: 'none',
               cursor: editActivating ? 'wait' : 'pointer',
               fontSize: 13, fontWeight: 500,
@@ -652,7 +652,7 @@ export default function ChatInputBar({
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
                     flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
-                    background: hasContent ? '#111' : '#D4CFC7',
+                    background: hasContent ? '#F95738' : '#D4CFC7',
                     border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     // No transition — instant state change
