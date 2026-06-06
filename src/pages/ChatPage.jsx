@@ -55,6 +55,49 @@ const COMPONENT_PACKET = {};
 const PROACTIVE_INTELLIGENCE_LAYER = {};
 const buildPreferenceHints = () => "";
 
+// ── Center gutter: 2px separator that glows + shows resize handle on hover ──
+function ChatGutter() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: hovered ? 8 : 6, flexShrink: 0, position: 'relative',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'col-resize', transition: 'width 150ms',
+        zIndex: 20,
+      }}
+    >
+      {/* The 2px line */}
+      <div style={{
+        width: 2, height: '100%', borderRadius: 1,
+        background: hovered
+          ? 'linear-gradient(180deg, transparent 0%, #F95738 40%, #F95738 60%, transparent 100%)'
+          : 'linear-gradient(180deg, transparent 0%, #2A2A2A 30%, #2A2A2A 70%, transparent 100%)',
+        boxShadow: hovered ? '0 0 8px rgba(249,87,56,0.5)' : 'none',
+        transition: 'background 200ms, box-shadow 200ms',
+        pointerEvents: 'none',
+      }} />
+      {/* Drag handle pill */}
+      {hovered && (
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 16, height: 40, borderRadius: 8,
+          background: '#2A2A2A', border: '1px solid #3A3A3A',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 2, flexDirection: 'column',
+        }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ width: 2, height: 2, borderRadius: '50%', background: '#555' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const CARD_RADIUS = 16;
 
 export default function ChatPage() {
@@ -579,13 +622,67 @@ export default function ChatPage() {
         className="flex w-full h-full overflow-hidden"
         style={{ background: '#181818' }}>
 
-        <div className="flex w-full h-full" style={{ gap: 6, padding: '6px 6px 6px 6px' }}>
+        <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818' }}>
+            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818', position: 'relative' }}>
+
+              {/* ── Chat top bar: sidebar toggle (left) + history clock (right) ── */}
+              <div style={{
+                height: 38, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0 8px',
+                position: 'relative', zIndex: 10,
+                background: 'transparent',
+              }}>
+                {/* Sidebar toggle — top left of chat */}
+                <button
+                  title={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+                  onClick={() => setIsSidebarOpen(v => !v)}
+                  style={{
+                    width: 28, height: 28, borderRadius: 7, border: 'none',
+                    background: isSidebarOpen ? '#2A2A2A' : 'transparent',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#666', transition: 'background 120ms, color 120ms',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#2A2A2A'; e.currentTarget.style.color = '#aaa'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isSidebarOpen ? '#2A2A2A' : 'transparent'; e.currentTarget.style.color = '#666'; }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+                  </svg>
+                </button>
+
+                {/* History (clock) — top right of chat */}
+                <button
+                  title={showHistory ? 'Hide versions' : 'Version history'}
+                  onClick={() => setShowHistory(v => !v)}
+                  style={{
+                    width: 28, height: 28, borderRadius: 7, border: 'none',
+                    background: showHistory ? '#2A2A2A' : 'transparent',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: showHistory ? '#ccc' : '#555', transition: 'background 120ms, color 120ms',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#2A2A2A'; e.currentTarget.style.color = '#aaa'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = showHistory ? '#2A2A2A' : 'transparent'; e.currentTarget.style.color = showHistory ? '#ccc' : '#555'; }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* ── Blur banner separator ── */}
+              <div style={{
+                height: 1, flexShrink: 0,
+                background: 'linear-gradient(90deg, transparent 0%, #2A2A2A 20%, #2A2A2A 80%, transparent 100%)',
+                opacity: 0.6,
+              }} />
+
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
-                <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '0 0 0 8px' }}>
+                <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '6px 0 0 0' }}>
                   <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
                 </div>
               ) : (
@@ -615,6 +712,9 @@ export default function ChatPage() {
             </div>
           )}
 
+          {/* ── Center gutter: 2px glowing separator with resize handle on hover ── */}
+          {chatVisible && <ChatGutter />}
+
           {/* ── Right: Preview panel ── */}
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#181818' }}>
             {/* Header bar */}
@@ -634,7 +734,7 @@ export default function ChatPage() {
               setShowHistory={setShowHistory}
             />
 
-            {/* Preview area — equal top/bottom/right padding so bottom margin matches chat bottom margin */}
+            {/* Preview area */}
             <div style={{
               position: 'absolute', top: 44, left: 4, right: 0, bottom: 0,
               display: 'flex', alignItems: 'stretch', justifyContent: 'center',

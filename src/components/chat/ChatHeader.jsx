@@ -183,8 +183,8 @@ function MoreMenu({ onClose, setViewMode }) {
 
 const TABS = [
   { id: 'preview', icon: Globe, label: 'Preview', iconColor: '#F95738' },
-  { id: 'analytics', icon: BarChart2, label: 'Analytics', iconColor: '#555' },
-  { id: 'more', icon: MoreHorizontal, label: 'More', iconColor: '#555' },
+  { id: 'analytics', icon: BarChart2, label: 'Analytics', iconColor: '#888' },
+  { id: 'more', icon: MoreHorizontal, label: 'More', iconColor: '#888' },
 ];
 
 export default function ChatHeader({
@@ -272,10 +272,10 @@ export default function ChatHeader({
         {/* ── CENTER / PREVIEW controls ── */}
         <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px' }}>
 
-          {/* Tab pill group */}
+          {/* Tab group — sliding white underline */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 1,
-            background: '#242424', borderRadius: 9, padding: 3, flexShrink: 0,
+            display: 'flex', alignItems: 'center', gap: 0,
+            flexShrink: 0, position: 'relative',
           }}>
             {TABS.map(({ id, icon: Icon, label, iconColor }) => {
               const isActive = activeTab === id;
@@ -285,17 +285,20 @@ export default function ChatHeader({
                   <button
                     onClick={() => { if (isMore) setShowMore(v => !v); else { setViewMode(id); setShowMore(false); } }}
                     style={{
-                      ...btnBase, height: 26,
-                      padding: isActive ? '0 10px' : '0 7px', gap: 5,
-                      background: isActive ? '#333' : 'transparent',
-                      borderRadius: 7, fontSize: 12, fontWeight: isActive ? 600 : 400,
+                      ...btnBase, height: 44,
+                      padding: '0 11px', gap: 5,
+                      background: 'transparent',
+                      borderRadius: 0,
+                      fontSize: 12, fontWeight: isActive ? 600 : 400,
                       color: isActive ? '#fff' : '#555',
+                      borderBottom: isActive ? '2px solid #fff' : '2px solid transparent',
+                      transition: 'color 150ms, border-color 150ms',
                     }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#2A2A2A'; }}
-                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#aaa'; } }}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#555'; } }}
                   >
-                    <Icon style={{ width: 12, height: 12, color: isActive ? iconColor : '#555' }} />
-                    {isActive && !isMore && <span>{label}</span>}
+                    <Icon style={{ width: 12, height: 12, color: isActive ? iconColor : '#555', transition: 'color 150ms' }} />
+                    <span style={{ fontSize: 12 }}>{label}</span>
                   </button>
                   {isMore && showMore && <MoreMenu onClose={() => setShowMore(false)} setViewMode={setViewMode} />}
                 </div>
@@ -327,16 +330,30 @@ export default function ChatHeader({
 
           <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
 
-          {/* Upgrade */}
-          <button onClick={() => setShowUpgrade(true)} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            height: 27, padding: '0 10px', border: 'none', borderRadius: 7, cursor: 'pointer',
-            background: 'transparent', color: '#7B4FE0', fontSize: 12, fontWeight: 600, flexShrink: 0,
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1f1530'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          {/* Upgrade — purple gradient + levitation + halo on hover */}
+          <button
+            onClick={() => setShowUpgrade(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              height: 27, padding: '0 11px', border: 'none', borderRadius: 7, cursor: 'pointer',
+              background: 'linear-gradient(135deg, #7B4FE0 0%, #9B6BFF 100%)',
+              color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0,
+              transform: 'translateY(0px)',
+              boxShadow: 'none',
+              transition: 'transform 180ms ease, box-shadow 180ms ease, filter 180ms ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(123,79,224,0.55)';
+              e.currentTarget.style.filter = 'brightness(1.08)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0px)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.filter = 'brightness(1)';
+            }}
           >
-            <span style={{ width: 14, height: 14, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UpArrowIcon /></span>
+            <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UpArrowIcon /></span>
             Upgrade
           </button>
 

@@ -1,9 +1,84 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Star, MoreHorizontal } from 'lucide-react';
 import { getUserColor } from '@/lib/user-color';
 import { getTheme, setTheme } from '@/lib/theme';
+
+// ── BuildRow: shows "..." only on hover, with Delete (red) in dropdown ──
+function BuildRow({ d, convId, favorites, onNavigate, onToggleFavorite, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const h = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [menuOpen]);
+
+  const isActive = d.id === convId;
+
+  return (
+    <div
+      onClick={onNavigate}
+      className={`group flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer transition-colors mb-0.5 ${isActive ? 'bg-white/[0.06] border border-white/[0.07]' : 'hover:bg-white/[0.04]'}`}
+    >
+      <span className={`flex-1 text-[13px] truncate ${isActive ? 'text-white font-medium' : 'text-zinc-500'}`}>
+        {d.title || d.preview || 'Untitled build'}
+      </span>
+
+      {/* "..." button — only visible on group hover */}
+      <div className="relative flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" ref={menuRef}>
+        <button
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+          className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.08] transition-colors"
+          title="More options"
+        >
+          <MoreHorizontal className="w-3.5 h-3.5" />
+        </button>
+
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.1 }}
+              style={{
+                position: 'absolute', right: 0, top: 'calc(100% + 4px)',
+                background: '#1A1A1A', border: '1px solid #2A2A2A',
+                borderRadius: 10, padding: 4, minWidth: 150,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 9999,
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(e); setMenuOpen(false); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', background: 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, color: '#aaa', textAlign: 'left' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <Star className={`w-3 h-3 ${favorites.includes(d.id) ? 'fill-amber-400 text-amber-400' : ''}`} />
+                {favorites.includes(d.id) ? 'Unstar' : 'Star'}
+              </button>
+              <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(e); setMenuOpen(false); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', background: 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, color: '#EF4444', textAlign: 'left' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#2A1A1A'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <Trash2 className="w-3 h-3" style={{ color: '#EF4444' }} />
+                Delete
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
 
 const getLocalDiscussions = (workspaceId) => {
   try { return JSON.parse(localStorage.getItem(`wok_discussions_${workspaceId}`)) || []; } catch { return []; }
@@ -254,36 +329,20 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidd
                       ))
                     )}
 
-                    {/* All builds with hover star */}
+                    {/* All builds with hover "..." menu */}
                     {discussions.length > 0 && (
                       <>
                         <p className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest px-2 mt-4 mb-2">All builds</p>
                         {discussions.map((d) => (
-                          <div
+                          <BuildRow
                             key={d.id}
-                            onClick={() => navigate(`/chat?conversationId=${d.id}`)}
-                            onMouseEnter={() => setHoveredId(d.id)}
-                            onMouseLeave={() => setHoveredId(null)}
-                            className={`group flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer transition-colors mb-0.5 ${d.id === convId ? 'bg-white/[0.06] border border-white/[0.07]' : 'hover:bg-white/[0.04]'}`}
-                          >
-                            <span className={`flex-1 text-[13px] truncate ${d.id === convId ? 'text-white font-medium' : 'text-zinc-500'}`}>
-                              {d.title || d.preview || 'Untitled build'}
-                            </span>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                              <button
-                                onClick={(e) => toggleFavorite(e, d.id)}
-                                className="p-1 rounded transition-colors"
-                                title="Star this build"
-                              >
-                                <Star
-                                  className={`w-3 h-3 transition-colors ${favorites.includes(d.id) ? 'fill-amber-400 text-amber-400' : 'text-zinc-500 hover:text-amber-400'}`}
-                                />
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); deleteDiscussion(e, d.id); }} className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors">
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
+                            d={d}
+                            convId={convId}
+                            favorites={favorites}
+                            onNavigate={() => navigate(`/chat?conversationId=${d.id}`)}
+                            onToggleFavorite={(e) => toggleFavorite(e, d.id)}
+                            onDelete={(e) => deleteDiscussion(e, d.id)}
+                          />
                         ))}
                       </>
                     )}
