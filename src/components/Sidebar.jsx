@@ -209,38 +209,26 @@ function ProfileMenu({ user, onClose, navigate }) {
   );
 }
 
-// ── Recents section ──
+// ── Recents section — max 4 visible, inner scroll only ──
 function SidebarBuildsSection({ recents, nav }) {
-  const [recentsOpen, setRecentsOpen] = useState(true);
+  const ITEM_H = 30;
+  const MAX_VISIBLE = 4;
+  const listHeight = Math.min(recents.length, MAX_VISIBLE) * ITEM_H;
 
   return (
-    <div style={{ padding: '8px 8px 0', flexShrink: 0 }}>
-      <button
-        onClick={() => setRecentsOpen(v => !v)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px 4px' }}
-      >
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#555' }}>Recents</span>
-        <ChevronDown style={{ width: 12, height: 12, color: '#555', transform: recentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
-      </button>
-      <AnimatePresence initial={false}>
-        {recentsOpen && (
-          <motion.div key="recents"
-            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            style={{ overflow: 'hidden' }}
+    <div style={{ padding: '6px 8px 0', flexShrink: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 500, color: '#444', margin: '4px 10px 4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recents</p>
+      <div style={{ maxHeight: listHeight, overflowY: recents.length > MAX_VISIBLE ? 'auto' : 'hidden' }}>
+        {recents.map(d => (
+          <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+            style={{ display: 'flex', alignItems: 'center', width: '100%', height: ITEM_H, padding: '0 9px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#fff', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', fontFamily: 'inherit' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            {recents.map(d => (
-              <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
-                style={{ display: 'flex', alignItems: 'center', width: '100%', height: 32, padding: '0 10px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                {d.title || 'Untitled'}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {d.title || 'Untitled'}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -423,28 +411,28 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
     <div style={{ padding: '1px 4px' }}>
       <button onClick={onClick} title={!expanded ? label : undefined}
         style={{
-          display: 'flex', alignItems: 'center', width: '100%', height: 34,
-          padding: expanded ? '0 10px' : '0',
+          display: 'flex', alignItems: 'center', width: '100%', height: 30,
+          padding: expanded ? '0 9px' : '0',
           justifyContent: expanded ? 'flex-start' : 'center',
-          borderRadius: 8,
-          background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+          borderRadius: 7,
+          background: active ? 'rgba(255,255,255,0.09)' : 'transparent',
           border: 'none', cursor: 'pointer',
-          color: active ? '#fff' : '#999',
-          transition: 'background 120ms, color 120ms',
+          color: '#fff',
+          transition: 'background 120ms',
         }}
-        onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#ddd'; } }}
-        onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#999'; } }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+        onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
       >
-        {Icon && <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />}
+        {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0 }} />}
         {expanded && (
           <>
-            <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap', marginLeft: 10, flex: 1, textAlign: 'left' }}>
+            <span style={{ fontSize: 13, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap', marginLeft: 9, flex: 1, textAlign: 'left', color: '#fff' }}>
               {label}
             </span>
             {shortcut && (
               <span style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
                 {shortcut.map((k, i) => (
-                  <kbd key={i} style={{ fontSize: 10.5, fontFamily: 'monospace', background: '#2A2A2A', border: '1px solid #3A3A3A', borderRadius: 4, padding: '1px 5px', color: '#666', fontWeight: 500 }}>{k}</kbd>
+                  <kbd key={i} style={{ fontSize: 10, fontFamily: 'monospace', background: '#1E1E1E', border: '1px solid #2A2A2A', borderRadius: 4, padding: '1px 5px', color: '#555', fontWeight: 500 }}>{k}</kbd>
                 ))}
               </span>
             )}
@@ -520,8 +508,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           )}
         </div>
 
-        {/* ── Scrollable body ── */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {/* ── Body — NO scroll on main container ── */}
+        <div style={{ flex: 1, overflowY: 'hidden', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {/* Workspace selector */}
           <div ref={wsRef} style={{ padding: expanded ? '0 8px 8px' : '0 5px 8px', flexShrink: 0, position: 'relative' }}>
@@ -542,7 +530,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               </div>
               {expanded && (
                 <>
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: '#ddd', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
                     {currentWs?.name || 'My Workspace'}
                   </span>
                   <ChevronDown style={{ width: 14, height: 14, color: '#555', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
@@ -573,7 +561,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           {/* Projects */}
           <div style={{ padding: expanded ? '8px 8px 0' : '8px 5px 0', flexShrink: 0 }}>
-            {expanded && <p style={{ fontSize: 12, fontWeight: 500, color: '#444', margin: '4px 10px 6px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Projects</p>}
+            {expanded && <p style={{ fontSize: 11, fontWeight: 500, color: '#444', margin: '4px 10px 4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Projects</p>}
             {!expanded && <div style={{ height: 6 }} />}
             <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
             <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />

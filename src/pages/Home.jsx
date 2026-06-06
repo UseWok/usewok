@@ -219,12 +219,13 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh',
+      width: '100%',
       background: `
-        radial-gradient(ellipse 80% 50% at 100% 10%, rgba(30,80,180,0.85) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 60% at 50% 55%, rgba(220,40,180,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 50% at 20% 80%, rgba(255,80,20,0.85) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 80% 90%, rgba(255,120,0,0.6) 0%, transparent 50%),
-        #0a0a0f
+        radial-gradient(ellipse 100% 60% at 90% 0%, rgba(30,80,200,0.9) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(220,40,180,0.95) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 60% at 10% 80%, rgba(255,80,20,0.9) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255,120,0,0.7) 0%, transparent 50%),
+        #050508
       `,
       display: 'flex',
       flexDirection: 'column',

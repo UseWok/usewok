@@ -497,67 +497,20 @@ export default function ChatInputBar({
         {/* ── Bottom toolbar ── */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '10px 10px', gap: 6 }}>
 
-          {/* Plus — perfectly round, with dropdown */}
-          <div ref={plusBtnRef} style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              onClick={() => setShowPlusMenu(v => !v)}
-              style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: '#333', border: 'none',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#aaa', transition: 'background 120ms', flexShrink: 0,
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#3a3a3a'}
-              onMouseLeave={e => e.currentTarget.style.background = '#333'}
-            >
-              <Plus style={{ width: 15, height: 15 }} />
-            </button>
-            <AnimatePresence>
-              {showPlusMenu && (
-                <motion.div
-                  key="plus-menu"
-                  initial={{ opacity: 0, y: 4, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                  transition={{ duration: 0.1 }}
-                >
-                  <PlusMenu
-                    onClose={() => setShowPlusMenu(false)}
-                    onAttachFile={() => fileInputRef.current?.click()}
-                    onScreenshot={null}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Plus — file attachment */}
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
-
-          {/* Visual edits pill — assertive blue, no shadow */}
           <button
-            onClick={handleVisualEditToggle}
-            disabled={editActivating}
+            onClick={() => fileInputRef.current?.click()}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              height: 32, padding: '0 12px',
-              borderRadius: 999,
-              background: visualEditActive ? '#F95738' : '#333',
-              border: 'none',
-              cursor: editActivating ? 'wait' : 'pointer',
-              fontSize: 13, fontWeight: 500,
-              color: visualEditActive ? '#fff' : '#aaa',
-              boxShadow: 'none',
-              transition: 'background 120ms',
-              flexShrink: 0,
-              opacity: editActivating ? 0.7 : 1,
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'transparent', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#555', transition: 'color 120ms', flexShrink: 0,
             }}
-            onMouseEnter={e => { if (!visualEditActive) e.currentTarget.style.background = '#3a3a3a'; }}
-            onMouseLeave={e => { if (!visualEditActive) e.currentTarget.style.background = '#333'; }}
+            onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
+            onMouseLeave={e => e.currentTarget.style.color = '#555'}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={visualEditActive ? '#fff' : '#555'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 3l14 9-7 1-3 7L5 3z"/>
-              <path d="M19 3l-3 3M21 8l-3-1M19 13l-3-2"/>
-            </svg>
-            Visual edits
+            <Plus style={{ width: 15, height: 15 }} />
           </button>
 
           <div style={{ flex: 1 }} />
@@ -570,13 +523,13 @@ export default function ChatInputBar({
                 animate={{ scale: 1, opacity: 1 }}
                 onClick={handleDiscardRecording}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: '#FFFFFF', border: 'none',
+                  width: 30, height: 30, borderRadius: '50%',
+                  background: 'transparent', border: '1px solid #444',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#555', flexShrink: 0,
+                  color: '#888', flexShrink: 0,
                 }}
               >
-                <X style={{ width: 14, height: 14 }} />
+                <X style={{ width: 13, height: 13 }} />
               </motion.button>
 
               <motion.button
@@ -585,34 +538,34 @@ export default function ChatInputBar({
                 transition={{ delay: 0.05 }}
                 onClick={handleConfirmRecording}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: '#111', border: 'none',
+                  width: 30, height: 30, borderRadius: '50%',
+                  background: '#fff', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <Check style={{ width: 15, height: 15, color: '#fff' }} />
+                <Check style={{ width: 14, height: 14, color: '#111' }} />
               </motion.button>
             </>
           ) : (
             <>
-              {/* Build mode dropdown */}
+              {/* Build mode selector — plain text, no background */}
               <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => setShowBuildMenu(v => !v)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
-                    height: 32, padding: '0 8px',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    height: 30, padding: '0 8px',
                     borderRadius: 6, border: 'none',
                     background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 500, color: '#aaa',
-                    transition: 'background 120ms',
+                    fontSize: 13, fontWeight: 500, color: '#888',
+                    transition: 'color 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#333'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#888'}
                 >
                   {buildMode}
-                  <ChevronDown style={{ width: 13, height: 13, color: '#888' }} />
+                  <ChevronDown style={{ width: 12, height: 12 }} />
                 </button>
                 <AnimatePresence>
                   {showBuildMenu && (
@@ -627,36 +580,37 @@ export default function ChatInputBar({
                 </AnimatePresence>
               </div>
 
-              {/* Mic */}
+              {/* Mic — no background circle */}
               <button
                 onClick={handleMicClick}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: '#333', border: 'none',
+                  width: 30, height: 30, borderRadius: '50%',
+                  background: 'transparent', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#aaa', transition: 'background 120ms', flexShrink: 0,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#3a3a3a'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#333'}
-                  >
-                  <Mic style={{ width: 14, height: 14 }} />
+                  color: '#666', transition: 'color 120ms', flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
+                onMouseLeave={e => e.currentTarget.style.color = '#666'}
+              >
+                <Mic style={{ width: 14, height: 14 }} />
               </button>
 
-              {/* Send / Stop — no transition animation when hasContent changes */}
+              {/* Send / Stop */}
               {isLoading ? (
                 <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: '#111', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 11, height: 11, background: '#FFF', borderRadius: 2 }} />
+                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: '#333', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 2 }} />
                 </button>
               ) : (
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
-                    flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
-                    background: hasContent ? '#FFFFFF' : '#3A3A3A',
-                    border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
+                    flexShrink: 0, width: 30, height: 30, borderRadius: '50%',
+                    background: '#fff', border: 'none',
+                    cursor: hasContent ? 'pointer' : 'not-allowed', opacity: hasContent ? 1 : 0.25,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'opacity 120ms',
                   }}>
-                  <ArrowUp style={{ width: 15, height: 15, color: hasContent ? '#111' : '#888' }} />
+                  <Check style={{ width: 14, height: 14, color: '#111' }} />
                 </button>
               )}
             </>
