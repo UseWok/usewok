@@ -332,7 +332,7 @@ export default function ChatInputBar({
   const formatDuration = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   const handleSend = () => {
-    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files });
+    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, buildMode });
   };
 
   const handleKeyDown = (e) => {

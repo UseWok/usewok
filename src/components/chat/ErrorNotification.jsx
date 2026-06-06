@@ -1,72 +1,101 @@
 /**
- * ErrorNotification — contextual, categorized error banner.
- * Accepts either a raw string (legacy) or a classified error object from lib/error-handler.js.
+ * ErrorNotification — premium dark, minimal error banner.
  */
-import { X, Wrench, Wifi, Clock, ShieldAlert, AlertTriangle, Info } from 'lucide-react';
+import { X, Wrench, Wifi, Clock, ShieldAlert, AlertTriangle, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { classifyError, ERROR_CATEGORIES } from '@/lib/error-handler';
 
-const CATEGORY_STYLES = {
-  [ERROR_CATEGORIES.NETWORK]:  { bg: 'bg-orange-500/10', border: 'border-orange-500/20', dot: 'bg-orange-400', text: 'text-orange-400', Icon: Wifi },
-  [ERROR_CATEGORIES.QUOTA]:    { bg: 'bg-amber-500/10',  border: 'border-amber-500/20',  dot: 'bg-amber-400',  text: 'text-amber-400',  Icon: AlertTriangle },
-  [ERROR_CATEGORIES.AUTH]:     { bg: 'bg-red-500/10',    border: 'border-red-500/20',    dot: 'bg-red-400',    text: 'text-red-400',    Icon: ShieldAlert },
-  [ERROR_CATEGORIES.TIMEOUT]:  { bg: 'bg-amber-500/10',  border: 'border-amber-500/20',  dot: 'bg-amber-400',  text: 'text-amber-400',  Icon: Clock },
-  [ERROR_CATEGORIES.ABORT]:    { bg: 'bg-zinc-500/10',   border: 'border-zinc-500/20',   dot: 'bg-zinc-400',   text: 'text-zinc-400',   Icon: Info },
-  [ERROR_CATEGORIES.RUNTIME]:  { bg: 'bg-red-500/10',    border: 'border-red-500/20',    dot: 'bg-red-400',    text: 'text-red-400',    Icon: AlertTriangle },
-  [ERROR_CATEGORIES.UNKNOWN]:  { bg: 'bg-red-500/10',    border: 'border-red-500/20',    dot: 'bg-red-400',    text: 'text-red-400',    Icon: AlertTriangle },
+const CATEGORY_CONFIG = {
+  [ERROR_CATEGORIES.NETWORK]:  { accent: '#F59E0B', Icon: Wifi },
+  [ERROR_CATEGORIES.QUOTA]:    { accent: '#F59E0B', Icon: AlertTriangle },
+  [ERROR_CATEGORIES.AUTH]:     { accent: '#EF4444', Icon: ShieldAlert },
+  [ERROR_CATEGORIES.TIMEOUT]:  { accent: '#F59E0B', Icon: Clock },
+  [ERROR_CATEGORIES.ABORT]:    { accent: '#6B7280', Icon: X },
+  [ERROR_CATEGORIES.RUNTIME]:  { accent: '#EF4444', Icon: Zap },
+  [ERROR_CATEGORIES.UNKNOWN]:  { accent: '#EF4444', Icon: AlertTriangle },
 };
 
 export default function ErrorNotification({ error, onFix, onDismiss, context = 'Operation' }) {
   if (!error) return null;
 
-  // Support both raw strings and pre-classified objects
   const classified = typeof error === 'object' && error.category
     ? error
     : classifyError(error, context);
 
-  // Silently swallow abort — no banner needed
   if (classified.category === ERROR_CATEGORIES.ABORT) return null;
 
-  const style = CATEGORY_STYLES[classified.category] || CATEGORY_STYLES[ERROR_CATEGORIES.UNKNOWN];
-  const { Icon } = style;
+  const { accent, Icon } = CATEGORY_CONFIG[classified.category] || CATEGORY_CONFIG[ERROR_CATEGORIES.UNKNOWN];
   const showAutoFix = !!onFix && classified.category === ERROR_CATEGORIES.RUNTIME;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 6 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-        className={`mx-3 mb-2 rounded-xl border ${style.border} ${style.bg} overflow-hidden`}
+        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+        transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
+        style={{
+          margin: '0 8px 8px',
+          background: '#161616',
+          border: `1px solid #2A2A2A`,
+          borderLeft: `3px solid ${accent}`,
+          borderRadius: 10,
+          padding: '10px 12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          fontFamily: 'Inter, sans-serif',
+        }}
       >
-        <div className="flex items-start justify-between px-3 py-2.5 gap-2">
-          {/* Left: icon + message block */}
-          <div className="flex items-start gap-2 min-w-0 flex-1">
-            <Icon className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${style.text}`} />
-            <div className="min-w-0">
-              <p className={`text-xs font-semibold ${style.text} leading-tight`}>{classified.title}</p>
-              {classified.hint && (
-                <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight">{classified.hint}</p>
-              )}
-            </div>
-          </div>
+        {/* Icon */}
+        <Icon style={{ width: 13, height: 13, color: accent, flexShrink: 0 }} />
 
-          {/* Right: actions */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {showAutoFix && (
-              <button
-                onClick={onFix}
-                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors"
-              >
-                <Wrench className="w-3 h-3" />
-                Auto-fix
-              </button>
-            )}
-            <button onClick={onDismiss} className={`p-1 rounded-md ${style.text} opacity-60 hover:opacity-100 transition-opacity`}>
-              <X className="w-3.5 h-3.5" />
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#E5E5E5', display: 'block', lineHeight: 1.3 }}>
+            {classified.title}
+          </span>
+          {classified.hint && (
+            <span style={{ fontSize: 11, color: '#555', display: 'block', marginTop: 2, lineHeight: 1.3 }}>
+              {classified.hint}
+            </span>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {showAutoFix && (
+            <button
+              onClick={onFix}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 10px',
+                background: '#1E1E1E',
+                border: '1px solid #333',
+                borderRadius: 6,
+                fontSize: 11, fontWeight: 600, color: '#E5E5E5',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                transition: 'border-color 120ms, color 120ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#E5E5E5'; }}
+            >
+              <Wrench style={{ width: 10, height: 10 }} />
+              Auto-fix
             </button>
-          </div>
+          )}
+          <button
+            onClick={onDismiss}
+            style={{
+              width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#444', borderRadius: 5, transition: 'color 120ms',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#888'}
+            onMouseLeave={e => e.currentTarget.style.color = '#444'}
+          >
+            <X style={{ width: 12, height: 12 }} />
+          </button>
         </div>
       </motion.div>
     </AnimatePresence>

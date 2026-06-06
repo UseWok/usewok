@@ -317,7 +317,7 @@ export default function ChatPage() {
           codeMatch = codeToFix.substring(startIdx, endIdx + 3);
           codeToFix = codeMatch;
         }
-        const fixPayload = { prompt: PROMPT_AUTO_FIX + "\n\nError:\n" + options.rawError + "\n\nCode:\n" + codeToFix, model: 'gemini_3_1_pro' };
+        const fixPayload = { prompt: PROMPT_AUTO_FIX + "\n\nError:\n" + options.rawError + "\n\nCode:\n" + codeToFix, model: 'automatic' };
         const fixResult = await cachedAIRequest(fixPayload, () => base44.integrations.Core.InvokeLLM({ ...fixPayload }));
         if (abortedRef.current) return;
         const fixedCode = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
@@ -339,34 +339,6 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Pre-analysis gatekeeper (automatic = cheapest model) ──
-      const preAnalysisPayload = {
-        prompt: `You are a gatekeeper for Wok, an AI UI builder. Determine if the user's message contains enough signal to build an interface.
-
-User message: "${text}"
-
-Rules:
-- Be GENEROUS. "a dashboard", "landing page", "todo app" = sufficient.
-- Return sufficient=false ONLY if truly nonsensical or completely unrelated to building anything.
-- If sufficient=false: reply in user's language, max 1 sentence, no emojis.
-- If sufficient=true: reply must be empty string "".
-
-JSON: { "sufficient": true/false, "reply": "" }`,
-        model: 'automatic',
-        response_json_schema: { type: 'object', properties: { sufficient: { type: 'boolean' }, reply: { type: 'string' } } }
-      };
-      const preAnalysis = await cachedAIRequest(preAnalysisPayload, () => base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload }));
-      if (!preAnalysis?.sufficient && preAnalysis?.reply) {
-        setIsLoading(false);
-        const clarifyMsgs = [...newMessages, { role: 'assistant', content: '__INSUFFICIENT__:' + preAnalysis.reply }];
-        setMessages(clarifyMsgs);
-        saveConversationMessages(convId, clarifyMsgs);
-        saveToDiscussionsLogic("New Chat", text);
-        await syncToCloud(convId, clarifyMsgs, { title: text.slice(0, 80), preview: text.slice(0, 120) });
-        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
-        return;
-      }
-
       // ── Build / modify path ──
       const isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
       const preferenceHints = buildPreferenceHints(messages);
@@ -383,12 +355,13 @@ JSON: { "sufficient": true/false, "reply": "" }`,
         ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
         : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
 
-      // ── Thinking layer (automatic = cheapest) ──
-      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: 'automatic' };
+      // ── Thinking layer — model depends on build mode (Flash=gpt_5_mini, Expert=gemini_3_1_pro) ──
+      const thinkingModel = (options.buildMode === 'Expert') ? 'gemini_3_1_pro' : 'gpt_5_mini';
+      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: thinkingModel };
       const thinkingResult = await cachedAIRequest(thinkingPayload, () => base44.integrations.Core.InvokeLLM({ ...thinkingPayload }));
       const thinkingBlock = typeof thinkingResult === 'string' ? thinkingResult : '';
 
-      // ── Architect builder (gemini_3_1_pro) ──
+      // ── Architect builder (gemini_3_1_pro always for code) ──
       const codePayload = { prompt: architectPrompt, model: 'gemini_3_1_pro' };
       const codeResult = await cachedAIRequest(codePayload, () => base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal }));
 
@@ -627,7 +600,8 @@ JSON: { "sufficient": true/false, "reply": "" }`,
                     <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
                     <ChatInputBar
                       input={input} setInput={setInput}
-                      onSend={sendMessage} onStop={handleStop}
+                      onSend={(text, opts) => sendMessage(text, { ...opts })}
+                      onStop={handleStop}
                       isLoading={isLoading}
                       files={files} setFiles={setFiles}
                       discussMode={discussMode} setDiscussMode={setDiscussMode}
@@ -756,7 +730,7 @@ JSON: { "sufficient": true/false, "reply": "" }`,
             </div>
             <div className="flex-shrink-0">
               <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
-              <ChatInputBar input={input} setInput={setInput} onSend={sendMessage} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
+              <ChatInputBar input={input} setInput={setInput} onSend={(text, opts) => sendMessage(text, { ...opts })} onStop={handleStop} isLoading={isLoading} files={files} setFiles={setFiles} discussMode={discussMode} setDiscussMode={setDiscussMode} editMode={editMode} setEditMode={setEditMode} />
             </div>
           </div>
         )}

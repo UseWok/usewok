@@ -111,46 +111,49 @@ function ThinkingAccordion({ thinkingText }) {
   );
 }
 
-// ── Code preview box — scrollable, no top bar, no progress ──
+// ── Code preview box — appears after generation, dark transparent bg, white text ──
 function CodePreviewBox({ code }) {
-  const [displayed, setDisplayed] = useState('');
-  const [done, setDone] = useState(false);
   const preRef = useRef(null);
-  const idxRef = useRef(0);
-  const SPEED = 12;
 
-  useEffect(() => {
-    if (!code) return;
-    idxRef.current = 0;
-    setDisplayed('');
-    setDone(false);
-    const interval = setInterval(() => {
-      idxRef.current = Math.min(idxRef.current + SPEED, code.length);
-      setDisplayed(code.slice(0, idxRef.current));
-      if (preRef.current) preRef.current.scrollTop = preRef.current.scrollHeight;
-      if (idxRef.current >= code.length) { clearInterval(interval); setDone(true); }
-    }, 16);
-    return () => clearInterval(interval);
-  }, [code]);
+  // Trim fences if present
+  const cleanCode = code?.replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '') || '';
 
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, background: '#FFFFFF', overflow: 'hidden' }}>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+      style={{ marginTop: 8 }}
+    >
+      <div style={{
+        border: '1px solid #2A2A2A',
+        borderRadius: 10,
+        background: '#181818', // matches app background
+        overflow: 'hidden',
+      }}>
+        {/* Header bar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '8px 12px', borderBottom: '1px solid #2A2A2A',
+          background: '#1E1E1E',
+        }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#333' }} />
+          <span style={{ fontSize: 11, color: '#444', fontFamily: 'ui-monospace, monospace' }}>component.jsx</span>
+        </div>
         <pre ref={preRef} style={{
           margin: 0, padding: '12px 14px',
-          height: 160,
+          height: 140,
           overflowY: 'auto',
           fontSize: 11, lineHeight: '20px',
-          color: '#374151',
+          color: '#FFFFFF',
           fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
           whiteSpace: 'pre', wordBreak: 'normal',
           background: 'transparent',
         }}>
-          {displayed}
-          {!done && <span style={{ animation: 'streaming-cursor 0.8s ease-in-out infinite', color: '#6B7280' }}>▌</span>}
+          {cleanCode}
         </pre>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -219,28 +222,23 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
   const shouldAutoOpen = isNewMessage.current;
   if (shouldAutoOpen) isNewMessage.current = false;
 
-  // ── Code generation result ──
-  const isCodeResult =
-    finalText.includes('Architecture generated') ||
-    finalText.includes('Architecture successfully') ||
-    finalText.includes('successfully recompiled') ||
-    finalText.includes('✨ Architecture');
+  // ── Code generation result — rawContent present means code was generated ──
+  const isCodeResult = !!rawContent || finalText.includes('Architecture generated') || finalText.includes('Architecture successfully') || finalText.includes('successfully recompiled');
 
   if (isCodeResult) {
-    let codeForPreview = rawContent || '';
-    const fenceMatch = codeForPreview.match(/```(?:jsx|javascript|react)?\n?([\s\S]*?)```/);
-    if (fenceMatch) codeForPreview = fenceMatch[1];
+    // Strip any raw code blocks from the display text — code shows only in the box
+    const codeBlockRegex = /```(?:jsx|javascript|react)?\n?[\s\S]*?```/g;
+    const textOnly = finalText.replace(codeBlockRegex, '').trim();
 
     return (
       <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
-        {thinkingText ? (
-          <>
-            <ThinkingAccordion thinkingText={thinkingText} />
-            {codeForPreview && <CodePreviewBox code={codeForPreview} />}
-          </>
-        ) : (
-          codeForPreview && <CodePreviewBox code={codeForPreview} />
+        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
+        {textOnly && !textOnly.includes('Architecture generated') && !textOnly.includes('Architecture successfully') && (
+          <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6, fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{textOnly}</ReactMarkdown>
+          </div>
         )}
+        {rawContent && <CodePreviewBox code={rawContent} />}
       </div>
     );
   }
