@@ -331,8 +331,8 @@ export default function PublicFiche() {
         <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
           <span className="text-2xl">🔒</span>
         </div>
-        <h2 className="text-white font-bold text-xl">Page non publiée</h2>
-        <p className="text-white/40 text-sm text-center max-w-xs">Cette page n'a pas encore été publiée. Utilisez le bouton "Publish" dans l'éditeur pour la rendre publique.</p>
+        <h2 className="text-white font-bold text-xl">Not published</h2>
+        <p className="text-white/40 text-sm text-center max-w-xs">This app has not been published yet. Use the "Publish" button in the editor to make it publicly accessible.</p>
       </div>
     );
   }

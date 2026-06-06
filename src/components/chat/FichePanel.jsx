@@ -1,18 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-
-// Theme-aware skeleton block (grey in light, dark-grey in dark)
-const SkeletonBlock = ({ w, h, delay = 0, radius = 8, opacity = 1 }) => (
-  <div
-    className="skeleton-block"
-    style={{ width: w, height: h, borderRadius: radius, opacity, flexShrink: 0,
-      animation: `wok-shimmer 1.6s ease-out infinite, wok-slide-in 200ms ease-out ${delay}ms both` }}
-  />
-);
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, LayoutTemplate, Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2 } from 'lucide-react';
+import { Loader2, LayoutTemplate, Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import VisualEditorToolbar from './VisualEditorToolbar';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
@@ -504,6 +496,11 @@ export default function FichePanel({
   // Sub-tab within dashboard ('overview' | 'code' | 'advanced')
   const [dashboardTab, setDashboardTab] = useState('overview');
 
+  // ── Visual editor state ──
+  const [visualEditMode, setVisualEditMode] = useState(false);
+  const [selectedElement, setSelectedElement] = useState(null); // { tag, text, isTextNode, path }
+  const iframeRef = useRef(null);
+
   useEffect(() => {
     setIsCompiling(true);
     let html = ''; let css = ''; let js = ''; let rawComponent = '';
@@ -533,11 +530,22 @@ export default function FichePanel({
         if (onError) onError(e.data.message);
       } else if (e.data?.type === 'WOK_RUNTIME_SUCCESS') {
         if (onSuccess) onSuccess();
+      } else if (e.data?.type === 'WOK_ELEMENT_SELECTED') {
+        if (visualEditMode) setSelectedElement(e.data.element);
+      } else if (e.data?.type === 'WOK_ELEMENT_DESELECTED') {
+        setSelectedElement(null);
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [onError, onSuccess]);
+  }, [onError, onSuccess, visualEditMode]);
+
+  // ── Notify iframe when visual edit mode changes ──
+  useEffect(() => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage({ type: 'WOK_VISUAL_MODE', active: visualEditMode }, '*');
+    } catch {}
+  }, [visualEditMode]);
 
   const hasComponent = compiledCode.html || compiledCode.css || compiledCode.js;
 
@@ -580,6 +588,56 @@ export default function FichePanel({
             window.parent.postMessage({ type: 'WOK_RUNTIME_ERROR', message: message }, '*');
             return true;
           };
+
+          // ── Visual Editor selection listener ──
+          var _wokEditMode = false;
+          var _wokSelected = null;
+
+          window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'WOK_VISUAL_MODE') {
+              _wokEditMode = e.data.active;
+              if (!_wokEditMode && _wokSelected) {
+                _wokSelected.style.outline = '';
+                _wokSelected = null;
+              }
+            }
+            if (e.data && e.data.type === 'WOK_UPDATE_CONTENT' && _wokSelected) {
+              _wokSelected.textContent = e.data.text;
+            }
+            if (e.data && e.data.type === 'WOK_UPDATE_STYLE' && _wokSelected) {
+              var p = e.data.prop;
+              var v = e.data.val;
+              if (p === 'opacity') _wokSelected.style.opacity = v;
+              if (p === 'align') _wokSelected.style.textAlign = v;
+              if (p === 'size') {
+                var sizeMap = { xs:'12px', sm:'14px', base:'16px', lg:'18px', xl:'20px', '2xl':'24px', '3xl':'30px' };
+                _wokSelected.style.fontSize = sizeMap[v] || v;
+              }
+              if (p === 'weight') _wokSelected.style.fontWeight = v;
+              if (p === 'decoration') _wokSelected.style.textDecoration = v;
+            }
+            if (e.data && e.data.type === 'WOK_DELETE_ELEMENT' && _wokSelected) {
+              _wokSelected.remove();
+              _wokSelected = null;
+            }
+          });
+
+          document.addEventListener('click', function(e) {
+            if (!_wokEditMode) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (_wokSelected) _wokSelected.style.outline = '';
+            _wokSelected = e.target;
+            _wokSelected.style.outline = '2px solid #F95738';
+            _wokSelected.style.outlineOffset = '2px';
+            var tag = e.target.tagName.toLowerCase();
+            var text = e.target.innerText ? e.target.innerText.slice(0, 200) : '';
+            var textTags = ['h1','h2','h3','h4','h5','h6','p','span','a','li','label','button'];
+            window.parent.postMessage({
+              type: 'WOK_ELEMENT_SELECTED',
+              element: { tag: tag, text: text, isTextNode: textTags.includes(tag) }
+            }, '*');
+          }, true);
         </script>
 
         <script type="text/babel" data-type="module" data-presets="react">
@@ -632,7 +690,58 @@ export default function FichePanel({
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* ── Visual Edit toggle button ── */}
+            <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <button
+                onClick={() => { setVisualEditMode(v => !v); if (visualEditMode) setSelectedElement(null); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: visualEditMode ? '#fff' : 'rgba(20,20,20,0.85)',
+                  color: visualEditMode ? '#000' : '#ccc',
+                  fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  backdropFilter: 'blur(8px)',
+                  transition: 'background 150ms, color 150ms',
+                }}>
+                <Pencil style={{ width: 12, height: 12 }} />
+                {visualEditMode ? 'Done' : 'Edit'}
+              </button>
+
+              {/* ── Toolbar shown when element is selected ── */}
+              <AnimatePresence>
+                {visualEditMode && selectedElement && (
+                  <VisualEditorToolbar
+                    selectedElement={selectedElement}
+                    onAIEdit={(prompt) => {
+                      // Send AI edit request back to parent via message
+                      toast.info('AI edit coming soon for individual elements.');
+                    }}
+                    onContentChange={(val) => {
+                      try { iframeRef.current?.contentWindow?.postMessage({ type: 'WOK_UPDATE_CONTENT', text: val }, '*'); } catch {}
+                    }}
+                    onStyleChange={(prop, val) => {
+                      try { iframeRef.current?.contentWindow?.postMessage({ type: 'WOK_UPDATE_STYLE', prop, val }, '*'); } catch {}
+                    }}
+                    onDelete={() => {
+                      try { iframeRef.current?.contentWindow?.postMessage({ type: 'WOK_DELETE_ELEMENT' }, '*'); } catch {}
+                      setSelectedElement(null);
+                    }}
+                    onClose={() => {
+                      setVisualEditMode(false);
+                      setSelectedElement(null);
+                      // Trigger version save
+                      if (onUpdateContent && content) onUpdateContent(content);
+                      toast.success('Visual edits saved as a new version.');
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+
             <motion.iframe
+              ref={iframeRef}
               key={iframeRefreshKey}
               title="Wok Live Preview"
               srcDoc={srcDoc}
@@ -641,7 +750,13 @@ export default function FichePanel({
               transition={{ duration: 0.2, ease: 'easeIn' }}
               className="w-full h-full border-none absolute inset-0 bg-white"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              style={{ cursor: visualEditMode ? 'crosshair' : 'default' }}
             />
+
+            {/* Visual edit mode border indicator */}
+            {visualEditMode && (
+              <div style={{ position: 'absolute', inset: 0, border: '2px solid rgba(249,87,56,0.5)', borderRadius: 0, pointerEvents: 'none', zIndex: 15 }} />
+            )}
           </div>
         ) : viewMode === 'code' ? (
           <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />

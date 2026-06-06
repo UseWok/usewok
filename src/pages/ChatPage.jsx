@@ -335,6 +335,7 @@ export default function ChatPage() {
         const finalMsgs = [...newMessages, { role: 'assistant', content: "Architecture successfully recompiled.", rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
+        if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
         await syncToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed', rawContent: newContent });
         return;
       }
@@ -405,6 +406,9 @@ export default function ChatPage() {
         setUser((prev) => ({ ...prev, project_count: newCount }));
       }
 
+      // Always persist URL first so the build is reachable even if user leaves immediately
+      if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+
       setIsLoading(false);
       if (!discussMode) setFicheContent(rawContent);
 
@@ -412,14 +416,11 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
 
-      // Always persist URL first so the build is reachable even if user leaves immediately
-      if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
-
-      // Cloud sync — includes rawContent for cross-device preview restore (always, no publish required)
-      syncToCloud(convId, finalMsgs, {
+      // ── Hard save to cloud immediately (no fire-and-forget — await to guarantee persistence) ──
+      await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: false, // saved privately regardless of publish state
+        is_public: false,
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
