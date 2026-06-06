@@ -36,7 +36,7 @@ export default function PublishAppModal({ open, onClose, appUrl, isPublished, se
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute top-[calc(100%+12px)] right-0 w-[420px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-200 overflow-hidden flex flex-col z-[99999]"
+            className="fixed top-[52px] right-4 w-[420px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-200 overflow-hidden flex flex-col z-[99999]"
             onClick={e => e.stopPropagation()}
           >
             <div className={`relative w-full transition-all duration-150 ease-in-out ${isTransitioning ? 'opacity-0 blur-sm' : 'opacity-100 blur-none'}`}>
