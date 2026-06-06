@@ -276,7 +276,7 @@ export default function PublicFiche() {
     }
 
     const loadConv = async () => {
-      // Try by conv_id first, then by slug (custom domain)
+      // Try by conv_id first, then by slug
       let results = await base44.entities.Conversation.filter({ conv_id: conversationId }).catch(() => []);
       if (results.length === 0) {
         results = await base44.entities.Conversation.filter({ slug: conversationId }).catch(() => []);
@@ -286,13 +286,29 @@ export default function PublicFiche() {
       if (rec) {
         // Require explicit is_public = true
         if (!rec.is_public) { setIsPrivate(true); setLoading(false); return; }
-        // Use the actual conv_id from the DB record to load messages
+
+        // Preferred: rawContent stored directly on the Conversation record (fastest, no extra query)
+        if (rec.raw_content || rec.rawContent) {
+          const content = rec.raw_content || rec.rawContent;
+          setMessages([{ role: 'assistant', content: '', rawContent: content }]);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback: reconstruct from messages_json if available
+        if (rec.messages_json) {
+          try {
+            const msgs = JSON.parse(rec.messages_json);
+            if (Array.isArray(msgs) && msgs.length > 0) { setMessages(msgs); setLoading(false); return; }
+          } catch {}
+        }
+
+        // Last resort: load from cloud storage
         const realConvId = rec.conv_id || conversationId;
         const msgs = await loadConversationFromCloud(realConvId).catch(() => null);
         if (msgs?.length > 0) setMessages(msgs);
         setLoading(false);
       } else {
-        // No DB record → treat as private (not published)
         setIsPrivate(true);
         setLoading(false);
       }
@@ -321,9 +337,9 @@ export default function PublicFiche() {
     );
   }
 
-  // Get the last message the assistant generated
-  const assistantMessages = messages.filter((m) => m.role === 'assistant' && m.content?.length > 40);
-  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].rawContent || assistantMessages[assistantMessages.length - 1].content : null;
+  // Get the last generated rawContent — also check top-level field saved by syncToCloud
+  const assistantMessages = messages.filter((m) => m.role === 'assistant' && m.rawContent);
+  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].rawContent : null;
 
   if (!finalContent) {
     return (

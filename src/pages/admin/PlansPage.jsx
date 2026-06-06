@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Plus, Pencil, Archive, Users, Check, X, Trash2, Home } from 'lucide-react';
-import { getPlansConfig } from '@/lib/plans-config';
+import { getPlansConfig, savePlansConfig } from '@/lib/plans-config';
 import { toast } from 'sonner';
 
 export default function PlansPage() {
@@ -30,9 +30,13 @@ export default function PlansPage() {
     try {
       const allUsers = await base44.entities.User.list();
       setUsers(allUsers || []);
-      setPlans(getPlansConfig());
+      // Load from DB first, fallback to local
+      const { loadPlansFromDB } = await import('@/lib/plans-config');
+      const dbPlans = await loadPlansFromDB();
+      setPlans(dbPlans || getPlansConfig());
     } catch (error) {
       toast.error('Erreur lors du chargement');
+      setPlans(getPlansConfig());
     }
   };
 
@@ -76,26 +80,29 @@ export default function PlansPage() {
       return;
     }
 
-    try {
-      // Dans une vraie implémentation, on sauvegarderait dans une entité
-      // Ici on simule la sauvegarde
-      toast.success('Plan enregistré');
-      setEditingPlanId(null);
-      setAddingNew(false);
-      loadData();
-    } catch (error) {
-      toast.error('Erreur lors de la sauvegarde');
+    const currentPlans = [...plans];
+    let updatedPlans;
+
+    if (addingNew) {
+      const newPlan = { ...formData, id: `plan_${Date.now()}` };
+      updatedPlans = [...currentPlans, newPlan];
+    } else {
+      updatedPlans = currentPlans.map(p => p.id === editingPlanId ? { ...p, ...formData } : p);
     }
+
+    savePlansConfig(updatedPlans);
+    setPlans(updatedPlans);
+    toast.success('Plan enregistré');
+    setEditingPlanId(null);
+    setAddingNew(false);
   };
 
   const handleArchive = async (planId) => {
     if (!confirm('Êtes-vous sûr de vouloir archiver ce plan ?')) return;
-    try {
-      toast.success('Plan archivé');
-      loadData();
-    } catch (error) {
-      toast.error('Erreur lors de l\'archivage');
-    }
+    const updatedPlans = plans.map(p => p.id === planId ? { ...p, visible: false, archived: true } : p);
+    savePlansConfig(updatedPlans);
+    setPlans(updatedPlans);
+    toast.success('Plan archivé');
   };
 
   const addFeature = () => {

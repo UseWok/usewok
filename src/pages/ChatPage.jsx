@@ -251,6 +251,22 @@ export default function ChatPage() {
     // Re-assign text to sanitized version
     text = safeText;
 
+    // ── Heuristic pre-filter (zero API cost) ──
+    const trimmed = text.trim();
+    const isTooShort = trimmed.length < 8;
+    const isRepetitive = /(.)\1{5,}/.test(trimmed); // "aaaaaaa", "1111111"
+    const isGibberish = /^[^aeiou\s]{8,}$/i.test(trimmed.replace(/\s/g, '').slice(0, 20)); // no vowels
+    const isAllSameWord = /^(\w+)\s+\1+$/i.test(trimmed);
+    const isSpam = /^[^a-zA-Z0-9\u00C0-\u017E\s.,!?]+$/.test(trimmed) && trimmed.length > 3;
+
+    if (isTooShort || isRepetitive || isGibberish || isAllSameWord || isSpam) {
+      const userMsg = { role: 'user', content: text };
+      setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '__INSUFFICIENT__' }]);
+      setInput('');
+      setFiles([]);
+      return;
+    }
+
     // Easter egg
     if (text.trim() === '16/06/2010') {
       const userMsg = { role: 'user', content: text };
@@ -323,26 +339,26 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Pre-analysis gatekeeper (gpt_5_mini) ──
+      // ── Pre-analysis gatekeeper (automatic = cheapest model) ──
       const preAnalysisPayload = {
-        prompt: `You are the creative director of Wok — a next-generation AI interface studio. Users describe what they want to build and you decide if there is enough signal to begin.
+        prompt: `You are a gatekeeper for Wok, an AI UI builder. Determine if the user's message contains enough signal to build an interface.
 
 User message: "${text}"
 
 Rules:
-- Be GENEROUS. Even a vague idea like "a dashboard" or "a landing page" is sufficient — Wok will creatively interpret it.
-- Only return sufficient=false if the message is truly empty, nonsensical, or completely unrelated to building any kind of interface, tool, or experience.
-- If sufficient=false, your reply must: (1) acknowledge what the user said, (2) give ONE concrete example of what a buildable version would look like, (3) be written in the user's language, max 2 sentences, no emojis.
-- If sufficient=true, return an empty reply string.
+- Be GENEROUS. "a dashboard", "landing page", "todo app" = sufficient.
+- Return sufficient=false ONLY if truly nonsensical or completely unrelated to building anything.
+- If sufficient=false: reply in user's language, max 1 sentence, no emojis.
+- If sufficient=true: reply must be empty string "".
 
-Reply JSON: { "sufficient": true/false, "reply": "..." }`,
-        model: 'gpt_5_mini',
+JSON: { "sufficient": true/false, "reply": "" }`,
+        model: 'automatic',
         response_json_schema: { type: 'object', properties: { sufficient: { type: 'boolean' }, reply: { type: 'string' } } }
       };
       const preAnalysis = await cachedAIRequest(preAnalysisPayload, () => base44.integrations.Core.InvokeLLM({ ...preAnalysisPayload }));
       if (!preAnalysis?.sufficient && preAnalysis?.reply) {
         setIsLoading(false);
-        const clarifyMsgs = [...newMessages, { role: 'assistant', content: preAnalysis.reply }];
+        const clarifyMsgs = [...newMessages, { role: 'assistant', content: '__INSUFFICIENT__:' + preAnalysis.reply }];
         setMessages(clarifyMsgs);
         saveConversationMessages(convId, clarifyMsgs);
         saveToDiscussionsLogic("New Chat", text);
@@ -367,8 +383,8 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
         ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
         : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
 
-      // ── Thinking layer (gpt_5_mini — o1-mini style) ──
-      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: 'gpt_5_mini' };
+      // ── Thinking layer (automatic = cheapest) ──
+      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: 'automatic' };
       const thinkingResult = await cachedAIRequest(thinkingPayload, () => base44.integrations.Core.InvokeLLM({ ...thinkingPayload }));
       const thinkingBlock = typeof thinkingResult === 'string' ? thinkingResult : '';
 
