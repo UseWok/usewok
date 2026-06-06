@@ -171,26 +171,26 @@ export default function VisualEditorToolbar({
       {/* ── Sub-panels ── */}
       <AnimatePresence>
         {openPanel === 'ai' && (
-          <motion.div key="ai" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0 }}>
+          <motion.div key="ai" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0 }}>
             <AIPromptInput onSubmit={(prompt) => { onAIEdit?.(prompt); setOpenPanel(null); }} onClose={() => setOpenPanel(null)} />
           </motion.div>
         )}
         {openPanel === 'content' && (
-          <motion.div key="content" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0 }}>
+          <motion.div key="content" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0 }}>
             <ContentInput value={selectedElement?.text} onChange={(v) => onContentChange?.(v)} onClose={() => setOpenPanel(null)} />
           </motion.div>
         )}
         {openPanel === 'typo' && (
-          <motion.div key="typo" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0 }}>
+          <motion.div key="typo" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0 }}>
             <TypoPanel onApply={(prop, val) => { onStyleChange?.(prop, val); }} onClose={() => setOpenPanel(null)} />
           </motion.div>
         )}
         {openPanel === 'opacity' && (
-          <motion.div key="opacity" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0 }}>
+          <motion.div key="opacity" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0 }}>
             <OpacityPanel onApply={(val) => onStyleChange?.('opacity', val)} />
           </motion.div>
         )}
