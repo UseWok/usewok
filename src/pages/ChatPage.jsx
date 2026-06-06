@@ -569,9 +569,6 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       {/* Iframe & fullscreen modals */}
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <FullscreenIframeModal modal={fullscreenModal} onClose={() => setFullscreenModal(null)} />
-{/* Iframe & fullscreen modals */}
-      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
-      <FullscreenIframeModal modal={fullscreenModal} onClose={() => setFullscreenModal(null)} />
       <PublishAppModal
         open={showPublishModal}
         onClose={() => setShowPublishModal(false)}
