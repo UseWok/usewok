@@ -569,7 +569,20 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       {/* Iframe & fullscreen modals */}
       <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
       <FullscreenIframeModal modal={fullscreenModal} onClose={() => setFullscreenModal(null)} />
-
+{/* Iframe & fullscreen modals */}
+      <IframeModal open={iframeModal.open} url={iframeModal.url} onClose={() => setIframeModal({ open: false, url: '' })} />
+      <FullscreenIframeModal modal={fullscreenModal} onClose={() => setFullscreenModal(null)} />
+      <PublishAppModal
+        open={showPublishModal}
+        onClose={() => setShowPublishModal(false)}
+        appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
+        isPublished={isAppPublished}
+        setIsPublished={setIsAppPublished}
+        customSlug={customSlug || convId}
+        appSettings={appSettings}
+        onUpdateSettings={handleUpdateAppMeta}
+      />
+      
       {/* Sidebar */}
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
 
