@@ -669,16 +669,7 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
               }}
             >
 
-              <PublishAppModal
-                open={showPublishModal}
-                onClose={() => setShowPublishModal(false)}
-                appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
-                isPublished={isAppPublished}
-                setIsPublished={setIsAppPublished}
-                customSlug={customSlug || convId}
-                appSettings={appSettings}
-                onUpdateSettings={handleUpdateAppMeta}
-              />
+              
 
               {ficheContent ? (
                 <FichePanel
