@@ -35,7 +35,7 @@ export default function PlansPage() {
       const dbPlans = await loadPlansFromDB();
       setPlans(dbPlans || getPlansConfig());
     } catch (error) {
-      toast.error('Erreur lors du chargement');
+      toast.error('Error while loading');
       setPlans(getPlansConfig());
     }
   };
@@ -76,7 +76,7 @@ export default function PlansPage() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast.error('Le nom du plan est requis');
+      toast.error('Plan name is required');
       return;
     }
 
@@ -90,19 +90,19 @@ export default function PlansPage() {
       updatedPlans = currentPlans.map(p => p.id === editingPlanId ? { ...p, ...formData } : p);
     }
 
-    savePlansConfig(updatedPlans);
+    await savePlansConfig(updatedPlans); // Added await here to prevent silent sync failures
     setPlans(updatedPlans);
-    toast.success('Plan enregistré');
+    toast.success('Plan saved');
     setEditingPlanId(null);
     setAddingNew(false);
   };
 
   const handleArchive = async (planId) => {
-    if (!confirm('Êtes-vous sûr de vouloir archiver ce plan ?')) return;
+    if (!confirm('Are you sure you want to archive this plan?')) return;
     const updatedPlans = plans.map(p => p.id === planId ? { ...p, visible: false, archived: true } : p);
-    savePlansConfig(updatedPlans);
+    await savePlansConfig(updatedPlans); // Added await here as well
     setPlans(updatedPlans);
-    toast.success('Plan archivé');
+    toast.success('Plan archived');
   };
 
   const addFeature = () => {
@@ -123,9 +123,9 @@ export default function PlansPage() {
   };
 
   const getPriceDisplay = (plan) => {
-    if (plan.price_monthly === 0) return 'Gratuit';
-    if (plan.price_monthly >= 999) return 'Sur devis';
-    return `${plan.price_monthly} €/mois`;
+    if (plan.price_monthly === 0) return 'Free';
+    if (plan.price_monthly >= 999) return 'Custom pricing';
+    return `${plan.price_monthly} €/month`;
   };
 
   return (
@@ -137,16 +137,16 @@ export default function PlansPage() {
             className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#666666] hover:bg-[#F7F7F8] rounded-lg transition-colors"
           >
             <Home className="w-4 h-4" />
-            <span>Retour</span>
+            <span>Back</span>
           </button>
-          <h1 className="text-[20px] font-medium text-[#1A1A1A]">Plans d'abonnement</h1>
+          <h1 className="text-[20px] font-medium text-[#1A1A1A]">Subscription Plans</h1>
         </div>
         <button
           onClick={handleAddNew}
           className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
         >
           <Plus className="w-4 h-4" />
-          Ajouter un plan
+          Add a plan
         </button>
       </div>
 
@@ -163,7 +163,7 @@ export default function PlansPage() {
           />
         ))}
 
-        {/* Inline Edit Form */}
+        {/* Inline Edit Form - Note: this renders at the bottom of the grid */}
         {editingPlanId && (
           <div className="col-span-full">
             <InlineEditForm
@@ -187,9 +187,9 @@ export default function PlansPage() {
 }
 
 function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
-  const priceDisplay = plan.price_monthly === 0 ? 'Gratuit' : 
-                       plan.price_monthly >= 999 ? 'Sur devis' : 
-                       `${plan.price_monthly} €/mois`;
+  const priceDisplay = plan.price_monthly === 0 ? 'Free' : 
+                       plan.price_monthly >= 999 ? 'Custom pricing' : 
+                       `${plan.price_monthly} €/month`;
 
   return (
     <div className={`border border-[#E5E5E5] rounded-xl p-6 bg-white transition-all ${isEditing ? 'ring-2 ring-[#1A1A1A]' : ''}`}>
@@ -199,7 +199,7 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
           <p className="text-[18px] font-semibold text-[#1A1A1A] mt-1">{priceDisplay}</p>
           {plan.price_yearly > 0 && plan.price_monthly > 0 && (
             <p className="text-[12px] text-[#888888] mt-0.5">
-              ou {plan.price_yearly} €/an
+              or {plan.price_yearly} €/year
             </p>
           )}
         </div>
@@ -232,7 +232,7 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
             </li>
           ))}
           {plan.features.length > 4 && (
-            <li className="text-[12px] text-[#888888]">+{plan.features.length - 4} autres</li>
+            <li className="text-[12px] text-[#888888]">+{plan.features.length - 4} others</li>
           )}
         </ul>
       )}
@@ -240,11 +240,11 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
       <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E5]">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-[#888888]" />
-          <span className="text-[13px] text-[#1A1A1A] font-medium">{subscriberCount} abonné{subscriberCount > 1 ? 's' : ''}</span>
+          <span className="text-[13px] text-[#1A1A1A] font-medium">{subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}</span>
         </div>
         {plan.visible === false && (
           <span className="text-[11px] px-2 py-1 bg-[#F0F0F0] text-[#666666] rounded-full">
-            Non visible
+            Not visible
           </span>
         )}
       </div>
@@ -257,7 +257,7 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
     <div className="border border-[#E5E5E5] rounded-xl p-6 bg-[#FAFAFA]">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[16px] font-medium text-[#1A1A1A]">
-          {isAddingNew ? 'Nouveau plan' : 'Modifier le plan'}
+          {isAddingNew ? 'New plan' : 'Edit plan'}
         </h2>
         <button
           onClick={onCancel}
@@ -269,13 +269,13 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Nom du plan *</label>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Plan name *</label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
-            placeholder="Ex: Pro"
+            placeholder="E.g., Pro"
           />
         </div>
 
@@ -286,12 +286,12 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
-            placeholder="Description courte"
+            placeholder="Short description"
           />
         </div>
 
         <div>
-          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Prix mensuel (€)</label>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Monthly price (€)</label>
           <input
             type="number"
             value={formData.price_monthly}
@@ -301,7 +301,7 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
         </div>
 
         <div>
-          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Prix annuel (€)</label>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Yearly price (€)</label>
           <input
             type="number"
             value={formData.price_yearly}
@@ -311,21 +311,21 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
         </div>
 
         <div>
-          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Cycle de facturation</label>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Billing cycle</label>
           <select
             value={formData.billing_cycle}
             onChange={(e) => setFormData({ ...formData, billing_cycle: e.target.value })}
             className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
           >
-            <option value="monthly">Mensuel</option>
-            <option value="yearly">Annuel</option>
-            <option value="lifetime">À vie</option>
-            <option value="none">Aucun</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="lifetime">Lifetime</option>
+            <option value="none">None</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Limite de crédits</label>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Credits limit</label>
           <input
             type="number"
             value={formData.credits_limit}
@@ -338,13 +338,13 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
       {/* Features */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-[12px] font-medium text-[#888888]">Fonctionnalités incluses</label>
+          <label className="text-[12px] font-medium text-[#888888]">Included features</label>
           <button
             onClick={addFeature}
             type="button"
             className="text-[12px] text-[#1A1A1A] font-medium hover:underline"
           >
-            + Ajouter
+            + Add
           </button>
         </div>
         <div className="space-y-2">
@@ -355,7 +355,7 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
                 value={feature}
                 onChange={(e) => updateFeature(index, e.target.value)}
                 className="flex-1 px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
-                placeholder="Description de la fonctionnalité"
+                placeholder="Feature description"
               />
               <button
                 onClick={() => removeFeature(index)}
@@ -367,14 +367,14 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
             </div>
           ))}
           {formData.features.length === 0 && (
-            <p className="text-[12px] text-[#888888] italic">Aucune fonctionnalité ajoutée</p>
+            <p className="text-[12px] text-[#888888] italic">No features added</p>
           )}
         </div>
       </div>
 
       {/* Visible toggle */}
       <div className="flex items-center justify-between mb-6">
-        <label className="text-[13px] font-medium text-[#1A1A1A]">Visible publiquement</label>
+        <label className="text-[13px] font-medium text-[#1A1A1A]">Publicly visible</label>
         <button
           onClick={() => setFormData({ ...formData, visible: !formData.visible })}
           className={`w-12 h-6 rounded-full transition-colors ${formData.visible ? 'bg-[#1A1A1A]' : 'bg-[#E5E5E5]'}`}
@@ -389,13 +389,13 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
           onClick={onCancel}
           className="px-4 py-2 text-[13px] font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors"
         >
-          Annuler
+          Cancel
         </button>
         <button
           onClick={onSave}
           className="px-4 py-2 text-[13px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
         >
-          Enregistrer
+          Save
         </button>
       </div>
     </div>
