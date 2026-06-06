@@ -423,16 +423,17 @@ Reply JSON: { "sufficient": true/false, "reply": "..." }`,
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
 
-      // Cloud sync — includes rawContent for cross-device preview restore
+      // Always persist URL first so the build is reachable even if user leaves immediately
+      if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+
+      // Cloud sync — includes rawContent for cross-device preview restore (always, no publish required)
       syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: appSettings.isPublic,
+        is_public: false, // saved privately regardless of publish state
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
-
-      if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       if (window.innerWidth < 768 && !discussMode) setMobileView('preview');
 
     } catch (err) {

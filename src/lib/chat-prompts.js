@@ -160,7 +160,16 @@ FINAL MANDATE
 The interface must look like a $30,000 design studio delivered it.
 It must feel alive, innovative, joyful and modern. It must surprise the user.
 It must answer the brief completely, with zero ambiguity.
-Every pixel has a reason.`;
+Every pixel has a reason.
+
+══════════════════════════════════════
+ABSOLUTE PROHIBITIONS — NEVER BREAK THESE
+══════════════════════════════════════
+🚫 NO copyright year lines. Never output "© 2024", "© 2025", or any variant. No footer copyright whatsoever.
+🚫 NO generic navbar brand names invented just for the occasion. If the user did not provide a brand name, do NOT invent one for the navbar. Either omit the navbar entirely or use a minimal, unnamed logo mark.
+🚫 NO generic footer boilerplate ("All rights reserved", "Privacy Policy", "Terms of Service" links invented from nothing).
+🚫 NO placeholder company names in top-level navigation (e.g. "AcmeCorp", "TechStart", "InnovateCo" as nav brand).
+If the user explicitly provides a brand name → use it. Otherwise → omit.`;
 
 export const PROMPT_THINKING = `You are a focused reasoning engine in the style of o1-mini. Your sole job is to think through the user's request and produce a clear, structured internal reasoning block — nothing else.
 
