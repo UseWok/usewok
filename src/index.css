@@ -129,4 +129,24 @@
   *::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Custom thin scrollbar for chat textarea ── */
+  .textarea-custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  .textarea-custom-scroll::-webkit-scrollbar {
+    display: block;
+    width: 4px;
+  }
+  .textarea-custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .textarea-custom-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+  }
+  .textarea-custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.4);
+  }
 }

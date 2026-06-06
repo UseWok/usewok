@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, ChevronDown, Check, Settings, History, Camera, Paperclip } from 'lucide-react';
+import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip } from 'lucide-react';
+import { toast } from 'sonner';
 
 // ── Real-time waveform using AnalyserNode ──
 function LiveWaveform({ analyserRef }) {
@@ -241,6 +242,7 @@ export default function ChatInputBar({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [editActivating, setEditActivating] = useState(false);
+  const [micDenied, setMicDenied] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -253,12 +255,14 @@ export default function ChatInputBar({
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
-  // Auto-resize textarea
+  // Auto-resize textarea: initial 24px, line-height 24px, max 12 lines = 288px
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.max(80, el.scrollHeight)}px`;
+    const newH = Math.min(el.scrollHeight, 288);
+    el.style.height = `${Math.max(24, newH)}px`;
+    el.style.overflowY = el.scrollHeight > 288 ? 'auto' : 'hidden';
   }, [input]);
 
   const handlePaste = useCallback((e) => {
@@ -279,6 +283,7 @@ export default function ChatInputBar({
     if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicDenied(false);
       streamRef.current = stream;
       chunksRef.current = [];
 
@@ -300,7 +305,12 @@ export default function ChatInputBar({
       setRecordingDuration(0);
       timerRef.current = setInterval(() => setRecordingDuration(d => d + 1), 1000);
     } catch (err) {
-      console.warn('Mic access denied', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setMicDenied(true);
+        toast.error('Microphone access denied. Check your browser settings.', {
+          style: { background: '#3F3F46', color: '#fff', borderRadius: '8px' },
+        });
+      }
     }
   };
 
@@ -401,8 +411,8 @@ export default function ChatInputBar({
       {/* ── Main input card ── */}
       <div style={{
         background: '#242424',
-        border: '1px solid #333',
-        borderRadius: 10,
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 16,
         overflow: 'visible',
         position: 'relative',
         boxShadow: 'none',
@@ -469,7 +479,7 @@ export default function ChatInputBar({
                 )}
               </AnimatePresence>
 
-              <div style={{ padding: '12px 14px 0' }}>
+              <div style={{ padding: '14px 16px 0' }}>
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -484,12 +494,19 @@ export default function ChatInputBar({
                     resize: 'none',
                     fontSize: 14,
                     color: '#fff',
-                    lineHeight: '20px',
-                    fontFamily: 'Inter, system-ui, sans-serif',
+                    lineHeight: '24px',
+                    height: '24px',
+                    maxHeight: '288px',
+                    overflowY: 'hidden',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale',
                     boxSizing: 'border-box',
                     display: 'block',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(255,255,255,0.2) transparent',
                   }}
-                  className="placeholder:text-[#666]"
+                  className="placeholder:text-[#555] textarea-custom-scroll"
                 />
               </div>
             </motion.div>
@@ -582,37 +599,42 @@ export default function ChatInputBar({
                 </AnimatePresence>
               </div>
 
-              {/* Mic — no background circle */}
+              {/* Mic — red MicOff when denied */}
               <button
                 onClick={handleMicClick}
+                title={micDenied ? 'Microphone access denied' : 'Record audio'}
                 style={{
-                  width: 30, height: 30, borderRadius: '50%',
+                  width: 28, height: 28, borderRadius: '50%',
                   background: 'transparent', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#666', transition: 'color 120ms', flexShrink: 0,
+                  color: micDenied ? '#EF4444' : '#666',
+                  transition: 'color 120ms', flexShrink: 0,
                 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
-                onMouseLeave={e => e.currentTarget.style.color = '#666'}
+                onMouseEnter={e => { if (!micDenied) e.currentTarget.style.color = '#aaa'; }}
+                onMouseLeave={e => { if (!micDenied) e.currentTarget.style.color = '#666'; }}
               >
-                <Mic style={{ width: 14, height: 14 }} />
+                {micDenied
+                  ? <MicOff style={{ width: 16, height: 16, strokeWidth: 1.5 }} />
+                  : <Mic style={{ width: 16, height: 16, strokeWidth: 1.5 }} />
+                }
               </button>
 
               {/* Send / Stop */}
               {isLoading ? (
                 <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: '#333', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: '#333', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 2 }} />
                 </button>
               ) : (
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
-                    flexShrink: 0, width: 30, height: 30, borderRadius: '50%',
-                    background: '#fff', border: 'none',
+                    flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
+                    background: '#FFFFFF', border: 'none',
                     cursor: hasContent ? 'pointer' : 'not-allowed', opacity: hasContent ? 1 : 0.25,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'opacity 120ms',
                   }}>
-                  <Check style={{ width: 14, height: 14, color: '#111' }} />
+                  <ArrowUp style={{ width: 16, height: 16, color: '#111', strokeWidth: 2 }} />
                 </button>
               )}
             </>

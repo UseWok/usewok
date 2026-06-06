@@ -582,7 +582,7 @@ export default function ChatPage() {
         <div className="flex w-full h-full" style={{ gap: 6, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 360, minWidth: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818' }}>
+            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818' }}>
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
                 <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '0 0 0 8px' }}>
