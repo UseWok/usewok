@@ -44,13 +44,14 @@ import {
   getLocalDiscussions, saveLocalDiscussions,
   getConversationMessages, saveConversationMessages,
   syncToCloud, loadFromCloud, loadDiscussionsFromCloud,
+  createConversationInCloud,
 } from '@/lib/chat-storage';
 import {
   PROMPT_ARCHITECT, PROMPT_DATA_INSIGHT, PROMPT_AUTO_FIX, PROMPT_THINKING,
   CHOCOLATINE_CODE, MODIFY_KEYWORDS, DATA_QUERY_KEYWORDS
 } from '@/lib/chat-prompts';
 import {
-  orchestrateGeneration, patchCode, runSafetyFilter, MODELS as ORCH_MODELS,
+  orchestrateGeneration, patchCode, runSafetyFilter, runAutofixPipeline, MODELS as ORCH_MODELS,
 } from '@/lib/ai-orchestrator';
 import { formatCode, splitThinkingFromCode } from '@/lib/code-formatter';
 
@@ -352,38 +353,38 @@ export default function ChatPage() {
     setIsLoading(true);
     abortedRef.current = false;
 
+    // ── Immediate cloud registration on first message of a new conversation ──
+    if (!conversationId && (messages || []).length === 0) {
+      window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
+      createConversationInCloud(convId, text.slice(0, 80)).catch(() => {});
+    }
+
     try {
-      // ── Auto-fix path ──
+      // ── Auto-fix path — surgical gpt-4o-mini correction ──
       if (options.isCorrection) {
+        const rawCode = ficheContent || '';
+        // Extract raw code without fences for the pipeline
         const bt = String.fromCharCode(96);
-        let codeToFix = ficheContent || "";
-        let codeMatch = null;
-        const startIdx = codeToFix.indexOf(`${bt}${bt}${bt}`);
-        const endIdx = codeToFix.lastIndexOf(`${bt}${bt}${bt}`);
-        if (startIdx !== -1 && endIdx !== -1 && startIdx !== endIdx) {
-          codeMatch = codeToFix.substring(startIdx, endIdx + 3);
-          codeToFix = codeMatch;
-        }
-        const fixPayload = { prompt: PROMPT_AUTO_FIX + "\n\nError:\n" + options.rawError + "\n\nCode:\n" + codeToFix, model: 'automatic' };
-        const fixResult = await cachedAIRequest(fixPayload, () => base44.integrations.Core.InvokeLLM({ ...fixPayload }));
+        const fenceRegex = new RegExp(`${bt}{3}(?:jsx?)?\\n([\\s\\S]*?)${bt}{3}`, 'i');
+        const fenceMatch = rawCode.match(fenceRegex);
+        const codeForFix = fenceMatch ? fenceMatch[1] : rawCode;
+
+        // Surgical: extract broken section → fix only that → patch back
+        const { patched } = await runAutofixPipeline(options.rawError || '', codeForFix);
         if (abortedRef.current) return;
-        const fixedCode = typeof fixResult === 'string' ? fixResult : JSON.stringify(fixResult);
-        let newContent = ficheContent;
-        if (codeMatch) {
-          let finalFixed = fixedCode;
-          if (!finalFixed.includes(bt)) finalFixed = `${bt}${bt}${bt}jsx\n${finalFixed}\n${bt}${bt}${bt}`;
-          newContent = ficheContent.replace(codeMatch, finalFixed);
-        } else {
-          newContent = fixedCode;
-        }
-        await handleUpdateCredits(0);
+
+        // Re-wrap in fence if original had one
+        const newContent = fenceMatch
+          ? rawCode.replace(fenceMatch[0], `${bt}${bt}${bt}jsx\n${patched}\n${bt}${bt}${bt}`)
+          : patched;
+
         setIsLoading(false);
         setFicheContent(newContent);
-        const finalMsgs = [...newMessages, { role: 'assistant', content: "Architecture successfully recompiled.", rawContent: newContent }];
+        const finalMsgs = [...newMessages, { role: 'assistant', content: "Error patched — only the broken section was rewritten.", rawContent: newContent }];
         setMessages(finalMsgs);
         saveConversationMessages(convId, finalMsgs);
         if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
-        await syncToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Code fixed', rawContent: newContent });
+        await syncToCloud(convId, finalMsgs, { title: 'Error fix', preview: 'Surgical patch applied', rawContent: newContent });
         return;
       }
 

@@ -135,6 +135,83 @@ Return JSON:
 }
 
 // ─────────────────────────────────────────────
+// AUTOFIX — SURGICAL ERROR CORRECTION
+// gpt-4o-mini receives ONLY the broken section
+// Never rewrites the full component
+// ─────────────────────────────────────────────
+
+/**
+ * Extracts the minimal broken code section from fullCode around the error.
+ * Uses gpt-4o-mini to locate the exact faulty block.
+ */
+export async function extractBrokenSection(errorMessage, fullCode) {
+  const codeSnippet = fullCode.slice(0, 8000);
+  const result = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.EXTRACTION,
+    prompt: `Locate the EXACT code section causing this React runtime error. Return only the broken snippet — minimum viable extract (function, JSX block, or import line).
+
+ERROR: ${errorMessage.slice(0, 400)}
+
+CODE:
+${codeSnippet}
+
+Return JSON:
+- broken_section: exact code that is broken (copy verbatim from source)
+- location: brief description of where it is (e.g. "inside HeroSection return, line ~45")
+- fix_hint: one sentence explaining the likely fix`,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        broken_section: { type: 'string' },
+        location: { type: 'string' },
+        fix_hint: { type: 'string' },
+      },
+      required: ['broken_section', 'location'],
+    },
+  });
+  return result;
+}
+
+/**
+ * Fixes ONLY the broken section using gpt-4o-mini.
+ * Returns the corrected snippet ready to be patched back.
+ */
+export async function autofixSection(errorMessage, brokenSection, location, fixHint = '') {
+  const fixPrompt = `You are a surgical React debugger. Fix ONLY the broken section below.
+
+ERROR: ${errorMessage.slice(0, 300)}
+BROKEN_SECTION:
+${brokenSection}
+LOCATION: ${location}
+HINT: ${fixHint}
+
+Return ONLY the corrected snippet. No fences. No explanation. Ready to patch back into the file.`;
+
+  return base44.integrations.Core.InvokeLLM({
+    model: MODELS.FILTER, // automatic = gpt-4o-mini
+    prompt: fixPrompt,
+  });
+}
+
+/**
+ * Full surgical autofix pipeline:
+ * 1. Extract broken section (gpt-4o-mini)
+ * 2. Fix only that section (gpt-4o-mini)
+ * 3. Patch back into full code
+ */
+export async function runAutofixPipeline(errorMessage, fullCode) {
+  const extracted = await extractBrokenSection(errorMessage, fullCode);
+  const fixedSection = await autofixSection(
+    errorMessage,
+    extracted.broken_section,
+    extracted.location,
+    extracted.fix_hint || '',
+  );
+  const patched = patchCode(fullCode, extracted.broken_section, fixedSection);
+  return { patched, brokenSection: extracted.broken_section, fixedSection };
+}
+
+// ─────────────────────────────────────────────
 // STEP 4A — FILE / IMAGE ANALYSIS
 // ─────────────────────────────────────────────
 

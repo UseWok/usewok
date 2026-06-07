@@ -32,6 +32,29 @@ export const saveConversationMessages = (conversationId, messages) => {
 // ─── Cloud sync ──────────────────────────────────────────────────────────────
 
 /**
+ * Register a brand-new conversation in cloud immediately (before any AI response).
+ * Call this at the start of a new chat to guarantee cloud persistence.
+ */
+export async function createConversationInCloud(convId, title = 'New Chat') {
+  try {
+    const existing = await base44.entities.Conversation.filter({ conv_id: convId });
+    if (existing.length > 0) return existing[0];
+    return await base44.entities.Conversation.create({
+      conv_id: convId,
+      title,
+      preview: '',
+      is_public: false,
+      messages_json: '[]',
+      model: 'default',
+      agent: 'default',
+    });
+  } catch (err) {
+    console.error('Cloud create failed:', err);
+    return null;
+  }
+}
+
+/**
  * Save a conversation (messages + preview content) to the cloud DB.
  * This is the source of truth — called after every AI response.
  */

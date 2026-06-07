@@ -193,10 +193,19 @@ export default function Home() {
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
 
-    // Load real projects from cloud
+    // Load real projects from cloud (always fresh — no local-only fallback)
     loadDiscussionsFromCloud().then(discs => {
       setProjects(discs.slice(0, 8));
     }).catch(() => {});
+
+    // Re-fetch when user returns from chat (visibility change)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadDiscussionsFromCloud().then(discs => setProjects(discs.slice(0, 8))).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   // Alt+P shortcut for build mode
