@@ -21,6 +21,14 @@ import { base44 } from '@/api/base44Client';
 import { getProjectContext } from '@/lib/contextRetrieval';
 import { AI_CONFIG } from '@/lib/config';
 
+// ── Security layer (Phase 1 MVP — zero cost, client-side only) ──
+import { quickSanitize }   from '@/lib/basicSanitizer';
+import { checkLimit }      from '@/lib/simpleLimiter';
+import { checkNSFW }       from '@/lib/nsfwFilter';
+import { checkInjection }  from '@/lib/injectionDetector';
+import { checkAccountAge } from '@/lib/accountAge';
+import { checkVelocity }   from '@/lib/velocitySimple';
+
 // ─────────────────────────────────────────────
 // INITIAL STATE
 // ─────────────────────────────────────────────
@@ -321,7 +329,56 @@ Return ONLY valid JSON:`,
     });
 
     try {
-      // ── STEP 1: Context + Validation (parallel) ──
+      // ══════════════════════════════════════════════════
+      // PHASE 1 SECURITY — 6 checks, all client-side, $0
+      // Runs BEFORE any LLM call to avoid wasted credits.
+      // ══════════════════════════════════════════════════
+
+      // [1] Input sanitization — SQL/XSS/secrets/spam
+      const sanitized = quickSanitize(userMessage);
+      if (!sanitized.safe) {
+        throw { code: 'SECURITY_SANITIZE', message: sanitized.reason };
+      }
+
+      // [2] Per-minute rate limit — fetch user first (reused below)
+      const user = await base44.auth.me();
+      const rateCheck = checkLimit(user.id);
+      if (!rateCheck.allowed) {
+        throw { code: 'SECURITY_RATE_LIMIT', message: rateCheck.wait };
+      }
+
+      // [3] NSFW keyword filter
+      const nsfwCheck = checkNSFW(userMessage);
+      if (!nsfwCheck.safe) {
+        throw { code: 'SECURITY_NSFW', message: nsfwCheck.reason };
+      }
+
+      // [4] Prompt injection / jailbreak detection
+      const injectionCheck = checkInjection(userMessage);
+      if (!injectionCheck.safe) {
+        throw { code: 'SECURITY_INJECTION', message: injectionCheck.reason };
+      }
+
+      // [5] Account age — block brand-new accounts (< 2.4 hours)
+      const ageCheck = await checkAccountAge();
+      if (ageCheck.risk === 'CRITICAL') {
+        throw { code: 'SECURITY_NEW_ACCOUNT', message: 'New account detected. Please wait a few hours before generating code.' };
+      }
+      // Log HIGH risk accounts for monitoring (but don't block them)
+      if (ageCheck.risk === 'HIGH') {
+        console.warn('[Security] High-risk account age:', ageCheck.ageDays.toFixed(2), 'days');
+      }
+
+      // [6] Per-hour velocity limit — sustained abuse protection
+      const velocityCheck = checkVelocity(user.id);
+      if (velocityCheck.blocked) {
+        throw { code: 'SECURITY_VELOCITY', message: velocityCheck.reason };
+      }
+
+      // ✅ All 6 security checks passed — proceed to AI pipeline
+      console.info('[Security] All checks passed. Remaining this hour:', velocityCheck.remaining);
+
+      // ── STEP 1: Context + LLM Validation (parallel) ──
       const [projectContext, validationResult] = await Promise.all([
         // Pass the raw message — contextRetrieval will auto-extract the best hint
         getProjectContext(projectId || 'default', { userMessage }),
@@ -376,12 +433,20 @@ Return ONLY valid JSON:`,
 
       // Map error codes to user-friendly messages
       const errorMessages = {
-        AUTH_REQUIRED: 'Please log in to use AI Builder.',
-        CONTEXT_TIMEOUT: 'Project context took too long to load. Please try again.',
-        VALIDATION_FAILED: err.message || 'Your request could not be processed.',
-        LLM_ERROR: `AI service error: ${err.message}`,
-        STORAGE_FULL: 'Cache is full. Clear browser storage and try again.',
-        INVALID_PROJECT: 'Invalid project. Please reload the page.',
+        // Security layer errors
+        SECURITY_SANITIZE:    err.message || 'Potentially harmful content detected.',
+        SECURITY_RATE_LIMIT:  err.message || 'Too many requests. Please wait before trying again.',
+        SECURITY_NSFW:        'Inappropriate content detected. This request cannot be processed.',
+        SECURITY_INJECTION:   'Jailbreak attempt detected. Please describe your UI in plain terms.',
+        SECURITY_NEW_ACCOUNT: err.message || 'New account. Please try again later.',
+        SECURITY_VELOCITY:    err.message || 'Hourly request limit reached. Please try again later.',
+        // AI pipeline errors
+        AUTH_REQUIRED:        'Please log in to use AI Builder.',
+        CONTEXT_TIMEOUT:      'Project context took too long to load. Please try again.',
+        VALIDATION_FAILED:    err.message || 'Your request could not be processed.',
+        LLM_ERROR:            'AI service error. Please try again in a moment.',
+        STORAGE_FULL:         'Cache is full. Clear browser storage and try again.',
+        INVALID_PROJECT:      'Invalid project. Please reload the page.',
       };
 
       const userFacingMessage = errorMessages[err.code] || 'An unexpected error occurred.';
