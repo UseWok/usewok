@@ -189,10 +189,54 @@ const fetchProjectConfig = (projectId) => {
 // ─────────────────────────────────────────────
 
 /**
+ * Extracts the most relevant keyword from a user message to prioritize file fetching.
+ * Strips common filler words and returns the most meaningful token.
+ *
+ * Examples:
+ *   "Create a Button component" → "Button"
+ *   "Fix the ChatInputBar padding" → "ChatInputBar"
+ *   "Add dark mode to the Sidebar" → "Sidebar"
+ *
+ * @param {string} message
+ * @returns {string} — lowercase keyword, or "" if nothing useful found
+ */
+const extractHintFromMessage = (message) => {
+  if (!message) return '';
+
+  // Common filler words to ignore during keyword extraction
+  const STOP_WORDS = new Set([
+    'a', 'an', 'the', 'to', 'of', 'in', 'on', 'at', 'for', 'and', 'or',
+    'is', 'it', 'my', 'me', 'i', 'with', 'that', 'this', 'from', 'create',
+    'build', 'make', 'add', 'fix', 'update', 'change', 'edit', 'new', 'please',
+    'show', 'display', 'render', 'dark', 'light', 'mode', 'page', 'component',
+    'style', 'layout', 'ui', 'design', 'button', // "button" is too generic — prefer PascalCase
+  ]);
+
+  // Prefer PascalCase tokens first (likely component names: "ChatInputBar", "Button", "Sidebar")
+  const pascalMatch = message.match(/\b[A-Z][a-zA-Z]{2,}\b/g);
+  if (pascalMatch?.length) return pascalMatch[0].toLowerCase();
+
+  // Fall back to longest non-stop word
+  const words = message
+    .replace(/[^a-zA-Z\s]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length > 3 && !STOP_WORDS.has(w.toLowerCase()));
+
+  if (!words.length) return '';
+  // Pick longest word (most specific)
+  return words.sort((a, b) => b.length - a.length)[0].toLowerCase();
+};
+
+/**
  * Returns the full project context object, using cache when available.
  *
  * @param {string} projectId
- * @param {{ forceRefresh?: boolean, ttl?: number, userHint?: string }} options
+ * @param {{
+ *   forceRefresh?: boolean,
+ *   ttl?: number,
+ *   userHint?: string,   // explicit hint (overrides extraction)
+ *   userMessage?: string // raw user message — hint is auto-extracted if userHint not provided
+ * }} options
  * @returns {Promise<{ files, entitySchemas, user, projectConfig, timestamp }>}
  */
 export const getProjectContext = async (projectId, options = {}) => {
@@ -226,6 +270,12 @@ export const getProjectContext = async (projectId, options = {}) => {
     clearOldestContextCache();
   }
 
+  // ── Resolve file-prioritization hint ──
+  // Priority: explicit userHint > auto-extracted from userMessage > none
+  const resolvedHint =
+    options.userHint ||
+    (options.userMessage ? extractHintFromMessage(options.userMessage) : '');
+
   // ── Fresh fetch (parallel where possible) ──
   let user, entitySchemas, files, projectConfig;
 
@@ -233,7 +283,7 @@ export const getProjectContext = async (projectId, options = {}) => {
     [user, entitySchemas, files] = await Promise.all([
       fetchUserState(),
       fetchEntitySchemas(),
-      fetchProjectFiles(options.userHint),
+      fetchProjectFiles(resolvedHint),
     ]);
     projectConfig = fetchProjectConfig(projectId);
   } catch (err) {

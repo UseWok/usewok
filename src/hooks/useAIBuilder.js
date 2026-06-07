@@ -40,18 +40,34 @@ const INITIAL_STATE = {
 
 /**
  * Strips specific import lines from a code string.
+ * Handles all common import forms:
+ *   import Foo from 'path'
+ *   import { Foo, Bar } from 'path'
+ *   import * as Foo from 'path'
+ *   import 'path'  (side-effect imports)
+ *
  * @param {string} code
- * @param {string[]} importsToRemove
- * @returns {string}
+ * @param {string[]} importsToRemove — exact import path strings (e.g. "@/components/Foo")
+ * @returns {string} — code with those import lines removed
  */
 const removeImports = (code, importsToRemove) => {
+  if (!importsToRemove?.length) return code;
+
   let cleaned = code;
   for (const imp of importsToRemove) {
-    // Match: import ... from 'imp' or import ... from "imp"
+    // Escape special regex chars in the import path
     const escaped = imp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`^import[^;\\n]+from\\s+['"]${escaped}['"][;]?\\n?`, 'gm');
+    // Match the full import statement on its own line (with optional trailing semicolon + newline)
+    const regex = new RegExp(
+      `^import(?:\\s+[\\w*{},\\s]+\\s+from)?\\s+['"]${escaped}['"];?\\r?\\n?`,
+      'gm'
+    );
     cleaned = cleaned.replace(regex, '');
   }
+
+  // Clean up any consecutive blank lines left behind (max 1 blank line between blocks)
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
   return cleaned;
 };
 
@@ -307,7 +323,8 @@ Return ONLY valid JSON:`,
     try {
       // ── STEP 1: Context + Validation (parallel) ──
       const [projectContext, validationResult] = await Promise.all([
-        getProjectContext(projectId || 'default', { userHint: userMessage }),
+        // Pass the raw message — contextRetrieval will auto-extract the best hint
+        getProjectContext(projectId || 'default', { userMessage }),
         validateMessage(userMessage),
       ]);
 
