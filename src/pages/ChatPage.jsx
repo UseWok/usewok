@@ -178,6 +178,7 @@ export default function ChatPage() {
   const [editMode, setEditMode] = useState(false);
   const [runtimeError, setRuntimeError] = useState(null);
   const [pendingError, setPendingError] = useState(null);
+  const [streamingThinking, setStreamingThinking] = useState('');
 
   const profileMenuRef = useRef(null);
   const abortedRef = useRef(false);
@@ -403,10 +404,28 @@ export default function ChatPage() {
       const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
       const imageUrls2 = (options.files || files || []).filter(f => f.type?.startsWith('image/')).map(f => f.url);
 
-      // ── Thinking layer (always gpt_5_mini — cheap, fast) ──
+      // ── Thinking layer: call first, stream result char-by-char ──
+      setStreamingThinking('');
       const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: ORCH_MODELS.DEFAULT };
       const thinkingResult = await cachedAIRequest(thinkingPayload, () => base44.integrations.Core.InvokeLLM({ ...thinkingPayload }));
       const thinkingBlock = typeof thinkingResult === 'string' ? thinkingResult : '';
+
+      // Stream the thinking text character by character
+      if (thinkingBlock) {
+        // Extract content inside <thinking> tags for streaming
+        const thinkMatch = thinkingBlock.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+        const thinkContent = thinkMatch ? thinkMatch[1].trim() : thinkingBlock;
+        let streamed = '';
+        for (let i = 0; i < thinkContent.length; i++) {
+          if (abortedRef.current) break;
+          streamed += thinkContent[i];
+          setStreamingThinking(streamed);
+          // Vary speed: faster for spaces, slower for punctuation
+          const ch = thinkContent[i];
+          const delay = ch === ' ' ? 8 : (ch === '\n' ? 40 : (/[.!?]/.test(ch) ? 60 : 18));
+          await new Promise(r => setTimeout(r, delay));
+        }
+      }
 
       // ── Orchestrated generation ──
       const orchResult = await orchestrateGeneration(text, {
@@ -473,6 +492,7 @@ export default function ChatPage() {
       if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
 
       setIsLoading(false);
+      setStreamingThinking('');
       if (!discussMode) setFicheContent(rawContent);
 
       const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent }];
@@ -713,6 +733,7 @@ export default function ChatPage() {
                     currentQuery={currentQuery}
                     setFicheContent={setFicheContent}
                     setViewMode={setViewMode}
+                    streamingThinking={streamingThinking}
                   />
                   <div className="flex-shrink-0">
                     <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />

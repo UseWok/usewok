@@ -23,20 +23,60 @@ function injectStyles() {
   document.head.appendChild(s);
 }
 
-// ── Thinking indicator (while generating) ──
-function ThinkingIndicator() {
+// ── Thinking streaming display (while generating) ──
+function ThinkingStream({ text }) {
+  const hasText = text && text.trim().length > 0;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, animation: 'ai-slide 200ms ease-out both' }}>
-      <Brain style={{ width: 14, height: 14, flexShrink: 0, color: '#9CA3AF' }} />
-      <span style={{
-        fontSize: 13, fontWeight: 500, letterSpacing: '0.01em',
-        background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #A8B5C8 50%, #9CA3AF 70%, #6B7280 100%)',
-        backgroundSize: '400px 100%',
-        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text', animation: 'shimmer-text 2s linear infinite',
-      }}>
-        Thinking...
-      </span>
+    <div style={{ animation: 'ai-slide 200ms ease-out both' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: hasText ? 8 : 0 }}>
+        <Brain style={{ width: 13, height: 13, flexShrink: 0, color: '#6B7280', opacity: 0.7 }} />
+        <span style={{
+          fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
+          background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #A8B5C8 50%, #9CA3AF 70%, #6B7280 100%)',
+          backgroundSize: '400px 100%',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text', animation: 'shimmer-text 2s linear infinite',
+        }}>
+          {hasText ? 'Thinking' : 'Thinking...'}
+        </span>
+        {!hasText && (
+          <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+            {[0,1,2].map(i => (
+              <span key={i} style={{
+                width: 4, height: 4, borderRadius: '50%', background: '#555',
+                animation: `shimmer-text 1.2s ease-in-out infinite`,
+                animationDelay: `${i * 0.2}s`,
+                display: 'inline-block',
+              }} />
+            ))}
+          </span>
+        )}
+      </div>
+      {hasText && (
+        <div style={{
+          borderLeft: '2px solid #2A2A2A',
+          paddingLeft: 10,
+          fontSize: 12,
+          color: '#5A5A5A',
+          lineHeight: 1.75,
+          fontFamily: 'Inter, sans-serif',
+          whiteSpace: 'pre-wrap',
+        }}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p style={{ margin: '0 0 6px 0', color: '#5A5A5A', lineHeight: 1.75 }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: '#888', fontWeight: 600 }}>{children}</strong>,
+              li: ({ children }) => <li style={{ marginBottom: 2, color: '#5A5A5A' }}>{children}</li>,
+              ul: ({ children }) => <ul style={{ paddingLeft: 14, margin: '2px 0 6px' }}>{children}</ul>,
+            }}
+          >
+            {text}
+          </ReactMarkdown>
+          {/* Blinking cursor */}
+          <span style={{ display: 'inline-block', width: 7, height: 13, background: '#444', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'streaming-cursor 1s ease-in-out infinite' }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -195,7 +235,7 @@ function parseThinking(rawText) {
   return { thinkingText, finalText };
 }
 
-export default function AssistantMessage({ content, isGenerating, query, rawContent }) {
+export default function AssistantMessage({ content, isGenerating, query, rawContent, streamingThinking }) {
   const [localGenerating, setLocalGenerating] = useState(isGenerating);
   const [approved, setApproved] = useState(false);
   const [rejected, setRejected] = useState(false);
@@ -213,8 +253,8 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     }
   }, [isGenerating, localGenerating]);
 
-  // While generating → shimmer "Thinking..." indicator
-  if (localGenerating) return <ThinkingIndicator />;
+  // While generating → show thinking stream in real time
+  if (localGenerating) return <ThinkingStream text={streamingThinking || ''} />;
   if (!content) return null;
 
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);
