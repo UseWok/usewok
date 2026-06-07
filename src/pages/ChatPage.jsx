@@ -49,6 +49,10 @@ import {
   PROMPT_ARCHITECT, PROMPT_DATA_INSIGHT, PROMPT_AUTO_FIX, PROMPT_THINKING,
   CHOCOLATINE_CODE, MODIFY_KEYWORDS, DATA_QUERY_KEYWORDS
 } from '@/lib/chat-prompts';
+import {
+  orchestrateGeneration, patchCode, runSafetyFilter, MODELS as ORCH_MODELS,
+} from '@/lib/ai-orchestrator';
+import { formatCode, splitThinkingFromCode } from '@/lib/code-formatter';
 
 // Placeholder stubs (replace with real implementations when available)
 const COMPONENT_PACKET = {};
@@ -383,57 +387,72 @@ export default function ChatPage() {
         return;
       }
 
+      // ── Safety filter (disabled after 4th user message) ──
+      const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
+      if (userMessageIndex < 4) {
+        const safety = await runSafetyFilter(text, userMessageIndex);
+        if (!safety.safe) {
+          setMessages([...newMessages, { role: 'assistant', content: '__INSUFFICIENT__' }]);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // ── Build / modify path ──
-      const isModification = editMode && ficheContent ? true : ficheContent ? MODIFY_KEYWORDS.test(text) : false;
-      const preferenceHints = buildPreferenceHints(messages);
-      const contextSuffix = preferenceHints ? `\n\nUSER CONTEXT:\n${preferenceHints}` : '';
+      const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
+      const imageUrls2 = (options.files || files || []).filter(f => f.type?.startsWith('image/')).map(f => f.url);
 
-      // Conversation history for continuity (last 4 exchanges, no code blobs)
-      const historyContext = (messages || []).slice(-8)
-        .filter(m => m.role === 'user' || (m.role === 'assistant' && !m.rawContent))
-        .map(m => `${m.role === 'user' ? 'User' : 'Wok'}: ${m.content?.slice(0, 200)}`)
-        .join('\n');
-      const historySuffix = historyContext ? `\n\nCONVERSATION HISTORY (for continuity only):\n${historyContext}` : '';
-
-      const architectPrompt = isModification
-        ? PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ MODIFICATION REQUEST ══\n\nExisting code:\n' + ficheContent + '\n\nUser request: ' + text + '\n\nApply ONLY the requested change. Preserve the full layout, all existing sections, and the visual identity.'
-        : PROMPT_ARCHITECT + contextSuffix + historySuffix + '\n\n══ BUILD REQUEST ══\n\nCreate a world-class, production-ready UI for: ' + text + '\n\nThis must be the best UI ever built for this use case. Surprise the user.';
-
-      // ── Thinking layer — model depends on build mode (Flash=gpt_5_mini, Expert=gemini_3_1_pro) ──
-      const thinkingModel = (options.buildMode === 'Expert') ? 'gemini_3_1_pro' : 'gpt_5_mini';
-      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: thinkingModel };
+      // ── Thinking layer (always gpt_5_mini — cheap, fast) ──
+      const thinkingPayload = { prompt: PROMPT_THINKING + '\n\nUser request: ' + text, model: ORCH_MODELS.DEFAULT };
       const thinkingResult = await cachedAIRequest(thinkingPayload, () => base44.integrations.Core.InvokeLLM({ ...thinkingPayload }));
       const thinkingBlock = typeof thinkingResult === 'string' ? thinkingResult : '';
 
-      // ── Architect builder (gemini_3_1_pro always for code) ──
-      const codePayload = { prompt: architectPrompt, model: 'gemini_3_1_pro' };
-      const codeResult = await cachedAIRequest(codePayload, () => base44.integrations.Core.InvokeLLM({ ...codePayload, signal: options.signal }));
-
-      // ── Optional data insight ──
-      let formattedInsight = null;
-      if (DATA_QUERY_KEYWORDS.test(text) && !isModification) {
-        const insightPrompt = PROMPT_DATA_INSIGHT + "\n\nUser query: " + text + "\n\nContext: " + ((messages || []).slice(-3).map(m => m.content).join(' '));
-        const insightPayload = { prompt: insightPrompt, model: 'gpt_5_mini' };
-        const insightResult = await cachedAIRequest(insightPayload, () => base44.integrations.Core.InvokeLLM({ ...insightPayload, signal: options.signal }));
-        formattedInsight = typeof insightResult === 'string' ? insightResult : JSON.stringify(insightResult);
-      }
+      // ── Orchestrated generation ──
+      const orchResult = await orchestrateGeneration(text, {
+        existingCode: isModification ? ficheContent : null,
+        userMessageIndex,
+        fileUrls: imageUrls2,
+        needsWebSearch: false,
+        systemPrompt: PROMPT_ARCHITECT,
+      });
 
       if (abortedRef.current) return;
 
       const bt = String.fromCharCode(96);
-      let fullLLMResponse = typeof codeResult === 'string' ? codeResult : JSON.stringify(codeResult);
+      let rawCodeResult = typeof orchResult.code === 'string' ? orchResult.code : JSON.stringify(orchResult.code || '');
 
-      // Strip any thinking block the architect may have emitted (we use our dedicated one)
-      let codeOnly = fullLLMResponse.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
-      if (!codeOnly.includes(bt)) codeOnly = `${bt}${bt}${bt}jsx\n${codeOnly}\n${bt}${bt}${bt}`;
+      // For modifications: patch only the changed section back into the full code
+      let finalRawCode = rawCodeResult;
+      if (isModification && orchResult.codeSection && ficheContent) {
+        finalRawCode = patchCode(ficheContent, orchResult.codeSection, rawCodeResult);
+      }
 
-      // rawContent = clean code for the preview iframe
+      // Apply client-side code formatter
+      const { thinking: llmThinking, code: cleanCode } = splitThinkingFromCode(finalRawCode);
+      const formattedCode = formatCode(cleanCode || finalRawCode);
+
+      // Wrap in code fence if not already
+      let codeOnly = formattedCode;
+      if (!codeOnly.includes(bt + bt + bt)) {
+        codeOnly = `${bt}${bt}${bt}jsx\n${codeOnly}\n${bt}${bt}${bt}`;
+      }
+
+      // rawContent = code for the preview iframe (without fences)
       const rawContent = codeOnly;
 
-      // chatDisplayContent — strip code blobs, keep only readable text
-      const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
-      let chatDisplayContent = codeOnly.replace(codeBlockRegex, '').trim() || "Architecture generated successfully.";
-      // Prepend dedicated thinking block (from gpt_5_mini) so AssistantMessage can parse it
+      // chatDisplayContent — readable summary only
+      const codeBlockRegex = new RegExp(`${bt}{3}(?:jsx?|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'gi');
+      let chatDisplayContent = codeOnly.replace(codeBlockRegex, '').trim() || 'Architecture generated successfully.';
+
+      // Optional data insight (gpt_5_mini)
+      let formattedInsight = null;
+      if (DATA_QUERY_KEYWORDS.test(text) && !isModification) {
+        const insightPrompt = PROMPT_DATA_INSIGHT + '\n\nUser query: ' + text;
+        const insightPayload = { prompt: insightPrompt, model: ORCH_MODELS.DEFAULT };
+        const insightResult = await cachedAIRequest(insightPayload, () => base44.integrations.Core.InvokeLLM({ ...insightPayload }));
+        formattedInsight = typeof insightResult === 'string' ? insightResult : null;
+      }
+
       const finalContent = thinkingBlock
         ? thinkingBlock + '\n\n' + (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent)
         : (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent);

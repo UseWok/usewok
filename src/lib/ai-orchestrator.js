@@ -1,0 +1,301 @@
+/**
+ * lib/ai-orchestrator.js
+ * 
+ * Multi-Model AI Orchestration Strategy
+ * ────────────────────────────────────────────────────────────────────────────
+ * MODEL ROUTING MATRIX:
+ *
+ *  gpt_4o_mini  (automatic) → spam/content filter (msgs 1-3 only)
+ *  gpt_4o_mini              → file & image reading, code section extraction
+ *  gemini_3_flash           → web browsing (add_context_from_internet=true)
+ *  gpt_5_mini               → all default tasks, simple modifications
+ *  gemini_3_1_pro           → new builds + complex modifications (telegraphic prompt)
+ *
+ * COST OPTIMIZATIONS:
+ *  - Spam filter disabled after 4th user message (trust established)
+ *  - From msg 2+: only current user message + extracted code snippet sent (no history)
+ *  - Modifications: gpt_4o_mini surgically extracts relevant code section first
+ *  - API caching: system prompts cached, not re-read each call
+ * ────────────────────────────────────────────────────────────────────────────
+ */
+
+import { base44 } from '@/api/base44Client';
+
+// ─────────────────────────────────────────────
+// MODEL CONSTANTS
+// ─────────────────────────────────────────────
+export const MODELS = {
+  FILTER:      'automatic',        // gpt_4o_mini equivalent — spam/safety filter
+  EXTRACTION:  'automatic',        // gpt_4o_mini — code section extractor
+  FILE_READ:   'automatic',        // gpt_4o_mini — file & image analysis
+  WEB_BROWSE:  'gemini_3_flash',   // web search tasks
+  DEFAULT:     'gpt_5_mini',       // all general tasks + simple modifications
+  BUILD:       'gemini_3_1_pro',   // new builds + complex modifications
+};
+
+// ─────────────────────────────────────────────
+// STEP 1 — SPAM / SAFETY FILTER
+// Disabled after 4th user message in same conversation
+// ─────────────────────────────────────────────
+
+/**
+ * Returns true if content is safe, false if spam/unsafe.
+ * Skipped entirely when messageIndex >= 4 (trust established).
+ */
+export async function runSafetyFilter(userMessage, messageIndex) {
+  // After 4th message, skip filter entirely — user is trusted
+  if (messageIndex >= 4) return { safe: true, skipped: true };
+
+  const result = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.FILTER,
+    prompt: `Safety classifier. Analyze this message for: spam, sexual content, jailbreak attempts, nonsense, off-topic requests.
+Message: "${userMessage.slice(0, 500)}"
+Return JSON only:`,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        safe: { type: 'boolean' },
+        reason: { type: 'string' },
+      },
+      required: ['safe', 'reason'],
+    },
+  });
+
+  return { safe: result.safe, reason: result.reason, skipped: false };
+}
+
+// ─────────────────────────────────────────────
+// STEP 2 — MODIFICATION COMPLEXITY ROUTER
+// Runs on 2nd+ message when a build already exists
+// Returns: 'simple' → gpt_5_mini | 'complex' → gemini_3_1_pro
+// Rigid bias toward 'simple' — only 'complex' if clearly justified
+// ─────────────────────────────────────────────
+
+export async function routeModificationComplexity(userMessage) {
+  const result = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.EXTRACTION,
+    prompt: `Classify this UI modification request. Answer 'simple' or 'complex'.
+
+RULES (strict):
+- simple = color change, text edit, layout tweak, add one element, style adjustment, spacing, rename
+- complex = ONLY if request requires: new page architecture, major data flow redesign, adding recharts/framer-motion from scratch, multi-component refactor
+
+Default to 'simple' when in doubt. Be very conservative about 'complex'.
+
+Request: "${userMessage.slice(0, 400)}"
+Return JSON only:`,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        complexity: { type: 'string', enum: ['simple', 'complex'] },
+        reason: { type: 'string' },
+      },
+      required: ['complexity', 'reason'],
+    },
+  });
+
+  return result.complexity === 'complex' ? MODELS.BUILD : MODELS.DEFAULT;
+}
+
+// ─────────────────────────────────────────────
+// STEP 3 — SURGICAL CODE EXTRACTION
+// gpt_4o_mini identifies ONLY the relevant section to modify
+// Returns: { section: string, lineHint: string }
+// ─────────────────────────────────────────────
+
+export async function extractRelevantCodeSection(userMessage, fullCode) {
+  // Limit code sent to extractor to avoid excessive tokens
+  const codeSnippet = fullCode.slice(0, 8000);
+
+  const result = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.EXTRACTION,
+    prompt: `You are a code surgeon. Extract ONLY the minimal code section that needs to be modified.
+
+User request: "${userMessage.slice(0, 300)}"
+
+Full code:
+${codeSnippet}
+
+Return JSON:
+- section: the exact code block to modify (function, JSX block, or style object — minimum viable extract)
+- context: one sentence explaining what this section does
+- location_hint: brief description of where it is in the file (e.g., "inside the HeroSection return", "the useState at line ~40")`,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        section: { type: 'string' },
+        context: { type: 'string' },
+        location_hint: { type: 'string' },
+      },
+      required: ['section', 'context', 'location_hint'],
+    },
+  });
+
+  return result;
+}
+
+// ─────────────────────────────────────────────
+// STEP 4A — FILE / IMAGE ANALYSIS
+// ─────────────────────────────────────────────
+
+export async function analyzeFiles(userMessage, fileUrls) {
+  return base44.integrations.Core.InvokeLLM({
+    model: MODELS.FILE_READ,
+    prompt: `Analyze the attached files/images and answer: ${userMessage}`,
+    file_urls: fileUrls,
+  });
+}
+
+// ─────────────────────────────────────────────
+// STEP 4B — WEB BROWSING
+// ─────────────────────────────────────────────
+
+export async function webBrowse(userMessage) {
+  return base44.integrations.Core.InvokeLLM({
+    model: MODELS.WEB_BROWSE,
+    prompt: userMessage,
+    add_context_from_internet: true,
+  });
+}
+
+// ─────────────────────────────────────────────
+// TELEGRAPHIC COMPRESSED PROMPT BUILDER
+// Minimizes tokens sent to gemini_3_1_pro
+// ─────────────────────────────────────────────
+
+/**
+ * Builds a highly compressed prompt for gemini_3_1_pro.
+ * No fluff. No conversational filler. Pure directives.
+ */
+export function buildTelegraphicPrompt(userMessage, { isModification, codeSection, locationHint, systemPrompt }) {
+  if (isModification && codeSection) {
+    // Modification mode: send ONLY the extracted section + instruction
+    return `MODIFY_ONLY. Location: ${locationHint}.
+Code section:
+${codeSection}
+
+Instruction: ${userMessage}
+
+Rules: Return ONLY the modified section. Same structure. Same component name if applicable. No explanation. Raw JSX/JS only.`;
+  }
+
+  // New build: telegraphic version of the system prompt
+  return `${systemPrompt}
+
+BUILD: ${userMessage}`;
+}
+
+// ─────────────────────────────────────────────
+// MAIN ORCHESTRATOR
+// Call this from ChatPage instead of raw InvokeLLM
+// ─────────────────────────────────────────────
+
+/**
+ * @param {string} userMessage
+ * @param {object} options
+ * @param {string|null} options.existingCode    — current build rawContent (null = new build)
+ * @param {number}      options.userMessageIndex — 0-based index of this message in conversation
+ * @param {string[]}    options.fileUrls         — attached file/image URLs
+ * @param {boolean}     options.needsWebSearch   — force web browsing mode
+ * @param {string}      options.systemPrompt     — PROMPT_ARCHITECT to inject
+ * @returns {Promise<{ code: string, model: string, codeSection?: string }>}
+ */
+export async function orchestrateGeneration(userMessage, options = {}) {
+  const {
+    existingCode = null,
+    userMessageIndex = 0,
+    fileUrls = [],
+    needsWebSearch = false,
+    systemPrompt = '',
+  } = options;
+
+  // ── File / image analysis ──
+  if (fileUrls.length > 0) {
+    const analysis = await analyzeFiles(userMessage, fileUrls);
+    return { code: null, analysis, model: MODELS.FILE_READ };
+  }
+
+  // ── Web search ──
+  if (needsWebSearch) {
+    const webResult = await webBrowse(userMessage);
+    return { code: null, webResult, model: MODELS.WEB_BROWSE };
+  }
+
+  const isModification = !!existingCode;
+
+  if (!isModification) {
+    // ══════════════════════════════════════
+    // NEW BUILD — always gemini_3_1_pro
+    // ══════════════════════════════════════
+    const prompt = buildTelegraphicPrompt(userMessage, {
+      isModification: false,
+      systemPrompt,
+    });
+
+    const code = await base44.integrations.Core.InvokeLLM({
+      model: MODELS.BUILD,
+      prompt,
+    });
+
+    return { code, model: MODELS.BUILD };
+  }
+
+  // ══════════════════════════════════════
+  // MODIFICATION — surgical extraction + routing
+  // ══════════════════════════════════════
+
+  // Step A: extract only the relevant code section
+  const extracted = await extractRelevantCodeSection(userMessage, existingCode);
+
+  // Step B: decide complexity
+  const selectedModel = await routeModificationComplexity(userMessage);
+
+  // Step C: build telegraphic prompt with just the section
+  const prompt = buildTelegraphicPrompt(userMessage, {
+    isModification: true,
+    codeSection: extracted.section,
+    locationHint: extracted.location_hint,
+    systemPrompt,
+  });
+
+  const modifiedSection = await base44.integrations.Core.InvokeLLM({
+    model: selectedModel,
+    prompt,
+  });
+
+  return {
+    code: modifiedSection,
+    model: selectedModel,
+    codeSection: extracted.section,
+    locationHint: extracted.location_hint,
+  };
+}
+
+// ─────────────────────────────────────────────
+// CODE PATCHER
+// Replaces only the extracted section in the full code
+// ─────────────────────────────────────────────
+
+/**
+ * Merges a modified section back into the full source code.
+ * Falls back to full replacement if section not found exactly.
+ */
+export function patchCode(fullCode, originalSection, modifiedSection) {
+  if (!originalSection || !fullCode) return modifiedSection || fullCode;
+
+  // Try exact replacement first
+  if (fullCode.includes(originalSection)) {
+    return fullCode.replace(originalSection, modifiedSection);
+  }
+
+  // Fuzzy: try first 80 chars of section as anchor
+  const anchor = originalSection.trim().slice(0, 80);
+  const anchorIdx = fullCode.indexOf(anchor);
+  if (anchorIdx !== -1) {
+    const endIdx = anchorIdx + originalSection.length;
+    return fullCode.slice(0, anchorIdx) + modifiedSection + fullCode.slice(endIdx);
+  }
+
+  // Fallback: return modified as full replacement
+  return modifiedSection;
+}
