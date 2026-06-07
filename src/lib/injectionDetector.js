@@ -35,12 +35,8 @@ const INJECTION_PATTERNS = [
   { pattern: /don't follow (the )?rules|bypass (safety|filter|restriction)/i,     label: 'safety-bypass' },
   { pattern: /disable (safety|filter|moderation)|remove (restriction|limit)/i,    label: 'safety-disable' },
 
-  // Comment injection (trying to comment out system instructions)
-  { pattern: /\/\*[\s\S]*?\*\//s,                                                  label: 'comment-injection' },
-  { pattern: /<!--[\s\S]*?-->/s,                                                   label: 'html-comment-injection' },
-
-  // Structural / delimiter injection (triple newlines, template markers)
-  { pattern: /\n{3,}|\{\{|\}\}|<prompt>|<\/prompt>|<system>|<\/system>/i,         label: 'delimiter-injection' },
+  // Structural / delimiter injection — only explicit prompt markers, not JSX syntax
+  { pattern: /<prompt>|<\/prompt>|<system>|<\/system>/i,                           label: 'delimiter-injection' },
 ];
 
 /**
@@ -50,8 +46,15 @@ const INJECTION_PATTERNS = [
  * @param {string} message
  * @returns {{ safe: boolean, pattern?: string, reason?: string }}
  */
+// Messages containing code snippets/stack traces must bypass injection checks
+const looksLikeCode = (msg) =>
+  /```|import\s+[\w{]|export\s+(default|const)|useState|useEffect|Error:|TypeError:|at\s+\w+\s*\(|<\/?\w+[\s>]/.test(msg);
+
 export const checkInjection = (message) => {
   if (!message || typeof message !== 'string') return { safe: true };
+
+  // Skip all checks if the message is code / an error report
+  if (looksLikeCode(message)) return { safe: true };
 
   for (const { pattern, label } of INJECTION_PATTERNS) {
     if (pattern.test(message)) {

@@ -15,18 +15,32 @@
  *  7. Excessive capital letters
  */
 
+// ── Detect if message looks like code (autofix, snippet, JSX, etc.) ──
+// If true, most pattern checks are skipped to avoid false positives.
+const looksLikeCode = (msg) => {
+  const codeSignals = [
+    /```/,                         // markdown fences
+    /import\s+[\w{]/,             // JS imports
+    /export\s+(default|const)/,   // JS exports
+    /function\s+\w+\s*\(/,        // function declarations
+    /const\s+\w+\s*=/,            // const assignments
+    /useState|useEffect|return\s*\(/,  // React hooks / JSX
+    /<\/?\w+[\s>]/,               // HTML/JSX tags
+    /\{\s*\/\*/,                  // JSX comment blocks
+    /Error:|TypeError:|at\s+\w+\s*\(/,  // Error stack traces
+  ];
+  return codeSignals.some((r) => r.test(msg));
+};
+
 // ── Dangerous patterns that have no place in a UI generation request ──
+// NOTE: These are NOT applied when the message looks like code.
 const QUICK_BLOCKS = [
-  // SQL injection & shell commands
-  /\b(DROP|DELETE|UNION|SELECT|INSERT|UPDATE|exec|eval|system|cmd)\b/i,
-  // XSS / HTML injection
-  /<script|javascript:|onerror|onclick|<iframe|<object/i,
-  // Path traversal / local file access
-  /\.\.\/|\/etc\/|\/root\/|C:\\Windows|C:\\System/i,
+  // Path traversal / local file access (safe to check even in code)
+  /\.\.\/|\/etc\/passwd|\/root\/\.ssh|C:\\Windows\\System32/i,
   // Private cryptographic keys
   /-----BEGIN (PRIVATE|RSA) KEY-----/i,
-  // API secrets / credentials
-  /(sk_live_|sk_test_|api_key|secret_key|password=|Bearer\s)/i,
+  // Live API secrets (not local dev keys)
+  /(sk_live_[a-zA-Z0-9]{20,}|Bearer\s+[a-zA-Z0-9._-]{30,})/,
 ];
 
 const MIN_LENGTH = 3;
@@ -57,23 +71,28 @@ export const quickSanitize = (message) => {
     return { safe: false, reason: `Message too long. Please keep it under ${MAX_LENGTH} characters.` };
   }
 
-  // 2–5. Dangerous pattern checks
+  // ── If message contains code, skip pattern + spam checks ──
+  // Autofix messages contain stack traces and JSX snippets — must not be blocked.
+  if (looksLikeCode(trimmed)) {
+    return { safe: true };
+  }
+
+  // 2–4. Dangerous pattern checks (only for non-code messages)
   for (const pattern of QUICK_BLOCKS) {
     if (pattern.test(trimmed)) {
-      // Log for monitoring (server-side equivalent — visible in browser devtools)
       console.warn('[Security] Input blocked by pattern:', pattern.toString().slice(0, 40));
       return { safe: false, reason: 'Potentially harmful content detected. Please rephrase your request.' };
     }
   }
 
-  // 6. Repeated character spam (e.g. "aaaaaaaaaaaaaaaa" or "!!!!!!!!!!!!")
+  // 5. Repeated character spam (e.g. "aaaaaaaaaaaaaaaa" or "!!!!!!!!!!!!")
   if (/(.)\1{9,}/.test(trimmed)) {
     return { safe: false, reason: 'Message appears to be spam. Please describe what you want to build.' };
   }
 
-  // 7. Excessive caps (e.g. "MAKE A BUTTON PLEASE NOW DO IT NOW")
+  // 6. Excessive caps — skip if message is short (error codes are often ALL CAPS)
   const letters = trimmed.replace(/[^a-zA-Z]/g, '');
-  if (letters.length > 10) {
+  if (letters.length > 20) {
     const capsRatio = (letters.match(/[A-Z]/g) || []).length / letters.length;
     if (capsRatio > CAPS_RATIO_THRESHOLD) {
       return { safe: false, reason: 'Message contains excessive capital letters. Please rephrase.' };
