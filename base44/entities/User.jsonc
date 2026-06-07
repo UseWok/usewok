@@ -4,62 +4,31 @@
   "properties": {
     "role": {
       "type": "string",
+      "title": "Role",
       "enum": [
         "admin",
         "user"
       ],
       "default": "user"
     },
-    "quiz_answers": {
-      "type": "object",
-      "description": "Guest quiz results stored privately per user"
+    "is_blocked": {
+      "type": "boolean",
+      "title": "Blocked",
+      "default": false
     },
-    "deep_credits_used": {
-      "type": "number",
-      "description": "Number of Deep Syntheses used this month",
-      "default": 0
-    },
-    "project_count": {
-      "type": "number",
-      "description": "Incremental counter of generated projects",
-      "default": 0
-    },
-    "theme": {
+    "last_ip": {
       "type": "string",
-      "enum": [
-        "light",
-        "dark"
-      ],
-      "default": "light",
-      "description": "User theme preference synced across devices"
+      "title": "Last Known IP"
     },
-    "credits_bonus": {
+    "generations_count": {
       "type": "number",
+      "title": "Total Generations",
       "default": 0
     },
-    "credits_used": {
+    "security_violations": {
       "type": "number",
+      "title": "Security Violations",
       "default": 0
-    },
-    "credits_limit": {
-      "type": "number",
-      "default": 10
-    },
-    "subscription_plan": {
-      "type": "string",
-      "default": "free"
-    },
-    "billing_cycle": {
-      "type": "string",
-      "enum": [
-        "monthly",
-        "yearly"
-      ],
-      "default": "monthly"
-    },
-    "subscription_date": {
-      "type": "string"
     }
-  },
-  "required": []
+  }
 }

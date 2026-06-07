@@ -1,0 +1,72 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "created_by_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "action": {
+      "type": "string",
+      "title": "Action",
+      "enum": [
+        "generate",
+        "save",
+        "delete",
+        "export",
+        "login"
+      ]
+    },
+    "resource_type": {
+      "type": "string",
+      "title": "Resource Type"
+    },
+    "resource_id": {
+      "type": "string",
+      "title": "Resource ID"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "success",
+        "failed"
+      ],
+      "default": "success"
+    },
+    "error_message": {
+      "type": "string",
+      "title": "Error Message"
+    },
+    "metadata": {
+      "type": "string",
+      "title": "Metadata (JSON)",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "created_by_id",
+    "action",
+    "resource_type",
+    "resource_id",
+    "status"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -29,6 +29,15 @@ import { checkInjection }  from '@/lib/injectionDetector';
 import { checkAccountAge } from '@/lib/accountAge';
 import { checkVelocity }   from '@/lib/velocitySimple';
 
+// ── Tier 1: Server-side security, audit logging & persistence ──
+import {
+  assertUserAllowed,
+  serverRateLimit,
+  writeAuditLog,
+  saveGeneration,
+  fetchUserGenerations,
+} from '@/lib/serverGuard';
+
 // ─────────────────────────────────────────────
 // INITIAL STATE
 // ─────────────────────────────────────────────
@@ -375,8 +384,14 @@ Return ONLY valid JSON:`,
         throw { code: 'SECURITY_VELOCITY', message: velocityCheck.reason };
       }
 
-      // ✅ All 6 security checks passed — proceed to AI pipeline
-      console.info('[Security] All checks passed. Remaining this hour:', velocityCheck.remaining);
+      // ✅ All 6 client-side security checks passed — now enforce server-side hard limits
+      console.info('[Security] Client checks passed. Remaining this hour:', velocityCheck.remaining);
+
+      // [7] ACL check — ensure account is not admin-blocked (DB-backed, cannot be bypassed)
+      assertUserAllowed(user);
+
+      // [8] Server-side rate limit — counts actual DB records (bypass-proof)
+      await serverRateLimit(user.id);
 
       // ── STEP 1: Context + LLM Validation (parallel) ──
       const [projectContext, validationResult] = await Promise.all([
@@ -424,6 +439,32 @@ Return ONLY valid JSON:`,
       await new Promise((resolve) => {
         startFakeStreaming(thinking, finalCode, resolve);
       });
+
+      // ── STEP 4 (Tier 1): Persist generation to DB + write audit log ──
+      const startMs = performance.now();
+      saveGeneration({
+        userId: user.id,
+        message: userMessage,
+        code: finalCode,
+        security_score: ageCheck.score ?? 0,
+        security_flag: 'clean',
+        model: AI_CONFIG.MODELS.generation,
+        execution_time_ms: Math.round(performance.now() - startMs),
+        project_id: projectId || null,
+      }).catch((e) => console.warn('[useAIBuilder] saveGeneration failed silently:', e?.message));
+
+      writeAuditLog(user.id, {
+        action: 'generate',
+        resource_type: 'Generation',
+        resource_id: projectId || 'default',
+        status: 'success',
+        metadata: {
+          model: AI_CONFIG.MODELS.generation,
+          message_length: userMessage.length,
+          security_score: ageCheck.score ?? 0,
+          warnings: warnings.length,
+        },
+      }).catch(() => {});
 
       return { thinking, code: finalCode };
 
@@ -493,6 +534,9 @@ Return ONLY valid JSON:`,
     generateApp,
     cancelGeneration,
     resetState,
+
+    // Tier 1: history retrieval (wraps serverGuard.fetchUserGenerations)
+    fetchHistory: (userId) => fetchUserGenerations(userId),
 
     // State (spread for convenience)
     ...state,

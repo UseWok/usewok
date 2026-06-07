@@ -1,0 +1,78 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "created_by_id": {
+      "type": "string",
+      "title": "Owner User ID"
+    },
+    "name": {
+      "type": "string",
+      "title": "Project Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "maxLength": 500
+    },
+    "generation_count": {
+      "type": "number",
+      "title": "Generation Count",
+      "default": 0
+    },
+    "last_generation_id": {
+      "type": "string",
+      "title": "Last Generation ID"
+    },
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "created_by_id",
+    "name"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

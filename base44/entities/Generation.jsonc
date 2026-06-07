@@ -1,0 +1,103 @@
+{
+  "name": "Generation",
+  "type": "object",
+  "properties": {
+    "created_by_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "message": {
+      "type": "string",
+      "title": "User Prompt",
+      "format": "textarea"
+    },
+    "code": {
+      "type": "string",
+      "title": "Generated Code",
+      "format": "textarea"
+    },
+    "security_score": {
+      "type": "number",
+      "title": "Security Score",
+      "default": 0
+    },
+    "security_flag": {
+      "type": "string",
+      "title": "Security Flag",
+      "enum": [
+        "clean",
+        "flagged",
+        "blocked"
+      ],
+      "default": "clean"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model Used"
+    },
+    "execution_time_ms": {
+      "type": "number",
+      "title": "Execution Time (ms)",
+      "default": 0
+    },
+    "project_id": {
+      "type": "string",
+      "title": "Project ID (optional)"
+    },
+    "error": {
+      "type": "string",
+      "title": "Error Message"
+    },
+    "ip_address": {
+      "type": "string",
+      "title": "IP Address"
+    }
+  },
+  "required": [
+    "created_by_id",
+    "message",
+    "security_score",
+    "security_flag",
+    "model",
+    "execution_time_ms"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
