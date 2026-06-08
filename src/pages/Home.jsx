@@ -1,23 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
+
 import { useNavigate } from 'react-router-dom';
+
 import { base44 } from '@/api/base44Client';
+
 import { motion, AnimatePresence } from 'framer-motion';
+
 import {
   Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check,
 } from 'lucide-react';
+
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
+
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
+
 import { loadDiscussionsFromCloud } from '@/lib/chat-storage';
+
 
 const PENDING_KEY = 'stensor_pending_query';
 const BUILD_MODE_KEY = 'wok_build_mode';
 
+
 // ── Logos for pill ──
+
 const GumroadLogo = () => (
   <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FF90E8', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0 }}>
     <span style={{ fontSize: 11, fontWeight: 900, color: '#000', lineHeight: 1 }}>G</span>
   </div>
 );
+
 const BeehiivLogo = () => (
   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#C77DFF,#48CAE4)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0, overflow: 'hidden' }}>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -27,13 +38,16 @@ const BeehiivLogo = () => (
     </svg>
   </div>
 );
+
 const StripeLogo = () => (
   <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#635BFF', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0 }}>
     <span style={{ fontSize: 12, fontWeight: 900, color: '#fff', lineHeight: 1 }}>S</span>
   </div>
 );
 
+
 // ── Build mode dropdown ──
+
 function BuildModeMenu({ mode, setMode, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -66,7 +80,6 @@ function BuildModeMenu({ mode, setMode, onClose }) {
           <button key={m.id}
             onClick={() => {
               setMode(m.id);
-              // Persist to cloud via user update
               base44.auth.me().then(u => {
                 if (u) base44.auth.updateMe({ build_mode: m.id });
               }).catch(() => {});
@@ -100,7 +113,9 @@ function BuildModeMenu({ mode, setMode, onClose }) {
   );
 }
 
+
 // ── Real Project Card ──
+
 function ProjectCard({ conv, onClick }) {
   const [imgError, setImgError] = useState(false);
   const previewUrl = conv.conv_id ? `https://wok.base44.app/tools/${conv.conv_id}` : null;
@@ -152,6 +167,7 @@ function ProjectCard({ conv, onClick }) {
   );
 }
 
+
 export default function Home() {
   const navigate = useNavigate();
   const [input, setInput] = useState('');
@@ -171,6 +187,12 @@ export default function Home() {
   };
 
   useEffect(() => {
+    // Inject Space Grotesk font
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
     const quizResults = JSON.parse(localStorage.getItem('stensor_quiz_results') || 'null');
     if (quizResults) {
       base44.auth.me().then((u) => {
@@ -183,7 +205,6 @@ export default function Home() {
 
     base44.auth.me().then(u => {
       setUser(u);
-      // Restore persisted build mode from cloud
       if (u?.build_mode) {
         setBuildMode(u.build_mode);
         localStorage.setItem(BUILD_MODE_KEY, u.build_mode);
@@ -193,12 +214,10 @@ export default function Home() {
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
 
-    // Load real projects from cloud (always fresh — no local-only fallback)
     loadDiscussionsFromCloud().then(discs => {
       setProjects(discs.slice(0, 8));
     }).catch(() => {});
 
-    // Re-fetch when user returns from chat (visibility change)
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         loadDiscussionsFromCloud().then(discs => setProjects(discs.slice(0, 8))).catch(() => {});
@@ -267,14 +286,15 @@ export default function Home() {
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>→</span>
         </div>
 
-        {/* Main title */}
+        {/* Main title — Space Grotesk 700, tighter tracking */}
         <h1 style={{
           fontSize: 'clamp(26px, 3.5vw, 42px)',
-          fontWeight: 500,
+          fontWeight: 700,
+          fontFamily: "'Space Grotesk', Inter, system-ui, sans-serif",
           color: '#fff',
           textAlign: 'center',
           margin: '0 0 32px',
-          letterSpacing: '-0.02em',
+          letterSpacing: '-0.03em',
           lineHeight: 1.18,
         }}>
           What should we build, {firstName}?
