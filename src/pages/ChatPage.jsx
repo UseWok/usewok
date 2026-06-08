@@ -503,7 +503,7 @@ export default function ChatPage() {
       await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: true,
+        is_public: appSettings?.isPublic ?? false,
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
@@ -563,16 +563,21 @@ export default function ChatPage() {
 
   // Load conversation from cloud on mount (cross-device)
   useEffect(() => {
-    if (!conversationId) { setMessages([]); setFicheContent(null); return; }
-    const loadConv = async () => {
-      const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
-      if (cloud) {
-        const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
-        if (safe.length > 0) {
-          setMessages(safe);
-          saveConversationMessages(conversationId, safe);
-        }
-        if (cloud.rawContent) {
+  if (!conversationId) { setMessages([]); setFicheContent(null); return; }
+  const loadConv = async () => {
+    const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
+    if (cloud) {
+      const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
+      if (safe.length > 0) {
+        setMessages(safe);
+        saveConversationMessages(conversationId, safe);
+      }
+      // Restore is_public from cloud into appSettings
+      if (cloud.is_public !== undefined) {
+        setAppSettings(prev => ({ ...prev, isPublic: cloud.is_public }));
+        setIsAppPublished(!!cloud.is_public);
+      }
+      if (cloud.rawContent) {
           setFicheContent(cloud.rawContent);
           localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
         } else {
@@ -651,7 +656,6 @@ export default function ChatPage() {
         customSlug={customSlug || convId}
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
-        isPublic={false}
       />
       
       {/* Sidebar */}
