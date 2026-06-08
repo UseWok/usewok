@@ -147,7 +147,7 @@ export default function ChatPage() {
   const [fullscreenModal, setFullscreenModal] = useState(null);
   const [mobilePreview, setMobilePreview] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
-  const [isAppPublished, setIsAppPublished] = useState(false);
+  const [isAppPublished, setIsAppPublished] = useState(true);
   const [chatVisible, setChatVisible] = useState(true);
   const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
