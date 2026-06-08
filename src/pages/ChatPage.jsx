@@ -245,7 +245,7 @@ export default function ChatPage() {
     saveConversationMessages(newConvId, messages);
     await safeAsync(async () => {
       const { syncConversationToCloud } = await import('@/lib/discussions');
-      await syncConversationToCloud(newConvId, messages || [], { title: appSettings.title + ' (Copy)', preview: appSettings.description, is_public: false });
+      await syncConversationToCloud(newConvId, messages || [], { title: appSettings.title + ' (Copy)', preview: appSettings.description, is_public: true });
     }, null, 'Clone conversation');
     toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
