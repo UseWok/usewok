@@ -189,7 +189,7 @@ export default function Home() {
   useEffect(() => {
     // Inject Space Grotesk font
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
