@@ -300,15 +300,13 @@ export default function ChatPage() {
     // Re-assign text to sanitized version
     text = safeText;
 
-    // ── Heuristic pre-filter (zero API cost) ──
+    // ── Heuristic pre-filter (zero API cost) — minimal, allows code & special chars ──
     const trimmed = text.trim();
-    const isTooShort = trimmed.length < 8;
-    const isRepetitive = /(.)\1{5,}/.test(trimmed); // "aaaaaaa", "1111111"
-    const isGibberish = /^[^aeiou\s]{8,}$/i.test(trimmed.replace(/\s/g, '').slice(0, 20)); // no vowels
-    const isAllSameWord = /^(\w+)\s+\1+$/i.test(trimmed);
-    const isSpam = /^[^a-zA-Z0-9\u00C0-\u017E\s.,!?]+$/.test(trimmed) && trimmed.length > 3;
+    // Only block truly empty/meaningless inputs: single char repeated endlessly with no other content
+    const isCompletelyEmpty = trimmed.length === 0;
+    const isPureRepetition = trimmed.length > 3 && /^(.)\1+$/.test(trimmed); // only "aaaa" or "1111" alone
 
-    if (isTooShort || isRepetitive || isGibberish || isAllSameWord || isSpam) {
+    if (isCompletelyEmpty || isPureRepetition) {
       const userMsg = { role: 'user', content: text };
       setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '__INSUFFICIENT__' }]);
       setInput('');
