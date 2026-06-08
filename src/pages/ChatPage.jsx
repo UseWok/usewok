@@ -651,6 +651,7 @@ export default function ChatPage() {
         customSlug={customSlug || convId}
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
+        isPublic={true}
       />
       
       {/* Sidebar */}
