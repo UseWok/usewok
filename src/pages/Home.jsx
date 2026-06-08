@@ -289,7 +289,7 @@ export default function Home() {
         {/* Main title — Space Grotesk 700, tighter tracking */}
         <h1 style={{
           fontSize: 'clamp(26px, 3.5vw, 42px)',
-          fontWeight: 700,
+          fontWeight: 400,
           fontFamily: "'Space Grotesk', Inter, system-ui, sans-serif",
           color: '#fff',
           textAlign: 'center',
