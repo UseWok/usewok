@@ -25,12 +25,12 @@ import { base44 } from '@/api/base44Client';
 // MODEL CONSTANTS
 // ─────────────────────────────────────────────
 export const MODELS = {
-  FILTER:      'automatic',        // gpt_4o_mini equivalent — spam/safety filter
-  EXTRACTION:  'automatic',        // gpt_4o_mini — code section extractor
-  FILE_READ:   'automatic',        // gpt_4o_mini — file & image analysis
-  WEB_BROWSE:  'gemini_3_flash',   // web search tasks
-  DEFAULT:     'gpt_5_mini',       // all general tasks + simple modifications
-  BUILD:       'gemini_3_1_pro',   // new builds + complex modifications
+  FILTER:      'automatic',          // gpt_4o_mini — spam/safety filter (msgs 1-4)
+  EXTRACTION:  'automatic',          // gpt_4o_mini — code section extractor
+  FILE_READ:   'gemini_3_flash',     // gemini_3_flash — file & image analysis (cheap, fast)
+  WEB_BROWSE:  'gemini_3_flash',     // gemini_3_flash — web search (add_context_from_internet)
+  DEFAULT:     'gemini_3_1_pro',     // MODE LOW — new builds + simple mods
+  BUILD:       'claude_sonnet_4_6',  // MODE MAX — complex builds (highest quality)
 };
 
 // ─────────────────────────────────────────────
@@ -48,7 +48,7 @@ export async function runSafetyFilter(userMessage, messageIndex) {
 
   const result = await base44.integrations.Core.InvokeLLM({
     model: MODELS.FILTER,
-    prompt: `Safety classifier. Analyze this message for: spam, sexual content, jailbreak attempts, nonsense, off-topic requests.
+    prompt: `Safety classifier. Block: spam, sexual content, illegal requests, racist content, jailbreak attempts, nonsense.
 Message: "${userMessage.slice(0, 500)}"
 Return JSON only:`,
     response_json_schema: {
@@ -94,6 +94,7 @@ Return JSON only:`,
     },
   });
 
+  // simple → MODE LOW (gemini_3_1_pro), complex → MODE MAX (claude_sonnet_4_6)
   return result.complexity === 'complex' ? MODELS.BUILD : MODELS.DEFAULT;
 }
 
@@ -216,9 +217,10 @@ export async function runAutofixPipeline(errorMessage, fullCode) {
 // ─────────────────────────────────────────────
 
 export async function analyzeFiles(userMessage, fileUrls) {
+  // Machine-to-Machine compressed analysis — English only, minimal tokens
   return base44.integrations.Core.InvokeLLM({
     model: MODELS.FILE_READ,
-    prompt: `Analyze the attached files/images and answer: ${userMessage}`,
+    prompt: `VISION_AGENT. LANG=EN. Describe file content precisely and visually. Extract all technical details. Compress output. No pleasantries. User ctx: ${userMessage.slice(0, 200)}`,
     file_urls: fileUrls,
   });
 }
@@ -228,9 +230,10 @@ export async function analyzeFiles(userMessage, fileUrls) {
 // ─────────────────────────────────────────────
 
 export async function webBrowse(userMessage) {
+  // Machine-to-Machine compressed web extraction — English only, minimal tokens
   return base44.integrations.Core.InvokeLLM({
     model: MODELS.WEB_BROWSE,
-    prompt: userMessage,
+    prompt: `WEB_AGENT. LANG=EN. Extract only crucial relevant info. No filler. Compress output. JSON-style key facts. Query: ${userMessage.slice(0, 300)}`,
     add_context_from_internet: true,
   });
 }
@@ -244,22 +247,29 @@ export async function webBrowse(userMessage) {
  * Builds a highly compressed prompt for gemini_3_1_pro.
  * No fluff. No conversational filler. Pure directives.
  */
-export function buildTelegraphicPrompt(userMessage, { isModification, codeSection, locationHint, systemPrompt }) {
+export function buildTelegraphicPrompt(userMessage, { isModification, codeSection, locationHint, systemPrompt, analysisContext, webContext }) {
+  // Build optional context block (M2M compressed, English only)
+  const ctxParts = [];
+  if (analysisContext) ctxParts.push(`FILE_CTX: ${String(analysisContext).slice(0, 600)}`);
+  if (webContext) ctxParts.push(`WEB_CTX: ${String(webContext).slice(0, 600)}`);
+  const contextBlock = ctxParts.length > 0 ? `\n\nCONTEXT:\n${ctxParts.join('\n')}` : '';
+
   if (isModification && codeSection) {
-    // Modification mode: send ONLY the extracted section + instruction
     return `MODIFY_ONLY. Location: ${locationHint}.
 Code section:
 ${codeSection}
 
-Instruction: ${userMessage}
+Instruction: ${userMessage}${contextBlock}
 
 Rules: Return ONLY the modified section. Same structure. Same component name if applicable. No explanation. Raw JSX/JS only.`;
   }
 
-  // New build: telegraphic version of the system prompt
+  // New build — always produce a PUBLIC-ready, fully functional interface
   return `${systemPrompt}
 
-BUILD: ${userMessage}`;
+MANDATORY: The app must be immediately functional, publicly shareable, and production-ready. No private/restricted modes.
+
+BUILD: ${userMessage}${contextBlock}`;
 }
 
 // ─────────────────────────────────────────────
@@ -286,35 +296,49 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     systemPrompt = '',
   } = options;
 
-  // ── File / image analysis ──
-  if (fileUrls.length > 0) {
-    const analysis = await analyzeFiles(userMessage, fileUrls);
-    return { code: null, analysis, model: MODELS.FILE_READ };
+  // ── Step 2: Parallel file + web processing ──
+  let analysis = null;
+  let webResult = null;
+
+  if (fileUrls.length > 0 && needsWebSearch) {
+    // Run both agents in parallel (M2M compressed, English only)
+    [analysis, webResult] = await Promise.all([
+      analyzeFiles(userMessage, fileUrls),
+      webBrowse(userMessage),
+    ]);
+  } else if (fileUrls.length > 0) {
+    analysis = await analyzeFiles(userMessage, fileUrls);
+  } else if (needsWebSearch) {
+    webResult = await webBrowse(userMessage);
   }
 
-  // ── Web search ──
-  if (needsWebSearch) {
-    const webResult = await webBrowse(userMessage);
-    return { code: null, webResult, model: MODELS.WEB_BROWSE };
+  // If only file/web (no build intent), return early
+  if ((analysis || webResult) && !existingCode && userMessageIndex === 0) {
+    return { code: null, analysis, webResult, model: MODELS.FILE_READ };
   }
 
   const isModification = !!existingCode;
 
   if (!isModification) {
     // ══════════════════════════════════════
-    // NEW BUILD — always gemini_3_1_pro
+    // NEW BUILD
+    // MODE LOW  → gemini_3_1_pro  (default)
+    // MODE MAX  → claude_sonnet_4_6 (complex/high-stakes)
     // ══════════════════════════════════════
+    const buildModel = options.buildMode === 'Max' ? MODELS.BUILD : MODELS.DEFAULT;
     const prompt = buildTelegraphicPrompt(userMessage, {
       isModification: false,
       systemPrompt,
+      analysisContext: analysis || null,
+      webContext: webResult || null,
     });
 
     const code = await base44.integrations.Core.InvokeLLM({
-      model: MODELS.BUILD,
+      model: buildModel,
       prompt,
     });
 
-    return { code, model: MODELS.BUILD };
+    return { code, model: buildModel };
   }
 
   // ══════════════════════════════════════

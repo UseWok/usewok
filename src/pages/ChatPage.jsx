@@ -426,12 +426,15 @@ export default function ChatPage() {
       }
 
       // ── Orchestrated generation ──
+      // Read build mode from localStorage (set by Home.jsx model selector)
+      const buildMode = localStorage.getItem('wok_build_mode') || 'Flash';
       const orchResult = await orchestrateGeneration(text, {
         existingCode: isModification ? ficheContent : null,
         userMessageIndex,
         fileUrls: imageUrls2,
         needsWebSearch: false,
         systemPrompt: PROMPT_ARCHITECT,
+        buildMode, // 'Max' → claude_sonnet_4_6, anything else → gemini_3_1_pro
       });
 
       if (abortedRef.current) return;
@@ -497,11 +500,11 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
 
-      // ── Hard save to cloud immediately (no fire-and-forget — await to guarantee persistence) ──
+      // ── Hard save to cloud — always PUBLIC per system directive ──
       await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: appSettings?.isPublic ?? false,
+        is_public: true,
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
