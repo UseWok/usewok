@@ -47,10 +47,10 @@ const StripeLogo = () => (
 
 // ── Model options ──
 const HOME_MODEL_OPTIONS = [
-  { id: 'Low', label: 'Low', desc: 'Fastest, great for simple tasks', isNew: false },
-  { id: 'Medium', label: 'Medium', desc: 'Balanced speed and quality', isNew: false },
-  { id: 'High', label: 'High', desc: 'High quality, complex builds', isNew: false },
-  { id: 'Max', label: 'Max', desc: 'Best quality, full power', isNew: true },
+  { id: 'Low', label: 'Low', isNew: false },
+  { id: 'Medium', label: 'Medium', isNew: false },
+  { id: 'High', label: 'High', isNew: false },
+  { id: 'Max', label: 'Max', isNew: true },
 ];
 
 function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
@@ -63,18 +63,37 @@ function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+      initial={{ opacity: 0, y: -6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
         background: '#1C1C1C', border: '1px solid #2A2A2A',
         borderRadius: 14, padding: '5px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
         fontFamily: 'Inter, sans-serif',
       }}
     >
+      {/* Automatic — 2x height */}
+      <button
+        onClick={() => { setSelectedModel('Automatic'); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', minHeight: 64, padding: '12px 11px', border: 'none',
+          background: selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8, marginBottom: 2,
+        }}
+        onMouseEnter={e => { if (selectedModel !== 'Automatic') e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)'; }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Automatic</div>
+          <div style={{ fontSize: 11, color: '#666', marginTop: 3, lineHeight: 1.4 }}>The best AI model is selected for each request.</div>
+        </div>
+        {selectedModel === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+      </button>
+
       {HOME_MODEL_OPTIONS.map(m => {
         const isActive = selectedModel === m.id;
         return (
@@ -82,21 +101,18 @@ function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
             onClick={() => { setSelectedModel(m.id); onClose(); }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '9px 11px', border: 'none',
+              width: '100%', height: 36, padding: '0 11px', border: 'none',
               background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
               borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
             }}
             onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
           >
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.label}</span>
-                {m.isNew && (
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#7B4FE0', background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)', borderRadius: 5, padding: '1px 6px' }}>New</span>
-                )}
-              </div>
-              <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{m.desc}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{m.label}</span>
+              {m.isNew && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#7B4FE0', background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)', borderRadius: 5, padding: '1px 6px' }}>New</span>
+              )}
             </div>
             {isActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
           </button>
@@ -116,37 +132,39 @@ function HomeEnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onCl
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+      initial={{ opacity: 0, y: -6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
         background: '#1C1C1C', border: '1px solid #2A2A2A',
         borderRadius: 14, padding: '5px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
         fontFamily: 'Inter, sans-serif',
       }}
     >
+      {/* Enhance prompt */}
       <button onClick={onEnhance} disabled={isEnhancing}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 12px', border: 'none', background: 'rgba(255,255,255,0.05)', borderRadius: 9, cursor: isEnhancing ? 'not-allowed' : 'pointer', textAlign: 'left', gap: 10, marginBottom: 2 }}
-        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; }}
-        onMouseLeave={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', height: 44, padding: '0 12px', border: 'none', background: 'transparent', borderRadius: 9, cursor: isEnhancing ? 'not-allowed' : 'pointer', textAlign: 'left' }}
+        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          {isEnhancing
-            ? <Loader2 style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0, animation: 'hspin 0.6s linear infinite' }} />
-            : <Sparkles style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0 }} />
-          }
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Enhance prompt</div>
-            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>{isEnhancing ? 'Rewriting...' : 'Rewrite for better results'}</div>
-          </div>
-        </div>
+        {isEnhancing
+          ? <Loader2 style={{ width: 14, height: 14, color: '#7B4FE0', flexShrink: 0, animation: 'hspin 0.6s linear infinite' }} />
+          : <Sparkles style={{ width: 14, height: 14, color: '#7B4FE0', flexShrink: 0 }} />
+        }
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{isEnhancing ? 'Rewriting...' : 'Enhance prompt'}</span>
       </button>
-      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 2px' }} />
+
+      {/* Search the web — 2x height */}
       <button onClick={() => setWebSearch(v => !v)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 11px', border: 'none', background: webSearch ? 'rgba(56,189,248,0.07)' : 'transparent', borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8 }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', minHeight: 64, padding: '12px 12px', border: 'none',
+          background: webSearch ? 'rgba(56,189,248,0.07)' : 'transparent',
+          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
+        }}
         onMouseEnter={e => { if (!webSearch) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = webSearch ? 'rgba(56,189,248,0.07)' : 'transparent'; }}
       >
@@ -154,7 +172,7 @@ function HomeEnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onCl
           <Globe style={{ width: 14, height: 14, color: webSearch ? '#38BDF8' : '#555', flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: webSearch ? '#fff' : '#aaa' }}>Search the web</div>
-            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>Include live web results</div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 2, lineHeight: 1.4 }}>Include live web results in responses.</div>
           </div>
         </div>
         {webSearch && <Check style={{ width: 13, height: 13, color: '#38BDF8', flexShrink: 0 }} />}
@@ -297,6 +315,7 @@ export default function Home() {
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [buildMode, setBuildMode] = useState(() => localStorage.getItem(BUILD_MODE_KEY) || 'Flash');
   const buildMenuRef = useRef(null);
+  const homeFileInputRef = useRef(null);
   const [selectedModel, setSelectedModel] = useState('High');
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [showEnhanceMenu, setShowEnhanceMenu] = useState(false);
@@ -463,23 +482,31 @@ export default function Home() {
               />
             </div>
             {/* Bottom toolbar */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 5 }}>
-              {/* Plus */}
-              <button style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
-                onMouseLeave={e => e.currentTarget.style.color = '#555'}>
-                <Plus size={15} />
+            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 5, position: 'relative' }}>
+              {/* Hidden file input */}
+              <input type="file" multiple ref={homeFileInputRef} style={{ display: 'none' }} />
+
+              {/* Plus — attach */}
+              <button
+                onClick={() => homeFileInputRef.current?.click()}
+                style={{ height: 28, padding: '0 10px', borderRadius: 8, background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#111', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'opacity 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                <Plus size={13} color="#111" />
+                Attach
               </button>
 
               {/* Model selector */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { setShowModelMenu(v => !v); setShowEnhanceMenu(false); }}
-                  style={{ width: 30, height: 30, borderRadius: 7, border: 'none', background: showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', transition: 'color 120ms, background 120ms' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent'; }}
+                  style={{ height: 28, padding: '0 10px', borderRadius: 8, background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#111', fontSize: 12, fontWeight: 600, transition: 'opacity 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
-                  <SlidersHorizontal size={13} />
+                  <SlidersHorizontal size={12} color="#111" />
+                  {selectedModel}
                 </button>
                 <AnimatePresence>
                   {showModelMenu && (
@@ -492,11 +519,12 @@ export default function Home() {
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { setShowEnhanceMenu(v => !v); setShowModelMenu(false); }}
-                  style={{ width: 30, height: 30, borderRadius: 7, border: 'none', background: showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: showEnhanceMenu ? '#7B4FE0' : '#555', transition: 'color 120ms, background 120ms' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#7B4FE0'; e.currentTarget.style.background = 'rgba(123,79,224,0.12)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = showEnhanceMenu ? '#7B4FE0' : '#555'; e.currentTarget.style.background = showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent'; }}
+                  style={{ height: 28, padding: '0 10px', borderRadius: 8, background: showEnhanceMenu ? 'rgba(123,79,224,0.2)' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: showEnhanceMenu ? '#7B4FE0' : '#111', fontSize: 12, fontWeight: 600, transition: 'opacity 120ms, background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
-                  <Sparkles size={13} />
+                  <Sparkles size={12} color={showEnhanceMenu ? '#7B4FE0' : '#111'} />
+                  Enhance
                 </button>
                 <AnimatePresence>
                   {showEnhanceMenu && (
@@ -513,10 +541,10 @@ export default function Home() {
                 onMouseLeave={e => e.currentTarget.style.color = '#555'}>
                 <Mic size={14} />
               </button>
-              {/* Send */}
+              {/* Send — disabled when no input */}
               <button onClick={() => handleSend()} disabled={!input.trim()}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: input.trim() ? '#fff' : 'rgba(255,255,255,0.12)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms', flexShrink: 0 }}>
-                <ArrowUp size={14} color={input.trim() ? '#111' : '#fff'} />
+                style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', cursor: input.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 120ms', flexShrink: 0, opacity: input.trim() ? 1 : 0.35 }}>
+                <ArrowUp size={14} color="#111" />
               </button>
             </div>
           </div>

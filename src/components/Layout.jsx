@@ -62,17 +62,30 @@ export default function Layout() {
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
 
+  const FRAME_PAD = 10; // px — top/right/bottom frame padding
+
   return (
-    <div style={{ height: '100vh', background: '#121212', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', background: '#0E0E0E', display: 'flex', overflow: 'hidden' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
 
-      <motion.main
-        style={{ flex: 1, height: '100vh', overflow: 'auto', position: 'relative' }}
+      {/* Outer frame — dark band wrapping top/right/bottom */}
+      <motion.div
+        style={{
+          flex: 1, height: '100vh', overflow: 'hidden', position: 'relative',
+          padding: `${FRAME_PAD}px ${FRAME_PAD}px ${FRAME_PAD}px 0`,
+          display: 'flex',
+        }}
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
       >
-        <Outlet />
-      </motion.main>
+        {/* Inner content window — rounded, detached from frame */}
+        <div style={{
+          flex: 1, borderRadius: 16, overflow: 'auto', position: 'relative',
+          background: '#121212',
+        }}>
+          <Outlet />
+        </div>
+      </motion.div>
     </div>
   );
 }
