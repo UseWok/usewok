@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip } from 'lucide-react';
+import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip, Sparkles, Globe, Loader2, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 // ── Real-time waveform using AnalyserNode ──
 function LiveWaveform({ analyserRef }) {
@@ -147,8 +148,15 @@ function PlusMenu({ onClose, onAttachFile, onScreenshot }) {
   );
 }
 
-// ── Build mode dropdown (Flash / Expert + Upgrade) ──
-function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade }) {
+// ── Model selector dropdown (Low / Medium / High / Max) ──
+const MODEL_OPTIONS = [
+  { id: 'Low', label: 'Low', desc: 'Fastest, great for simple tasks', isNew: false },
+  { id: 'Medium', label: 'Medium', desc: 'Balanced speed and quality', isNew: false },
+  { id: 'High', label: 'High', desc: 'High quality, complex builds', isNew: false },
+  { id: 'Max', label: 'Max', desc: 'Best quality, full power', isNew: true },
+];
+
+function ModelMenu({ selectedModel, setSelectedModel, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
@@ -156,76 +164,139 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  const MODES = [
-    { id: 'Flash', label: 'Flash', desc: 'Fast, direct changes' },
-    { id: 'Expert', label: 'Expert', desc: 'Deep reasoning mode' },
-  ];
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
+      style={{
+        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        background: '#1C1C1C', border: '1px solid #2A2A2A',
+        borderRadius: 14, padding: '5px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      {MODEL_OPTIONS.map(m => {
+        const isActive = selectedModel === m.id;
+        return (
+          <button key={m.id}
+            onClick={() => { setSelectedModel(m.id); onClose(); }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '9px 11px', border: 'none',
+              background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
+              borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
+            }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.label}</span>
+                {m.isNew && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, color: '#7B4FE0',
+                    background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)',
+                    borderRadius: 5, padding: '1px 6px', letterSpacing: '0.02em',
+                  }}>New</span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{m.desc}</div>
+            </div>
+            {isActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+          </button>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+// ── Enhance Prompt + Web Search dropdown ──
+function EnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
-        background: '#FFFFFF', border: '1px solid #E4E0D9',
-        borderRadius: 12, padding: '4px', minWidth: 210,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.10)', zIndex: 9999,
+        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        background: '#1C1C1C', border: '1px solid #2A2A2A',
+        borderRadius: 14, padding: '5px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
+        fontFamily: 'Inter, sans-serif',
       }}
     >
-      {MODES.map(m => {
-        const isActive = buildMode === m.id;
-        return (
-          <button key={m.id}
-            onClick={() => { setBuildMode(m.id); setDiscussMode?.(false); onClose(); }}
-            style={{
-              display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-              width: '100%', padding: '9px 12px', border: 'none',
-              background: isActive ? '#F5F3F0' : 'transparent',
-              borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-              fontFamily: 'Inter, sans-serif', gap: 8,
-            }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F5F3F0'; }}
-            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-          >
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{m.label}</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>{m.desc}</div>
-            </div>
-            {isActive && <Check style={{ width: 13, height: 13, color: '#111', marginTop: 2, flexShrink: 0 }} />}
-          </button>
-        );
-      })}
-
-      {/* Promo / Upgrade row */}
-      <div style={{ height: 1, background: '#EEEBE5', margin: '4px 0' }} />
+      {/* Enhance Prompt — prominent like "Automatic" */}
       <button
-        onClick={() => { onUpgrade?.(); onClose(); }}
+        onClick={onEnhance}
+        disabled={isEnhancing}
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          width: '100%', padding: '8px 12px', border: 'none',
-          background: 'transparent', borderRadius: 8, cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '11px 12px', border: 'none',
+          background: 'rgba(255,255,255,0.05)', borderRadius: 9,
+          cursor: isEnhancing ? 'not-allowed' : 'pointer', textAlign: 'left', gap: 10, marginBottom: 2,
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#F5F3F0'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; }}
+        onMouseLeave={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
       >
-        <span style={{
-          width: 18, height: 18, borderRadius: '50%',
-          background: '#8F41FD',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          {/* Arrow pointing UP */}
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7"/>
-          </svg>
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#8F41FD' }}>
-          Upgrade to Creator
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          {isEnhancing
+            ? <Loader2 style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0, animation: 'spin 0.6s linear infinite' }} />
+            : <Sparkles style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0 }} />
+          }
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Enhance prompt</div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>
+              {isEnhancing ? 'Rewriting your prompt...' : 'Rewrite for better results'}
+            </div>
+          </div>
+        </div>
+        {isEnhancing && (
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#7B4FE0', flexShrink: 0, animation: 'pulse 1s ease-in-out infinite' }} />
+        )}
       </button>
+
+      {/* Separator */}
+      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 2px' }} />
+
+      {/* Web Search toggle */}
+      <button
+        onClick={() => setWebSearch(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '9px 11px', border: 'none',
+          background: webSearch ? 'rgba(56,189,248,0.07)' : 'transparent',
+          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
+        }}
+        onMouseEnter={e => { if (!webSearch) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = webSearch ? 'rgba(56,189,248,0.07)' : 'transparent'; }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Globe style={{ width: 14, height: 14, color: webSearch ? '#38BDF8' : '#555', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: webSearch ? '#fff' : '#aaa' }}>Search the web</div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>Include live web results</div>
+          </div>
+        </div>
+        {webSearch && <Check style={{ width: 13, height: 13, color: '#38BDF8', flexShrink: 0 }} />}
+      </button>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+      `}</style>
     </motion.div>
   );
 }
@@ -236,8 +307,11 @@ export default function ChatInputBar({
   discussMode, setDiscussMode, editMode, setEditMode,
   onUpgrade,
 }) {
-  const [buildMode, setBuildMode] = useState('Flash');
-  const [showBuildMenu, setShowBuildMenu] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('High');
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showEnhanceMenu, setShowEnhanceMenu] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -246,7 +320,6 @@ export default function ChatInputBar({
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const buildMenuRef = useRef(null);
   const plusBtnRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
@@ -341,8 +414,27 @@ export default function ChatInputBar({
 
   const formatDuration = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
+  const handleEnhancePrompt = async () => {
+    if (!input.trim() || isEnhancing) return;
+    setIsEnhancing(true);
+    setShowEnhanceMenu(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are a prompt engineering expert. Rewrite the following user prompt to make it clearer, more structured, and more effective for an AI UI builder. Keep the same intent. Be concise. Return ONLY the improved prompt, no explanation.\n\nOriginal prompt: "${input}"`,
+        model: 'gpt_5_mini',
+      });
+      const improved = typeof result === 'string' ? result.trim() : input;
+      setInput(improved);
+      toast.success('Prompt enhanced!');
+      setShowEnhanceMenu(false);
+    } catch {
+      toast.error('Enhancement failed');
+    }
+    setIsEnhancing(false);
+  };
+
   const handleSend = () => {
-    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, buildMode });
+    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, selectedModel, webSearch });
   };
 
   const handleKeyDown = (e) => {
@@ -532,6 +624,63 @@ export default function ChatInputBar({
             <Plus style={{ width: 15, height: 15 }} />
           </button>
 
+          {/* Model selector button */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => { setShowModelMenu(v => !v); setShowEnhanceMenu(false); }}
+              title="Select model"
+              style={{
+                width: 28, height: 28, borderRadius: 7, border: 'none',
+                background: showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#555', transition: 'color 120ms, background 120ms', flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent'; }}
+            >
+              <SlidersHorizontal style={{ width: 14, height: 14 }} />
+            </button>
+            <AnimatePresence>
+              {showModelMenu && (
+                <ModelMenu
+                  selectedModel={selectedModel}
+                  setSelectedModel={setSelectedModel}
+                  onClose={() => setShowModelMenu(false)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Enhance prompt button */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => { setShowEnhanceMenu(v => !v); setShowModelMenu(false); }}
+              title="Enhance prompt"
+              style={{
+                width: 28, height: 28, borderRadius: 7, border: 'none',
+                background: showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: showEnhanceMenu ? '#7B4FE0' : '#555',
+                transition: 'color 120ms, background 120ms', flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#7B4FE0'; e.currentTarget.style.background = 'rgba(123,79,224,0.12)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = showEnhanceMenu ? '#7B4FE0' : '#555'; e.currentTarget.style.background = showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent'; }}
+            >
+              <Sparkles style={{ width: 14, height: 14 }} />
+            </button>
+            <AnimatePresence>
+              {showEnhanceMenu && (
+                <EnhanceMenu
+                  onEnhance={handleEnhancePrompt}
+                  isEnhancing={isEnhancing}
+                  webSearch={webSearch}
+                  setWebSearch={setWebSearch}
+                  onClose={() => setShowEnhanceMenu(false)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
           <div style={{ flex: 1 }} />
 
           {/* ── Recording controls ── */}
@@ -568,37 +717,6 @@ export default function ChatInputBar({
             </>
           ) : (
             <>
-              {/* Build mode selector — plain text, no background */}
-              <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                  onClick={() => setShowBuildMenu(v => !v)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    height: 30, padding: '0 8px',
-                    borderRadius: 6, border: 'none',
-                    background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 500, color: '#888',
-                    transition: 'color 120ms',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#888'}
-                >
-                  {buildMode}
-                  <ChevronDown style={{ width: 12, height: 12 }} />
-                </button>
-                <AnimatePresence>
-                  {showBuildMenu && (
-                    <BuildMenu
-                      buildMode={buildMode}
-                      setBuildMode={setBuildMode}
-                      setDiscussMode={setDiscussMode}
-                      onClose={() => setShowBuildMenu(false)}
-                      onUpgrade={onUpgrade}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-
               {/* Mic — red MicOff when denied */}
               <button
                 onClick={handleMicClick}

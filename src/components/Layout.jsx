@@ -63,11 +63,11 @@ export default function Layout() {
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#121212', display: 'flex' }}>
+    <div style={{ height: '100vh', background: '#121212', display: 'flex', overflow: 'hidden' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
 
       <motion.main
-        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative' }}
+        style={{ flex: 1, height: '100vh', overflow: 'auto', position: 'relative' }}
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
       >

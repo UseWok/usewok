@@ -7,9 +7,8 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
-  Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check,
+  Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check, SlidersHorizontal, Sparkles, Globe, Loader2,
 } from 'lucide-react';
-
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
@@ -45,6 +44,125 @@ const StripeLogo = () => (
   </div>
 );
 
+
+// ── Model options ──
+const HOME_MODEL_OPTIONS = [
+  { id: 'Low', label: 'Low', desc: 'Fastest, great for simple tasks', isNew: false },
+  { id: 'Medium', label: 'Medium', desc: 'Balanced speed and quality', isNew: false },
+  { id: 'High', label: 'High', desc: 'High quality, complex builds', isNew: false },
+  { id: 'Max', label: 'Max', desc: 'Best quality, full power', isNew: true },
+];
+
+function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  return (
+    <motion.div ref={ref}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.12 }}
+      style={{
+        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        background: '#1C1C1C', border: '1px solid #2A2A2A',
+        borderRadius: 14, padding: '5px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      {HOME_MODEL_OPTIONS.map(m => {
+        const isActive = selectedModel === m.id;
+        return (
+          <button key={m.id}
+            onClick={() => { setSelectedModel(m.id); onClose(); }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '9px 11px', border: 'none',
+              background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
+              borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
+            }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.label}</span>
+                {m.isNew && (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#7B4FE0', background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)', borderRadius: 5, padding: '1px 6px' }}>New</span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{m.desc}</div>
+            </div>
+            {isActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+          </button>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+function HomeEnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  return (
+    <motion.div ref={ref}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.12 }}
+      style={{
+        position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        background: '#1C1C1C', border: '1px solid #2A2A2A',
+        borderRadius: 14, padding: '5px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      <button onClick={onEnhance} disabled={isEnhancing}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '11px 12px', border: 'none', background: 'rgba(255,255,255,0.05)', borderRadius: 9, cursor: isEnhancing ? 'not-allowed' : 'pointer', textAlign: 'left', gap: 10, marginBottom: 2 }}
+        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; }}
+        onMouseLeave={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          {isEnhancing
+            ? <Loader2 style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0, animation: 'hspin 0.6s linear infinite' }} />
+            : <Sparkles style={{ width: 15, height: 15, color: '#7B4FE0', flexShrink: 0 }} />
+          }
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Enhance prompt</div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>{isEnhancing ? 'Rewriting...' : 'Rewrite for better results'}</div>
+          </div>
+        </div>
+      </button>
+      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 2px' }} />
+      <button onClick={() => setWebSearch(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 11px', border: 'none', background: webSearch ? 'rgba(56,189,248,0.07)' : 'transparent', borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8 }}
+        onMouseEnter={e => { if (!webSearch) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = webSearch ? 'rgba(56,189,248,0.07)' : 'transparent'; }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Globe style={{ width: 14, height: 14, color: webSearch ? '#38BDF8' : '#555', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: webSearch ? '#fff' : '#aaa' }}>Search the web</div>
+            <div style={{ fontSize: 11, color: '#555', marginTop: 1 }}>Include live web results</div>
+          </div>
+        </div>
+        {webSearch && <Check style={{ width: 13, height: 13, color: '#38BDF8', flexShrink: 0 }} />}
+      </button>
+      <style>{`@keyframes hspin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }`}</style>
+    </motion.div>
+  );
+}
 
 // ── Build mode dropdown ──
 
@@ -179,6 +297,26 @@ export default function Home() {
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [buildMode, setBuildMode] = useState(() => localStorage.getItem(BUILD_MODE_KEY) || 'Flash');
   const buildMenuRef = useRef(null);
+  const [selectedModel, setSelectedModel] = useState('High');
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showEnhanceMenu, setShowEnhanceMenu] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
+
+  const handleEnhancePrompt = async () => {
+    if (!input.trim() || isEnhancing) return;
+    setIsEnhancing(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are a prompt engineering expert. Rewrite the following user prompt to make it clearer, more structured, and more effective for an AI UI builder. Keep the same intent. Be concise. Return ONLY the improved prompt, no explanation.\n\nOriginal prompt: "${input}"`,
+        model: 'gpt_5_mini',
+      });
+      const improved = typeof result === 'string' ? result.trim() : input;
+      setInput(improved);
+      setShowEnhanceMenu(false);
+    } catch {}
+    setIsEnhancing(false);
+  };
 
   const handleSend = (q) => {
     const query = q || input;
@@ -325,39 +463,60 @@ export default function Home() {
               />
             </div>
             {/* Bottom toolbar */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 6 }}>
-              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 5 }}>
+              {/* Plus */}
+              <button style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
+                onMouseLeave={e => e.currentTarget.style.color = '#555'}>
                 <Plus size={15} />
               </button>
-              <div style={{ flex: 1 }} />
-              {/* Build mode dropdown */}
-              <div ref={buildMenuRef} style={{ position: 'relative' }}>
+
+              {/* Model selector */}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
                 <button
-                  onClick={() => setShowBuildMenu(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#ccc', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  onClick={() => { setShowModelMenu(v => !v); setShowEnhanceMenu(false); }}
+                  style={{ width: 30, height: 30, borderRadius: 7, border: 'none', background: showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', transition: 'color 120ms, background 120ms' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = showModelMenu ? 'rgba(255,255,255,0.1)' : 'transparent'; }}
                 >
-                  {buildMode} <ChevronDown size={13} />
+                  <SlidersHorizontal size={13} />
                 </button>
                 <AnimatePresence>
-                  {showBuildMenu && (
-                    <BuildModeMenu
-                      mode={buildMode}
-                      setMode={setBuildMode}
-                      onClose={() => setShowBuildMenu(false)}
-                    />
+                  {showModelMenu && (
+                    <HomeModelMenu selectedModel={selectedModel} setSelectedModel={setSelectedModel} onClose={() => setShowModelMenu(false)} />
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Enhance prompt */}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <button
+                  onClick={() => { setShowEnhanceMenu(v => !v); setShowModelMenu(false); }}
+                  style={{ width: 30, height: 30, borderRadius: 7, border: 'none', background: showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: showEnhanceMenu ? '#7B4FE0' : '#555', transition: 'color 120ms, background 120ms' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#7B4FE0'; e.currentTarget.style.background = 'rgba(123,79,224,0.12)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = showEnhanceMenu ? '#7B4FE0' : '#555'; e.currentTarget.style.background = showEnhanceMenu ? 'rgba(123,79,224,0.15)' : 'transparent'; }}
+                >
+                  <Sparkles size={13} />
+                </button>
+                <AnimatePresence>
+                  {showEnhanceMenu && (
+                    <HomeEnhanceMenu onEnhance={handleEnhancePrompt} isEnhancing={isEnhancing} webSearch={webSearch} setWebSearch={setWebSearch} onClose={() => setShowEnhanceMenu(false)} />
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div style={{ flex: 1 }} />
+
               {/* Mic */}
-              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+              <button style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
+                onMouseLeave={e => e.currentTarget.style.color = '#555'}>
                 <Mic size={14} />
               </button>
               {/* Send */}
               <button onClick={() => handleSend()} disabled={!input.trim()}
-                style={{ width: 32, height: 32, borderRadius: '50%', background: input.trim() ? '#F95738' : 'rgba(255,255,255,0.12)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
-                <ArrowUp size={15} color="#fff" />
+                style={{ width: 30, height: 30, borderRadius: '50%', background: input.trim() ? '#fff' : 'rgba(255,255,255,0.12)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms', flexShrink: 0 }}>
+                <ArrowUp size={14} color={input.trim() ? '#111' : '#fff'} />
               </button>
             </div>
           </div>
