@@ -179,6 +179,28 @@ function ModelMenu({ selectedModel, setSelectedModel, onClose }) {
         fontFamily: 'Inter, sans-serif',
       }}
     >
+      {/* Automatic — 2x height */}
+      <button
+        onClick={() => { setSelectedModel('Automatic'); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', minHeight: 64, padding: '12px 11px', border: 'none',
+          background: selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent',
+          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
+        }}
+        onMouseEnter={e => { if (selectedModel !== 'Automatic') e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Automatic</div>
+          <div style={{ fontSize: 11, color: '#666', marginTop: 3, lineHeight: 1.4 }}>The best AI model is selected for each request.</div>
+        </div>
+        {selectedModel === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+      </button>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 2px' }} />
+
       {MODEL_OPTIONS.map(m => {
         const isActive = selectedModel === m.id;
         return (
@@ -186,25 +208,22 @@ function ModelMenu({ selectedModel, setSelectedModel, onClose }) {
             onClick={() => { setSelectedModel(m.id); onClose(); }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '9px 11px', border: 'none',
+              width: '100%', height: 36, padding: '0 11px', border: 'none',
               background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
               borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
             }}
             onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
           >
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.label}</span>
-                {m.isNew && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, color: '#7B4FE0',
-                    background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)',
-                    borderRadius: 5, padding: '1px 6px', letterSpacing: '0.02em',
-                  }}>New</span>
-                )}
-              </div>
-              <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{m.desc}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{m.label}</span>
+              {m.isNew && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: '#7B4FE0',
+                  background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)',
+                  borderRadius: 5, padding: '1px 6px', letterSpacing: '0.02em',
+                }}>New</span>
+              )}
             </div>
             {isActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
           </button>

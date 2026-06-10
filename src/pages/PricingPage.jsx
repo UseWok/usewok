@@ -2,25 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
-import { Check, X, Shield, Zap, Rocket, Diamond, Building2, Plus } from 'lucide-react';
+import { Check, X, Shield, Zap, Building2, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-/* ─────────────────────────────────────────────
-   Google Font — Space Grotesk
-───────────────────────────────────────────── */
 if (typeof document !== 'undefined' && !document.getElementById('sg-font')) {
   const link = document.createElement('link');
   link.id = 'sg-font';
   link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap';
+  link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap';
   document.head.appendChild(link);
 }
 
 const FONT = "'Space Grotesk', system-ui, sans-serif";
 
-/* ─────────────────────────────────────────────
-   Contact / Demo modal
-───────────────────────────────────────────── */
+/* ─── Contact modal ─── */
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', website: '', role: '', message: '' });
@@ -32,7 +27,6 @@ const ContactModal = ({ onClose }) => {
   };
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
-
   const inputStyle = {
     width: '100%', background: '#0D0D0D', border: '1px solid #2A2A2A',
     borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#E5E5E5',
@@ -40,10 +34,8 @@ const ContactModal = ({ onClose }) => {
   };
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -51,12 +43,11 @@ const ContactModal = ({ onClose }) => {
         style={{ background: '#111', border: '1px solid #222', borderRadius: 16, padding: 32, width: '100%', maxWidth: 460, position: 'relative', fontFamily: FONT }}
       >
         <button onClick={onClose}
-          style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#444', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 120ms' }}
+          style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#444', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onMouseEnter={e => e.currentTarget.style.color = '#888'}
           onMouseLeave={e => e.currentTarget.style.color = '#444'}>
           <X size={15} />
         </button>
-
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0F2A1E', border: '1px solid #1A4A32', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -96,9 +87,9 @@ const ContactModal = ({ onClose }) => {
                   onFocus={e => e.target.style.borderColor = '#444'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
               </div>
               <button type="submit"
-                style={{ width: '100%', padding: '11px 0', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, transition: 'background 150ms', fontFamily: FONT }}
-                onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
-                onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}>
+                style={{ width: '100%', padding: '11px 0', background: 'linear-gradient(135deg, #F95738, #FF8C42)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, fontFamily: FONT }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                 Send message
               </button>
             </form>
@@ -109,53 +100,55 @@ const ContactModal = ({ onClose }) => {
   );
 };
 
-/* ─────────────────────────────────────────────
-   FAQ accordion
-───────────────────────────────────────────── */
+/* ─── FAQ — exclusive accordion ─── */
 const FAQ_ITEMS = [
   { q: "What is WOK and how does it work?", a: "WOK is an AI-powered platform that lets you create custom software applications without any coding. It uses natural language processing to understand your needs and generate functional software based on your descriptions — accessible to non-technical users through simple conversations with our AI." },
   { q: "What's included in the free Starter plan?", a: "The free plan gives you 5 messages per day and a monthly cap of 25 messages. You also get 100 integration credits and access to all core integration types — authentication, database, analytics — letting you build fully functional apps at no cost." },
-  { q: "What are integration credits and how are they used?", a: "Integration credits power the various integrations inside your app: LLMs, file uploads, image understanding, image generation, email, SMS, database queries, and more. The number of credits in your plan determines how many of these requests you can make per month. Unused credits expire at the end of your billing cycle." },
+  { q: "What are integration credits and how are they used?", a: "Integration credits power the various integrations inside your app: LLMs, file uploads, image understanding, image generation, email, SMS, database queries, and more. The number of credits in your plan determines how many of these requests you can make per month." },
   { q: "What kind of applications can I build?", a: "WOK is versatile: fully functional SaaS products, back-office tools, personal productivity apps, client portals, business process automation tools, and rapid prototypes or MVPs. Validate your ideas fast without expensive dev resources." },
   { q: "Who owns the applications I create?", a: "You do. All apps and content generated through our platform are your property. We claim no ownership over what you create. You're free to use, modify, distribute, or sell your generated applications within the limits of applicable law." },
   { q: "How does deployment work?", a: "Deployment is instant. Your applications are usable and shareable the moment you create them — just share the URL. No separate hosting or deployment steps required." },
-  { q: "What happens when I reach my message limit?", a: "When you hit your daily limit, you wait until the next day. When you hit your monthly limit, no more messages or integration requests until your next billing cycle begins. Upgrade to a higher plan anytime from your billing dashboard to avoid interruptions." },
+  { q: "What happens when I reach my message limit?", a: "When you hit your daily limit, you wait until the next day. When you hit your monthly limit, no more messages or integration requests until your next billing cycle begins. Upgrade anytime from your billing dashboard to avoid interruptions." },
 ];
 
-const FaqItem = ({ item, isOpen, onToggle, isFirst }) => (
-  <div style={{ borderTop: isFirst ? '1px solid #1E1E1E' : 'none', borderBottom: '1px solid #1E1E1E' }}>
-    <button onClick={onToggle}
-      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '20px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: FONT }}>
-      <span style={{ fontSize: 14, fontWeight: 500, color: '#E5E5E5', lineHeight: 1.55 }}>{item.q}</span>
-      <div style={{
-        width: 24, height: 24, borderRadius: 6,
-        border: `1px solid ${isOpen ? '#4f46e5' : '#2A2A2A'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        background: isOpen ? '#1a1a2e' : 'transparent', transition: 'all 150ms',
-      }}>
-        <Plus size={13} color={isOpen ? '#a78bfa' : '#555'} style={{ transform: isOpen ? 'rotate(45deg)' : 'none', transition: 'transform 200ms' }} />
-      </div>
-    </button>
-    <AnimatePresence initial={false}>
-      {isOpen && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-          style={{ overflow: 'hidden' }}>
-          <p style={{ fontSize: 13.5, color: '#888', lineHeight: 1.8, paddingBottom: 20, margin: 0 }}>{item.a}</p>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
-);
+function FaqItem({ item, isOpen, onToggle, isFirst }) {
+  return (
+    <div style={{ borderTop: isFirst ? '1px solid #1E1E1E' : 'none', borderBottom: '1px solid #1E1E1E' }}>
+      <button onClick={onToggle}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '20px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: FONT }}>
+        <span style={{ fontSize: 14, fontWeight: 500, color: '#E5E5E5', lineHeight: 1.55 }}>{item.q}</span>
+        <div style={{
+          width: 24, height: 24, borderRadius: 6,
+          border: `1px solid ${isOpen ? '#F95738' : '#2A2A2A'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: isOpen ? 'rgba(249,87,56,0.1)' : 'transparent', transition: 'all 150ms',
+        }}>
+          <Plus size={13} color={isOpen ? '#F95738' : '#555'} style={{ transform: isOpen ? 'rotate(45deg)' : 'none', transition: 'transform 200ms' }} />
+        </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}>
+            <p style={{ fontSize: 13.5, color: '#888', lineHeight: 1.8, paddingBottom: 20, margin: 0 }}>{item.a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
-/* ─────────────────────────────────────────────
-   Constants
-───────────────────────────────────────────── */
-const PLAN_TAGLINES = ['For solo builders', 'For makers shipping fast', 'For growing teams'];
-const PLAN_ICONS = { 0: Zap, 1: Rocket, 2: Diamond };
+/* ─── Compliance badges ─── */
+const COMPLIANCE_LOGOS = [
+  { label: 'SOC 2 Type II', src: 'https://upload.wikimedia.org/wikipedia/commons/c/c5/AICPA_SOC_2_Type_II.svg' },
+  { label: 'GDPR', src: 'https://upload.wikimedia.org/wikipedia/commons/e/ed/GDPR_Logo.svg' },
+  { label: 'ISO/IEC 27001', src: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/ISO_IEC_27001_logo.svg' },
+];
+
 const ENT_FEATURES = [
   "Unlimited seats & messages",
   "Dedicated cloud infrastructure",
@@ -166,12 +159,8 @@ const ENT_FEATURES = [
   "Onboarding & team training",
   "Dedicated customer success manager",
 ];
-const AVATAR_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
-const AVATAR_INITIALS = ['A', 'M', 'S', 'J'];
 
-/* ─────────────────────────────────────────────
-   Main page
-───────────────────────────────────────────── */
+/* ─── Main ─── */
 export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
@@ -188,11 +177,9 @@ export default function PricingPage() {
     .map((p) => {
       const isEnterprise = !p.price_monthly || p.checkout_url_monthly?.startsWith('mailto');
       return {
-        id: p.id,
-        name: p.name,
+        id: p.id, name: p.name,
         price: isEnterprise ? null : (p.price_monthly || 0),
-        badge: p.badge || null,
-        desc: p.features_header || '',
+        badge: p.badge || null, desc: p.features_header || '',
         isEnterprise,
         features: (p.features || []).map(f => f.text || f),
         checkout_url_monthly: p.checkout_url_monthly,
@@ -206,6 +193,8 @@ export default function PricingPage() {
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
   };
 
+  const handleFaqToggle = (i) => setOpenFaq(prev => prev === i ? null : i);
+
   return (
     <div style={{ minHeight: '100vh', background: '#0A0A0A', fontFamily: FONT, color: '#fff' }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
@@ -214,79 +203,43 @@ export default function PricingPage() {
 
         {/* ── Header ── */}
         <div style={{ padding: '72px 0 56px', textAlign: 'center' }}>
-
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px',
             borderRadius: 999, border: '1px solid #2A2A2A', background: '#111',
             fontSize: 11, fontWeight: 600, color: '#888', letterSpacing: '0.08em',
             textTransform: 'uppercase', marginBottom: 24,
-          }}>
-            Pricing
-          </div>
+          }}>Pricing</div>
 
           <h1 style={{ fontSize: 48, fontWeight: 700, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.08 }}>
             Simple, transparent pricing
           </h1>
-          <p style={{ fontSize: 16, color: '#555', margin: '0 0 32px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: '#555', margin: 0, lineHeight: 1.6 }}>
             Start free. Scale when you're ready. No hidden fees.
           </p>
-
-          {/* Social proof */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {AVATAR_COLORS.map((c, i) => (
-                <div key={i} style={{
-                  width: 28, height: 28, borderRadius: '50%', background: c,
-                  border: '2px solid #0A0A0A', marginLeft: i === 0 ? 0 : -8,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: FONT,
-                }}>
-                  {AVATAR_INITIALS[i]}
-                </div>
-              ))}
-            </div>
-            <span style={{ fontSize: 13, color: '#666' }}>
-              <span style={{ color: '#E5E5E5', fontWeight: 600 }}>2,400+</span> apps built this month
-            </span>
-            <div style={{ width: 1, height: 16, background: '#2A2A2A' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {[1,2,3,4,5].map(s => <span key={s} style={{ color: '#f59e0b', fontSize: 14, lineHeight: 1 }}>★</span>)}
-              <span style={{ fontSize: 13, color: '#666', marginLeft: 4 }}>4.9 / 5 · 300+ reviews</span>
-            </div>
-          </div>
         </div>
 
         {/* ── Plan cards ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24, alignItems: 'start' }}>
           {plans.map((plan, i) => {
             const isPopular = !!plan.badge;
-            const PlanIcon = PLAN_ICONS[i] || Zap;
 
             const cardStyle = isPopular
               ? {
-                  background: '#0F0F18',
-                  border: '1px solid #4f46e5',
-                  borderRadius: 20,
-                  padding: '36px 28px',
-                  marginTop: -14,
-                  marginBottom: -14,
-                  boxShadow: '0 0 0 1px #4f46e5, 0 32px 80px rgba(79,70,229,0.22)',
-                  zIndex: 1,
-                  position: 'relative',
-                  display: 'flex', flexDirection: 'column',
+                  background: '#0F0F0F',
+                  border: '1px solid rgba(249,140,66,0.6)',
+                  borderRadius: 20, padding: '36px 28px',
+                  marginTop: -14, marginBottom: -14,
+                  boxShadow: '0 0 0 1px rgba(249,87,56,0.25), 0 32px 80px rgba(249,87,56,0.1)',
+                  zIndex: 1, position: 'relative', display: 'flex', flexDirection: 'column',
                 }
               : {
-                  background: '#0D0D0D',
-                  border: '1px solid #1E1E1E',
-                  borderRadius: 16,
-                  padding: '28px 24px',
-                  position: 'relative',
-                  display: 'flex', flexDirection: 'column',
+                  background: '#0D0D0D', border: '1px solid #1E1E1E',
+                  borderRadius: 16, padding: '28px 24px',
+                  position: 'relative', display: 'flex', flexDirection: 'column',
                 };
 
             return (
-              <motion.div
-                key={plan.id}
+              <motion.div key={plan.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: i * 0.08, ease: [0.4, 0, 0.2, 1] }}
@@ -296,38 +249,32 @@ export default function PricingPage() {
                 {isPopular && (
                   <div style={{
                     position: 'absolute', top: 16, right: 16,
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    background: 'linear-gradient(135deg, #F95738, #FF8C42)',
                     color: '#fff', fontSize: 10, fontWeight: 700,
                     letterSpacing: '0.08em', textTransform: 'uppercase',
                     padding: '4px 10px', borderRadius: 999,
-                  }}>
-                    ★ Most popular
-                  </div>
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}>Most popular</div>
                 )}
 
                 {/* Icon */}
                 <div style={{
                   width: 36, height: 36, borderRadius: 10,
-                  background: isPopular ? '#1a1a2e' : '#161616',
-                  border: `1px solid ${isPopular ? '#4f46e5' : '#2A2A2A'}`,
+                  background: '#161616',
+                  border: `1px solid ${isPopular ? 'rgba(249,87,56,0.4)' : '#2A2A2A'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
                 }}>
-                  <PlanIcon size={16} color={isPopular ? '#a78bfa' : '#555'} />
+                  <Zap size={16} color={isPopular ? '#F95738' : '#555'} />
                 </div>
 
                 {/* Name */}
-                <p style={{ fontSize: 11, fontWeight: 700, color: isPopular ? '#a78bfa' : '#555', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 4px' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: isPopular ? '#F95738' : '#555', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 14px' }}>
                   {plan.name}
-                </p>
-
-                {/* Tagline */}
-                <p style={{ fontSize: 12, color: '#555', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.4 }}>
-                  {PLAN_TAGLINES[i]}
                 </p>
 
                 {/* Price */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 20 }}>
-                  <span style={{ fontSize: 44, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.04em' }}>
+                  <span style={{ fontSize: 44, fontWeight: 300, color: '#fff', lineHeight: 1, letterSpacing: '-0.04em' }}>
                     ${plan.price}
                   </span>
                   <span style={{ fontSize: 13, color: '#444', fontWeight: 400 }}>/month</span>
@@ -339,34 +286,30 @@ export default function PricingPage() {
                   style={{
                     width: '100%', padding: '12px 0', borderRadius: 9,
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT,
-                    transition: 'all 150ms', marginBottom: 10,
+                    transition: 'all 150ms', marginBottom: 22,
                     ...(isPopular
-                      ? { background: '#6366f1', color: '#fff', border: 'none', boxShadow: '0 4px 24px rgba(99,102,241,0.35)' }
-                      : i === 0
-                        ? { background: 'transparent', color: '#888', border: '1px solid #2A2A2A' }
-                        : { background: 'transparent', color: '#ccc', border: '1px solid #2A2A2A' }
+                      ? {
+                          background: 'linear-gradient(135deg, #F95738, #FF8C42)',
+                          color: '#fff', border: '1px solid rgba(255,255,255,0.18)',
+                          boxShadow: '0 4px 24px rgba(249,87,56,0.3)',
+                        }
+                      : { background: 'transparent', color: '#ccc', border: '1px solid #2A2A2A' }
                     ),
                   }}
                   onMouseEnter={e => {
-                    if (isPopular) { e.currentTarget.style.background = '#4f46e5'; }
+                    if (isPopular) e.currentTarget.style.opacity = '0.9';
                     else { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#fff'; }
                   }}
                   onMouseLeave={e => {
-                    if (isPopular) { e.currentTarget.style.background = '#6366f1'; }
-                    else { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = i === 0 ? '#888' : '#ccc'; }
+                    if (isPopular) e.currentTarget.style.opacity = '1';
+                    else { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = '#ccc'; }
                   }}
                 >
                   {plan.price === 0 ? 'Get started free' : 'Get started'}
                 </button>
 
-                {/* Trust micro-line */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 22 }}>
-                  <Shield size={10} color="#444" />
-                  <span style={{ fontSize: 10, color: '#444', letterSpacing: '0.03em' }}>Secure checkout · Cancel anytime</span>
-                </div>
-
                 {/* Divider */}
-                <div style={{ height: 1, background: isPopular ? '#1e1e3a' : '#1A1A1A', marginBottom: 20 }} />
+                <div style={{ height: 1, background: '#1A1A1A', marginBottom: 20 }} />
 
                 {/* Features */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 11, flex: 1 }}>
@@ -388,22 +331,51 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.28, ease: [0.4, 0, 0.2, 1] }}
           style={{
-            background: 'linear-gradient(135deg, #0D0D0D 0%, #0D0B14 100%)',
-            border: '1px solid #2A2A3A',
+            background: '#0D0D0D', border: '1px solid #222',
             borderRadius: 16, padding: '32px 32px 28px', marginBottom: 20,
           }}
         >
+          {/* Compliance logos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28, flexWrap: 'wrap' }}>
+            {COMPLIANCE_LOGOS.map(logo => (
+              <img
+                key={logo.label}
+                src={logo.src}
+                alt={logo.label}
+                title={logo.label}
+                style={{
+                  height: 22, width: 'auto', opacity: 0.55,
+                  filter: 'brightness(0) invert(1)',
+                  transition: 'opacity 200ms',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
+                onError={e => {
+                  // fallback text badge
+                  const parent = e.currentTarget.parentNode;
+                  const badge = document.createElement('div');
+                  badge.textContent = logo.label;
+                  badge.style.cssText = 'padding:4px 10px;border:1px solid #333;border-radius:6px;font-size:10px;font-weight:600;color:#555;letter-spacing:0.04em;font-family:Inter,sans-serif';
+                  parent.replaceChild(badge, e.currentTarget);
+                }}
+              />
+            ))}
+            <div style={{ height: 14, width: 1, background: '#2A2A2A' }} />
+            <span style={{ fontSize: 11, color: '#444', fontWeight: 500, letterSpacing: '0.03em' }}>Enterprise-grade compliance</span>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 24, flexWrap: 'wrap' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#161620', border: '1px solid #2A2A3A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Building2 size={16} color="#6366f1" />
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#161616', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building2 size={16} color="#888" />
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#888', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   Enterprise
                 </span>
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#fff', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
                 Built for organizations
               </h3>
               <p style={{ fontSize: 13, color: '#555', lineHeight: 1.65, margin: 0, maxWidth: 380 }}>
@@ -414,52 +386,32 @@ export default function PricingPage() {
               onClick={() => setShowModal(true)}
               style={{
                 padding: '12px 24px', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                background: 'transparent', color: '#a78bfa', border: '1px solid #4f46e5',
-                fontFamily: FONT, transition: 'all 150ms', whiteSpace: 'nowrap', flexShrink: 0,
+                background: 'linear-gradient(135deg, #F95738, #FF8C42)',
+                color: '#fff', border: '1px solid rgba(255,255,255,0.18)',
+                fontFamily: FONT, transition: 'opacity 150ms', whiteSpace: 'nowrap', flexShrink: 0,
+                boxShadow: '0 4px 20px rgba(249,87,56,0.25)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1a1a2e'; e.currentTarget.style.color = '#c4b5fd'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a78bfa'; }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
               Book a demo →
             </button>
           </div>
 
-          <div style={{ height: 1, background: '#1E1E2A', marginBottom: 24 }} />
+          <div style={{ height: 1, background: '#1A1A1A', marginBottom: 24 }} />
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 40px' }}>
             {ENT_FEATURES.map((feat, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
                 <Check size={13} color="#22C55E" style={{ flexShrink: 0, marginTop: 2 }} />
-                <span style={{ fontSize: 13, color: '#fff', lineHeight: 1.55, fontWeight: 400 }}>{feat}</span>
+                <span style={{ fontSize: 13, color: '#ccc', lineHeight: 1.55, fontWeight: 400 }}>{feat}</span>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* ── Security strip ── */}
-        <div style={{
-          background: '#0D0D0D', border: '1px solid #1E1E1E', borderRadius: 12,
-          padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 88,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Shield size={15} color="#444" style={{ flexShrink: 0 }} />
-            <div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#888', display: 'block' }}>Enterprise-grade security</span>
-              <span style={{ fontSize: 11, color: '#444' }}>SOC 2 · GDPR · ISO 27001</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {['SOC 2', 'GDPR', 'ISO 27001'].map(badge => (
-              <div key={badge} style={{ padding: '4px 10px', border: '1px solid #1E1E1E', borderRadius: 6, fontSize: 10, fontWeight: 600, color: '#444', letterSpacing: '0.04em' }}>
-                {badge}
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* ── FAQ ── */}
-        <div>
+        <div style={{ marginTop: 88 }}>
           <div style={{ textAlign: 'center', marginBottom: 44 }}>
             <h2 style={{ fontSize: 32, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', margin: '0 0 10px' }}>
               Frequently asked questions
@@ -473,7 +425,7 @@ export default function PricingPage() {
                 item={item}
                 isFirst={i === 0}
                 isOpen={openFaq === i}
-                onToggle={() => setOpenFaq(openFaq === i ? null : i)}
+                onToggle={() => handleFaqToggle(i)}
               />
             ))}
           </div>
