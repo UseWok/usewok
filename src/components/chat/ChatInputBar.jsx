@@ -521,7 +521,7 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{
-        background: '#242424',
+        background: '#161618',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 16,
         overflow: 'visible',

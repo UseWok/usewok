@@ -196,7 +196,7 @@ export default function PricingPage() {
   const handleFaqToggle = (i) => setOpenFaq(prev => prev === i ? null : i);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0A0A0A', fontFamily: FONT, color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#0B0B0E', fontFamily: FONT, color: '#fff' }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
 
       <div style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 100px' }}>

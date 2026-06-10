@@ -459,7 +459,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
-          background: '#0E0E0E',
+          background: '#0B0B0E',
           borderRight: 'none',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: COLLAPSED_W,

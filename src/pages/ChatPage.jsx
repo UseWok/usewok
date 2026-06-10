@@ -628,7 +628,7 @@ export default function ChatPage() {
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#181818' }}>
+      style={{ backgroundColor: '#0B0B0E' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -663,12 +663,12 @@ export default function ChatPage() {
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#181818' }}>
+        style={{ background: '#0B0B0E' }}>
 
         <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818', position: 'relative' }}>
+            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#0B0B0E', position: 'relative' }}>
 
               {/* ── Chat top bar: sidebar toggle (left) + history clock (right) ── */}
               <div style={{
@@ -760,7 +760,7 @@ export default function ChatPage() {
           {chatVisible && <ChatGutter />}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#181818' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0B0B0E' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}

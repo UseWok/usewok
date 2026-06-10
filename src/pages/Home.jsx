@@ -406,11 +406,12 @@ export default function Home() {
       minHeight: '100vh',
       width: '100%',
       background: `
-        radial-gradient(ellipse 100% 60% at 90% 0%, rgba(30,80,200,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(220,40,180,0.95) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 60% at 10% 80%, rgba(255,80,20,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255,120,0,0.7) 0%, transparent 50%),
-        #050508
+        radial-gradient(ellipse 120% 70% at 95% -5%, rgba(20,90,255,1) 0%, rgba(80,20,220,0.7) 30%, transparent 60%),
+        radial-gradient(ellipse 100% 80% at 50% 60%, rgba(230,30,200,1) 0%, rgba(160,10,120,0.6) 35%, transparent 60%),
+        radial-gradient(ellipse 90% 70% at 5% 90%, rgba(255,70,10,1) 0%, rgba(200,40,0,0.6) 35%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 85% 105%, rgba(255,130,0,0.9) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 20% 10%, rgba(100,0,255,0.5) 0%, transparent 50%),
+        #0B0B0E
       `,
       display: 'flex',
       flexDirection: 'column',
@@ -421,7 +422,7 @@ export default function Home() {
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
       {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 40px', minHeight: '65vh' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 48px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
 
         {/* Pill */}
         <div style={{
@@ -552,13 +553,15 @@ export default function Home() {
       </div>
 
       {/* ── My Builds section ── */}
-      <div style={{ padding: '0 20px 24px' }}>
+      <div style={{ padding: '0 20px 32px', marginTop: 8 }}>
         <div style={{
-          background: 'rgba(15,15,15,0.88)',
-          backdropFilter: 'blur(20px)',
+          background: 'rgba(11,11,14,0.92)',
+          backdropFilter: 'blur(24px)',
           borderRadius: 18,
           border: '1px solid rgba(255,255,255,0.07)',
           padding: '20px 22px 22px',
+          position: 'relative',
+          zIndex: 10,
         }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -584,28 +587,25 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Project cards */}
-          <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
+          {/* Project cards — max 3 per row, then wrap */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 220px)', gap: 14, paddingBottom: 4 }}>
             {projects.length > 0 ? (
               projects.map(p => (
                 <ProjectCard key={p.id} conv={p} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
               ))
             ) : (
-              // Empty state — new build CTA cards
-              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                {['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
-                  <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
-                    style={{ flexShrink: 0, width: 220, height: 160, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'border-color 140ms' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
-                  >
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Plus size={16} color="#666" />
-                    </div>
-                    <span style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
+              ['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
+                <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
+                  style={{ width: 220, height: 160, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'border-color 140ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Plus size={16} color="#666" />
                   </div>
-                ))}
-              </div>
+                  <span style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
+                </div>
+              ))
             )}
           </div>
         </div>
