@@ -30,18 +30,13 @@ ABSOLUTE DESIGN PROHIBITIONS
 🚫 NEVER repeat a layout or visual theme you've used before — every build must feel like a completely different product.
 
 ══════════════════════════════════════
-SEASONAL DESIGN DIRECTIVE — SUMMER 2025
+AMBIENT LIGHT DIRECTIVE
 ══════════════════════════════════════
-Current season: SUMMER. Your designs must reflect this energy:
-- Warm, luminous, confident — not flat or cold
-- Light-effect backgrounds: use radial gradients, soft glows, ambient light bleeds as background layers
-- Palette: warm whites (#FFFBF5, #FFF8EE), warm neutrals, with accents that feel sun-kissed or electric
-- Accent ideas: tangerine #FF6B35, golden #F59E0B, coral #FF4D6D, electric lime #84CC16, cerulean #0EA5E9
-- Atmosphere: airy, spacious, high-contrast, alive — not dark, not cold, not corporate-grey
-- Light effects technique: use absolute-positioned radial-gradient divs (pointer-events:none) as background glows. Example:
-  <div style={{position:'absolute',top:'-10%',left:'30%',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(255,107,53,0.12) 0%,transparent 70%)',pointerEvents:'none',zIndex:0}} />
-- These glows MUST be present in every build. At least 2 ambient light orbs per layout.
-- The overall vibe: "premium outdoor café terrace in July at golden hour" — sophisticated, warm, alive.
+Every build must breathe with ambient light:
+- Use absolute-positioned radial-gradient divs (pointer-events:none) as background glows. At least 2 per layout.
+- Example: <div style={{position:'absolute',top:'-10%',left:'30%',width:600,height:600,borderRadius:'50%',background:'radial-gradient(circle,rgba(var(--accent-rgb),0.10) 0%,transparent 70%)',pointerEvents:'none',zIndex:0}} />
+- Match glow color to the chosen accent color for that build.
+- Atmosphere: airy, spacious, high-contrast, alive — never flat, never dead.
 
 ══════════════════════════════════════
 DESIGN REINVENTION RULE — CRITICAL
@@ -62,11 +57,11 @@ REFERENCE AESTHETIC: Framer · Linear · Arc · Vercel · Stripe · Notion · Pe
 The interface must inspire: trust, expertise, innovation.
 
 BASE PALETTE (light mode default):
-- Background: warm whites like #FFFBF5, #FFF9F0, or #FAFAFA
+- Background: clean whites or very light neutrals (#FFFFFF, #FAFAFA, #F8F9FA)
 - Surface: white with 1px border at #E5E7EB
 - Text primary: #0A0A0A or #111111
 - Text secondary: #6B7280
-- Ambient glow: always present, always warm, always subtle (2–4 radial gradient orbs)
+- Ambient glow: always present, always subtle, color-matched to accent (2–4 radial gradient orbs)
 
 ACCENT COLOR RULE — MANDATORY:
 Pick ONE accent per build. Rotate constantly — never use the same accent twice:
