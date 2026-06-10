@@ -301,20 +301,6 @@ export default function ChatPage() {
     // Re-assign text to sanitized version
     text = safeText;
 
-    // ── Heuristic pre-filter (zero API cost) — minimal, allows code & special chars ──
-    const trimmed = text.trim();
-    // Only block truly empty/meaningless inputs: single char repeated endlessly with no other content
-    const isCompletelyEmpty = trimmed.length === 0;
-    const isPureRepetition = trimmed.length > 3 && /^(.)\1+$/.test(trimmed); // only "aaaa" or "1111" alone
-
-    if (isCompletelyEmpty || isPureRepetition) {
-      const userMsg = { role: 'user', content: text };
-      setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '__INSUFFICIENT__' }]);
-      setInput('');
-      setFiles([]);
-      return;
-    }
-
     // Easter egg
     if (text.trim() === '16/06/2010') {
       const userMsg = { role: 'user', content: text };
@@ -388,18 +374,8 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Safety filter (disabled after 4th user message) ──
-      const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
-      if (userMessageIndex < 4) {
-        const safety = await runSafetyFilter(text, userMessageIndex);
-        if (!safety.safe) {
-          setMessages([...newMessages, { role: 'assistant', content: '__INSUFFICIENT__' }]);
-          setIsLoading(false);
-          return;
-        }
-      }
-
       // ── Build / modify path ──
+      const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
       const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
       const imageUrls2 = (options.files || files || []).filter(f => f.type?.startsWith('image/')).map(f => f.url);
 
