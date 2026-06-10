@@ -252,9 +252,32 @@ function BuildModeMenu({ mode, setMode, onClose }) {
 
 // ── Real Project Card ──
 
-function ProjectCard({ conv, onClick }) {
-  const [imgError, setImgError] = useState(false);
+function ProjectCardSkeleton() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: '#F5F5F5', display: 'flex', flexDirection: 'column', padding: 14, gap: 8 }}>
+      {/* Nav skeleton */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+        <div style={{ height: 8, width: 50, background: '#E0E0E0', borderRadius: 4 }} />
+        <div style={{ height: 8, width: 60, background: '#E8E8E8', borderRadius: 4 }} />
+        <div style={{ height: 8, width: 40, background: '#E8E8E8', borderRadius: 4 }} />
+      </div>
+      {/* Hero title skeleton */}
+      <div style={{ height: 14, width: '80%', background: '#D8D8D8', borderRadius: 4, marginTop: 6 }} />
+      <div style={{ height: 14, width: '65%', background: '#D8D8D8', borderRadius: 4 }} />
+      {/* Sub text */}
+      <div style={{ height: 8, width: '90%', background: '#E8E8E8', borderRadius: 4, marginTop: 4 }} />
+      <div style={{ height: 8, width: '70%', background: '#EBEBEB', borderRadius: 4 }} />
+      {/* CTA */}
+      <div style={{ height: 22, width: 70, background: '#333', borderRadius: 6, marginTop: 8 }} />
+    </div>
+  );
+}
+
+function ProjectCard({ conv, user, onClick }) {
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const previewUrl = conv.conv_id ? `https://wok.base44.app/tools/${conv.conv_id}` : null;
+  const hasRawContent = !!(conv.raw_content);
 
   const timeAgo = (dateStr) => {
     if (!dateStr) return 'Edited recently';
@@ -268,36 +291,67 @@ function ProjectCard({ conv, onClick }) {
     return `Edited ${days}d ago`;
   };
 
+  const initial = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U';
+  const displayTitle = conv.ai_title || conv.title || 'Untitled build';
+
   return (
     <div
       onClick={onClick}
-      style={{ flexShrink: 0, width: 220, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#1A1A1A', cursor: 'pointer', transition: 'border-color 140ms, transform 140ms' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      style={{
+        borderRadius: 16, overflow: 'hidden',
+        border: '1px solid rgba(255,255,255,0.08)',
+        background: '#1A1A1A',
+        cursor: 'pointer',
+        transition: 'border-color 140ms, transform 140ms, box-shadow 140ms',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
     >
-      {/* Preview area */}
-      <div style={{ height: 130, background: '#111', position: 'relative', overflow: 'hidden' }}>
-        {previewUrl && !imgError ? (
-          <iframe
-            src={previewUrl}
-            style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: '0 0', pointerEvents: 'none' }}
-            onError={() => setImgError(true)}
-            title={conv.title}
-            sandbox="allow-scripts allow-same-origin"
-          />
+      {/* Preview area — white bg to look like real app */}
+      <div style={{ height: 180, background: '#fff', position: 'relative', overflow: 'hidden' }}>
+        {previewUrl && !previewError ? (
+          <>
+            {/* Show skeleton until iframe loads */}
+            {!previewLoaded && <ProjectCardSkeleton />}
+            <iframe
+              src={previewUrl}
+              style={{
+                width: '300%', height: '300%', border: 'none',
+                transform: 'scale(0.333)', transformOrigin: '0 0',
+                pointerEvents: 'none',
+                opacity: previewLoaded ? 1 : 0,
+                transition: 'opacity 300ms',
+              }}
+              onLoad={() => setPreviewLoaded(true)}
+              onError={() => setPreviewError(true)}
+              title={displayTitle}
+              sandbox="allow-scripts allow-same-origin"
+            />
+          </>
         ) : (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: 5, padding: 12 }}>
-            <div style={{ height: 7, background: 'rgba(255,255,255,0.12)', borderRadius: 4, width: '65%' }} />
-            <div style={{ height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 4, width: '85%' }} />
-            <div style={{ height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 4, width: '50%' }} />
-          </div>
+          <ProjectCardSkeleton />
         )}
       </div>
-      <div style={{ padding: '9px 12px 12px' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {conv.title || 'Untitled build'}
-        </p>
-        <p style={{ fontSize: 11, color: '#555', margin: '3px 0 0' }}>{timeAgo(conv.updatedAt || conv.updated_date)}</p>
+
+      {/* Footer info */}
+      <div style={{ padding: '12px 14px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Avatar */}
+        <div style={{
+          width: 34, height: 34, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #F95738, #7B4FE0)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0,
+        }}>
+          {initial}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayTitle}
+          </p>
+          <p style={{ fontSize: 11, color: '#666', margin: '2px 0 0' }}>
+            {timeAgo(conv.updatedAt || conv.updated_date)}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -371,8 +425,35 @@ export default function Home() {
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
 
-    loadDiscussionsFromCloud().then(discs => {
-      setProjects(discs.slice(0, 8));
+    loadDiscussionsFromCloud().then(async discs => {
+      const slice = discs.slice(0, 9);
+      // Generate AI titles for builds that don't have one yet
+      const enriched = await Promise.all(slice.map(async (d) => {
+        if (d.ai_title) return d;
+        const firstMsg = (() => {
+          try {
+            const msgs = JSON.parse(d.messages_json || '[]');
+            return msgs.find(m => m.role === 'user')?.content || d.preview || d.title || '';
+          } catch { return d.preview || d.title || ''; }
+        })();
+        if (!firstMsg.trim()) return d;
+        try {
+          const res = await base44.integrations.Core.InvokeLLM({
+            prompt: `Summarize this app build request in 3-5 words max as a short title (no quotes, no punctuation at end): "${firstMsg.slice(0, 200)}"`,
+            model: 'gpt_5_mini',
+          });
+          const aiTitle = typeof res === 'string' ? res.trim().replace(/^["']|["']$/g, '') : '';
+          if (aiTitle) {
+            // Persist to conversation
+            base44.entities.Conversation.filter({ conv_id: d.id || d.conv_id }).then(r => {
+              if (r[0]) base44.entities.Conversation.update(r[0].id, { title: aiTitle });
+            }).catch(() => {});
+            return { ...d, ai_title: aiTitle };
+          }
+        } catch {}
+        return d;
+      }));
+      setProjects(enriched);
     }).catch(() => {});
 
     const onVisible = () => {
@@ -405,14 +486,17 @@ export default function Home() {
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      background: `
-        radial-gradient(ellipse 120% 70% at 95% -5%, rgba(20,90,255,1) 0%, rgba(80,20,220,0.7) 30%, transparent 60%),
-        radial-gradient(ellipse 100% 80% at 50% 60%, rgba(230,30,200,1) 0%, rgba(160,10,120,0.6) 35%, transparent 60%),
-        radial-gradient(ellipse 90% 70% at 5% 90%, rgba(255,70,10,1) 0%, rgba(200,40,0,0.6) 35%, transparent 60%),
-        radial-gradient(ellipse 70% 60% at 85% 105%, rgba(255,130,0,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 20% 10%, rgba(100,0,255,0.5) 0%, transparent 50%),
-        #0B0B0E
+      backgroundImage: `
+        radial-gradient(ellipse 130% 60% at 95% -5%, rgba(40,120,255,0.95) 0%, rgba(90,20,240,0.75) 28%, transparent 55%),
+        radial-gradient(ellipse 110% 70% at 50% 55%, rgba(240,30,210,0.9) 0%, rgba(170,10,130,0.55) 32%, transparent 58%),
+        radial-gradient(ellipse 100% 65% at 5% 95%, rgba(255,80,10,0.95) 0%, rgba(210,40,0,0.6) 32%, transparent 58%),
+        radial-gradient(ellipse 75% 55% at 88% 108%, rgba(255,150,0,0.85) 0%, transparent 52%),
+        radial-gradient(ellipse 55% 45% at 18% 8%, rgba(120,0,255,0.6) 0%, transparent 48%),
+        url('https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/7be24b2e0_image.png')
       `,
+      backgroundSize: 'auto, auto, auto, auto, auto, cover',
+      backgroundPosition: 'center, center, center, center, center, center',
+      backgroundColor: '#0B0B0E',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif',
@@ -587,23 +671,23 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Project cards — max 3 per row, then wrap */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 220px)', gap: 14, paddingBottom: 4 }}>
+          {/* Project cards — responsive grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, paddingBottom: 4 }}>
             {projects.length > 0 ? (
               projects.map(p => (
-                <ProjectCard key={p.id} conv={p} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
+                <ProjectCard key={p.id} conv={p} user={user} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
               ))
             ) : (
               ['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
                 <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
-                  style={{ width: 220, height: 160, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'border-color 140ms' }}
+                  style={{ height: 230, borderRadius: 16, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'border-color 140ms' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
                 >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus size={16} color="#666" />
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Plus size={18} color="#666" />
                   </div>
-                  <span style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
+                  <span style={{ fontSize: 13, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
                 </div>
               ))
             )}
