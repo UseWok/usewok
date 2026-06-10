@@ -648,12 +648,13 @@ export default function ChatPage() {
       <PublishAppModal
         open={showPublishModal}
         onClose={() => setShowPublishModal(false)}
-        appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
+        appUrl={`${window.location.origin}/p/${customSlug || convId}`}
         isPublished={isAppPublished}
         setIsPublished={setIsAppPublished}
         customSlug={customSlug || convId}
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
+        rawContent={ficheContent}
       />
       
       {/* Sidebar */}

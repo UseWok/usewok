@@ -9,6 +9,7 @@ export default function PublishAppModal({
   open, onClose,
   appUrl, isPublished, setIsPublished,
   customSlug, appSettings, onUpdateSettings,
+  rawContent,
 }) {
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -36,11 +37,18 @@ export default function PublishAppModal({
       const newSettings = { ...(appSettings || {}), isPublic: true };
       setIsPublic(true);
       if (onUpdateSettings) await onUpdateSettings(newSettings);
-      // Explicitly mark as public in cloud
+
+      // Find and update the Conversation record — try conv_id and id
       if (customSlug) {
-        const results = await base44.entities.Conversation.filter({ conv_id: customSlug }).catch(() => []);
+        let results = await base44.entities.Conversation.filter({ conv_id: customSlug }).catch(() => []);
+        if (results.length === 0) {
+          results = await base44.entities.Conversation.filter({ id: customSlug }).catch(() => []);
+        }
         if (results.length > 0) {
-          await base44.entities.Conversation.update(results[0].id, { is_public: true });
+          const updatePayload = { is_public: true };
+          // Also save raw_content so the public page can render it
+          if (rawContent) updatePayload.raw_content = rawContent;
+          await base44.entities.Conversation.update(results[0].id, updatePayload);
         }
       }
       setIsPublished(true);

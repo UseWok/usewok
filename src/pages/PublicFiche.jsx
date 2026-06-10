@@ -337,14 +337,20 @@ export default function PublicFiche() {
     );
   }
 
-  // Get the last generated rawContent — also check top-level field saved by syncToCloud
-  const assistantMessages = messages.filter((m) => m.role === 'assistant' && m.rawContent);
-  const finalContent = assistantMessages.length > 0 ? assistantMessages[assistantMessages.length - 1].rawContent : null;
+  // Get the last generated rawContent — check messages array first, then top-level
+  const assistantMessages = messages.filter((m) => m.role === 'assistant' && (m.rawContent || m.raw_content));
+  const finalContent = assistantMessages.length > 0
+    ? (assistantMessages[assistantMessages.length - 1].rawContent || assistantMessages[assistantMessages.length - 1].raw_content)
+    : null;
 
   if (!finalContent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-lg font-semibold text-gray-400">Intelligence not found or not published.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+          <span className="text-2xl">🔒</span>
+        </div>
+        <h2 className="text-white font-bold text-xl">Not published</h2>
+        <p className="text-white/40 text-sm text-center max-w-xs">This app has not been published yet. Use the "Publish" button in the editor to make it publicly accessible.</p>
       </div>
     );
   }
