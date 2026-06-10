@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Brain } from 'lucide-react';
-
+import { ChevronDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -12,238 +11,52 @@ function injectStyles() {
   const s = document.createElement('style');
   s.textContent = `
     @keyframes ai-slide { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes shimmer-text {
-      0%   { background-position: -400px 0; }
-      100% { background-position:  400px 0; }
-    }
-    @keyframes streaming-cursor {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+    @keyframes streaming-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes pulse-dot { 0%,100%{opacity:0.3;transform:scale(0.85)} 50%{opacity:1;transform:scale(1)} }
   `;
   document.head.appendChild(s);
 }
 
-// ── Irregular delays per phrase index (ms) ──
-const PHRASE_DELAYS = [0, 1600, 2800, 4400, 5800];
-
-// ── Thinking streaming display (while generating) ──
-function ThinkingStream({ text, rawCode }) {
-  const [visiblePhrases, setVisiblePhrases] = useState([]);
-  const [buildingOpen, setBuildingOpen] = useState(false);
-  const [typedCode, setTypedCode] = useState('');
-  const prevTextRef = useRef('');
-  const timersRef = useRef([]);
-
-  // Parse phrases from the streamed text
-  const phrases = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
-
-  // When a new phrase appears, schedule its display
-  useEffect(() => {
-    if (phrases.length === 0) { setVisiblePhrases([]); return; }
-    // Clear old timers only when phrase count increases
-    if (phrases.length > prevTextRef.current) {
-      prevTextRef.current = phrases.length;
-      // Show each phrase at an irregular staggered delay
-      phrases.forEach((p, i) => {
-        if (visiblePhrases.includes(p)) return;
-        const t = setTimeout(() => {
-          setVisiblePhrases(prev => prev.includes(p) ? prev : [...prev, p]);
-        }, PHRASE_DELAYS[i] || i * 1400);
-        timersRef.current.push(t);
-      });
-    }
-    return () => { timersRef.current.forEach(clearTimeout); timersRef.current = []; };
-  }, [phrases.length]);
-
-  // Typewriter effect for code
-  useEffect(() => {
-    if (!buildingOpen || !rawCode) return;
-    setTypedCode('');
-    const clean = rawCode.replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '');
-    let i = 0;
-    const interval = setInterval(() => {
-      i += 6; // 6 chars per tick — very fast
-      setTypedCode(clean.slice(0, i));
-      if (i >= clean.length) clearInterval(interval);
-    }, 10);
-    return () => clearInterval(interval);
-  }, [buildingOpen, rawCode]);
-
-  const showBuilding = visiblePhrases.length >= 3;
-
-  if (visiblePhrases.length === 0 && !text) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, animation: 'ai-slide 200ms ease-out both' }}>
-        <Brain style={{ width: 13, height: 13, flexShrink: 0, color: '#6B7280', opacity: 0.7 }} />
-        <span style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
-          background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #A8B5C8 50%, #9CA3AF 70%, #6B7280 100%)',
-          backgroundSize: '400px 100%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text', animation: 'shimmer-text 2s linear infinite',
-        }}>
-          Initialising...
-        </span>
-        <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          {[0,1,2].map(i => (
-            <span key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: '#555', display: 'inline-block', animation: `shimmer-text 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }} />
-          ))}
-        </span>
-      </div>
-    );
-  }
-
+// ── AccordionBlock: shared design for "Initialising" and "Building" ──
+function AccordionBlock({ label, isOpen, onToggle, children, defaultOpen = false }) {
   return (
-    <div style={{ animation: 'ai-slide 200ms ease-out both' }}>
-      {/* Phrases */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: showBuilding ? 12 : 0 }}>
-        <AnimatePresence>
-          {visiblePhrases.map((phrase, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}
-            >
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#333', flexShrink: 0, marginTop: 6 }} />
-              <span style={{ fontSize: 12.5, color: '#777', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>{phrase}</span>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {/* Blinking cursor on last phrase while more are pending */}
-        {visiblePhrases.length > 0 && visiblePhrases.length < phrases.length && (
-          <span style={{ display: 'inline-block', width: 7, height: 13, background: '#444', borderRadius: 1, marginLeft: 13, verticalAlign: 'middle', animation: 'streaming-cursor 1s ease-in-out infinite' }} />
-        )}
-      </div>
-
-      {/* Building button — appears at phrase 3+ */}
-      <AnimatePresence>
-        {showBuilding && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <button
-              onClick={() => setBuildingOpen(o => !o)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '4px 10px', border: '1px solid #2A2A2A', borderRadius: 7,
-                background: buildingOpen ? '#1E1E1E' : 'transparent',
-                cursor: 'pointer', fontSize: 11, fontWeight: 600, color: buildingOpen ? '#ccc' : '#555',
-                fontFamily: 'Inter, sans-serif', transition: 'all 150ms',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.color = '#aaa'; }}
-              onMouseLeave={e => { if (!buildingOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555'; } }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F95738', animation: buildingOpen ? 'none' : 'streaming-cursor 1.5s ease-in-out infinite' }} />
-              Building
-              <motion.span animate={{ rotate: buildingOpen ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ display: 'inline-flex', color: '#555' }}>
-                <ChevronDown style={{ width: 11, height: 11 }} />
-              </motion.span>
-            </button>
-
-            <AnimatePresence>
-              {buildingOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                  style={{ overflow: 'hidden', marginTop: 8 }}
-                >
-                  <div style={{ border: '1px solid #2A2A2A', borderRadius: 10, background: '#141414', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderBottom: '1px solid #2A2A2A', background: '#1A1A1A' }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#333' }} />
-                      <span style={{ fontSize: 11, color: '#444', fontFamily: 'ui-monospace, monospace' }}>component.jsx</span>
-                    </div>
-                    <pre style={{
-                      margin: 0, padding: '12px 14px', height: 130, overflowY: 'auto',
-                      fontSize: 11, lineHeight: '19px', color: '#FFFFFF',
-                      fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
-                      whiteSpace: 'pre', wordBreak: 'normal', background: 'transparent',
-                    }}>
-                      {typedCode || 'En construction...'}
-                      {typedCode && typedCode.length < (rawCode || '').length && (
-                        <span style={{ display: 'inline-block', width: 7, height: 13, background: '#F95738', borderRadius: 1, marginLeft: 1, verticalAlign: 'middle', animation: 'streaming-cursor 0.6s ease-in-out infinite' }} />
-                      )}
-                    </pre>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ── Thinking accordion — open by default, collapsible ──
-function ThinkingAccordion({ thinkingText }) {
-  const [isOpen, setIsOpen] = useState(true);
-
-  if (!thinkingText) return null;
-
-  return (
-    <div style={{ marginBottom: 8 }}>
-      {/* Trigger */}
+    <div style={{ marginBottom: 6 }}>
       <button
-        onClick={() => setIsOpen(o => !o)}
+        onClick={onToggle}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
+          display: 'flex', alignItems: 'center', gap: 7,
           background: 'none', border: 'none', cursor: 'pointer',
-          padding: '3px 0', outline: 'none', userSelect: 'none',
+          padding: '2px 0', outline: 'none', userSelect: 'none', width: '100%',
         }}
       >
-        <Brain style={{ width: 13, height: 13, color: '#6B7280', flexShrink: 0, opacity: 0.7 }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', letterSpacing: '0.01em', fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>
-          Thinking
-        </span>
+        {/* Notch/chevron */}
         <motion.span
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          style={{ display: 'inline-flex', color: '#9CA3AF', opacity: 0.7 }}
+          animate={{ rotate: isOpen ? 90 : 0 }}
+          transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+          style={{ display: 'inline-flex', color: '#3A3A3A', flexShrink: 0 }}
         >
-          <ChevronDown style={{ width: 12, height: 12 }} />
+          <ChevronDown style={{ width: 11, height: 11 }} />
         </motion.span>
+        <span style={{
+          fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase',
+          color: '#4A4A4A', fontFamily: 'Inter, sans-serif',
+        }}>
+          {label}
+        </span>
       </button>
 
-      {/* Body */}
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
-            key="thinking-body"
+            key="body"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{
-              marginTop: 6,
-              paddingTop: 10,
-              borderTop: '1px solid #E5E7EB',
-              fontSize: 12.5,
-              color: '#6B7280',
-              lineHeight: 1.8,
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  p: ({ children }) => <p style={{ margin: '0 0 8px 0', color: '#6B7280', lineHeight: 1.8 }}>{children}</p>,
-                  li: ({ children }) => <li style={{ marginBottom: 4, color: '#6B7280' }}>{children}</li>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ol>,
-                  strong: ({ children }) => <strong style={{ color: '#374151', fontWeight: 600 }}>{children}</strong>,
-                }}
-              >
-                {thinkingText}
-              </ReactMarkdown>
+            <div style={{ paddingTop: 8, paddingLeft: 18 }}>
+              {children}
             </div>
           </motion.div>
         )}
@@ -252,49 +65,192 @@ function ThinkingAccordion({ thinkingText }) {
   );
 }
 
-// ── Code preview box — appears after generation, dark transparent bg, white text ──
-function CodePreviewBox({ code }) {
-  const preRef = useRef(null);
+// ── Phase A+B+C: Streaming generation state ──
+function ThinkingStream({ text, rawCode }) {
+  const [initialisingOpen, setInitialisingOpen] = useState(true);
+  const [buildingOpen, setBuildingOpen] = useState(false);
+  const [streamedText, setStreamedText] = useState('');
+  const [showBuilding, setShowBuilding] = useState(false);
+  const [delayDone, setDelayDone] = useState(false);
+  const prevLenRef = useRef(0);
+  const delayTimerRef = useRef(null);
+  const streamingRef = useRef(false);
 
-  // Trim fences if present
-  const cleanCode = code?.replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '') || '';
+  // Stream text char-by-char as it arrives
+  useEffect(() => {
+    if (!text) { setStreamedText(''); return; }
+    if (text.length <= prevLenRef.current) return;
+
+    const newChars = text.slice(prevLenRef.current);
+    prevLenRef.current = text.length;
+
+    let i = 0;
+    streamingRef.current = true;
+    const tick = () => {
+      if (i >= newChars.length) { streamingRef.current = false; return; }
+      const ch = newChars[i];
+      setStreamedText(prev => prev + ch);
+      i++;
+      const delay = ch === ' ' ? 12 : (/[.!?]/.test(ch) ? 55 : 22);
+      setTimeout(tick, delay);
+    };
+    tick();
+  }, [text]);
+
+  // Phase B: 2500ms delay after text is fully received, then show Building
+  useEffect(() => {
+    if (!text || streamedText.length < text.length) return;
+    if (delayTimerRef.current) return; // already scheduled
+    delayTimerRef.current = setTimeout(() => {
+      setDelayDone(true);
+      setShowBuilding(true);
+    }, 2700);
+    return () => {};
+  }, [text, streamedText]);
+
+  // Typewriter for code in Building panel
+  const [typedCode, setTypedCode] = useState('');
+  useEffect(() => {
+    if (!buildingOpen || !rawCode) return;
+    setTypedCode('');
+    const clean = rawCode.replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '');
+    let i = 0;
+    const iv = setInterval(() => {
+      i += 8;
+      setTypedCode(clean.slice(0, i));
+      if (i >= clean.length) clearInterval(iv);
+    }, 8);
+    return () => clearInterval(iv);
+  }, [buildingOpen, rawCode]);
+
+  // Initial shimmer state before any text
+  if (!streamedText && !text) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, animation: 'ai-slide 200ms ease-out both' }}>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {[0,1,2].map(i => (
+            <span key={i} style={{
+              width: 4, height: 4, borderRadius: '50%', background: '#444', display: 'inline-block',
+              animation: `pulse-dot 1.2s ease-in-out infinite`, animationDelay: `${i * 0.18}s`,
+            }} />
+          ))}
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#3A3A3A', fontFamily: 'Inter, sans-serif' }}>
+          Initialising
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-      style={{ marginTop: 8 }}
-    >
-      <div style={{
-        border: '1px solid #2A2A2A',
-        borderRadius: 10,
-        background: '#181818', // matches app background
-        overflow: 'hidden',
+    <div style={{ animation: 'ai-slide 200ms ease-out both' }}>
+
+      {/* Phase A: Initialising accordion */}
+      <AccordionBlock label="Initialising" isOpen={initialisingOpen} onToggle={() => setInitialisingOpen(o => !o)}>
+        <p style={{
+          margin: 0, fontSize: 12, lineHeight: 1.75,
+          color: '#FFFFFF', fontFamily: 'Inter, sans-serif', fontWeight: 400,
+        }}>
+          {streamedText}
+          {/* Blinking cursor while still streaming */}
+          {streamedText.length < (text || '').length && (
+            <span style={{
+              display: 'inline-block', width: 6, height: 12, background: '#555',
+              borderRadius: 1, marginLeft: 2, verticalAlign: 'middle',
+              animation: 'streaming-cursor 0.8s ease-in-out infinite',
+            }} />
+          )}
+        </p>
+      </AccordionBlock>
+
+      {/* Phase C: Building accordion — appears after 2700ms delay */}
+      <AnimatePresence>
+        {showBuilding && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <AccordionBlock label="Building" isOpen={buildingOpen} onToggle={() => setBuildingOpen(o => !o)}>
+              {/* Raw canvas: unstyled, minimal, raw code only */}
+              <div style={{
+                background: 'transparent',
+                border: '1px solid #2A2A2A',
+                borderRadius: 6,
+                overflow: 'hidden',
+              }}>
+                <pre style={{
+                  margin: 0, padding: '10px 12px',
+                  maxHeight: 160, overflowY: 'auto',
+                  fontSize: 10.5, lineHeight: '18px',
+                  color: '#E0E0E0',
+                  fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
+                  whiteSpace: 'pre', wordBreak: 'normal',
+                  background: 'transparent',
+                }}>
+                  {typedCode || (rawCode ? '' : '...')}
+                  {rawCode && typedCode.length < rawCode.replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '').length && (
+                    <span style={{
+                      display: 'inline-block', width: 6, height: 11, background: '#F95738',
+                      borderRadius: 1, marginLeft: 1, verticalAlign: 'middle',
+                      animation: 'streaming-cursor 0.5s ease-in-out infinite',
+                    }} />
+                  )}
+                </pre>
+              </div>
+            </AccordionBlock>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Post-generation: Initialising (collapsed) + Building (collapsed) + finale sentence ──
+function CompletedGenerationView({ thinkingText, rawContent }) {
+  const [initialisingOpen, setInitialisingOpen] = useState(false);
+  const [buildingOpen, setBuildingOpen] = useState(false);
+
+  const cleanCode = (rawContent || '').replace(/^```(?:jsx|javascript|react)?\n?/, '').replace(/\n?```$/, '');
+
+  return (
+    <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
+      {/* Initialising — collapsed, shows the thinking text */}
+      {thinkingText && (
+        <AccordionBlock label="Initialising" isOpen={initialisingOpen} onToggle={() => setInitialisingOpen(o => !o)}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.75, color: '#FFFFFF', fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+            {thinkingText}
+          </p>
+        </AccordionBlock>
+      )}
+
+      {/* Building — collapsed, shows raw source */}
+      {rawContent && (
+        <AccordionBlock label="Building" isOpen={buildingOpen} onToggle={() => setBuildingOpen(o => !o)}>
+          <div style={{ background: 'transparent', border: '1px solid #2A2A2A', borderRadius: 6, overflow: 'hidden' }}>
+            <pre style={{
+              margin: 0, padding: '10px 12px',
+              maxHeight: 160, overflowY: 'auto',
+              fontSize: 10.5, lineHeight: '18px',
+              color: '#E0E0E0',
+              fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
+              whiteSpace: 'pre', wordBreak: 'normal', background: 'transparent',
+            }}>
+              {cleanCode}
+            </pre>
+          </div>
+        </AccordionBlock>
+      )}
+
+      {/* Phase D: Finale sentence */}
+      <p style={{
+        margin: '10px 0 0 0', fontSize: 12.5, fontWeight: 500,
+        color: '#5A5A5A', fontFamily: 'Inter, sans-serif', lineHeight: 1.5,
       }}>
-        {/* Header bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '8px 12px', borderBottom: '1px solid #2A2A2A',
-          background: '#1E1E1E',
-        }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#333' }} />
-          <span style={{ fontSize: 11, color: '#444', fontFamily: 'ui-monospace, monospace' }}>component.jsx</span>
-        </div>
-        <pre ref={preRef} style={{
-          margin: 0, padding: '12px 14px',
-          height: 140,
-          overflowY: 'auto',
-          fontSize: 11, lineHeight: '20px',
-          color: '#FFFFFF',
-          fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
-          whiteSpace: 'pre', wordBreak: 'normal',
-          background: 'transparent',
-        }}>
-          {cleanCode}
-        </pre>
-      </div>
-    </motion.div>
+        Interface successfully architected and deployed.
+      </p>
+    </div>
   );
 }
 
@@ -354,34 +310,18 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     }
   }, [isGenerating, localGenerating]);
 
-  // While generating → show thinking stream in real time
+  // While generating → Phase A/B/C
   if (localGenerating) return <ThinkingStream text={streamingThinking || ''} rawCode={streamingRawCode} />;
   if (!content) return null;
 
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);
   const { thinkingText, finalText } = parseThinking(safeText);
-  const shouldAutoOpen = isNewMessage.current;
-  if (shouldAutoOpen) isNewMessage.current = false;
+  if (isNewMessage.current) isNewMessage.current = false;
 
-  // ── Code generation result — rawContent present means code was generated ──
-  const isCodeResult = !!rawContent || finalText.includes('Architecture generated') || finalText.includes('Architecture successfully') || finalText.includes('successfully recompiled');
-
+  // ── Code generation result → Phase D view ──
+  const isCodeResult = !!rawContent;
   if (isCodeResult) {
-    // Strip any raw code blocks from the display text — code shows only in the box
-    const codeBlockRegex = /```(?:jsx|javascript|react)?\n?[\s\S]*?```/g;
-    const textOnly = finalText.replace(codeBlockRegex, '').trim();
-
-    return (
-      <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
-        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
-        {textOnly && !textOnly.includes('Architecture generated') && !textOnly.includes('Architecture successfully') && (
-          <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6, fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{textOnly}</ReactMarkdown>
-          </div>
-        )}
-        {rawContent && <CodePreviewBox code={rawContent} />}
-      </div>
-    );
+    return <CompletedGenerationView thinkingText={thinkingText} rawContent={rawContent} />;
   }
 
   // ── Package install ──
@@ -391,7 +331,6 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     const beforeInstall = installIdx > 0 ? finalText.substring(0, installIdx).trim() : null;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, animation: 'ai-slide 150ms ease-out both' }}>
-        {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
         {beforeInstall && <p style={{ fontSize: 13, color: '#333333', lineHeight: 1.65, margin: 0 }}>{beforeInstall}</p>}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4A90D9', flexShrink: 0, display: 'inline-block' }} />
@@ -406,13 +345,11 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
   if (rejected) return <p style={{ fontSize: 13, color: '#EF4444', margin: 0 }}>✗ Installation cancelled.</p>;
 
   const stripEmojis = (str) => str.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F1E0}-\u{1F1FF}✨✓✗]/gu, '').trim();
-  const cleanText = stripEmojis(finalText);
 
   return (
     <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
-      {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
       <div style={{ fontSize: 13, color: '#333333', lineHeight: 1.65, fontFamily: 'Inter, sans-serif' }}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanText}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripEmojis(finalText)}</ReactMarkdown>
       </div>
     </div>
   );
