@@ -1,114 +1,143 @@
-import { useState, useEffect } from 'react';
-import { Search, Plus } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, MessageSquare, Trash2, Pencil, MoreHorizontal, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { loadDiscussionsFromCloud } from '@/lib/chat-storage';
-import { saveDiscussions } from '@/lib/discussions';
-import BuildCard from '../components/BuildCard';
+import { useLanguage } from '@/lib/i18n';
+
+import { getDiscussions, saveDiscussions } from '@/lib/discussions';
+const PURPLE = '#3A0088';
+const YUZU = '#DDFF00';
+
+const FG = '#0A0A0A';
+const MODE_COLORS = {
+  Fast: { bg: 'rgba(0,0,0,0.05)', text: FG },
+  Standard: { bg: 'rgba(0,0,0,0.05)', text: FG },
+  Advanced: { bg: 'rgba(0,0,0,0.08)', text: FG },
+  Expert: { bg: '#DDFF00', text: FG },
+};
 
 export default function AllProjects() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState([]);
+  const { t } = useLanguage();
+  const [discussions, setDiscussions] = useState(getDiscussions);
   const [search, setSearch] = useState('');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [renaming, setRenaming] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
+  const contextRef = useRef(null);
 
-  useEffect(() => {
-    Promise.all([
-      base44.auth.me().catch(() => null),
-      loadDiscussionsFromCloud().catch(() => []),
-    ]).then(([u, discs]) => {
-      setUser(u);
-      setProjects(discs);
-      setLoading(false);
-    });
-  }, []);
-
-  const filtered = projects.filter(d =>
-    (d.title || d.ai_title || '').toLowerCase().includes(search.toLowerCase()) ||
-    (d.preview || '').toLowerCase().includes(search.toLowerCase())
+  const filtered = discussions.filter(d =>
+    d.title?.toLowerCase().includes(search.toLowerCase()) || d.preview?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDelete = (id) => {
-    const updated = projects.filter(d => d.id !== id);
-    setProjects(updated);
-  };
+  useEffect(() => {
+    const h = (e) => { if (contextRef.current && !contextRef.current.contains(e.target)) setContextMenu(null); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
 
-  const handleRename = (id, newTitle) => {
-    const updated = projects.map(d => d.id === id ? { ...d, ai_title: newTitle, title: newTitle } : d);
-    setProjects(updated);
-    // Persist to Conversation entity
-    const conv = projects.find(d => d.id === id);
-    if (conv?.conv_id) {
-      base44.entities.Conversation.filter({ conv_id: conv.conv_id }).then(r => {
-        if (r[0]) base44.entities.Conversation.update(r[0].id, { title: newTitle });
-      }).catch(() => {});
-    }
-  };
+  const openCtx = (e, id) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ id, x: e.clientX, y: e.clientY }); };
+  const deleteItem = (id) => { const u = discussions.filter(d => d.id !== id); setDiscussions(u); saveDiscussions(u); setContextMenu(null); };
+  const startRename = (id) => { const d = discussions.find(d => d.id === id); setRenameValue(d?.title || ''); setRenaming(id); setContextMenu(null); };
+  const confirmRename = (id) => { const u = discussions.map(d => d.id === id ? { ...d, title: renameValue } : d); setDiscussions(u); saveDiscussions(u); setRenaming(null); };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0B0B0E', fontFamily: 'Inter, system-ui, sans-serif', color: '#fff' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 80px' }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: 0 }}>All Projects</h1>
-            <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
+    <div className="min-h-screen bg-white py-10 px-6">
+      <div className="max-w-4xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center gap-4 mb-6">
+            <button onClick={() => navigate('/')}
+              className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors"
+              style={{ borderRadius: '4px' }}>
+              <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
+            </button>
+            <div>
+              <h1 className="text-2xl font-black" style={{ color: FG }}>{t('recent_discussions')}</h1>
+              <p className="text-sm" style={{ color: '#999' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''}</p>
+            </div>
           </div>
-          <button onClick={() => navigate('/chat')}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: '#fff', color: '#111', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            <Plus size={14} /> New project
-          </button>
-        </div>
 
-        {/* Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#161618', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 14px', marginBottom: 28 }}>
-          <Search size={15} color="#555" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search projects..."
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 14, color: '#fff', fontFamily: 'Inter, sans-serif' }}
-            className="placeholder:text-[#444]" />
-        </div>
+          {/* Search */}
+          <div className="flex items-center gap-2 px-4 py-2.5 mb-6"
+            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            <Search className="w-4 h-4 flex-shrink-0" style={{ color: '#bbb' }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('search_placeholder')}
+              className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: '#333' }} />
+          </div>
 
-        {/* Grid */}
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 }}>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} style={{ borderRadius: 16, overflow: 'hidden', background: '#161618', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ paddingTop: '56.25%', background: '#1E1E1E', position: 'relative' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #1E1E1E 25%, #242424 50%, #1E1E1E 75%)', backgroundSize: '400% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
-                </div>
-                <div style={{ padding: '12px 14px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#2A2A2A', flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ height: 12, width: '70%', background: '#2A2A2A', borderRadius: 4, marginBottom: 6 }} />
-                    <div style={{ height: 9, width: '45%', background: '#222', borderRadius: 4 }} />
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filtered.map((disc) => {
+              const modelStyle = MODE_COLORS[disc.model] || MODE_COLORS.Fast;
+              return (
+                <motion.div key={disc.id} layout
+                  initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                  onContextMenu={(e) => openCtx(e, disc.id)}
+                  onClick={() => navigate(`/chat?conversationId=${disc.id}${disc.agent ? '&agent=' + disc.agent : ''}${disc.model ? '&mode=' + disc.model.toLowerCase() : ''}`)}
+                  className="group bg-white cursor-pointer p-4 transition-all"
+                  style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.03)'; }}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-8 h-8 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+                      <MessageSquare className="w-4 h-4" style={{ color: FG }} />
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); openCtx(e, disc.id); }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center"
+                      style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+                      <MoreHorizontal className="w-4 h-4" style={{ color: '#888' }} />
+                    </button>
                   </div>
-                </div>
-              </div>
-            ))}
+                  {renaming === disc.id ? (
+                    <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={() => confirmRename(disc.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') confirmRename(disc.id); if (e.key === 'Escape') setRenaming(null); }}
+                      className="w-full text-sm font-semibold bg-white focus:outline-none border-b mb-1"
+                      style={{ borderColor: PURPLE }}
+                      onClick={(e) => e.stopPropagation()} />
+                  ) : (
+                    <p className="text-sm font-bold line-clamp-2 mb-1" style={{ color: FG }}>{disc.title}</p>
+                  )}
+                  <p className="text-xs line-clamp-2 mb-3" style={{ color: '#999' }}>{disc.preview}</p>
+                  <div className="flex items-center gap-2">
+                    {disc.model && <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ background: modelStyle.bg, color: modelStyle.text, borderRadius: '2px' }}>{disc.model}</span>}
+                    <span className="text-[10px]" style={{ color: '#ccc' }}>{disc.date}</span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#555' }}>
-            <p style={{ fontSize: 15 }}>{search ? 'No results found' : 'No projects yet. Start building!'}</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 }}>
-            {filtered.map(p => (
-              <BuildCard
-                key={p.id}
-                conv={p}
-                user={user}
-                onClick={() => navigate(`/chat?conversationId=${p.id}`)}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            ))}
-          </div>
-        )}
+
+          {filtered.length === 0 && (
+            <div className="text-center py-16 text-sm" style={{ color: '#bbb' }}>{t('no_discussions')}</div>
+          )}
+        </motion.div>
       </div>
-      <style>{`@keyframes shimmer { 0%{background-position:-400% 0} 100%{background-position:400% 0} }`}</style>
+
+      <AnimatePresence>
+        {contextMenu && (
+          <motion.div ref={contextRef}
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.08 }}
+            className="fixed z-[200] bg-white shadow-xl overflow-hidden"
+            style={{ left: contextMenu.x, top: contextMenu.y, border: '1px solid rgba(0,0,0,0.09)', minWidth: 160, borderRadius: '4px' }}>
+            <button onClick={() => startRename(contextMenu.id)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm w-full text-left transition-colors"
+              style={{ color: '#444' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <Pencil className="w-3.5 h-3.5" /> Rename
+            </button>
+            <button onClick={() => deleteItem(contextMenu.id)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 w-full text-left transition-colors"
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

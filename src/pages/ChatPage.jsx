@@ -426,15 +426,12 @@ export default function ChatPage() {
       }
 
       // ── Orchestrated generation ──
-      // Read build mode from localStorage (set by Home.jsx model selector)
-      const buildMode = localStorage.getItem('wok_build_mode') || 'Flash';
       const orchResult = await orchestrateGeneration(text, {
         existingCode: isModification ? ficheContent : null,
         userMessageIndex,
         fileUrls: imageUrls2,
         needsWebSearch: false,
         systemPrompt: PROMPT_ARCHITECT,
-        buildMode, // 'Max' → claude_sonnet_4_6, anything else → gemini_3_1_pro
       });
 
       if (abortedRef.current) return;
@@ -500,11 +497,11 @@ export default function ChatPage() {
       setMessages(finalMsgs);
       saveConversationMessages(convId, finalMsgs);
 
-      // ── Hard save to cloud — always PUBLIC per system directive ──
+      // ── Hard save to cloud immediately (no fire-and-forget — await to guarantee persistence) ──
       await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: true,
+        is_public: appSettings?.isPublic ?? false,
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
@@ -631,7 +628,7 @@ export default function ChatPage() {
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#0B0B0E' }}>
+      style={{ backgroundColor: '#181818' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -651,13 +648,12 @@ export default function ChatPage() {
       <PublishAppModal
         open={showPublishModal}
         onClose={() => setShowPublishModal(false)}
-        appUrl={`${window.location.origin}/p/${customSlug || convId}`}
+        appUrl={`https://wok.base44.app/tools/${customSlug || convId}`}
         isPublished={isAppPublished}
         setIsPublished={setIsAppPublished}
         customSlug={customSlug || convId}
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
-        rawContent={ficheContent}
       />
       
       {/* Sidebar */}
@@ -667,12 +663,12 @@ export default function ChatPage() {
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#0B0B0E' }}>
+        style={{ background: '#181818' }}>
 
         <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#0B0B0E', position: 'relative' }}>
+            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818', position: 'relative' }}>
 
               {/* ── Chat top bar: sidebar toggle (left) + history clock (right) ── */}
               <div style={{
@@ -764,7 +760,7 @@ export default function ChatPage() {
           {chatVisible && <ChatGutter />}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#0B0B0E' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#181818' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}

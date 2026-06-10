@@ -1,31 +1,31 @@
 import React from "react";
-import AuthShell from "@/components/AuthShell.jsx";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
-    <AuthShell>
-      <div>
-        {/* Heading */}
-        <div style={{ marginBottom: 28 }}>
-          {Icon && (
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(249,87,56,0.12)", border: "1px solid rgba(249,87,56,0.2)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-              <Icon style={{ width: 18, height: 18, color: "#F95738" }} />
-            </div>
-          )}
-          <h1 style={{ fontSize: 24, fontWeight: 600, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>{title}</h1>
-          {subtitle && <p style={{ fontSize: 14, color: "#555", margin: 0, lineHeight: 1.6 }}>{subtitle}</p>}
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-sm">
+        {/* Card */}
+        <div className="bg-card border border-border rounded-2xl shadow-md p-8">
+          {/* Icon + heading */}
+          <div className="flex flex-col items-center text-center mb-8">
+            {Icon && (
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <Icon className="w-5 h-5 text-primary" />
+              </div>
+            )}
+            <h1 className="text-[22px] font-bold text-foreground tracking-tight">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+          </div>
 
-        {/* Slot */}
-        {children}
+          {/* Slot */}
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div style={{ marginTop: 24, fontSize: 13, color: "#555", textAlign: "center" }}>
-            {footer}
-          </div>
+          <p className="text-center text-sm text-muted-foreground mt-6">{footer}</p>
         )}
       </div>
-    </AuthShell>
+    </div>
   );
 }

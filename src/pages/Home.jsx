@@ -7,9 +7,9 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
-  Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check, SlidersHorizontal, Sparkles, Globe, Loader2,
+  Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check,
 } from 'lucide-react';
-import BuildCard from '../components/BuildCard';
+
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
@@ -45,143 +45,6 @@ const StripeLogo = () => (
   </div>
 );
 
-
-// ── Model options ──
-const HOME_MODEL_OPTIONS = [
-  { id: 'Low', label: 'Low', isNew: false },
-  { id: 'Medium', label: 'Medium', isNew: false },
-  { id: 'High', label: 'High', isNew: false },
-  { id: 'Max', label: 'Max', isNew: true },
-];
-
-function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  return (
-    <motion.div ref={ref}
-      initial={{ opacity: 0, y: 6, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        position: 'absolute', top: 'calc(100% + 8px)', left: 0,
-        background: '#1C1C1C', border: '1px solid #2A2A2A',
-        borderRadius: 14, padding: '5px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      {/* Automatic — 2x height */}
-      <button
-        onClick={() => { setSelectedModel('Automatic'); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', minHeight: 64, padding: '12px 11px', border: 'none',
-          background: selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent',
-          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8, marginBottom: 2,
-        }}
-        onMouseEnter={e => { if (selectedModel !== 'Automatic') e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
-      >
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Automatic</div>
-          <div style={{ fontSize: 11, color: '#666', marginTop: 3, lineHeight: 1.4 }}>The best AI model is selected for each request.</div>
-        </div>
-        {selectedModel === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-      </button>
-
-      {HOME_MODEL_OPTIONS.map(m => {
-        const isActive = selectedModel === m.id;
-        return (
-          <button key={m.id}
-            onClick={() => { setSelectedModel(m.id); onClose(); }}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', height: 36, padding: '0 11px', border: 'none',
-              background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
-              borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
-            }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{m.label}</span>
-              {m.isNew && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#7B4FE0', background: 'rgba(123,79,224,0.15)', border: '1px solid rgba(123,79,224,0.3)', borderRadius: 5, padding: '1px 6px' }}>New</span>
-              )}
-            </div>
-            {isActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-          </button>
-        );
-      })}
-    </motion.div>
-  );
-}
-
-function HomeEnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  return (
-    <motion.div ref={ref}
-      initial={{ opacity: 0, y: 6, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        position: 'absolute', top: 'calc(100% + 8px)', left: 0,
-        background: '#1C1C1C', border: '1px solid #2A2A2A',
-        borderRadius: 14, padding: '5px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      {/* Enhance prompt */}
-      <button onClick={onEnhance} disabled={isEnhancing}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', height: 44, padding: '0 12px', border: 'none', background: 'transparent', borderRadius: 9, cursor: isEnhancing ? 'not-allowed' : 'pointer', textAlign: 'left' }}
-        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-      >
-        {isEnhancing
-          ? <Loader2 style={{ width: 14, height: 14, color: '#7B4FE0', flexShrink: 0, animation: 'hspin 0.6s linear infinite' }} />
-          : <Sparkles style={{ width: 14, height: 14, color: '#7B4FE0', flexShrink: 0 }} />
-        }
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{isEnhancing ? 'Rewriting...' : 'Enhance prompt'}</span>
-      </button>
-
-      {/* Search the web — 2x height */}
-      <button onClick={() => setWebSearch(v => !v)}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', minHeight: 64, padding: '12px 12px', border: 'none',
-          background: webSearch ? 'rgba(56,189,248,0.07)' : 'transparent',
-          borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8,
-        }}
-        onMouseEnter={e => { if (!webSearch) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = webSearch ? 'rgba(56,189,248,0.07)' : 'transparent'; }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Globe style={{ width: 14, height: 14, color: webSearch ? '#38BDF8' : '#555', flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: webSearch ? '#fff' : '#aaa' }}>Search the web</div>
-            <div style={{ fontSize: 11, color: '#555', marginTop: 2, lineHeight: 1.4 }}>Include live web results in responses.</div>
-          </div>
-        </div>
-        {webSearch && <Check style={{ width: 13, height: 13, color: '#38BDF8', flexShrink: 0 }} />}
-      </button>
-      <style>{`@keyframes hspin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }`}</style>
-    </motion.div>
-  );
-}
 
 // ── Build mode dropdown ──
 
@@ -251,7 +114,58 @@ function BuildModeMenu({ mode, setMode, onClose }) {
 }
 
 
+// ── Real Project Card ──
 
+function ProjectCard({ conv, onClick }) {
+  const [imgError, setImgError] = useState(false);
+  const previewUrl = conv.conv_id ? `https://wok.base44.app/tools/${conv.conv_id}` : null;
+
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return 'Edited recently';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 2) return 'Edited just now';
+    if (mins < 60) return `Edited ${mins} min ago`;
+    if (hours < 24) return `Edited ${hours}h ago`;
+    return `Edited ${days}d ago`;
+  };
+
+  return (
+    <div
+      onClick={onClick}
+      style={{ flexShrink: 0, width: 220, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#1A1A1A', cursor: 'pointer', transition: 'border-color 140ms, transform 140ms' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      {/* Preview area */}
+      <div style={{ height: 130, background: '#111', position: 'relative', overflow: 'hidden' }}>
+        {previewUrl && !imgError ? (
+          <iframe
+            src={previewUrl}
+            style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: '0 0', pointerEvents: 'none' }}
+            onError={() => setImgError(true)}
+            title={conv.title}
+            sandbox="allow-scripts allow-same-origin"
+          />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: 5, padding: 12 }}>
+            <div style={{ height: 7, background: 'rgba(255,255,255,0.12)', borderRadius: 4, width: '65%' }} />
+            <div style={{ height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 4, width: '85%' }} />
+            <div style={{ height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 4, width: '50%' }} />
+          </div>
+        )}
+      </div>
+      <div style={{ padding: '9px 12px 12px' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {conv.title || 'Untitled build'}
+        </p>
+        <p style={{ fontSize: 11, color: '#555', margin: '3px 0 0' }}>{timeAgo(conv.updatedAt || conv.updated_date)}</p>
+      </div>
+    </div>
+  );
+}
 
 
 export default function Home() {
@@ -265,27 +179,6 @@ export default function Home() {
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [buildMode, setBuildMode] = useState(() => localStorage.getItem(BUILD_MODE_KEY) || 'Flash');
   const buildMenuRef = useRef(null);
-  const homeFileInputRef = useRef(null);
-  const [selectedModel, setSelectedModel] = useState('High');
-  const [showModelMenu, setShowModelMenu] = useState(false);
-  const [showEnhanceMenu, setShowEnhanceMenu] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [webSearch, setWebSearch] = useState(false);
-
-  const handleEnhancePrompt = async () => {
-    if (!input.trim() || isEnhancing) return;
-    setIsEnhancing(true);
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a prompt engineering expert. Rewrite the following user prompt to make it clearer, more structured, and more effective for an AI UI builder. Keep the same intent. Be concise. Return ONLY the improved prompt, no explanation.\n\nOriginal prompt: "${input}"`,
-        model: 'gpt_5_mini',
-      });
-      const improved = typeof result === 'string' ? result.trim() : input;
-      setInput(improved);
-      setShowEnhanceMenu(false);
-    } catch {}
-    setIsEnhancing(false);
-  };
 
   const handleSend = (q) => {
     const query = q || input;
@@ -321,35 +214,8 @@ export default function Home() {
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
 
-    loadDiscussionsFromCloud().then(async discs => {
-      const slice = discs.slice(0, 9);
-      // Generate AI titles for builds that don't have one yet
-      const enriched = await Promise.all(slice.map(async (d) => {
-        if (d.ai_title) return d;
-        const firstMsg = (() => {
-          try {
-            const msgs = JSON.parse(d.messages_json || '[]');
-            return msgs.find(m => m.role === 'user')?.content || d.preview || d.title || '';
-          } catch { return d.preview || d.title || ''; }
-        })();
-        if (!firstMsg.trim()) return d;
-        try {
-          const res = await base44.integrations.Core.InvokeLLM({
-            prompt: `Summarize this app build request in 3-5 words max as a short title (no quotes, no punctuation at end): "${firstMsg.slice(0, 200)}"`,
-            model: 'gpt_5_mini',
-          });
-          const aiTitle = typeof res === 'string' ? res.trim().replace(/^["']|["']$/g, '') : '';
-          if (aiTitle) {
-            // Persist to conversation
-            base44.entities.Conversation.filter({ conv_id: d.id || d.conv_id }).then(r => {
-              if (r[0]) base44.entities.Conversation.update(r[0].id, { title: aiTitle });
-            }).catch(() => {});
-            return { ...d, ai_title: aiTitle };
-          }
-        } catch {}
-        return d;
-      }));
-      setProjects(enriched);
+    loadDiscussionsFromCloud().then(discs => {
+      setProjects(discs.slice(0, 8));
     }).catch(() => {});
 
     const onVisible = () => {
@@ -382,17 +248,13 @@ export default function Home() {
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      backgroundImage: `
-        radial-gradient(ellipse 130% 60% at 95% -5%, rgba(40,120,255,0.95) 0%, rgba(90,20,240,0.75) 28%, transparent 55%),
-        radial-gradient(ellipse 110% 70% at 50% 55%, rgba(240,30,210,0.9) 0%, rgba(170,10,130,0.55) 32%, transparent 58%),
-        radial-gradient(ellipse 100% 65% at 5% 95%, rgba(255,80,10,0.95) 0%, rgba(210,40,0,0.6) 32%, transparent 58%),
-        radial-gradient(ellipse 75% 55% at 88% 108%, rgba(255,150,0,0.85) 0%, transparent 52%),
-        radial-gradient(ellipse 55% 45% at 18% 8%, rgba(120,0,255,0.6) 0%, transparent 48%),
-        url('https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/7be24b2e0_image.png')
+      background: `
+        radial-gradient(ellipse 100% 60% at 90% 0%, rgba(30,80,200,0.9) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(220,40,180,0.95) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 60% at 10% 80%, rgba(255,80,20,0.9) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255,120,0,0.7) 0%, transparent 50%),
+        #050508
       `,
-      backgroundSize: 'auto, auto, auto, auto, auto, cover',
-      backgroundPosition: 'center, center, center, center, center, center',
-      backgroundColor: '#0B0B0E',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif',
@@ -402,7 +264,7 @@ export default function Home() {
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
       {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 48px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 40px', minHeight: '65vh' }}>
 
         {/* Pill */}
         <div style={{
@@ -463,69 +325,39 @@ export default function Home() {
               />
             </div>
             {/* Bottom toolbar */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 5, position: 'relative' }}>
-              {/* Hidden file input */}
-              <input type="file" multiple ref={homeFileInputRef} style={{ display: 'none' }} />
-
-              {/* Plus — attach */}
-              <button
-                onClick={() => homeFileInputRef.current?.click()}
-                style={{ height: 28, padding: '0 10px', borderRadius: 8, background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#111', fontSize: 12, fontWeight: 600, flexShrink: 0, transition: 'opacity 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                <Plus size={13} color="#111" />
-                Attach
+            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 6 }}>
+              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+                <Plus size={15} />
               </button>
-
-              {/* Model selector */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                  onClick={() => { setShowModelMenu(v => !v); setShowEnhanceMenu(false); }}
-                  style={{ height: 28, padding: '0 10px', borderRadius: 8, background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#111', fontSize: 12, fontWeight: 600, transition: 'opacity 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                >
-                  <SlidersHorizontal size={12} color="#111" />
-                  {selectedModel}
-                </button>
-                <AnimatePresence>
-                  {showModelMenu && (
-                    <HomeModelMenu selectedModel={selectedModel} setSelectedModel={setSelectedModel} onClose={() => setShowModelMenu(false)} />
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Enhance prompt */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                  onClick={() => { setShowEnhanceMenu(v => !v); setShowModelMenu(false); }}
-                  style={{ height: 28, padding: '0 10px', borderRadius: 8, background: showEnhanceMenu ? 'rgba(123,79,224,0.2)' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: showEnhanceMenu ? '#7B4FE0' : '#111', fontSize: 12, fontWeight: 600, transition: 'opacity 120ms, background 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                >
-                  <Sparkles size={12} color={showEnhanceMenu ? '#7B4FE0' : '#111'} />
-                  Enhance
-                </button>
-                <AnimatePresence>
-                  {showEnhanceMenu && (
-                    <HomeEnhanceMenu onEnhance={handleEnhancePrompt} isEnhancing={isEnhancing} webSearch={webSearch} setWebSearch={setWebSearch} onClose={() => setShowEnhanceMenu(false)} />
-                  )}
-                </AnimatePresence>
-              </div>
-
               <div style={{ flex: 1 }} />
-
+              {/* Build mode dropdown */}
+              <div ref={buildMenuRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowBuildMenu(v => !v)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#ccc', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                >
+                  {buildMode} <ChevronDown size={13} />
+                </button>
+                <AnimatePresence>
+                  {showBuildMenu && (
+                    <BuildModeMenu
+                      mode={buildMode}
+                      setMode={setBuildMode}
+                      onClose={() => setShowBuildMenu(false)}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
               {/* Mic */}
-              <button style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.color = '#aaa'}
-                onMouseLeave={e => e.currentTarget.style.color = '#555'}>
+              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
                 <Mic size={14} />
               </button>
-              {/* Send — disabled when no input */}
+              {/* Send */}
               <button onClick={() => handleSend()} disabled={!input.trim()}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', cursor: input.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 120ms', flexShrink: 0, opacity: input.trim() ? 1 : 0.35 }}>
-                <ArrowUp size={14} color="#111" />
+                style={{ width: 32, height: 32, borderRadius: '50%', background: input.trim() ? '#F95738' : 'rgba(255,255,255,0.12)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
+                <ArrowUp size={15} color="#fff" />
               </button>
             </div>
           </div>
@@ -533,15 +365,13 @@ export default function Home() {
       </div>
 
       {/* ── My Builds section ── */}
-      <div style={{ padding: '0 20px 32px', marginTop: 8 }}>
+      <div style={{ padding: '0 20px 24px' }}>
         <div style={{
-          background: 'rgba(11,11,14,0.92)',
-          backdropFilter: 'blur(24px)',
+          background: 'rgba(15,15,15,0.88)',
+          backdropFilter: 'blur(20px)',
           borderRadius: 18,
           border: '1px solid rgba(255,255,255,0.07)',
           padding: '20px 22px 22px',
-          position: 'relative',
-          zIndex: 10,
         }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -567,25 +397,28 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Project cards — responsive grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, paddingBottom: 4 }}>
+          {/* Project cards */}
+          <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
             {projects.length > 0 ? (
               projects.map(p => (
-                <BuildCard key={p.id} conv={p} user={user} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
+                <ProjectCard key={p.id} conv={p} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
               ))
             ) : (
-              ['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
-                <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
-                  style={{ height: 230, borderRadius: 16, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'border-color 140ms' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus size={18} color="#666" />
+              // Empty state — new build CTA cards
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                {['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
+                  <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
+                    style={{ flexShrink: 0, width: 220, height: 160, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'border-color 140ms' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Plus size={16} color="#666" />
+                    </div>
+                    <span style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
                   </div>
-                  <span style={{ fontSize: 13, color: '#555', textAlign: 'center', padding: '0 16px' }}>{title}</span>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>

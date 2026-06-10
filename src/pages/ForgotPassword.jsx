@@ -1,23 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
-
-const inputStyle = {
-  width: "100%",
-  height: 42,
-  background: "#2A2A2A",
-  border: "1px solid #383838",
-  borderRadius: 8,
-  padding: "0 14px",
-  fontSize: 14,
-  color: "#E5E5E5",
-  outline: "none",
-  fontFamily: "Inter, sans-serif",
-  boxSizing: "border-box",
-  transition: "border-color 150ms",
-};
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -29,8 +17,9 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       await base44.auth.resetPasswordRequest(email);
-    } catch {}
-    finally {
+    } catch {
+      // Always show success regardless
+    } finally {
       setLoading(false);
       setSent(true);
     }
@@ -40,32 +29,29 @@ export default function ForgotPassword() {
     <AuthLayout
       icon={Mail}
       title="Reset password"
-      subtitle="We'll send you a link to reset your password"
+      subtitle="We'll send you a link to reset it"
       footer={
-        <Link to="/login" style={{ color: "#888", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13 }}>
-          <ArrowLeft style={{ width: 12, height: 12 }} /> Back to log in
+        <Link to="/login" className="text-primary font-medium hover:underline">
+          <ArrowLeft className="w-3 h-3 inline mr-1" />Back to log in
         </Link>
       }
     >
       {sent ? (
-        <div style={{ padding: "16px", borderRadius: 8, background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)", color: "#86efac", fontSize: 14, lineHeight: 1.6 }}>
-          If an account exists with that email, you'll receive a reset link shortly.
-        </div>
+        <p className="text-sm text-foreground text-center">
+          If an account exists with that email, you'll receive a password reset link shortly.
+        </p>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#888", marginBottom: 6 }}>Email address</label>
-            <input type="email" autoComplete="email" autoFocus placeholder="you@example.com"
-              value={email} onChange={e => setEmail(e.target.value)}
-              style={inputStyle} required
-              onFocus={e => e.target.style.borderColor = "#555"}
-              onBlur={e => e.target.style.borderColor = "#383838"} />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email address</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
+            </div>
           </div>
-          <button type="submit" disabled={loading}
-            style={{ width: "100%", height: 42, background: "#fff", color: "#111", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1, fontFamily: "Inter, sans-serif", transition: "opacity 150ms", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {loading ? <><Loader2 style={{ width: 15, height: 15, animation: "spin 0.6s linear infinite" }} />Sending…</> : "Send reset link"}
-          </button>
-          <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
+          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : "Send reset link"}
+          </Button>
         </form>
       )}
     </AuthLayout>

@@ -14,7 +14,7 @@ import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } f
 import { toast } from 'sonner';
 
 export const COLLAPSED_W = 54;
-export const EXPANDED_W  = 280;
+export const EXPANDED_W  = 240;
 export const SIDEBAR_MARGIN = 0;
 
 const SIDEBAR_TRANSITION = { duration: 0.26, ease: [0.4, 0, 0.2, 1] };
@@ -459,8 +459,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
-          background: '#0B0B0E',
-          borderRight: 'none',
+          background: '#0E0E0E',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: COLLAPSED_W,
         }}
@@ -566,6 +565,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             {!expanded && <div style={{ height: 6 }} />}
             <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
             <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />
+            <NavItem icon={User} label="Created by me" onClick={() => nav('/projects')} />
+            <NavItem icon={Users} label="Shared with me" onClick={() => nav('/projects')} />
           </div>
 
           {/* Recents */}
