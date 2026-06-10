@@ -179,6 +179,7 @@ export default function ChatPage() {
   const [runtimeError, setRuntimeError] = useState(null);
   const [pendingError, setPendingError] = useState(null);
   const [streamingThinking, setStreamingThinking] = useState('');
+  const [streamingRawCode, setStreamingRawCode] = useState('');
 
   const profileMenuRef = useRef(null);
   const abortedRef = useRef(false);
@@ -426,6 +427,7 @@ export default function ChatPage() {
       }
 
       // ── Orchestrated generation ──
+      setStreamingRawCode(''); // reset for new generation
       const orchResult = await orchestrateGeneration(text, {
         existingCode: isModification ? ficheContent : null,
         userMessageIndex,
@@ -448,6 +450,7 @@ export default function ChatPage() {
       // Apply client-side code formatter
       const { thinking: llmThinking, code: cleanCode } = splitThinkingFromCode(finalRawCode);
       const formattedCode = formatCode(cleanCode || finalRawCode);
+      setStreamingRawCode(formattedCode); // make code available for Building box
 
       // Wrap in code fence if not already
       let codeOnly = formattedCode;
@@ -491,6 +494,7 @@ export default function ChatPage() {
 
       setIsLoading(false);
       setStreamingThinking('');
+      setStreamingRawCode('');
       if (!discussMode) setFicheContent(rawContent);
 
       const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent }];
@@ -737,6 +741,7 @@ export default function ChatPage() {
                     setFicheContent={setFicheContent}
                     setViewMode={setViewMode}
                     streamingThinking={streamingThinking}
+                    streamingRawCode={streamingRawCode}
                   />
                   <div className="flex-shrink-0">
                     <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />

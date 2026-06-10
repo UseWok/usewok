@@ -4,7 +4,7 @@ import AssistantMessage from './AssistantMessage';
 import UserMessageBubble from './UserMessageBubble';
 import InsufficientPromptBubble from './InsufficientPromptBubble';
 
-export default function MessageList({ messages, isLoading, currentQuery, setFicheContent, setViewMode, streamingThinking }) {
+export default function MessageList({ messages, isLoading, currentQuery, setFicheContent, setViewMode, streamingThinking, streamingRawCode }) {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function MessageList({ messages, isLoading, currentQuery, setFich
           }
           return <UserMessageBubble key={idx} msg={msg} />;
         })}
-        {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} streamingThinking={streamingThinking} />}
+        {isLoading && <AssistantMessage content={null} isGenerating={true} query={currentQuery} streamingThinking={streamingThinking} streamingRawCode={streamingRawCode} />}
       </div>
       <div ref={messagesEndRef} className="h-1" />
     </div>
