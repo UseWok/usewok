@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check, SlidersHorizontal, Sparkles, Globe, Loader2,
 } from 'lucide-react';
+import BuildCard from '../components/BuildCard';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
@@ -63,12 +64,12 @@ function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: -6, scale: 0.97 }}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: 'calc(100% + 8px)', left: 0,
         background: '#1C1C1C', border: '1px solid #2A2A2A',
         borderRadius: 14, padding: '5px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
@@ -81,11 +82,11 @@ function HomeModelMenu({ selectedModel, setSelectedModel, onClose }) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           width: '100%', minHeight: 64, padding: '12px 11px', border: 'none',
-          background: selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+          background: selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent',
           borderRadius: 9, cursor: 'pointer', textAlign: 'left', gap: 8, marginBottom: 2,
         }}
         onMouseEnter={e => { if (selectedModel !== 'Automatic') e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = selectedModel === 'Automatic' ? 'rgba(255,255,255,0.07)' : 'transparent'; }}
       >
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Automatic</div>
@@ -132,12 +133,12 @@ function HomeEnhanceMenu({ onEnhance, isEnhancing, webSearch, setWebSearch, onCl
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: -6, scale: 0.97 }}
+      initial={{ opacity: 0, y: 6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: 'calc(100% + 8px)', left: 0,
         background: '#1C1C1C', border: '1px solid #2A2A2A',
         borderRadius: 14, padding: '5px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.7)', zIndex: 9999,
@@ -250,112 +251,7 @@ function BuildModeMenu({ mode, setMode, onClose }) {
 }
 
 
-// ── Real Project Card ──
 
-function ProjectCardSkeleton() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, background: '#F5F5F5', display: 'flex', flexDirection: 'column', padding: 14, gap: 8 }}>
-      {/* Nav skeleton */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-        <div style={{ height: 8, width: 50, background: '#E0E0E0', borderRadius: 4 }} />
-        <div style={{ height: 8, width: 60, background: '#E8E8E8', borderRadius: 4 }} />
-        <div style={{ height: 8, width: 40, background: '#E8E8E8', borderRadius: 4 }} />
-      </div>
-      {/* Hero title skeleton */}
-      <div style={{ height: 14, width: '80%', background: '#D8D8D8', borderRadius: 4, marginTop: 6 }} />
-      <div style={{ height: 14, width: '65%', background: '#D8D8D8', borderRadius: 4 }} />
-      {/* Sub text */}
-      <div style={{ height: 8, width: '90%', background: '#E8E8E8', borderRadius: 4, marginTop: 4 }} />
-      <div style={{ height: 8, width: '70%', background: '#EBEBEB', borderRadius: 4 }} />
-      {/* CTA */}
-      <div style={{ height: 22, width: 70, background: '#333', borderRadius: 6, marginTop: 8 }} />
-    </div>
-  );
-}
-
-function ProjectCard({ conv, user, onClick }) {
-  const [previewLoaded, setPreviewLoaded] = useState(false);
-  const [previewError, setPreviewError] = useState(false);
-  const previewUrl = conv.conv_id ? `https://wok.base44.app/tools/${conv.conv_id}` : null;
-  const hasRawContent = !!(conv.raw_content);
-
-  const timeAgo = (dateStr) => {
-    if (!dateStr) return 'Edited recently';
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    if (mins < 2) return 'Edited just now';
-    if (mins < 60) return `Edited ${mins} min ago`;
-    if (hours < 24) return `Edited ${hours}h ago`;
-    return `Edited ${days}d ago`;
-  };
-
-  const initial = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U';
-  const displayTitle = conv.ai_title || conv.title || 'Untitled build';
-
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        borderRadius: 16, overflow: 'hidden',
-        border: '1px solid rgba(255,255,255,0.08)',
-        background: '#1A1A1A',
-        cursor: 'pointer',
-        transition: 'border-color 140ms, transform 140ms, box-shadow 140ms',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.4)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-    >
-      {/* Preview area — white bg to look like real app */}
-      <div style={{ height: 180, background: '#fff', position: 'relative', overflow: 'hidden' }}>
-        {previewUrl && !previewError ? (
-          <>
-            {/* Show skeleton until iframe loads */}
-            {!previewLoaded && <ProjectCardSkeleton />}
-            <iframe
-              src={previewUrl}
-              style={{
-                width: '300%', height: '300%', border: 'none',
-                transform: 'scale(0.333)', transformOrigin: '0 0',
-                pointerEvents: 'none',
-                opacity: previewLoaded ? 1 : 0,
-                transition: 'opacity 300ms',
-              }}
-              onLoad={() => setPreviewLoaded(true)}
-              onError={() => setPreviewError(true)}
-              title={displayTitle}
-              sandbox="allow-scripts allow-same-origin"
-            />
-          </>
-        ) : (
-          <ProjectCardSkeleton />
-        )}
-      </div>
-
-      {/* Footer info */}
-      <div style={{ padding: '12px 14px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* Avatar */}
-        <div style={{
-          width: 34, height: 34, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #F95738, #7B4FE0)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0,
-        }}>
-          {initial}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {displayTitle}
-          </p>
-          <p style={{ fontSize: 11, color: '#666', margin: '2px 0 0' }}>
-            {timeAgo(conv.updatedAt || conv.updated_date)}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 
 export default function Home() {
@@ -675,7 +571,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, paddingBottom: 4 }}>
             {projects.length > 0 ? (
               projects.map(p => (
-                <ProjectCard key={p.id} conv={p} user={user} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
+                <BuildCard key={p.id} conv={p} user={user} onClick={() => navigate(`/chat?conversationId=${p.id}`)} />
               ))
             ) : (
               ['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
