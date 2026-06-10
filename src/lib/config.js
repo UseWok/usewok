@@ -1,49 +1,53 @@
 /**
  * lib/config.js
- * Central configuration for the AI Builder pipeline.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Central configuration constants for the WOK platform.
+ *
+ * BASE44 CONTRACT:
+ *  - All LLM calls go through base44.integrations.Core.InvokeLLM — no direct API calls.
+ *  - Model name strings must match exactly what Base44 accepts.
+ *  - Rate limiting is enforced server-side via Generation entity query counts.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
-export const AI_CONFIG = {
-  // ── Cache ──
-  CACHE_TTL_MINUTES: 30,
-  MAX_FILES_TO_READ: 5,
-  MAX_ENTITY_SCHEMAS: 20,
-  MAX_STORAGE_MB: 10,
-  STORAGE_EVICTION_THRESHOLD_MB: 8,
+// ── LLM Model identifiers (exact Base44 strings — do NOT change) ──────────────
+export const MODELS = {
+  DEFAULT:    'gpt_5_mini',      // cheapest, fastest — use for classification/safety
+  SMART:      'gpt_5_4',         // balanced quality for standard generation
+  PRO:        'gemini_3_1_pro',  // deep reasoning, long-context modifications
+  AUTO:       'automatic',       // Base44 picks best model per request
+};
 
-  // ── Fake streaming — accelerated for snappy UX ──
-  STREAMING_TOKEN_DELAY_MS: 15,
-  STREAMING_TOKENS_PER_FRAME: 18,   // accelerated: ~18 tokens per rAF tick
-  THINKING_RATIO: 0.3,
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+export const RATE_LIMIT = {
+  GENERATIONS_PER_HOUR: 50,   // max generations per user per rolling hour
+  MESSAGES_PER_DAY_FREE: 5,   // free plan daily cap
+  MESSAGES_PER_MONTH_FREE: 25,
+};
 
-  // ── Model routing matrix ──
-  // automatic    → gpt-4o-mini  : filter (msgs 1-3), extraction, autofix
-  // gpt_5_mini   → default tasks, simple modifications
-  // gemini_3_flash → web search
-  // gemini_3_1_pro → new builds + complex modifications
-  MODELS: {
-    filter:      'automatic',       // gpt-4o-mini — spam/safety (disabled after msg 4)
-    extraction:  'automatic',       // gpt-4o-mini — surgical code extractor
-    fileRead:    'automatic',       // gpt-4o-mini — file & image analysis
-    autofix:     'automatic',       // gpt-4o-mini — targeted error correction ONLY
-    webBrowse:   'gemini_3_flash',  // web search
-    default:     'gpt_5_mini',      // general tasks + simple modifications
-    build:       'gemini_3_1_pro',  // new builds + complex modifications
-    // Legacy aliases
-    validation:  'automatic',
-    structuring: 'gpt_5_mini',
-    generation:  'gemini_3_1_pro',
-  },
+// ── Security scoring thresholds ───────────────────────────────────────────────
+export const SECURITY = {
+  CLEAN_THRESHOLD:   70,  // score >= 70 → "clean"
+  FLAGGED_THRESHOLD: 40,  // score 40–69 → "flagged" (warn but allow)
+  BLOCKED_THRESHOLD: 0,   // score < 40 → "blocked"
+  MAX_VIOLATIONS_BEFORE_BLOCK: 3,
+};
 
-  // ── Spam filter disabled after this many user messages ──
-  SPAM_FILTER_DISABLE_AFTER: 4,
+// ── Context retrieval limits ──────────────────────────────────────────────────
+export const CONTEXT = {
+  MAX_HISTORY_MESSAGES:   50,   // last N generation records to load
+  MAX_PROJECT_GENS:       10,   // recent gens per project for context
+  PROMPT_COMPRESSION_MAX: 4000, // chars — telegraphic prompt cap
+};
 
-  // ── Timeouts (ms) ──
-  TIMEOUTS: {
-    context:    5000,
-    validation: 10000,
-    generation: 30000,
-  },
+// ── Sidebar dimensions ────────────────────────────────────────────────────────
+export const SIDEBAR = {
+  COLLAPSED_W: 54,
+  EXPANDED_W:  280,
+};
 
-  CACHE_KEY_PREFIX: 'aibuilder_context_',
+// ── Skeleton loading delays (ms) ─────────────────────────────────────────────
+export const SKELETON = {
+  MIN_DISPLAY_MS: 400,   // min time to show skeleton (avoid flash)
+  STAGGER_MS:     60,    // stagger between skeleton rows
 };
