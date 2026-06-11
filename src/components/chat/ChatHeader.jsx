@@ -225,11 +225,8 @@ export default function ChatHeader({
         {/* ── LEFT: WOK logo + project name + panel toggle ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px 0 12px', flexShrink: 0 }}>
           {/* WOK logo */}
-          <div style={{
-            width: 22, height: 22, borderRadius: 6,
-            background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 9, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', flexShrink: 0,
-          }}>W</div>
+          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK"
+            style={{ width: 36, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }} />
 
           {/* Project name */}
           <div ref={projectAreaRef} style={{ position: 'relative' }}>
@@ -357,19 +354,19 @@ export default function ChatHeader({
             Upgrade
           </button>
 
-          {/* Publish */}
+          {/* Publish — blue matching credit bar #2563EB */}
           <button onClick={onPublish} style={{
             display: 'flex', alignItems: 'center', height: 27, padding: '0 12px',
             border: 'none', borderRadius: 7, cursor: 'pointer',
-            background: '#F95738', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0,
+            background: '#2563EB', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#e04a2e'}
-            onMouseLeave={e => e.currentTarget.style.background = '#F95738'}
+            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
+            onMouseLeave={e => e.currentTarget.style.background = '#2563EB'}
           >
             Publish
           </button>
 
-          {/* History button — far right of header */}
+          {/* History button — LAST on the right of toolbar */}
           <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
           <button
             title={showHistory ? 'Hide versions' : 'Show versions'}

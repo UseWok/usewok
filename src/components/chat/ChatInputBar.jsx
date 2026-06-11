@@ -528,7 +528,7 @@ export default function ChatInputBar({
       </AnimatePresence>
 
       {/* ── Main input card ── */}
-      <div style={{ background: '#242424', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, overflow: 'visible', position: 'relative' }}>
+      <div style={{ background: '#242424', border: '1.5px solid rgba(255,255,255,0.10)', borderRadius: 22, overflow: 'visible', position: 'relative' }}>
 
         <AnimatePresence mode="wait">
           {isRecording ? (
@@ -635,11 +635,11 @@ export default function ChatInputBar({
                 <button
                   onClick={() => setShowBuildMenu(v => !v)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                     height: 30, padding: '0 10px', borderRadius: 999, border: 'none',
                     background: 'rgba(255,255,255,0.10)', cursor: 'pointer',
                     fontSize: 12, fontWeight: 500, color: '#fff', transition: 'background 120ms',
-                  }}
+                    }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                 >

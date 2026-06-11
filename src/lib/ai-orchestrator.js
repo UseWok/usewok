@@ -31,7 +31,7 @@ export const MODELS = {
   WEB_BROWSE:  'gemini_3_flash',     // web search tasks
   DEFAULT:     'gpt_5_mini',         // all general tasks + simple modifications
   BUILD:       'gemini_3_1_pro',     // Flash: new builds + complex modifications
-  BUILD_MAX:   'claude_sonnet_4_6',  // Max mode: new builds only
+  BUILD_MAX:   'claude_sonnet_4_6',  // Max mode: Sonnet 4.6 exclusively
 };
 
 // ─────────────────────────────────────────────
