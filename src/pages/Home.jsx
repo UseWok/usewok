@@ -191,7 +191,7 @@ export default function Home() {
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
       {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 40px', minHeight: '65vh' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 60px', minHeight: '65vh' }}>
 
         {/* Pill */}
         <div style={{
@@ -241,7 +241,7 @@ export default function Home() {
       </div>
 
       {/* ── My Builds section ── */}
-      <div style={{ padding: '0 20px 24px' }}>
+      <div style={{ padding: '0 20px 32px', marginTop: 24 }}>
         <div style={{
           background: 'rgba(15,15,15,0.88)',
           backdropFilter: 'blur(20px)',

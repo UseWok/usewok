@@ -13,7 +13,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Mic, MicOff, ChevronDown, Check, Lock, Upload } from 'lucide-react';
+import { ArrowUp, X, FileText, Mic, MicOff, ChevronDown, Check, Lock, Upload, Plus } from 'lucide-react';
 import { getBuildMode, setBuildMode as setGlobalBuildMode } from '@/lib/build-mode-store';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -38,40 +38,31 @@ const SparkleIcon = ({ size = 16 }) => (
   </svg>
 );
 
-/** Standard = img2 (be26ef948 — colorful sparkle) */
-const StandardLogo = ({ size = 16 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png"
-    alt="Standard"
-    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }}
-  />
+// ── Unified logo size: all AI logos render in a fixed 16×16 container ──
+const LOGO_SIZE = 16;
+
+/** Standard = img2 */
+const StandardLogo = ({ size = LOGO_SIZE }) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
+    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png" alt="Standard"
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+  </span>
 );
 
-/** Max = img3 (0e46ff93c — coral asterisk, transparent) */
-const MaxLogo = ({ size = 16 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png"
-    alt="Max"
-    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }}
-  />
+/** Max = img3 */
+const MaxLogo = ({ size = LOGO_SIZE }) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
+    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png" alt="Max"
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+  </span>
 );
 
-/** Google G = img1 (3a327ee44) */
-const GoogleGLogo = ({ size = 16 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/3a327ee44_image.png"
-    alt="Google"
-    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }}
-  />
-);
-
-/** AI Sparkle button icon = img2 (be26ef948) */
-const SparkleBtnIcon = ({ size = 16 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png"
-    alt="AI Sparkle"
-    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
-  />
+/** Google G = img1 */
+const GoogleGLogo = ({ size = LOGO_SIZE }) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
+    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/3a327ee44_image.png" alt="Google"
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+  </span>
 );
 
 // ─────────────────────────────────────────────────────────────────
@@ -178,27 +169,27 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
       <button
         onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}
         style={{
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-          width: '100%', padding: '12px 14px', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '8px 12px', border: 'none',
           background: buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
         onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginTop: 1 }}>
-            <StandardLogo size={14} />
-            <MaxLogo size={14} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <StandardLogo />
+            <MaxLogo />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
-            <div style={{ fontSize: 11, fontWeight: 400, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
-              The best AI model is selected for each request.
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Automatic</div>
+            <div style={{ fontSize: 11, fontWeight: 400, color: '#555', lineHeight: 1.3 }}>
+              Best model selected per request.
             </div>
           </div>
         </div>
-        {buildMode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
+        {buildMode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
       </button>
 
       <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
@@ -208,7 +199,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '9px 14px', border: 'none',
+          width: '100%', padding: '7px 12px', border: 'none',
           background: buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
@@ -216,7 +207,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <StandardLogo size={16} />
+          <StandardLogo />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
         </span>
         {buildMode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
@@ -227,7 +218,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '9px 14px', border: 'none',
+          width: '100%', padding: '7px 12px', border: 'none',
           background: buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
@@ -235,7 +226,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MaxLogo size={16} />
+          <MaxLogo />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
           <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 999, padding: '1px 7px' }}>NEW</span>
         </span>
@@ -271,13 +262,13 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      {/* Enhance prompt — 2x height */}
+      {/* Enhance prompt */}
       <button
         onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }}
         disabled={isEnhancing}
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 10,
-          width: '100%', padding: '12px 14px', border: 'none',
+          width: '100%', padding: '8px 12px', border: 'none',
           background: 'transparent', borderRadius: 10,
           cursor: isEnhancing ? 'wait' : 'pointer', textAlign: 'left',
           fontFamily: 'Inter, sans-serif', opacity: isEnhancing ? 0.6 : 1,
@@ -303,7 +294,7 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
         onClick={() => importRef.current?.click()}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          width: '100%', padding: '9px 14px', border: 'none',
+          width: '100%', padding: '7px 12px', border: 'none',
           background: 'transparent', borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
@@ -318,7 +309,7 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
         onClick={() => { onToggleSearch?.(); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '9px 14px', border: 'none',
+          width: '100%', padding: '7px 12px', border: 'none',
           background: searchActive ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
@@ -587,7 +578,7 @@ export default function ChatInputBar({
 
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
 
-          {/* ── LEFT: AI Settings action button — white bg, isolated ── */}
+          {/* ── LEFT: AI Settings action button — same style as mic button ── */}
           {!isRecording && (
             <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
               <button
@@ -595,18 +586,16 @@ export default function ChatInputBar({
                 title="AI Settings"
                 style={{
                   width: 30, height: 30, borderRadius: 999,
-                  background: showAIMenu ? '#fff' : 'rgba(255,255,255,0.92)',
+                  background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
                   border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, transition: 'opacity 120ms',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                  opacity: isEnhancing ? 0.7 : 1,
+                  flexShrink: 0, transition: 'background 120ms',
+                  opacity: isEnhancing ? 0.6 : 1,
                 }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
               >
-                {/* Dark version of sparkle for white bg */}
-                <SparkleIcon size={15} />
+                <Plus style={{ width: 14, height: 14, color: '#fff' }} />
               </button>
               <AnimatePresence>
                 {showAIMenu && (

@@ -61,10 +61,42 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
+  const BORDER_COLOR = '#0E0E0E';
+  const BORDER_W = 6;
 
   return (
     <div style={{ minHeight: '100vh', background: '#1F1F1F', display: 'flex' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
+
+      {/* Top border — extends from right edge of sidebar to right */}
+      {!isMobile && (
+        <motion.div
+          animate={{ left: sidebarOffset }}
+          transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+          style={{
+            position: 'fixed', top: 0, right: 0, height: BORDER_W,
+            background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
+          }}
+        />
+      )}
+      {/* Right border */}
+      {!isMobile && (
+        <div style={{
+          position: 'fixed', top: 0, right: 0, width: BORDER_W, bottom: 0,
+          background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
+        }} />
+      )}
+      {/* Bottom border */}
+      {!isMobile && (
+        <motion.div
+          animate={{ left: sidebarOffset }}
+          transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+          style={{
+            position: 'fixed', bottom: 0, right: 0, height: BORDER_W,
+            background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
+          }}
+        />
+      )}
 
       <motion.main
         style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative' }}

@@ -201,13 +201,13 @@ export default function ChatHeader({
 
   const btnBase = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    border: 'none', background: 'transparent', cursor: 'pointer',
+    border: 'none', background: 'rgba(255,255,255,0.07)', cursor: 'pointer',
     borderRadius: 6, transition: 'background 120ms', flexShrink: 0,
-    color: '#666', fontFamily: 'Inter, sans-serif',
+    color: '#fff', fontFamily: 'Inter, sans-serif',
   };
 
   const activeTab = viewMode === 'analytics' ? 'analytics' : viewMode === 'preview' ? 'preview' : 'more';
-  const HEADER_BG = '#181818';
+  const HEADER_BG = '#1F1F1F';
 
   return (
     <>
@@ -311,8 +311,8 @@ export default function ChatHeader({
           {/* Refresh */}
           <button title="Refresh preview" onClick={onRefresh}
             style={{ ...btnBase, width: 26, height: 26 }}
-            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
           >
             <RefreshCw style={{ width: 13, height: 13 }} />
           </button>
@@ -321,9 +321,9 @@ export default function ChatHeader({
           <button
             title={mobilePreview ? 'Desktop view' : 'Mobile view'}
             onClick={() => setMobilePreview && setMobilePreview(v => !v)}
-            style={{ ...btnBase, width: 26, height: 26, background: mobilePreview ? '#2A2A2A' : 'transparent' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-            onMouseLeave={e => e.currentTarget.style.background = mobilePreview ? '#2A2A2A' : 'transparent'}
+            style={{ ...btnBase, width: 26, height: 26, background: mobilePreview ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+            onMouseLeave={e => e.currentTarget.style.background = mobilePreview ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}
           >
             {mobilePreview ? <Monitor style={{ width: 13, height: 13 }} /> : <Smartphone style={{ width: 13, height: 13 }} />}
           </button>
@@ -374,9 +374,9 @@ export default function ChatHeader({
           <button
             title={showHistory ? 'Hide versions' : 'Show versions'}
             onClick={() => setShowHistory && setShowHistory(v => !v)}
-            style={{ ...btnBase, width: 26, height: 26, background: showHistory ? '#2A2A2A' : 'transparent' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-            onMouseLeave={e => e.currentTarget.style.background = showHistory ? '#2A2A2A' : 'transparent'}
+            style={{ ...btnBase, width: 26, height: 26, background: showHistory ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+            onMouseLeave={e => e.currentTarget.style.background = showHistory ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}
           >
             <HistoryIcon />
           </button>

@@ -81,7 +81,7 @@ function ChatGutter() {
         width: 2, height: '100%', borderRadius: 1,
         background: hovered
           ? 'linear-gradient(180deg, transparent 0%, #F95738 40%, #F95738 60%, transparent 100%)'
-          : 'linear-gradient(180deg, transparent 0%, #2A2A2A 30%, #2A2A2A 70%, transparent 100%)',
+          : 'linear-gradient(180deg, transparent 0%, #333 30%, #333 70%, transparent 100%)',
         boxShadow: hovered ? '0 0 8px rgba(249,87,56,0.5)' : 'none',
         transition: 'background 200ms, box-shadow 200ms',
         pointerEvents: 'none',
@@ -648,7 +648,7 @@ export default function ChatPage() {
   return (
     <div
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
-      style={{ backgroundColor: '#181818' }}>
+      style={{ backgroundColor: '#1F1F1F' }}>
 
       <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
 
@@ -683,12 +683,12 @@ export default function ChatPage() {
       <div
         ref={containerRef}
         className="flex w-full h-full overflow-hidden"
-        style={{ background: '#181818' }}>
+        style={{ background: '#1F1F1F' }}>
 
         <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
-            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#181818', position: 'relative' }}>
+            <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#1F1F1F', position: 'relative' }}>
 
               {/* ── Chat top bar: sidebar toggle (left) + history clock (right) ── */}
               <div style={{
@@ -704,12 +704,12 @@ export default function ChatPage() {
                   onClick={() => setIsSidebarOpen(v => !v)}
                   style={{
                     width: 28, height: 28, borderRadius: 7, border: 'none',
-                    background: isSidebarOpen ? '#2A2A2A' : 'transparent',
+                    background: isSidebarOpen ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#666', transition: 'background 120ms, color 120ms',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#2A2A2A'; e.currentTarget.style.color = '#aaa'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isSidebarOpen ? '#2A2A2A' : 'transparent'; e.currentTarget.style.color = '#666'; }}
+                    color: '#fff', transition: 'background 120ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+                    onMouseLeave={e => e.currentTarget.style.background = isSidebarOpen ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
@@ -722,12 +722,12 @@ export default function ChatPage() {
                   onClick={() => setShowHistory(v => !v)}
                   style={{
                     width: 28, height: 28, borderRadius: 7, border: 'none',
-                    background: showHistory ? '#2A2A2A' : 'transparent',
+                    background: showHistory ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: showHistory ? '#ccc' : '#555', transition: 'background 120ms, color 120ms',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#2A2A2A'; e.currentTarget.style.color = '#aaa'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = showHistory ? '#2A2A2A' : 'transparent'; e.currentTarget.style.color = showHistory ? '#ccc' : '#555'; }}
+                    color: '#fff', transition: 'background 120ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+                    onMouseLeave={e => e.currentTarget.style.background = showHistory ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -782,7 +782,7 @@ export default function ChatPage() {
           {chatVisible && <ChatGutter />}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#181818' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#1F1F1F' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
