@@ -23,52 +23,52 @@ import { toast } from 'sonner';
 // ─────────────────────────────────────────────────────────────────
 
 /** Colorful 4-point sparkle star (AI settings button icon) */
-const SparkleIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+const SparkleIcon = ({ size = 16 }) =>
+<svg width={size} height={size} viewBox="0 0 100 100" fill="none">
     <defs>
       <linearGradient id="sg1" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#EF4444"/>
-        <stop offset="33%" stopColor="#3B82F6"/>
-        <stop offset="66%" stopColor="#22C55E"/>
-        <stop offset="100%" stopColor="#EAB308"/>
+        <stop offset="0%" stopColor="#EF4444" />
+        <stop offset="33%" stopColor="#3B82F6" />
+        <stop offset="66%" stopColor="#22C55E" />
+        <stop offset="100%" stopColor="#EAB308" />
       </linearGradient>
     </defs>
-    <path d="M50 2 C50 2 53 38 70 50 C53 62 50 98 50 98 C50 98 47 62 30 50 C47 38 50 2 50 2Z" fill="url(#sg1)"/>
-    <path d="M2 50 C2 50 38 47 50 30 C62 47 98 50 98 50 C98 50 62 53 50 70 C38 53 2 50 2 50Z" fill="url(#sg1)"/>
-  </svg>
-);
+    <path d="M50 2 C50 2 53 38 70 50 C53 62 50 98 50 98 C50 98 47 62 30 50 C47 38 50 2 50 2Z" fill="url(#sg1)" />
+    <path d="M2 50 C2 50 38 47 50 30 C62 47 98 50 98 50 C98 50 62 53 50 70 C38 53 2 50 2 50Z" fill="url(#sg1)" />
+  </svg>;
+
 
 /** Coral asterisk — Standard model logo */
-const StandardLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+const StandardLogo = ({ size = 16 }) =>
+<svg width={size} height={size} viewBox="0 0 100 100" fill="none">
     <g transform="translate(50,50)">
-      {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => (
-        <rect key={i} x="-5" y="-42" width="10" height="30" rx="5"
-          fill="#E8694A"
-          transform={`rotate(${deg})`}
-        />
-      ))}
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) =>
+    <rect key={i} x="-5" y="-42" width="10" height="30" rx="5"
+    fill="#E8694A"
+    transform={`rotate(${deg})`} />
+
+    )}
     </g>
-  </svg>
-);
+  </svg>;
+
 
 /** Orange double-chevron arrow — Max model logo */
-const MaxLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 60" fill="none">
-    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738"/>
-    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738"/>
-  </svg>
-);
+const MaxLogo = ({ size = 16 }) =>
+<svg width={size} height={size} viewBox="0 0 100 60" fill="none">
+    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738" />
+    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738" />
+  </svg>;
+
 
 /** Google multicolor G logo */
-const GoogleGLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-  </svg>
-);
+const GoogleGLogo = ({ size = 16 }) =>
+<svg width={size} height={size} viewBox="0 0 24 24">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+  </svg>;
+
 
 // ─────────────────────────────────────────────────────────────────
 // WAVEFORM (audio recording visualizer)
@@ -84,7 +84,7 @@ function LiveWaveform({ analyserRef }) {
     const draw = () => {
       rafRef.current = requestAnimationFrame(draw);
       const analyser = analyserRef.current;
-      const W = canvas.width, H = canvas.height;
+      const W = canvas.width,H = canvas.height;
       ctx.clearRect(0, 0, W, H);
       const barW = W / BAR_COUNT;
       if (analyser) {
@@ -94,21 +94,21 @@ function LiveWaveform({ analyserRef }) {
         for (let i = 0; i < BAR_COUNT; i++) {
           if (maxVal < 5) {
             ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1); ctx.fill();
+            ctx.beginPath();ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);ctx.fill();
           } else {
             const center = BAR_COUNT / 2;
             const dist = Math.abs(i - center) / center;
             const mirrorIdx = Math.floor(dist * (data.length / 2));
-            const val = (data[mirrorIdx] / 255) * Math.pow(1 - dist, 1.5);
+            const val = data[mirrorIdx] / 255 * Math.pow(1 - dist, 1.5);
             const barH = Math.max(2, val * H * 0.9);
             ctx.fillStyle = `rgba(255,255,255,${0.25 + val * 0.75})`;
-            ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 2); ctx.fill();
+            ctx.beginPath();ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 2);ctx.fill();
           }
         }
       } else {
         for (let i = 0; i < BAR_COUNT; i++) {
           ctx.fillStyle = 'rgba(255,255,255,0.1)';
-          ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1); ctx.fill();
+          ctx.beginPath();ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);ctx.fill();
         }
       }
     };
@@ -124,7 +124,7 @@ function LiveWaveform({ analyserRef }) {
 function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade }) {
   const ref = useRef(null);
   useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    const h = (e) => {if (ref.current && !ref.current.contains(e.target)) onClose();};
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
@@ -141,21 +141,21 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
         position: 'absolute', top: 'calc(100% + 6px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
         borderRadius: 12, padding: '4px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
-      }}
-    >
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999
+      }}>
+      
       {/* ── Automatic — large 2x row with subtitle ── */}
       <button
-        onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}
+        onClick={() => {setBuildMode('Automatic');setDiscussMode?.(false);onClose();}}
         style={{
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
           width: '100%', padding: '12px 14px', border: 'none',
           background: buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
+          borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}>
+        
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
           <div style={{ fontSize: 11, fontWeight: 400, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
@@ -170,16 +170,16 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
 
       {/* ── Standard — thin row with logo ── */}
       <button
-        onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}
+        onClick={() => {setBuildMode('Flash');setDiscussMode?.(false);onClose();}}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           width: '100%', padding: '9px 14px', border: 'none',
           background: buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif'
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}>
+        
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <StandardLogo size={16} />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
@@ -189,16 +189,16 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
 
       {/* ── Max — thin row with logo + NEW badge ── */}
       <button
-        onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}
+        onClick={() => {setBuildMode('Max');setDiscussMode?.(false);onClose();}}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           width: '100%', padding: '9px 14px', border: 'none',
           background: buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif'
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}>
+        
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MaxLogo size={16} />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
@@ -206,8 +206,8 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
         </span>
         {buildMode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
       </button>
-    </motion.div>
-  );
+    </motion.div>);
+
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEn
   const ref = useRef(null);
   const importRef = useRef(null);
   useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    const h = (e) => {if (ref.current && !ref.current.contains(e.target)) onClose();};
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
@@ -235,23 +235,23 @@ function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEn
         position: 'absolute', top: 'calc(100% + 6px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
         borderRadius: 12, padding: '4px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
-      }}
-    >
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999
+      }}>
+      
       {/* ── Enhance prompt — 2x height ── */}
       <button
-        onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }}
+        onClick={() => {if (!isEnhancing) {onEnhance?.();onClose();}}}
         disabled={isEnhancing}
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 10,
           width: '100%', padding: '12px 14px', border: 'none',
           background: 'transparent', borderRadius: 8,
           cursor: isEnhancing ? 'wait' : 'pointer', textAlign: 'left',
-          fontFamily: 'Inter, sans-serif', opacity: isEnhancing ? 0.6 : 1,
+          fontFamily: 'Inter, sans-serif', opacity: isEnhancing ? 0.6 : 1
         }}
-        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
+        onMouseEnter={(e) => {if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';}}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+        
         {/* Colorful sparkle icon */}
         <div style={{ flexShrink: 0, marginTop: 2 }}>
           <SparkleIcon size={18} />
@@ -273,40 +273,40 @@ function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEn
         multiple
         accept="image/*,application/pdf,.txt,.csv,.json,.md"
         style={{ display: 'none' }}
-        onChange={(e) => { onImportFile?.(e); onClose(); }}
-      />
+        onChange={(e) => {onImportFile?.(e);onClose();}} />
+      
       <button
         onClick={() => importRef.current?.click()}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
           width: '100%', padding: '9px 14px', border: 'none',
           background: 'transparent', borderRadius: 8, cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'Inter, sans-serif'
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
+        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+        
         <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
       </button>
 
       {/* ── Search Google — standard height, Google G logo ── */}
       <button
-        onClick={() => { onSearchGoogle?.(); onClose(); }}
+        onClick={() => {onSearchGoogle?.();onClose();}}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
           width: '100%', padding: '9px 14px', border: 'none',
           background: 'transparent', borderRadius: 8, cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'Inter, sans-serif'
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
+        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+        
         <div style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></div>
         <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
       </button>
-    </motion.div>
-  );
+    </motion.div>);
+
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -325,14 +325,14 @@ function ToolbarBtn({ onClick, title, children, active = false, style: extraStyl
         cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0, transition: 'background 120ms',
-        ...extraStyle,
+        ...extraStyle
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
-    >
+      onMouseEnter={(e) => {if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.18)';}}
+      onMouseLeave={(e) => {if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.10)';}}>
+      
       {children}
-    </button>
-  );
+    </button>);
+
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -344,14 +344,14 @@ export default function ChatInputBar({
   discussMode, setDiscussMode, editMode, setEditMode,
   onUpgrade,
   locked = false,
-  buildMode: externalBuildMode,
+  buildMode: externalBuildMode
 }) {
   // Build mode: 'Automatic' | 'Flash' | 'Max'
   const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
   useEffect(() => {
     if (externalBuildMode && externalBuildMode !== buildMode) setBuildModeLocal(externalBuildMode);
   }, [externalBuildMode]);
-  const setBuildMode = (mode) => { setBuildModeLocal(mode); setGlobalBuildMode(mode); };
+  const setBuildMode = (mode) => {setBuildModeLocal(mode);setGlobalBuildMode(mode);};
 
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [showAIMenu, setShowAIMenu] = useState(false);
@@ -361,7 +361,7 @@ export default function ChatInputBar({
   const [editActivating, setEditActivating] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
 
-  const fileInputRef = useRef(null);  // for direct attach (existing)
+  const fileInputRef = useRef(null); // for direct attach (existing)
   const textareaRef = useRef(null);
   const buildMenuRef = useRef(null);
   const aiMenuRef = useRef(null);
@@ -385,10 +385,10 @@ export default function ChatInputBar({
   // Paste image/pdf handler
   const handlePaste = useCallback((e) => {
     const items = Array.from(e.clipboardData?.items || []);
-    const media = items.filter(it => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf'));
+    const media = items.filter((it) => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf'));
     if (!media.length) return;
     e.preventDefault();
-    setFiles(p => [...(p || []), ...media.map(it => { const f = it.getAsFile(); return { file: f, name: f.name || 'pasted', url: URL.createObjectURL(f), type: f.type }; })]);
+    setFiles((p) => [...(p || []), ...media.map((it) => {const f = it.getAsFile();return { file: f, name: f.name || 'pasted', url: URL.createObjectURL(f), type: f.type };})]);
   }, [setFiles]);
   useEffect(() => {
     document.addEventListener('paste', handlePaste);
@@ -413,11 +413,11 @@ export default function ChatInputBar({
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
       const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
-      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      recorder.ondataavailable = (e) => {if (e.data.size > 0) chunksRef.current.push(e.data);};
       recorder.start(100);
       setIsRecording(true);
       setRecordingDuration(0);
-      timerRef.current = setInterval(() => setRecordingDuration(d => d + 1), 1000);
+      timerRef.current = setInterval(() => setRecordingDuration((d) => d + 1), 1000);
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setMicDenied(true);
@@ -428,7 +428,7 @@ export default function ChatInputBar({
 
   const stopStream = () => {
     clearInterval(timerRef.current);
-    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     audioCtxRef.current?.close();
     audioCtxRef.current = null;
@@ -436,11 +436,11 @@ export default function ChatInputBar({
   };
   const handleDiscardRecording = () => {
     if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream(); setIsRecording(false); setRecordingDuration(0); chunksRef.current = [];
+    stopStream();setIsRecording(false);setRecordingDuration(0);chunksRef.current = [];
   };
   const handleConfirmRecording = () => {
     if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream(); setIsRecording(false); setRecordingDuration(0);
+    stopStream();setIsRecording(false);setRecordingDuration(0);
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
   const formatDuration = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -448,18 +448,18 @@ export default function ChatInputBar({
   const handleSend = () => {
     if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, buildMode });
   };
-  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+  const handleKeyDown = (e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();handleSend();}};
 
   // File change from hidden input (direct attach)
   const handleFileChange = (e) => {
     const dropped = Array.from(e.target.files || []);
-    if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
+    if (dropped.length) setFiles((p) => [...(p || []), ...dropped.map((f) => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
   };
 
   // File import from AI settings dropdown
   const handleImportFile = (e) => {
     const dropped = Array.from(e.target.files || []);
-    if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
+    if (dropped.length) setFiles((p) => [...(p || []), ...dropped.map((f) => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
   };
 
   // Enhance prompt via LLM
@@ -469,7 +469,7 @@ export default function ChatInputBar({
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         model: 'gpt_5_mini',
-        prompt: `Rewrite this user prompt to be highly optimized, clear, and specific for an AI UI builder. Output ONLY the rewritten prompt in English, under 150 characters. No explanation, no quotes, no prefix.\n\nOriginal: "${input.trim()}"`,
+        prompt: `Rewrite this user prompt to be highly optimized, clear, and specific for an AI UI builder. Output ONLY the rewritten prompt in English, under 150 characters. No explanation, no quotes, no prefix.\n\nOriginal: "${input.trim()}"`
       });
       if (typeof result === 'string' && result.trim()) setInput(result.trim().slice(0, 200));
     } catch {
@@ -495,82 +495,82 @@ export default function ChatInputBar({
 
       {/* ── File previews ── */}
       <AnimatePresence>
-        {(files?.length || 0) > 0 && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, maxHeight: 200, overflowY: 'auto', padding: '0 8px' }}>
-            {files.map((file, i) => (
-              <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#2A2A2A', borderRadius: 8, padding: '7px 10px', border: '1px solid #333' }}>
+        {(files?.length || 0) > 0 &&
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, maxHeight: 200, overflowY: 'auto', padding: '0 8px' }}>
+            {files.map((file, i) =>
+          <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#2A2A2A', borderRadius: 8, padding: '7px 10px', border: '1px solid #333' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: '#1A1A1A' }}>
-                  {file.type?.startsWith('image/') ? (
-                    <img src={file.url} style={{ objectFit: 'cover', width: '100%', height: '100%' }} alt="preview" />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {file.type?.startsWith('image/') ?
+              <img src={file.url} style={{ objectFit: 'cover', width: '100%', height: '100%' }} alt="preview" /> :
+
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FileText style={{ width: 14, height: 14, color: '#666' }} />
                     </div>
-                  )}
+              }
                 </div>
                 <span style={{ fontSize: 12, color: '#aaa', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
                 <button onClick={() => removeFile(i)} style={{ width: 20, height: 20, background: 'transparent', color: '#555', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'} onMouseLeave={e => e.currentTarget.style.color = '#555'}>
+            onMouseEnter={(e) => e.currentTarget.style.color = '#ccc'} onMouseLeave={(e) => e.currentTarget.style.color = '#555'}>
                   <X style={{ width: 12, height: 12 }} />
                 </button>
               </motion.div>
-            ))}
+          )}
           </motion.div>
-        )}
+        }
       </AnimatePresence>
 
       {/* ── Main input card ── */}
       <div style={{ background: '#242424', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'visible', position: 'relative' }}>
 
         <AnimatePresence mode="wait">
-          {isRecording ? (
-            <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
-              style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {isRecording ?
+          <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+          style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
               <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
+            style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
               <LiveWaveform analyserRef={analyserRef} />
               <span style={{ fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', flexShrink: 0, minWidth: 36 }}>
                 {formatDuration(recordingDuration)}
               </span>
-            </motion.div>
-          ) : (
-            <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            </motion.div> :
+
+          <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {/* Design chip */}
               <AnimatePresence>
-                {editMode && (
-                  <motion.div key="design-chip" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                    style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}>
+                {editMode &&
+              <motion.div key="design-chip" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: '#333', fontSize: 12, fontWeight: 500, color: '#fff' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
-                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/><circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
+                        <circle cx="12" cy="12" r="10" /><circle cx="8" cy="14" r="1" fill="#aaa" stroke="none" />
+                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none" /><circle cx="16" cy="14" r="1" fill="#aaa" stroke="none" />
                       </svg>
                       Design
                     </div>
                   </motion.div>
-                )}
+              }
               </AnimatePresence>
               <div style={{ padding: '14px 16px 0' }}>
                 <textarea ref={textareaRef}
-                  value={locked ? '' : input}
-                  onChange={(e) => { if (!locked) setInput(e.target.value); }}
-                  onKeyDown={locked ? undefined : handleKeyDown}
-                  placeholder={locked ? '⛔ Credits exhausted — renewal in a few days' : 'Ask anything...'}
-                  style={{
-                    width: '100%', background: 'transparent', outline: 'none', border: 'none',
-                    resize: 'none', fontSize: 14, color: '#fff', lineHeight: '24px', height: '24px',
-                    maxHeight: '288px', overflowY: 'hidden',
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box', display: 'block',
-                  }}
-                  className="placeholder:text-[#555] textarea-custom-scroll"
-                />
+              value={locked ? '' : input}
+              onChange={(e) => {if (!locked) setInput(e.target.value);}}
+              onKeyDown={locked ? undefined : handleKeyDown}
+              placeholder={locked ? '⛔ Credits exhausted — renewal in a few days' : 'Ask anything...'}
+              style={{
+                width: '100%', background: 'transparent', outline: 'none', border: 'none',
+                resize: 'none', fontSize: 14, color: '#fff', lineHeight: '24px', height: '24px',
+                maxHeight: '288px', overflowY: 'hidden',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box', display: 'block'
+              }}
+              className="placeholder:text-[#555] textarea-custom-scroll" />
+              
               </div>
             </motion.div>
-          )}
+          }
         </AnimatePresence>
 
         {/* ── Bottom toolbar ── */}
@@ -582,116 +582,116 @@ export default function ChatInputBar({
           <div style={{ flex: 1 }} />
 
           {/* ── Recording controls ── */}
-          {isRecording ? (
-            <>
+          {isRecording ?
+          <>
               <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                onClick={handleDiscardRecording}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: '1px solid #444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', flexShrink: 0 }}>
+            onClick={handleDiscardRecording}
+            style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: '1px solid #444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', flexShrink: 0 }}>
                 <X style={{ width: 13, height: 13 }} />
               </motion.button>
               <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05 }}
-                onClick={handleConfirmRecording}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            onClick={handleConfirmRecording}
+            style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Check style={{ width: 14, height: 14, color: '#111' }} />
               </motion.button>
-            </>
-          ) : (
-            <>
+            </> :
+
+          <>
               {/* ── Model selector ── */}
               <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
-                  onClick={() => setShowBuildMenu(v => !v)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
-                    height: 28, padding: '0 8px',
-                    borderRadius: 6, border: 'none',
-                    background: 'rgba(255,255,255,0.10)', cursor: 'pointer',
-                    fontSize: 12, fontWeight: 500, color: '#fff',
-                    transition: 'background 120ms',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
-                >
+                onClick={() => setShowBuildMenu((v) => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  height: 28, padding: '0 8px',
+                  borderRadius: 6, border: 'none',
+                  background: 'rgba(255,255,255,0.10)', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 500, color: '#fff',
+                  transition: 'background 120ms'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
+                
                   {/* Show logo only for Standard/Max, not Automatic */}
                   {buildMode !== 'Automatic' && <ModelIcon size={13} />}
                   <span>{modelLabel}</span>
                   <ChevronDown style={{ width: 11, height: 11, opacity: 0.6 }} />
                 </button>
                 <AnimatePresence>
-                  {showBuildMenu && (
-                    <BuildMenu buildMode={buildMode} setBuildMode={setBuildMode}
-                      setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} onUpgrade={onUpgrade} />
-                  )}
+                  {showBuildMenu &&
+                <BuildMenu buildMode={buildMode} setBuildMode={setBuildMode}
+                setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} onUpgrade={onUpgrade} />
+                }
                 </AnimatePresence>
               </div>
 
               {/* ── AI Settings button — colorful sparkle ── */}
               <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
-                  onClick={() => setShowAIMenu(v => !v)}
-                  title="AI Settings"
-                  style={{
-                    width: 28, height: 28, borderRadius: 6,
-                    background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
-                    border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, transition: 'background 120ms',
-                    opacity: isEnhancing ? 0.7 : 1,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
-                >
+                onClick={() => setShowAIMenu((v) => !v)}
+                title="AI Settings"
+                style={{
+                  width: 28, height: 28, borderRadius: 6,
+                  background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, transition: 'background 120ms',
+                  opacity: isEnhancing ? 0.7 : 1
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'} className="hidden">
+                
                   <SparkleIcon size={15} />
                 </button>
                 <AnimatePresence>
-                  {showAIMenu && (
-                    <AISettingsMenu
-                      onClose={() => setShowAIMenu(false)}
-                      onEnhance={handleEnhancePrompt}
-                      onSearchGoogle={handleSearchGoogle}
-                      onImportFile={handleImportFile}
-                      isEnhancing={isEnhancing}
-                    />
-                  )}
+                  {showAIMenu &&
+                <AISettingsMenu
+                  onClose={() => setShowAIMenu(false)}
+                  onEnhance={handleEnhancePrompt}
+                  onSearchGoogle={handleSearchGoogle}
+                  onImportFile={handleImportFile}
+                  isEnhancing={isEnhancing} />
+
+                }
                 </AnimatePresence>
               </div>
 
               {/* ── Mic ── */}
               <ToolbarBtn onClick={handleMicClick} title={micDenied ? 'Microphone access denied' : 'Record audio'}
-                style={{ background: micDenied ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.10)' }}>
-                {micDenied
-                  ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
-                  : <Mic style={{ width: 14, height: 14, color: '#fff' }} />
-                }
+            style={{ background: micDenied ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.10)' }}>
+                {micDenied ?
+              <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} /> :
+              <Mic style={{ width: 14, height: 14, color: '#fff' }} />
+              }
               </ToolbarBtn>
 
               {/* ── Send / Stop / Locked ── */}
-              {locked ? (
-                <button onClick={() => onUpgrade?.()} title="Credits exhausted"
-                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: '#EF4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {locked ?
+            <button onClick={() => onUpgrade?.()} title="Credits exhausted"
+            style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: '#EF4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Lock style={{ width: 13, height: 13, color: '#fff', strokeWidth: 2.5 }} />
-                </button>
-              ) : isLoading ? (
-                <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                </button> :
+            isLoading ?
+            <button onClick={onStop}
+            style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 2 }} />
-                </button>
-              ) : (
-                <button onClick={handleSend} disabled={!hasContent}
-                  style={{
-                    flexShrink: 0, width: 28, height: 28, borderRadius: 6,
-                    background: hasContent ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
-                    border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 120ms',
-                  }}>
+                </button> :
+
+            <button onClick={handleSend} disabled={!hasContent}
+            style={{
+              flexShrink: 0, width: 28, height: 28, borderRadius: 6,
+              background: hasContent ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+              border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 120ms'
+            }}>
                   <ArrowUp style={{ width: 15, height: 15, color: '#111', strokeWidth: 2 }} />
                 </button>
-              )}
+            }
             </>
-          )}
+          }
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
