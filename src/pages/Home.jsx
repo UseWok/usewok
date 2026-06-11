@@ -35,7 +35,24 @@ const StripeLogo = () => (
   </div>
 );
 
-// ── Build mode dropdown ──
+// ── Inline SVG logos for model selector ──
+const StandardLogoHome = () => (
+  <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
+    <g transform="translate(50,50)">
+      {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => (
+        <rect key={i} x="-5" y="-42" width="10" height="30" rx="5" fill="#E8694A" transform={`rotate(${deg})`} />
+      ))}
+    </g>
+  </svg>
+);
+const MaxLogoHome = () => (
+  <svg width="14" height="10" viewBox="0 0 100 60" fill="none">
+    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738"/>
+    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738"/>
+  </svg>
+);
+
+// ── Build mode dropdown — opens DOWNWARD ──
 function BuildModeMenu({ mode, setMode, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -44,77 +61,63 @@ function BuildModeMenu({ mode, setMode, onClose }) {
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  const MODES = [
-    { id: 'Flash', label: 'Standard' },
-    { id: 'Max', label: 'Max' },
-  ];
-
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      initial={{ opacity: 0, y: -4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
+      exit={{ opacity: 0, y: -4, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
+        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
         background: '#1E1E1E', border: '1px solid #333', borderRadius: 12,
-        padding: '4px', minWidth: 220,
+        padding: '4px', minWidth: 230,
         boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
       }}
     >
       {/* Automatic — large 2x row */}
       <button
-        onClick={() => { setMode('Flash'); onClose(); }}
+        onClick={() => { setMode('Automatic'); onClose(); }}
         style={{
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
           width: '100%', padding: '12px 14px', border: 'none',
-          background: mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
+          background: mode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
+        onMouseLeave={e => e.currentTarget.style.background = mode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
-          <div style={{ fontSize: 12, color: '#666', marginTop: 3 }}>The best AI model is selected for each request.</div>
+          <div style={{ fontSize: 11, fontWeight: 400, color: '#555', marginTop: 3 }}>The best AI model is selected for each request.</div>
         </div>
-        {mode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
+        {mode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
       </button>
-
-      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 0' }} />
-
-      {/* Standard (Flash) — thin */}
+      <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
+      {/* Standard — thin with logo */}
       <button
         onClick={() => { setMode('Flash'); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '8px 14px', border: 'none',
-          background: 'transparent', borderRadius: 8, cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
-        }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', background: mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onMouseLeave={e => e.currentTarget.style.background = mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
-        <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <StandardLogoHome /><span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+        </span>
+        {mode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff' }} />}
       </button>
-
-      {/* Max — thin */}
+      {/* Max — thin with logo */}
       <button
         onClick={() => { setMode('Max'); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '8px 14px', border: 'none',
-          background: mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', background: mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
         onMouseLeave={e => e.currentTarget.style.background = mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MaxLogoHome />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
           <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 4, padding: '1px 5px' }}>NEW</span>
-        </div>
-        {mode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+        </span>
+        {mode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff' }} />}
       </button>
     </motion.div>
   );
@@ -344,11 +347,11 @@ export default function Home() {
               <div ref={buildMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowBuildMenu(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, height: 28, padding: '0 8px', borderRadius: 6, background: 'transparent', border: 'none', color: '#fff', opacity: 0.7, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'opacity 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 8px', borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                 >
-                  {buildMode === 'Max' ? 'Max' : 'Standard'} <ChevronDown size={12} />
+                  {buildMode === 'Automatic' ? 'Automatic' : buildMode === 'Max' ? 'Max' : 'Standard'} <ChevronDown size={11} />
                 </button>
                 <AnimatePresence>
                   {showBuildMenu && (

@@ -276,7 +276,8 @@ BUILD: ${userMessage}`;
  * @param {string[]}    options.fileUrls         — attached file/image URLs
  * @param {boolean}     options.needsWebSearch   — force web browsing mode
  * @param {string}      options.systemPrompt     — PROMPT_ARCHITECT to inject
- * @param {string}      options.buildMode        — 'Flash' | 'Max'
+ * @param {string}      options.buildMode        — 'Automatic' | 'Flash' | 'Max'
+ *                                                 'Automatic' routes 80% Flash / 20% Max server-side
  * @returns {Promise<{ code: string, model: string, codeSection?: string }>}
  */
 export async function orchestrateGeneration(userMessage, options = {}) {
@@ -289,7 +290,13 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     buildMode = 'Flash',
   } = options;
 
-  const isMaxMode = buildMode === 'Max';
+  // ── AUTOMATIC MODE: 80% Flash / 20% Max probability routing ──
+  // UI always shows "Automatic" — internal model selection is invisible to the user
+  let resolvedBuildMode = buildMode;
+  if (buildMode === 'Automatic') {
+    resolvedBuildMode = Math.random() < 0.80 ? 'Flash' : 'Max';
+  }
+  const isMaxMode = resolvedBuildMode === 'Max';
 
   // ── File / image analysis ──
   if (fileUrls.length > 0) {

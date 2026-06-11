@@ -9,7 +9,10 @@ import { base44 } from '@/api/base44Client';
 const LS_KEY = 'wok_build_mode';
 
 let _listeners = [];
-let _current = localStorage.getItem(LS_KEY) || 'Flash';
+// Valid modes: 'Automatic' | 'Flash' | 'Max'
+// 'Automatic' = server-side 80% Flash / 20% Max probability routing
+const _stored = localStorage.getItem(LS_KEY);
+let _current = _stored && ['Automatic', 'Flash', 'Max'].includes(_stored) ? _stored : 'Automatic';
 
 export function getBuildMode() {
   return _current;

@@ -96,14 +96,16 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
       </div>
 
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #2A2A2A' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Credits</span>
-          <span style={{ fontSize: 13, color: '#666' }}>{creditsLeft} left</span>
+          <span style={{ fontSize: 12, color: '#666', fontVariantNumeric: 'tabular-nums' }}>
+            {creditsLeft.toLocaleString('fr-FR')} / {creditsLimit.toLocaleString('fr-FR')}
+          </span>
         </div>
-        <div style={{ height: 8, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: '#F95738', borderRadius: 999 }} />
+        <div style={{ height: 5, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
+          <div style={{ height: '100%', width: `${Math.min(100, Math.round((creditsLeft / creditsLimit) * 100))}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.5s ease' }} />
         </div>
-        <span style={{ fontSize: 12, color: '#555' }}>Daily credits reset at midnight UTC</span>
+        <span style={{ fontSize: 11, color: '#444' }}>Renews automatically every 30 days</span>
       </div>
 
       <div style={{ padding: '8px 0' }}>
@@ -473,16 +475,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                {/* WOK gradient logo */}
-                <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                  <path d="M16 4C10 4 6 8 6 14C6 18 8 21 12 23L16 28L20 23C24 21 26 18 26 14C26 8 22 4 16 4Z" fill="url(#wokGrad)"/>
-                  <defs>
-                    <linearGradient id="wokGrad" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#FF6B6B"/>
-                      <stop offset="50%" stopColor="#FF9A3C"/>
-                      <stop offset="100%" stopColor="#A855F7"/>
-                    </linearGradient>
-                  </defs>
+                {/* WOK canonical double-arrow logo */}
+                <svg width="32" height="20" viewBox="0 0 100 60" fill="none" aria-label="WOK">
+                  <path d="M100 0 L45 0 L0 15 L45 30 L100 30 Z" fill="#F95738"/>
+                  <path d="M100 32 L45 32 L0 47 L45 62 L100 62 Z" fill="#F95738"/>
                 </svg>
               </button>
               <button onClick={() => setExpanded(false)}
@@ -497,12 +493,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             </>
           ) : (
             <button onClick={() => setExpanded(true)}
-              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}
+              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+              {/* Collapsed state: show mini WOK logo */}
+              <svg width="22" height="14" viewBox="0 0 100 60" fill="none" aria-label="WOK">
+                <path d="M100 0 L45 0 L0 15 L45 30 L100 30 Z" fill="#F95738"/>
+                <path d="M100 32 L45 32 L0 47 L45 62 L100 62 Z" fill="#F95738"/>
               </svg>
             </button>
           )}

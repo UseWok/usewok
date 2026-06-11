@@ -1,155 +1,126 @@
+/**
+ * ChatInputBar — WOK Premium Chat Input
+ *
+ * KEY DESIGN RULES:
+ * - ALL dropdowns open DOWNWARD (below the toolbar), never upward.
+ * - Toolbar buttons: white solid squares (#FFF bg, dark icon), 28×28px.
+ * - Attach button replaced by AI-settings sparkle button (colorful 4-point star).
+ * - Model selector shows logo + label; Standard = coral asterisk, Max = orange arrow.
+ * - "Automatic" mode: routes 80% Standard / 20% Max server-side; UI always shows "Automatic".
+ * - AI Settings dropdown: Enhance prompt (2x height), Import from Computer, Search Google (Google G logo).
+ * - No separators between Standard/Max or AI dropdown thin items.
+ */
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip, Lock, Sparkles } from 'lucide-react';
+import { ArrowUp, X, FileText, Mic, MicOff, ChevronDown, Check, Lock, Upload } from 'lucide-react';
 import { getBuildMode, setBuildMode as setGlobalBuildMode } from '@/lib/build-mode-store';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-// ── Real-time waveform using AnalyserNode ──
+// ─────────────────────────────────────────────────────────────────
+// INLINE SVG LOGOS — no external deps, guaranteed render
+// ─────────────────────────────────────────────────────────────────
+
+/** Colorful 4-point sparkle star (AI settings button icon) */
+const SparkleIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+    <defs>
+      <linearGradient id="sg1" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#EF4444"/>
+        <stop offset="33%" stopColor="#3B82F6"/>
+        <stop offset="66%" stopColor="#22C55E"/>
+        <stop offset="100%" stopColor="#EAB308"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 2 C50 2 53 38 70 50 C53 62 50 98 50 98 C50 98 47 62 30 50 C47 38 50 2 50 2Z" fill="url(#sg1)"/>
+    <path d="M2 50 C2 50 38 47 50 30 C62 47 98 50 98 50 C98 50 62 53 50 70 C38 53 2 50 2 50Z" fill="url(#sg1)"/>
+  </svg>
+);
+
+/** Coral asterisk — Standard model logo */
+const StandardLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+    <g transform="translate(50,50)">
+      {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => (
+        <rect key={i} x="-5" y="-42" width="10" height="30" rx="5"
+          fill="#E8694A"
+          transform={`rotate(${deg})`}
+        />
+      ))}
+    </g>
+  </svg>
+);
+
+/** Orange double-chevron arrow — Max model logo */
+const MaxLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 60" fill="none">
+    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738"/>
+    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738"/>
+  </svg>
+);
+
+/** Google multicolor G logo */
+const GoogleGLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
+
+// ─────────────────────────────────────────────────────────────────
+// WAVEFORM (audio recording visualizer)
+// ─────────────────────────────────────────────────────────────────
 function LiveWaveform({ analyserRef }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const BAR_COUNT = 60;
-
     const draw = () => {
       rafRef.current = requestAnimationFrame(draw);
       const analyser = analyserRef.current;
-      const W = canvas.width;
-      const H = canvas.height;
+      const W = canvas.width, H = canvas.height;
       ctx.clearRect(0, 0, W, H);
-
+      const barW = W / BAR_COUNT;
       if (analyser) {
         const data = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(data);
-        // Check if any sound is detected
         const maxVal = Math.max(...data);
-        const barW = W / BAR_COUNT;
         for (let i = 0; i < BAR_COUNT; i++) {
           if (maxVal < 5) {
-            // Strictly frozen when silent — no animation
-            ctx.fillStyle = 'rgba(30,30,30,0.15)';
-            ctx.beginPath();
-            ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);
-            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1); ctx.fill();
           } else {
-            // Map bars so peak is at center
             const center = BAR_COUNT / 2;
-            const dist = Math.abs(i - center) / center; // 0=center, 1=edge
-            const mirrorIdx = Math.floor(Math.abs(i - center) / center * (data.length / 2));
-            const rawVal = data[mirrorIdx] / 255;
-            // Bell-shaped envelope — center peaks higher
-            const envelope = Math.pow(1 - dist, 1.5);
-            const val = rawVal * envelope;
+            const dist = Math.abs(i - center) / center;
+            const mirrorIdx = Math.floor(dist * (data.length / 2));
+            const val = (data[mirrorIdx] / 255) * Math.pow(1 - dist, 1.5);
             const barH = Math.max(2, val * H * 0.9);
-            ctx.fillStyle = `rgba(30, 30, 30, ${0.25 + val * 0.75})`;
-            ctx.beginPath();
-            ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 2);
-            ctx.fill();
+            ctx.fillStyle = `rgba(255,255,255,${0.25 + val * 0.75})`;
+            ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - barH) / 2, barW - 2, barH, 2); ctx.fill();
           }
         }
       } else {
-        // No analyser yet — static flat bars
-        const barW = W / BAR_COUNT;
         for (let i = 0; i < BAR_COUNT; i++) {
-          ctx.fillStyle = 'rgba(30,30,30,0.15)';
-          ctx.beginPath();
-          ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1);
-          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.1)';
+          ctx.beginPath(); ctx.roundRect(i * barW + 1, (H - 2) / 2, barW - 2, 2, 1); ctx.fill();
         }
       }
     };
-
     draw();
     return () => cancelAnimationFrame(rafRef.current);
   }, [analyserRef]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      width={280}
-      height={36}
-      style={{ flex: 1, display: 'block', height: 36 }}
-    />
-  );
+  return <canvas ref={canvasRef} width={280} height={36} style={{ flex: 1, display: 'block', height: 36 }} />;
 }
 
-// ── Plus dropdown menu ──
-function PlusMenu({ onClose, onAttachFile, onScreenshot }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  const menuStyle = {
-    position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
-    background: '#fff',
-    border: '1.5px solid #1A1A1A',
-    borderRadius: 10, padding: '4px', minWidth: 200,
-    boxShadow: '0 6px 24px rgba(0,0,0,0.14)', zIndex: 9999,
-  };
-  const itemStyle = {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    width: '100%', padding: '8px 10px', border: 'none',
-    background: 'transparent', borderRadius: 7, cursor: 'pointer',
-    fontSize: 13, color: '#111', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-  };
-
-  return (
-    <div ref={ref} style={menuStyle}>
-      <button style={itemStyle}
-        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        onClick={onClose}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Settings style={{ width: 14, height: 14, color: '#555' }} />
-          Settings
-        </span>
-        <span style={{ fontSize: 11, color: '#888', fontFamily: 'ui-monospace, monospace', background: '#F0F0F0', borderRadius: 4, padding: '1px 5px' }}>Ctrl.</span>
-      </button>
-      <button style={itemStyle}
-        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        onClick={onClose}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <History style={{ width: 14, height: 14, color: '#555' }} />
-          History
-        </span>
-      </button>
-      <div style={{ height: 1, background: '#E0E0E0', margin: '4px 0' }} />
-      <button style={itemStyle}
-        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        onClick={() => { onScreenshot?.(); onClose(); }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Camera style={{ width: 14, height: 14, color: '#555' }} />
-          Take a screenshot
-        </span>
-      </button>
-      <button style={itemStyle}
-        onMouseEnter={e => e.currentTarget.style.background = '#F4F4F4'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        onClick={() => { onAttachFile?.(); onClose(); }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Paperclip style={{ width: 14, height: 14, color: '#555' }} />
-          Attach a file
-        </span>
-      </button>
-    </div>
-  );
-}
-
-// ── Build mode dropdown — Automatic (large) + Standard/Max (thin) ──
+// ─────────────────────────────────────────────────────────────────
+// MODEL SELECTOR DROPDOWN — opens DOWNWARD
+// ─────────────────────────────────────────────────────────────────
 function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -161,77 +132,91 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      initial={{ opacity: 0, y: -4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.1 }}
+      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+      transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
+        /* DOWNWARD — top: 100% + gap, NOT bottom */
+        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
-        borderRadius: 12, padding: '4px', minWidth: 230,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
+        borderRadius: 12, padding: '4px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      {/* Automatic — large 2x row */}
+      {/* ── Automatic — large 2x row with subtitle ── */}
       <button
-        onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}
+        onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}
         style={{
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
           width: '100%', padding: '12px 14px', border: 'none',
-          background: buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
+          background: buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
+        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
-          <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>The best AI model is selected for each request.</div>
+          <div style={{ fontSize: 11, fontWeight: 400, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
+            The best AI model is selected for each request.
+          </div>
         </div>
-        {buildMode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
+        {buildMode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
       </button>
 
-      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 0' }} />
+      {/* Subtle gray divider below Automatic only */}
+      <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
 
-      {/* Standard — thin */}
+      {/* ── Standard — thin row with logo ── */}
       <button
         onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '8px 14px', border: 'none',
-          background: 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+          width: '100%', padding: '9px 14px', border: 'none',
+          background: buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
-        <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <StandardLogo size={16} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+        </span>
+        {buildMode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
       </button>
 
-      {/* Max — thin */}
+      {/* ── Max — thin row with logo + NEW badge ── */}
       <button
         onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '8px 14px', border: 'none',
+          width: '100%', padding: '9px 14px', border: 'none',
           background: buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
           borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
         onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MaxLogo size={16} />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
           <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 4, padding: '1px 5px' }}>NEW</span>
-        </div>
+        </span>
         {buildMode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
       </button>
     </motion.div>
   );
 }
 
-// ── AI Settings menu — Enhance prompt + Search Google ──
-function AISettingsMenu({ onClose, onEnhance, onSearchGoogle }) {
+// ─────────────────────────────────────────────────────────────────
+// AI SETTINGS DROPDOWN — opens DOWNWARD
+// Enhance prompt (2x), Import from Computer, Search Google (Google G)
+// ─────────────────────────────────────────────────────────────────
+function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEnhancing }) {
   const ref = useRef(null);
+  const importRef = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
     document.addEventListener('mousedown', h);
@@ -241,60 +226,118 @@ function AISettingsMenu({ onClose, onEnhance, onSearchGoogle }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      initial={{ opacity: 0, y: -4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.1 }}
+      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+      transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
+        /* DOWNWARD — top: 100% + gap */
+        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
-        borderRadius: 12, padding: '4px', minWidth: 230,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
+        borderRadius: 12, padding: '4px', minWidth: 240,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      {/* Enhance prompt — large 2x */}
+      {/* ── Enhance prompt — 2x height ── */}
       <button
-        onClick={() => { onEnhance?.(); onClose(); }}
+        onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }}
+        disabled={isEnhancing}
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 10,
           width: '100%', padding: '12px 14px', border: 'none',
-          background: 'transparent', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-          fontFamily: 'Inter, sans-serif',
+          background: 'transparent', borderRadius: 8,
+          cursor: isEnhancing ? 'wait' : 'pointer', textAlign: 'left',
+          fontFamily: 'Inter, sans-serif', opacity: isEnhancing ? 0.6 : 1,
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        <span style={{ fontSize: 16, marginTop: 1 }}>✨</span>
+        {/* Colorful sparkle icon */}
+        <div style={{ flexShrink: 0, marginTop: 2 }}>
+          <SparkleIcon size={18} />
+        </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Enhance prompt</div>
-          <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>Rewrite your prompt for optimal results.</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>
+            {isEnhancing ? 'Enhancing…' : 'Enhance prompt'}
+          </div>
+          <div style={{ fontSize: 11, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
+            Rewrite your prompt for optimal results.
+          </div>
         </div>
       </button>
 
-      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 0' }} />
-
-      {/* Search Google — thin */}
+      {/* ── Import from Computer — standard height, hidden file input ── */}
+      <input
+        ref={importRef}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,.txt,.csv,.json,.md"
+        style={{ display: 'none' }}
+        onChange={(e) => { onImportFile?.(e); onClose(); }}
+      />
       <button
-        onClick={() => { onSearchGoogle?.(); onClose(); }}
+        onClick={() => importRef.current?.click()}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          width: '100%', padding: '8px 14px', border: 'none',
+          width: '100%', padding: '9px 14px', border: 'none',
           background: 'transparent', borderRadius: 8, cursor: 'pointer',
           fontFamily: 'Inter, sans-serif',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        {/* WOK logo — W */}
-        <div style={{ width: 18, height: 18, borderRadius: 4, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: 10, fontWeight: 900, color: '#fff', fontStyle: 'italic', lineHeight: 1 }}>W</span>
-        </div>
+        <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
+      </button>
+
+      {/* ── Search Google — standard height, Google G logo ── */}
+      <button
+        onClick={() => { onSearchGoogle?.(); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          width: '100%', padding: '9px 14px', border: 'none',
+          background: 'transparent', borderRadius: 8, cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <div style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></div>
         <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
       </button>
     </motion.div>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────
+// TOOLBAR BUTTON — white square with dark icon
+// ─────────────────────────────────────────────────────────────────
+function ToolbarBtn({ onClick, title, children, active = false, style: extraStyle = {} }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        width: 28, height: 28,
+        borderRadius: 6,
+        background: active ? '#fff' : 'rgba(255,255,255,0.10)',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, transition: 'background 120ms',
+        ...extraStyle,
+      }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────
 export default function ChatInputBar({
   input, setInput, onSend, onStop, isLoading,
   files = [], setFiles,
@@ -303,31 +346,25 @@ export default function ChatInputBar({
   locked = false,
   buildMode: externalBuildMode,
 }) {
+  // Build mode: 'Automatic' | 'Flash' | 'Max'
   const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
-
-  // Sync with external prop or global store changes
   useEffect(() => {
     if (externalBuildMode && externalBuildMode !== buildMode) setBuildModeLocal(externalBuildMode);
   }, [externalBuildMode]);
+  const setBuildMode = (mode) => { setBuildModeLocal(mode); setGlobalBuildMode(mode); };
 
-  const setBuildMode = (mode) => {
-    setBuildModeLocal(mode);
-    setGlobalBuildMode(mode);
-  };
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [showAIMenu, setShowAIMenu] = useState(false);
-  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const aiMenuRef = useRef(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [editActivating, setEditActivating] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
 
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef(null);  // for direct attach (existing)
   const textareaRef = useRef(null);
   const buildMenuRef = useRef(null);
-  const plusBtnRef = useRef(null);
+  const aiMenuRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
@@ -335,7 +372,7 @@ export default function ChatInputBar({
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
-  // Auto-resize textarea: initial 24px, line-height 24px, max 12 lines = 288px
+  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -345,6 +382,7 @@ export default function ChatInputBar({
     el.style.overflowY = el.scrollHeight > 288 ? 'auto' : 'hidden';
   }, [input]);
 
+  // Paste image/pdf handler
   const handlePaste = useCallback((e) => {
     const items = Array.from(e.clipboardData?.items || []);
     const media = items.filter(it => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf'));
@@ -352,13 +390,12 @@ export default function ChatInputBar({
     e.preventDefault();
     setFiles(p => [...(p || []), ...media.map(it => { const f = it.getAsFile(); return { file: f, name: f.name || 'pasted', url: URL.createObjectURL(f), type: f.type }; })]);
   }, [setFiles]);
-
   useEffect(() => {
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
   }, [handlePaste]);
 
-  // ── Mic with real AnalyserNode for live spectrum ──
+  // Mic recording
   const handleMicClick = async () => {
     if (isRecording) return;
     try {
@@ -366,8 +403,6 @@ export default function ChatInputBar({
       setMicDenied(false);
       streamRef.current = stream;
       chunksRef.current = [];
-
-      // Real-time analyser
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       audioCtxRef.current = audioCtx;
       const source = audioCtx.createMediaStreamSource(stream);
@@ -375,7 +410,6 @@ export default function ChatInputBar({
       analyser.fftSize = 256;
       source.connect(analyser);
       analyserRef.current = analyser;
-
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
       const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
@@ -387,9 +421,7 @@ export default function ChatInputBar({
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setMicDenied(true);
-        toast.error('Microphone access denied. Check your browser settings.', {
-          style: { background: '#3F3F46', color: '#fff', borderRadius: '8px' },
-        });
+        toast.error('Microphone access denied.', { style: { background: '#3F3F46', color: '#fff', borderRadius: '8px' } });
       }
     }
   };
@@ -402,60 +434,41 @@ export default function ChatInputBar({
     audioCtxRef.current = null;
     analyserRef.current = null;
   };
-
   const handleDiscardRecording = () => {
     if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream();
-    setIsRecording(false);
-    setRecordingDuration(0);
-    chunksRef.current = [];
+    stopStream(); setIsRecording(false); setRecordingDuration(0); chunksRef.current = [];
   };
-
   const handleConfirmRecording = () => {
     if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream();
-    setIsRecording(false);
-    setRecordingDuration(0);
+    stopStream(); setIsRecording(false); setRecordingDuration(0);
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
-
   const formatDuration = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   const handleSend = () => {
     if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, buildMode });
   };
+  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
-
+  // File change from hidden input (direct attach)
   const handleFileChange = (e) => {
     const dropped = Array.from(e.target.files || []);
     if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
   };
 
-  // Visual Edits: activate with micro-delay, deactivate instantly
-  const handleVisualEditToggle = () => {
-    if (editMode) {
-      // Instant deactivation
-      setEditMode(false);
-      setEditActivating(false);
-    } else {
-      // Micro-delay activation
-      setEditActivating(true);
-      setTimeout(() => {
-        setEditActivating(false);
-        setEditMode(true);
-      }, 320);
-    }
+  // File import from AI settings dropdown
+  const handleImportFile = (e) => {
+    const dropped = Array.from(e.target.files || []);
+    if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
   };
 
+  // Enhance prompt via LLM
   const handleEnhancePrompt = async () => {
     if (!input.trim() || isEnhancing) return;
     setIsEnhancing(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        model: 'automatic',
+        model: 'gpt_5_mini',
         prompt: `Rewrite this user prompt to be highly optimized, clear, and specific for an AI UI builder. Output ONLY the rewritten prompt in English, under 150 characters. No explanation, no quotes, no prefix.\n\nOriginal: "${input.trim()}"`,
       });
       if (typeof result === 'string' && result.trim()) setInput(result.trim().slice(0, 200));
@@ -467,19 +480,20 @@ export default function ChatInputBar({
   };
 
   const handleSearchGoogle = () => {
-    const q = input.trim() || 'wok ai builder';
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(input.trim() || 'wok ai builder')}`, '_blank');
   };
 
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
   const hasContent = !!(input.trim() || (files?.length || 0) > 0);
 
-  const visualEditActive = editMode || editActivating;
+  // Label shown in the toolbar button for model selector
+  const modelLabel = buildMode === 'Automatic' ? 'Automatic' : buildMode === 'Max' ? 'Max' : 'Standard';
+  const ModelIcon = buildMode === 'Max' ? MaxLogo : StandardLogo;
 
   return (
     <div style={{ padding: '0 8px 8px', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-      {/* File previews */}
+      {/* ── File previews ── */}
       <AnimatePresence>
         {(files?.length || 0) > 0 && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
@@ -497,10 +511,8 @@ export default function ChatInputBar({
                   )}
                 </div>
                 <span style={{ fontSize: 12, color: '#aaa', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                <button onClick={() => removeFile(i)}
-                  style={{ width: 20, height: 20, background: 'transparent', color: '#555', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#555'}>
+                <button onClick={() => removeFile(i)} style={{ width: 20, height: 20, background: 'transparent', color: '#555', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'} onMouseLeave={e => e.currentTarget.style.color = '#555'}>
                   <X style={{ width: 12, height: 12 }} />
                 </button>
               </motion.div>
@@ -510,102 +522,49 @@ export default function ChatInputBar({
       </AnimatePresence>
 
       {/* ── Main input card ── */}
-      <div style={{
-        background: '#242424',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 16,
-        overflow: 'visible',
-        position: 'relative',
-        boxShadow: 'none',
-      }}>
+      <div style={{ background: '#242424', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'visible', position: 'relative' }}>
 
-        {/* ── Recording mode ── */}
         <AnimatePresence mode="wait">
           {isRecording ? (
-            <motion.div
-              key="recording"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}
-            >
-              {/* Red pulsing dot */}
-              <motion.div
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }}
-              />
-              {/* Live spectrum waveform */}
+            <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+              style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
               <LiveWaveform analyserRef={analyserRef} />
-              {/* Duration */}
               <span style={{ fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', flexShrink: 0, minWidth: 36 }}>
                 {formatDuration(recordingDuration)}
               </span>
             </motion.div>
           ) : (
-            <motion.div
-              key="textarea"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {/* Design chip — dark bg when active, animated slide-down */}
+            <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              {/* Design chip */}
               <AnimatePresence>
                 {editMode && (
-                  <motion.div
-                    key="design-chip"
-                    initial={{ opacity: 0, y: -8, height: 0 }}
-                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                    style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}
-                  >
-                    <div style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                      padding: '4px 10px', borderRadius: 999,
-                      background: '#333', border: 'none',
-                      fontSize: 12, fontWeight: 500, color: '#fff',
-                    }}>
+                  <motion.div key="design-chip" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: '#333', fontSize: 12, fontWeight: 500, color: '#fff' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
-                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/>
-                        <circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
+                        <circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
+                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/><circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
                       </svg>
                       Design
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-
               <div style={{ padding: '14px 16px 0' }}>
-                <textarea
-                  ref={textareaRef}
+                <textarea ref={textareaRef}
                   value={locked ? '' : input}
                   onChange={(e) => { if (!locked) setInput(e.target.value); }}
                   onKeyDown={locked ? undefined : handleKeyDown}
-                  placeholder={locked ? "⛔ Crédits épuisés — renouvellement dans quelques jours" : "Ask anything..."}
+                  placeholder={locked ? '⛔ Credits exhausted — renewal in a few days' : 'Ask anything...'}
                   style={{
-                    width: '100%',
-                    background: 'transparent',
-                    outline: 'none',
-                    border: 'none',
-                    resize: 'none',
-                    fontSize: 14,
-                    color: '#fff',
-                    lineHeight: '24px',
-                    height: '24px',
-                    maxHeight: '288px',
-                    overflowY: 'hidden',
+                    width: '100%', background: 'transparent', outline: 'none', border: 'none',
+                    resize: 'none', fontSize: 14, color: '#fff', lineHeight: '24px', height: '24px',
+                    maxHeight: '288px', overflowY: 'hidden',
                     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    WebkitFontSmoothing: 'antialiased',
-                    MozOsxFontSmoothing: 'grayscale',
-                    boxSizing: 'border-box',
-                    display: 'block',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgba(255,255,255,0.2) transparent',
+                    WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box', display: 'block',
                   }}
                   className="placeholder:text-[#555] textarea-custom-scroll"
                 />
@@ -615,107 +574,74 @@ export default function ChatInputBar({
         </AnimatePresence>
 
         {/* ── Bottom toolbar ── */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '10px 10px', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '10px 10px', gap: 5 }}>
 
-          {/* Plus — file attachment */}
+          {/* Hidden file input for direct attach */}
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'transparent', border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', opacity: 0.5, transition: 'opacity 120ms', flexShrink: 0,
-            }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
-          >
-            <Plus style={{ width: 15, height: 15 }} />
-          </button>
 
           <div style={{ flex: 1 }} />
 
           {/* ── Recording controls ── */}
           {isRecording ? (
             <>
-              <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 onClick={handleDiscardRecording}
-                style={{
-                  width: 30, height: 30, borderRadius: '50%',
-                  background: 'transparent', border: '1px solid #444',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#888', flexShrink: 0,
-                }}
-              >
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'transparent', border: '1px solid #444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', flexShrink: 0 }}>
                 <X style={{ width: 13, height: 13 }} />
               </motion.button>
-
-              <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.05 }}
+              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05 }}
                 onClick={handleConfirmRecording}
-                style={{
-                  width: 30, height: 30, borderRadius: '50%',
-                  background: '#fff', border: 'none',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
+                style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Check style={{ width: 14, height: 14, color: '#111' }} />
               </motion.button>
             </>
           ) : (
             <>
-              {/* Build mode selector */}
+              {/* ── Model selector ── */}
               <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => setShowBuildMenu(v => !v)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
+                    display: 'flex', alignItems: 'center', gap: 5,
                     height: 28, padding: '0 8px',
                     borderRadius: 6, border: 'none',
-                    background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 500, color: '#fff',
-                    opacity: 0.6, transition: 'opacity 120ms',
+                    background: 'rgba(255,255,255,0.10)', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 500, color: '#fff',
+                    transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                 >
-                  {buildMode === 'Max' ? 'Max' : 'Standard'}
-                  <ChevronDown style={{ width: 12, height: 12 }} />
+                  {/* Show logo only for Standard/Max, not Automatic */}
+                  {buildMode !== 'Automatic' && <ModelIcon size={13} />}
+                  <span>{modelLabel}</span>
+                  <ChevronDown style={{ width: 11, height: 11, opacity: 0.6 }} />
                 </button>
                 <AnimatePresence>
                   {showBuildMenu && (
-                    <BuildMenu
-                      buildMode={buildMode}
-                      setBuildMode={setBuildMode}
-                      setDiscussMode={setDiscussMode}
-                      onClose={() => setShowBuildMenu(false)}
-                      onUpgrade={onUpgrade}
-                    />
+                    <BuildMenu buildMode={buildMode} setBuildMode={setBuildMode}
+                      setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} onUpgrade={onUpgrade} />
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* AI Settings — sparkle */}
+              {/* ── AI Settings button — colorful sparkle ── */}
               <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => setShowAIMenu(v => !v)}
                   title="AI Settings"
                   style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: 'transparent', border: 'none',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: isEnhancing ? '#F95738' : '#fff',
-                    opacity: isEnhancing ? 1 : 0.6, transition: 'opacity 120ms', flexShrink: 0,
+                    width: 28, height: 28, borderRadius: 6,
+                    background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, transition: 'background 120ms',
+                    opacity: isEnhancing ? 0.7 : 1,
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => { if (!isEnhancing) e.currentTarget.style.opacity = '0.6'; }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
                 >
-                  <Sparkles style={{ width: 15, height: 15 }} />
+                  <SparkleIcon size={15} />
                 </button>
                 <AnimatePresence>
                   {showAIMenu && (
@@ -723,59 +649,43 @@ export default function ChatInputBar({
                       onClose={() => setShowAIMenu(false)}
                       onEnhance={handleEnhancePrompt}
                       onSearchGoogle={handleSearchGoogle}
+                      onImportFile={handleImportFile}
+                      isEnhancing={isEnhancing}
                     />
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* Mic — red MicOff when denied */}
-              <button
-                onClick={handleMicClick}
-                title={micDenied ? 'Microphone access denied' : 'Record audio'}
-                style={{
-                  width: 28, height: 28, borderRadius: '50%',
-                  background: 'transparent', border: 'none',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: micDenied ? '#EF4444' : '#fff',
-                  opacity: micDenied ? 1 : 0.6,
-                  transition: 'opacity 120ms', flexShrink: 0,
-                }}
-                onMouseEnter={e => { if (!micDenied) e.currentTarget.style.opacity = '1'; }}
-                onMouseLeave={e => { if (!micDenied) e.currentTarget.style.opacity = '0.6'; }}
-              >
+              {/* ── Mic ── */}
+              <ToolbarBtn onClick={handleMicClick} title={micDenied ? 'Microphone access denied' : 'Record audio'}
+                style={{ background: micDenied ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.10)' }}>
                 {micDenied
-                  ? <MicOff style={{ width: 16, height: 16, strokeWidth: 1.5 }} />
-                  : <Mic style={{ width: 16, height: 16, strokeWidth: 1.5 }} />
+                  ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
+                  : <Mic style={{ width: 14, height: 14, color: '#fff' }} />
                 }
-              </button>
+              </ToolbarBtn>
 
-              {/* Send / Stop / Locked */}
+              {/* ── Send / Stop / Locked ── */}
               {locked ? (
-                <button
-                  onClick={() => onUpgrade?.()}
-                  title="Crédits épuisés — cliquez pour voir les offres"
-                  style={{
-                    flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
-                    background: '#EF4444', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
+                <button onClick={() => onUpgrade?.()} title="Credits exhausted"
+                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: '#EF4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Lock style={{ width: 13, height: 13, color: '#fff', strokeWidth: 2.5 }} />
                 </button>
               ) : isLoading ? (
                 <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: '#333', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 2 }} />
                 </button>
               ) : (
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
-                    flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
-                    background: '#FFFFFF', border: 'none',
-                    cursor: hasContent ? 'pointer' : 'not-allowed', opacity: hasContent ? 1 : 0.25,
+                    flexShrink: 0, width: 28, height: 28, borderRadius: 6,
+                    background: hasContent ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                    border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'opacity 120ms',
+                    transition: 'background 120ms',
                   }}>
-                  <ArrowUp style={{ width: 16, height: 16, color: '#111', strokeWidth: 2 }} />
+                  <ArrowUp style={{ width: 15, height: 15, color: '#111', strokeWidth: 2 }} />
                 </button>
               )}
             </>
