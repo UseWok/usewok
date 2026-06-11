@@ -179,7 +179,6 @@ export default function ChatPage() {
   const [runtimeError, setRuntimeError] = useState(null);
   const [pendingError, setPendingError] = useState(null);
   const [streamingThinking, setStreamingThinking] = useState('');
-  const [streamingRawCode, setStreamingRawCode] = useState('');
 
   const profileMenuRef = useRef(null);
   const abortedRef = useRef(false);
@@ -246,7 +245,7 @@ export default function ChatPage() {
     saveConversationMessages(newConvId, messages);
     await safeAsync(async () => {
       const { syncConversationToCloud } = await import('@/lib/discussions');
-      await syncConversationToCloud(newConvId, messages || [], { title: appSettings.title + ' (Copy)', preview: appSettings.description, is_public: true });
+      await syncConversationToCloud(newConvId, messages || [], { title: appSettings.title + ' (Copy)', preview: appSettings.description, is_public: false });
     }, null, 'Clone conversation');
     toast.success("Application cloned. New URL generated.");
     navigate(`/chat?conversationId=${newConvId}`);
@@ -300,6 +299,22 @@ export default function ChatPage() {
 
     // Re-assign text to sanitized version
     text = safeText;
+
+    // ── Heuristic pre-filter (zero API cost) ──
+    const trimmed = text.trim();
+    const isTooShort = trimmed.length < 8;
+    const isRepetitive = /(.)\1{5,}/.test(trimmed); // "aaaaaaa", "1111111"
+    const isGibberish = /^[^aeiou\s]{8,}$/i.test(trimmed.replace(/\s/g, '').slice(0, 20)); // no vowels
+    const isAllSameWord = /^(\w+)\s+\1+$/i.test(trimmed);
+    const isSpam = /^[^a-zA-Z0-9\u00C0-\u017E\s.,!?]+$/.test(trimmed) && trimmed.length > 3;
+
+    if (isTooShort || isRepetitive || isGibberish || isAllSameWord || isSpam) {
+      const userMsg = { role: 'user', content: text };
+      setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '__INSUFFICIENT__' }]);
+      setInput('');
+      setFiles([]);
+      return;
+    }
 
     // Easter egg
     if (text.trim() === '16/06/2010') {
@@ -374,8 +389,18 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Build / modify path ──
+      // ── Safety filter (disabled after 4th user message) ──
       const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
+      if (userMessageIndex < 4) {
+        const safety = await runSafetyFilter(text, userMessageIndex);
+        if (!safety.safe) {
+          setMessages([...newMessages, { role: 'assistant', content: '__INSUFFICIENT__' }]);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // ── Build / modify path ──
       const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
       const imageUrls2 = (options.files || files || []).filter(f => f.type?.startsWith('image/')).map(f => f.url);
 
@@ -403,7 +428,6 @@ export default function ChatPage() {
       }
 
       // ── Orchestrated generation ──
-      setStreamingRawCode(''); // reset for new generation
       const orchResult = await orchestrateGeneration(text, {
         existingCode: isModification ? ficheContent : null,
         userMessageIndex,
@@ -426,7 +450,6 @@ export default function ChatPage() {
       // Apply client-side code formatter
       const { thinking: llmThinking, code: cleanCode } = splitThinkingFromCode(finalRawCode);
       const formattedCode = formatCode(cleanCode || finalRawCode);
-      setStreamingRawCode(formattedCode); // make code available for Building box
 
       // Wrap in code fence if not already
       let codeOnly = formattedCode;
@@ -470,7 +493,6 @@ export default function ChatPage() {
 
       setIsLoading(false);
       setStreamingThinking('');
-      setStreamingRawCode('');
       if (!discussMode) setFicheContent(rawContent);
 
       const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent }];
@@ -481,7 +503,7 @@ export default function ChatPage() {
       await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: appSettings?.isPublic ?? false,
+        is_public: false,
         rawContent: rawContent || null,
       });
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
@@ -541,21 +563,16 @@ export default function ChatPage() {
 
   // Load conversation from cloud on mount (cross-device)
   useEffect(() => {
-  if (!conversationId) { setMessages([]); setFicheContent(null); return; }
-  const loadConv = async () => {
-    const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
-    if (cloud) {
-      const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
-      if (safe.length > 0) {
-        setMessages(safe);
-        saveConversationMessages(conversationId, safe);
-      }
-      // Restore is_public from cloud into appSettings
-      if (cloud.is_public !== undefined) {
-        setAppSettings(prev => ({ ...prev, isPublic: cloud.is_public }));
-        setIsAppPublished(!!cloud.is_public);
-      }
-      if (cloud.rawContent) {
+    if (!conversationId) { setMessages([]); setFicheContent(null); return; }
+    const loadConv = async () => {
+      const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
+      if (cloud) {
+        const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
+        if (safe.length > 0) {
+          setMessages(safe);
+          saveConversationMessages(conversationId, safe);
+        }
+        if (cloud.rawContent) {
           setFicheContent(cloud.rawContent);
           localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
         } else {
@@ -717,7 +734,6 @@ export default function ChatPage() {
                     setFicheContent={setFicheContent}
                     setViewMode={setViewMode}
                     streamingThinking={streamingThinking}
-                    streamingRawCode={streamingRawCode}
                   />
                   <div className="flex-shrink-0">
                     <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
