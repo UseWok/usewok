@@ -129,33 +129,29 @@ export default function PricingPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#1F1F1F',
+      minHeight: '100vh',
+      background: `
+        radial-gradient(ellipse 80% 50% at 50% 120%, rgba(255,140,0,0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 140%, rgba(249,87,56,0.45) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 20% 130%, rgba(255,200,0,0.3) 0%, transparent 50%),
+        #1F1F1F
+      `,
       fontFamily: 'Inter, system-ui, sans-serif', color: '#fff',
     }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
 
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px 80px' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 32px 100px' }}>
 
         {/* ── Header ── */}
-        <div style={{ padding: '56px 0 48px', textAlign: 'center' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '5px 14px', borderRadius: 999,
-            border: '1px solid #2A2A2A', background: '#111',
-            fontSize: 11, fontWeight: 600, color: '#888',
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            marginBottom: 20,
-          }}>
-            Pricing
-          </div>
+        <div style={{ padding: '80px 0 64px', textAlign: 'center' }}>
           <h1 style={{
-            fontSize: 42, fontWeight: 800, color: '#fff', margin: '0 0 14px',
+            fontSize: 'clamp(36px, 5vw, 58px)', fontWeight: 300, color: '#fff', margin: '0 0 20px',
             letterSpacing: '-0.03em', lineHeight: 1.1,
           }}>
-            Simple, transparent pricing
+            Simple pricing.<br />No surprises.
           </h1>
-          <p style={{ fontSize: 15, color: '#555', margin: 0, lineHeight: 1.6 }}>
-            Start free. Scale when you're ready. No hidden fees.
+          <p style={{ fontSize: 16, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.7, opacity: 0.6 }}>
+            Start free. Scale when you're ready.
           </p>
         </div>
 
@@ -163,66 +159,59 @@ export default function PricingPage() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: 16,
-          marginBottom: 32,
+          gap: 20,
+          marginBottom: 48,
         }}>
           {plans.map((plan, i) => {
             const isPopular = !!plan.badge;
-            const PlanIcon = PLAN_ICONS[i] || Zap;
             return (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.06, ease: [0.4, 0, 0.2, 1] }}
+                transition={{ duration: 0.35, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
                 style={{
-                  background: isPopular ? '#111' : '#0D0D0D',
-                  border: isPopular ? '1px solid #333' : '1px solid #1E1E1E',
-                  borderRadius: 16,
-                  padding: '28px 24px',
-                  display: 'flex', flexDirection: 'column', gap: 0,
+                  background: isPopular
+                    ? 'rgba(255,255,255,0.06)'
+                    : 'rgba(255,255,255,0.03)',
+                  border: isPopular
+                    ? '1px solid rgba(255,255,255,0.2)'
+                    : '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 20,
+                  padding: '36px 30px 32px',
+                  display: 'flex', flexDirection: 'column',
                   position: 'relative', overflow: 'hidden',
-                  boxShadow: isPopular ? '0 0 0 1px #333, 0 20px 60px rgba(0,0,0,0.4)' : 'none',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: isPopular ? '0 0 60px rgba(255,140,0,0.08)' : 'none',
                 }}
               >
                 {/* Popular badge */}
                 {isPopular && (
                   <div style={{
-                    position: 'absolute', top: 0, right: 24,
+                    position: 'absolute', top: 0, right: 22,
                     background: '#fff', color: '#000',
                     fontSize: 10, fontWeight: 700,
-                    letterSpacing: '0.06em', textTransform: 'uppercase',
-                    padding: '4px 10px', borderRadius: '0 0 8px 8px',
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    padding: '4px 12px', borderRadius: '0 0 10px 10px',
                   }}>
                     Popular
                   </div>
                 )}
 
-                {/* Icon + Name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 9,
-                    background: '#1A1A1A', border: '1px solid #2A2A2A',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <PlanIcon style={{ width: 14, height: 14, color: isPopular ? '#F95738' : '#555' }} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>{plan.name}</h3>
-                    {plan.desc && <p style={{ fontSize: 11, color: '#444', margin: 0, marginTop: 2, lineHeight: 1.4 }}>{plan.desc}</p>}
-                  </div>
-                </div>
+                {/* Plan name */}
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 28px', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.7 }}>{plan.name}</h3>
 
                 {/* Price */}
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 32 }}>
                   {plan.price !== null ? (
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 40, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-0.03em' }}>€{plan.price}</span>
-                      <span style={{ fontSize: 12, color: '#444' }}>/month</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <span style={{ fontSize: 52, fontWeight: 300, color: '#fff', lineHeight: 1, letterSpacing: '-0.04em' }}>€{plan.price}</span>
+                      <span style={{ fontSize: 13, color: '#fff', opacity: 0.5, fontWeight: 400 }}>/month</span>
                     </div>
                   ) : (
-                    <span style={{ fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>Custom</span>
+                    <span style={{ fontSize: 38, fontWeight: 300, color: '#fff', letterSpacing: '-0.03em' }}>Custom</span>
                   )}
+                  {plan.desc && <p style={{ fontSize: 13, color: '#fff', opacity: 0.5, margin: '10px 0 0', lineHeight: 1.5, fontWeight: 400 }}>{plan.desc}</p>}
                 </div>
 
                 {/* CTA */}
@@ -230,14 +219,15 @@ export default function PricingPage() {
                   <button
                     onClick={() => setShowModal(true)}
                     style={{
-                      width: '100%', padding: '11px 0', borderRadius: 9,
+                      width: '100%', padding: '13px 0', borderRadius: 12,
                       fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      background: 'transparent', color: '#ccc', border: '1px solid #2A2A2A',
-                      fontFamily: 'Inter, sans-serif', transition: 'border-color 150ms, color 150ms',
-                      marginBottom: 24,
+                      background: 'transparent', color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.25)',
+                      fontFamily: 'Inter, sans-serif', transition: 'border-color 150ms, background 150ms',
+                      marginBottom: 28,
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = '#ccc'; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     Contact sales
                   </button>
@@ -245,14 +235,14 @@ export default function PricingPage() {
                   <button
                     onClick={() => handleUpgrade(plan)}
                     style={{
-                      width: '100%', padding: '11px 0', borderRadius: 9,
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                      background: isPopular ? '#fff' : '#1A1A1A',
-                      color: isPopular ? '#000' : '#ccc',
-                      border: isPopular ? 'none' : '1px solid #2A2A2A',
+                      width: '100%', padding: '13px 0', borderRadius: 12,
+                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      background: isPopular ? '#fff' : 'rgba(255,255,255,0.1)',
+                      color: isPopular ? '#000' : '#fff',
+                      border: 'none',
                       fontFamily: 'Inter, sans-serif',
-                      transition: 'opacity 150ms',
-                      marginBottom: 24,
+                      transition: 'opacity 150ms, background 150ms',
+                      marginBottom: 28,
                     }}
                     onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -262,14 +252,14 @@ export default function PricingPage() {
                 )}
 
                 {/* Divider */}
-                <div style={{ height: 1, background: '#1A1A1A', marginBottom: 20 }} />
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 24 }} />
 
-                {/* Features */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                {/* Features — compact, no visual clutter */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
                   {plan.features.map((f, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                      <Check style={{ width: 13, height: 13, color: '#333', flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ fontSize: 12, color: '#666', lineHeight: 1.5 }}>{f}</span>
+                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <Check style={{ width: 13, height: 13, color: '#fff', opacity: 0.4, flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ fontSize: 13, color: '#fff', opacity: 0.75, lineHeight: 1.5, fontWeight: 400 }}>{f}</span>
                     </div>
                   ))}
                 </div>
@@ -280,23 +270,22 @@ export default function PricingPage() {
 
         {/* ── Security strip ── */}
         <div style={{
-          background: '#0D0D0D', border: '1px solid #1E1E1E',
-          borderRadius: 12, padding: '16px 20px',
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 14, padding: '18px 24px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 12,
+          backdropFilter: 'blur(8px)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Shield style={{ width: 16, height: 16, color: '#333', flexShrink: 0 }} />
-            <div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#888', display: 'block' }}>Enterprise-grade security</span>
-              <span style={{ fontSize: 11, color: '#444' }}>SOC 2 · GDPR · ISO 27001</span>
-            </div>
+            <Shield style={{ width: 16, height: 16, color: '#fff', opacity: 0.4, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#fff', opacity: 0.75 }}>Enterprise-grade security</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {['SOC 2', 'GDPR', 'ISO 27001'].map(badge => (
               <div key={badge} style={{
-                padding: '4px 10px', border: '1px solid #1E1E1E',
-                borderRadius: 6, fontSize: 10, fontWeight: 600, color: '#444',
+                padding: '5px 12px', border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5,
               }}>
                 {badge}
               </div>

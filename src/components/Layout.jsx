@@ -62,7 +62,7 @@ export default function Layout() {
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   const BORDER_COLOR = '#0E0E0E';
-  const BORDER_W = 6;
+  const BORDER_W = 10;
 
   return (
     <div style={{ minHeight: '100vh', background: '#1F1F1F', display: 'flex' }}>
@@ -99,7 +99,7 @@ export default function Layout() {
       )}
 
       <motion.main
-        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative' }}
+        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative', borderRadius: isMobile ? 0 : 24 }}
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
       >
