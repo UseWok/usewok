@@ -35,21 +35,12 @@ const StripeLogo = () => (
   </div>
 );
 
-// ── Inline SVG logos for model selector ──
+// ── Real image logos for model selector ──
 const StandardLogoHome = () => (
-  <svg width="14" height="14" viewBox="0 0 100 100" fill="none">
-    <g transform="translate(50,50)">
-      {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => (
-        <rect key={i} x="-5" y="-42" width="10" height="30" rx="5" fill="#E8694A" transform={`rotate(${deg})`} />
-      ))}
-    </g>
-  </svg>
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain' }} />
 );
 const MaxLogoHome = () => (
-  <svg width="14" height="10" viewBox="0 0 100 60" fill="none">
-    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738"/>
-    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738"/>
-  </svg>
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain' }} />
 );
 
 // ── Build mode dropdown — opens DOWNWARD ──
@@ -337,10 +328,10 @@ export default function Home() {
             </div>
             {/* Bottom toolbar */}
             <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 4 }}>
-              <button style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0.6, transition: 'opacity 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-                <Plus size={15} />
+              <button style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI" style={{ width: 16, height: 16, objectFit: 'contain' }} />
               </button>
               <div style={{ flex: 1 }} />
               {/* Build mode dropdown */}

@@ -38,36 +38,19 @@ const SparkleIcon = ({ size = 16 }) => (
   </svg>
 );
 
-/** Coral asterisk — Standard model logo */
+/** Standard model logo — real image */
 const StandardLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-    <g transform="translate(50,50)">
-      {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => (
-        <rect key={i} x="-5" y="-42" width="10" height="30" rx="5"
-          fill="#E8694A"
-          transform={`rotate(${deg})`}
-        />
-      ))}
-    </g>
-  </svg>
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Standard" style={{ width: size, height: size, objectFit: 'contain' }} />
 );
 
-/** Orange double-chevron arrow — Max model logo */
+/** Max model logo — real image */
 const MaxLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 60" fill="none">
-    <path d="M0 0 L55 30 L0 60 L12 60 L67 30 L12 0 Z" fill="#F95738"/>
-    <path d="M33 0 L88 30 L33 60 L45 60 L100 30 L45 0 Z" fill="#F95738"/>
-  </svg>
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Max" style={{ width: size, height: size, objectFit: 'contain' }} />
 );
 
-/** Google multicolor G logo */
+/** Google G logo — real image */
 const GoogleGLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-  </svg>
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="Google" style={{ width: size, height: size, objectFit: 'contain' }} />
 );
 
 // ─────────────────────────────────────────────────────────────────

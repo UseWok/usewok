@@ -475,11 +475,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                {/* WOK canonical double-arrow logo */}
-                <svg width="32" height="20" viewBox="0 0 100 60" fill="none" aria-label="WOK">
-                  <path d="M100 0 L45 0 L0 15 L45 30 L100 30 Z" fill="#F95738"/>
-                  <path d="M100 32 L45 32 L0 47 L45 62 L100 62 Z" fill="#F95738"/>
-                </svg>
+                {/* WOK real logo image */}
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 32, height: 'auto', objectFit: 'contain' }} />
               </button>
               <button onClick={() => setExpanded(false)}
                 style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444' }}
@@ -497,11 +494,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              {/* Collapsed state: show mini WOK logo */}
-              <svg width="22" height="14" viewBox="0 0 100 60" fill="none" aria-label="WOK">
-                <path d="M100 0 L45 0 L0 15 L45 30 L100 30 Z" fill="#F95738"/>
-                <path d="M100 32 L45 32 L0 47 L45 62 L100 62 Z" fill="#F95738"/>
-              </svg>
+              {/* Collapsed state: show WOK logo image */}
+              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 26, height: 'auto', objectFit: 'contain' }} />
             </button>
           )}
         </div>
