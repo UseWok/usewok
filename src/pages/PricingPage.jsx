@@ -129,7 +129,7 @@ export default function PricingPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#0A0A0A',
+      minHeight: '100vh', background: '#1F1F1F',
       fontFamily: 'Inter, system-ui, sans-serif', color: '#fff',
     }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}

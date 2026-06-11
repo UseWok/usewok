@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ChevronDown, Mic, ArrowUp, ArrowRight, Check,
+  Plus, ChevronDown, ArrowRight, Check,
 } from 'lucide-react';
+import ChatInputBar from '../components/chat/ChatInputBar';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import { loadDiscussionsFromCloud } from '@/lib/chat-storage';
@@ -35,84 +36,9 @@ const StripeLogo = () => (
   </div>
 );
 
-// ── Real image logos for model selector — mix-blend-mode:screen removes black bg ──
-const StandardLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain', mixBlendMode: 'screen' }} />
-);
-const MaxLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0ef7df817_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain', mixBlendMode: 'screen' }} />
-);
 
-// ── Build mode dropdown — opens DOWNWARD ──
-function BuildModeMenu({ mode, setMode, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
 
-  return (
-    <motion.div ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
-        background: '#1E1E1E', border: '1px solid #333', borderRadius: 12,
-        padding: '4px', minWidth: 230,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
-      }}
-    >
-      {/* Automatic — large 2x row */}
-      <button
-        onClick={() => { setMode('Automatic'); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-          width: '100%', padding: '12px 14px', border: 'none',
-          background: mode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = mode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
-          <div style={{ fontSize: 11, fontWeight: 400, color: '#555', marginTop: 3 }}>The best AI model is selected for each request.</div>
-        </div>
-        {mode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
-      </button>
-      <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
-      {/* Standard — thin with logo */}
-      <button
-        onClick={() => { setMode('Flash'); onClose(); }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', background: mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <StandardLogoHome /><span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
-        </span>
-        {mode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff' }} />}
-      </button>
-      {/* Max — thin with logo */}
-      <button
-        onClick={() => { setMode('Max'); onClose(); }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', background: mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MaxLogoHome />
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
-          <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 4, padding: '1px 5px' }}>NEW</span>
-        </span>
-        {mode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff' }} />}
-      </button>
-    </motion.div>
-  );
-}
+
 
 // ── Real Project Card ──
 function ProjectCard({ conv, onClick }) {
@@ -174,9 +100,7 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [projects, setProjects] = useState([]);
-  const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [buildMode, setBuildModeLocal] = useState(() => getBuildMode());
-  const buildMenuRef = useRef(null);
 
   const setBuildMode = (mode) => {
     setBuildModeLocal(mode);
@@ -302,71 +226,17 @@ export default function Home() {
           What should we build, {firstName}?
         </h1>
 
-        {/* Chat input bar */}
+        {/* Chat input bar — shared component from /chat */}
         <div style={{ width: '100%', maxWidth: 640, position: 'relative' }}>
-          <div style={{
-            background: 'rgba(28,28,28,0.95)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 18,
-            backdropFilter: 'blur(14px)',
-            overflow: 'visible',
-          }}>
-            <div style={{ padding: '14px 16px 4px' }}>
-              <textarea
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                placeholder="Ask WOK to build a landing page for my..."
-                rows={2}
-                style={{
-                  width: '100%', background: 'transparent', border: 'none', outline: 'none',
-                  fontSize: 14, color: '#fff', resize: 'none', fontFamily: 'inherit',
-                  lineHeight: 1.6,
-                }}
-                className="placeholder:text-[#555]"
-              />
-            </div>
-            {/* Bottom toolbar */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 4 }}>
-              <button style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png" alt="AI Sparkle" style={{ width: 16, height: 16, objectFit: 'contain', mixBlendMode: 'screen' }} />
-              </button>
-              <div style={{ flex: 1 }} />
-              {/* Build mode dropdown */}
-              <div ref={buildMenuRef} style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setShowBuildMenu(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 8px', borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'background 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
-                >
-                  {buildMode === 'Automatic' ? 'Automatic' : buildMode === 'Max' ? 'Max' : 'Standard'} <ChevronDown size={11} />
-                </button>
-                <AnimatePresence>
-                  {showBuildMenu && (
-                    <BuildModeMenu
-                      mode={buildMode}
-                      setMode={setBuildMode}
-                      onClose={() => setShowBuildMenu(false)}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-              {/* Mic */}
-              <button style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0.6, transition: 'opacity 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-                <Mic size={14} />
-              </button>
-              {/* Send */}
-              <button onClick={() => handleSend()} disabled={!input.trim()}
-                style={{ width: 28, height: 28, borderRadius: '50%', background: input.trim() ? '#fff' : 'rgba(255,255,255,0.15)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
-                <ArrowUp size={14} color="#111" />
-              </button>
-            </div>
-          </div>
+          <ChatInputBar
+            input={input}
+            setInput={setInput}
+            onSend={(q) => handleSend(q)}
+            isLoading={false}
+            files={[]}
+            setFiles={() => {}}
+            buildMode={buildMode}
+          />
         </div>
       </div>
 

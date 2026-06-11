@@ -476,7 +476,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 {/* WOK real logo image */}
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 32, height: 'auto', objectFit: 'contain' }} />
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 44, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
               </button>
               <button onClick={() => setExpanded(false)}
                 style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444' }}
@@ -495,7 +495,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               {/* Collapsed state: show WOK logo image */}
-              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 26, height: 'auto', objectFit: 'contain' }} />
+              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 34, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
             </button>
           )}
         </div>

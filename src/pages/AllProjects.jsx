@@ -42,28 +42,30 @@ export default function AllProjects() {
   const confirmRename = (id) => { const u = discussions.map(d => d.id === id ? { ...d, title: renameValue } : d); setDiscussions(u); saveDiscussions(u); setRenaming(null); };
 
   return (
-    <div className="min-h-screen bg-white py-10 px-6">
+    <div className="min-h-screen py-10 px-6" style={{ background: '#1F1F1F' }}>
       <div className="max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => navigate('/')}
-              className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors"
-              style={{ borderRadius: '4px' }}>
-              <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
+              className="w-8 h-8 flex items-center justify-center transition-colors"
+              style={{ borderRadius: '999px', background: 'rgba(255,255,255,0.07)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
+              <ArrowLeft className="w-4 h-4" style={{ color: '#ccc' }} />
             </button>
             <div>
-              <h1 className="text-2xl font-black" style={{ color: FG }}>{t('recent_discussions')}</h1>
-              <p className="text-sm" style={{ color: '#999' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''}</p>
+              <h1 className="text-2xl font-black" style={{ color: '#fff' }}>{t('recent_discussions')}</h1>
+              <p className="text-sm" style={{ color: '#666' }}>{discussions.length} conversation{discussions.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
 
           {/* Search */}
           <div className="flex items-center gap-2 px-4 py-2.5 mb-6"
-            style={{ background: 'white', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            style={{ background: '#2A2A2A', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
             <Search className="w-4 h-4 flex-shrink-0" style={{ color: '#bbb' }} />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder={t('search_placeholder')}
-              className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: '#333' }} />
+              className="flex-1 text-sm bg-transparent focus:outline-none" style={{ color: '#fff' }} />
           </div>
 
           {/* Grid */}
@@ -75,17 +77,17 @@ export default function AllProjects() {
                   initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
                   onContextMenu={(e) => openCtx(e, disc.id)}
                   onClick={() => navigate(`/chat?conversationId=${disc.id}${disc.agent ? '&agent=' + disc.agent : ''}${disc.model ? '&mode=' + disc.model.toLowerCase() : ''}`)}
-                  className="group bg-white cursor-pointer p-4 transition-all"
-                  style={{ border: '1px solid rgba(0,0,0,0.08)', borderRadius: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = FG; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.03)'; }}>
+                  className="group cursor-pointer p-4 transition-all"
+                  style={{ background: '#242424', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = '#2A2A2A'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = '#242424'; }}>
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-8 h-8 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
-                      <MessageSquare className="w-4 h-4" style={{ color: FG }} />
+                    <div className="w-8 h-8 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px' }}>
+                      <MessageSquare className="w-4 h-4" style={{ color: '#888' }} />
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); openCtx(e, disc.id); }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center"
-                      style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '3px' }}>
+                      style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px' }}>
                       <MoreHorizontal className="w-4 h-4" style={{ color: '#888' }} />
                     </button>
                   </div>
@@ -97,7 +99,7 @@ export default function AllProjects() {
                       style={{ borderColor: PURPLE }}
                       onClick={(e) => e.stopPropagation()} />
                   ) : (
-                    <p className="text-sm font-bold line-clamp-2 mb-1" style={{ color: FG }}>{disc.title}</p>
+                    <p className="text-sm font-bold line-clamp-2 mb-1" style={{ color: '#fff' }}>{disc.title}</p>
                   )}
                   <p className="text-xs line-clamp-2 mb-3" style={{ color: '#999' }}>{disc.preview}</p>
                   <div className="flex items-center gap-2">
@@ -120,18 +122,18 @@ export default function AllProjects() {
           <motion.div ref={contextRef}
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.08 }}
-            className="fixed z-[200] bg-white shadow-xl overflow-hidden"
-            style={{ left: contextMenu.x, top: contextMenu.y, border: '1px solid rgba(0,0,0,0.09)', minWidth: 160, borderRadius: '4px' }}>
+            className="fixed z-[200] overflow-hidden shadow-xl"
+            style={{ left: contextMenu.x, top: contextMenu.y, background: '#1E1E1E', border: '1px solid #333', minWidth: 160, borderRadius: '10px' }}>
             <button onClick={() => startRename(contextMenu.id)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm w-full text-left transition-colors"
-              style={{ color: '#444' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+              style={{ color: '#ccc' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Pencil className="w-3.5 h-3.5" /> Rename
             </button>
             <button onClick={() => deleteItem(contextMenu.id)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 w-full text-left transition-colors"
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Trash2 className="w-3.5 h-3.5" /> Delete
             </button>
