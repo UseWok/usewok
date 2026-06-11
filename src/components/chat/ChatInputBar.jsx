@@ -2,13 +2,14 @@
  * ChatInputBar — WOK Premium Chat Input
  *
  * KEY DESIGN RULES:
- * - ALL dropdowns open DOWNWARD (below the toolbar), never upward.
+ * - ALL dropdowns open UPWARD (above the toolbar): bottom: 100% + margin-bottom: 8px.
  * - Toolbar buttons: white solid squares (#FFF bg, dark icon), 28×28px.
  * - Attach button replaced by AI-settings sparkle button (colorful 4-point star).
  * - Model selector shows logo + label; Standard = coral asterisk, Max = orange arrow.
  * - "Automatic" mode: routes 80% Standard / 20% Max server-side; UI always shows "Automatic".
  * - AI Settings dropdown: Enhance prompt (2x height), Import from Computer, Search Google (Google G logo).
  * - No separators between Standard/Max or AI dropdown thin items.
+ * - Images with black backgrounds use mix-blend-mode: screen for transparency.
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -38,19 +39,52 @@ const SparkleIcon = ({ size = 16 }) => (
   </svg>
 );
 
-/** Standard model logo — coral asterisk (image 3) */
+/**
+ * Standard model logo — coral asterisk (img 3: 0e46ff93c).
+ * Black background removed via mix-blend-mode: screen.
+ */
 const StandardLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: size, height: size, objectFit: 'contain' }} />
+  <img
+    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png"
+    alt="Standard"
+    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
+  />
 );
 
-/** Max model logo — WOK double arrow (image 4) */
+/**
+ * Max model logo — orange WOK chevron (img 4: 0ef7df817).
+ * Black background removed via mix-blend-mode: screen.
+ */
 const MaxLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: size, height: size, objectFit: 'contain' }} />
+  <img
+    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0ef7df817_image.png"
+    alt="Max"
+    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
+  />
 );
 
-/** Google G logo — real image (image 1) */
+/**
+ * Google G logo (img 1: 3a327ee44).
+ * Black background removed via mix-blend-mode: screen.
+ */
 const GoogleGLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Google" style={{ width: size, height: size, objectFit: 'contain', borderRadius: 2 }} />
+  <img
+    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/3a327ee44_image.png"
+    alt="Google"
+    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
+  />
+);
+
+/**
+ * AI Sparkle button icon — colorful 4-point star (img 2: be26ef948).
+ * Black background removed via mix-blend-mode: screen.
+ */
+const SparkleBtnIcon = ({ size = 16 }) => (
+  <img
+    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png"
+    alt="AI Sparkle"
+    style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
+  />
 );
 
 // ─────────────────────────────────────────────────────────────────
@@ -102,7 +136,7 @@ function LiveWaveform({ analyserRef }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// MODEL SELECTOR DROPDOWN — opens DOWNWARD
+// MODEL SELECTOR DROPDOWN — opens UPWARD (above the toolbar)
 // ─────────────────────────────────────────────────────────────────
 function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade }) {
   const ref = useRef(null);
@@ -115,13 +149,13 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+      initial={{ opacity: 0, y: 4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+      exit={{ opacity: 0, y: 4, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        /* DOWNWARD — top: 100% + gap, NOT bottom */
-        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+        /* UPWARD — bottom: 100% + margin-bottom */
+        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
         borderRadius: 12, padding: '4px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
@@ -194,7 +228,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, onUpgrade
 }
 
 // ─────────────────────────────────────────────────────────────────
-// AI SETTINGS DROPDOWN — opens DOWNWARD
+// AI SETTINGS DROPDOWN — opens UPWARD (above the toolbar)
 // Enhance prompt (2x), Import from Computer, Search Google (Google G)
 // ─────────────────────────────────────────────────────────────────
 function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEnhancing }) {
@@ -209,13 +243,13 @@ function AISettingsMenu({ onClose, onEnhance, onSearchGoogle, onImportFile, isEn
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+      initial={{ opacity: 0, y: 4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+      exit={{ opacity: 0, y: 4, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        /* DOWNWARD — top: 100% + gap */
-        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+        /* UPWARD — bottom: 100% + margin-bottom */
+        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
         background: '#1A1A1A', border: '1px solid #2E2E2E',
         borderRadius: 12, padding: '4px', minWidth: 240,
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
@@ -595,13 +629,9 @@ export default function ChatInputBar({
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                 >
-                  {/* Show correct logo per selected model */}
-                  {buildMode === 'Flash' && (
-                    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                  )}
-                  {buildMode === 'Max' && (
-                    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                  )}
+                  {/* Show correct logo per selected model — mix-blend-mode:screen removes black bg */}
+                  {buildMode === 'Flash' && <StandardLogo size={15} />}
+                  {buildMode === 'Max' && <MaxLogo size={15} />}
                   <span>{modelLabel}</span>
                   <ChevronDown style={{ width: 11, height: 11, opacity: 0.6 }} />
                 </button>
@@ -629,7 +659,7 @@ export default function ChatInputBar({
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                   onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
                 >
-                  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI Sparkle" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                  <SparkleBtnIcon size={16} />
                 </button>
                 <AnimatePresence>
                   {showAIMenu && (

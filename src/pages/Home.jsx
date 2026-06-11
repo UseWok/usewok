@@ -35,12 +35,12 @@ const StripeLogo = () => (
   </div>
 );
 
-// ── Real image logos for model selector ──
+// ── Real image logos for model selector — mix-blend-mode:screen removes black bg ──
 const StandardLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain', mixBlendMode: 'screen' }} />
 );
 const MaxLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0ef7df817_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain', mixBlendMode: 'screen' }} />
 );
 
 // ── Build mode dropdown — opens DOWNWARD ──
@@ -54,12 +54,12 @@ function BuildModeMenu({ mode, setMode, onClose }) {
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+      initial={{ opacity: 0, y: 4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+      exit={{ opacity: 0, y: 4, scale: 0.97 }}
       transition={{ duration: 0.12 }}
       style={{
-        position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
         background: '#1E1E1E', border: '1px solid #333', borderRadius: 12,
         padding: '4px', minWidth: 230,
         boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
@@ -331,7 +331,7 @@ export default function Home() {
               <button style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI" style={{ width: 16, height: 16, objectFit: 'contain', mixBlendMode: 'screen' }} />
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png" alt="AI Sparkle" style={{ width: 16, height: 16, objectFit: 'contain', mixBlendMode: 'screen' }} />
               </button>
               <div style={{ flex: 1 }} />
               {/* Build mode dropdown */}
