@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
-import { Check, X, Zap, Shield, Users, Headphones } from 'lucide-react';
+import { Check, X, Zap, Shield, Users, Headphones, Globe, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ContactModal = ({ onClose }) => {
@@ -42,9 +42,9 @@ const ContactModal = ({ onClose }) => {
             <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0F2A1E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Check size={20} color="#22C55E" />
             </div>
-            <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Demande reçue</h3>
-            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6 }}>Notre équipe vous contactera dans les 24h.</p>
-            <button onClick={onClose} style={{ marginTop: 24, padding: '10px 28px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Fermer</button>
+            <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Request received</h3>
+            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6 }}>Our team will contact you within 24 hours.</p>
+            <button onClick={onClose} style={{ marginTop: 24, padding: '10px 28px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
           </div>
         ) : (
           <>
@@ -80,10 +80,107 @@ const ContactModal = ({ onClose }) => {
   );
 };
 
+// Static plan definitions matching the reference image
+const STATIC_PLANS = [
+  {
+    id: 'elite',
+    name: 'Elite',
+    price: 200,
+    credits: '1.2k Crédits mensuels /mois',
+    integrationCredits: '50k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Passer à Elite',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+      'Modèles privés',
+      'Accès anticipé aux nouvelles fonctionnalités',
+      'Support prioritaire',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 100,
+    credits: '500 Crédits mensuels /mois',
+    integrationCredits: '20k Crédits d\'intégration /mois',
+    isPopular: true,
+    ctaLabel: 'Passer à Pro',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+      'Modèles privés',
+      'Accès anticipé aux nouvelles fonctionnalités',
+    ],
+  },
+  {
+    id: 'builder',
+    name: 'Builder',
+    price: 50,
+    credits: '250 Crédits mensuels /mois',
+    integrationCredits: '10k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Obtenir Builder',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+    ],
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 20,
+    credits: '100 Crédits mensuels /mois',
+    integrationCredits: '2k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Rétrograder vers Starter',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+    ],
+  },
+];
+
 const SECURITY_BADGES = [
-  { id: 'iso', label: 'ISO 27001', sub: 'Gestion de la sécurité ISO', icon: '🔒' },
-  { id: 'soc2', label: 'SOC 2 Type II', sub: 'SOC pour les organisations de services', icon: '🛡️' },
-  { id: 'rgpd', label: 'RGPD', sub: 'Règlement sur la protection des données et la vie privée', icon: '🇪🇺' },
+  {
+    id: 'iso',
+    label: 'ISO 27001',
+    sub: 'Gestion de la sécurité ISO',
+    icon: '🔒',
+  },
+  {
+    id: 'soc2',
+    label: 'SOC 2 Type II',
+    sub: 'SOC pour les organisations de services',
+    icon: '🛡️',
+  },
+  {
+    id: 'rgpd',
+    label: 'RGPD',
+    sub: 'Règlement sur la protection des données et la vie privée',
+    icon: '🇪🇺',
+  },
 ];
 
 const ENTERPRISE_FEATURES = [
@@ -96,30 +193,16 @@ const ENTERPRISE_FEATURES = [
 export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [plans, setPlans] = useState(getPlansConfig());
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Load from DB (cloud) — admin edits reflect here
-    loadPlansFromDB().then(dbPlans => { if (dbPlans) setPlans(dbPlans); }).catch(() => {});
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const handleUpgrade = (plan) => {
-    const isEnterprise = !plan.price_monthly || plan.checkout_url_monthly?.startsWith('mailto');
-    if (isEnterprise) { setShowModal(true); return; }
-    if (plan.checkout_url_monthly?.startsWith('http')) { window.location.href = plan.checkout_url_monthly; return; }
+    if (plan.id === 'enterprise') { setShowModal(true); return; }
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
   };
-
-  const getCtaLabel = (plan) => {
-    if (!plan.price_monthly || plan.checkout_url_monthly?.startsWith('mailto')) return 'Nous contacter';
-    if (plan.price_monthly === 0) return 'Commencer gratuitement';
-    return `Passer à ${plan.name}`;
-  };
-
-  // badge field drives the orange CTA (set by admin)
-  const isPopular = (plan) => !!plan.badge;
 
   return (
     <div style={{
@@ -149,100 +232,72 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* ── Plan Cards ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${Math.min(plans.length, 4)}, 1fr)`,
-          gap: 14,
-          marginBottom: 40,
-        }}>
-          {plans.map((plan, i) => {
-            const popular = isPopular(plan);
-            const isEnterprise = !plan.price_monthly || plan.checkout_url_monthly?.startsWith('mailto');
-            const price = plan.price_monthly;
-            const credits = plan.credits_limit;
+        {/* ── 4-column Plan Cards ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 40 }}>
+          {STATIC_PLANS.map((plan, i) => (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                background: '#1E1E1F',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 14,
+                padding: '24px 20px',
+                display: 'flex', flexDirection: 'column',
+                position: 'relative',
+              }}
+            >
+              {/* Plan name */}
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>{plan.name}</h3>
 
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+              {/* Price */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 16 }}>
+                <span style={{ fontSize: 38, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>${plan.price}</span>
+                <span style={{ fontSize: 12, color: '#fff', opacity: 0.5 }}>/mois</span>
+              </div>
+
+              {/* Credits info */}
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, marginBottom: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8, marginBottom: 4 }}>{plan.credits}</div>
+                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8 }}>{plan.integrationCredits}</div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => handleUpgrade(plan)}
                 style={{
-                  background: '#1E1E1F',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  borderRadius: 14,
-                  padding: '24px 20px',
-                  display: 'flex', flexDirection: 'column',
-                  position: 'relative',
+                  width: '100%', padding: '10px 0', borderRadius: 8,
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', marginBottom: 18,
+                  transition: 'opacity 150ms',
+                  // Only the popular plan gets solid orange CTA
+                  background: plan.isPopular ? '#F95738' : 'transparent',
+                  color: plan.isPopular ? '#fff' : '#fff',
+                  border: plan.isPopular ? 'none' : '1px solid rgba(255,255,255,0.25)',
                 }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
-                {/* Plan name */}
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>{plan.name}</h3>
+                {plan.ctaLabel}
+              </button>
 
-                {/* Price */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 16 }}>
-                  {isEnterprise ? (
-                    <span style={{ fontSize: 30, fontWeight: 300, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>Sur devis</span>
-                  ) : (
-                    <>
-                      <span style={{ fontSize: 36, fontWeight: 300, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
-                        €{price === 0 ? '0' : price}
-                      </span>
-                      <span style={{ fontSize: 12, color: '#fff', opacity: 0.5 }}>/mois</span>
-                    </>
-                  )}
-                </div>
+              {/* Divider */}
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
 
-                {/* Credits info — monthly credits only */}
-                {credits != null && (
-                  <div style={{ padding: '9px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, marginBottom: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ fontSize: 12, color: '#fff', opacity: 0.8 }}>{credits.toLocaleString('fr-FR')} crédits mensuels</div>
+              {/* Features */}
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Points forts du plan :</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                {plan.features.map((f, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>{f}</span>
                   </div>
-                )}
-
-                {/* CTA Button — orange ONLY if plan has badge set by admin */}
-                <button
-                  onClick={() => handleUpgrade(plan)}
-                  style={{
-                    width: '100%', padding: '10px 0', borderRadius: 8,
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif', marginBottom: 18,
-                    transition: 'opacity 150ms',
-                    background: popular ? '#F95738' : 'transparent',
-                    color: '#fff',
-                    border: popular ? 'none' : '1px solid rgba(255,255,255,0.25)',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                >
-                  {getCtaLabel(plan)}
-                </button>
-
-                {/* Divider */}
-                <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
-
-                {/* Features header */}
-                {plan.features_header && (
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Points forts du plan :
-                  </p>
-                )}
-
-                {/* Features list */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                  {(plan.features || []).map((f, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
-                      <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>
-                        {f.text || f}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })}
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* ── Security Badges Row ── */}
@@ -269,13 +324,13 @@ export default function PricingPage() {
           background: '#1A1A1B',
           border: '1px solid rgba(255,255,255,0.09)',
           borderRadius: 16,
-          padding: '40px',
+          padding: '40px 40px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gap: 48,
           alignItems: 'start',
         }}>
-          {/* Left */}
+          {/* Left: Title + description + CTA */}
           <div>
             <h2 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 14px', letterSpacing: '-0.02em' }}>
               WOK pour les Entreprises
@@ -299,7 +354,7 @@ export default function PricingPage() {
             </button>
           </div>
 
-          {/* Right: 2×2 grid */}
+          {/* Right: 2×2 feature grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
             {ENTERPRISE_FEATURES.map((feat, i) => {
               const Icon = feat.icon;
