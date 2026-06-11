@@ -627,22 +627,22 @@ export default function ChatInputBar({
 
               {/* ── AI Settings button — colorful sparkle ── */}
               <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                onClick={() => setShowAIMenu((v) => !v)}
-                title="AI Settings"
-                style={{
-                  width: 28, height: 28, borderRadius: 6,
-                  background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
-                  border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, transition: 'background 120ms',
-                  opacity: isEnhancing ? 0.7 : 1
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'} className="hidden">
                 
-                  <SparkleIcon size={15} />
-                </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              
                 <AnimatePresence>
                   {showAIMenu &&
                 <AISettingsMenu
