@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
-import { Check, X, Shield, Zap, Building2, ArrowRight } from 'lucide-react';
+import { Check, X, Zap, Shield, Users, Headphones, Globe, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ContactModal = ({ onClose }) => {
@@ -18,10 +18,9 @@ const ContactModal = ({ onClose }) => {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const inputStyle = {
-    width: '100%', background: '#0D0D0D', border: '1px solid #2A2A2A',
-    borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#E5E5E5',
+    width: '100%', background: '#1A1A1A', border: '1px solid #2A2A2A',
+    borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff',
     outline: 'none', boxSizing: 'border-box', fontFamily: 'Inter, sans-serif',
-    transition: 'border-color 150ms',
   };
 
   return (
@@ -32,57 +31,46 @@ const ContactModal = ({ onClose }) => {
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-        style={{ background: '#111', border: '1px solid #222', borderRadius: 16, padding: 32, width: '100%', maxWidth: 460, position: 'relative' }}
+        transition={{ duration: 0.2 }}
+        style={{ background: '#111', border: '1px solid #2A2A2A', borderRadius: 16, padding: 32, width: '100%', maxWidth: 460, position: 'relative' }}
       >
-        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#444', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 120ms' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#888'}
-          onMouseLeave={e => e.currentTarget.style.color = '#444'}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#555', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <X size={15} />
         </button>
-
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0F2A1E', border: '1px solid #1A4A32', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0F2A1E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Check size={20} color="#22C55E" />
             </div>
             <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Request received</h3>
-            <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6 }}>Our team will contact you within 24 hours.</p>
+            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6 }}>Our team will contact you within 24 hours.</p>
             <button onClick={onClose} style={{ marginTop: 24, padding: '10px 28px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>Book a demo</h2>
-              <p style={{ fontSize: 13, color: '#555', margin: 0, lineHeight: 1.6 }}>Connect with our team to see WOK in action.</p>
-            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>Nous contacter</h2>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>Notre équipe vous répondra sous 24h.</p>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[['first_name', 'First name'], ['last_name', 'Last name']].map(([k, l]) => (
+                {[['first_name', 'Prénom'], ['last_name', 'Nom']].map(([k, l]) => (
                   <div key={k}>
-                    <label style={{ display: 'block', fontSize: 11, color: '#555', marginBottom: 5, fontWeight: 500 }}>{l}</label>
-                    <input required value={form[k]} onChange={set(k)} placeholder={l} style={inputStyle}
-                      onFocus={e => e.target.style.borderColor = '#444'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
+                    <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 5, fontWeight: 500 }}>{l}</label>
+                    <input required value={form[k]} onChange={set(k)} placeholder={l} style={inputStyle} />
                   </div>
                 ))}
               </div>
-              {[['email', 'Work email', 'email'], ['website', 'Company website', 'text'], ['role', 'Your role', 'text']].map(([k, l, t]) => (
+              {[['email', 'Email professionnel', 'email'], ['website', 'Site web', 'text'], ['role', 'Votre rôle', 'text']].map(([k, l, t]) => (
                 <div key={k}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#555', marginBottom: 5, fontWeight: 500 }}>{l}</label>
-                  <input required type={t} value={form[k]} onChange={set(k)} placeholder={l} style={inputStyle}
-                    onFocus={e => e.target.style.borderColor = '#444'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
+                  <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 5, fontWeight: 500 }}>{l}</label>
+                  <input required type={t} value={form[k]} onChange={set(k)} placeholder={l} style={inputStyle} />
                 </div>
               ))}
               <div>
-                <label style={{ display: 'block', fontSize: 11, color: '#555', marginBottom: 5, fontWeight: 500 }}>What would you like to discuss?</label>
-                <textarea required value={form.message} onChange={set('message')} placeholder="Describe your use case..." rows={3}
-                  style={{ ...inputStyle, resize: 'none' }}
-                  onFocus={e => e.target.style.borderColor = '#444'} onBlur={e => e.target.style.borderColor = '#2A2A2A'} />
+                <label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 5, fontWeight: 500 }}>Message</label>
+                <textarea required value={form.message} onChange={set('message')} placeholder="Décrivez votre cas d'usage..." rows={3} style={{ ...inputStyle, resize: 'none' }} />
               </div>
-              <button type="submit" style={{ width: '100%', padding: '11px 0', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, transition: 'opacity 150ms' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                Send message
+              <button type="submit" style={{ width: '100%', padding: '11px 0', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4 }}>
+                Envoyer
               </button>
             </form>
           </>
@@ -92,204 +80,294 @@ const ContactModal = ({ onClose }) => {
   );
 };
 
-const PLAN_ICONS = { 0: Zap, 1: ArrowRight, 2: Building2, 3: Building2 };
+// Static plan definitions matching the reference image
+const STATIC_PLANS = [
+  {
+    id: 'elite',
+    name: 'Elite',
+    price: 200,
+    credits: '1.2k Crédits mensuels /mois',
+    integrationCredits: '50k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Passer à Elite',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+      'Modèles privés',
+      'Accès anticipé aux nouvelles fonctionnalités',
+      'Support prioritaire',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 100,
+    credits: '500 Crédits mensuels /mois',
+    integrationCredits: '20k Crédits d\'intégration /mois',
+    isPopular: true,
+    ctaLabel: 'Passer à Pro',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+      'Modèles privés',
+      'Accès anticipé aux nouvelles fonctionnalités',
+    ],
+  },
+  {
+    id: 'builder',
+    name: 'Builder',
+    price: 50,
+    credits: '250 Crédits mensuels /mois',
+    integrationCredits: '10k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Obtenir Builder',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+      'Domaine personnalisé',
+      'Supprimer la marque WOK',
+      'Intégrations incluses',
+      'Automatisations',
+      'Choisissez votre modèle IA',
+      'Édition de code dans l\'app',
+      'Synchronisation bidirectionnelle GitHub',
+    ],
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 20,
+    credits: '100 Crédits mensuels /mois',
+    integrationCredits: '2k Crédits d\'intégration /mois',
+    isPopular: false,
+    ctaLabel: 'Rétrograder vers Starter',
+    features: [
+      'Applications et superagents illimités',
+      'Collaborateurs illimités avec crédits partagés',
+    ],
+  },
+];
+
+const SECURITY_BADGES = [
+  {
+    id: 'iso',
+    label: 'ISO 27001',
+    sub: 'Gestion de la sécurité ISO',
+    icon: '🔒',
+  },
+  {
+    id: 'soc2',
+    label: 'SOC 2 Type II',
+    sub: 'SOC pour les organisations de services',
+    icon: '🛡️',
+  },
+  {
+    id: 'rgpd',
+    label: 'RGPD',
+    sub: 'Règlement sur la protection des données et la vie privée',
+    icon: '🇪🇺',
+  },
+];
+
+const ENTERPRISE_FEATURES = [
+  { icon: Zap, title: 'Intégration et Formation', desc: 'Des plans d\'intégration personnalisés combinés à des formations en direct et des ressources, conçus pour aider les administrateurs et les utilisateurs finaux à adopter rapidement la solution.' },
+  { icon: Users, title: 'Équipe de Compte Dédiée', desc: 'Collaborez avec un responsable de compte et un ingénieur solution désignés, offrant des conseils directs, des escalades et un alignement sur la feuille de route.' },
+  { icon: Headphones, title: 'Support prioritaire, garanti', desc: 'Bénéficiez d\'une assistance prioritaire garantie et de temps de réponse définis via un canal de support dédié.' },
+  { icon: Shield, title: 'Fonctionnalités de Niveau Entreprise', desc: 'Des fonctionnalités de sécurité, de conformité, de gestion et de surveillance offrant le contrôle et la flexibilité nécessaires à grande échelle.' },
+];
 
 export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [configPlans, setConfigPlans] = useState(getPlansConfig());
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    loadPlansFromDB().then(dbPlans => { if (dbPlans) setConfigPlans(dbPlans); }).catch(() => {});
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const plans = configPlans.map((p) => {
-    const isEnterprise = !p.price_monthly || p.checkout_url_monthly?.startsWith('mailto');
-    return {
-      id: p.id,
-      name: p.name,
-      price: isEnterprise ? null : (p.price_monthly || 0),
-      badge: p.badge || null,
-      desc: p.features_header || '',
-      isEnterprise,
-      features: (p.features || []).map(f => f.text || f),
-      checkout_url_monthly: p.checkout_url_monthly,
-    };
-  });
-
   const handleUpgrade = (plan) => {
-    if (plan.isEnterprise || plan.checkout_url_monthly?.startsWith('mailto')) { setShowModal(true); return; }
-    if (plan.checkout_url_monthly?.startsWith('http')) { window.location.href = plan.checkout_url_monthly; return; }
+    if (plan.id === 'enterprise') { setShowModal(true); return; }
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
   };
-
-  const cols = Math.min(plans.length, 4);
 
   return (
     <div style={{
       minHeight: '100vh',
       background: `
-        radial-gradient(ellipse 80% 50% at 50% 120%, rgba(255,140,0,0.55) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 140%, rgba(249,87,56,0.45) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 30% at 20% 130%, rgba(255,200,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 50% at 50% 120%, rgba(255,140,0,0.45) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 140%, rgba(249,87,56,0.35) 0%, transparent 55%),
         #1F1F1F
       `,
       fontFamily: 'Inter, system-ui, sans-serif', color: '#fff',
+      overflowX: 'hidden',
     }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
 
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 32px 100px' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 80px' }}>
 
         {/* ── Header ── */}
-        <div style={{ padding: '80px 0 64px', textAlign: 'center' }}>
+        <div style={{ padding: '72px 0 52px', textAlign: 'center' }}>
           <h1 style={{
-            fontSize: 'clamp(36px, 5vw, 58px)', fontWeight: 300, color: '#fff', margin: '0 0 20px',
-            letterSpacing: '-0.03em', lineHeight: 1.1,
+            fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 700, color: '#fff',
+            margin: '0 0 14px', letterSpacing: '-0.025em', lineHeight: 1.15,
           }}>
-            Simple pricing.<br />No surprises.
+            Choisissez le forfait qui vous convient
           </h1>
-          <p style={{ fontSize: 16, fontWeight: 400, color: '#fff', margin: 0, lineHeight: 1.7, opacity: 0.6 }}>
-            Start free. Scale when you're ready.
+          <p style={{ fontSize: 15, color: '#fff', opacity: 0.6, margin: 0, lineHeight: 1.6 }}>
+            Commencez gratuitement. Montez en gamme quand vous êtes prêt.
           </p>
         </div>
 
-        {/* ── Plan cards ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: 20,
-          marginBottom: 48,
-        }}>
-          {plans.map((plan, i) => {
-            const isPopular = !!plan.badge;
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+        {/* ── 4-column Plan Cards ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 40 }}>
+          {STATIC_PLANS.map((plan, i) => (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                background: '#1E1E1F',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 14,
+                padding: '24px 20px',
+                display: 'flex', flexDirection: 'column',
+                position: 'relative',
+              }}
+            >
+              {/* Plan name */}
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>{plan.name}</h3>
+
+              {/* Price */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 16 }}>
+                <span style={{ fontSize: 38, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>${plan.price}</span>
+                <span style={{ fontSize: 12, color: '#fff', opacity: 0.5 }}>/mois</span>
+              </div>
+
+              {/* Credits info */}
+              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, marginBottom: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8, marginBottom: 4 }}>{plan.credits}</div>
+                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8 }}>{plan.integrationCredits}</div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => handleUpgrade(plan)}
                 style={{
-                  background: isPopular
-                    ? 'rgba(255,255,255,0.06)'
-                    : 'rgba(255,255,255,0.03)',
-                  border: isPopular
-                    ? '1px solid rgba(255,255,255,0.2)'
-                    : '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 20,
-                  padding: '36px 30px 32px',
-                  display: 'flex', flexDirection: 'column',
-                  position: 'relative', overflow: 'hidden',
-                  backdropFilter: 'blur(12px)',
-                  boxShadow: isPopular ? '0 0 60px rgba(255,140,0,0.08)' : 'none',
+                  width: '100%', padding: '10px 0', borderRadius: 8,
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', marginBottom: 18,
+                  transition: 'opacity 150ms',
+                  // Only the popular plan gets solid orange CTA
+                  background: plan.isPopular ? '#F95738' : 'transparent',
+                  color: plan.isPopular ? '#fff' : '#fff',
+                  border: plan.isPopular ? 'none' : '1px solid rgba(255,255,255,0.25)',
                 }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
-                {/* Popular badge */}
-                {isPopular && (
-                  <div style={{
-                    position: 'absolute', top: 0, right: 22,
-                    background: '#fff', color: '#000',
-                    fontSize: 10, fontWeight: 700,
-                    letterSpacing: '0.08em', textTransform: 'uppercase',
-                    padding: '4px 12px', borderRadius: '0 0 10px 10px',
-                  }}>
-                    Popular
+                {plan.ctaLabel}
+              </button>
+
+              {/* Divider */}
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
+
+              {/* Features */}
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Points forts du plan :</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                {plan.features.map((f, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>{f}</span>
                   </div>
-                )}
-
-                {/* Plan name */}
-                <h3 style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 28px', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.7 }}>{plan.name}</h3>
-
-                {/* Price */}
-                <div style={{ marginBottom: 32 }}>
-                  {plan.price !== null ? (
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: 52, fontWeight: 300, color: '#fff', lineHeight: 1, letterSpacing: '-0.04em' }}>€{plan.price}</span>
-                      <span style={{ fontSize: 13, color: '#fff', opacity: 0.5, fontWeight: 400 }}>/month</span>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 38, fontWeight: 300, color: '#fff', letterSpacing: '-0.03em' }}>Custom</span>
-                  )}
-                  {plan.desc && <p style={{ fontSize: 13, color: '#fff', opacity: 0.5, margin: '10px 0 0', lineHeight: 1.5, fontWeight: 400 }}>{plan.desc}</p>}
-                </div>
-
-                {/* CTA */}
-                {plan.isEnterprise ? (
-                  <button
-                    onClick={() => setShowModal(true)}
-                    style={{
-                      width: '100%', padding: '13px 0', borderRadius: 12,
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      background: 'transparent', color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.25)',
-                      fontFamily: 'Inter, sans-serif', transition: 'border-color 150ms, background 150ms',
-                      marginBottom: 28,
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    Contact sales
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleUpgrade(plan)}
-                    style={{
-                      width: '100%', padding: '13px 0', borderRadius: 12,
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      background: isPopular ? '#fff' : 'rgba(255,255,255,0.1)',
-                      color: isPopular ? '#000' : '#fff',
-                      border: 'none',
-                      fontFamily: 'Inter, sans-serif',
-                      transition: 'opacity 150ms, background 150ms',
-                      marginBottom: 28,
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                  >
-                    {plan.price === 0 ? 'Get started free' : 'Get started'}
-                  </button>
-                )}
-
-                {/* Divider */}
-                <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 24 }} />
-
-                {/* Features — compact, no visual clutter */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
-                  {plan.features.map((f, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <Check style={{ width: 13, height: 13, color: '#fff', opacity: 0.4, flexShrink: 0, marginTop: 2 }} />
-                      <span style={{ fontSize: 13, color: '#fff', opacity: 0.75, lineHeight: 1.5, fontWeight: 400 }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })}
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* ── Security strip ── */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: 14, padding: '18px 24px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexWrap: 'wrap', gap: 12,
-          backdropFilter: 'blur(8px)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Shield style={{ width: 16, height: 16, color: '#fff', opacity: 0.4, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#fff', opacity: 0.75 }}>Enterprise-grade security</span>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {['SOC 2', 'GDPR', 'ISO 27001'].map(badge => (
-              <div key={badge} style={{
-                padding: '5px 12px', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5,
-              }}>
-                {badge}
+        {/* ── Security Badges Row ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 40 }}>
+          {SECURITY_BADGES.map((badge) => (
+            <div key={badge.id} style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '16px 20px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 12,
+            }}>
+              <span style={{ fontSize: 28, flexShrink: 0 }}>{badge.icon}</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{badge.label}</div>
+                <div style={{ fontSize: 12, color: '#fff', opacity: 0.6, lineHeight: 1.4 }}>{badge.sub}</div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Enterprise Block ── */}
+        <div style={{
+          background: '#1A1A1B',
+          border: '1px solid rgba(255,255,255,0.09)',
+          borderRadius: 16,
+          padding: '40px 40px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 48,
+          alignItems: 'start',
+        }}>
+          {/* Left: Title + description + CTA */}
+          <div>
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 14px', letterSpacing: '-0.02em' }}>
+              WOK pour les Entreprises
+            </h2>
+            <p style={{ fontSize: 14, color: '#fff', opacity: 0.7, margin: '0 0 28px', lineHeight: 1.7 }}>
+              Permettez aux grandes organisations de créer des solutions parfaitement adaptées à leurs équipes, en toute sécurité et à grande échelle.
+            </p>
+            <button
+              onClick={() => setShowModal(true)}
+              style={{
+                padding: '11px 26px', borderRadius: 9,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                background: 'transparent', color: '#fff',
+                border: '1px solid rgba(255,255,255,0.35)',
+                fontFamily: 'Inter, sans-serif', transition: 'border-color 150ms, background 150ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              Nous contacter
+            </button>
+          </div>
+
+          {/* Right: 2×2 feature grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            {ENTERPRISE_FEATURES.map((feat, i) => {
+              const Icon = feat.icon;
+              return (
+                <div key={i}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Icon style={{ width: 15, height: 15, color: '#F95738', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{feat.title}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#fff', opacity: 0.6, margin: 0, lineHeight: 1.6 }}>{feat.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
