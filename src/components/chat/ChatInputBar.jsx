@@ -38,19 +38,19 @@ const SparkleIcon = ({ size = 16 }) => (
   </svg>
 );
 
-/** Standard model logo — real image */
+/** Standard model logo — coral asterisk (image 3) */
 const StandardLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Standard" style={{ width: size, height: size, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: size, height: size, objectFit: 'contain' }} />
 );
 
-/** Max model logo — real image */
+/** Max model logo — WOK double arrow (image 4) */
 const MaxLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Max" style={{ width: size, height: size, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: size, height: size, objectFit: 'contain' }} />
 );
 
-/** Google G logo — real image */
+/** Google G logo — real image (image 1) */
 const GoogleGLogo = ({ size = 16 }) => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="Google" style={{ width: size, height: size, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Google" style={{ width: size, height: size, objectFit: 'contain', borderRadius: 2 }} />
 );
 
 // ─────────────────────────────────────────────────────────────────
@@ -595,9 +595,12 @@ export default function ChatInputBar({
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                 >
-                  {/* Show logo only for Standard/Max, not Automatic */}
-                  {buildMode !== 'Automatic' && (
-                    <img src="image_1fcb61.png" alt="Model Logo" style={{ width: 15, height: 15, objectFit: 'contain' }} />
+                  {/* Show correct logo per selected model */}
+                  {buildMode === 'Flash' && (
+                    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: 15, height: 15, objectFit: 'contain' }} />
+                  )}
+                  {buildMode === 'Max' && (
+                    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: 15, height: 15, objectFit: 'contain' }} />
                   )}
                   <span>{modelLabel}</span>
                   <ChevronDown style={{ width: 11, height: 11, opacity: 0.6 }} />
@@ -626,7 +629,7 @@ export default function ChatInputBar({
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                   onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
                 >
-                  <img src="image_1fcb7b.jpg" alt="AI Sparkle" style={{ width: 16, height: 16, objectFit: 'contain', mixBlendMode: 'screen' }} />
+                  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI Sparkle" style={{ width: 16, height: 16, objectFit: 'contain' }} />
                 </button>
                 <AnimatePresence>
                   {showAIMenu && (

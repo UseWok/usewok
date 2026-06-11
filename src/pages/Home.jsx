@@ -37,10 +37,10 @@ const StripeLogo = () => (
 
 // ── Real image logos for model selector ──
 const StandardLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/2c6954f89_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Standard" style={{ width: 14, height: 14, objectFit: 'contain' }} />
 );
 const MaxLogoHome = () => (
-  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/09f956bee_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+  <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="Max" style={{ width: 14, height: 14, objectFit: 'contain' }} />
 );
 
 // ── Build mode dropdown — opens DOWNWARD ──
@@ -331,7 +331,7 @@ export default function Home() {
               <button style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/1b139e3ee_image.png" alt="AI" style={{ width: 16, height: 16, objectFit: 'contain', mixBlendMode: 'screen' }} />
               </button>
               <div style={{ flex: 1 }} />
               {/* Build mode dropdown */}
