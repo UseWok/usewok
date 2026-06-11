@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getPlansConfig, loadPlansFromDB } from '@/lib/plans-config';
-import { Check, X, Zap, Shield, Users, Headphones, Globe, Lock } from 'lucide-react';
+import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
+import { Check, X, Zap, Shield, Users, Headphones } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ContactModal = ({ onClose }) => {
@@ -80,107 +80,10 @@ const ContactModal = ({ onClose }) => {
   );
 };
 
-// Static plan definitions matching the reference image
-const STATIC_PLANS = [
-  {
-    id: 'elite',
-    name: 'Elite',
-    price: 200,
-    credits: '1.2k Crédits mensuels /mois',
-    integrationCredits: '50k Crédits d\'intégration /mois',
-    isPopular: false,
-    ctaLabel: 'Passer à Elite',
-    features: [
-      'Applications et superagents illimités',
-      'Collaborateurs illimités avec crédits partagés',
-      'Domaine personnalisé',
-      'Supprimer la marque WOK',
-      'Intégrations incluses',
-      'Automatisations',
-      'Choisissez votre modèle IA',
-      'Édition de code dans l\'app',
-      'Synchronisation bidirectionnelle GitHub',
-      'Modèles privés',
-      'Accès anticipé aux nouvelles fonctionnalités',
-      'Support prioritaire',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 100,
-    credits: '500 Crédits mensuels /mois',
-    integrationCredits: '20k Crédits d\'intégration /mois',
-    isPopular: true,
-    ctaLabel: 'Passer à Pro',
-    features: [
-      'Applications et superagents illimités',
-      'Collaborateurs illimités avec crédits partagés',
-      'Domaine personnalisé',
-      'Supprimer la marque WOK',
-      'Intégrations incluses',
-      'Automatisations',
-      'Choisissez votre modèle IA',
-      'Édition de code dans l\'app',
-      'Synchronisation bidirectionnelle GitHub',
-      'Modèles privés',
-      'Accès anticipé aux nouvelles fonctionnalités',
-    ],
-  },
-  {
-    id: 'builder',
-    name: 'Builder',
-    price: 50,
-    credits: '250 Crédits mensuels /mois',
-    integrationCredits: '10k Crédits d\'intégration /mois',
-    isPopular: false,
-    ctaLabel: 'Obtenir Builder',
-    features: [
-      'Applications et superagents illimités',
-      'Collaborateurs illimités avec crédits partagés',
-      'Domaine personnalisé',
-      'Supprimer la marque WOK',
-      'Intégrations incluses',
-      'Automatisations',
-      'Choisissez votre modèle IA',
-      'Édition de code dans l\'app',
-      'Synchronisation bidirectionnelle GitHub',
-    ],
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: 20,
-    credits: '100 Crédits mensuels /mois',
-    integrationCredits: '2k Crédits d\'intégration /mois',
-    isPopular: false,
-    ctaLabel: 'Rétrograder vers Starter',
-    features: [
-      'Applications et superagents illimités',
-      'Collaborateurs illimités avec crédits partagés',
-    ],
-  },
-];
-
 const SECURITY_BADGES = [
-  {
-    id: 'iso',
-    label: 'ISO 27001',
-    sub: 'Gestion de la sécurité ISO',
-    icon: '🔒',
-  },
-  {
-    id: 'soc2',
-    label: 'SOC 2 Type II',
-    sub: 'SOC pour les organisations de services',
-    icon: '🛡️',
-  },
-  {
-    id: 'rgpd',
-    label: 'RGPD',
-    sub: 'Règlement sur la protection des données et la vie privée',
-    icon: '🇪🇺',
-  },
+  { id: 'iso', label: 'ISO 27001', sub: 'Gestion de la sécurité ISO', icon: '🔒' },
+  { id: 'soc2', label: 'SOC 2 Type II', sub: 'SOC pour les organisations de services', icon: '🛡️' },
+  { id: 'rgpd', label: 'RGPD', sub: 'Règlement sur la protection des données et la vie privée', icon: '🇪🇺' },
 ];
 
 const ENTERPRISE_FEATURES = [
@@ -190,17 +93,37 @@ const ENTERPRISE_FEATURES = [
   { icon: Shield, title: 'Fonctionnalités de Niveau Entreprise', desc: 'Des fonctionnalités de sécurité, de conformité, de gestion et de surveillance offrant le contrôle et la flexibilité nécessaires à grande échelle.' },
 ];
 
+// Credit label helper — formats numbers like 1000 → "1M", 2500 → "2.5M"
+function formatCredits(n) {
+  if (!n && n !== 0) return null;
+  if (n >= 1000000) return `${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1).replace(/\.0$/, '')}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1).replace(/\.0$/, '')}k`;
+  return String(n);
+}
+
 export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [user, setUser] = useState(null);
+  const [plans, setPlans] = useState([]);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    // Load from DB first (admin-controlled), fallback to local config
+    loadPlansFromDB()
+      .then(dbPlans => setPlans(dbPlans || getPlansConfig()))
+      .catch(() => setPlans(getPlansConfig()));
   }, []);
 
+  // Filter out enterprise/contact-only plans for the card grid
+  const cardPlans = plans.filter(p => {
+    const url = p.checkout_url_monthly || '';
+    return !url.startsWith('mailto') && p.id !== 'free';
+  });
+
   const handleUpgrade = (plan) => {
-    if (plan.id === 'enterprise') { setShowModal(true); return; }
+    if (plan.checkout_url_monthly?.startsWith('http')) {
+      window.location.href = plan.checkout_url_monthly;
+      return;
+    }
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
   };
 
@@ -232,73 +155,93 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* ── 4-column Plan Cards ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 40 }}>
-          {STATIC_PLANS.map((plan, i) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
-              style={{
-                background: '#1E1E1F',
-                border: '1px solid rgba(255,255,255,0.09)',
-                borderRadius: 14,
-                padding: '24px 20px',
-                display: 'flex', flexDirection: 'column',
-                position: 'relative',
-              }}
-            >
-              {/* Plan name */}
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>{plan.name}</h3>
+        {/* ── Plan Cards ── */}
+        {cardPlans.length > 0 && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${Math.min(cardPlans.length, 4)}, 1fr)`,
+            gap: 14,
+            marginBottom: 40,
+          }}>
+            {cardPlans.map((plan, i) => {
+              const isPopular = !!plan.badge;
+              const price = plan.price_monthly ?? plan.price ?? 0;
+              const creditsLabel = plan.credits_limit ? `${formatCredits(plan.credits_limit)} Crédits mensuels /mois` : null;
+              const integLabel = plan.integration_credits ? `${formatCredits(plan.integration_credits)} Crédits d'intégration /mois` : null;
+              const features = (plan.features || []).map(f => f.text || f);
 
-              {/* Price */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 16 }}>
-                <span style={{ fontSize: 38, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>${plan.price}</span>
-                <span style={{ fontSize: 12, color: '#fff', opacity: 0.5 }}>/mois</span>
-              </div>
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+                  style={{
+                    background: '#1E1E1F',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 14,
+                    padding: '24px 20px',
+                    display: 'flex', flexDirection: 'column',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Plan name */}
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>{plan.name}</h3>
 
-              {/* Credits info */}
-              <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, marginBottom: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8, marginBottom: 4 }}>{plan.credits}</div>
-                <div style={{ fontSize: 12, color: '#fff', opacity: 0.8 }}>{plan.integrationCredits}</div>
-              </div>
-
-              {/* CTA Button */}
-              <button
-                onClick={() => handleUpgrade(plan)}
-                style={{
-                  width: '100%', padding: '10px 0', borderRadius: 8,
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'Inter, sans-serif', marginBottom: 18,
-                  transition: 'opacity 150ms',
-                  // Only the popular plan gets solid orange CTA
-                  background: plan.isPopular ? '#F95738' : 'transparent',
-                  color: plan.isPopular ? '#fff' : '#fff',
-                  border: plan.isPopular ? 'none' : '1px solid rgba(255,255,255,0.25)',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                {plan.ctaLabel}
-              </button>
-
-              {/* Divider */}
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
-
-              {/* Features */}
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Points forts du plan :</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                {plan.features.map((f, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
-                    <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>{f}</span>
+                  {/* Price — fontWeight 500 (lighter, not bold) */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 16 }}>
+                    <span style={{ fontSize: 38, fontWeight: 500, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>${price}</span>
+                    <span style={{ fontSize: 12, color: '#fff', opacity: 0.5 }}>/mois</span>
                   </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+
+                  {/* Credits info — only show if available */}
+                  {(creditsLabel || integLabel) && (
+                    <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, marginBottom: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
+                      {creditsLabel && <div style={{ fontSize: 12, color: '#fff', opacity: 0.8, marginBottom: integLabel ? 4 : 0 }}>{creditsLabel}</div>}
+                      {integLabel && <div style={{ fontSize: 12, color: '#fff', opacity: 0.8 }}>{integLabel}</div>}
+                    </div>
+                  )}
+
+                  {/* CTA — orange ONLY for plan with badge (admin-controlled) */}
+                  <button
+                    onClick={() => handleUpgrade(plan)}
+                    style={{
+                      width: '100%', padding: '10px 0', borderRadius: 8,
+                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      fontFamily: 'Inter, sans-serif', marginBottom: 18,
+                      transition: 'opacity 150ms',
+                      background: isPopular ? '#F95738' : 'transparent',
+                      color: '#fff',
+                      border: isPopular ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    {plan.badge_cta || (price === 0 ? 'Commencer gratuitement' : `Passer à ${plan.name}`)}
+                  </button>
+
+                  {/* Divider */}
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
+
+                  {/* Features */}
+                  {features.length > 0 && (
+                    <>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', opacity: 0.5, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Points forts du plan :</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                        {features.map((f, j) => (
+                          <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                            <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
+                            <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── Security Badges Row ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 40 }}>
@@ -330,7 +273,7 @@ export default function PricingPage() {
           gap: 48,
           alignItems: 'start',
         }}>
-          {/* Left: Title + description + CTA */}
+          {/* Left */}
           <div>
             <h2 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 14px', letterSpacing: '-0.02em' }}>
               WOK pour les Entreprises
