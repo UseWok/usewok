@@ -29,9 +29,11 @@ import ProModal from '@/components/chat/ProModal';
 import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import HistoryPanel from '@/components/chat/HistoryPanel';
-import AnalyticsPanel from '@/components/chat/AnalyticsPanel';
-import LogsPanel from '@/components/chat/LogsPanel';
-import { appendLog } from '@/components/chat/LogsPanel';
+import AnalyticsPanel from '@/components/chat/AnalyticsPanel.jsx';
+import LogsPanel from '@/components/chat/LogsPanel.jsx';
+import { appendLog } from '@/components/chat/LogsPanel.jsx';
+import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
+import { getBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
 
 
 // ── Lib ──
@@ -183,12 +185,20 @@ export default function ChatPage() {
   const profileMenuRef = useRef(null);
   const abortedRef = useRef(false);
 
-  // ── Credits helper ──
+  // ── Build mode: sync from global store ──
+  const [buildMode, setBuildModeState] = useState(() => getBuildMode());
+
+  useEffect(() => {
+    const unsub = subscribeBuildMode(m => setBuildModeState(m));
+    hydrateBuildModeFromCloud();
+    return unsub;
+  }, []);
+
+  // ── Credits helper (new engine) ──
   const handleUpdateCredits = async (cost) => {
     if (!user) return;
-    const newUsed = (user.credits_used || 0) + cost;
-    await base44.entities.User.update(user.id, { credits_used: newUsed });
-    setUser((prev) => ({ ...prev, credits_used: newUsed }));
+    const updatedUser = await deductCredits(user, cost);
+    setUser(updatedUser);
   };
 
   // ── Persist discussion to local cache + cloud ──
@@ -287,6 +297,12 @@ export default function ChatPage() {
   // ── Core send logic ──
   const sendMessage = useCallback(async (text, options = {}) => {
     if ((!text?.trim() && !options.files?.length) || isLoading) return;
+
+    // ── Credit lockout check ──
+    if (isUserLocked(user)) {
+      toast.error("Crédits épuisés. Renouvellement dans quelques jours.");
+      return;
+    }
 
     // ── Security: sanitize & rate-limit ──
     const safeText = sanitizeInput(text, 4000);
@@ -434,7 +450,7 @@ export default function ChatPage() {
         fileUrls: imageUrls2,
         needsWebSearch: false,
         systemPrompt: PROMPT_ARCHITECT,
-        buildMode: options.buildMode || 'Flash',
+        buildMode: buildMode,
       });
 
       if (abortedRef.current) return;
@@ -478,9 +494,8 @@ export default function ChatPage() {
         ? thinkingBlock + '\n\n' + (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent)
         : (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent);
 
-      const creditsLimit = userPlan?.credits_limit || user?.credits_limit || 10;
-      const creditsUsed = user?.credits_used || 0;
-      const cost = creditsUsed >= creditsLimit * 2 ? 2 : 1;
+      // ── Deduct credits based on mode + action type ──
+      const cost = computeCreditCost(buildMode, isModification);
       await handleUpdateCredits(cost);
 
       if (!isModification && !discussMode && user) {
@@ -552,8 +567,15 @@ export default function ChatPage() {
   useEffect(() => {
     const initAuth = async () => {
       await safeAsync(() => initAgentsFromDB(), null, 'Init agents');
-      const u = await safeAsync(() => base44.auth.me(), null, 'Fetch user');
-      if (u) { setUser(u); if (u.id) setCurrentUser(u.id); setUserPlan(getUserPlan(u)); }
+      let u = await safeAsync(() => base44.auth.me(), null, 'Fetch user');
+      if (u) {
+        // Initialize credits for new users, check renewal
+        await initUserCredits(u);
+        u = await checkAndRenewCredits(u);
+        setUser(u);
+        if (u.id) setCurrentUser(u.id);
+        setUserPlan(getUserPlan(u));
+      }
     };
     initAuth();
   }, [conversationId]);
@@ -747,6 +769,8 @@ export default function ChatPage() {
                       discussMode={discussMode} setDiscussMode={setDiscussMode}
                       editMode={editMode} setEditMode={setEditMode}
                       onUpgrade={() => {}}
+                      locked={isUserLocked(user)}
+                      buildMode={buildMode}
                     />
                   </div>
                 </>
@@ -785,7 +809,7 @@ export default function ChatPage() {
             {/* Analytics panel */}
             {viewMode === 'analytics' && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 8, overflow: 'hidden', border: '1px solid #D9D5CC' }}>
-                <AnalyticsPanel />
+                <AnalyticsPanel convId={conversationId || convId} />
               </div>
             )}
 

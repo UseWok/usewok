@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Copy, RefreshCw, ChevronRight, ChevronDown, Search } from 'lucide-react';
 
 // ── Rotating log storage (3 files × 1MB max in localStorage) ──
 const LOG_KEYS = ['wok_log_0', 'wok_log_1', 'wok_log_2'];
-const MAX_SIZE = 1024 * 1024; // 1MB per slot
+const MAX_SIZE = 1024 * 1024;
+const PAGE_SIZE = 20;
 
 export function appendLog(level, message) {
   try {
@@ -11,7 +12,6 @@ export function appendLog(level, message) {
     let slotIdx = parseInt(localStorage.getItem('wok_log_slot') || '0', 10);
     let slot = localStorage.getItem(LOG_KEYS[slotIdx]) || '';
     if ((slot.length + entry.length) > MAX_SIZE) {
-      // Rotate: advance slot, overwrite oldest
       slotIdx = (slotIdx + 1) % 3;
       localStorage.setItem('wok_log_slot', String(slotIdx));
       slot = '';
@@ -23,7 +23,6 @@ export function appendLog(level, message) {
 function readAllLogs() {
   const all = [];
   const slotIdx = parseInt(localStorage.getItem('wok_log_slot') || '0', 10);
-  // Read in rotation order (oldest first)
   for (let i = 1; i <= 3; i++) {
     const key = LOG_KEYS[(slotIdx + i) % 3];
     const raw = localStorage.getItem(key) || '';
@@ -46,11 +45,7 @@ function LogRow({ log, expanded, onToggle }) {
     <div style={{ borderBottom: '1px solid #EDEAE4' }}>
       <div
         onClick={onToggle}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 16px', cursor: 'pointer',
-          background: expanded ? '#F8F6F2' : 'transparent',
-        }}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', cursor: 'pointer', background: expanded ? '#F8F6F2' : 'transparent' }}
         onMouseEnter={e => { if (!expanded) e.currentTarget.style.background = '#F8F6F2'; }}
         onMouseLeave={e => { if (!expanded) e.currentTarget.style.background = 'transparent'; }}
       >
@@ -78,27 +73,32 @@ function LogRow({ log, expanded, onToggle }) {
 }
 
 export default function LogsPanel() {
-  const [logs, setLogs] = useState([]);
+  const [allLogs, setAllLogs] = useState([]);
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState('All');
   const [expandedIdx, setExpandedIdx] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [page, setPage] = useState(1); // how many pages of PAGE_SIZE to show
 
-  const refresh = () => setLogs(readAllLogs());
+  const refresh = () => { setAllLogs(readAllLogs()); setPage(1); };
 
   useEffect(() => {
     refresh();
-    // Auto-refresh every 3s
-    const t = setInterval(refresh, 3000);
+    const t = setInterval(() => setAllLogs(readAllLogs()), 3000);
     return () => clearInterval(t);
   }, []);
 
-  const filtered = logs.filter(l => {
+  // Reset pagination on filter change
+  useEffect(() => { setPage(1); setExpandedIdx(null); }, [search, levelFilter]);
+
+  const filtered = allLogs.filter(l => {
     const matchLevel = levelFilter === 'All' || l.level === levelFilter;
     const matchSearch = !search || l.message?.toLowerCase().includes(search.toLowerCase());
     return matchLevel && matchSearch;
   });
 
+  const visible = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = visible.length < filtered.length;
   const allText = filtered.map(l => `${l.ts} [${l.level}] ${l.message}`).join('\n');
 
   const handleDownload = () => {
@@ -120,21 +120,16 @@ export default function LogsPanel() {
         <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111', margin: '0 0 4px 0' }}>Logs</h2>
         <p style={{ fontSize: 13, color: '#888', margin: '0 0 16px 0' }}>Debug errors and track activity in your app.</p>
 
-        {/* Filters bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
             <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 13, height: 13, color: '#AAA' }} />
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search events"
-              style={{ width: '100%', padding: '7px 12px 7px 30px', border: '1px solid #E0E0DC', borderRadius: 8, fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif', background: '#fff', boxSizing: 'border-box' }}
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events"
+              style={{ width: '100%', padding: '7px 12px 7px 30px', border: '1px solid #E0E0DC', borderRadius: 8, fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif', background: '#fff', boxSizing: 'border-box' }} />
           </div>
           {['All', 'INFO', 'WARN', 'ERROR'].map(l => (
             <button key={l} onClick={() => setLevelFilter(l)} style={{
               padding: '6px 12px', border: '1px solid #E0E0DC', borderRadius: 8, cursor: 'pointer',
-              background: levelFilter === l ? '#111' : '#fff',
-              color: levelFilter === l ? '#fff' : '#555',
+              background: levelFilter === l ? '#111' : '#fff', color: levelFilter === l ? '#fff' : '#555',
               fontSize: 12, fontWeight: 500,
             }}>{l}</button>
           ))}
@@ -143,7 +138,6 @@ export default function LogsPanel() {
           </button>
         </div>
 
-        {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 12, borderBottom: '1px solid #EDEAE4' }}>
           <button onClick={handleDownload} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#333', fontWeight: 500 }}>
             <Download style={{ width: 14, height: 14 }} /> Download
@@ -151,29 +145,45 @@ export default function LogsPanel() {
           <button onClick={handleCopy} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: copied ? '#22C55E' : '#333', fontWeight: 500 }}>
             <Copy style={{ width: 14, height: 14 }} /> {copied ? 'Copied!' : 'Copy'}
           </button>
-          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>Status</span>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>
+            Showing {visible.length} / {filtered.length} logs
+          </span>
         </div>
       </div>
 
       {/* Log rows */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {filtered.length === 0 ? (
+        {visible.length === 0 ? (
           <div style={{ padding: 32, textAlign: 'center', color: '#CCC', fontSize: 13 }}>No logs found.</div>
         ) : (
-          filtered.map((log, i) => (
-            <LogRow
-              key={i} log={log}
-              expanded={expandedIdx === i}
-              onToggle={() => setExpandedIdx(expandedIdx === i ? null : i)}
-            />
+          visible.map((log, i) => (
+            <LogRow key={i} log={log} expanded={expandedIdx === i} onToggle={() => setExpandedIdx(expandedIdx === i ? null : i)} />
           ))
+        )}
+
+        {/* Load more button */}
+        {hasMore && (
+          <div style={{ padding: '16px', textAlign: 'center' }}>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              style={{
+                padding: '8px 24px', borderRadius: 8,
+                background: '#fff', border: '1px solid #E0E0DC',
+                fontSize: 13, fontWeight: 600, color: '#333',
+                cursor: 'pointer', transition: 'background 120ms',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              Charger plus ({filtered.length - visible.length} restants)
+            </button>
+          </div>
         )}
       </div>
 
       {/* Footer */}
       <div style={{ padding: '10px 16px', borderTop: '1px solid #EDEAE4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: '#888' }}>{filtered.length} log{filtered.length !== 1 ? 's' : ''} found</span>
-        <button style={{ fontSize: 12, fontWeight: 600, color: '#111', background: 'none', border: 'none', cursor: 'pointer' }}>Show more</button>
+        <span style={{ fontSize: 12, color: '#888' }}>{filtered.length} log{filtered.length !== 1 ? 's' : ''} total</span>
       </div>
     </div>
   );

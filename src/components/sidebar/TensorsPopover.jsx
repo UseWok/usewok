@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
+import { FREE_PLAN_CREDITS, formatResetDate, formatBalance } from '@/lib/credits';
 
 const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
@@ -18,11 +19,13 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const used = user?.credits_used || 0;
-  const limit = user?.credits_limit || 10;
-  const bonus = user?.credits_bonus || 0;
-  const total = limit + bonus;
+  // New credit engine: balance-based (starts at 150k, counts down)
+  const balance = typeof user?.credits_balance === 'number' ? user.credits_balance : FREE_PLAN_CREDITS;
+  const total = FREE_PLAN_CREDITS;
+  const used = Math.max(0, total - balance);
   const pct = Math.min((used / total) * 100, 100);
+  const resetDateStr = formatResetDate(user);
+  const isNegative = balance < 0;
 
   // Daily usage
   const dailyLimit = user?.daily_credits_limit || 0; // 0 = unlimited
@@ -83,41 +86,41 @@ export default function TensorsPopover({ open, onClose, anchorRef, user }) {
           <div className="px-4 py-3">
             <div className="flex items-end justify-between mb-2">
               <div>
-                <span className="text-2xl font-black" style={{ color: FG }}>{fmtN(used)}</span>
-                <span className="text-sm ml-1" style={{ color: '#bbb' }}>/ {fmtN(total)}</span>
+                <span className="text-2xl font-black" style={{ color: isNegative ? '#EF4444' : FG }}>
+                  {isNegative ? '-' : ''}{formatBalance(Math.abs(balance))}
+                </span>
+                <span className="text-xs ml-1" style={{ color: '#bbb' }}>/ {formatBalance(total)}</span>
               </div>
-
+              {isNegative && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>
+                  Dette
+                </span>
+              )}
             </div>
 
-            {/* Progress bar */}
+            {/* Progress bar — blue for free plan */}
             <div className="w-full h-2 rounded-full overflow-hidden mb-2" style={{ background: 'rgba(0,0,0,0.07)' }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
                 className="h-full rounded-full"
-                style={{ background: FG }} />
+                style={{ background: isNegative ? '#EF4444' : '#2563EB' }} />
             </div>
 
             <p className="text-[10px]" style={{ color: '#aaa' }}>
-              {t('tensors_used', { used, total })}
-              {bonus > 0 && ` (+${bonus} bonus)`}
+              {formatBalance(used)} crédits utilisés sur {formatBalance(total)}
             </p>
 
-            {/* Daily usage */}
-            <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Aujourd'hui</span>
-                <span className="text-[10px] font-black" style={{ color: hasDailyLimit && dailyUsed >= dailyLimit ? '#ef4444' : '#555' }}>
-                  {fmtN(dailyUsed)}{hasDailyLimit ? `/${fmtN(dailyLimit)}` : ' used'}
-                </span>
-              </div>
-              {hasDailyLimit && (
-                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((dailyUsed/dailyLimit)*100,100)}%`, background: dailyUsed >= dailyLimit ? '#ef4444' : FG }} />
+            {/* Renewal date */}
+            {resetDateStr && (
+              <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold" style={{ color: '#888' }}>Renouvellement</span>
+                  <span className="text-[10px] font-bold" style={{ color: '#555' }}>{resetDateStr}</span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* CTA */}

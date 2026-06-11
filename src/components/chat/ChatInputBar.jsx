@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip } from 'lucide-react';
+import { ArrowUp, X, FileText, Plus, Mic, MicOff, ChevronDown, Check, Settings, History, Camera, Paperclip, Lock } from 'lucide-react';
+import { getBuildMode, setBuildMode as setGlobalBuildMode } from '@/lib/build-mode-store';
 import { toast } from 'sonner';
 
 // ── Real-time waveform using AnalyserNode ──
@@ -235,8 +236,20 @@ export default function ChatInputBar({
   files = [], setFiles,
   discussMode, setDiscussMode, editMode, setEditMode,
   onUpgrade,
+  locked = false,
+  buildMode: externalBuildMode,
 }) {
-  const [buildMode, setBuildMode] = useState('Flash');
+  const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
+
+  // Sync with external prop or global store changes
+  useEffect(() => {
+    if (externalBuildMode && externalBuildMode !== buildMode) setBuildModeLocal(externalBuildMode);
+  }, [externalBuildMode]);
+
+  const setBuildMode = (mode) => {
+    setBuildModeLocal(mode);
+    setGlobalBuildMode(mode);
+  };
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -482,10 +495,10 @@ export default function ChatInputBar({
               <div style={{ padding: '14px 16px 0' }}>
                 <textarea
                   ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask anything..."
+                  value={locked ? '' : input}
+                  onChange={(e) => { if (!locked) setInput(e.target.value); }}
+                  onKeyDown={locked ? undefined : handleKeyDown}
+                  placeholder={locked ? "⛔ Crédits épuisés — renouvellement dans quelques jours" : "Ask anything..."}
                   style={{
                     width: '100%',
                     background: 'transparent',
@@ -619,8 +632,19 @@ export default function ChatInputBar({
                 }
               </button>
 
-              {/* Send / Stop */}
-              {isLoading ? (
+              {/* Send / Stop / Locked */}
+              {locked ? (
+                <button
+                  onClick={() => onUpgrade?.()}
+                  title="Crédits épuisés — cliquez pour voir les offres"
+                  style={{
+                    flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
+                    background: '#EF4444', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                  <Lock style={{ width: 13, height: 13, color: '#fff', strokeWidth: 2.5 }} />
+                </button>
+              ) : isLoading ? (
                 <button onClick={onStop}
                   style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: '#333', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 2 }} />

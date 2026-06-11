@@ -8,6 +8,8 @@ import {
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import { loadDiscussionsFromCloud } from '@/lib/chat-storage';
+import { getBuildMode, setBuildMode as setGlobalBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
+import { isUserLocked, initUserCredits, checkAndRenewCredits, formatBalance, formatResetDate, FREE_PLAN_CREDITS } from '@/lib/credits';
 
 const PENDING_KEY = 'stensor_pending_query';
 const BUILD_MODE_KEY = 'wok_build_mode';
@@ -66,11 +68,6 @@ function BuildModeMenu({ mode, setMode, onClose }) {
           <button key={m.id}
             onClick={() => {
               setMode(m.id);
-              // Persist to cloud via user update
-              base44.auth.me().then(u => {
-                if (u) base44.auth.updateMe({ build_mode: m.id });
-              }).catch(() => {});
-              localStorage.setItem(BUILD_MODE_KEY, m.id);
               onClose();
             }}
             style={{
@@ -161,8 +158,13 @@ export default function Home() {
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [projects, setProjects] = useState([]);
   const [showBuildMenu, setShowBuildMenu] = useState(false);
-  const [buildMode, setBuildMode] = useState(() => localStorage.getItem(BUILD_MODE_KEY) || 'Flash');
+  const [buildMode, setBuildModeLocal] = useState(() => getBuildMode());
   const buildMenuRef = useRef(null);
+
+  const setBuildMode = (mode) => {
+    setBuildModeLocal(mode);
+    setGlobalBuildMode(mode);
+  };
 
   const handleSend = (q) => {
     const query = q || input;
@@ -181,14 +183,14 @@ export default function Home() {
     const pending = localStorage.getItem(PENDING_KEY);
     if (pending) { localStorage.removeItem(PENDING_KEY); navigate(`/chat?q=${encodeURIComponent(pending)}`); return; }
 
-    base44.auth.me().then(u => {
-      setUser(u);
-      // Restore persisted build mode from cloud
-      if (u?.build_mode) {
-        setBuildMode(u.build_mode);
-        localStorage.setItem(BUILD_MODE_KEY, u.build_mode);
+    base44.auth.me().then(async u => {
+      if (u) {
+        await initUserCredits(u);
+        const updated = await checkAndRenewCredits(u);
+        setUser(updated);
       }
     }).catch(() => {});
+    hydrateBuildModeFromCloud().then(() => setBuildModeLocal(getBuildMode()));
 
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
@@ -208,14 +210,18 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
+  // Sync with global store
+  useEffect(() => {
+    const unsub = subscribeBuildMode(m => setBuildModeLocal(m));
+    return unsub;
+  }, []);
+
   // Alt+P shortcut for build mode
   useEffect(() => {
     const h = (e) => {
       if (e.altKey && e.key === 'p') {
-        const next = buildMode === 'Flash' ? 'Expert' : 'Flash';
+        const next = buildMode === 'Flash' ? 'Max' : 'Flash';
         setBuildMode(next);
-        localStorage.setItem(BUILD_MODE_KEY, next);
-        base44.auth.me().then(u => { if (u) base44.auth.updateMe({ build_mode: next }); }).catch(() => {});
       }
     };
     document.addEventListener('keydown', h);
