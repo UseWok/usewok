@@ -368,15 +368,15 @@ export default function ChatHeader({
 
           {/* History button — LAST on the right of toolbar */}
           <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
-          <button
-            title={showHistory ? 'Hide versions' : 'Show versions'}
-            onClick={() => setShowHistory && setShowHistory((v) => !v)}
-            style={{ ...btnBase, width: 26, height: 26, background: showHistory ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = showHistory ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'} className="hidden">
-            
-            <HistoryIcon />
-          </button>
+          
+
+
+
+
+
+
+
+          
         </div>
       </div>
 
