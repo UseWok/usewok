@@ -63,7 +63,7 @@ export default function Layout() {
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#121212', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', background: '#1F1F1F', display: 'flex' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
 
       <motion.main

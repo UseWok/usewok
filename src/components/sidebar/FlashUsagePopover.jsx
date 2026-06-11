@@ -2,44 +2,31 @@ import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const FG = '#0A0A0A';
-const CORAL = '#FF4F00';
-const BLUE = '#3B82F6';
-
-function UsageBar({ used, total, color }) {
-  const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
-  return (
-    <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.07)' }}>
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${pct}%` }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="h-full rounded-full"
-        style={{ background: color }}
-      />
-    </div>
-  );
-}
+import { FREE_PLAN_CREDITS, formatBalance, formatResetDate } from '@/lib/credits';
 
 export default function FlashUsagePopover({ open, onClose, anchorRef, user }) {
   const popRef = useRef(null);
   const navigate = useNavigate();
 
-  const used = user?.credits_used || 0;
-  const limit = user?.credits_limit || 10;
-  const bonus = user?.credits_bonus || 0;
-  const total = limit + bonus;
+  const balance = typeof user?.credits_balance === 'number' ? user.credits_balance : FREE_PLAN_CREDITS;
+  const maxCredits = FREE_PLAN_CREDITS;
+  const used = Math.max(0, maxCredits - balance);
+  const pct = Math.min((used / maxCredits) * 100, 100);
+  const isNegative = balance < 0;
 
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const dailyLimit = user?.daily_credits_limit || 0;
-  const dailyData = (() => { try { return JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}'); } catch { return {}; } })();
-  const dailyUsed = dailyData[todayKey] || 0;
-
-  // Renewal: first day of next month
-  const now = new Date();
-  const renewal = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const renewalStr = renewal.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' | 00:00 UTC';
+  const renewalStr = (() => {
+    const resetDate = user?.credits_reset_date;
+    if (resetDate) {
+      const d = new Date(resetDate);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      }
+    }
+    // fallback: 30 days from now
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  })();
 
   useEffect(() => {
     const h = (e) => {
@@ -58,7 +45,7 @@ export default function FlashUsagePopover({ open, onClose, anchorRef, user }) {
     let left = rect.right + 12;
     if (left + popW > window.innerWidth - 8) left = Math.max(8, window.innerWidth - popW - 8);
     let top = rect.top;
-    if (top + 260 > window.innerHeight - 8) top = window.innerHeight - 268;
+    if (top + 240 > window.innerHeight - 8) top = window.innerHeight - 248;
     if (top < 8) top = 8;
     return { left, top };
   };
@@ -73,51 +60,56 @@ export default function FlashUsagePopover({ open, onClose, anchorRef, user }) {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -8, scale: 0.96 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[200] w-68"
-          style={{ width: 272, left: pos.left, top: pos.top, background: 'white', border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }}>
+          style={{ position: 'fixed', zIndex: 200, width: 272, left: pos.left, top: pos.top, background: 'white', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 10, boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-            <span className="text-sm font-bold" style={{ color: FG }}>Usage</span>
-            <button onClick={onClose} className="w-5 h-5 flex items-center justify-center hover:bg-black/5 rounded" >
-              <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#0A0A0A' }}>Credits</span>
+            <button onClick={onClose} style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <X style={{ width: 14, height: 14, color: '#bbb' }} />
             </button>
           </div>
 
-          <div className="px-4 py-4 space-y-5">
-            {/* Deep Syntheses */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold" style={{ color: FG }}>Deep Syntheses</span>
-                <span className="text-sm font-bold" style={{ color: '#888' }}>{used}/{total}{bonus > 0 ? <span style={{ color: CORAL }}> +{bonus}</span> : null}</span>
-              </div>
-              <UsageBar used={used} total={total} color={CORAL} />
+          <div style={{ padding: '16px' }}>
+            {/* Current / Max */}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: isNegative ? '#EF4444' : '#0A0A0A' }}>
+                {isNegative ? '-' : ''}{formatBalance(Math.abs(balance))}
+              </span>
+              <span style={{ fontSize: 14, color: '#AAA' }}>/ {formatBalance(maxCredits)}</span>
+              {isNegative && (
+                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: 'rgba(239,68,68,0.1)', color: '#EF4444', borderRadius: 4, padding: '2px 6px' }}>DEBT</span>
+              )}
             </div>
 
-            {/* Flash */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold" style={{ color: FG }}>Flash</span>
-                <span className="text-sm font-bold" style={{ color: '#888' }}>
-                  {dailyUsed}{dailyLimit > 0 ? `/${dailyLimit}` : ''}
-                </span>
-              </div>
-              <UsageBar used={dailyUsed} total={dailyLimit > 0 ? dailyLimit : Math.max(dailyUsed, 1)} color={BLUE} />
+            {/* Progress bar */}
+            <div style={{ width: '100%', height: 6, borderRadius: 9999, background: 'rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: 12 }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                style={{ height: '100%', borderRadius: 9999, background: isNegative ? '#EF4444' : '#2563EB' }}
+              />
             </div>
+
+            <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
+              {formatBalance(used)} used of {formatBalance(maxCredits)} total
+            </p>
 
             {/* Renewal */}
-            <p className="text-xs font-medium" style={{ color: BLUE }}>
-              Renewal on {renewalStr}
-            </p>
+            <div style={{ padding: '10px 12px', background: '#F8F8F6', borderRadius: 8 }}>
+              <p style={{ fontSize: 12, color: '#555', margin: 0 }}>
+                Renews on <span style={{ fontWeight: 700, color: '#333' }}>{renewalStr}</span>
+              </p>
+            </div>
           </div>
 
           {/* Upgrade CTA */}
-          <div className="px-4 pb-4">
+          <div style={{ padding: '0 16px 16px' }}>
             <button
               onClick={() => { navigate('/pricing'); onClose(); }}
-              className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hover:opacity-90 rounded-md"
-              style={{ background: FG, color: 'white' }}>
-              <TrendingUp className="w-3 h-3" /> Upgrade →
+              style={{ width: '100%', padding: '8px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#0A0A0A', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}>
+              <TrendingUp style={{ width: 12, height: 12 }} /> Upgrade →
             </button>
           </div>
         </motion.div>

@@ -45,8 +45,8 @@ function BuildModeMenu({ mode, setMode, onClose }) {
   }, [onClose]);
 
   const MODES = [
-    { id: 'Flash', label: 'Flash', desc: 'Fast, direct changes' },
-    { id: 'Max', label: 'Max', desc: 'Claude Sonnet — most powerful' },
+    { id: 'Flash', label: 'Standard' },
+    { id: 'Max', label: 'Max' },
   ];
 
   return (
@@ -62,37 +62,60 @@ function BuildModeMenu({ mode, setMode, onClose }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 9999,
       }}
     >
-      {MODES.map(m => {
-        const isActive = mode === m.id;
-        return (
-          <button key={m.id}
-            onClick={() => {
-              setMode(m.id);
-              onClose();
-            }}
-            style={{
-              display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-              width: '100%', padding: '10px 12px', border: 'none',
-              background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
-              borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
-            }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-          >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{m.label}</div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{m.desc}</div>
-            </div>
-            {isActive && <Check style={{ width: 14, height: 14, color: '#fff', marginTop: 2, flexShrink: 0 }} />}
-          </button>
-        );
-      })}
-      <div style={{ borderTop: '1px solid #2A2A2A', margin: '4px 0', padding: '8px 12px' }}>
-        <span style={{ fontSize: 11, color: '#444', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Toggle with <kbd style={{ fontSize: 10, background: '#2A2A2A', border: '1px solid #3A3A3A', borderRadius: 4, padding: '1px 5px', color: '#666', fontFamily: 'monospace' }}>Alt</kbd>
-          <kbd style={{ fontSize: 10, background: '#2A2A2A', border: '1px solid #3A3A3A', borderRadius: 4, padding: '1px 5px', color: '#666', fontFamily: 'monospace' }}>P</kbd>
-        </span>
-      </div>
+      {/* Automatic — large 2x row */}
+      <button
+        onClick={() => { setMode('Flash'); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          width: '100%', padding: '12px 14px', border: 'none',
+          background: mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
+          borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseLeave={e => e.currentTarget.style.background = mode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
+      >
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Automatic</div>
+          <div style={{ fontSize: 12, color: '#666', marginTop: 3 }}>The best AI model is selected for each request.</div>
+        </div>
+        {mode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', marginTop: 3, flexShrink: 0 }} />}
+      </button>
+
+      <div style={{ height: 1, background: '#2A2A2A', margin: '4px 0' }} />
+
+      {/* Standard (Flash) — thin */}
+      <button
+        onClick={() => { setMode('Flash'); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '8px 14px', border: 'none',
+          background: 'transparent', borderRadius: 8, cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+      </button>
+
+      {/* Max — thin */}
+      <button
+        onClick={() => { setMode('Max'); onClose(); }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', padding: '8px 14px', border: 'none',
+          background: mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
+          borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseLeave={e => e.currentTarget.style.background = mode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
+          <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 4, padding: '1px 5px' }}>NEW</span>
+        </div>
+        {mode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+      </button>
     </motion.div>
   );
 }
@@ -236,11 +259,10 @@ export default function Home() {
       minHeight: '100vh',
       width: '100%',
       background: `
-        radial-gradient(ellipse 100% 60% at 90% 0%, rgba(30,80,200,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(220,40,180,0.95) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 60% at 10% 80%, rgba(255,80,20,0.9) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255,120,0,0.7) 0%, transparent 50%),
-        #050508
+        radial-gradient(ellipse 80% 50% at 50% 120%, rgba(255,140,0,0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 140%, rgba(249,87,56,0.45) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 20% 130%, rgba(255,200,0,0.3) 0%, transparent 50%),
+        #1F1F1F
       `,
       display: 'flex',
       flexDirection: 'column',
@@ -311,8 +333,10 @@ export default function Home() {
               />
             </div>
             {/* Bottom toolbar */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 6 }}>
-              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px 10px', gap: 4 }}>
+              <button style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0.6, transition: 'opacity 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
                 <Plus size={15} />
               </button>
               <div style={{ flex: 1 }} />
@@ -320,11 +344,11 @@ export default function Home() {
               <div ref={buildMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowBuildMenu(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#ccc', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, height: 28, padding: '0 8px', borderRadius: 6, background: 'transparent', border: 'none', color: '#fff', opacity: 0.7, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'opacity 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
                 >
-                  {buildMode} <ChevronDown size={13} />
+                  {buildMode === 'Max' ? 'Max' : 'Standard'} <ChevronDown size={12} />
                 </button>
                 <AnimatePresence>
                   {showBuildMenu && (
@@ -337,13 +361,15 @@ export default function Home() {
                 </AnimatePresence>
               </div>
               {/* Mic */}
-              <button style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+              <button style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', opacity: 0.6, transition: 'opacity 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
                 <Mic size={14} />
               </button>
               {/* Send */}
               <button onClick={() => handleSend()} disabled={!input.trim()}
-                style={{ width: 32, height: 32, borderRadius: '50%', background: input.trim() ? '#F95738' : 'rgba(255,255,255,0.12)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
-                <ArrowUp size={15} color="#fff" />
+                style={{ width: 28, height: 28, borderRadius: '50%', background: input.trim() ? '#fff' : 'rgba(255,255,255,0.15)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
+                <ArrowUp size={14} color="#111" />
               </button>
             </div>
           </div>
