@@ -44,7 +44,7 @@ function BuildModeMenu({ mode, setMode, onClose }) {
 
   const MODES = [
     { id: 'Flash', label: 'Flash', desc: 'Fast, direct changes' },
-    { id: 'Expert', label: 'Expert', desc: 'Deep reasoning mode' },
+    { id: 'Max', label: 'Max', desc: 'Claude Sonnet — most powerful' },
   ];
 
   return (

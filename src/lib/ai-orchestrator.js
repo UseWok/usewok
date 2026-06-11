@@ -25,12 +25,13 @@ import { base44 } from '@/api/base44Client';
 // MODEL CONSTANTS
 // ─────────────────────────────────────────────
 export const MODELS = {
-  FILTER:      'automatic',        // gpt_4o_mini equivalent — spam/safety filter
-  EXTRACTION:  'automatic',        // gpt_4o_mini — code section extractor
-  FILE_READ:   'automatic',        // gpt_4o_mini — file & image analysis
-  WEB_BROWSE:  'gemini_3_flash',   // web search tasks
-  DEFAULT:     'gpt_5_mini',       // all general tasks + simple modifications
-  BUILD:       'gemini_3_1_pro',   // new builds + complex modifications
+  FILTER:      'automatic',          // gpt_4o_mini equivalent — spam/safety filter
+  EXTRACTION:  'automatic',          // gpt_4o_mini — code section extractor
+  FILE_READ:   'automatic',          // gpt_4o_mini — file & image analysis
+  WEB_BROWSE:  'gemini_3_flash',     // web search tasks
+  DEFAULT:     'gpt_5_mini',         // all general tasks + simple modifications
+  BUILD:       'gemini_3_1_pro',     // Flash: new builds + complex modifications
+  BUILD_MAX:   'claude_sonnet_4_6',  // Max mode: new builds only
 };
 
 // ─────────────────────────────────────────────
@@ -275,6 +276,7 @@ BUILD: ${userMessage}`;
  * @param {string[]}    options.fileUrls         — attached file/image URLs
  * @param {boolean}     options.needsWebSearch   — force web browsing mode
  * @param {string}      options.systemPrompt     — PROMPT_ARCHITECT to inject
+ * @param {string}      options.buildMode        — 'Flash' | 'Max'
  * @returns {Promise<{ code: string, model: string, codeSection?: string }>}
  */
 export async function orchestrateGeneration(userMessage, options = {}) {
@@ -284,7 +286,10 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     fileUrls = [],
     needsWebSearch = false,
     systemPrompt = '',
+    buildMode = 'Flash',
   } = options;
+
+  const isMaxMode = buildMode === 'Max';
 
   // ── File / image analysis ──
   if (fileUrls.length > 0) {
@@ -302,29 +307,32 @@ export async function orchestrateGeneration(userMessage, options = {}) {
 
   if (!isModification) {
     // ══════════════════════════════════════
-    // NEW BUILD — always gemini_3_1_pro
+    // NEW BUILD — Max → claude_sonnet_4_6 | Flash → gemini_3_1_pro
     // ══════════════════════════════════════
+    const buildModel = isMaxMode ? MODELS.BUILD_MAX : MODELS.BUILD;
     const prompt = buildTelegraphicPrompt(userMessage, {
       isModification: false,
       systemPrompt,
     });
 
     const code = await base44.integrations.Core.InvokeLLM({
-      model: MODELS.BUILD,
+      model: buildModel,
       prompt,
     });
 
-    return { code, model: MODELS.BUILD };
+    return { code, model: buildModel };
   }
 
   // ══════════════════════════════════════
   // MODIFICATION — surgical extraction + routing
+  // Modifications: always gpt_5_mini (simple) or gemini_3_1_pro (complex)
+  // Max mode does NOT change modification routing — cost kept low
   // ══════════════════════════════════════
 
   // Step A: extract only the relevant code section
   const extracted = await extractRelevantCodeSection(userMessage, existingCode);
 
-  // Step B: decide complexity
+  // Step B: decide complexity — always Flash routing regardless of buildMode
   const selectedModel = await routeModificationComplexity(userMessage);
 
   // Step C: build telegraphic prompt with just the section

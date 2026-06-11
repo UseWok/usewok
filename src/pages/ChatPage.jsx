@@ -434,6 +434,7 @@ export default function ChatPage() {
         fileUrls: imageUrls2,
         needsWebSearch: false,
         systemPrompt: PROMPT_ARCHITECT,
+        buildMode: options.buildMode || 'Flash',
       });
 
       if (abortedRef.current) return;
