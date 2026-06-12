@@ -75,8 +75,8 @@ export function PublicLiveEngine({ content }) {
     if (jsMatch) js = jsMatch[1];
     if (cssMatch) css = cssMatch[1];
 
-    // If no fence matched but content looks like JSX, use raw
-    if (!js && (content.includes('function App') || content.includes('export default'))) {
+    // If no fence matched, use raw content directly
+    if (!js) {
       js = content;
     }
 
@@ -87,9 +87,19 @@ export function PublicLiveEngine({ content }) {
       js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
       js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
       js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
+      // Track default export name before stripping it
+      var defaultExportMatch = js.match(/export\s+default\s+function\s+([A-Za-z0-9_]+)/);
+      if (!defaultExportMatch) defaultExportMatch = js.match(/export\s+default\s+([A-Za-z0-9_]+)\s*;/);
+      var defaultExportName = defaultExportMatch ? defaultExportMatch[1] : null;
+
       js = js.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'function $1');
-      js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?/g, '');
+      js = js.replace(/export\s+default\s+[A-Za-z0-9_]+;?\n?/g, '');
       js = js.replace(/export\s+(const|let|var|function)/g, '$1');
+
+      // Re-expose as App if it had a different name
+      if (defaultExportName && defaultExportName !== 'App') {
+        js += '\nvar App = ' + defaultExportName + ';';
+      }
     }
   }
 
@@ -152,14 +162,20 @@ export function PublicLiveEngine({ content }) {
 
     try {
       ${js.replace(/<\/script>/gi, '<\\/script>')}
-      if (typeof App !== 'undefined') {
+      var rootComponent = typeof App !== 'undefined' ? App
+        : typeof default_export !== 'undefined' ? default_export
+        : null;
+      if (rootComponent) {
         ReactDOM.createRoot(document.getElementById('root')).render(
-          React.createElement(ErrorBoundary, null, React.createElement(App))
+          React.createElement(ErrorBoundary, null, React.createElement(rootComponent))
         );
+      } else {
+        document.getElementById('root').innerHTML =
+          '<div style="padding:40px;font-family:system-ui;color:#666;text-align:center"><p style="font-size:15px">No App component found.<br/>Make sure your code exports a default <strong>App</strong> function.</p></div>';
       }
     } catch(e) {
       document.getElementById('root').innerHTML =
-        '<div style="color:#991b1b;padding:24px;font-family:monospace;font-size:13px;background:#fee2e2;border-left:4px solid #f87171;margin:20px;border-radius:4px"><strong>Error:</strong><br/>' + e.message + '</div>';
+        '<div style="color:#991b1b;padding:24px;font-family:monospace;font-size:13px;background:#fee2e2;border-left:4px solid #f87171;margin:20px;border-radius:4px"><strong>Runtime Error:</strong><br/>' + e.message + '<br/><br/><pre style="white-space:pre-wrap;font-size:11px;color:#7f1d1d">' + (e.stack || '') + '</pre></div>';
     }
   <\/script>
 </body>
