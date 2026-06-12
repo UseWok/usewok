@@ -267,20 +267,48 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh', width: '100%',
-      background: `
-        radial-gradient(ellipse 80% 50% at 50% 120%, rgba(255,140,0,0.55) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 140%, rgba(249,87,56,0.45) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 30% at 20% 130%, rgba(255,200,0,0.3) 0%, transparent 50%),
-        #1F1F1F
-      `,
+      background: '#1F1F1F',
+      position: 'relative',
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
     }}>
+      {/* ── Glow layer — fixed pseudo-element replacement ── */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        {/* Main orange glow — moved up to ~55% */}
+        <div style={{
+          position: 'absolute',
+          left: '50%', top: '45%',
+          transform: 'translate(-50%, -50%)',
+          width: '90vw', height: '60vh',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse at center, rgba(255,100,0,0.72) 0%, rgba(249,87,56,0.5) 30%, rgba(255,60,0,0.18) 65%, transparent 80%)',
+          filter: 'blur(48px)',
+        }} />
+        {/* Secondary warm accent */}
+        <div style={{
+          position: 'absolute',
+          left: '70%', top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '50vw', height: '40vh',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse at center, rgba(255,160,30,0.45) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }} />
+        {/* Grain texture overlay on top of the glow */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundSize: '160px 160px',
+          opacity: 0.055,
+          mixBlendMode: 'overlay',
+        }} />
+      </div>
+
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
       {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 60px', minHeight: '65vh' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 8px', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -304,7 +332,7 @@ export default function Home() {
       </div>
 
       {/* ── My Builds section — massive separation from chat bar ── */}
-      <div style={{ padding: '0 28px 48px', marginTop: 80 }}>
+      <div style={{ padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 4 }}>

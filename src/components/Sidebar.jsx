@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -314,6 +314,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [recents, setRecents] = useState([]);
+  const [recentsOpen, setRecentsOpen] = useState(true);
+  const [starredOpen, setStarredOpen] = useState(true);
   const [workspaces, setWorkspaces] = useState(() => {
     try { return JSON.parse(localStorage.getItem('wok_workspaces')) || [{ id: 'default', name: "My Workspace", current: true }]; }
     catch { return [{ id: 'default', name: "My Workspace", current: true }]; }
@@ -475,36 +477,82 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <SectionLabel label="Builds" expanded={expanded} />
             <NavItem icon={Layers} label="All builds" onClick={() => nav('/projects')} active={isActive('/projects')} expanded={expanded} />
-            <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} expanded={expanded} />
-            <NavItem icon={Clock} label="Recent" onClick={() => nav('/projects')} expanded={expanded} />
-          </div>
 
-          {/* Recents list */}
-          {expanded && recents.length > 0 && (
-            <div style={{ marginTop: 4, flexShrink: 0 }}>
-              {recents.map(d => (
-                <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%', height: 28, padding: '0 10px 0 28px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            {/* Starred — collapsible */}
+            {expanded ? (
+              <>
+                <button
+                  onClick={() => setStarredOpen(v => !v)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#6B6B6B', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; }}
                 >
-                  <FileCode2 style={{ width: 11, height: 11, color: '#3A3A3A', flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>
-                    {d.title || 'Untitled'}
-                  </span>
+                  <Star style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7 }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#fff' }}>Starred</span>
+                  <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: starredOpen ? 'rotate(90deg)' : 'none' }} />
                 </button>
-              ))}
-            </div>
-          )}
+                <AnimatePresence initial={false}>
+                  {starredOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
+                      <div style={{ padding: '2px 0 4px 20px' }}>
+                        <p style={{ fontSize: 11, color: '#333', margin: '4px 10px', fontStyle: 'italic' }}>No starred builds yet</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} expanded={false} />
+            )}
+
+            {/* Recent — collapsible */}
+            {expanded ? (
+              <>
+                <button
+                  onClick={() => setRecentsOpen(v => !v)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#6B6B6B', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; }}
+                >
+                  <Clock style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7 }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#fff' }}>Recent</span>
+                  <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: recentsOpen ? 'rotate(90deg)' : 'none' }} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {recentsOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
+                      <div style={{ padding: '2px 0 4px' }}>
+                        {recents.length > 0 ? recents.map(d => (
+                          <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%', height: 28, padding: '0 10px 0 28px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <FileCode2 style={{ width: 11, height: 11, color: '#3A3A3A', flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>
+                              {d.title || 'Untitled'}
+                            </span>
+                          </button>
+                        )) : (
+                          <p style={{ fontSize: 11, color: '#333', margin: '4px 10px 4px 28px', fontStyle: 'italic' }}>No recent builds</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <NavItem icon={Clock} label="Recent" onClick={() => nav('/projects')} expanded={false} />
+            )}
+          </div>
 
           <Divider />
 
           {/* Platform */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <SectionLabel label="Platform" expanded={expanded} />
-            <NavItem icon={FolderOpen} label="Projects" onClick={() => nav('/projects')} active={isActive('/projects')} expanded={expanded} />
+            <NavItem icon={Tag} label="Pricing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
             <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
-            <NavItem icon={CreditCard} label="Billing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
             <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
           </div>
 
@@ -526,8 +574,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           >
             <Avatar user={user} size={24} />
             {expanded && (
-              <span style={{ fontSize: 12, color: '#555', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
-                {user?.email || 'Account'}
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: '#fff', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                {user?.full_name || user?.email?.split('@')[0] || 'Account'}
               </span>
             )}
           </button>
