@@ -48,7 +48,7 @@ export default function PublishAppModal({
       let contentUrl = null;
       const contentSizeKB = new Blob([ficheContent]).size / 1024;
       
-      if (contentSizeKB > 50) {
+      if (contentSizeKB > 20) {
         console.log('[PublishAppModal] Content too large (' + contentSizeKB.toFixed(1) + 'KB), uploading...');
         const blob = new Blob([ficheContent], { type: 'text/javascript' });
         const file = new File([blob], 'app-code.jsx', { type: 'text/javascript' });
