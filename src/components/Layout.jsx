@@ -28,7 +28,9 @@ export function getTotalMinutes(userId) {
 const SIDEBAR_EXPANDED_PATHS = ['/app', '/cockpit', '/discussions', '/ai-dna'];
 
 export default function Layout() {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(() => {
+    try { return localStorage.getItem('wok_sidebar_expanded') === 'true'; } catch { return false; }
+  });
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const isMobile = useIsMobile();
@@ -36,9 +38,18 @@ export default function Layout() {
 
   const showSidebar = !isMobile;
 
+  const handleSetExpanded = (val) => {
+    setExpanded(val);
+    try { localStorage.setItem('wok_sidebar_expanded', String(val)); } catch {}
+  };
+
   useEffect(() => {
-    const shouldExpand = SIDEBAR_EXPANDED_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
-    setExpanded(shouldExpand);
+    const saved = localStorage.getItem('wok_sidebar_expanded');
+    if (saved === null) {
+      // First visit: expand on certain paths
+      const shouldExpand = SIDEBAR_EXPANDED_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
+      handleSetExpanded(shouldExpand);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -62,12 +73,12 @@ export default function Layout() {
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   const BORDER_COLOR = '#0E0E0E';
-  const BORDER_W = 10;
-  const CORNER_R = 32;
+  const BORDER_W = 13;
+  const CORNER_R = 20;
 
   return (
     <div style={{ minHeight: '100vh', background: '#0E0E0E', display: 'flex' }}>
-      {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
+      {showSidebar && <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />}
 
       {/* Rounded device-frame corners — four absolute corner pieces */}
       {!isMobile && (
@@ -90,7 +101,7 @@ export default function Layout() {
       )}
 
       <motion.main
-        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative', borderRadius: isMobile ? 0 : 24 }}
+        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative', borderRadius: isMobile ? 0 : 18 }}
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
       >

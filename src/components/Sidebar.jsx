@@ -293,7 +293,7 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
 function SectionLabel({ label, expanded }) {
   if (!expanded) return <div style={{ height: 16 }} />;
   return (
-    <p style={{ fontSize: 10, fontWeight: 600, color: '#2E2E2E', margin: '10px 10px 4px', letterSpacing: '0.07em', textTransform: 'uppercase', userSelect: 'none' }}>
+    <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', margin: '10px 10px 4px', letterSpacing: '0.07em', textTransform: 'uppercase', userSelect: 'none' }}>
       {label}
     </p>
   );
@@ -495,7 +495,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                   {starredOpen && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
                       <div style={{ padding: '2px 0 4px 20px' }}>
-                        <p style={{ fontSize: 11, color: '#333', margin: '4px 10px', fontStyle: 'italic' }}>No starred builds yet</p>
+                        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 10px', fontStyle: 'italic' }}>No starred builds yet</p>
                       </div>
                     </motion.div>
                   )}
@@ -528,13 +528,13 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
-                            <FileCode2 style={{ width: 11, height: 11, color: '#3A3A3A', flexShrink: 0 }} />
-                            <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>
+                            <FileCode2 style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>
                               {d.title || 'Untitled'}
                             </span>
                           </button>
                         )) : (
-                          <p style={{ fontSize: 11, color: '#333', margin: '4px 10px 4px 28px', fontStyle: 'italic' }}>No recent builds</p>
+                          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 10px 4px 28px', fontStyle: 'italic' }}>No recent builds</p>
                         )}
                       </div>
                     </motion.div>
@@ -549,6 +549,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
 
           <div style={{ flex: 1 }} />
+
+          {/* Bottom utility links */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, paddingBottom: 4 }}>
+            <Divider />
+            <NavItem icon={CreditCard} label="Billing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
+            <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
+            <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
+          </div>
         </div>
 
         {/* ── Footer / Profile ── */}

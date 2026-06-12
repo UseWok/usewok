@@ -112,7 +112,7 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
   const [hovered, setHovered] = useState(false);
   const [showKebab, setShowKebab] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const previewUrl = conv.id ? `https://wok.base44.app/tools/${conv.id}` : null;
+  const previewUrl = conv.id ? `/p/${conv.id}` : null;
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -273,34 +273,39 @@ export default function Home() {
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
     }}>
-      {/* ── Glow layer — fixed pseudo-element replacement ── */}
+      {/* ── Glow layer ── */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Main orange glow — moved up to ~55% */}
+        {/* Main orange glow — high up, elongated downward to cover builds panel */}
         <div style={{
           position: 'absolute',
-          left: '50%', top: '45%',
+          left: '50%', top: '28%',
           transform: 'translate(-50%, -50%)',
-          width: '90vw', height: '60vh',
+          width: '100vw', height: '110vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,100,0,0.72) 0%, rgba(249,87,56,0.5) 30%, rgba(255,60,0,0.18) 65%, transparent 80%)',
-          filter: 'blur(48px)',
+          background: 'radial-gradient(ellipse at 50% 30%, rgba(255,100,0,0.68) 0%, rgba(249,87,56,0.42) 28%, rgba(255,60,0,0.14) 58%, transparent 76%)',
+          filter: 'blur(52px)',
         }} />
-        {/* Secondary warm accent */}
+        {/* Secondary warm accent — lower, covers builds grid */}
         <div style={{
           position: 'absolute',
-          left: '70%', top: '50%',
+          left: '60%', top: '65%',
           transform: 'translate(-50%, -50%)',
-          width: '50vw', height: '40vh',
+          width: '70vw', height: '60vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,160,30,0.45) 0%, transparent 70%)',
-          filter: 'blur(60px)',
+          background: 'radial-gradient(ellipse at center, rgba(255,140,30,0.28) 0%, rgba(249,87,56,0.12) 50%, transparent 75%)',
+          filter: 'blur(70px)',
         }} />
-        {/* Grain texture overlay on top of the glow */}
+        {/* Vertical gradient fade — from glow center down, fades to transparent at bottom */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, top: '20%', bottom: 0,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(249,87,56,0.06) 35%, rgba(255,100,0,0.04) 65%, transparent 100%)',
+        }} />
+        {/* Grain texture overlay */}
         <div style={{
           position: 'absolute', inset: 0,
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           backgroundSize: '160px 160px',
-          opacity: 0.055,
+          opacity: 0.06,
           mixBlendMode: 'overlay',
         }} />
       </div>
