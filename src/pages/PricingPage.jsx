@@ -162,7 +162,7 @@ export default function PricingPage() {
             gridTemplateColumns: `repeat(${Math.min(cardPlans.length, 4)}, 1fr)`,
             gap: 32,
             marginBottom: 40,
-            maxWidth: '96%',
+            maxWidth: '100%',
             marginLeft: 'auto',
             marginRight: 'auto',
           }}>

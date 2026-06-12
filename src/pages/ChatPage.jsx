@@ -380,6 +380,7 @@ export default function ChatPage() {
         model: 'gpt_5_mini',
         prompt: `You are o2, a highly concise naming engine. Given a user's app build request, return a JSON object with a single field "title" that is exactly 2-3 words summarizing the app. Be direct, architectural, no articles.\n\nUser request: "${text.slice(0, 300)}"`,
         response_json_schema: { type: 'object', properties: { title: { type: 'string' } } },
+        model: 'gpt_5_mini',
       }).then(async (result) => {
         const autoTitle = result?.title?.trim();
         if (!autoTitle) return;

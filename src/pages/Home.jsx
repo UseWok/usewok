@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Plus, ArrowRight, Star, MoreHorizontal, Pencil, Trash2, X, Check } from 'lucide-react';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
@@ -161,19 +162,13 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
               </div>
             )}
           </div>
-          {/* Star icon — top right on hover */}
-          <AnimatePresence>
-            {hovered && (
-              <motion.button
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
-                onClick={e => e.stopPropagation()}
-                style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 6, background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}
-              >
-                <Star size={12} color="#fff" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* Star icon — top right, always rendered, opacity toggles (zero layout shift) */}
+          <button
+            onClick={e => e.stopPropagation()}
+            style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 6, background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', opacity: hovered ? 1 : 0, transition: 'opacity 120ms', pointerEvents: hovered ? 'auto' : 'none' }}
+          >
+            <Star size={12} color="#fff" />
+          </button>
         </div>
 
         {/* Bottom: title + meta — detached, no background */}
@@ -186,31 +181,26 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
               {timeAgo(conv.updatedAt || conv.updated_date)}
             </p>
           </div>
-          {/* Kebab — visible on hover */}
-          <AnimatePresence>
-            {hovered && (
-              <motion.div style={{ position: 'relative', flexShrink: 0 }}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-                <button
-                  onClick={e => { e.stopPropagation(); setShowKebab(v => !v); }}
-                  style={{ width: 24, height: 24, borderRadius: 5, background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <MoreHorizontal size={13} color="#fff" />
-                </button>
-                <AnimatePresence>
-                  {showKebab && (
-                    <KebabMenu
-                      convId={conv.id}
-                      title={conv.title}
-                      onRename={() => { setShowKebab(false); setShowRename(true); }}
-                      onDelete={handleDelete}
-                      onClose={() => setShowKebab(false)}
-                    />
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Kebab — always rendered, opacity toggles (zero layout shift) */}
+          <div style={{ position: 'relative', flexShrink: 0, width: 24, height: 24 }}>
+            <button
+              onClick={e => { e.stopPropagation(); setShowKebab(v => !v); }}
+              style={{ width: 24, height: 24, borderRadius: 5, background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hovered ? 1 : 0, transition: 'opacity 120ms', pointerEvents: hovered ? 'auto' : 'none' }}
+            >
+              <MoreHorizontal size={13} color="#fff" />
+            </button>
+            <AnimatePresence>
+              {showKebab && (
+                <KebabMenu
+                  convId={conv.id}
+                  title={conv.title}
+                  onRename={() => { setShowKebab(false); setShowRename(true); }}
+                  onDelete={handleDelete}
+                  onClose={() => setShowKebab(false)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </>
@@ -221,7 +211,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [user, setUser] = useState(null);
-  const [projectTab, setProjectTab] = useState('My projects');
+  const [projectTab, setProjectTab] = useState('My builds');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -272,7 +262,7 @@ export default function Home() {
   const handleRenameProject = (id, newTitle) => setProjects(prev => prev.map(p => p.id === id ? { ...p, title: newTitle } : p));
 
   const firstName = user?.full_name?.split(' ')[0] || 'there';
-  const TABS = ['My projects', 'Recently viewed'];
+  const TABS = ['My builds', 'Recently viewed'];
 
   return (
     <div style={{
@@ -339,9 +329,9 @@ export default function Home() {
           </button>
         </div>
 
-        {/* 3-col grid, max 4 rows = 12 items */}
+        {/* 3-col grid, max 4 rows = 12 items — minmax prevents overflow */}
         {projects.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '28px 24px' }}>
             {projects.slice(0, 12).map(p => (
               <ProjectCard key={p.id} conv={p}
                 onClick={() => navigate(`/chat?conversationId=${p.id}`)}

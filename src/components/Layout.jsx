@@ -63,39 +63,30 @@ export default function Layout() {
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   const BORDER_COLOR = '#0E0E0E';
   const BORDER_W = 10;
+  const CORNER_R = 32;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#1F1F1F', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', background: '#0E0E0E', display: 'flex' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={setExpanded} user={user} userPlan={userPlan} />}
 
-      {/* Top border — extends from right edge of sidebar to right */}
+      {/* Rounded device-frame corners — four absolute corner pieces */}
       {!isMobile && (
-        <motion.div
-          animate={{ left: sidebarOffset }}
-          transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-          style={{
-            position: 'fixed', top: 0, right: 0, height: BORDER_W,
-            background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
-          }}
-        />
-      )}
-      {/* Right border */}
-      {!isMobile && (
-        <div style={{
-          position: 'fixed', top: 0, right: 0, width: BORDER_W, bottom: 0,
-          background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
-        }} />
-      )}
-      {/* Bottom border */}
-      {!isMobile && (
-        <motion.div
-          animate={{ left: sidebarOffset }}
-          transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-          style={{
-            position: 'fixed', bottom: 0, right: 0, height: BORDER_W,
-            background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none',
-          }}
-        />
+        <>
+          {/* Top-right corner */}
+          <div style={{ position: 'fixed', top: 0, right: 0, width: CORNER_R, height: CORNER_R, background: BORDER_COLOR, zIndex: 51, pointerEvents: 'none',
+            borderBottomLeftRadius: CORNER_R }} />
+          {/* Bottom-right corner */}
+          <div style={{ position: 'fixed', bottom: 0, right: 0, width: CORNER_R, height: CORNER_R, background: BORDER_COLOR, zIndex: 51, pointerEvents: 'none',
+            borderTopLeftRadius: CORNER_R }} />
+          {/* Top border strip */}
+          <motion.div animate={{ left: sidebarOffset }} transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+            style={{ position: 'fixed', top: 0, right: CORNER_R, height: BORDER_W, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none' }} />
+          {/* Right border strip */}
+          <div style={{ position: 'fixed', top: CORNER_R, right: 0, width: BORDER_W, bottom: CORNER_R, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none' }} />
+          {/* Bottom border strip */}
+          <motion.div animate={{ left: sidebarOffset }} transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+            style={{ position: 'fixed', bottom: 0, right: CORNER_R, height: BORDER_W, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none' }} />
+        </>
       )}
 
       <motion.main
