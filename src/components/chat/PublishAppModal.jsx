@@ -55,39 +55,51 @@ export default function PublishAppModal({
         title: appSettings?.title || 'My App',
       };
 
-      // Save to database with explicit error handling
+      // Save to database with retry logic
       let convRecord;
-      try {
-        if (results.length > 0) {
-          convRecord = results[0];
-          const updateResult = await base44.entities.Conversation.update(convRecord.id, publishData);
-          console.log('[Publish] Updated conversation:', convRecord.id, 'result:', updateResult);
-        } else {
-          const created = await base44.entities.Conversation.create({
-            conv_id: convId,
-            messages_json: '[]',
-            ...publishData,
-          });
-          convRecord = created;
-          console.log('[Publish] Created new conversation:', created.id);
+      let saveAttempts = 0;
+      while (saveAttempts < 2) {
+        try {
+          saveAttempts++;
+          if (results.length > 0) {
+            convRecord = results[0];
+            console.log('[Publish] Attempt', saveAttempts, '— updating id:', convRecord.id, 'with:', publishData);
+            const updateResult = await base44.entities.Conversation.update(convRecord.id, publishData);
+            console.log('[Publish] Update result:', updateResult);
+          } else {
+            console.log('[Publish] Creating new conversation with:', publishData);
+            const created = await base44.entities.Conversation.create({
+              conv_id: convId,
+              messages_json: '[]',
+              ...publishData,
+            });
+            convRecord = created;
+            console.log('[Publish] Created:', created.id);
+          }
+          break; // Success, exit loop
+        } catch (saveError) {
+          console.error('[Publish] Save attempt', saveAttempts, 'failed:', saveError);
+          if (saveAttempts >= 2) {
+            toast.error('Failed to save: ' + (saveError.message || 'Database error'));
+            setIsPublishing(false);
+            return;
+          }
+          await new Promise(r => setTimeout(r, 200));
         }
-      } catch (saveError) {
-        console.error('[Publish] Save error:', saveError);
-        toast.error('Failed to save: ' + (saveError.message || 'Database error'));
-        setIsPublishing(false);
-        return;
       }
 
-      // Verify data was saved (double-check read)
-      await new Promise(r => setTimeout(r, 500));
+      // Verify data was saved
+      await new Promise(r => setTimeout(r, 600));
       const verify = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
-      if (verify.length === 0 || !verify[0].raw_content || !verify[0].is_public) {
-        console.error('[Publish] Verification failed:', { exists: verify.length > 0, is_public: verify[0]?.is_public, has_raw_content: !!verify[0]?.raw_content });
-        toast.error('Publish verification failed. Please try again.');
+      console.log('[Publish] Verification read:', { found: verify.length, is_public: verify[0]?.is_public, has_content: !!verify[0]?.raw_content });
+      
+      if (verify.length === 0 || !verify[0].raw_content || verify[0].is_public !== true) {
+        console.error('[Publish] Verification FAILED — data not persisted correctly');
+        toast.error('⚠️ Publish failed: data not saved to database. Check RLS permissions.');
         setIsPublishing(false);
         return;
       }
-      console.log('[Publish] Verification passed, is_public:', verify[0].is_public, 'raw_content length:', verify[0].raw_content?.length);
+      console.log('[Publish] ✓ Verification passed');
 
       // Update UI state
       setIsPublic(true);
