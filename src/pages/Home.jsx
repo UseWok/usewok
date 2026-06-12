@@ -312,7 +312,7 @@ export default function Home() {
       {/* ── My Builds section — orange glow background, fades at top ── */}
       <div style={{
         padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1,
-        background: 'linear-gradient(to bottom, transparent 0%, rgba(165,55,5,0.18) 8%, rgba(145,48,3,0.30) 20%, rgba(130,42,2,0.38) 100%)',
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(185,62,5,0.12) 5%, rgba(165,52,3,0.28) 15%, rgba(148,46,2,0.42) 50%, rgba(138,42,2,0.48) 100%)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
