@@ -275,15 +275,17 @@ export default function Home() {
     }}>
       {/* ── Glow layer ── */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Horizon glow — wide ellipse anchored right below the chat bar */}
+        {/* Horizon glow — fixed so it stays anchored below chat bar regardless of scroll */}
         <div style={{
-          position: 'absolute',
-          left: '50%', top: '67%',
+          position: 'fixed',
+          left: '50%', top: '58%',
           transform: 'translate(-50%, 0)',
-          width: '110vw', height: '28vh',
+          width: '110vw', height: '22vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 0%, rgba(200,75,5,0.80) 0%, rgba(170,55,0,0.45) 40%, transparent 75%)',
-          filter: 'blur(32px)',
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(200,75,5,0.75) 0%, rgba(170,55,0,0.40) 45%, transparent 75%)',
+          filter: 'blur(30px)',
+          pointerEvents: 'none',
+          zIndex: 0,
         }} />
         {/* Grain texture overlay */}
         <div style={{
