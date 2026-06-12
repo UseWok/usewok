@@ -10,81 +10,44 @@
       "type": "string",
       "title": "Title"
     },
-    "preview": {
+    "raw_content": {
       "type": "string",
-      "title": "Preview"
-    },
-    "model": {
-      "type": "string",
-      "title": "Model"
-    },
-    "agent": {
-      "type": "string",
-      "title": "Agent"
+      "title": "Generated Code",
+      "format": "textarea"
     },
     "is_public": {
       "type": "boolean",
-      "title": "Is Public"
+      "title": "Is Public",
+      "default": false
     },
     "messages_json": {
       "type": "string",
-      "title": "Messages JSON",
+      "title": "Messages",
       "format": "textarea"
-    },
-    "raw_content": {
-      "type": "string",
-      "title": "Generated UI Code",
-      "format": "textarea"
-    },
-    "description": {
-      "type": "string",
-      "title": "Description / Raw Content (legacy)",
-      "maxLength": 1000
     }
   },
   "required": [
     "conv_id"
   ],
   "rls": {
-    "create": true,
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
     "read": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
         {
           "data.is_public": true
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "created_by_id": "{{user.id}}"
         }
       ]
     },
     "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     },
     "delete": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     }
   }
 }
