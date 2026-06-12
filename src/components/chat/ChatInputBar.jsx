@@ -147,6 +147,11 @@ function IOSMicVisualizer({ analyserRef, duration }) {
 // Uses local hover state to avoid stale closure bug with onMouseLeave
 function BuildMenuItem({ active, onClick, children }) {
   const [hovered, setHovered] = useState(false);
+  const bg = hovered
+    ? 'rgba(255,255,255,0.12)'
+    : active
+      ? 'rgba(255,255,255,0.08)'
+      : 'transparent';
   return (
     <button
       onClick={onClick}
@@ -155,7 +160,7 @@ function BuildMenuItem({ active, onClick, children }) {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         width: '100%', padding: '8px 12px', border: 'none',
-        background: hovered ? 'rgba(255,255,255,0.10)' : active ? 'rgba(255,255,255,0.06)' : 'transparent',
+        background: bg,
         borderRadius: 10, cursor: 'pointer', textAlign: 'left',
         fontFamily: 'Inter, sans-serif', gap: 8, transition: 'background 100ms',
       }}
