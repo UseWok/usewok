@@ -65,9 +65,9 @@ export default function PublishAppModal({
       let record;
       const updatePayload = {
         is_public: true,
+        raw_content: contentToStore || null,
+        raw_content_url: contentUrl || null,
       };
-      if (contentToStore) updatePayload.raw_content = contentToStore;
-      if (contentUrl) updatePayload.raw_content_url = contentUrl;
 
       if (existing && existing.length > 0) {
         // 2. Update with is_public AND content (direct or URL)

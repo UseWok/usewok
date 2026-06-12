@@ -210,7 +210,7 @@ export function PublicLiveEngine({ content }) {
         onLoad={() => { setReady(true); setError(null); }}
         onError={() => { setError('iframe load error'); }}
         style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        sandbox="allow-scripts allow-forms allow-popups"
       />
     </div>
   );
