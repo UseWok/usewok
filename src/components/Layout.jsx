@@ -72,32 +72,28 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  const BORDER_COLOR = '#0E0E0E';
-  const BORDER_W = 12;
-  const CORNER_R = 16;
+  const BORDER_W = 11;
+  const CORNER_R = 14;
 
   return (
     <div style={{ minHeight: '100vh', background: '#0E0E0E', display: 'flex' }}>
       {showSidebar && <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />}
 
-      {/* Rounded device-frame corners — four absolute corner pieces */}
-      {!isMobile && (
-        <>
-          {/* Top border strip */}
-          <motion.div animate={{ left: sidebarOffset }} transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-            style={{ position: 'fixed', top: 0, right: 0, height: BORDER_W, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none', borderBottomRightRadius: CORNER_R }} />
-          {/* Right border strip */}
-          <div style={{ position: 'fixed', top: BORDER_W, right: 0, width: BORDER_W, bottom: BORDER_W, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none' }} />
-          {/* Bottom border strip */}
-          <motion.div animate={{ left: sidebarOffset }} transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-            style={{ position: 'fixed', bottom: 0, right: 0, height: BORDER_W, background: BORDER_COLOR, zIndex: 50, pointerEvents: 'none', borderTopRightRadius: CORNER_R }} />
-        </>
-      )}
-
+      {/* Device frame — content area with rounded corners inset by border width */}
       <motion.main
-        style={{ flex: 1, minHeight: '100vh', overflow: 'hidden', position: 'relative', borderRadius: isMobile ? 0 : 0 }}
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+        style={{
+          flex: 1,
+          minHeight: '100vh',
+          overflow: 'hidden',
+          position: 'relative',
+          ...(isMobile ? {} : {
+            margin: `${BORDER_W}px ${BORDER_W}px ${BORDER_W}px 0`,
+            borderRadius: CORNER_R,
+            overflow: 'hidden',
+          }),
+        }}
       >
         <Outlet />
       </motion.main>

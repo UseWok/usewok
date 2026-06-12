@@ -275,37 +275,27 @@ export default function Home() {
     }}>
       {/* ── Glow layer ── */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Core glow — centered on chat input, top edge at ~55vh (juste au-dessus des builds) */}
+        {/* Horizon glow — starts just below chat bar (~68vh), spreads down naturally */}
         <div style={{
           position: 'absolute',
-          left: '50%', top: '58%',
-          transform: 'translate(-50%, -50%)',
-          width: '85vw', height: '55vh',
+          left: '50%', bottom: '-10%',
+          transform: 'translateX(-50%)',
+          width: '90vw', height: '60vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 40%, rgba(255,95,0,0.75) 0%, rgba(249,87,56,0.50) 25%, rgba(255,60,0,0.20) 55%, transparent 75%)',
-          filter: 'blur(44px)',
+          background: 'radial-gradient(ellipse at 50% 100%, rgba(200,70,0,0.55) 0%, rgba(180,55,0,0.30) 35%, rgba(150,40,0,0.10) 65%, transparent 85%)',
+          filter: 'blur(40px)',
         }} />
-        {/* Downward wash — intensifies as you scroll down, covers entire builds section */}
+        {/* Soft warm fill — covers bottom half, very gentle */}
         <div style={{
-          position: 'absolute', left: 0, right: 0, top: '52%', bottom: 0,
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(249,87,56,0.18) 20%, rgba(255,80,0,0.28) 50%, rgba(240,70,0,0.36) 80%, rgba(220,60,0,0.40) 100%)',
-        }} />
-        {/* Wide soft halo — bleeds slightly above chat bar but stays subtle */}
-        <div style={{
-          position: 'absolute',
-          left: '50%', top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '110vw', height: '80vh',
-          borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 55%, rgba(255,110,20,0.22) 0%, rgba(200,60,0,0.08) 55%, transparent 78%)',
-          filter: 'blur(80px)',
+          position: 'absolute', left: 0, right: 0, top: '62%', bottom: 0,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(160,50,0,0.12) 40%, rgba(140,45,0,0.22) 100%)',
         }} />
         {/* Grain texture overlay */}
         <div style={{
           position: 'absolute', inset: 0,
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           backgroundSize: '160px 160px',
-          opacity: 0.06,
+          opacity: 0.055,
           mixBlendMode: 'overlay',
         }} />
       </div>
