@@ -93,42 +93,39 @@ export function PublicLiveEngine({ content }) {
     }
   }
 
+  const usesRecharts = js.includes('Recharts') || js.includes('recharts');
+
   const srcDoc = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js" crossorigin="anonymous"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js" crossorigin="anonymous"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/umd/Recharts.min.js" crossorigin="anonymous"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"><\/script>
+  ${usesRecharts ? `<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/recharts@2.1.9/umd/Recharts.min.js"><\/script>` : ''}
   <script>
-    // Lucide icon stub — returns a simple SVG for any icon name (no CDN needed)
-    (function() {
-      function makeIcon(name) {
-        return function LucideIcon(props) {
-          var size = props.size || 24;
-          var color = props.color || 'currentColor';
-          var sw = props.strokeWidth || 2;
-          var cls = props.className || '';
+    // Lucide stub — proxy that returns a valid React component for any icon name
+    window.lucideReact = new Proxy({}, {
+      get: function(_, name) {
+        if (typeof name !== 'string' || name === 'then') return undefined;
+        return function(props) {
+          var p = props || {};
           return React.createElement('svg', {
-            xmlns: 'http://www.w3.org/2000/svg', width: size, height: size,
-            viewBox: '0 0 24 24', fill: 'none', stroke: color,
-            strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round', className: cls
+            xmlns: 'http://www.w3.org/2000/svg',
+            width: p.size || 24, height: p.size || 24,
+            viewBox: '0 0 24 24', fill: 'none',
+            stroke: p.color || 'currentColor',
+            strokeWidth: p.strokeWidth || 2,
+            strokeLinecap: 'round', strokeLinejoin: 'round',
+            className: p.className || '', style: p.style
           }, React.createElement('circle', { cx: 12, cy: 12, r: 9 }));
         };
       }
-      window.lucideReact = new Proxy({}, {
-        get: function(t, name) {
-          if (typeof name !== 'string') return undefined;
-          if (!(name in t)) t[name] = makeIcon(name);
-          return t[name];
-        }
-      });
-      window.lucide = window.lucideReact;
-    })();
+    });
+    window.lucide = window.lucideReact;
   <\/script>
   <style>
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -137,22 +134,32 @@ export function PublicLiveEngine({ content }) {
 </head>
 <body>
   <div id="root" style="width:100%;height:100%"></div>
-  <script>
-    window.onerror = function(msg) {
-      document.getElementById('root').innerHTML = '<div style="color:#991b1b;padding:24px;font-family:monospace;font-size:13px;background:#fee2e2;border-left:4px solid #f87171;margin:20px;border-radius:4px"><strong>Error:</strong><br/>' + msg + '</div>';
-      return true;
-    };
-  <\/script>
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext } = React;
-    window.Recharts = window.Recharts || {};
+    const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
+    const Recharts = window.Recharts || {};
+
+    class ErrorBoundary extends Component {
+      constructor(p) { super(p); this.state = { err: null }; }
+      static getDerivedStateFromError(e) { return { err: e }; }
+      render() {
+        if (this.state.err) return React.createElement('div', {
+          style: { color:'#991b1b', padding:24, fontFamily:'monospace', fontSize:13,
+            background:'#fee2e2', borderLeft:'4px solid #f87171', margin:20, borderRadius:4 }
+        }, React.createElement('strong', null, 'Error: '), this.state.err.message);
+        return this.props.children;
+      }
+    }
+
     try {
       ${js.replace(/<\/script>/gi, '<\\/script>')}
       if (typeof App !== 'undefined') {
-        ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+        ReactDOM.createRoot(document.getElementById('root')).render(
+          React.createElement(ErrorBoundary, null, React.createElement(App))
+        );
       }
     } catch(e) {
-      document.getElementById('root').innerHTML = '<div style="color:#991b1b;padding:24px;font-family:monospace;font-size:13px;background:#fee2e2;border-left:4px solid #f87171;margin:20px;border-radius:4px"><strong>Error:</strong><br/>' + e.message + '</div>';
+      document.getElementById('root').innerHTML =
+        '<div style="color:#991b1b;padding:24px;font-family:monospace;font-size:13px;background:#fee2e2;border-left:4px solid #f87171;margin:20px;border-radius:4px"><strong>Error:</strong><br/>' + e.message + '</div>';
     }
   <\/script>
 </body>
