@@ -51,7 +51,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.is_public": true
+          "is_public": true
         }
       ]
     },

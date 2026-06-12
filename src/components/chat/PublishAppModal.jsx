@@ -36,29 +36,26 @@ export default function PublishAppModal({
     try {
       const convId = customSlug;
       const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
-      
-      // Ensure we have the full code: if ficheContent is wrapped in fences, extract it
-      const bt = String.fromCharCode(96);
-      const fenceRegex = new RegExp(`${bt}{3}(?:jsx?|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'i');
-      const fullCode = fenceRegex.test(ficheContent) 
-        ? ficheContent.match(fenceRegex)[1] 
-        : ficheContent;
+
+      // Store the exact content as provided (with fences if present)
+      const publishData = {
+        is_public: true,
+        raw_content: ficheContent,
+        title: appSettings?.title || 'My App',
+      };
 
       if (results.length > 0) {
-        await base44.entities.Conversation.update(results[0].id, {
-          is_public: true,
-          raw_content: ficheContent,
-          title: appSettings?.title || results[0].title || 'My App',
-        });
+        await base44.entities.Conversation.update(results[0].id, publishData);
       } else {
         await base44.entities.Conversation.create({
           conv_id: convId,
-          is_public: true,
-          raw_content: ficheContent,
-          title: appSettings?.title || 'My App',
           messages_json: '[]',
+          ...publishData,
         });
       }
+
+      // Wait a moment for cloud to propagate, then update state
+      await new Promise(r => setTimeout(r, 400));
       setIsPublic(true);
       setIsPublished(true);
       setLiveUrl(shareUrl);
@@ -66,7 +63,7 @@ export default function PublishAppModal({
       toast.success('App published — link is now live!');
     } catch (e) {
       console.error('Publish error:', e);
-      toast.error('Publish failed. Please try again.');
+      toast.error('Publish failed: ' + (e.message || 'Please try again.'));
     }
     setIsPublishing(false);
   };

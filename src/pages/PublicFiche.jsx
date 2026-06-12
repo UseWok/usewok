@@ -213,15 +213,16 @@ export default function PublicFiche() {
     if (!conversationId) { setNotFound(true); setLoading(false); return; }
 
     const load = async () => {
-      // Filter by conv_id — RLS allows read when is_public=true (unauthenticated)
-      // We try both authenticated and public paths
       let rec = null;
       try {
+        // Filter by conv_id — RLS allows public reads via is_public: true
         const results = await base44.entities.Conversation.filter({ conv_id: conversationId });
         if (results.length > 0) rec = results[0];
-      } catch {}
+      } catch (e) {
+        console.error('Load failed:', e);
+      }
 
-      if (!rec) { setNotFound(true); setLoading(false); return; }
+      if (!rec || !rec.is_public) { setNotFound(true); setLoading(false); return; }
 
       const rawContent = rec.raw_content || rec.rawContent || null;
 
