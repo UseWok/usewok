@@ -36,6 +36,14 @@ export default function PublishAppModal({
     try {
       const convId = customSlug;
       const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+      
+      // Ensure we have the full code: if ficheContent is wrapped in fences, extract it
+      const bt = String.fromCharCode(96);
+      const fenceRegex = new RegExp(`${bt}{3}(?:jsx?|javascript|react)?\\n([\\s\\S]*?)${bt}{3}`, 'i');
+      const fullCode = fenceRegex.test(ficheContent) 
+        ? ficheContent.match(fenceRegex)[1] 
+        : ficheContent;
+
       if (results.length > 0) {
         await base44.entities.Conversation.update(results[0].id, {
           is_public: true,
@@ -57,6 +65,7 @@ export default function PublishAppModal({
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       toast.success('App published — link is now live!');
     } catch (e) {
+      console.error('Publish error:', e);
       toast.error('Publish failed. Please try again.');
     }
     setIsPublishing(false);

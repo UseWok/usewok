@@ -10,9 +10,27 @@
       "type": "string",
       "description": "Discussion title"
     },
+    "preview": {
+      "type": "string",
+      "description": "Short preview/description of the conversation"
+    },
     "messages_json": {
       "type": "string",
-      "description": "Serialized messages array"
+      "format": "textarea",
+      "description": "Serialized messages array (JSON)"
+    },
+    "raw_content": {
+      "type": "string",
+      "format": "textarea",
+      "description": "Generated React component code"
+    },
+    "model": {
+      "type": "string",
+      "description": "AI model used for generation"
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent name/ID"
     },
     "is_public": {
       "type": "boolean",
@@ -21,12 +39,27 @@
     },
     "slug": {
       "type": "string",
-      "description": "Custom URL slug"
-    },
-    "preview": {
-      "type": "string",
-      "description": "Short preview of the conversation"
+      "description": "Custom URL slug for sharing"
     }
   },
-  "required": ["conv_id"]
+  "required": ["conv_id"],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.is_public": true
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
 }
