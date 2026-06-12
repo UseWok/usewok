@@ -13,11 +13,11 @@ export default function PublishAppModal({
 }) {
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [isPublic, setIsPublic] = useState(appSettings?.isPublic || false);
+  const [isPublic, setIsPublic] = useState(isPublished || appSettings?.isPublic || false);
 
   useEffect(() => {
-    setIsPublic(appSettings?.isPublic || false);
-  }, [appSettings?.isPublic, open]);
+    setIsPublic(isPublished || appSettings?.isPublic || false);
+  }, [isPublished, appSettings?.isPublic, open]);
 
   const shareUrl = customSlug
     ? `${window.location.origin}/p/${customSlug}`
@@ -50,9 +50,10 @@ export default function PublishAppModal({
           return;
         }
       }
+      const newSettings = { ...(appSettings || {}), isPublic: true };
       setIsPublic(true);
-      if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       setIsPublished(true);
+      if (onUpdateSettings) await onUpdateSettings(newSettings);
       toast.success('App published — link is now live!');
     } catch (e) {
       toast.error('Publish failed. Please try again.');

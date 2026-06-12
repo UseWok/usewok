@@ -240,16 +240,15 @@ export default function ChatPage() {
   // ── App meta handlers ──
   const handleUpdateAppMeta = async (newSettings) => {
     setAppSettings(newSettings);
+    if (newSettings.isPublic !== undefined) setIsAppPublished(newSettings.isPublic);
     if (convId) {
       await safeAsync(async () => {
-        // Find the record by conv_id field, then update by its DB id
         const results = await base44.entities.Conversation.filter({ conv_id: convId });
         if (results.length > 0) {
           await base44.entities.Conversation.update(results[0].id, { title: newSettings.title, is_public: newSettings.isPublic, raw_content: ficheContent || results[0].raw_content });
         }
       }, null, 'Update app meta');
     }
-    toast.success("Settings updated successfully.");
   };
 
   const handleCloneApp = async () => {
