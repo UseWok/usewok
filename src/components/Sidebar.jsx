@@ -103,7 +103,7 @@ function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreate
           </span>
         </div>
         <div style={{ height: 5, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', width: `${Math.min(100, Math.round((creditsLeft / creditsLimit) * 100))}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.5s ease' }} />
+          <div style={{ height: '100%', width: `${pct}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.5s ease' }} />
         </div>
         <span style={{ fontSize: 11, color: '#444' }}>Renews automatically every 30 days</span>
       </div>
@@ -568,11 +568,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           <div style={{ flex: 1 }} />
 
-          {/* Share / Upgrade cards */}
+          {/* Share card only — Upgrade to Pro removed */}
           {expanded && (
-            <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ padding: '8px 10px' }}>
               <button onClick={() => toast.info('Referral program coming soon')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', textAlign: 'left' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', textAlign: 'left', width: '100%' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#222'}
                 onMouseLeave={e => e.currentTarget.style.background = '#1A1A1A'}
               >
@@ -582,19 +582,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 </div>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Gift style={{ width: 15, height: 15, color: '#888' }} />
-                </div>
-              </button>
-              <button onClick={() => nav('/pricing')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', textAlign: 'left' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#222'}
-                onMouseLeave={e => e.currentTarget.style.background = '#1A1A1A'}
-              >
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Upgrade to Pro</div>
-                  <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>Unlock more features</div>
-                </div>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Zap style={{ width: 15, height: 15, color: '#fff' }} />
                 </div>
               </button>
             </div>

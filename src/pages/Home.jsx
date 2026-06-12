@@ -241,7 +241,7 @@ export default function Home() {
       </div>
 
       {/* ── My Builds section ── */}
-      <div style={{ padding: '0 20px 32px', marginTop: 24 }}>
+      <div style={{ padding: '0 20px 32px', marginTop: 56 }}>
         <div style={{
           background: 'rgba(15,15,15,0.88)',
           backdropFilter: 'blur(20px)',

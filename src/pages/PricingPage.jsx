@@ -39,12 +39,12 @@ const ContactModal = ({ onClose }) => {
         </button>
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0F2A1E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Check size={20} color="#22C55E" />
-            </div>
-            <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Request received</h3>
-            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6 }}>Our team will contact you within 24 hours.</p>
-            <button onClick={onClose} style={{ marginTop: 24, padding: '10px 28px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
+            <div style={{ fontSize: 48, margin: '0 auto 16px', lineHeight: 1 }}>🎉</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 12 }}>🎉 Message envoyé !</h3>
+            <p style={{ fontSize: 14, color: '#ccc', lineHeight: 1.7 }}>
+              Merci de nous avoir contactés ! Nous avons bien reçu votre message et notre équipe vous répondra dans les 24 heures. Nous sommes ravis de vous accompagner dans votre parcours Base44 !
+            </p>
+            <button onClick={onClose} style={{ marginTop: 24, padding: '11px 32px', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Parfait, merci !</button>
           </div>
         ) : (
           <>
@@ -143,7 +143,7 @@ export default function PricingPage() {
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 80px' }}>
 
         {/* ── Header ── */}
-        <div style={{ padding: '72px 0 52px', textAlign: 'center' }}>
+        <div style={{ padding: '72px 0 80px', textAlign: 'center' }}>
           <h1 style={{
             fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 700, color: '#fff',
             margin: '0 0 14px', letterSpacing: '-0.025em', lineHeight: 1.15,
@@ -162,6 +162,9 @@ export default function PricingPage() {
             gridTemplateColumns: `repeat(${Math.min(cardPlans.length, 4)}, 1fr)`,
             gap: 14,
             marginBottom: 40,
+            maxWidth: '95%',
+            marginLeft: 'auto',
+            marginRight: 'auto',
           }}>
             {cardPlans.map((plan, i) => {
               const isPopular = !!plan.badge;
@@ -230,7 +233,7 @@ export default function PricingPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
                         {features.map((f, j) => (
                           <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                            <Check style={{ width: 12, height: 12, color: '#F95738', flexShrink: 0, marginTop: 2 }} />
+                            <Check style={{ width: 12, height: 12, color: '#22c55e', flexShrink: 0, marginTop: 2 }} />
                             <span style={{ fontSize: 12, color: '#fff', opacity: 0.85, lineHeight: 1.5 }}>{f}</span>
                           </div>
                         ))}
