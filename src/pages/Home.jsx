@@ -112,7 +112,7 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
   const [hovered, setHovered] = useState(false);
   const [showKebab, setShowKebab] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const previewUrl = conv.conv_id ? `https://wok.base44.app/tools/${conv.conv_id}` : null;
+  const previewUrl = conv.id ? `https://wok.base44.app/tools/${conv.id}` : null;
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -150,9 +150,10 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
             {previewUrl ? (
               <iframe
                 src={previewUrl}
+                loading="lazy"
                 style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: '0 0', pointerEvents: 'none' }}
                 title={conv.title}
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               />
             ) : (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: 5, padding: 16 }}>

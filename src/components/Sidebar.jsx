@@ -263,12 +263,12 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
         justifyContent: expanded ? 'flex-start' : 'center',
         borderRadius: 6, border: 'none', cursor: 'pointer',
         background: active ? 'rgba(255,255,255,0.07)' : 'transparent',
-        color: active ? '#fff' : '#6B6B6B',
+        color: active ? '#fff' : '#ffffff',
         transition: 'background 100ms, color 100ms',
         fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; } }}
-      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; } }}
+      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#ffffff'; } }}
+      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ffffff'; } }}
     >
       {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: 'inherit' }} />}
       {expanded && (
@@ -483,11 +483,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               <>
                 <button
                   onClick={() => setStarredOpen(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#6B6B6B', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#ffffff', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Star style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7 }} />
+                  <Star style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: '#ffffff' }} />
                   <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#fff' }}>Starred</span>
                   <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: starredOpen ? 'rotate(90deg)' : 'none' }} />
                 </button>
@@ -510,11 +510,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               <>
                 <button
                   onClick={() => setRecentsOpen(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#6B6B6B', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#ffffff', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Clock style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7 }} />
+                  <Clock style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: '#ffffff' }} />
                   <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#fff' }}>Recent</span>
                   <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: recentsOpen ? 'rotate(90deg)' : 'none' }} />
                 </button>
@@ -546,15 +546,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             )}
           </div>
 
-          <Divider />
 
-          {/* Platform */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-            <SectionLabel label="Platform" expanded={expanded} />
-            <NavItem icon={Tag} label="Pricing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
-            <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
-            <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
-          </div>
 
           <div style={{ flex: 1 }} />
         </div>

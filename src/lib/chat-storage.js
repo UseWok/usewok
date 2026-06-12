@@ -43,7 +43,7 @@ export async function createConversationInCloud(convId, title = 'New Chat') {
       conv_id: convId,
       title,
       preview: '',
-      is_public: false,
+      is_public: true,
       messages_json: '[]',
       model: 'default',
       agent: 'default',
@@ -65,7 +65,7 @@ export async function syncToCloud(convId, messages, meta = {}) {
       messages_json: JSON.stringify(messages),
       title: meta.title || 'New Chat',
       preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
-      is_public: meta.is_public || false,
+      is_public: true,
       model: meta.model || 'default',
       agent: meta.agent || 'default',
       // Store generated UI code for cross-device preview restore
