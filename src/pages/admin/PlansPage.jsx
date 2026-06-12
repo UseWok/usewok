@@ -20,6 +20,8 @@ export default function PlansPage() {
     features: [],
     visible: true,
     credits_limit: 10,
+    checkout_url_monthly: '',
+    checkout_url_yearly: '',
   });
 
   useEffect(() => {
@@ -54,6 +56,8 @@ export default function PlansPage() {
       features: plan.features || [],
       visible: plan.visible !== false,
       credits_limit: plan.credits_limit || 10,
+      checkout_url_monthly: plan.checkout_url_monthly || '',
+      checkout_url_yearly: plan.checkout_url_yearly || '',
     });
     setEditingPlanId(plan.id);
     setAddingNew(false);
@@ -69,6 +73,8 @@ export default function PlansPage() {
       features: [],
       visible: true,
       credits_limit: 10,
+      checkout_url_monthly: '',
+      checkout_url_yearly: '',
     });
     setEditingPlanId('new');
     setAddingNew(true);
@@ -331,6 +337,28 @@ function InlineEditForm({ formData, setFormData, onSave, onCancel, isAddingNew, 
             value={formData.credits_limit}
             onChange={(e) => setFormData({ ...formData, credits_limit: Number(e.target.value) })}
             className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Checkout URL (monthly)</label>
+          <input
+            type="url"
+            value={formData.checkout_url_monthly}
+            onChange={(e) => setFormData({ ...formData, checkout_url_monthly: e.target.value })}
+            className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+            placeholder="https://buy.stripe.com/..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-[12px] font-medium text-[#888888] mb-1.5">Checkout URL (yearly)</label>
+          <input
+            type="url"
+            value={formData.checkout_url_yearly}
+            onChange={(e) => setFormData({ ...formData, checkout_url_yearly: e.target.value })}
+            className="w-full px-3 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
+            placeholder="https://buy.stripe.com/..."
           />
         </div>
       </div>

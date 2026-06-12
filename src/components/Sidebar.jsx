@@ -1,245 +1,161 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Home, Search, Star, Zap, X, Check, Ticket,
-  Users, Plus, LogOut, User, Palette, BookOpen,
-  ChevronDown, LayoutGrid, Gift, Inbox, Compass,
-  Network, UserRound, UsersRound,
-} from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 
-export const COLLAPSED_W = 54;
-export const EXPANDED_W  = 240;
+export const COLLAPSED_W = 52;
+export const EXPANDED_W = 232;
 export const SIDEBAR_MARGIN = 0;
 
-const SIDEBAR_TRANSITION = { duration: 0.26, ease: [0.4, 0, 0.2, 1] };
+const T = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
 
-// ── Avatar ──
-function Avatar({ user, size = 28 }) {
-  const initial = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
+// ─── Avatar ───────────────────────────────────────────────────────
+function Avatar({ user, size = 24 }) {
+  const ch = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
   return (
     <div style={{
-      width: size, height: size,
-      borderRadius: 999,
+      width: size, height: size, borderRadius: 6,
       background: '#F95738', color: '#fff',
-      fontSize: size * 0.42, fontWeight: 700,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexShrink: 0, letterSpacing: '-0.01em',
-    }}>
-      {initial}
-    </div>
+      fontSize: Math.round(size * 0.44), fontWeight: 600,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    }}>{ch}</div>
   );
 }
 
-// ── WorkspaceMenu ──
-function WorkspaceMenu({ user, userPlan, workspaces, onSwitchWorkspace, onCreateWorkspace, onClose, creditsUsed, creditsLimit, onSettings }) {
+// ─── Workspace Switcher Dropdown ──────────────────────────────────
+function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettings, onClose, user, userPlan, creditsUsed, creditsLimit }) {
   const navigate = useNavigate();
-  const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
   const pct = creditsLimit > 0 ? Math.min(100, Math.round((creditsUsed / creditsLimit) * 100)) : 0;
-  const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'My Workspace' };
+  const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -4, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -4, scale: 0.98 }}
-      transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-      style={{
-        position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-        background: '#1E1E1E', border: '1px solid #333', borderRadius: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 999,
-        overflow: 'hidden',
-      }}
+    <motion.div ref={ref}
+      initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.14 }}
       onClick={e => e.stopPropagation()}
+      style={{
+        position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+        background: '#141414', border: '1px solid #242424', borderRadius: 10,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.7)', zIndex: 999, overflow: 'hidden',
+      }}
     >
-      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #2A2A2A' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0 }}>
-            {currentWs.name?.charAt(0).toUpperCase() || 'W'}
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', lineHeight: 1.3 }}>{currentWs.name}</div>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{userPlan?.name || 'Free'} Plan · 1 member</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => { onSettings(); onClose(); }}
-            style={{ flex: 1, padding: '7px 10px', fontSize: 13, fontWeight: 500, color: '#ccc', background: '#2A2A2A', border: '1px solid #333', borderRadius: 8, cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#333'}
-            onMouseLeave={e => e.currentTarget.style.background = '#2A2A2A'}
-          >Settings</button>
-          <button onClick={() => { toast.info('Invite members coming soon'); onClose(); }}
-            style={{ flex: 1, padding: '7px 10px', fontSize: 13, fontWeight: 500, color: '#ccc', background: '#2A2A2A', border: '1px solid #333', borderRadius: 8, cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#333'}
-            onMouseLeave={e => e.currentTarget.style.background = '#2A2A2A'}
-          >Invite</button>
-        </div>
-      </div>
-
-      <div style={{ padding: '10px 12px', borderBottom: '1px solid #2A2A2A' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#2A2A2A', borderRadius: 10, padding: '10px 12px', border: '1px solid #333' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap style={{ width: 16, height: 16, color: '#fff' }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Turn Pro</span>
-          </div>
-          <button onClick={() => { navigate('/pricing'); onClose(); }}
-            style={{ padding: '6px 14px', fontSize: 13, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#e04a2e'}
-            onMouseLeave={e => e.currentTarget.style.background = '#F95738'}
-          >Upgrade</button>
-        </div>
-      </div>
-
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #2A2A2A' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Credits</span>
-          <span style={{ fontSize: 12, color: '#666', fontVariantNumeric: 'tabular-nums' }}>
-            {creditsLeft.toLocaleString('fr-FR')} / {creditsLimit.toLocaleString('fr-FR')}
-          </span>
-        </div>
-        <div style={{ height: 5, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: '#2563EB', borderRadius: 999, transition: 'width 0.5s ease' }} />
-        </div>
-        <span style={{ fontSize: 11, color: '#444' }}>Renews automatically every 30 days</span>
-      </div>
-
-      <div style={{ padding: '8px 0' }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#555', padding: '4px 16px 8px' }}>All workspaces</div>
+      {/* Workspace list */}
+      <div style={{ padding: '6px 6px 0' }}>
+        <p style={{ fontSize: 10, fontWeight: 600, color: '#3A3A3A', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 8px 6px' }}>Workspaces</p>
         {workspaces.map(ws => (
-          <button key={ws.id} onClick={() => { onSwitchWorkspace(ws.id); onClose(); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 16px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
+          <button key={ws.id} onClick={() => { onSwitch(ws.id); onClose(); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#1E1E1E'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 5, background: ws.current ? '#F95738' : '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
               {ws.name?.charAt(0).toUpperCase()}
             </div>
-            <span style={{ flex: 1, fontSize: 14, color: '#ccc', fontWeight: 500 }}>{ws.name}</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#555', background: '#2A2A2A', borderRadius: 5, padding: '2px 7px' }}>{ws.current ? 'FREE' : 'INACTIVE'}</span>
-            {ws.current && <Check style={{ width: 15, height: 15, color: '#666' }} />}
+            <span style={{ flex: 1, fontSize: 13, color: ws.current ? '#fff' : '#888', fontWeight: ws.current ? 500 : 400 }}>{ws.name}</span>
+            {ws.current && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />}
           </button>
         ))}
       </div>
 
-      <div style={{ borderTop: '1px solid #2A2A2A', padding: '4px 0' }}>
-        <button onClick={() => { onCreateWorkspace(); onClose(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 14, color: '#ccc', fontWeight: 500 }}
-          onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      {/* Credits bar */}
+      <div style={{ margin: '6px', padding: '10px 10px 8px', background: '#1A1A1A', borderRadius: 8, border: '1px solid #242424' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Credits</span>
+          <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} / {creditsLimit.toLocaleString()}</span>
+        </div>
+        <div style={{ height: 3, background: '#2A2A2A', borderRadius: 999 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        </div>
+      </div>
+
+      <div style={{ padding: '4px 6px', borderTop: '1px solid #1E1E1E' }}>
+        <button onClick={() => { onSettings(); onClose(); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: '#666', fontFamily: 'inherit' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.color = '#ccc'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666'; }}
         >
-          <Plus style={{ width: 16, height: 16 }} /> Create new workspace
+          <Settings style={{ width: 12, height: 12 }} /> Workspace settings
+        </button>
+        <button onClick={() => { onCreate(); onClose(); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: '#666', fontFamily: 'inherit' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.color = '#ccc'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666'; }}
+        >
+          <Plus style={{ width: 12, height: 12 }} /> New workspace
         </button>
       </div>
     </motion.div>
   );
 }
 
-// ── ProfileMenu ──
-const Settings2Icon = ({ style }) => (
-  <svg style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </svg>
-);
-
+// ─── Profile Menu ─────────────────────────────────────────────────
 function ProfileMenu({ user, onClose, navigate }) {
-  const email = user?.email || '';
-  const truncated = email.length > 24 ? email.slice(0, 24) + '…' : email;
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
 
-  const menuBtn = (IconComp, label, action) => (
-    <button key={label} onClick={action}
-      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', textAlign: 'left', fontFamily: 'inherit' }}
-      onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+  const email = user?.email || '';
+  const Row = ({ icon: Icon, label, onClick, danger }) => (
+    <button onClick={onClick}
+      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: danger ? '#E8184A' : '#888', textAlign: 'left', fontFamily: 'inherit' }}
+      onMouseEnter={e => { e.currentTarget.style.background = '#1E1E1E'; e.currentTarget.style.color = danger ? '#ff4d6d' : '#fff'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = danger ? '#E8184A' : '#888'; }}
     >
-      <IconComp style={{ width: 14, height: 14, color: '#666', flexShrink: 0 }} />
-      {label}
+      <Icon style={{ width: 13, height: 13, flexShrink: 0 }} /> {label}
     </button>
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.97 }}
-      transition={{ duration: 0.14 }}
-      style={{
-        position: 'absolute', bottom: 'calc(100% + 6px)', left: 4, right: 4,
-        background: '#1E1E1E', border: '1px solid #333', borderRadius: 12,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 999, overflow: 'hidden',
-      }}
+    <motion.div ref={ref}
+      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
+      transition={{ duration: 0.13 }}
       onClick={e => e.stopPropagation()}
+      style={{
+        position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
+        background: '#141414', border: '1px solid #242424', borderRadius: 10,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.7)', zIndex: 999, overflow: 'hidden',
+      }}
     >
-      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Avatar user={user} size={32} />
+      <div style={{ padding: '12px', borderBottom: '1px solid #1E1E1E', display: 'flex', alignItems: 'center', gap: 9 }}>
+        <Avatar user={user} size={28} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{user?.full_name || 'User'}</div>
-          <div style={{ fontSize: 11, color: '#666' }}>{truncated}</div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.full_name || 'User'}</p>
+          <p style={{ fontSize: 10, color: '#555', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
         </div>
       </div>
       <div style={{ padding: '4px 0' }}>
-        {menuBtn(User, 'Profile', () => navigate('/settings'))}
-        {menuBtn(Settings2Icon, 'Settings', () => navigate('/settings'))}
-        {menuBtn(Palette, 'Appearance', () => navigate('/settings'))}
+        <Row icon={Settings} label="Account settings" onClick={() => navigate('/settings')} />
+        <Row icon={CreditCard} label="Billing & plans" onClick={() => navigate('/pricing')} />
+        <Row icon={HelpCircle} label="Support" onClick={() => navigate('/support')} />
       </div>
-      <div style={{ height: 1, background: '#2A2A2A' }} />
+      <div style={{ height: 1, background: '#1E1E1E' }} />
       <div style={{ padding: '4px 0' }}>
-        <button onClick={() => navigate('/pricing')}
-          style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'inherit' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <span style={{ width: 18, height: 18, borderRadius: 999, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 2L10 6L6 10M2 6H10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </span>
-          Upgrade Plan
-        </button>
-        {menuBtn(BookOpen, 'Support', () => navigate('/support'))}
-        {menuBtn(Compass, 'Documentation', () => toast.info('Coming soon'))}
-        {menuBtn(Home, 'Home', () => navigate('/app'))}
-      </div>
-      <div style={{ height: 1, background: '#2A2A2A' }} />
-      <div style={{ padding: '4px 0' }}>
-        {menuBtn(LogOut, 'Log out', async () => { await base44.auth.logout(); window.location.reload(); })}
+        <Row icon={LogOut} label="Sign out" danger onClick={async () => { await base44.auth.logout(); window.location.reload(); }} />
       </div>
     </motion.div>
   );
 }
 
-// ── Recents section — max 4 visible, inner scroll only ──
-function SidebarBuildsSection({ recents, nav }) {
-  const ITEM_H = 30;
-  const MAX_VISIBLE = 4;
-  const listHeight = Math.min(recents.length, MAX_VISIBLE) * ITEM_H;
-
-  return (
-    <div style={{ padding: '6px 8px 0', flexShrink: 0 }}>
-      <p style={{ fontSize: 11, fontWeight: 500, color: '#444', margin: '4px 10px 4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recents</p>
-      <div style={{ maxHeight: listHeight, overflowY: recents.length > MAX_VISIBLE ? 'auto' : 'hidden' }}>
-        {recents.map(d => (
-          <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
-            style={{ display: 'flex', alignItems: 'center', width: '100%', height: ITEM_H, padding: '0 9px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#fff', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', fontFamily: 'inherit' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            {d.title || 'Untitled'}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Create Workspace Modal ──
+// ─── Create Workspace Modal ────────────────────────────────────────
 function CreateWorkspaceModal({ open, onClose, onCreate }) {
   const [name, setName] = useState('');
-  const handleCreate = () => {
-    if (name.trim().length < 2) { toast.error('Name must be at least 2 characters'); return; }
+  const submit = () => {
+    if (name.trim().length < 2) { toast.error('Minimum 2 characters'); return; }
     onCreate(name.trim()); setName(''); onClose();
   };
   return (
@@ -247,27 +163,27 @@ function CreateWorkspaceModal({ open, onClose, onCreate }) {
       {open && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
             onClick={onClose} />
           <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              style={{ background: '#1E1E1E', border: '1px solid #333', borderRadius: 16, boxShadow: '0 24px 64px rgba(0,0,0,0.5)', width: '100%', maxWidth: 400, padding: 24, position: 'relative' }}
+              initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }} transition={{ duration: 0.18 }}
               onClick={e => e.stopPropagation()}
+              style={{ background: '#141414', border: '1px solid #242424', borderRadius: 14, padding: '28px 24px', width: '100%', maxWidth: 380, position: 'relative' }}
             >
-              <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#666' }}>
-                <X style={{ width: 16, height: 16 }} />
+              <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}>
+                <X style={{ width: 14, height: 14 }} />
               </button>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>Create a workspace</h2>
-              <p style={{ fontSize: 13, color: '#666', margin: '0 0 20px' }}>Organize your projects in a dedicated space.</p>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#888', display: 'block', marginBottom: 6 }}>Workspace name *</label>
-              <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                placeholder="e.g. Marketing Team" autoFocus
-                style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #333', background: '#2A2A2A', color: '#fff', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: 'Inter, sans-serif' }} />
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>New workspace</h2>
+              <p style={{ fontSize: 12, color: '#555', margin: '0 0 20px' }}>Isolated environment — zero credits, zero builds.</p>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#555', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Name</label>
+              <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} autoFocus
+                placeholder="e.g. Acme Corp"
+                style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid #2A2A2A', background: '#1A1A1A', color: '#fff', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: 'Inter, sans-serif' }} />
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={onClose} style={{ flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 500, color: '#888', background: '#2A2A2A', border: '1px solid #333', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={handleCreate} style={{ flex: 2, padding: '10px 0', fontSize: 14, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Create workspace</button>
+                <button onClick={onClose} style={{ flex: 1, padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#666', background: '#1E1E1E', border: '1px solid #2A2A2A', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={submit} style={{ flex: 2, padding: '9px 0', fontSize: 13, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Create</button>
               </div>
             </motion.div>
           </div>
@@ -277,7 +193,7 @@ function CreateWorkspaceModal({ open, onClose, onCreate }) {
   );
 }
 
-// ── Code Modal ──
+// ─── Code Activation Modal ─────────────────────────────────────────
 function CodeModal({ open, onClose, user }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -306,28 +222,28 @@ function CodeModal({ open, onClose, user }) {
   if (!open) return null;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-      <div style={{ background: '#1E1E1E', border: '1px solid #333', borderRadius: 16, padding: 24, width: '100%', maxWidth: 420, position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#666' }}>
-          <X style={{ width: 16, height: 16 }} />
+      <div onClick={e => e.stopPropagation()} style={{ background: '#141414', border: '1px solid #242424', borderRadius: 14, padding: 24, width: '100%', maxWidth: 400, position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}>
+          <X style={{ width: 14, height: 14 }} />
         </button>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Redeem Code</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: '0 0 16px' }}>Activate a code</h2>
         {success ? (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#1A3A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <Check style={{ width: 24, height: 24, color: '#4ade80' }} />
+          <div style={{ textAlign: 'center', padding: '12px 0' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: '#1A2A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <Check style={{ width: 22, height: 22, color: '#4ade80' }} />
             </div>
-            <p style={{ color: '#fff', fontWeight: 600, marginBottom: 8 }}>Code activated! Plan: {success.planName}</p>
-            <button onClick={() => { setSuccess(null); onClose(); }} style={{ padding: '10px 24px', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Close</button>
+            <p style={{ color: '#fff', fontWeight: 500, marginBottom: 8, fontSize: 13 }}>Plan activated: {success.planName}</p>
+            <button onClick={() => { setSuccess(null); onClose(); }} style={{ padding: '8px 20px', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>Done</button>
           </div>
         ) : (
           <>
             <input value={code} onChange={e => { setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')); setError(''); }}
               placeholder="LAUNCH-XXXX" maxLength={20} autoFocus onKeyDown={e => e.key === 'Enter' && activate()}
-              style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #333', background: '#2A2A2A', color: '#fff', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 8, fontFamily: 'monospace' }} />
-            {error && <p style={{ color: '#E8184A', fontSize: 13, marginBottom: 8 }}>{error}</p>}
+              style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid #2A2A2A', background: '#1A1A1A', color: '#fff', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 8, fontFamily: 'monospace', letterSpacing: '0.06em' }} />
+            {error && <p style={{ color: '#E8184A', fontSize: 12, marginBottom: 8 }}>{error}</p>}
             <button onClick={activate} disabled={loading || !code.trim()}
-              style={{ width: '100%', padding: '10px 0', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, opacity: loading || !code.trim() ? 0.5 : 1 }}>
-              {loading ? 'Activating...' : 'Activate Code'}
+              style={{ width: '100%', padding: '9px 0', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13, opacity: loading || !code.trim() ? 0.45 : 1 }}>
+              {loading ? 'Activating…' : 'Activate'}
             </button>
           </>
         )}
@@ -336,280 +252,285 @@ function CodeModal({ open, onClose, user }) {
   );
 }
 
-// ── Main Sidebar ──
+// ─── Nav Item ─────────────────────────────────────────────────────
+function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, indent = false }) {
+  return (
+    <button onClick={onClick} title={!expanded ? label : undefined}
+      style={{
+        display: 'flex', alignItems: 'center',
+        width: '100%', height: 32,
+        padding: expanded ? (indent ? '0 10px 0 28px' : '0 10px') : '0',
+        justifyContent: expanded ? 'flex-start' : 'center',
+        borderRadius: 6, border: 'none', cursor: 'pointer',
+        background: active ? 'rgba(255,255,255,0.07)' : 'transparent',
+        color: active ? '#fff' : '#6B6B6B',
+        transition: 'background 100ms, color 100ms',
+        fontFamily: 'inherit',
+      }}
+      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#C0C0C0'; } }}
+      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B6B6B'; } }}
+    >
+      {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: 'inherit' }} />}
+      {expanded && (
+        <>
+          <span style={{ fontSize: 12.5, fontWeight: active ? 500 : 400, marginLeft: 9, flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }}>
+            {label}
+          </span>
+          {shortcut && (
+            <span style={{ display: 'flex', gap: 2 }}>
+              {shortcut.map((k, i) => (
+                <kbd key={i} style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 4, padding: '1px 4px', color: '#444', fontWeight: 500 }}>{k}</kbd>
+              ))}
+            </span>
+          )}
+        </>
+      )}
+    </button>
+  );
+}
+
+// ─── Section Label ────────────────────────────────────────────────
+function SectionLabel({ label, expanded }) {
+  if (!expanded) return <div style={{ height: 16 }} />;
+  return (
+    <p style={{ fontSize: 10, fontWeight: 600, color: '#2E2E2E', margin: '10px 10px 4px', letterSpacing: '0.07em', textTransform: 'uppercase', userSelect: 'none' }}>
+      {label}
+    </p>
+  );
+}
+
+// ─── Divider ──────────────────────────────────────────────────────
+function Divider() {
+  return <div style={{ height: 1, background: '#181818', margin: '6px 0' }} />;
+}
+
+// ─── Main Sidebar ─────────────────────────────────────────────────
 export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showWsMenu, setShowWsMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showCreateWsModal, setShowCreateWsModal] = useState(false);
+  const [showCreateWs, setShowCreateWs] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [recents, setRecents] = useState([]);
   const [workspaces, setWorkspaces] = useState(() => {
-    const saved = localStorage.getItem('wok_workspaces');
-    return saved ? JSON.parse(saved) : [{ id: 'default', name: "Antoine's WOK", current: true }];
+    try { return JSON.parse(localStorage.getItem('wok_workspaces')) || [{ id: 'default', name: "My Workspace", current: true }]; }
+    catch { return [{ id: 'default', name: "My Workspace", current: true }]; }
   });
 
   const wsRef = useRef(null);
   const profileRef = useRef(null);
+  const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'Workspace' };
+  const creditsUsed = user?.credits_used || 0;
+  const creditsLimit = user?.credits_limit || userPlan?.credits_limit || 10;
 
+  // Load recents
   useEffect(() => {
-    const handler = (e) => {
-      if (wsRef.current && !wsRef.current.contains(e.target)) setShowWorkspaceMenu(false);
-      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfileMenu(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  useEffect(() => {
-    loadDiscussionsFromCloud().then(cloudDiscs => {
-      if (cloudDiscs.length > 0) {
-        setRecents(cloudDiscs.slice(0, 6));
-        const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
-        const wsId = wsData.find(w => w.current)?.id || 'default';
-        saveLocalDiscussions(wsId, cloudDiscs);
+    loadDiscussionsFromCloud().then(discs => {
+      if (discs.length > 0) {
+        setRecents(discs.slice(0, 5));
+        const wsId = JSON.parse(localStorage.getItem('wok_workspaces') || '[{}]').find(w => w.current)?.id || 'default';
+        saveLocalDiscussions(wsId, discs);
       } else {
-        const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
-        const wsId = wsData.find(w => w.current)?.id || 'default';
-        setRecents((getLocalDiscussions(wsId) || []).slice(0, 6));
+        const wsId = JSON.parse(localStorage.getItem('wok_workspaces') || '[{}]').find(w => w.current)?.id || 'default';
+        setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
       }
     }).catch(() => {
-      const wsData = JSON.parse(localStorage.getItem('wok_workspaces') || '[{"id":"default"}]');
-      const wsId = wsData.find(w => w.current)?.id || 'default';
-      setRecents((getLocalDiscussions(wsId) || []).slice(0, 6));
+      const wsId = JSON.parse(localStorage.getItem('wok_workspaces') || '[{}]').find(w => w.current)?.id || 'default';
+      setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
     });
   }, [expanded]);
 
+  // Ctrl+K
   useEffect(() => {
-    const handler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearchModal(true); }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    const h = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
   }, []);
 
-  const creditsUsed = user?.credits_used || 0;
-  const creditsLimit = user?.credits_limit || userPlan?.credits_limit || 10;
-  const currentWs = workspaces.find(w => w.current) || workspaces[0];
-
-  const handleSwitchWorkspace = (wsId) => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === wsId }));
+  const handleSwitchWorkspace = id => {
+    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
     setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
   };
-  const handleCreateWorkspace = (name) => {
-    if (workspaces.length >= 4) { toast.error('Maximum 4 workspaces'); return; }
-    const newWs = { id: `ws_${Date.now()}`, name, current: true };
-    const updated = workspaces.map(w => ({ ...w, current: false })).concat(newWs);
+  const handleCreateWorkspace = name => {
+    if (workspaces.length >= 4) { toast.error('Max 4 workspaces'); return; }
+    const nw = { id: `ws_${Date.now()}`, name, current: true };
+    const updated = workspaces.map(w => ({ ...w, current: false })).concat(nw);
     setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
     toast.success('Workspace created');
   };
 
-  const nav = (path) => navigate(path);
-
-  // NavItem for dark sidebar
-  const NavItem = ({ icon: Icon, label, onClick, active, shortcut }) => (
-    <div style={{ padding: '1px 4px' }}>
-      <button onClick={onClick} title={!expanded ? label : undefined}
-        style={{
-          display: 'flex', alignItems: 'center', width: '100%', height: 30,
-          padding: expanded ? '0 9px' : '0',
-          justifyContent: expanded ? 'flex-start' : 'center',
-          borderRadius: 7,
-          background: active ? 'rgba(255,255,255,0.09)' : 'transparent',
-          border: 'none', cursor: 'pointer',
-          color: '#fff',
-          transition: 'background 120ms',
-        }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-        onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-      >
-        {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0 }} />}
-        {expanded && (
-          <>
-            <span style={{ fontSize: 13, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap', marginLeft: 9, flex: 1, textAlign: 'left', color: '#fff' }}>
-              {label}
-            </span>
-            {shortcut && (
-              <span style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-                {shortcut.map((k, i) => (
-                  <kbd key={i} style={{ fontSize: 10, fontFamily: 'monospace', background: '#1E1E1E', border: '1px solid #2A2A2A', borderRadius: 4, padding: '1px 5px', color: '#555', fontWeight: 500 }}>{k}</kbd>
-                ))}
-              </span>
-            )}
-          </>
-        )}
-      </button>
-    </div>
-  );
+  const isActive = path => location.pathname === path;
+  const nav = path => navigate(path);
 
   return (
     <>
+      {/* Mobile overlay */}
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }} onClick={() => setExpanded(false)} className="md:hidden"
-            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.3)' }} />
+            transition={{ duration: 0.16 }} onClick={() => setExpanded(false)} className="md:hidden"
+            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.4)' }} />
         )}
       </AnimatePresence>
 
       <motion.aside
         initial={false}
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
-        transition={SIDEBAR_TRANSITION}
+        transition={T}
         style={{
-          position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40, overflow: 'hidden',
-          display: 'flex', flexDirection: 'column',
-          background: '#0E0E0E',
+          position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
+          overflow: 'hidden', display: 'flex', flexDirection: 'column',
+          background: '#0B0B0B',
+          borderRight: '1px solid #181818',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: COLLAPSED_W,
         }}
       >
-        {/* ── Header ── */}
-        <div style={{ height: 52, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '0 14px' : '0' }}>
+        {/* ── Logo / Toggle ── */}
+        <div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '0 12px 0 14px' : '0', borderBottom: '1px solid #181818' }}>
           {expanded ? (
             <>
-              <button onClick={() => nav('/app')}
-                style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 8 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                {/* WOK real logo image */}
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 44, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
+              <button onClick={() => nav('/app')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 38, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
               </button>
-              <button onClick={() => setExpanded(false)}
-                style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#444'; e.currentTarget.style.background = 'transparent'; }}
+              <button onClick={() => setExpanded(false)} title="Collapse"
+                style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#333', flexShrink: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#1A1A1A'; e.currentTarget.style.color = '#888'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#333'; }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
                 </svg>
               </button>
             </>
           ) : (
-            <button onClick={() => setExpanded(true)}
-              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+            <button onClick={() => setExpanded(true)} title="Expand"
+              style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#1A1A1A'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              {/* Collapsed state: show WOK logo image */}
-              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 34, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
+              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 30, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
             </button>
           )}
         </div>
 
-        {/* ── Body — NO scroll on main container ── */}
-        <div style={{ flex: 1, overflowY: 'hidden', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {/* ── Workspace Selector ── */}
+        <div ref={wsRef} style={{ padding: expanded ? '8px 8px 4px' : '8px 6px 4px', flexShrink: 0, position: 'relative' }}>
+          <button
+            onClick={() => { if (expanded) setShowWsMenu(v => !v); else setExpanded(true); }}
+            title={!expanded ? currentWs.name : undefined}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              width: '100%', height: 34,
+              padding: expanded ? '0 8px' : '0',
+              justifyContent: expanded ? 'flex-start' : 'center',
+              borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#141414'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <div style={{ width: 22, height: 22, borderRadius: 5, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {currentWs.name?.charAt(0).toUpperCase() || 'W'}
+            </div>
+            {expanded && (
+              <>
+                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#E0E0E0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', letterSpacing: '-0.01em' }}>
+                  {currentWs.name}
+                </span>
+                <ChevronDown style={{ width: 12, height: 12, color: '#444', flexShrink: 0, transform: showWsMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+              </>
+            )}
+          </button>
+          <AnimatePresence>
+            {showWsMenu && expanded && (
+              <WorkspaceDropdown
+                workspaces={workspaces} currentWs={currentWs}
+                onSwitch={handleSwitchWorkspace}
+                onCreate={() => setShowCreateWs(true)}
+                onSettings={() => nav('/workspace-settings')}
+                onClose={() => setShowWsMenu(false)}
+                user={user} userPlan={userPlan}
+                creditsUsed={creditsUsed} creditsLimit={creditsLimit}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
-          {/* Workspace selector */}
-          <div ref={wsRef} style={{ padding: expanded ? '0 8px 8px' : '0 5px 8px', flexShrink: 0, position: 'relative' }}>
-            <button
-              onClick={() => { if (expanded) setShowWorkspaceMenu(v => !v); else setExpanded(true); }}
-              title={!expanded ? currentWs?.name : undefined}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                justifyContent: expanded ? 'flex-start' : 'center',
-                width: '100%', padding: expanded ? '7px 8px' : '7px 0',
-                borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-                {currentWs?.name?.charAt(0).toUpperCase() || 'W'}
-              </div>
-              {expanded && (
-                <>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
-                    {currentWs?.name || 'My Workspace'}
-                  </span>
-                  <ChevronDown style={{ width: 14, height: 14, color: '#555', flexShrink: 0, transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
-                </>
-              )}
-            </button>
-            <AnimatePresence>
-              {showWorkspaceMenu && expanded && (
-                <WorkspaceMenu
-                  user={user} userPlan={userPlan} workspaces={workspaces}
-                  onSwitchWorkspace={handleSwitchWorkspace}
-                  onCreateWorkspace={() => setShowCreateWsModal(true)}
-                  onClose={() => setShowWorkspaceMenu(false)}
-                  onSettings={() => nav('/workspace-settings')}
-                  creditsUsed={creditsUsed} creditsLimit={creditsLimit}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+        <Divider />
+
+        {/* ── Scrollable body ── */}
+        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px' }}>
 
           {/* Main nav */}
-          <div style={{ padding: expanded ? '2px 8px' : '2px 5px', flexShrink: 0 }}>
-            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={location.pathname === '/app'} />
-            <NavItem icon={Search} label="Search" onClick={() => setShowSearchModal(true)} shortcut={['Ctrl', 'K']} />
-            <NavItem icon={Compass} label="Resources" onClick={() => nav('/app')} />
-            <NavItem icon={Network} label="Connectors" onClick={() => nav('/app')} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
+            <NavItem icon={Search} label="Search" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
           </div>
 
-          {/* Projects */}
-          <div style={{ padding: expanded ? '8px 8px 0' : '8px 5px 0', flexShrink: 0 }}>
-            {expanded && <p style={{ fontSize: 11, fontWeight: 500, color: '#444', margin: '4px 10px 4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Projects</p>}
-            {!expanded && <div style={{ height: 6 }} />}
-            <NavItem icon={LayoutGrid} label="All projects" onClick={() => nav('/projects')} active={location.pathname === '/projects'} />
-            <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} />
-            <NavItem icon={User} label="Created by me" onClick={() => nav('/projects')} />
-            <NavItem icon={Users} label="Shared with me" onClick={() => nav('/projects')} />
+          <Divider />
+
+          {/* Builds */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+            <SectionLabel label="Builds" expanded={expanded} />
+            <NavItem icon={Layers} label="All builds" onClick={() => nav('/projects')} active={isActive('/projects')} expanded={expanded} />
+            <NavItem icon={Star} label="Starred" onClick={() => nav('/projects')} expanded={expanded} />
+            <NavItem icon={Clock} label="Recent" onClick={() => nav('/projects')} expanded={expanded} />
           </div>
 
-          {/* Recents */}
+          {/* Recents list */}
           {expanded && recents.length > 0 && (
-            <SidebarBuildsSection recents={recents} nav={nav} />
-          )}
-
-          <div style={{ flex: 1 }} />
-
-          {/* Share card only — Upgrade to Pro removed */}
-          {expanded && (
-            <div style={{ padding: '8px 10px' }}>
-              <button onClick={() => toast.info('Referral program coming soon')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#222'}
-                onMouseLeave={e => e.currentTarget.style.background = '#1A1A1A'}
-              >
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Share WOK</div>
-                  <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>100 credits per paid referral</div>
-                </div>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Gift style={{ width: 15, height: 15, color: '#888' }} />
-                </div>
-              </button>
+            <div style={{ marginTop: 4, flexShrink: 0 }}>
+              {recents.map(d => (
+                <button key={d.id} onClick={() => nav(`/chat?conversationId=${d.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%', height: 28, padding: '0 10px 0 28px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <FileCode2 style={{ width: 11, height: 11, color: '#3A3A3A', flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>
+                    {d.title || 'Untitled'}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
+
+          <Divider />
+
+          {/* Platform */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+            <SectionLabel label="Platform" expanded={expanded} />
+            <NavItem icon={FolderOpen} label="Projects" onClick={() => nav('/projects')} active={isActive('/projects')} expanded={expanded} />
+            <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
+            <NavItem icon={CreditCard} label="Billing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
+            <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
+          </div>
+
+          <div style={{ flex: 1 }} />
         </div>
 
-        {/* ── Footer ── */}
-        <div style={{ flexShrink: 0, padding: expanded ? '8px 12px 10px' : '8px 5px 10px', position: 'relative' }} ref={profileRef}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center' }}>
-            <button onClick={() => setShowProfileMenu(v => !v)} title={!expanded ? 'Profile' : undefined}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <Avatar user={user} size={30} />
-              {expanded && <span style={{ fontSize: 12, color: '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{user?.email || ''}</span>}
-            </button>
+        {/* ── Footer / Profile ── */}
+        <div style={{ flexShrink: 0, borderTop: '1px solid #181818', padding: expanded ? '8px 8px 10px' : '8px 6px 10px', position: 'relative' }} ref={profileRef}>
+          <button onClick={() => setShowProfileMenu(v => !v)} title={!expanded ? user?.email || 'Profile' : undefined}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              width: '100%', height: 34,
+              padding: expanded ? '0 8px' : '0',
+              justifyContent: expanded ? 'flex-start' : 'center',
+              borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#141414'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <Avatar user={user} size={24} />
             {expanded && (
-              <button title="Inbox"
-                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444', position: 'relative' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#aaa'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#444'; }}
-              >
-                <Inbox style={{ width: 17, height: 17 }} />
-                <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, background: '#E8184A', borderRadius: '50%', border: '1.5px solid #0E0E0E' }} />
-              </button>
+              <span style={{ fontSize: 12, color: '#555', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                {user?.email || 'Account'}
+              </span>
             )}
-          </div>
+          </button>
           <AnimatePresence>
             {showProfileMenu && (
               <ProfileMenu user={user} onClose={() => setShowProfileMenu(false)} navigate={navigate} />
@@ -618,9 +539,9 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         </div>
       </motion.aside>
 
-      <CreateWorkspaceModal open={showCreateWsModal} onClose={() => setShowCreateWsModal(false)} onCreate={handleCreateWorkspace} />
+      <CreateWorkspaceModal open={showCreateWs} onClose={() => setShowCreateWs(false)} onCreate={handleCreateWorkspace} />
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
-      <SearchModal open={showSearchModal} onClose={() => setShowSearchModal(false)} />
+      <SearchModal open={showSearch} onClose={() => setShowSearch(false)} />
     </>
   );
 }
