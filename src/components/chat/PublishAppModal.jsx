@@ -32,24 +32,25 @@ export default function PublishAppModal({
   };
 
   const handlePublish = async () => {
+    if (!ficheContent) { toast.error('No content to publish yet.'); return; }
     setIsPublishing(true);
     try {
-      if (customSlug && ficheContent) {
-        const results = await base44.entities.Conversation.filter({ conv_id: customSlug }).catch(() => []);
-        if (results.length > 0) {
-          await base44.entities.Conversation.update(results[0].id, {
-            is_public: true,
-            raw_content: ficheContent,
-          });
-        } else {
-          // Create the record if it doesn't exist yet
-          await base44.entities.Conversation.create({
-            conv_id: customSlug,
-            is_public: true,
-            raw_content: ficheContent,
-            title: appSettings?.title || 'My App',
-          });
-        }
+      const convId = customSlug;
+      const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+      if (results.length > 0) {
+        await base44.entities.Conversation.update(results[0].id, {
+          is_public: true,
+          raw_content: ficheContent,
+          title: appSettings?.title || results[0].title || 'My App',
+        });
+      } else {
+        await base44.entities.Conversation.create({
+          conv_id: convId,
+          is_public: true,
+          raw_content: ficheContent,
+          title: appSettings?.title || 'My App',
+          messages_json: '[]',
+        });
       }
       setIsPublic(true);
       setIsPublished(true);
