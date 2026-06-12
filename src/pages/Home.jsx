@@ -275,30 +275,30 @@ export default function Home() {
     }}>
       {/* ── Glow layer ── */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Main orange glow — high up, elongated downward to cover builds panel */}
+        {/* Core glow — centered on chat input, top edge at ~55vh (juste au-dessus des builds) */}
         <div style={{
           position: 'absolute',
-          left: '50%', top: '28%',
+          left: '50%', top: '58%',
           transform: 'translate(-50%, -50%)',
-          width: '100vw', height: '110vh',
+          width: '85vw', height: '55vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 30%, rgba(255,100,0,0.68) 0%, rgba(249,87,56,0.42) 28%, rgba(255,60,0,0.14) 58%, transparent 76%)',
-          filter: 'blur(52px)',
+          background: 'radial-gradient(ellipse at 50% 40%, rgba(255,95,0,0.75) 0%, rgba(249,87,56,0.50) 25%, rgba(255,60,0,0.20) 55%, transparent 75%)',
+          filter: 'blur(44px)',
         }} />
-        {/* Secondary warm accent — lower, covers builds grid */}
+        {/* Downward wash — intensifies as you scroll down, covers entire builds section */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, top: '52%', bottom: 0,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(249,87,56,0.18) 20%, rgba(255,80,0,0.28) 50%, rgba(240,70,0,0.36) 80%, rgba(220,60,0,0.40) 100%)',
+        }} />
+        {/* Wide soft halo — bleeds slightly above chat bar but stays subtle */}
         <div style={{
           position: 'absolute',
-          left: '60%', top: '65%',
+          left: '50%', top: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '70vw', height: '60vh',
+          width: '110vw', height: '80vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,140,30,0.28) 0%, rgba(249,87,56,0.12) 50%, transparent 75%)',
-          filter: 'blur(70px)',
-        }} />
-        {/* Vertical gradient fade — from glow center down, fades to transparent at bottom */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, top: '20%', bottom: 0,
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(249,87,56,0.06) 35%, rgba(255,100,0,0.04) 65%, transparent 100%)',
+          background: 'radial-gradient(ellipse at 50% 55%, rgba(255,110,20,0.22) 0%, rgba(200,60,0,0.08) 55%, transparent 78%)',
+          filter: 'blur(80px)',
         }} />
         {/* Grain texture overlay */}
         <div style={{
