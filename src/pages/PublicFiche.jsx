@@ -267,7 +267,6 @@ export default function PublicFiche() {
   
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     if (!conversationId) {
@@ -284,10 +283,7 @@ export default function PublicFiche() {
 
       const rec = results[0];
       if (rec) {
-        // Require explicit is_public = true
-        if (!rec.is_public) { setIsPrivate(true); setLoading(false); return; }
-
-        // Preferred: rawContent stored directly on the Conversation record (fastest, no extra query)
+        // Preferred: rawContent stored directly on the Conversation record
         if (rec.raw_content || rec.rawContent) {
           const content = rec.raw_content || rec.rawContent;
           setMessages([{ role: 'assistant', content: '', rawContent: content }]);
@@ -307,11 +303,8 @@ export default function PublicFiche() {
         const realConvId = rec.conv_id || conversationId;
         const msgs = await loadConversationFromCloud(realConvId).catch(() => null);
         if (msgs?.length > 0) setMessages(msgs);
-        setLoading(false);
-      } else {
-        setIsPrivate(true);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     loadConv();
@@ -321,18 +314,6 @@ export default function PublicFiche() {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white">
         <Loader2 className="w-8 h-8 text-[#0080ff] animate-spin" />
-      </div>
-    );
-  }
-
-  if (isPrivate) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
-          <span className="text-2xl">🔒</span>
-        </div>
-        <h2 className="text-white font-bold text-xl">Not published</h2>
-        <p className="text-white/40 text-sm text-center max-w-xs">This app has not been published yet. Use the "Publish" button in the editor to make it publicly accessible.</p>
       </div>
     );
   }

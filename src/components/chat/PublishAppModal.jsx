@@ -34,26 +34,26 @@ export default function PublishAppModal({
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      // Find the Conversation record and update is_public + raw_content in one shot
-      if (customSlug) {
+      if (customSlug && ficheContent) {
         const results = await base44.entities.Conversation.filter({ conv_id: customSlug }).catch(() => []);
         if (results.length > 0) {
-          const rec = results[0];
-          // Always write the current ficheContent so /p/:id has the latest code
-          await base44.entities.Conversation.update(rec.id, {
+          await base44.entities.Conversation.update(results[0].id, {
             is_public: true,
-            raw_content: ficheContent || rec.raw_content || null,
+            raw_content: ficheContent,
           });
         } else {
-          toast.error('Conversation not found — send a message first.');
-          setIsPublishing(false);
-          return;
+          // Create the record if it doesn't exist yet
+          await base44.entities.Conversation.create({
+            conv_id: customSlug,
+            is_public: true,
+            raw_content: ficheContent,
+            title: appSettings?.title || 'My App',
+          });
         }
       }
-      const newSettings = { ...(appSettings || {}), isPublic: true };
       setIsPublic(true);
       setIsPublished(true);
-      if (onUpdateSettings) await onUpdateSettings(newSettings);
+      if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       toast.success('App published — link is now live!');
     } catch (e) {
       toast.error('Publish failed. Please try again.');
