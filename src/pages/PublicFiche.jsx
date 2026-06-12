@@ -229,59 +229,33 @@ export default function PublicFiche() {
     if (!conversationId) { setNotFound(true); setLoading(false); return; }
 
     const load = async () => {
-      let rec = null;
+      setLoading(true);
       try {
-        console.log('[PublicFiche] Loading convId:', conversationId);
+        // Query without client-side is_public filter (RLS handles it)
         const results = await base44.entities.Conversation.filter({ conv_id: conversationId });
-        console.log('[PublicFiche] Filter results:', results.length);
-        if (results.length > 0) {
-          rec = results[0];
-          console.log('[PublicFiche] Found record, is_public:', rec.is_public, 'has raw_content:', !!rec.raw_content);
-        }
-      } catch (e) {
-        console.error('[PublicFiche] Load error:', e);
-      }
 
-      if (!rec) {
-        console.error('[PublicFiche] No record found for convId:', conversationId);
-        setNotFound(true); 
-        setLoading(false); 
-        return;
-      }
-
-      if (!rec.is_public) {
-        console.error('[PublicFiche] Record is not public');
-        setNotFound(true); 
-        setLoading(false); 
-        return;
-      }
-
-      const rawContent = rec.raw_content || rec.rawContent || null;
-      console.log('[PublicFiche] Raw content length:', rawContent?.length || 0);
-
-      if (rawContent && typeof rawContent === 'string' && rawContent.trim().length > 10) {
-        setContent(rawContent);
-        setLoading(false);
-      } else if (rec.messages_json) {
-        try {
-          const msgs = JSON.parse(rec.messages_json);
-          const last = [...msgs].reverse().find(m => m.role === 'assistant' && m.rawContent);
-          if (last && last.rawContent) {
-            setContent(last.rawContent);
-            setLoading(false);
-          } else {
-            console.error('[PublicFiche] No assistant message with rawContent found');
-            setNotFound(true);
-            setLoading(false);
-          }
-        } catch (e) { 
-          console.error('[PublicFiche] Parse messages error:', e);
+        if (!results || results.length === 0) {
           setNotFound(true);
-          setLoading(false);
+          return;
         }
-      } else {
-        console.error('[PublicFiche] No content available in record');
+
+        const record = results[0];
+
+        if (!record.is_public) {
+          setNotFound(true);
+          return;
+        }
+
+        if (!record.raw_content) {
+          setNotFound(true);
+          return;
+        }
+
+        setContent(record.raw_content);
+      } catch (err) {
+        console.error('Load error:', err);
         setNotFound(true);
+      } finally {
         setLoading(false);
       }
     };

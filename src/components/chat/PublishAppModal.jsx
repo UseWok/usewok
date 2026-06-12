@@ -31,89 +31,53 @@ export default function PublishAppModal({
   };
 
   const handlePublish = async () => {
-    if (!ficheContent || ficheContent.trim().length === 0) { 
-      toast.error('No content to publish yet.'); 
-      return; 
+    if (!ficheContent || ficheContent.trim() === '') {
+      toast.error('No content to publish. Generate the app first.');
+      setIsPublishing(false);
+      return;
     }
+
     setIsPublishing(true);
     try {
       const convId = customSlug;
-      console.log('[Publish] Starting publish with convId:', convId, 'content length:', ficheContent.length);
       
-      const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+      // 1. Check for existing record
+      const existing = await base44.entities.Conversation.filter({ conv_id: convId });
 
-      if (!ficheContent || typeof ficheContent !== 'string') {
-        console.error('[Publish] Invalid ficheContent:', typeof ficheContent);
-        toast.error('Content validation failed. Please regenerate your app.');
-        setIsPublishing(false);
-        return;
+      let record;
+      if (existing && existing.length > 0) {
+        // 2. Update with is_public AND raw_content
+        record = await base44.entities.Conversation.update(existing[0].id, {
+          is_public: true,
+          raw_content: ficheContent,
+        });
+      } else {
+        // 3. Create if not exists
+        record = await base44.entities.Conversation.create({
+          conv_id: convId,
+          title: appSettings?.title || 'My App',
+          raw_content: ficheContent,
+          is_public: true,
+        });
       }
 
-      const publishData = {
-        is_public: true,
-        raw_content: ficheContent,
-        title: appSettings?.title || 'My App',
-      };
-
-      // Save to database with retry logic
-      let convRecord;
-      let saveAttempts = 0;
-      while (saveAttempts < 2) {
-        try {
-          saveAttempts++;
-          if (results.length > 0) {
-            convRecord = results[0];
-            console.log('[Publish] Attempt', saveAttempts, '— updating id:', convRecord.id, 'with:', publishData);
-            const updateResult = await base44.entities.Conversation.update(convRecord.id, publishData);
-            console.log('[Publish] Update result:', updateResult);
-          } else {
-            console.log('[Publish] Creating new conversation with:', publishData);
-            const created = await base44.entities.Conversation.create({
-              conv_id: convId,
-              messages_json: '[]',
-              ...publishData,
-            });
-            convRecord = created;
-            console.log('[Publish] Created:', created.id);
-          }
-          break; // Success, exit loop
-        } catch (saveError) {
-          console.error('[Publish] Save attempt', saveAttempts, 'failed:', saveError);
-          if (saveAttempts >= 2) {
-            toast.error('Failed to save: ' + (saveError.message || 'Database error'));
-            setIsPublishing(false);
-            return;
-          }
-          await new Promise(r => setTimeout(r, 200));
-        }
+      // 4. Verify the save was real
+      const verify = await base44.entities.Conversation.filter({ conv_id: convId });
+      if (!verify?.[0]?.is_public || !verify?.[0]?.raw_content) {
+        throw new Error('Save verification failed — data not persisted');
       }
 
-      // Verify data was saved
-      await new Promise(r => setTimeout(r, 600));
-      const verify = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
-      console.log('[Publish] Verification read:', { found: verify.length, is_public: verify[0]?.is_public, has_content: !!verify[0]?.raw_content });
-      
-      if (verify.length === 0 || !verify[0].raw_content || verify[0].is_public !== true) {
-        console.error('[Publish] Verification FAILED — data not persisted correctly');
-        toast.error('⚠️ Publish failed: data not saved to database. Check RLS permissions.');
-        setIsPublishing(false);
-        return;
-      }
-      console.log('[Publish] ✓ Verification passed');
-
-      // Update UI state
       setIsPublic(true);
       setIsPublished(true);
       setLiveUrl(shareUrl);
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
-      
-      console.log('[Publish] Complete, live at:', shareUrl);
       toast.success('✓ App is live: ' + shareUrl);
-    } catch (e) {
-      console.error('[Publish] Error:', e);
-      toast.error('Publish failed: ' + (e.message || 'Unknown error'));
+    } catch (err) {
+      console.error('Publish error:', err);
+      toast.error(`Publish failed: ${err.message}`);
+    } finally {
+      setIsPublishing(false);
     }
-    setIsPublishing(false);
   };
 
   const handleUnpublish = async () => {
