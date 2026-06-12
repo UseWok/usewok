@@ -145,9 +145,13 @@ function IOSMicVisualizer({ analyserRef, duration }) {
 // ─────────────────────────────────────────────────────────────────
 
 // Uses local hover state to avoid stale closure bug with onMouseLeave
-function BuildMenuItem({ active, onClick, children }) {
+function BuildMenuItem({ active, isAutomatic, onClick, children }) {
   const [hovered, setHovered] = useState(false);
-  const bg = hovered ? 'rgba(255,255,255,0.12)' : 'transparent';
+  const bg = hovered
+    ? 'rgba(255,255,255,0.12)'
+    : (active && !isAutomatic)
+      ? 'rgba(255,255,255,0.08)'
+      : 'transparent';
   return (
     <button
       onClick={onClick}
@@ -189,7 +193,7 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      <BuildMenuItem active={buildMode === 'Automatic'} onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}>
+      <BuildMenuItem active={buildMode === 'Automatic'} isAutomatic={true} onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
             <StandardLogo /><MaxLogo />
