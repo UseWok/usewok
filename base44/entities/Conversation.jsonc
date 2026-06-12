@@ -15,6 +15,10 @@
       "title": "Generated Code",
       "format": "textarea"
     },
+    "raw_content_url": {
+      "type": "string",
+      "title": "Content File URL"
+    },
     "is_public": {
       "type": "boolean",
       "title": "Is Public",

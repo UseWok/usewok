@@ -43,35 +43,52 @@ export default function PublishAppModal({
       const convId = customSlug;
       console.log('[PublishAppModal] Publishing convId:', convId);
       
+      // If content is large, upload it as a file
+      let contentToStore = ficheContent;
+      let contentUrl = null;
+      const contentSizeKB = new Blob([ficheContent]).size / 1024;
+      
+      if (contentSizeKB > 50) {
+        console.log('[PublishAppModal] Content too large (' + contentSizeKB.toFixed(1) + 'KB), uploading...');
+        const blob = new Blob([ficheContent], { type: 'text/javascript' });
+        const file = new File([blob], 'app-code.jsx', { type: 'text/javascript' });
+        const uploadRes = await base44.integrations.Core.UploadFile({ file });
+        contentUrl = uploadRes.file_url;
+        contentToStore = null; // Don't store large content directly
+        console.log('[PublishAppModal] Uploaded to:', contentUrl);
+      }
+      
       // 1. Check for existing record
       const existing = await base44.entities.Conversation.filter({ conv_id: convId });
       console.log('[PublishAppModal] Existing record:', existing?.length);
 
       let record;
+      const updatePayload = {
+        is_public: true,
+      };
+      if (contentToStore) updatePayload.raw_content = contentToStore;
+      if (contentUrl) updatePayload.raw_content_url = contentUrl;
+
       if (existing && existing.length > 0) {
-        // 2. Update with is_public AND raw_content
+        // 2. Update with is_public AND content (direct or URL)
         console.log('[PublishAppModal] Updating record:', existing[0].id);
-        record = await base44.entities.Conversation.update(existing[0].id, {
-          is_public: true,
-          raw_content: ficheContent,
-        });
+        record = await base44.entities.Conversation.update(existing[0].id, updatePayload);
       } else {
         // 3. Create if not exists
         console.log('[PublishAppModal] Creating new record');
         record = await base44.entities.Conversation.create({
           conv_id: convId,
           title: appSettings?.title || 'My App',
-          raw_content: ficheContent,
-          is_public: true,
+          ...updatePayload,
         });
       }
 
       // 4. Wait and verify the save was real
       await new Promise(r => setTimeout(r, 800));
       const verify = await base44.entities.Conversation.filter({ conv_id: convId });
-      console.log('[PublishAppModal] Verification:', { found: verify?.length, is_public: verify?.[0]?.is_public, has_content: !!verify?.[0]?.raw_content });
+      console.log('[PublishAppModal] Verification:', { found: verify?.length, is_public: verify?.[0]?.is_public, has_content: !!(verify?.[0]?.raw_content || verify?.[0]?.raw_content_url) });
       
-      if (!verify?.[0]?.is_public || !verify?.[0]?.raw_content) {
+      if (!verify?.[0]?.is_public || (!verify?.[0]?.raw_content && !verify?.[0]?.raw_content_url)) {
         throw new Error('Data not persisted correctly to database');
       }
 

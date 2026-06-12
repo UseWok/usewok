@@ -246,12 +246,25 @@ export default function PublicFiche() {
           return;
         }
 
-        if (!record.raw_content) {
+        // Try direct content first, then fetch from URL if needed
+        let content = record.raw_content;
+        if (!content && record.raw_content_url) {
+          try {
+            const res = await fetch(record.raw_content_url);
+            content = await res.text();
+          } catch (e) {
+            console.error('Failed to fetch content from URL:', e);
+            setNotFound(true);
+            return;
+          }
+        }
+
+        if (!content) {
           setNotFound(true);
           return;
         }
 
-        setContent(record.raw_content);
+        setContent(content);
       } catch (err) {
         console.error('Load error:', err);
         setNotFound(true);
