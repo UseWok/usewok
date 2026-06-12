@@ -102,8 +102,34 @@ export function PublicLiveEngine({ content }) {
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js" crossorigin="anonymous"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js" crossorigin="anonymous"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/umd/Recharts.min.js" crossorigin="anonymous"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide-react@0.263.1/dist/umd/lucide-react.min.js" crossorigin="anonymous"><\/script>
+  <script>
+    // Lucide icon stub — returns a simple SVG for any icon name (no CDN needed)
+    (function() {
+      function makeIcon(name) {
+        return function LucideIcon(props) {
+          var size = props.size || 24;
+          var color = props.color || 'currentColor';
+          var sw = props.strokeWidth || 2;
+          var cls = props.className || '';
+          return React.createElement('svg', {
+            xmlns: 'http://www.w3.org/2000/svg', width: size, height: size,
+            viewBox: '0 0 24 24', fill: 'none', stroke: color,
+            strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round', className: cls
+          }, React.createElement('circle', { cx: 12, cy: 12, r: 9 }));
+        };
+      }
+      window.lucideReact = new Proxy({}, {
+        get: function(t, name) {
+          if (typeof name !== 'string') return undefined;
+          if (!(name in t)) t[name] = makeIcon(name);
+          return t[name];
+        }
+      });
+      window.lucide = window.lucideReact;
+    })();
+  <\/script>
   <style>
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
     ${css}
@@ -119,10 +145,7 @@ export function PublicLiveEngine({ content }) {
   <\/script>
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext } = React;
-    const safe = (lib) => new Proxy(lib || {}, { get(t, p) { return p in t ? t[p] : typeof p === 'string' && /^[A-Z]/.test(p) ? () => null : undefined; } });
-    window.lucideReact = safe(window.lucideReact || window.lucide || {});
-    window.lucide = window.lucideReact;
-    window.Recharts = safe(window.Recharts || {});
+    window.Recharts = window.Recharts || {};
     try {
       ${js.replace(/<\/script>/gi, '<\\/script>')}
       if (typeof App !== 'undefined') {
