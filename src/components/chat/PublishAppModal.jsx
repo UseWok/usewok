@@ -31,38 +31,58 @@ export default function PublishAppModal({
   };
 
   const handlePublish = async () => {
-    if (!ficheContent) { toast.error('No content to publish yet.'); return; }
+    if (!ficheContent || ficheContent.trim().length === 0) { 
+      toast.error('No content to publish yet.'); 
+      return; 
+    }
     setIsPublishing(true);
     try {
       const convId = customSlug;
+      console.log('[PublishAppModal] Publishing with convId:', convId);
+      console.log('[PublishAppModal] ficheContent length:', ficheContent.length);
+      console.log('[PublishAppModal] ficheContent preview:', ficheContent.slice(0, 200));
+      
       const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+      console.log('[PublishAppModal] Existing conversation found:', results.length > 0);
 
-      // Store the exact content as provided (with fences if present)
+      // Validate that ficheContent is not null and has actual code
+      if (!ficheContent || typeof ficheContent !== 'string') {
+        console.error('[PublishAppModal] ERROR: ficheContent is not a valid string:', typeof ficheContent);
+        toast.error('Content validation failed. Please regenerate your app.');
+        setIsPublishing(false);
+        return;
+      }
+
       const publishData = {
         is_public: true,
         raw_content: ficheContent,
         title: appSettings?.title || 'My App',
       };
 
+      console.log('[PublishAppModal] Saving with publishData:', { is_public: true, raw_content_length: ficheContent.length, title: publishData.title });
+
       if (results.length > 0) {
         await base44.entities.Conversation.update(results[0].id, publishData);
+        console.log('[PublishAppModal] Updated existing conversation:', results[0].id);
       } else {
         await base44.entities.Conversation.create({
           conv_id: convId,
           messages_json: '[]',
           ...publishData,
         });
+        console.log('[PublishAppModal] Created new conversation');
       }
 
       // Wait a moment for cloud to propagate, then update state
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 600));
+      console.log('[PublishAppModal] Publish complete, updating UI state');
       setIsPublic(true);
       setIsPublished(true);
       setLiveUrl(shareUrl);
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       toast.success('App published — link is now live!');
     } catch (e) {
-      console.error('Publish error:', e);
+      console.error('[PublishAppModal] Publish error:', e);
       toast.error('Publish failed: ' + (e.message || 'Please try again.'));
     }
     setIsPublishing(false);

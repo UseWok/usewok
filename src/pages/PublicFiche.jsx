@@ -63,11 +63,12 @@ function WokBadge() {
 
 export function PublicLiveEngine({ content }) {
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
 
   let js = '';
   let css = '';
 
-  if (content) {
+  if (content && typeof content === 'string' && content.trim().length > 0) {
     const bt = '```';
     const jsMatch = content.match(/```(?:jsx?|javascript|react)\n([\s\S]*?)```/i);
     const cssMatch = content.match(/```css\n([\s\S]*?)```/i);
@@ -76,8 +77,14 @@ export function PublicLiveEngine({ content }) {
     if (cssMatch) css = cssMatch[1];
 
     // If no fence matched, use raw content directly
-    if (!js) {
-      js = content;
+    if (!js || js.trim().length === 0) {
+      js = content.trim();
+    }
+    
+    // Validate that we have actual code
+    if (!js || js.trim().length < 10) {
+      console.error('[PublicLiveEngine] Code content too short or empty');
+      setError('Invalid code content');
     }
 
     if (js) {
@@ -189,10 +196,19 @@ export function PublicLiveEngine({ content }) {
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
+      {error && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', zIndex: 20 }}>
+          <div style={{ textAlign: 'center', padding: 40 }}>
+            <p style={{ fontSize: 15, color: '#991b1b', fontWeight: 500, marginBottom: 20 }}>⚠️ {error}</p>
+            <p style={{ fontSize: 13, color: '#666' }}>The app code is invalid or empty.</p>
+          </div>
+        </div>
+      )}
       <iframe
         title="Wok App"
         srcDoc={srcDoc}
-        onLoad={() => setReady(true)}
+        onLoad={() => { setReady(true); setError(null); }}
+        onError={() => { setError('iframe load error'); }}
         style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
       />
