@@ -629,6 +629,14 @@ export default function ChatPage() {
           setMessages(safe);
           saveConversationMessages(conversationId, safe);
         }
+        // Sync publish state from cloud
+        if (cloud.is_public === true) {
+          setIsAppPublished(true);
+          setAppSettings(prev => ({ ...prev, isPublic: true }));
+        } else {
+          setIsAppPublished(false);
+          setAppSettings(prev => ({ ...prev, isPublic: false }));
+        }
         if (cloud.rawContent) {
           setFicheContent(cloud.rawContent);
           localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
