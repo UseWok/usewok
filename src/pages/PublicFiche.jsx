@@ -88,9 +88,12 @@ export function PublicLiveEngine({ content }) {
     }
 
     if (js) {
-      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]lucide-react['"];?/g, 'const { $1 } = window.lucideReact;');
-      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]recharts['"];?/g, 'const { $1 } = window.Recharts;');
-      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]framer-motion['"];?/g, 'const { $1 } = window.Motion;');
+      // Clean up 'as' aliases in destructuring (e.g., "Tooltip as RechartsTooltip" -> "Tooltip")
+      const cleanImportList = (list) => list.replace(/\s+as\s+\w+/g, '');
+      
+      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]lucide-react['"];?/g, (match, list) => 'const { ' + cleanImportList(list) + ' } = window.lucideReact;');
+      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]recharts['"];?/g, (match, list) => 'const { ' + cleanImportList(list) + ' } = window.Recharts;');
+      js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]framer-motion['"];?/g, (match, list) => 'const { ' + cleanImportList(list) + ' } = window.Motion;');
       js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
       js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
       js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
@@ -154,6 +157,8 @@ export function PublicLiveEngine({ content }) {
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
     const Recharts = window.Recharts || {};
+    // Alias Recharts.Tooltip to avoid naming conflict
+    if (Recharts.Tooltip) Recharts.RechartsTooltip = Recharts.Tooltip;
 
     class ErrorBoundary extends Component {
       constructor(p) { super(p); this.state = { err: null }; }
