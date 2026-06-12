@@ -273,29 +273,14 @@ export default function Home() {
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
     }}>
-      {/* ── Glow layer ── */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Horizon glow — fixed so it stays anchored below chat bar regardless of scroll */}
-        <div style={{
-          position: 'fixed',
-          left: '50%', top: '58%',
-          transform: 'translate(-50%, 0)',
-          width: '110vw', height: '22vh',
-          borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 0%, rgba(200,75,5,0.75) 0%, rgba(170,55,0,0.40) 45%, transparent 75%)',
-          filter: 'blur(30px)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }} />
-        {/* Grain texture overlay */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: '160px 160px',
-          opacity: 0.055,
-          mixBlendMode: 'overlay',
-        }} />
-      </div>
+      {/* ── Grain texture overlay ── */}
+      <div style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize: '160px 160px',
+        opacity: 0.045,
+        mixBlendMode: 'overlay',
+      }} />
 
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
@@ -324,8 +309,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── My Builds section — massive separation from chat bar ── */}
-      <div style={{ padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1 }}>
+      {/* ── My Builds section — orange glow background, fades at top ── */}
+      <div style={{
+        padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1,
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(165,55,5,0.18) 8%, rgba(145,48,3,0.30) 20%, rgba(130,42,2,0.38) 100%)',
+      }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 4 }}>

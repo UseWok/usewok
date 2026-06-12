@@ -259,31 +259,35 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
       style={{
         display: 'flex', alignItems: 'center',
         width: '100%', height: 32,
-        padding: expanded ? (indent ? '0 10px 0 28px' : '0 10px') : '0',
-        justifyContent: expanded ? 'flex-start' : 'center',
+        padding: indent ? '0 10px 0 28px' : '0 10px',
+        justifyContent: 'flex-start',
         borderRadius: 6, border: 'none', cursor: 'pointer',
         background: active ? 'rgba(255,255,255,0.07)' : 'transparent',
         color: active ? '#fff' : '#ffffff',
-        transition: 'background 100ms, color 100ms',
+        transition: 'background 100ms',
         fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#ffffff'; } }}
-      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ffffff'; } }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
       {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: 'inherit' }} />}
-      {expanded && (
-        <>
-          <span style={{ fontSize: 12.5, fontWeight: active ? 500 : 400, marginLeft: 9, flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }}>
-            {label}
-          </span>
-          {shortcut && (
-            <span style={{ display: 'flex', gap: 2 }}>
-              {shortcut.map((k, i) => (
-                <kbd key={i} style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 4, padding: '1px 4px', color: '#444', fontWeight: 500 }}>{k}</kbd>
-              ))}
-            </span>
-          )}
-        </>
+      <span style={{
+        fontSize: 12.5, fontWeight: active ? 500 : 400,
+        marginLeft: 9, flex: 1, textAlign: 'left',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        letterSpacing: '-0.01em',
+        opacity: expanded ? 1 : 0,
+        transition: 'opacity 80ms',
+        pointerEvents: expanded ? 'auto' : 'none',
+      }}>
+        {label}
+      </span>
+      {expanded && shortcut && (
+        <span style={{ display: 'flex', gap: 2 }}>
+          {shortcut.map((k, i) => (
+            <kbd key={i} style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 4, padding: '1px 4px', color: '#444', fontWeight: 500 }}>{k}</kbd>
+          ))}
+        </span>
       )}
     </button>
   );
