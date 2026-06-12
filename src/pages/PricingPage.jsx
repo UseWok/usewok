@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
 import { Check, X, Zap, Shield, Users, Headphones } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PlanCardSkeleton } from '@/components/ui/Skeleton.jsx';
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -105,12 +106,13 @@ export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [plans, setPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(true);
 
   useEffect(() => {
     // Load from DB first (admin-controlled), fallback to local config
     loadPlansFromDB()
-      .then(dbPlans => setPlans(dbPlans || getPlansConfig()))
-      .catch(() => setPlans(getPlansConfig()));
+      .then(dbPlans => { setPlans(dbPlans || getPlansConfig()); setPlansLoading(false); })
+      .catch(() => { setPlans(getPlansConfig()); setPlansLoading(false); });
   }, []);
 
   // Filter out enterprise/contact-only plans for the card grid
@@ -156,7 +158,11 @@ export default function PricingPage() {
         </div>
 
         {/* ── Plan Cards ── */}
-        {cardPlans.length > 0 && (
+        {plansLoading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32, marginBottom: 40 }}>
+            {[0, 1, 2].map(i => <PlanCardSkeleton key={i} />)}
+          </div>
+        ) : (cardPlans.length > 0 && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${Math.min(cardPlans.length, 4)}, 1fr)`,
@@ -244,7 +250,7 @@ export default function PricingPage() {
               );
             })}
           </div>
-        )}
+        ))}
 
         {/* ── Security Badges Row ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 40 }}>

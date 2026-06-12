@@ -372,7 +372,7 @@ export default function ChatPage() {
     setFiles([]);
     setIsLoading(true);
     abortedRef.current = false;
-    showBuildToast('working');
+    showBuildToast('working', { convUrl: `/chat?conversationId=${convId}` });
 
     // ── Immediate cloud registration on first message of a new conversation ──
     if (!conversationId && (messages || []).length === 0) {
@@ -887,28 +887,36 @@ export default function ChatPage() {
 
               
 
-              {/* Refresh blur overlay */}
+              {/* Refresh: thin progress line at top, light blur only */}
               <AnimatePresence>
                 {isRefreshingPreview && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{
-                      position: 'absolute', inset: 0, zIndex: 50,
-                      backdropFilter: 'blur(6px)', background: 'rgba(0,0,0,0.25)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      borderRadius: 10, pointerEvents: 'none',
-                    }}
-                  >
-                    <div style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      border: '2.5px solid rgba(255,255,255,0.15)',
-                      borderTopColor: '#fff',
-                      animation: 'spin 0.7s linear infinite',
-                    }} />
-                  </motion.div>
+                  <>
+                    {/* subtle blur overlay, no gray tint */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        position: 'absolute', inset: 0, zIndex: 50,
+                        backdropFilter: 'blur(2px)',
+                        borderRadius: 10, pointerEvents: 'none',
+                      }}
+                    />
+                    {/* progress line */}
+                    <motion.div
+                      initial={{ scaleX: 0, originX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
+                      style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        height: 2, background: '#F95738',
+                        zIndex: 51, borderRadius: '0 2px 2px 0',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </>
                 )}
               </AnimatePresence>
 
