@@ -152,6 +152,7 @@ export default function ChatPage() {
   const [isAppPublished, setIsAppPublished] = useState(false);
   const [chatVisible, setChatVisible] = useState(true);
   const [iframeRefreshKey, setIframeRefreshKey] = useState(0);
+  const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   const [showHistory, setShowHistory] = useState(false);
 
@@ -595,6 +596,13 @@ export default function ChatPage() {
   }, [conversationId]);
 
   useEffect(() => {
+    // Reset logs for every new build session
+    if (!conversationId) {
+      try {
+        ['wok_logs_0','wok_logs_1','wok_logs_2'].forEach(k => localStorage.removeItem(k));
+        localStorage.removeItem('wok_logs_ptr');
+      } catch {}
+    }
     if (initialQ && (messages?.length || 0) === 0 && !conversationId) sendMessage(initialQ);
   }, []);
 
@@ -664,7 +672,7 @@ export default function ChatPage() {
       className="flex w-screen h-screen font-sans antialiased overflow-hidden"
       style={{ backgroundColor: '#1F1F1F' }}>
 
-      <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
+      <style>{`html,body{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
 
       {/* (WokHeaderMenu removed — replaced by ChatHeader inside preview panel) */}
 
@@ -806,7 +814,7 @@ export default function ChatPage() {
               viewMode={viewMode}
               setViewMode={setViewMode}
               onPublish={() => setShowPublishModal(true)}
-              onRefresh={() => setIframeRefreshKey(k => k + 1)}
+              onRefresh={() => { setIframeRefreshKey(k => k + 1); setIsRefreshingPreview(true); setTimeout(() => setIsRefreshingPreview(false), 1200); }}
               appTitle={appSettings?.title || 'My App'}
               onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
               mobilePreview={mobilePreview}
@@ -852,6 +860,31 @@ export default function ChatPage() {
             >
 
               
+
+              {/* Refresh blur overlay */}
+              <AnimatePresence>
+                {isRefreshingPreview && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{
+                      position: 'absolute', inset: 0, zIndex: 50,
+                      backdropFilter: 'blur(6px)', background: 'rgba(0,0,0,0.25)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: 10, pointerEvents: 'none',
+                    }}
+                  >
+                    <div style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      border: '2.5px solid rgba(255,255,255,0.15)',
+                      borderTopColor: '#fff',
+                      animation: 'spin 0.7s linear infinite',
+                    }} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {ficheContent ? (
                 <FichePanel

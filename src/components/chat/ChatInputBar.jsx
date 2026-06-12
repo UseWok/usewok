@@ -362,14 +362,15 @@ export default function ChatInputBar({
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
-  // Auto-resize textarea
+  // Auto-resize textarea — max 10 lines (~240px), scroll after
+  const MAX_TEXTAREA_H = 240;
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    const newH = Math.min(el.scrollHeight, 288);
+    const newH = Math.min(el.scrollHeight, MAX_TEXTAREA_H);
     el.style.height = `${Math.max(24, newH)}px`;
-    el.style.overflowY = el.scrollHeight > 288 ? 'auto' : 'hidden';
+    el.style.overflowY = el.scrollHeight > MAX_TEXTAREA_H ? 'auto' : 'hidden';
   }, [input]);
 
   // Paste handler

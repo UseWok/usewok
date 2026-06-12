@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Globe, MoreHorizontal, RefreshCw, BarChart2, Settings2, Check, X,
-  ChevronDown, ArrowLeft, Star, FolderOpen, Info, HelpCircle,
-  Pencil, Smartphone, Monitor, Gift,
-  Settings, Share2, GitFork, FileCode } from
-'lucide-react';
+  ChevronDown, ArrowLeft, Star, HelpCircle,
+  Pencil, Smartphone, Monitor,
+  Settings, FileCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingPage from '@/pages/PricingPage';
 
@@ -72,8 +71,9 @@ function RenameModal({ open, onClose, currentTitle, onRename }) {
 }
 
 // ── Project menu ──
-function ProjectMenu({ onClose, appTitle, onRename, onPublish, user, onUpgrade }) {
+function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgrade }) {
   const ref = useRef(null);
+  const [starred, setStarred] = useState(false);
   useEffect(() => {
     const h = (e) => {if (ref.current && !ref.current.contains(e.target)) onClose();};
     document.addEventListener('mousedown', h);
@@ -87,11 +87,9 @@ function ProjectMenu({ onClose, appTitle, onRename, onPublish, user, onUpgrade }
   style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif', textAlign: 'left' }}
   onMouseEnter={(e) => e.currentTarget.style.background = '#1E1E1E'}
   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-    
       <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>{icon}{label}</span>
       {right && <span style={{ fontSize: 11, color: '#555' }}>{right}</span>}
     </button>;
-
 
   const sep = () => <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />;
   const ic = (I) => <I style={{ width: 13, height: 13, color: '#555' }} />;
@@ -120,19 +118,21 @@ function ProjectMenu({ onClose, appTitle, onRename, onPublish, user, onUpgrade }
       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#7B4FE0', fontFamily: 'Inter, sans-serif' }}
       onMouseEnter={(e) => e.currentTarget.style.background = '#1A1A1A'}
       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-        
         <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><UpArrowIcon /></span>
         Upgrade to Creator
       </button>
       {sep()}
-      {row(ic(Settings), 'Settings', null, 'Ctrl.')}
-      {row(ic(Share2), 'Connectors', null)}
-      {row(ic(GitFork), 'Remix this project', null)}
-      {row(ic(FileCode), 'Publish to profile', onPublish)}
+      {/* Settings — first item, opens full settings modal */}
+      {row(<Settings style={{ width: 13, height: 13, color: '#555' }} />, 'Settings', () => onOpenSettings?.())}
       {row(ic(Pencil), 'Rename project', onRename)}
-      {row(ic(Star), 'Star project', null)}
-      {row(ic(FolderOpen), 'Move to folder', null)}
-      {row(ic(Info), 'Details', null)}
+      {/* Star — toggle with solid white fill when active */}
+      <button onClick={() => setStarred(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif', textAlign: 'left' }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#1E1E1E'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+        <Star style={{ width: 13, height: 13, color: starred ? '#FFFFFF' : '#555', fill: starred ? '#FFFFFF' : 'none', transition: 'color 150ms, fill 150ms' }} />
+        <span>{starred ? 'Starred' : 'Star project'}</span>
+      </button>
       {sep()}
       <button style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif' }}
       onMouseEnter={(e) => e.currentTarget.style.background = '#1E1E1E'}
@@ -141,7 +141,6 @@ function ProjectMenu({ onClose, appTitle, onRename, onPublish, user, onUpgrade }
         <span style={{ color: '#444' }}>↗</span>
       </button>
     </div>);
-
 }
 
 // ── More dropdown ──
@@ -197,7 +196,15 @@ export default function ChatHeader({
   const [showMore, setShowMore] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showRename, setShowRename] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const projectAreaRef = useRef(null);
+
+  const handleRefresh = () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    onRefresh?.();
+    setTimeout(() => setIsRefreshing(false), 1300);
+  };
 
   const btnBase = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -222,7 +229,7 @@ export default function ChatHeader({
         fontFamily: 'Inter, system-ui, sans-serif', userSelect: 'none'
       }}>
 
-        {/* ── LEFT: WOK logo + project name + panel toggle ── */}
+        {/* ── LEFT: WOK logo + project name ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px 0 12px', flexShrink: 0 }}>
           {/* WOK logo */}
           <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK"
@@ -235,7 +242,6 @@ export default function ChatHeader({
               style={{ ...btnBase, height: 28, padding: '0 7px', gap: 4, fontSize: 13, fontWeight: 500, color: '#ccc', maxWidth: 180 }}
               onMouseEnter={(e) => {e.currentTarget.style.background = '#2A2A2A';e.currentTarget.style.color = '#fff';}}
               onMouseLeave={(e) => {e.currentTarget.style.background = 'transparent';e.currentTarget.style.color = '#ccc';}}>
-              
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appTitle || 'My App'}</span>
               <ChevronDown style={{ width: 10, height: 10, color: '#555', flexShrink: 0 }} />
             </button>
@@ -244,26 +250,11 @@ export default function ChatHeader({
               onClose={() => setShowProjectMenu(false)}
               appTitle={appTitle}
               onRename={() => setShowRename(true)}
-              onPublish={onPublish}
+              onOpenSettings={() => setViewMode('dashboard')}
               onUpgrade={() => setShowUpgrade(true)}
               user={user} />
-
             }
           </div>
-
-          {/* Vertical separator */}
-          <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
-
-          {/* Panel toggle (sidebar/expand) — left of preview, right of project name */}
-          <button
-            title={chatVisible ? 'Expand preview' : 'Show chat'}
-            onClick={() => setChatVisible((v) => !v)}
-            style={{ ...btnBase, width: 28, height: 28 }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#2A2A2A'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-            
-            <PanelIcon />
-          </button>
         </div>
 
         {/* ── CENTER / PREVIEW controls ── */}
@@ -305,14 +296,25 @@ export default function ChatHeader({
 
           <div style={{ flex: 1 }} />
 
-          {/* Refresh */}
-          <button title="Refresh preview" onClick={onRefresh}
-          style={{ ...btnBase, width: 26, height: 26 }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
-            
-            <RefreshCw style={{ width: 13, height: 13 }} />
+          {/* Panel toggle — moved here from left */}
+          <button
+            title={chatVisible ? 'Expand preview' : 'Show chat'}
+            onClick={() => setChatVisible((v) => !v)}
+            style={{ ...btnBase, width: 26, height: 26 }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
+            <PanelIcon />
           </button>
+
+          {/* Refresh — blur overlay while refreshing, no unmount */}
+          <div style={{ position: 'relative' }}>
+            <button title="Refresh preview" onClick={handleRefresh}
+            style={{ ...btnBase, width: 26, height: 26 }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
+              <RefreshCw style={{ width: 13, height: 13, animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+            </button>
+          </div>
 
           {/* Mobile toggle */}
           <button
@@ -321,13 +323,12 @@ export default function ChatHeader({
             style={{ ...btnBase, width: 26, height: 26, background: mobilePreview ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)' }}
             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
             onMouseLeave={(e) => e.currentTarget.style.background = mobilePreview ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}>
-            
             {mobilePreview ? <Monitor style={{ width: 13, height: 13 }} /> : <Smartphone style={{ width: 13, height: 13 }} />}
           </button>
 
           <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
 
-          {/* Upgrade — purple gradient + levitation + halo on hover */}
+          {/* Upgrade */}
           <button
             onClick={() => setShowUpgrade(true)}
             style={{
@@ -335,26 +336,16 @@ export default function ChatHeader({
               height: 27, padding: '0 11px', border: 'none', borderRadius: 7, cursor: 'pointer',
               background: 'linear-gradient(135deg, #7B4FE0 0%, #9B6BFF 100%)',
               color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0,
-              transform: 'translateY(0px)',
-              boxShadow: 'none',
+              transform: 'translateY(0px)', boxShadow: 'none',
               transition: 'transform 180ms ease, box-shadow 180ms ease, filter 180ms ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(123,79,224,0.55)';
-              e.currentTarget.style.filter = 'brightness(1.08)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0px)';
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}>
-            
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(123,79,224,0.55)'; e.currentTarget.style.filter = 'brightness(1.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.filter = 'brightness(1)'; }}>
             <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UpArrowIcon /></span>
             Upgrade
           </button>
 
-          {/* Publish — blue matching credit bar #2563EB */}
+          {/* Publish */}
           <button onClick={onPublish} style={{
             display: 'flex', alignItems: 'center', height: 27, padding: '0 12px',
             border: 'none', borderRadius: 7, cursor: 'pointer',
@@ -362,11 +353,9 @@ export default function ChatHeader({
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = '#1d4ed8'}
           onMouseLeave={(e) => e.currentTarget.style.background = '#2563EB'}>
-            
             Publish
           </button>
 
-          {/* History button — LAST on the right of toolbar */}
           <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
           
 
