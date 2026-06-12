@@ -226,6 +226,7 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
   const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
   const [buildMode, setBuildModeLocal] = useState(() => getBuildMode());
 
   const setBuildMode = (mode) => { setBuildModeLocal(mode); setGlobalBuildMode(mode); };
@@ -250,7 +251,7 @@ export default function Home() {
     if (shouldShowUserOnboarding()) setTimeout(() => setShowUserOnboarding(true), 800);
     else if (shouldShowTensorsOnboarding()) setTimeout(() => setShowOnboarding(true), 1200);
 
-    loadDiscussionsFromCloud().then(discs => setProjects(discs.slice(0, 12))).catch(() => {});
+    loadDiscussionsFromCloud().then(discs => { setProjects(discs.slice(0, 12)); setProjectsLoading(false); }).catch(() => setProjectsLoading(false));
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
@@ -354,8 +355,30 @@ export default function Home() {
           </button>
         </div>
 
-        {/* 3-col grid, max 4 rows = 12 items — minmax prevents overflow */}
-        {projects.length > 0 ? (
+        {/* 3-col grid — skeleton while loading, real cards or empty state after */}
+        {projectsLoading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '28px 24px' }}>
+            {[0,1,2,3,4,5].map(i => (
+              <div key={i}>
+                <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, overflow: 'hidden', marginBottom: 10, background: 'rgba(255,255,255,0.04)' }}>
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'skshimmer 1.4s ease-in-out infinite',
+                  }} />
+                </div>
+                <div style={{ height: 12, width: '60%', borderRadius: 4, background: 'rgba(255,255,255,0.06)', marginBottom: 6, overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+                </div>
+                <div style={{ height: 10, width: '35%', borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out 0.1s infinite' }} />
+                </div>
+              </div>
+            ))}
+            <style>{`@keyframes skshimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
+          </div>
+        ) : projects.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '28px 24px' }}>
             {projects.slice(0, 12).map(p => (
               <ProjectCard key={p.id} conv={p}

@@ -166,10 +166,13 @@ export default function PublicFiche() {
     if (!conversationId) { setNotFound(true); setLoading(false); return; }
 
     const load = async () => {
-      // Try as conv_id
-      let results = await base44.entities.Conversation.filter({ conv_id: conversationId }).catch(() => []);
-
-      const rec = results[0];
+      // Filter by conv_id — RLS allows read when is_public=true (unauthenticated)
+      // We try both authenticated and public paths
+      let rec = null;
+      try {
+        const results = await base44.entities.Conversation.filter({ conv_id: conversationId });
+        if (results.length > 0) rec = results[0];
+      } catch {}
 
       if (!rec) { setNotFound(true); setLoading(false); return; }
 

@@ -19,9 +19,8 @@ export default function PublishAppModal({
     setIsPublic(isPublished || appSettings?.isPublic || false);
   }, [isPublished, appSettings?.isPublic, open]);
 
-  const shareUrl = customSlug
-    ? `${window.location.origin}/p/${customSlug}`
-    : appUrl || '';
+  const shareUrl = `${window.location.origin}/p/${customSlug || ''}`;
+  const [liveUrl, setLiveUrl] = useState(() => isPublic ? shareUrl : '');
 
   const handleCopy = () => {
     if (!shareUrl) return;
@@ -54,6 +53,7 @@ export default function PublishAppModal({
       }
       setIsPublic(true);
       setIsPublished(true);
+      setLiveUrl(shareUrl);
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       toast.success('App published — link is now live!');
     } catch (e) {
@@ -135,16 +135,16 @@ export default function PublishAppModal({
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#0D0D0D', border: `1px solid ${isPublic ? '#2A2A2A' : '#1E1E1E'}`, borderRadius: 9, padding: '9px 10px' }}>
                 <LinkIcon style={{ width: 12, height: 12, color: isPublic ? '#555' : '#333', flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 12, color: isPublic ? '#888' : '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'ui-monospace, monospace' }}>
-                  {isPublic ? shareUrl : 'Publish to generate a live link'}
+                <span style={{ flex: 1, fontSize: 12, color: liveUrl ? '#888' : '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'ui-monospace, monospace' }}>
+                  {liveUrl || 'Publish to generate a live link'}
                 </span>
-                {isPublic && (
+                {liveUrl && (
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button onClick={handleCopy}
+                    <button onClick={() => { navigator.clipboard.writeText(liveUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                       style={{ width: 26, height: 26, borderRadius: 6, background: copied ? 'rgba(34,197,94,0.15)' : '#1A1A1A', border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : '#2A2A2A'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: copied ? '#22C55E' : '#888', transition: 'all 120ms' }}>
                       {copied ? <Check style={{ width: 11, height: 11 }} /> : <Copy style={{ width: 11, height: 11 }} />}
                     </button>
-                    <button onClick={() => window.open(shareUrl, '_blank')}
+                    <button onClick={() => window.open(liveUrl, '_blank')}
                       style={{ width: 26, height: 26, borderRadius: 6, background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', transition: 'color 120ms' }}
                       onMouseEnter={e => e.currentTarget.style.color = '#fff'}
                       onMouseLeave={e => e.currentTarget.style.color = '#888'}>
