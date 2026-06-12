@@ -22,6 +22,7 @@ import MessageList from '@/components/chat/MessageList';
 // SuggestionsBar removed
 import UserMessageBubble from '@/components/chat/UserMessageBubble';
 import PublishAppModal from '@/components/chat/PublishAppModal';
+import BuildToast, { showBuildToast, hideBuildToast } from '@/components/chat/BuildToast';
 import WokHeaderMenu from '@/components/chat/WokHeaderMenu';
 import ChatHeader from '@/components/chat/ChatHeader';
 import IframeModal from '@/components/chat/IframeModal';
@@ -371,6 +372,7 @@ export default function ChatPage() {
     setFiles([]);
     setIsLoading(true);
     abortedRef.current = false;
+    showBuildToast('working');
 
     // ── Immediate cloud registration on first message of a new conversation ──
     if (!conversationId && (messages || []).length === 0) {
@@ -524,6 +526,8 @@ export default function ChatPage() {
 
       setIsLoading(false);
       setStreamingThinking('');
+      hideBuildToast();
+      setTimeout(() => showBuildToast('saved', { title: 'Build saved', body: 'Your build has been saved to history.' }), 100);
       if (!discussMode) setFicheContent(rawContent);
 
       const finalMsgs = [...newMessages, { role: 'assistant', content: finalContent, rawContent }];
@@ -544,9 +548,16 @@ export default function ChatPage() {
       if (err.name === 'AbortError') return;
       setIsLoading(false);
       const classified = classifyError(err, 'Code generation');
-      // Surface contextual error in the notification banner (not chat)
-      setRuntimeError(classified.raw || classified.title);
-      // Add a concise chat message — no raw stack traces exposed to users
+      hideBuildToast();
+      showBuildToast('error', {
+        title: classified.title || 'Runtime error',
+        body: classified.hint || classified.raw || 'Something went wrong.',
+        onFix: () => {
+          const errorText = classified.raw || classified.title;
+          const bt = String.fromCharCode(96);
+          sendMessage(`The following errors happened in the app:\n\n${bt}${bt}${bt}\n${errorText}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`, { isCorrection: true, rawError: errorText });
+        },
+      });
       setMessages([...newMessages, { role: 'assistant', content: classified.hint || classified.title }]);
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent, editMode]);
@@ -554,6 +565,7 @@ export default function ChatPage() {
   const handleStop = useCallback(() => {
     abortedRef.current = true;
     setIsLoading(false);
+    hideBuildToast();
     setMessages((prev) => [...(Array.isArray(prev) ? prev : []), { role: 'assistant', content: 'Generation stopped.' }]);
   }, []);
 
@@ -648,7 +660,18 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (runtimeError && !isLoading) { setPendingError(runtimeError); setRuntimeError(null); }
+    if (runtimeError && !isLoading) {
+      setPendingError(runtimeError);
+      showBuildToast('error', {
+        title: 'Runtime error',
+        body: runtimeError,
+        onFix: () => {
+          const bt = String.fromCharCode(96);
+          sendMessage(`The following errors happened in the app:\n\n${bt}${bt}${bt}\n${runtimeError}\n${bt}${bt}${bt}\n\nPlease help me fix these errors.`, { isCorrection: true, rawError: runtimeError });
+        },
+      });
+      setRuntimeError(null);
+    }
   }, [runtimeError, isLoading]);
 
   // Persist ficheContent to localStorage for F5 reload
@@ -699,6 +722,9 @@ export default function ChatPage() {
         ficheContent={ficheContent}
       />
       
+      {/* Global draggable build toast */}
+      <BuildToast />
+
       {/* Sidebar */}
       <ChatWorkspaceSidebar open={isSidebarOpen} setOpen={setIsSidebarOpen} user={user} convId={conversationId || convId} hidden={!!fullscreenModal} />
 

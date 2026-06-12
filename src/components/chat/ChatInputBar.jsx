@@ -223,6 +223,29 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
 // ─────────────────────────────────────────────────────────────────
 // AI SETTINGS DROPDOWN — opens UPWARD, anchored LEFT
 // ─────────────────────────────────────────────────────────────────
+function AIMenuItem({ onClick, disabled, active, children }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => { if (!disabled) setHovered(true); }}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '8px 12px', border: 'none', borderRadius: 10,
+        background: hovered ? 'rgba(255,255,255,0.10)' : active ? 'rgba(255,255,255,0.06)' : 'transparent',
+        cursor: disabled ? 'wait' : 'pointer', textAlign: 'left',
+        fontFamily: 'Inter, sans-serif', opacity: disabled ? 0.6 : 1,
+        transition: 'background 100ms',
+      }}
+    >
+      {children}
+      {active && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+    </button>
+  );
+}
+
 function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEnhancing, searchActive }) {
   const ref = useRef(null);
   const importRef = useRef(null);
@@ -246,67 +269,58 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      {/* Enhance prompt */}
-      <button
-        onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }}
-        disabled={isEnhancing}
-        style={{
-          display: 'flex', alignItems: 'flex-start', gap: 10,
-          width: '100%', padding: '8px 12px', border: 'none',
-          background: 'transparent', borderRadius: 10,
-          cursor: isEnhancing ? 'wait' : 'pointer', textAlign: 'left',
-          fontFamily: 'Inter, sans-serif', opacity: isEnhancing ? 0.6 : 1,
-        }}
-        onMouseEnter={e => { if (!isEnhancing) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
-        <div style={{ flexShrink: 0, marginTop: 2 }}><SparkleIcon size={18} /></div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>
-            {isEnhancing ? 'Enhancing…' : 'Enhance prompt'}
-          </div>
-          <div style={{ fontSize: 11, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
-            Rewrite your prompt for optimal results.
-          </div>
-        </div>
-      </button>
+      <AIMenuItem onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }} disabled={isEnhancing}>
+        <span style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flex: 1 }}>
+          <span style={{ flexShrink: 0, marginTop: 2 }}><SparkleIcon size={18} /></span>
+          <span>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#fff' }}>
+              {isEnhancing ? 'Enhancing…' : 'Enhance prompt'}
+            </span>
+            <span style={{ display: 'block', fontSize: 11, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
+              Rewrite your prompt for optimal results.
+            </span>
+          </span>
+        </span>
+      </AIMenuItem>
 
-      {/* Import from Computer */}
       <input ref={importRef} type="file" multiple accept="image/*,application/pdf,.txt,.csv,.json,.md"
         style={{ display: 'none' }} onChange={(e) => { onImportFile?.(e); onClose(); }} />
-      <button
-        onClick={() => importRef.current?.click()}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          width: '100%', padding: '7px 12px', border: 'none',
-          background: 'transparent', borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
-        <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
-      </button>
-
-      {/* Search Google — toggleable */}
-      <button
-        onClick={() => { onToggleSearch?.(); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '7px 12px', border: 'none',
-          background: searchActive ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = searchActive ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = searchActive ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+      <AIMenuItem onClick={() => importRef.current?.click()}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></div>
+          <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
+        </span>
+      </AIMenuItem>
+
+      <AIMenuItem active={searchActive} onClick={() => { onToggleSearch?.(); onClose(); }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></span>
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
         </span>
-        {searchActive && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-      </button>
+      </AIMenuItem>
     </motion.div>
+  );
+}
+
+// Plus button with local hover state to avoid stale closure
+function PlusBtn({ active, onToggle, disabled }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onToggle(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="AI Settings"
+      style={{
+        width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, transition: 'background 100ms',
+        background: (active || hovered) ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      <Plus style={{ width: 14, height: 14, color: '#fff' }} />
+    </button>
   );
 }
 
@@ -566,22 +580,7 @@ export default function ChatInputBar({
           {/* ── LEFT: AI Settings action button — same style as mic button ── */}
           {!isRecording && (
             <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-              <button
-                onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setShowAIMenu(v => !v); }}
-                title="AI Settings"
-                style={{
-                  width: 30, height: 30, borderRadius: 999,
-                  background: showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
-                  border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, transition: 'background 120ms',
-                  opacity: isEnhancing ? 0.6 : 1,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                onMouseLeave={e => e.currentTarget.style.background = showAIMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'}
-              >
-                <Plus style={{ width: 14, height: 14, color: '#fff' }} />
-              </button>
+              <PlusBtn active={showAIMenu} onToggle={() => setShowAIMenu(v => !v)} disabled={isEnhancing} />
               <AnimatePresence>
                 {showAIMenu && (
                   <AISettingsMenu
