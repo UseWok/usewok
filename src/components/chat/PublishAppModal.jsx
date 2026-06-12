@@ -38,16 +38,12 @@ export default function PublishAppModal({
     setIsPublishing(true);
     try {
       const convId = customSlug;
-      console.log('[PublishAppModal] Publishing with convId:', convId);
-      console.log('[PublishAppModal] ficheContent length:', ficheContent.length);
-      console.log('[PublishAppModal] ficheContent preview:', ficheContent.slice(0, 200));
+      console.log('[Publish] Starting publish with convId:', convId, 'content length:', ficheContent.length);
       
       const results = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
-      console.log('[PublishAppModal] Existing conversation found:', results.length > 0);
 
-      // Validate that ficheContent is not null and has actual code
       if (!ficheContent || typeof ficheContent !== 'string') {
-        console.error('[PublishAppModal] ERROR: ficheContent is not a valid string:', typeof ficheContent);
+        console.error('[Publish] Invalid ficheContent:', typeof ficheContent);
         toast.error('Content validation failed. Please regenerate your app.');
         setIsPublishing(false);
         return;
@@ -59,31 +55,44 @@ export default function PublishAppModal({
         title: appSettings?.title || 'My App',
       };
 
-      console.log('[PublishAppModal] Saving with publishData:', { is_public: true, raw_content_length: ficheContent.length, title: publishData.title });
-
+      // Save to database
+      let convRecord;
       if (results.length > 0) {
-        await base44.entities.Conversation.update(results[0].id, publishData);
-        console.log('[PublishAppModal] Updated existing conversation:', results[0].id);
+        convRecord = results[0];
+        await base44.entities.Conversation.update(convRecord.id, publishData);
+        console.log('[Publish] Updated conversation:', convRecord.id);
       } else {
-        await base44.entities.Conversation.create({
+        const created = await base44.entities.Conversation.create({
           conv_id: convId,
           messages_json: '[]',
           ...publishData,
         });
-        console.log('[PublishAppModal] Created new conversation');
+        convRecord = created;
+        console.log('[Publish] Created new conversation:', created.id);
       }
 
-      // Wait a moment for cloud to propagate, then update state
-      await new Promise(r => setTimeout(r, 600));
-      console.log('[PublishAppModal] Publish complete, updating UI state');
+      // Verify data was saved (double-check read)
+      await new Promise(r => setTimeout(r, 300));
+      const verify = await base44.entities.Conversation.filter({ conv_id: convId }).catch(() => []);
+      if (verify.length === 0 || !verify[0].raw_content) {
+        console.error('[Publish] Verification failed: data not found in database');
+        toast.error('Publish verification failed. Retrying...');
+        setIsPublishing(false);
+        return;
+      }
+      console.log('[Publish] Verification passed, raw_content persisted:', verify[0].raw_content?.length);
+
+      // Update UI state
       setIsPublic(true);
       setIsPublished(true);
       setLiveUrl(shareUrl);
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
-      toast.success('App published — link is now live!');
+      
+      console.log('[Publish] Complete, live at:', shareUrl);
+      toast.success('✓ App is live: ' + shareUrl);
     } catch (e) {
-      console.error('[PublishAppModal] Publish error:', e);
-      toast.error('Publish failed: ' + (e.message || 'Please try again.'));
+      console.error('[Publish] Error:', e);
+      toast.error('Publish failed: ' + (e.message || 'Unknown error'));
     }
     setIsPublishing(false);
   };

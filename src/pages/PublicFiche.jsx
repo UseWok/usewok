@@ -231,31 +231,59 @@ export default function PublicFiche() {
     const load = async () => {
       let rec = null;
       try {
-        // Filter by conv_id — RLS allows public reads via is_public: true
+        console.log('[PublicFiche] Loading convId:', conversationId);
         const results = await base44.entities.Conversation.filter({ conv_id: conversationId });
-        if (results.length > 0) rec = results[0];
+        console.log('[PublicFiche] Filter results:', results.length);
+        if (results.length > 0) {
+          rec = results[0];
+          console.log('[PublicFiche] Found record, is_public:', rec.is_public, 'has raw_content:', !!rec.raw_content);
+        }
       } catch (e) {
-        console.error('Load failed:', e);
+        console.error('[PublicFiche] Load error:', e);
       }
 
-      if (!rec || !rec.is_public) { setNotFound(true); setLoading(false); return; }
+      if (!rec) {
+        console.error('[PublicFiche] No record found for convId:', conversationId);
+        setNotFound(true); 
+        setLoading(false); 
+        return;
+      }
+
+      if (!rec.is_public) {
+        console.error('[PublicFiche] Record is not public');
+        setNotFound(true); 
+        setLoading(false); 
+        return;
+      }
 
       const rawContent = rec.raw_content || rec.rawContent || null;
+      console.log('[PublicFiche] Raw content length:', rawContent?.length || 0);
 
-      if (rawContent) {
+      if (rawContent && typeof rawContent === 'string' && rawContent.trim().length > 10) {
         setContent(rawContent);
+        setLoading(false);
       } else if (rec.messages_json) {
         try {
           const msgs = JSON.parse(rec.messages_json);
           const last = [...msgs].reverse().find(m => m.role === 'assistant' && m.rawContent);
-          if (last) setContent(last.rawContent);
-          else setNotFound(true);
-        } catch { setNotFound(true); }
+          if (last && last.rawContent) {
+            setContent(last.rawContent);
+            setLoading(false);
+          } else {
+            console.error('[PublicFiche] No assistant message with rawContent found');
+            setNotFound(true);
+            setLoading(false);
+          }
+        } catch (e) { 
+          console.error('[PublicFiche] Parse messages error:', e);
+          setNotFound(true);
+          setLoading(false);
+        }
       } else {
+        console.error('[PublicFiche] No content available in record');
         setNotFound(true);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     load();
@@ -301,18 +329,34 @@ export default function PublicFiche() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <p style={{ fontSize: 15, color: '#aaa', fontWeight: 500, marginBottom: 20 }}>This app is not available yet.</p>
-          <button
-            onClick={handleRegenerate}
-            disabled={isRegenerating}
-            style={{
-              padding: '10px 20px', borderRadius: 8, background: '#111', color: '#fff',
-              border: 'none', cursor: isRegenerating ? 'not-allowed' : 'pointer',
-              fontSize: 13, fontWeight: 500, opacity: isRegenerating ? 0.6 : 1
-            }}
-          >
-            {isRegenerating ? 'Generating...' : 'Generate Now'}
-          </button>
+          <p style={{ fontSize: 15, color: '#aaa', fontWeight: 500, marginBottom: 20 }}>
+            {notFound ? 'This app is not available yet.' : 'Loading...'}
+          </p>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '10px 20px', borderRadius: 8, background: '#666', color: '#fff',
+                border: 'none', cursor: 'pointer',
+                fontSize: 13, fontWeight: 500
+              }}
+            >
+              Refresh
+            </button>
+            {notFound && (
+              <button
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                style={{
+                  padding: '10px 20px', borderRadius: 8, background: '#111', color: '#fff',
+                  border: 'none', cursor: isRegenerating ? 'not-allowed' : 'pointer',
+                  fontSize: 13, fontWeight: 500, opacity: isRegenerating ? 0.6 : 1
+                }}
+              >
+                {isRegenerating ? 'Generating...' : 'Generate Now'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
