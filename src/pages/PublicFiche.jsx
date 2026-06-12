@@ -114,7 +114,6 @@ export function PublicLiveEngine({ content }) {
   }
 
   const usesRecharts = js.includes('Recharts') || js.includes('recharts');
-  const usesMotion = js.includes('motion') || js.includes('AnimatePresence') || js.includes('framer-motion');
 
    const srcDoc = `<!DOCTYPE html>
 <html>
@@ -127,7 +126,6 @@ export function PublicLiveEngine({ content }) {
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"><\/script>
   ${usesRecharts ? `<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"><\/script>
    <script src="https://cdn.jsdelivr.net/npm/recharts@2.1.9/umd/Recharts.min.js"><\/script>` : ''}
-  ${usesMotion ? `<script src="https://cdn.jsdelivr.net/npm/framer-motion@11.16.4/dist/framer-motion.umd.min.js"><\/script>` : ''}
   <script>
     // Lucide stub — proxy that returns a valid React component for any icon name
     window.lucideReact = new Proxy({}, {
@@ -148,6 +146,17 @@ export function PublicLiveEngine({ content }) {
       }
     });
     window.lucide = window.lucideReact;
+    // Motion stub — minimal proxy for framer-motion
+    window.Motion = {
+      motion: new Proxy({}, {
+        get: function(_, tag) {
+          return function(props) {
+            return React.createElement(tag, props, props.children);
+          };
+        }
+      }),
+      AnimatePresence: function(props) { return props.children; }
+    };
   <\/script>
   <style>
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
