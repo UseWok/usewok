@@ -374,6 +374,18 @@ export default function ChatPage() {
     if (!conversationId && (messages || []).length === 0) {
       window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
       createConversationInCloud(convId, text.slice(0, 80)).catch(() => {});
+
+      // ── O2 Auto-naming: background parallel call (non-blocking) ──
+      base44.integrations.Core.InvokeLLM({
+        model: 'gpt_5_mini',
+        prompt: `You are o2, a highly concise naming engine. Given a user's app build request, return a JSON object with a single field "title" that is exactly 2-3 words summarizing the app. Be direct, architectural, no articles.\n\nUser request: "${text.slice(0, 300)}"`,
+        response_json_schema: { type: 'object', properties: { title: { type: 'string' } } },
+      }).then(async (result) => {
+        const autoTitle = result?.title?.trim();
+        if (!autoTitle) return;
+        const results = await base44.entities.Conversation.filter({ conv_id: convId });
+        if (results.length > 0) await base44.entities.Conversation.update(results[0].id, { title: autoTitle });
+      }).catch(() => {});
     }
 
     try {

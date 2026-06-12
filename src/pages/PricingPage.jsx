@@ -160,9 +160,9 @@ export default function PricingPage() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${Math.min(cardPlans.length, 4)}, 1fr)`,
-            gap: 14,
+            gap: 32,
             marginBottom: 40,
-            maxWidth: '95%',
+            maxWidth: '96%',
             marginLeft: 'auto',
             marginRight: 'auto',
           }}>
