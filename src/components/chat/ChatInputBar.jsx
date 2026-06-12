@@ -143,6 +143,29 @@ function IOSMicVisualizer({ analyserRef, duration }) {
 // ─────────────────────────────────────────────────────────────────
 // MODEL SELECTOR DROPDOWN — opens UPWARD
 // ─────────────────────────────────────────────────────────────────
+
+// Uses local hover state to avoid stale closure bug with onMouseLeave
+function BuildMenuItem({ active, onClick, children }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '8px 12px', border: 'none',
+        background: hovered ? 'rgba(255,255,255,0.10)' : active ? 'rgba(255,255,255,0.06)' : 'transparent',
+        borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+        fontFamily: 'Inter, sans-serif', gap: 8, transition: 'background 100ms',
+      }}
+    >
+      {children}
+      {active && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
+    </button>
+  );
+}
+
 function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -165,73 +188,34 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
       }}
     >
-      {/* Automatic */}
-      <button
-        onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '8px 12px', border: 'none',
-          background: buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', gap: 8,
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Automatic' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+      <BuildMenuItem active={buildMode === 'Automatic'} onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <StandardLogo />
-            <MaxLogo />
+            <StandardLogo /><MaxLogo />
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Automatic</div>
-            <div style={{ fontSize: 11, fontWeight: 400, color: '#555', lineHeight: 1.3 }}>
-              Best model selected per request.
-            </div>
+            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.3 }}>Best model selected per request.</div>
           </div>
         </div>
-        {buildMode === 'Automatic' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-      </button>
+      </BuildMenuItem>
 
       <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
 
-      {/* Standard */}
-      <button
-        onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '7px 12px', border: 'none',
-          background: buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Flash' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+      <BuildMenuItem active={buildMode === 'Flash'} onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <StandardLogo />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
         </span>
-        {buildMode === 'Flash' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-      </button>
+      </BuildMenuItem>
 
-      {/* Max */}
-      <button
-        onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '7px 12px', border: 'none',
-          background: buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent',
-          borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = buildMode === 'Max' ? 'rgba(255,255,255,0.06)' : 'transparent'}
-      >
+      <BuildMenuItem active={buildMode === 'Max'} onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MaxLogo />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
           <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 999, padding: '1px 7px' }}>NEW</span>
         </span>
-        {buildMode === 'Max' && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-      </button>
+      </BuildMenuItem>
     </motion.div>
   );
 }
