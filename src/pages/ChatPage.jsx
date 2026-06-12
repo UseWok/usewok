@@ -242,9 +242,11 @@ export default function ChatPage() {
     setAppSettings(newSettings);
     if (convId) {
       await safeAsync(async () => {
-        await base44.entities.Conversation.update(convId, { title: newSettings.title, is_public: newSettings.isPublic });
-        const { syncConversationToCloud } = await import('@/lib/discussions');
-        await syncConversationToCloud(convId, messages || [], newSettings);
+        // Find the record by conv_id field, then update by its DB id
+        const results = await base44.entities.Conversation.filter({ conv_id: convId });
+        if (results.length > 0) {
+          await base44.entities.Conversation.update(results[0].id, { title: newSettings.title, is_public: newSettings.isPublic, raw_content: ficheContent || results[0].raw_content });
+        }
       }, null, 'Update app meta');
     }
     toast.success("Settings updated successfully.");
@@ -687,6 +689,7 @@ export default function ChatPage() {
         customSlug={customSlug || convId}
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
+        ficheContent={ficheContent}
       />
       
       {/* Sidebar */}

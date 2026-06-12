@@ -9,6 +9,7 @@ export default function PublishAppModal({
   open, onClose,
   appUrl, isPublished, setIsPublished,
   customSlug, appSettings, onUpdateSettings,
+  ficheContent,
 }) {
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -33,16 +34,24 @@ export default function PublishAppModal({
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      const newSettings = { ...(appSettings || {}), isPublic: true };
-      setIsPublic(true);
-      if (onUpdateSettings) await onUpdateSettings(newSettings);
-      // Explicitly mark as public in cloud
+      // Find the Conversation record and update is_public + raw_content in one shot
       if (customSlug) {
         const results = await base44.entities.Conversation.filter({ conv_id: customSlug }).catch(() => []);
         if (results.length > 0) {
-          await base44.entities.Conversation.update(results[0].id, { is_public: true });
+          const rec = results[0];
+          // Always write the current ficheContent so /p/:id has the latest code
+          await base44.entities.Conversation.update(rec.id, {
+            is_public: true,
+            raw_content: ficheContent || rec.raw_content || null,
+          });
+        } else {
+          toast.error('Conversation not found — send a message first.');
+          setIsPublishing(false);
+          return;
         }
       }
+      setIsPublic(true);
+      if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       setIsPublished(true);
       toast.success('App published — link is now live!');
     } catch (e) {
