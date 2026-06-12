@@ -31,28 +31,33 @@ export default function PublishAppModal({
   };
 
   const handlePublish = async () => {
+    console.log('[PublishAppModal] ficheContent:', ficheContent?.length, 'customSlug:', customSlug);
+    
     if (!ficheContent || ficheContent.trim() === '') {
       toast.error('No content to publish. Generate the app first.');
-      setIsPublishing(false);
       return;
     }
 
     setIsPublishing(true);
     try {
       const convId = customSlug;
+      console.log('[PublishAppModal] Publishing convId:', convId);
       
       // 1. Check for existing record
       const existing = await base44.entities.Conversation.filter({ conv_id: convId });
+      console.log('[PublishAppModal] Existing record:', existing?.length);
 
       let record;
       if (existing && existing.length > 0) {
         // 2. Update with is_public AND raw_content
+        console.log('[PublishAppModal] Updating record:', existing[0].id);
         record = await base44.entities.Conversation.update(existing[0].id, {
           is_public: true,
           raw_content: ficheContent,
         });
       } else {
         // 3. Create if not exists
+        console.log('[PublishAppModal] Creating new record');
         record = await base44.entities.Conversation.create({
           conv_id: convId,
           title: appSettings?.title || 'My App',
@@ -61,10 +66,13 @@ export default function PublishAppModal({
         });
       }
 
-      // 4. Verify the save was real
+      // 4. Wait and verify the save was real
+      await new Promise(r => setTimeout(r, 800));
       const verify = await base44.entities.Conversation.filter({ conv_id: convId });
+      console.log('[PublishAppModal] Verification:', { found: verify?.length, is_public: verify?.[0]?.is_public, has_content: !!verify?.[0]?.raw_content });
+      
       if (!verify?.[0]?.is_public || !verify?.[0]?.raw_content) {
-        throw new Error('Save verification failed — data not persisted');
+        throw new Error('Data not persisted correctly to database');
       }
 
       setIsPublic(true);
