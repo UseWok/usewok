@@ -161,6 +161,7 @@ export default function PublicFiche() {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     if (!conversationId) { setNotFound(true); setLoading(false); return; }
@@ -213,10 +214,43 @@ export default function PublicFiche() {
     );
   }
 
+  const handleRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      const response = await fetch('/api/functions/regeneratePublicApp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId })
+      });
+      const result = await response.json();
+      if (result.success) {
+        // Reload page to fetch fresh content
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Regeneration failed:', err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   if (notFound || !content) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', fontFamily: 'system-ui, sans-serif' }}>
-        <p style={{ fontSize: 15, color: '#aaa', fontWeight: 500 }}>This app is not available.</p>
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <p style={{ fontSize: 15, color: '#aaa', fontWeight: 500, marginBottom: 20 }}>This app is not available yet.</p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            style={{
+              padding: '10px 20px', borderRadius: 8, background: '#111', color: '#fff',
+              border: 'none', cursor: isRegenerating ? 'not-allowed' : 'pointer',
+              fontSize: 13, fontWeight: 500, opacity: isRegenerating ? 0.6 : 1
+            }}
+          >
+            {isRegenerating ? 'Generating...' : 'Generate Now'}
+          </button>
+        </div>
       </div>
     );
   }
