@@ -146,16 +146,31 @@ export function PublicLiveEngine({ content }) {
       }
     });
     window.lucide = window.lucideReact;
-    // Motion stub — minimal proxy for framer-motion
+    // Framer-motion stub — covers motion.*, AnimatePresence and common hooks
+    var _motionNoop = function() {};
+    var _motionVal = function(v) { return { get: function() { return v; }, set: _motionNoop, onChange: function() { return _motionNoop; } }; };
     window.Motion = {
       motion: new Proxy({}, {
         get: function(_, tag) {
+          if (typeof tag !== 'string' || tag === 'then') return undefined;
           return function(props) {
-            return React.createElement(tag, props, props.children);
+            var p = Object.assign({}, props);
+            // Strip framer-motion-only props that React would warn about on native elements
+            ['initial','animate','exit','transition','variants','whileHover','whileTap','whileFocus','whileInView','whileDrag','drag','layout','layoutId'].forEach(function(k){ delete p[k]; });
+            return React.createElement(tag, p, p.children);
           };
         }
       }),
-      AnimatePresence: function(props) { return props.children; }
+      AnimatePresence: function(props) { return props.children || null; },
+      useAnimation: function() { return { start: _motionNoop, stop: _motionNoop, set: _motionNoop }; },
+      useInView: function() { return [null, true]; },
+      useMotionValue: _motionVal,
+      useSpring: _motionVal,
+      useTransform: function(v, i, o) { return _motionVal(Array.isArray(o) ? o[0] : 0); },
+      useScroll: function() { return { scrollY: _motionVal(0), scrollX: _motionVal(0), scrollYProgress: _motionVal(0) }; },
+      useCycle: function() { var args = Array.prototype.slice.call(arguments); return [args[0], function() {}]; },
+      useReducedMotion: function() { return false; },
+      m: new Proxy({}, { get: function(_, tag) { return window.Motion.motion[tag]; } }),
     };
   <\/script>
   <style>
