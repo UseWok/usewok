@@ -309,10 +309,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── My Builds section — orange glow background, fades at top ── */}
+      {/* ── Glow ambiance — fixed, bottom-anchored, never touches chat bar ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, height: '55vh',
+        pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(210,72,8,0.62) 0%, rgba(175,55,4,0.40) 35%, rgba(140,42,2,0.18) 65%, transparent 100%)',
+      }} />
+
+      {/* ── My Builds section ── */}
       <div style={{
         padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1,
-        background: 'radial-gradient(ellipse 90% 70% at 50% 0%, rgba(210,72,8,0.72) 0%, rgba(175,55,4,0.55) 30%, rgba(140,42,2,0.38) 60%, transparent 100%)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
