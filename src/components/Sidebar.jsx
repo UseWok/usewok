@@ -314,7 +314,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [recents, setRecents] = useState([]);
-  const [recentsOpen, setRecentsOpen] = useState(false);
+  const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState(() => {
     try { return JSON.parse(localStorage.getItem('wok_workspaces')) || [{ id: 'default', name: "My Workspace", current: true }]; }

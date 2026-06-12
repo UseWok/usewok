@@ -275,20 +275,20 @@ export default function Home() {
     }}>
       {/* ── Glow layer ── */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {/* Horizon glow — anchored at bottom of chat bar, bleeds downward */}
+        {/* Main horizon glow — sits right at bottom of chat input, spreads wide */}
         <div style={{
           position: 'absolute',
-          left: '50%', top: '72%',
+          left: '50%', top: '78%',
           transform: 'translate(-50%, -50%)',
-          width: '100vw', height: '45vh',
+          width: '120vw', height: '50vh',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(180,65,0,0.60) 0%, rgba(160,50,0,0.32) 38%, rgba(120,35,0,0.10) 68%, transparent 88%)',
-          filter: 'blur(38px)',
+          background: 'radial-gradient(ellipse at 50% 60%, rgba(210,80,10,0.85) 0%, rgba(180,60,5,0.55) 25%, rgba(140,45,0,0.25) 55%, transparent 80%)',
+          filter: 'blur(35px)',
         }} />
-        {/* Downward continuation — natural warm fill below glow center */}
+        {/* Downward fill — warm orange that persists to bottom */}
         <div style={{
-          position: 'absolute', left: 0, right: 0, top: '68%', bottom: 0,
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(130,45,0,0.18) 45%, rgba(110,38,0,0.28) 100%)',
+          position: 'absolute', left: 0, right: 0, top: '72%', bottom: 0,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(160,55,0,0.35) 30%, rgba(140,48,0,0.50) 70%, rgba(120,40,0,0.55) 100%)',
         }} />
         {/* Grain texture overlay */}
         <div style={{
