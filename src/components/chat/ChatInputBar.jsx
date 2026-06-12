@@ -582,7 +582,7 @@ export default function ChatInputBar({
           {!isRecording && (
             <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
               <button
-                onClick={() => setShowAIMenu(v => !v)}
+                onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setShowAIMenu(v => !v); }}
                 title="AI Settings"
                 style={{
                   width: 30, height: 30, borderRadius: 999,
@@ -633,7 +633,7 @@ export default function ChatInputBar({
               {/* ── Model selector ── */}
               <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
-                  onClick={() => setShowBuildMenu(v => !v)}
+                  onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setShowBuildMenu(v => !v); }}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                     height: 30, padding: '0 10px', borderRadius: 999, border: 'none',

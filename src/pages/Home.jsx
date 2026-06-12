@@ -107,13 +107,37 @@ function RenameModal({ title, onConfirm, onClose }) {
   );
 }
 
+// ── Static preview placeholder (no iframe = no lag) ──
+const PREVIEW_GRADIENTS = [
+  'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+  'linear-gradient(135deg, #1a0a0a 0%, #2d1515 50%, #4a1942 100%)',
+  'linear-gradient(135deg, #0a1a0a 0%, #152d15 50%, #1a4a19 100%)',
+  'linear-gradient(135deg, #1a1500 0%, #2d2800 50%, #4a3f00 100%)',
+  'linear-gradient(135deg, #0a0a1a 0%, #15152d 50%, #1a194a 100%)',
+  'linear-gradient(135deg, #1a0a14 0%, #2d1520 50%, #4a1930 100%)',
+];
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function PreviewPlaceholder({ title, id }) {
+  const idx = hashStr(id || title || '') % PREVIEW_GRADIENTS.length;
+  const initials = (title || '?').slice(0, 2).toUpperCase();
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: PREVIEW_GRADIENTS[idx], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.04em' }}>
+        {initials}
+      </div>
+      <div style={{ display: 'flex', gap: 4, flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ height: 3, width: 48, background: 'rgba(255,255,255,0.12)', borderRadius: 99 }} />
+        <div style={{ height: 3, width: 32, background: 'rgba(255,255,255,0.07)', borderRadius: 99 }} />
+      </div>
+    </div>
+  );
+}
+
 // ── Project Card ──
 function ProjectCard({ conv, onClick, onDelete, onRename }) {
   const [hovered, setHovered] = useState(false);
   const [showKebab, setShowKebab] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const previewUrl = conv.id ? `/p/${conv.id}` : null;
-
   const handleDelete = async (e) => {
     e.stopPropagation();
     setShowKebab(false);
@@ -147,21 +171,7 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
         {/* Top: 16:9 preview rectangle */}
         <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#141414', borderRadius: 6, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ position: 'absolute', inset: 0 }}>
-            {previewUrl ? (
-              <iframe
-                src={previewUrl}
-                loading="lazy"
-                style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: '0 0', pointerEvents: 'none' }}
-                title={conv.title}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-              />
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: 5, padding: 16 }}>
-                <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 4, width: '55%' }} />
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, width: '80%' }} />
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 4, width: '40%' }} />
-              </div>
-            )}
+            <PreviewPlaceholder title={conv.title} id={conv.id} />
           </div>
           {/* Star icon — top right, always rendered, opacity toggles (zero layout shift) */}
           <button
