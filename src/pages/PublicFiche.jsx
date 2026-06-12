@@ -182,6 +182,7 @@ export function PublicLiveEngine({ content }) {
   <div id="root" style="width:100%;height:100%"></div>
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
+    const { motion, AnimatePresence, useAnimation, useInView, useMotionValue, useSpring, useTransform, useScroll, useCycle, useReducedMotion, m } = window.Motion;
     const Recharts = window.Recharts || {};
     // Alias Recharts.Tooltip to avoid naming conflict
     if (Recharts.Tooltip) Recharts.RechartsTooltip = Recharts.Tooltip;
