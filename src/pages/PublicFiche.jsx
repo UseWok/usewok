@@ -313,8 +313,15 @@ export function PublicLiveEngine({ content }) {
     const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
     const { motion, AnimatePresence, useAnimation, useAnimate, useInView, useMotionValue, useSpring, useTransform, useScroll, useCycle, useReducedMotion, m } = window.Motion;
     const Recharts = window.Recharts || {};
-    // Alias Recharts.Tooltip to avoid naming conflict
-    if (Recharts.Tooltip) Recharts.RechartsTooltip = Recharts.Tooltip;
+    // Expose ALL Recharts components as individual variables in scope
+    const { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+      RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+      ScatterChart, Scatter, ComposedChart,
+      XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer,
+      RadialBarChart, RadialBar, Treemap, FunnelChart, Funnel,
+      Tooltip: RechartsTooltip, Tooltip: RechartTooltip,
+      Reference, ReferenceLine, ReferenceArea,
+    } = Recharts;
 
     class ErrorBoundary extends Component {
       constructor(p) { super(p); this.state = { err: null }; }
