@@ -60,21 +60,30 @@ export async function createConversationInCloud(convId, title = 'New Chat') {
  */
 export async function syncToCloud(convId, messages, meta = {}) {
   try {
+    // Serialize messages but strip rawContent from each message to keep messages_json small
+    // rawContent is stored separately in raw_content field
+    const msgsForStorage = messages.map(m => {
+      if (m.role === 'assistant' && m.rawContent) {
+        const { rawContent, ...rest } = m;
+        return rest;
+      }
+      return m;
+    });
+
     const data = {
       conv_id: convId,
-      messages_json: JSON.stringify(messages),
+      messages_json: JSON.stringify(msgsForStorage),
       title: meta.title || 'New Chat',
       preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
-      model: meta.model || 'default',
-      agent: meta.agent || 'default',
-      // Store generated UI code for cross-device preview restore
-      raw_content: meta.rawContent || undefined,
     };
+
+    // Always save the latest rawContent (the preview code) if provided
+    if (meta.rawContent) {
+      data.raw_content = meta.rawContent;
+    }
+
     // Only set is_public if explicitly passed, never override
     if (meta.is_public !== undefined) data.is_public = meta.is_public;
-
-    // Clean up undefined fields
-    Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
 
     const results = await base44.entities.Conversation.filter({ conv_id: convId });
     if (results.length > 0) {
@@ -112,8 +121,9 @@ export async function loadFromCloud(convId) {
 
     const messages = record.messages_json ? JSON.parse(record.messages_json) : [];
     const rawContent = record.raw_content || record.description || null;
+    const rawContentUrl = record.raw_content_url || null;
 
-    return { messages, rawContent, title: record.title, is_public: record.is_public };
+    return { messages, rawContent, rawContentUrl, title: record.title, is_public: record.is_public };
   } catch (err) {
     console.error('Cloud load failed:', err);
     return null;
@@ -128,14 +138,16 @@ export async function loadDiscussionsFromCloud() {
   try {
     const me = await base44.auth.me();
     if (!me?.email) return [];
-    const results = await base44.entities.Conversation.list('-updated_date', 50);
-    return results.map(r => ({
-      id: r.conv_id,
-      title: r.title || 'Untitled',
-      preview: r.preview || '',
-      date: r.updated_date?.slice(0, 10) || '',
-      updatedAt: new Date(r.updated_date || r.created_date).getTime(),
-      emoji: '💬',
-    }));
+    const results = await base44.entities.Conversation.list('-updated_date', 100);
+    return results
+      .filter(r => r.conv_id) // only valid conversations
+      .map(r => ({
+        id: r.conv_id,
+        title: r.title || 'Untitled',
+        preview: r.preview || '',
+        date: r.updated_date?.slice(0, 10) || r.created_date?.slice(0, 10) || '',
+        updatedAt: new Date(r.updated_date || r.created_date || Date.now()).getTime(),
+        emoji: '💬',
+      }));
   } catch { return []; }
 }

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Check, Home, LayoutDashboard, PanelLeftClose, ChevronDown, Star, MoreHorizontal } from 'lucide-react';
 import { getUserColor } from '@/lib/user-color';
 import { getTheme, setTheme } from '@/lib/theme';
+import { loadDiscussionsFromCloud, saveLocalDiscussions as saveLocalDiscs } from '@/lib/chat-storage';
 
 // ── BuildRow: shows "..." only on hover, with Delete (red) in dropdown ──
 function BuildRow({ d, convId, favorites, onNavigate, onToggleFavorite, onDelete }) {
@@ -111,9 +112,18 @@ export default function ChatWorkspaceSidebar({ open, setOpen, user, convId, hidd
 
   const currentWs = workspaces.find(w => w.current) || workspaces[0];
 
+  // Load discussions: local first (instant), then cloud (authoritative)
   useEffect(() => {
-    setDiscussions(getLocalDiscussions(currentWs.id));
-  }, [currentWs.id]);
+    const local = getLocalDiscussions(currentWs.id);
+    if (local.length > 0) setDiscussions(local);
+
+    loadDiscussionsFromCloud().then(cloudDiscs => {
+      if (cloudDiscs.length > 0) {
+        setDiscussions(cloudDiscs);
+        saveLocalDiscs(currentWs.id, cloudDiscs);
+      }
+    }).catch(() => {});
+  }, [currentWs.id, open]); // re-fetch when sidebar opens
 
   useEffect(() => {
     const handler = (e) => {

@@ -639,7 +639,15 @@ export default function ChatPage() {
   // Load conversation from cloud on mount (cross-device)
   useEffect(() => {
     if (!conversationId) { setMessages([]); setFicheContent(null); return; }
+
     const loadConv = async () => {
+      // 1. Show local cache instantly while cloud loads
+      const localMsgs = getConversationMessages(conversationId);
+      if (localMsgs.length > 0) setMessages(localMsgs);
+      const localFiche = localStorage.getItem(`fiche_${conversationId}`);
+      if (localFiche) setFicheContent(localFiche);
+
+      // 2. Load from cloud (authoritative)
       const cloud = await safeAsync(() => loadFromCloud(conversationId), null, 'Load conversation');
       if (cloud) {
         const safe = Array.isArray(cloud.messages) ? cloud.messages : [];
@@ -647,31 +655,52 @@ export default function ChatPage() {
           setMessages(safe);
           saveConversationMessages(conversationId, safe);
         }
-        // Restore title from cloud
         if (cloud.title) {
           setAppSettings(prev => ({ ...prev, title: cloud.title }));
         }
-        // Sync publish state from cloud
         setIsAppPublished(!!cloud.is_public);
         setAppSettings(prev => ({ ...prev, isPublic: !!cloud.is_public }));
 
-        if (cloud.rawContent) {
-          setFicheContent(cloud.rawContent);
-          localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
-        } else {
-          // Fallback: try to restore from last assistant message rawContent
-          const last = safe.filter((m) => m.role === 'assistant' && m.rawContent).pop();
-          if (last?.rawContent) {
+        // 3. Restore preview content — try all sources in order of reliability
+        let rawContent = cloud.rawContent;
+
+        // 3a. If stored as a URL (large content), fetch it
+        if (!rawContent && cloud.rawContentUrl) {
+          try {
+            const res = await fetch(cloud.rawContentUrl);
+            rawContent = await res.text();
+          } catch {}
+        }
+
+        // 3b. Fallback: extract from last assistant message with rawContent
+        if (!rawContent && safe.length > 0) {
+          const last = safe.filter(m => m.role === 'assistant' && m.rawContent).pop();
+          rawContent = last?.rawContent || null;
+        }
+
+        // 3c. Last resort: local localStorage
+        if (!rawContent) {
+          rawContent = localStorage.getItem(`fiche_${conversationId}`);
+        }
+
+        if (rawContent) {
+          setFicheContent(rawContent);
+          localStorage.setItem(`fiche_${conversationId}`, rawContent);
+        }
+      } else {
+        // Cloud failed — rely entirely on local data
+        if (localMsgs.length > 0) {
+          const last = localMsgs.filter(m => m.role === 'assistant' && m.rawContent).pop();
+          if (last?.rawContent && !localFiche) {
             setFicheContent(last.rawContent);
             localStorage.setItem(`fiche_${conversationId}`, last.rawContent);
-          } else {
-            const stored = localStorage.getItem(`fiche_${conversationId}`);
-            if (stored) setFicheContent(stored);
           }
         }
       }
+
       setIsLoadingConversation(false);
     };
+
     loadConv();
   }, [conversationId]);
 
