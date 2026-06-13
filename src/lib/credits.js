@@ -76,13 +76,23 @@ export async function checkAndRenewCredits(user) {
   return { ...user, credits_balance: newBalance, credits_reset_at: nextReset };
 }
 
-// ── Deduct credits (overdraft allowed) — returns updated balance ─
+// ── Deduct credits (overdraft allowed) — authoritative DB mutation ─
+// Fetches the LIVE balance from the server before deducting to prevent
+// race conditions and stale-state drift between sessions.
 export async function deductCredits(user, cost) {
   if (!user || user.role === 'admin') return user;
-  const current = user.credits_balance ?? FREE_PLAN_CREDITS;
+  // Re-fetch the latest user state to get the real server-side balance
+  let liveUser = user;
+  try {
+    liveUser = await base44.auth.me();
+  } catch {
+    // Fall back to passed-in user if me() fails
+    liveUser = user;
+  }
+  const current = typeof liveUser.credits_balance === 'number' ? liveUser.credits_balance : FREE_PLAN_CREDITS;
   const newBalance = current - cost;
   await base44.auth.updateMe({ credits_balance: newBalance });
-  return { ...user, credits_balance: newBalance };
+  return { ...liveUser, credits_balance: newBalance };
 }
 
 // ── Format next renewal date for display ────────────────────────

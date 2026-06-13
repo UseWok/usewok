@@ -1013,35 +1013,54 @@ export default function ChatPage() {
 
               
 
-              {/* Refresh: thin progress line at top, light blur only */}
+              {/* Refresh: blur overlay + centered top loader — content stays visible */}
               <AnimatePresence>
                 {isRefreshingPreview && (
                   <>
-                    {/* subtle blur overlay, no gray tint */}
+                    {/* Backdrop blur — content remains fully visible underneath */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
+                      transition={{ duration: 0.18 }}
                       style={{
                         position: 'absolute', inset: 0, zIndex: 50,
-                        backdropFilter: 'blur(2px)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        background: 'rgba(31,31,31,0.18)',
                         borderRadius: 10, pointerEvents: 'none',
                       }}
                     />
-                    {/* progress line */}
+                    {/* Centered top loader — orange arc spinner */}
                     <motion.div
-                      initial={{ scaleX: 0, originX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18 }}
                       style={{
-                        position: 'absolute', top: 0, left: 0, right: 0,
-                        height: 2, background: '#F95738',
-                        zIndex: 51, borderRadius: '0 2px 2px 0',
+                        position: 'absolute', top: 18, left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 52,
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        background: 'rgba(20,20,20,0.82)',
+                        border: '1px solid rgba(249,87,56,0.25)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: 999,
+                        padding: '7px 14px 7px 10px',
                         pointerEvents: 'none',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
                       }}
-                    />
+                    >
+                      {/* Spinning arc */}
+                      <svg width="14" height="14" viewBox="0 0 14 14" style={{ animation: 'refresh-spin 0.75s linear infinite', flexShrink: 0 }}>
+                        <circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(249,87,56,0.2)" strokeWidth="2" />
+                        <path d="M 7 1.5 A 5.5 5.5 0 0 1 12.5 7" fill="none" stroke="#F95738" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: '#e0e0e0', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>
+                        Refreshing
+                      </span>
+                    </motion.div>
+                    <style>{`@keyframes refresh-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
                   </>
                 )}
               </AnimatePresence>

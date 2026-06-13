@@ -1,7 +1,6 @@
 /**
- * ThinkingUI — Premium "Thinking" component (Claude/Lovable style)
- * Shows a vertical animated task list while the AI works,
- * then collapses into the specific French final summary.
+ * ThinkingUI — Premium startup-grade thinking state
+ * Halo → contextual action phrases → clean minimal design
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,152 +8,145 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// ── Keyframes injected once ──
-let _injected = false;
-function injectStyles() {
-  if (_injected) return; _injected = true;
+// Contextual action phrases — short, real, dynamic
+const THINKING_PHASES = [
+  { label: 'Reading your request', accent: '#9CA3AF' },
+  { label: 'Choosing layout', accent: '#A78BFA' },
+  { label: 'Structuring components', accent: '#60A5FA' },
+  { label: 'Crafting interactions', accent: '#34D399' },
+  { label: 'Refining visuals', accent: '#F59E0B' },
+  { label: 'Finalising output', accent: '#F97316' },
+];
+
+// Inject keyframes once
+let _ki = false;
+function injectKF() {
+  if (_ki) return; _ki = true;
   const s = document.createElement('style');
   s.textContent = `
-    @keyframes th-slide { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes th-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.45;transform:scale(0.85)} }
-    @keyframes th-spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
-    @keyframes th-glow  { 0%,100%{box-shadow:0 0 0 0 rgba(249,87,56,0)} 50%{box-shadow:0 0 0 4px rgba(249,87,56,0.18)} }
-    @keyframes th-shimmer { 0%{background-position:-300px 0} 100%{background-position:300px 0} }
-    @keyframes th-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes th-halo-pulse {
+      0%,100% { opacity: 0.4; transform: scale(1); }
+      50%      { opacity: 0.12; transform: scale(1.35); }
+    }
+    @keyframes th-halo-inner {
+      0%,100% { opacity: 0.7; transform: scale(1); }
+      50%      { opacity: 0.3; transform: scale(1.12); }
+    }
+    @keyframes th-spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes th-spin-rev  { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+    @keyframes th-cursor    { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes th-slide-up  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes th-fade-in   { from{opacity:0} to{opacity:1} }
   `;
   document.head.appendChild(s);
 }
 
-// ── Task steps shown during thinking ──
-const TASK_STEPS = [
-  'Analysing the request structure…',
-  'Mapping component architecture…',
-  'Resolving layout dependencies…',
-  'Generating UI logic…',
-  'Optimising styles and tokens…',
-  'Finalising component tree…',
-];
-
-// ── Active dot: glowing orange spinner ──
-function ActiveDot() {
+// ── Animated halo orb ──
+function HaloOrb({ accent }) {
   return (
-    <span style={{
-      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-      border: '2px solid rgba(249,87,56,0.5)',
-      borderTopColor: '#F95738',
-      animation: 'th-spin 0.7s linear infinite, th-glow 1.4s ease-in-out infinite',
-      display: 'inline-block',
-    }} />
+    <div style={{ position: 'relative', width: 32, height: 32, flexShrink: 0 }}>
+      {/* Outer ring pulse */}
+      <div style={{
+        position: 'absolute', inset: -6, borderRadius: '50%',
+        border: `1.5px solid ${accent}`,
+        animation: 'th-halo-pulse 2s ease-in-out infinite',
+        opacity: 0.3,
+      }} />
+      {/* Inner ring */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '50%',
+        border: `1.5px solid rgba(255,255,255,0.2)`,
+        animation: 'th-halo-inner 2s ease-in-out infinite',
+      }} />
+      {/* Core dot */}
+      <div style={{
+        position: 'absolute', inset: '30%',
+        borderRadius: '50%',
+        background: accent,
+        boxShadow: `0 0 8px ${accent}80`,
+      }} />
+    </div>
   );
 }
 
-// ── Done dot: solid green ──
-function DoneDot() {
-  return (
-    <span style={{
-      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-      background: '#22C55E', display: 'inline-block',
-      boxShadow: '0 0 0 2px rgba(34,197,94,0.15)',
-    }} />
-  );
-}
-
-// ── Pending dot: dim grey ──
-function PendingDot() {
-  return (
-    <span style={{
-      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-      background: '#2A2A2A', border: '1px solid #333',
-      display: 'inline-block',
-    }} />
-  );
-}
-
-// ── Live stream of thinking text ──
+// ── Live thinking stream ──
 export function ThinkingStream({ text }) {
-  useEffect(() => { injectStyles(); }, []);
+  useEffect(() => { injectKF(); }, []);
 
-  const [activeStep, setActiveStep] = useState(0);
-  const stepTimerRef = useRef(null);
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  const [prevIdx, setPrevIdx] = useState(null);
+  const intervalRef = useRef(null);
 
-  // Advance task step every ~1.1s while streaming
   useEffect(() => {
-    stepTimerRef.current = setInterval(() => {
-      setActiveStep(prev => (prev < TASK_STEPS.length - 1 ? prev + 1 : prev));
-    }, 1100);
-    return () => clearInterval(stepTimerRef.current);
+    intervalRef.current = setInterval(() => {
+      setPhaseIdx(prev => {
+        if (prev < THINKING_PHASES.length - 1) {
+          setPrevIdx(prev);
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 1400);
+    return () => clearInterval(intervalRef.current);
   }, []);
 
+  const phase = THINKING_PHASES[phaseIdx];
+
   return (
-    <div style={{ animation: 'th-slide 180ms ease-out both', fontFamily: 'Inter, sans-serif' }}>
-      {/* Header label */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-        <span style={{
-          width: 6, height: 6, borderRadius: '50%', background: '#F95738',
-          animation: 'th-pulse 1.2s ease-in-out infinite', display: 'inline-block', flexShrink: 0,
-        }} />
-        <span style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-          background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #B0BEC5 50%, #9CA3AF 70%, #6B7280 100%)',
-          backgroundSize: '300px 100%',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          animation: 'th-shimmer 2s linear infinite',
-        }}>
-          Thinking
-        </span>
+    <div style={{ animation: 'th-slide-up 200ms ease-out both', fontFamily: 'Inter, sans-serif' }}>
+      {/* Halo + current phrase */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+        <HaloOrb accent={phase.accent} />
+        <div style={{ overflow: 'hidden' }}>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={phaseIdx}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                display: 'block',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#ffffff',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {phase.label}
+              <span style={{
+                display: 'inline-block', width: 2, height: 13, background: phase.accent,
+                borderRadius: 1, marginLeft: 3, verticalAlign: 'middle',
+                animation: 'th-cursor 1s ease-in-out infinite',
+              }} />
+            </motion.span>
+          </AnimatePresence>
+        </div>
       </div>
 
-      {/* Task list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {TASK_STEPS.map((step, i) => {
-          const isDone = i < activeStep;
-          const isActive = i === activeStep;
-          const isPending = i > activeStep;
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: isPending ? 0.28 : 1, y: 0 }}
-              transition={{ duration: 0.2, delay: i * 0.06 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 9 }}
-            >
-              {isDone && <DoneDot />}
-              {isActive && <ActiveDot />}
-              {isPending && <PendingDot />}
-              <span style={{
-                fontSize: 12,
-                fontWeight: isActive ? 500 : 400,
-                color: isDone ? '#555' : isActive ? '#E0E0E0' : '#333',
-                lineHeight: 1.4,
-                fontFamily: 'Inter, sans-serif',
-                transition: 'color 200ms',
-              }}>
-                {step}
-              </span>
-              {/* 1-sentence live thought for active step */}
-              {isActive && text?.trim() && (
-                <span style={{
-                  fontSize: 11, color: '#555', fontStyle: 'italic', marginLeft: 4,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180,
-                }}>
-                  — {text.trim().split('\n')[0].slice(0, 60)}
-                  <span style={{ display: 'inline-block', width: 5, height: 10, background: '#444', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'th-cursor 1s ease-in-out infinite' }} />
-                </span>
-              )}
-            </motion.div>
-          );
-        })}
+      {/* Phase dots — minimal progress */}
+      <div style={{ display: 'flex', gap: 5, paddingLeft: 44 }}>
+        {THINKING_PHASES.map((p, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              width: i === phaseIdx ? 16 : 4,
+              background: i < phaseIdx ? '#374151' : i === phaseIdx ? p.accent : '#1F2937',
+              opacity: i > phaseIdx ? 0.35 : 1,
+            }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            style={{ height: 4, borderRadius: 99 }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-// ── Collapsible accordion shown after generation ──
+// ── Collapsible accordion after generation ──
 export function ThinkingAccordion({ thinkingText }) {
   const [isOpen, setIsOpen] = useState(false);
-  useEffect(() => { injectStyles(); }, []);
-
+  useEffect(() => { injectKF(); }, []);
   if (!thinkingText) return null;
 
   return (

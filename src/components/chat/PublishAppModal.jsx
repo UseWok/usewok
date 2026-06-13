@@ -97,6 +97,16 @@ export default function PublishAppModal({
       setLiveUrl(shareUrl);
       if (onUpdateSettings) await onUpdateSettings({ ...(appSettings || {}), isPublic: true });
       toast.success('✓ App is live: ' + shareUrl);
+
+      // ── Trigger background screenshot capture (non-blocking) ──
+      // Calls the regeneratePublicApp backend function which visits the public URL,
+      // captures a screenshot, and persists it as thumbnail_url on the Conversation record.
+      const publicUrl = shareUrl;
+      base44.functions.invoke('regeneratePublicApp', {
+        conv_id: convId,
+        public_url: publicUrl,
+        capture_screenshot: true,
+      }).catch(() => {/* silent — screenshot is best-effort */});
     } catch (err) {
       console.error('Publish error:', err);
       toast.error(`Publish failed: ${err.message}`);
