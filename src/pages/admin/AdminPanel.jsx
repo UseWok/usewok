@@ -13,6 +13,7 @@ import AdminOverviewPage from '@/pages/admin/AdminOverviewPage';
 import AdminMessagingPage from '@/pages/admin/AdminMessagingPage';
 import AdminAnalyticsPage from '@/pages/admin/AdminAnalyticsPage';
 import AdminFeatureFlagsPage from '@/pages/admin/AdminFeatureFlagsPage';
+import AdminInboxPage from '@/pages/admin/AdminInboxPage';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export default function AdminPanel() {
         <Routes>
           <Route path="/" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/overview" element={<AdminOverviewPage />} />
+          <Route path="/inbox" element={<AdminInboxPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/roles" element={<UserRolesPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />

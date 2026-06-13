@@ -1,19 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, CreditCard, Tag, FileText, Settings, MessageSquare, BarChart2, Flag } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, CreditCard, Tag, FileText, Settings, MessageSquare, BarChart2, Flag, Inbox } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
 
 const navItems = [
-  { label: 'Overview', path: '/admin/overview', icon: LayoutDashboard },
-  { label: 'Users', path: '/admin/users', icon: Users },
-  { label: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard },
-  { label: 'Plans', path: '/admin/subscriptions/plans', icon: Tag },
-  { label: 'Access Codes', path: '/admin/codes', icon: Tag },
-  { label: 'Messaging', path: '/admin/messaging', icon: MessageSquare },
-  { label: 'Analytics', path: '/admin/analytics', icon: BarChart2 },
-  { label: 'Feature Flags', path: '/admin/flags', icon: Flag },
-  { label: 'Logs', path: '/admin/logs', icon: FileText },
-  { label: 'Settings', path: '/admin/settings', icon: Settings },
+  { label: 'Overview',     path: '/admin/overview',       icon: LayoutDashboard },
+  { label: 'Inbox',        path: '/admin/inbox',          icon: Inbox,         badge: true },
+  { label: 'Users',        path: '/admin/users',          icon: Users },
+  { label: 'Subscriptions',path: '/admin/subscriptions',  icon: CreditCard },
+  { label: 'Plans',        path: '/admin/subscriptions/plans', icon: Tag },
+  { label: 'Access Codes', path: '/admin/codes',          icon: Tag },
+  { label: 'Messaging',    path: '/admin/messaging',      icon: MessageSquare, badge: true },
+  { label: 'Analytics',    path: '/admin/analytics',      icon: BarChart2 },
+  { label: 'Feature Flags',path: '/admin/flags',          icon: Flag },
+  { label: 'Logs',         path: '/admin/logs',           icon: FileText },
+  { label: 'Settings',     path: '/admin/settings',       icon: Settings },
 ];
 
 export default function AdminSidebar({ user, unreadCount = 0 }) {
@@ -55,6 +56,11 @@ export default function AdminSidebar({ user, unreadCount = 0 }) {
                 <Icon size={15} />
                 {label}
                 {label === 'Messaging' && unreadCount > 0 && (
+                  <span style={{ marginLeft: 'auto', background: '#E8184A', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px', minWidth: 18, textAlign: 'center' }}>
+                    {unreadCount}
+                  </span>
+                )}
+                {label === 'Inbox' && unreadCount > 0 && (
                   <span style={{ marginLeft: 'auto', background: '#E8184A', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px', minWidth: 18, textAlign: 'center' }}>
                     {unreadCount}
                   </span>

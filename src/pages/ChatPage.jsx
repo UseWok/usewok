@@ -35,6 +35,7 @@ import MorePanel from '@/components/chat/MorePanel';
 import LogsPanel from '@/components/chat/LogsPanel.jsx';
 import { appendLog } from '@/components/chat/LogsPanel.jsx';
 import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
+import { secureDeductCredits, isUserBanned } from '@/lib/credit-engine';
 import { getBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
 
 
@@ -199,11 +200,18 @@ export default function ChatPage() {
     return unsub;
   }, []);
 
-  // ── Credits helper (new engine) ──
-  const handleUpdateCredits = async (cost) => {
+  // ── Credits helper — secure engine with idempotency ──
+  const handleUpdateCredits = async (cost, idempotencyKey) => {
     if (!user) return;
-    const updatedUser = await deductCredits(user, cost);
-    setUser(updatedUser);
+    try {
+      const updatedUser = await secureDeductCredits(user, cost, idempotencyKey);
+      if (updatedUser) setUser(updatedUser);
+    } catch (err) {
+      if (err.message?.startsWith('ACCOUNT_BANNED')) {
+        toast.error('Your account has been suspended. Contact support.');
+        base44.auth.logout('/');
+      }
+    }
   };
 
   // ── Persist discussion to local cache + cloud ──
@@ -304,9 +312,15 @@ export default function ChatPage() {
   const sendMessage = useCallback(async (text, options = {}) => {
     if ((!text?.trim() && !options.files?.length) || isLoading) return;
 
+    // ── Ban check (server-authoritative) ──
+    if (isUserBanned(user)) {
+      toast.error('Your account has been suspended. Contact support.');
+      return;
+    }
+
     // ── Credit lockout check ──
     if (isUserLocked(user)) {
-      toast.error("Crédits épuisés. Renouvellement dans quelques jours.");
+      toast.error("Credits exhausted. Renewal in a few days.");
       return;
     }
 
@@ -514,9 +528,10 @@ export default function ChatPage() {
         ? thinkingBlock + '\n\n' + (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent)
         : (formattedInsight ? chatDisplayContent + '\n\n' + formattedInsight : chatDisplayContent);
 
-      // ── Deduct credits based on mode + action type ──
+      // ── Deduct credits — secure, irreversible, idempotent ──
       const cost = computeCreditCost(buildMode, isModification);
-      await handleUpdateCredits(cost);
+      const iKey = `build_${convId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      await handleUpdateCredits(cost, iKey);
 
       if (!isModification && !discussMode && user) {
         const newCount = (user.project_count || 0) + 1;

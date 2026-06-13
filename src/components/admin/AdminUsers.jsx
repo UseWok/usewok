@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, ChevronUp, ChevronDown, ChevronsUpDown,
   Shield, User, MoreHorizontal, Ban, Trash2, Edit,
-  ChevronLeft, ChevronRight, X, Check
+  ChevronLeft, ChevronRight, X, Check, ShieldOff
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const PAGE_SIZE = 10;
 
@@ -25,13 +26,14 @@ function TierBadge({ role }) {
   );
 }
 
-function StatusDot({ disabled }) {
+function StatusDot({ disabled, banned }) {
+  const label = banned ? 'Banned' : disabled ? 'Suspended' : 'Active';
+  const color = banned ? 'bg-amber-400' : disabled ? 'bg-rose-400' : 'bg-emerald-400';
+  const textColor = banned ? 'text-amber-400' : disabled ? 'text-rose-400' : 'text-emerald-400';
   return (
     <div className="flex items-center gap-1.5">
-      <div className={`w-1.5 h-1.5 rounded-full ${disabled ? 'bg-rose-400' : 'bg-emerald-400'}`} />
-      <span className={`text-xs ${disabled ? 'text-rose-400' : 'text-emerald-400'}`}>
-        {disabled ? 'Suspended' : 'Active'}
-      </span>
+      <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
+      <span className={`text-xs ${textColor}`}>{label}</span>
     </div>
   );
 }
@@ -100,6 +102,19 @@ export default function AdminUsers() {
     await base44.entities.User.update(userId, { disabled: !currentDisabled });
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, disabled: !currentDisabled } : u));
     setOpenMenuId(null);
+  };
+
+  const handleBan = async (userId, currentBanned) => {
+    const action = currentBanned ? 'unban' : 'ban';
+    if (!confirm(`Are you sure you want to ${action} this user? This will ${currentBanned ? 'restore' : 'permanently block'} their access.`)) return;
+    await base44.entities.User.update(userId, {
+      banned: !currentBanned,
+      disabled: !currentBanned,
+      ban_date: !currentBanned ? new Date().toISOString() : null,
+    });
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, banned: !currentBanned, disabled: !currentBanned } : u));
+    setOpenMenuId(null);
+    toast.success(currentBanned ? 'User unbanned' : 'User permanently banned');
   };
 
   const handleDelete = async (userId) => {
@@ -239,7 +254,7 @@ export default function AdminUsers() {
                       </td>
                       {/* Status */}
                       <td className="px-5 py-4">
-                        <StatusDot disabled={user.disabled} />
+                        <StatusDot disabled={user.disabled} banned={user.banned} />
                       </td>
                       {/* Actions */}
                       <td className="px-5 py-4 relative">
@@ -259,18 +274,25 @@ export default function AdminUsers() {
                               className="absolute right-4 top-12 z-50 bg-[#1a1b24] border border-white/10 rounded-xl shadow-xl py-1 w-44"
                             >
                               <button
-                                onClick={() => handleSuspend(user.id, user.disabled)}
-                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors"
+                               onClick={() => handleSuspend(user.id, user.disabled)}
+                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors"
                               >
-                                <Ban className="w-3.5 h-3.5" />
-                                {user.disabled ? 'Reactivate' : 'Suspend'}
+                               <Ban className="w-3.5 h-3.5" />
+                               {user.disabled ? 'Reactivate' : 'Suspend'}
                               </button>
                               <button
-                                onClick={() => { setConfirmDelete(user); setOpenMenuId(null); }}
-                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                               onClick={() => handleBan(user.id, user.banned)}
+                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-400 hover:bg-amber-500/10 transition-colors"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Delete User
+                               <ShieldOff className="w-3.5 h-3.5" />
+                               {user.banned ? 'Unban User' : 'Permanent Ban'}
+                              </button>
+                              <button
+                               onClick={() => { setConfirmDelete(user); setOpenMenuId(null); }}
+                               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                              >
+                               <Trash2 className="w-3.5 h-3.5" />
+                               Delete User
                               </button>
                             </motion.div>
                           )}

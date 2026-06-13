@@ -4,31 +4,81 @@
   "properties": {
     "role": {
       "type": "string",
-      "title": "Role",
       "enum": [
         "admin",
         "user"
       ],
       "default": "user"
     },
-    "is_blocked": {
+    "subscription_plan": {
+      "type": "string",
+      "title": "Subscription Plan",
+      "default": "free"
+    },
+    "subscription_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Subscription Start Date"
+    },
+    "subscription_expires_at": {
+      "type": "string",
+      "format": "date",
+      "title": "Subscription Expiry Date"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ],
+      "title": "Billing Cycle",
+      "default": "monthly"
+    },
+    "subscription_source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "code",
+        "payment"
+      ],
+      "title": "Subscription Source"
+    },
+    "credits_balance": {
+      "type": "number",
+      "title": "Credits Balance (App Credits)",
+      "default": 150000
+    },
+    "credits_reset_at": {
+      "type": "string",
+      "title": "Credits Reset Date"
+    },
+    "project_count": {
+      "type": "number",
+      "title": "Project Count",
+      "default": 0
+    },
+    "banned": {
       "type": "boolean",
-      "title": "Blocked",
+      "title": "Banned",
       "default": false
     },
-    "last_ip": {
+    "ban_reason": {
       "type": "string",
-      "title": "Last Known IP"
+      "title": "Ban Reason",
+      "maxLength": 500
     },
-    "generations_count": {
-      "type": "number",
-      "title": "Total Generations",
-      "default": 0
+    "ban_date": {
+      "type": "string",
+      "title": "Ban Date"
     },
-    "security_violations": {
-      "type": "number",
-      "title": "Security Violations",
-      "default": 0
+    "banned_by": {
+      "type": "string",
+      "title": "Banned By (Admin User ID)"
+    },
+    "disabled": {
+      "type": "boolean",
+      "title": "Suspended",
+      "default": false
     }
   }
 }
