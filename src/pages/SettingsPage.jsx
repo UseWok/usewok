@@ -198,6 +198,37 @@ export default function SettingsPage() {
     { id: 'usage', label: 'Utilisation', icon: Zap },
   ];
 
+  if (!user) return (
+    <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>
+        {/* Header skeleton */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A' }} />
+          <div style={{ width: 110, height: 20, borderRadius: 6, background: '#2A2A2A' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 32 }}>
+          {/* Nav skeleton */}
+          <div style={{ width: 180, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[120, 150, 100].map((w, i) => (
+              <div key={i} style={{ height: 36, borderRadius: 8, background: '#1A1A1A', width: '100%', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: 'sk 1.4s ease-in-out infinite' }} />
+              </div>
+            ))}
+          </div>
+          {/* Content skeleton */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ height: 52, borderRadius: 8, background: '#141414', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.1}s infinite` }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <style>{`@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>

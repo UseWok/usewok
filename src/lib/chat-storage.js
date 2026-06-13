@@ -101,26 +101,20 @@ export async function syncToCloud(convId, messages, meta = {}) {
  */
 export async function loadFromCloud(convId) {
   try {
-    let me = null;
-    try { me = await base44.auth.me(); } catch {}
+    // SECURITY: only load conversations belonging to the authenticated user
+    const me = await base44.auth.me();
+    if (!me?.id) return null;
 
-    let record = null;
+    const results = await base44.entities.Conversation.filter({ conv_id: convId });
+    if (results.length === 0) return null;
 
-    if (me?.email) {
-      const results = await base44.entities.Conversation.filter({ conv_id: convId });
-      if (results.length > 0) record = results[0];
-    }
+    const record = results[0];
 
-    if (!record) {
-      // fallback: public
-      const pub = await base44.entities.Conversation.filter({ conv_id: convId, is_public: true });
-      if (pub.length > 0) record = pub[0];
-    }
-
-    if (!record) return null;
+    // Double-check ownership (RLS should already enforce this, but belt-and-suspenders)
+    if (record.created_by_id && record.created_by_id !== me.id) return null;
 
     const messages = record.messages_json ? JSON.parse(record.messages_json) : [];
-    const rawContent = record.raw_content || record.description || null;
+    const rawContent = record.raw_content || null;
     const rawContentUrl = record.raw_content_url || null;
 
     return { messages, rawContent, rawContentUrl, title: record.title, is_public: record.is_public };
@@ -137,8 +131,9 @@ export async function loadFromCloud(convId) {
 export async function loadDiscussionsFromCloud() {
   try {
     const me = await base44.auth.me();
-    if (!me?.email) return [];
-    const results = await base44.entities.Conversation.list('-updated_date', 100);
+    if (!me?.id) return [];
+    // SECURITY: filter strictly by current user's id
+    const results = await base44.entities.Conversation.filter({ created_by_id: me.id }, '-updated_date', 100);
     return results
       .filter(r => r.conv_id) // only valid conversations
       .map(r => ({

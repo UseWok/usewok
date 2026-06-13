@@ -90,6 +90,27 @@ export default function SupportPage() {
 
   if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
 
+  // Skeleton while user loads
+  if (!user && loading) return (
+    <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A' }} />
+            <div style={{ width: 90, height: 20, borderRadius: 6, background: '#2A2A2A' }} />
+          </div>
+          <div style={{ width: 120, height: 34, borderRadius: 8, background: '#2A2A2A' }} />
+        </div>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ height: 70, borderRadius: 10, background: '#141414', border: '1px solid #2A2A2A', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
+          </div>
+        ))}
+      </div>
+      <style>{`@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    </div>
+  );
+
   if (chatTicket) {
     return (
       <ChatPanel

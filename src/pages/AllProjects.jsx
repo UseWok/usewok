@@ -3,6 +3,7 @@ import { Search, MessageSquare, Trash2, Pencil, MoreHorizontal, ArrowLeft } from
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
+import { loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 
 import { getDiscussions, saveDiscussions } from '@/lib/discussions';
 const PURPLE = '#3A0088';
@@ -16,10 +17,32 @@ const MODE_COLORS = {
   Expert: { bg: '#DDFF00', text: FG },
 };
 
+function CardSkeleton() {
+  return (
+    <div style={{ background: '#242424', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.06)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out infinite' }} />
+        </div>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.04)' }} />
+      </div>
+      <div style={{ height: 13, width: '75%', borderRadius: 4, background: 'rgba(255,255,255,0.07)', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out 0.1s infinite' }} />
+      </div>
+      <div style={{ height: 11, width: '55%', borderRadius: 4, background: 'rgba(255,255,255,0.04)', marginBottom: 16, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s ease-in-out 0.2s infinite' }} />
+      </div>
+      <div style={{ height: 10, width: '35%', borderRadius: 3, background: 'rgba(255,255,255,0.04)' }} />
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    </div>
+  );
+}
+
 export default function AllProjects() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [discussions, setDiscussions] = useState(getDiscussions);
+  const [discussions, setDiscussions] = useState(() => getDiscussions());
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
   const [renaming, setRenaming] = useState(null);
@@ -34,6 +57,16 @@ export default function AllProjects() {
     const h = (e) => { if (contextRef.current && !contextRef.current.contains(e.target)) setContextMenu(null); };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  useEffect(() => {
+    loadDiscussionsFromCloud().then(cloud => {
+      if (cloud.length > 0) {
+        setDiscussions(cloud);
+        saveLocalDiscussions('default', cloud);
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const openCtx = (e, id) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ id, x: e.clientX, y: e.clientY }); };
@@ -70,7 +103,10 @@ export default function AllProjects() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filtered.map((disc) => {
+            {loading ? (
+              Array.from({ length: 9 }).map((_, i) => <CardSkeleton key={i} />)
+            ) : null}
+            {!loading && filtered.map((disc) => {
               const modelStyle = MODE_COLORS[disc.model] || MODE_COLORS.Fast;
               return (
                 <motion.div key={disc.id} layout
@@ -109,11 +145,10 @@ export default function AllProjects() {
                 </motion.div>
               );
             })}
+            {!loading && filtered.length === 0 && (
+              <div className="col-span-3 text-center py-16 text-sm" style={{ color: '#bbb' }}>{t('no_discussions')}</div>
+            )}
           </div>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-sm" style={{ color: '#bbb' }}>{t('no_discussions')}</div>
-          )}
         </motion.div>
       </div>
 

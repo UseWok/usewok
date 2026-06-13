@@ -858,6 +858,18 @@ export default function ChatPage() {
                 <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '6px 0 0 0' }}>
                   <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
                 </div>
+              ) : isLoadingConversation ? (
+                <div style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'hidden' }}>
+                  {[120, 220, 90, 180, 140].map((w, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, justifyContent: i % 2 === 0 ? 'flex-start' : 'flex-end' }}>
+                      {i % 2 === 0 && <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#2A2A2A', flexShrink: 0 }} />}
+                      <div style={{ height: 40, width: w, maxWidth: '70%', borderRadius: 12, background: '#2A2A2A', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: `chatsk 1.4s ease-in-out ${i*0.15}s infinite` }} />
+                      </div>
+                    </div>
+                  ))}
+                  <style>{`@keyframes chatsk{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+                </div>
               ) : (
                 <>
                   <MessageList
@@ -1005,9 +1017,14 @@ export default function ChatPage() {
                 <PreviewLoadingFeature />
               ) : isLoading ? (
                 <PreviewSkeleton />
+              ) : isLoadingConversation ? (
+                <PreviewSkeleton />
               ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <p style={{ fontSize: 13, color: '#CCCCCC', fontFamily: 'Inter, sans-serif' }}>Preview</p>
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#fafaf9' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f0ede8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#bbb', fontFamily: 'Inter, sans-serif', margin: 0 }}>Start a conversation to see the preview</p>
                 </div>
               )}
             </motion.div>
