@@ -157,6 +157,8 @@ export default function ChatPage() {
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
   const [iframeModal, setIframeModal] = useState({ open: false, url: '' });
   const [showHistory, setShowHistory] = useState(false);
+  const [showChatTitleMenu, setShowChatTitleMenu] = useState(false);
+  const chatTitleRef = useRef(null);
 
   // ── Chat state ──
   const [messages, setMessages] = useState(() => {
@@ -756,16 +758,33 @@ export default function ChatPage() {
                 position: 'relative', zIndex: 10,
                 background: 'transparent',
               }}>
-                {/* WOK logo + project name — mirrors ChatHeader left section */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {/* WOK logo + project name — clickable opens sidebar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, position: 'relative' }} ref={chatTitleRef}>
                   <img
                     src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png"
                     alt="WOK"
                     style={{ width: 36, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }}
                   />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
-                    {appSettings?.title || 'My App'}
-                  </span>
+                  <button
+                    onClick={() => setIsSidebarOpen(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      height: 28, padding: '0 7px', border: 'none',
+                      background: 'transparent', cursor: 'pointer', borderRadius: 6,
+                      fontSize: 13, fontWeight: 500, color: '#ccc',
+                      fontFamily: 'Inter, sans-serif', maxWidth: 180,
+                      transition: 'background 120ms, color 120ms',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#2A2A2A'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ccc'; }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {appSettings?.title || 'My App'}
+                    </span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: '#555' }}>
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
                 </div>
 
                 {/* History (clock) — top right of chat */}
