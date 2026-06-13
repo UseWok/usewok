@@ -48,7 +48,23 @@ export default function AdminPanel() {
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0D0D0D', fontFamily: 'Inter, sans-serif' }}>
       <AdminSidebar user={user} unreadCount={unreadCount} />
-      <main style={{ flex: 1, overflowY: 'auto', background: '#0D0D0D' }}>
+      <main style={{ flex: 1, overflowY: 'auto', background: '#0D0D0D', position: 'relative' }}>
+        {/* Back to app button */}
+        <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 50 }}>
+          <button
+            onClick={() => navigate('/app')}
+            style={{
+              padding: '6px 14px', borderRadius: 7, border: '1px solid #2A2A2A',
+              background: '#1A1A1A', color: '#888', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              transition: 'border-color 120ms, color 120ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#ccc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = '#888'; }}
+          >
+            ← App
+          </button>
+        </div>
         <Routes>
           <Route path="/" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/overview" element={<AdminOverviewPage />} />

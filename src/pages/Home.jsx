@@ -306,6 +306,25 @@ export default function Home() {
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
+      {/* ── Admin button — top-right, only for admins ── */}
+      {user?.role === 'admin' && (
+        <div style={{ position: 'fixed', top: 14, right: 16, zIndex: 100 }}>
+          <button
+            onClick={() => navigate('/admin')}
+            style={{
+              padding: '6px 14px', borderRadius: 7, border: '1px solid #333',
+              background: '#1A1A1A', color: '#ccc', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              transition: 'border-color 120ms, color 120ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#ccc'; }}
+          >
+            Admin →
+          </button>
+        </div>
+      )}
+
       {/* ── Hero section ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}

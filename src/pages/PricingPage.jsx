@@ -93,9 +93,92 @@ function formatCredits(n) {
   return String(n);
 }
 
+// ── Post-purchase info modal ──
+function PostPurchaseModal({ onClose }) {
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{
+        background: '#111', border: '1px solid #2A2A2A', borderRadius: 12,
+        padding: '32px 28px', width: '100%', maxWidth: 420, position: 'relative',
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#555', padding: 4, display: 'flex' }}>
+          <X size={15} />
+        </button>
+
+        {/* Animated receipt visual */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+          <div style={{ position: 'relative', width: 72, height: 72 }}>
+            {/* Outer ring */}
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              border: '2px solid rgba(249,87,56,0.3)',
+              animation: 'pp-ring 2s ease-in-out infinite',
+            }} />
+            {/* Inner circle */}
+            <div style={{
+              position: 'absolute', inset: 8, borderRadius: '50%',
+              background: 'rgba(249,87,56,0.12)', border: '1px solid rgba(249,87,56,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              animation: 'pp-pulse 2s ease-in-out infinite',
+            }}>
+              <span style={{ fontSize: 24 }}>🎉</span>
+            </div>
+            <style>{`
+              @keyframes pp-ring { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(1.18);opacity:0.15} }
+              @keyframes pp-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+            `}</style>
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.02em' }}>
+          Achat effectué ?
+        </h2>
+        <p style={{ fontSize: 13, color: '#888', textAlign: 'center', lineHeight: 1.6, margin: '0 0 24px' }}>
+          Pour activer votre forfait, rendez-vous dans vos paramètres et entrez le code reçu par email.
+        </p>
+
+        {/* Step visual */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          {[
+            { n: '1', label: 'Aller dans', path: 'Settings → Plan & Facturation' },
+            { n: '2', label: 'Entrer votre', path: 'code d\'activation' },
+            { n: '3', label: 'Votre plan est', path: 'activé instantanément ✓' },
+          ].map(step => (
+            <div key={step.n} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#1A1A1A', borderRadius: 8, border: '1px solid #2A2A2A' }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{step.n}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: 12, color: '#666' }}>{step.label} </span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#ccc' }}>{step.path}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => { onClose(); window.location.href = '/settings'; }}
+          style={{
+            width: '100%', padding: '11px 0', background: '#F95738', border: 'none',
+            borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          Aller dans les paramètres
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PricingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showPostPurchase, setShowPostPurchase] = useState(false);
   const [plans, setPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(true);
 
@@ -111,8 +194,9 @@ export default function PricingPage() {
   });
 
   const handleUpgrade = (plan) => {
+    setShowPostPurchase(true);
     if (plan.checkout_url_monthly?.startsWith('http')) {
-      window.location.href = plan.checkout_url_monthly;
+      setTimeout(() => { window.open(plan.checkout_url_monthly, '_blank'); }, 300);
       return;
     }
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
@@ -127,6 +211,7 @@ export default function PricingPage() {
       overflowX: 'hidden',
     }}>
       {showModal && <ContactModal onClose={() => setShowModal(false)} />}
+      {showPostPurchase && <PostPurchaseModal onClose={() => setShowPostPurchase(false)} />}
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 80px' }}>
 

@@ -97,11 +97,11 @@ export default function BuildToast() {
         >
           <div style={{
             background: '#FFFFFF',
-            border: '1px solid #EBEBEB',
-            borderRadius: 10,
-            padding: '10px 13px',
-            minWidth: 220, maxWidth: 290,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.09)',
+            border: '1px solid #E4E4E4',
+            borderRadius: 8,
+            padding: '12px 16px',
+            minWidth: 240, maxWidth: 300,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
             fontFamily: 'Inter, sans-serif',
             position: 'relative',
           }}>
@@ -172,14 +172,11 @@ export default function BuildToast() {
               </div>
             )}
 
-            {/* Saved: shrinking progress bar */}
+            {/* Saved: simple sub-text, no green bar */}
             {mode === 'saved' && (
-              <motion.div
-                initial={{ scaleX: 1, originX: 0 }}
-                animate={{ scaleX: 0 }}
-                transition={{ duration: 7, ease: 'linear' }}
-                style={{ height: 2, background: '#22C55E', borderRadius: 999, marginTop: 8, opacity: 0.4 }}
-              />
+              <p style={{ fontSize: 11, color: '#AAA', margin: '4px 0 0', paddingLeft: 14, lineHeight: 1.4 }}>
+                Sauvegardé dans l'historique
+              </p>
             )}
           </div>
         </motion.div>
