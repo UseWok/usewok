@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { AnimatePresence } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { Plus, ArrowRight, Star, MoreHorizontal, Pencil, Trash2, X, Check } from 'lucide-react';
-import ChatInputBar from '../components/chat/ChatInputBar';
+import HomeInputWrapper from '../components/home/HomeInputWrapper';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import { loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -117,9 +117,18 @@ const PREVIEW_GRADIENTS = [
   'linear-gradient(135deg, #1a0a14 0%, #2d1520 50%, #4a1930 100%)',
 ];
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; return Math.abs(h); }
-function PreviewPlaceholder({ title, id }) {
+function PreviewPlaceholder({ title, id, thumbnailUrl }) {
   const idx = hashStr(id || title || '') % PREVIEW_GRADIENTS.length;
   const initials = (title || '?').slice(0, 2).toUpperCase();
+
+  if (thumbnailUrl) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        <img src={thumbnailUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'absolute', inset: 0, background: PREVIEW_GRADIENTS[idx], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
       <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.04em' }}>
@@ -171,7 +180,7 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
         {/* Top: 16:9 preview rectangle */}
         <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#141414', borderRadius: 6, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ position: 'absolute', inset: 0 }}>
-            <PreviewPlaceholder title={conv.title} id={conv.id} />
+            <PreviewPlaceholder title={conv.title} id={conv.id} thumbnailUrl={conv.thumbnail_url} />
           </div>
           {/* Star icon — top right, always rendered, opacity toggles (zero layout shift) */}
           <button
@@ -228,6 +237,7 @@ export default function Home() {
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [buildMode, setBuildModeLocal] = useState(() => getBuildMode());
+  const [homeFiles, setHomeFiles] = useState([]);
 
   const setBuildMode = (mode) => { setBuildModeLocal(mode); setGlobalBuildMode(mode); };
   const handleSend = (q) => { const query = q || input; if (!query.trim()) return; navigate(`/chat?q=${encodeURIComponent(query)}`); };
@@ -314,9 +324,16 @@ export default function Home() {
           What should we build, {firstName}?
         </h1>
 
-        {/* Chat input bar */}
+        {/* Chat input bar — HomeInputWrapper adds file attach at top-left of textarea */}
         <div style={{ width: '100%', maxWidth: 640, position: 'relative' }}>
-          <ChatInputBar input={input} setInput={setInput} onSend={(q) => handleSend(q)} isLoading={false} files={[]} setFiles={() => {}} buildMode={buildMode} />
+          <HomeInputWrapper
+            input={input}
+            setInput={setInput}
+            onSend={(q) => handleSend(q)}
+            buildMode={buildMode}
+            files={homeFiles}
+            setFiles={setHomeFiles}
+          />
         </div>
       </div>
 

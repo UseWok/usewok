@@ -19,6 +19,10 @@
       "type": "string",
       "title": "Content File URL"
     },
+    "thumbnail_url": {
+      "type": "string",
+      "title": "Thumbnail Image URL"
+    },
     "is_public": {
       "type": "boolean",
       "title": "Is Public",

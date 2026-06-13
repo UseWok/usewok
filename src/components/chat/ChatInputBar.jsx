@@ -339,6 +339,7 @@ export default function ChatInputBar({
   onUpgrade,
   locked = false,
   buildMode: externalBuildMode,
+  _extraTextareaPaddingLeft = 0,   // used by HomeInputWrapper to offset textarea for the attach button
 }) {
   const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
   useEffect(() => {
@@ -557,7 +558,7 @@ export default function ChatInputBar({
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div style={{ padding: '14px 16px 0' }}>
+              <div style={{ padding: '14px 16px 0', paddingLeft: _extraTextareaPaddingLeft > 0 ? `${_extraTextareaPaddingLeft}px` : '16px' }}>
                 <textarea ref={textareaRef}
                   value={locked ? '' : input}
                   onChange={(e) => { if (!locked) setInput(e.target.value); }}

@@ -60,6 +60,34 @@ import {
 } from '@/lib/ai-orchestrator';
 import { formatCode, splitThinkingFromCode } from '@/lib/code-formatter';
 
+// ── Automated thumbnail generator — fires only for published builds ──
+// Uses gpt-4o-mini to describe the app visually, then GenerateImage to produce a thumbnail.
+// Non-blocking background job. Saves thumbnail_url to the Conversation record.
+async function generateBuildThumbnail(convId, rawContent, appTitle) {
+  try {
+    // Step 1: Ask gpt-4o-mini to describe the app UI for image generation
+    const description = await base44.integrations.Core.InvokeLLM({
+      model: 'gpt_5_mini',
+      prompt: `You are a UI screenshot describer. Given this React component code, write a vivid 1-sentence description of what the rendered UI looks like visually (colors, layout, key elements). Keep it under 80 words, suitable as an image generation prompt.\n\nApp title: "${appTitle}"\n\nCode (first 2000 chars):\n${(rawContent || '').slice(0, 2000)}`,
+    });
+    if (!description || typeof description !== 'string') return;
+
+    // Step 2: Generate thumbnail image
+    const { url: thumbnailUrl } = await base44.integrations.Core.GenerateImage({
+      prompt: `Clean UI screenshot mockup of a web app: ${description.trim()}. Modern, professional, browser window frame, high-res, light background.`,
+    });
+    if (!thumbnailUrl) return;
+
+    // Step 3: Persist thumbnail_url to the conversation record
+    const results = await base44.entities.Conversation.filter({ conv_id: convId });
+    if (results.length > 0) {
+      await base44.entities.Conversation.update(results[0].id, { thumbnail_url: thumbnailUrl });
+    }
+  } catch {
+    // Silent — thumbnail generation is best-effort
+  }
+}
+
 // Placeholder stubs (replace with real implementations when available)
 const COMPONENT_PACKET = {};
 const PROACTIVE_INTELLIGENCE_LAYER = {};
@@ -478,11 +506,14 @@ export default function ChatPage() {
       }
 
       // ── Orchestrated generation ──
+      // ── DYNAMIC AI ROUTING: pass searchActive flag to orchestrator ──
+      // When searchActive=true, orchestrator strictly routes to gemini_3_flash + web search
       const orchResult = await orchestrateGeneration(text, {
         existingCode: isModification ? ficheContent : null,
         userMessageIndex,
         fileUrls: imageUrls2,
         needsWebSearch: false,
+        searchActive: !!(options.searchActive),
         systemPrompt: PROMPT_ARCHITECT,
         buildMode: buildMode,
       });
@@ -553,12 +584,19 @@ export default function ChatPage() {
       saveConversationMessages(convId, finalMsgs);
 
       // ── Hard save to cloud immediately (no fire-and-forget — await to guarantee persistence) ──
+      const isPublished = !!(appSettings?.isPublic);
       await syncToCloud(convId, finalMsgs, {
         title: text.slice(0, 80),
         preview: text.slice(0, 120),
-        is_public: false,
+        is_public: isPublished,
         rawContent: rawContent || null,
       });
+
+      // ── Automated thumbnail: only for published builds, background job (non-blocking) ──
+      if (isPublished && rawContent) {
+        generateBuildThumbnail(convId, rawContent, text.slice(0, 80)).catch(() => {});
+      }
+
       saveToDiscussionsLogic(text.slice(0, 60) || 'New Chat', text);
       if (window.innerWidth < 768 && !discussMode) setMobileView('preview');
 

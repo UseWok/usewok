@@ -286,12 +286,12 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     userMessageIndex = 0,
     fileUrls = [],
     needsWebSearch = false,
+    searchActive = false,   // ← Google Search toggle from ChatInputBar
     systemPrompt = '',
     buildMode = 'Flash',
   } = options;
 
   // ── AUTOMATIC MODE: 80% Flash / 20% Max probability routing ──
-  // UI always shows "Automatic" — internal model selection is invisible to the user
   let resolvedBuildMode = buildMode;
   if (buildMode === 'Automatic') {
     resolvedBuildMode = Math.random() < 0.80 ? 'Flash' : 'Max';
@@ -304,10 +304,14 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     return { code: null, analysis, model: MODELS.FILE_READ };
   }
 
-  // ── Web search ──
-  if (needsWebSearch) {
-    const webResult = await webBrowse(userMessage);
-    return { code: null, webResult, model: MODELS.WEB_BROWSE };
+  // ── DYNAMIC AI ROUTING: Google Search active → strictly use gemini_3_flash with web browsing ──
+  if (searchActive || needsWebSearch) {
+    const webResult = await base44.integrations.Core.InvokeLLM({
+      model: 'gemini_3_flash',
+      prompt: `You are an AI UI builder with real-time web search capability.\n\nUser request: "${userMessage}"\n\nSearch the web for relevant, up-to-date information. Then generate a complete, modern React component (JSX, Tailwind CSS, lucide-react icons only) that fulfills the request using the freshest data available. Return ONLY the raw JSX code — no markdown fences, no explanation.`,
+      add_context_from_internet: true,
+    });
+    return { code: webResult, webResult, model: 'gemini_3_flash', usedWebSearch: true };
   }
 
   const isModification = !!existingCode;

@@ -116,8 +116,9 @@ export async function loadFromCloud(convId) {
     const messages = record.messages_json ? JSON.parse(record.messages_json) : [];
     const rawContent = record.raw_content || null;
     const rawContentUrl = record.raw_content_url || null;
+    const thumbnailUrl = record.thumbnail_url || null;
 
-    return { messages, rawContent, rawContentUrl, title: record.title, is_public: record.is_public };
+    return { messages, rawContent, rawContentUrl, thumbnailUrl, title: record.title, is_public: record.is_public };
   } catch (err) {
     console.error('Cloud load failed:', err);
     return null;
@@ -142,6 +143,7 @@ export async function loadDiscussionsFromCloud() {
         preview: r.preview || '',
         date: r.updated_date?.slice(0, 10) || r.created_date?.slice(0, 10) || '',
         updatedAt: new Date(r.updated_date || r.created_date || Date.now()).getTime(),
+        thumbnail_url: r.thumbnail_url || null,
         emoji: '💬',
       }));
   } catch { return []; }
