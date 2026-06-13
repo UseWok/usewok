@@ -174,42 +174,33 @@ Return JSON:
 }
 
 /**
- * Fixes ONLY the broken section using gpt-4o-mini.
- * Returns the corrected snippet ready to be patched back.
- */
-export async function autofixSection(errorMessage, brokenSection, location, fixHint = '') {
-  const fixPrompt = `You are a surgical React debugger. Fix ONLY the broken section below.
-
-ERROR: ${errorMessage.slice(0, 300)}
-BROKEN_SECTION:
-${brokenSection}
-LOCATION: ${location}
-HINT: ${fixHint}
-
-Return ONLY the corrected snippet. No fences. No explanation. Ready to patch back into the file.`;
-
-  return base44.integrations.Core.InvokeLLM({
-    model: MODELS.FILTER, // automatic = gpt-4o-mini
-    prompt: fixPrompt,
-  });
-}
-
-/**
- * Full surgical autofix pipeline:
- * 1. Extract broken section (gpt-4o-mini)
- * 2. Fix only that section (gpt-4o-mini)
- * 3. Patch back into full code
+ * Full autofix pipeline — sends the COMPLETE code + error to gemini_3_1_pro.
+ * Never tries to patch a tiny section (too fragile). Returns the full fixed component.
  */
 export async function runAutofixPipeline(errorMessage, fullCode) {
-  const extracted = await extractBrokenSection(errorMessage, fullCode);
-  const fixedSection = await autofixSection(
-    errorMessage,
-    extracted.broken_section,
-    extracted.location,
-    extracted.fix_hint || '',
-  );
-  const patched = patchCode(fullCode, extracted.broken_section, fixedSection);
-  return { patched, brokenSection: extracted.broken_section, fixedSection };
+  const fixPrompt = `You are an expert React debugger. A React component has a runtime error. Fix it completely.
+
+RUNTIME ERROR:
+${errorMessage.slice(0, 600)}
+
+FULL COMPONENT CODE:
+${fullCode.slice(0, 12000)}
+
+RULES:
+- Return the COMPLETE fixed component. No partial patches.
+- Keep all existing functionality, layout, and design intact.
+- Fix ONLY what is broken. Do not redesign or rewrite working parts.
+- If a lucide-react icon is missing/crashing: replace with Activity or Zap.
+- If a recharts component crashes: replace with a simpler valid equivalent.
+- Remove any import that references a non-existent package.
+- Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
+
+  const fixed = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.BUILD, // gemini_3_1_pro — capable enough to fix real errors
+    prompt: fixPrompt,
+  });
+
+  return { patched: fixed, brokenSection: null, fixedSection: fixed };
 }
 
 // ─────────────────────────────────────────────
