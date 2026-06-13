@@ -1,108 +1,124 @@
-const PLANS_STORAGE_KEY = 'stensor_plans_v5';
+const PLANS_STORAGE_KEY = 'stensor_plans_v6';
 const DB_PLANS_KEY = 'plans_config';
+
+/**
+ * Plan credit limits — Zero-AI, pure backend values.
+ * Monthly resets triggered by Stripe webhook invoice.paid (no AI tokens used).
+ */
+export const PLAN_CREDIT_LIMITS = {
+  free:     150_000,
+  starter:  1_000_000,
+  creator:  2_500_000,
+  pro:      5_000_000,
+};
+
+/**
+ * Feature flags per plan — enforced at runtime by getPlanFeatures().
+ * Admin can override these per-plan via the admin panel (stored in AppSettings).
+ */
+export const PLAN_FEATURE_FLAGS = {
+  free:    { web_search: false, max_model: false, file_upload: false, concurrent_builds: 1,  daily_burn_cap: 150_000,   white_label: false },
+  starter: { web_search: true,  max_model: false, file_upload: true,  concurrent_builds: 2,  daily_burn_cap: 500_000,   white_label: false },
+  creator: { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 5,  daily_burn_cap: 1_000_000, white_label: false },
+  pro:     { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 10, daily_burn_cap: 5_000_000, white_label: true  },
+};
 
 export const DEFAULT_PLANS = [
   {
     id: 'free',
-    name: 'Gratuit',
+    name: 'Free',
     price_monthly: 0,
     price_yearly: 0,
+    credits_limit: PLAN_CREDIT_LIMITS.free,
     checkout_url_monthly: null,
     checkout_url_yearly: null,
-    features_header: 'Éléments clefs\nComprend :',
+    features_header: 'Included:',
     features: [
-      { text: 'Formulaires de base' },
-      { text: 'Sites de base' },
-      { text: 'Automatisations de base' },
-      { text: 'Bases de données personnalisées' },
-      { text: 'Stensor Calendar' },
-      { text: 'Stensor Mail' }
-    ]
+      { text: '150,000 credits / month' },
+      { text: '1 concurrent build' },
+      { text: 'Standard AI model only' },
+      { text: 'WOK badge on public links' },
+    ],
   },
   {
-    id: 'plus',
-    name: 'Plus',
+    id: 'starter',
+    name: 'Starter',
     price_monthly: 11.50,
     price_yearly: 9.50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_plus_monthly',
-    checkout_url_yearly: 'https://buy.stripe.com/test_plus_yearly',
-    features_header: 'Toutes les fonctionnalités de l’accès gratuit, plus :',
+    credits_limit: PLAN_CREDIT_LIMITS.starter,
+    checkout_url_monthly: 'https://buy.stripe.com/test_starter_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_starter_yearly',
+    features_header: 'Everything in Free, plus:',
     features: [
-      { text: 'Blocs illimités' },
-      { text: 'Graphiques illimités' },
-      { text: 'Formulaires personnalisés' },
-      { text: 'Sites personnalisés' },
-      { text: 'Intégrations de base' }
-    ]
+      { text: '1,000,000 credits / month' },
+      { text: '2 concurrent builds' },
+      { text: 'Web search enabled' },
+      { text: 'File uploads (up to 10MB)' },
+    ],
   },
   {
-    id: 'business',
-    name: 'Business',
-    badge: 'Populaire',
+    id: 'creator',
+    name: 'Creator',
+    badge: 'Popular',
     price_monthly: 23.50,
     price_yearly: 19.50,
-    checkout_url_monthly: 'https://buy.stripe.com/test_business_monthly',
-    checkout_url_yearly: 'https://buy.stripe.com/test_business_yearly',
-    features_header: 'Toutes les fonctionnalités du forfait Plus, plus :',
+    credits_limit: PLAN_CREDIT_LIMITS.creator,
+    checkout_url_monthly: 'https://buy.stripe.com/test_creator_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_creator_yearly',
+    features_header: 'Everything in Starter, plus:',
     features: [
-      { text: 'Agent Stensor' },
-      { text: 'Agents personnalisés' },
-      { text: 'Notes d’IA', tag: 'Bêta' },
-      { text: 'Autorisations de base de données' },
-      { text: 'SSO SAML' },
-      { text: 'Recherche Enterprise' },
-      { text: 'Intégrations Premium', prefix: '+4' },
-      { text: 'Vérifier n’importe quelle page', prefix: '+5' }
-    ]
+      { text: '2,500,000 credits / month' },
+      { text: '5 concurrent builds' },
+      { text: 'Max AI model unlocked' },
+      { text: 'File uploads (up to 100MB)' },
+      { text: 'Priority support' },
+    ],
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    badge: 'Limited',
+    id: 'pro',
+    name: 'Pro',
+    badge: 'Best value',
     price_monthly: 31.50,
     price_yearly: 25.50,
-    checkout_url_monthly: 'mailto:contact@stensor.com',
-    checkout_url_yearly: 'mailto:contact@stensor.com',
-    features_header: 'Toutes les fonctionnalités du forfait Business, plus :',
+    credits_limit: PLAN_CREDIT_LIMITS.pro,
+    checkout_url_monthly: 'https://buy.stripe.com/test_pro_monthly',
+    checkout_url_yearly: 'https://buy.stripe.com/test_pro_yearly',
+    features_header: 'Everything in Creator, plus:',
     features: [
-      { text: 'Données analytiques et contrôles de l’IA' },
-      { text: 'Aucune conservation des données avec les fournisseurs LLM' },
-      { text: 'Provisionnement des utilisateurs via SCIM' },
-      { text: 'Contrôles et sécurité avancés' },
-      { text: 'Journal d’audit' },
-      { text: 'Intégrations de sécurité et de conformité (DLP, SIEM)' },
-      { text: 'Gestion de domaine' },
-      { text: 'Intégrations avancées' }
-    ]
+      { text: '5,000,000 credits / month' },
+      { text: '10 concurrent builds' },
+      { text: 'White-label (remove WOK badge)' },
+      { text: 'Unlimited file uploads' },
+      { text: 'Dedicated support' },
+    ],
   },
 ];
 
 export const COMPARISON_FEATURES = [
   {
-    category: "Capacités IA",
+    category: 'AI Capabilities',
     items: [
-      { name: "Requêtes Flash", free: "10 / mois", plus: "100 / mois", business: "500 / mois", enterprise: "Illimité" },
-      { name: "Deep Synthesis", free: "-", plus: "10 / mois", business: "50 / mois", enterprise: "Illimité" },
-      { name: "Recherche Web", free: "Basique", plus: "Avancée", business: "Illimitée", enterprise: "Illimitée" },
-      { name: "Upload de fichiers", free: "-", plus: "10 Mo max", business: "100 Mo max", enterprise: "Illimité" },
-    ]
+      { name: 'Monthly credits',  free: '150K',     starter: '1M',       creator: '2.5M',    pro: '5M' },
+      { name: 'AI model',         free: 'Standard', starter: 'Standard', creator: 'Max',     pro: 'Max' },
+      { name: 'Web search',       free: '-',        starter: 'Yes',      creator: 'Yes',     pro: 'Yes' },
+      { name: 'File upload',      free: '-',        starter: '10MB',     creator: '100MB',   pro: 'Unlimited' },
+    ],
   },
   {
-    category: "Fonctionnalités avancées",
+    category: 'Build Limits',
     items: [
-      { name: "Agents IA personnalisés", free: "-", plus: "1 agent", business: "Illimité", enterprise: "Illimité" },
-      { name: "Accès API", free: "-", plus: "-", business: "Oui", enterprise: "Limites avancées" },
-      { name: "Export", free: "PDF", plus: "PDF, CSV", business: "PDF, CSV, Excel", enterprise: "Tous formats + API" },
-    ]
+      { name: 'Concurrent builds',  free: '1',   starter: '2',       creator: '5',        pro: '10' },
+      { name: 'Daily burn cap',     free: '150K', starter: '500K',   creator: '1M',       pro: '5M' },
+      { name: 'White-label badge',  free: '-',   starter: '-',       creator: '-',        pro: 'Yes' },
+    ],
   },
   {
-    category: "Sécurité & Support",
+    category: 'Support',
     items: [
-      { name: "Support", free: "Communauté", plus: "Standard", business: "Prioritaire (24h)", enterprise: "Dédié (1h)" },
-      { name: "SSO SAML", free: "-", plus: "-", business: "-", enterprise: "Oui" },
-      { name: "Rétention des données", free: "30 jours", plus: "1 an", business: "Illimité", enterprise: "Politique personnalisée" },
-    ]
-  }
+      { name: 'Support',   free: 'Community', starter: 'Standard', creator: 'Priority (24h)', pro: 'Dedicated (1h)' },
+      { name: 'Audit log', free: '-',         starter: '-',        creator: '-',              pro: 'Yes' },
+    ],
+  },
 ];
 
 export function getPlansConfig() {
@@ -114,7 +130,7 @@ export function savePlansConfig(plans) {
   import('@/api/base44Client').then(({ base44 }) => {
     base44.entities.AppSettings.filter({ key: DB_PLANS_KEY }).then(results => {
       const val = JSON.stringify(plans);
-      if (results.length > 0) { base44.entities.AppSettings.update(results[0].id, { value: val }); } 
+      if (results.length > 0) { base44.entities.AppSettings.update(results[0].id, { value: val }); }
       else { base44.entities.AppSettings.create({ key: DB_PLANS_KEY, value: val }); }
     });
   });
@@ -141,4 +157,13 @@ export function getPlanById(planId) {
 export function getUserPlan(user) {
   const planId = user?.subscription_plan || 'free';
   return getPlanById(planId);
+}
+
+/**
+ * Get feature flags for a user's plan.
+ * Admin overrides are loaded from AppSettings ('plan_feature_flags').
+ */
+export function getPlanFeatures(user) {
+  const planId = user?.subscription_plan || 'free';
+  return PLAN_FEATURE_FLAGS[planId] || PLAN_FEATURE_FLAGS.free;
 }

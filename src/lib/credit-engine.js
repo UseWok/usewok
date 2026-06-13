@@ -73,12 +73,19 @@ export async function secureDeductCredits(user, appCredits, idempotencyKey) {
     return user; // silently return — already processed
   }
 
+  // ── Fetch live balance from server (Zero-AI, pure DB read) ──
+  let liveBalance = user.credits_balance ?? 0;
+  try {
+    const liveUser = await base44.auth.me();
+    liveBalance = typeof liveUser.credits_balance === 'number' ? liveUser.credits_balance : liveBalance;
+  } catch {} // fall back to passed-in user if server unreachable
+
   // ── Compute deduction ──
   const internalCredits = appCredits * INTEGRATION_MULTIPLIER;
-  const currentBalance = user.credits_balance ?? 0;
+  const currentBalance = liveBalance;
   const newBalance = currentBalance - appCredits; // balance in App Credits
 
-  // ── Commit deduction (irreversible) ──
+  // ── Commit deduction (irreversible, atomic DB mutation) ──
   await base44.auth.updateMe({ credits_balance: newBalance });
 
   // ── Mark idempotency key AFTER successful deduction ──

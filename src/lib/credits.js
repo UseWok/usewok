@@ -18,6 +18,7 @@
  */
 
 import { base44 } from '@/api/base44Client';
+import { PLAN_CREDIT_LIMITS } from './plans-config';
 
 // ── Pricing matrix ──────────────────────────────────────────────
 export const CREDIT_COSTS = {
@@ -28,17 +29,23 @@ export const CREDIT_COSTS = {
 export const FREE_PLAN_CREDITS = 150_000;
 export const RESET_INTERVAL_DAYS = 30;
 
+// ── Get the monthly credit limit for a user based on their plan ──
+export function getPlanCreditLimit(user) {
+  const planId = user?.subscription_plan || 'free';
+  return PLAN_CREDIT_LIMITS[planId] ?? FREE_PLAN_CREDITS;
+}
+
 // ── Compute cost for a given action ────────────────────────────
 export function computeCreditCost(buildMode = 'Flash', isModification = false) {
   const tier = CREDIT_COSTS[buildMode] || CREDIT_COSTS.Flash;
   return isModification ? tier.modify : tier.build;
 }
 
-// ── Check if user is locked (balance <= 0) ──────────────────────
+// ── Check if user is locked (used >= plan limit) ──────────────────────
 export function isUserLocked(user) {
   if (!user) return false;
   if (user.role === 'admin') return false;
-  const balance = user.credits_balance ?? FREE_PLAN_CREDITS;
+  const balance = user.credits_balance ?? getPlanCreditLimit(user);
   return balance <= 0;
 }
 
@@ -46,11 +53,10 @@ export function isUserLocked(user) {
 export async function initUserCredits(user) {
   if (!user) return;
   const hasCreditField = typeof user.credits_balance === 'number';
-  // Ensure subscription_plan defaults to 'free'
   const updates = {};
   if (!user.subscription_plan) updates.subscription_plan = 'free';
   if (!hasCreditField) {
-    updates.credits_balance = FREE_PLAN_CREDITS;
+    updates.credits_balance = getPlanCreditLimit({ ...user, subscription_plan: user.subscription_plan || 'free' });
     updates.credits_reset_at = new Date(Date.now() + RESET_INTERVAL_DAYS * 86_400_000).toISOString();
   }
   if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
@@ -62,10 +68,11 @@ export async function checkAndRenewCredits(user) {
   const resetAt = user.credits_reset_at ? new Date(user.credits_reset_at) : null;
   if (!resetAt || Date.now() < resetAt.getTime()) return user;
 
-  // Renewal due — carry over any debt
+  // Renewal due — carry over any debt, use plan's actual limit
   const currentBalance = user.credits_balance ?? 0;
   const debt = currentBalance < 0 ? Math.abs(currentBalance) : 0;
-  const newBalance = FREE_PLAN_CREDITS - debt;
+  const planLimit = getPlanCreditLimit(user);
+  const newBalance = planLimit - debt;
   const nextReset = new Date(Date.now() + RESET_INTERVAL_DAYS * 86_400_000).toISOString();
 
   await base44.auth.updateMe({
