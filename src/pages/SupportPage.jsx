@@ -4,39 +4,38 @@ import { base44 } from '@/api/base44Client';
 import { ArrowLeft, MessageSquare, X, Plus, Upload, Send, Trash2, CheckCircle, FileText, Image as ImageIcon, Bug, DollarSign, HelpCircle, ChevronRight } from 'lucide-react';
 import { getUserPlan } from '@/lib/plans-config';
 
+const DK = {
+  bg: '#1F1F1F', surface: '#1A1A1A', border: '#2A2A2A',
+  text: '#fff', muted: '#888', faint: '#141414',
+};
+
 const STATUS_CONFIG = {
-  open:        { label: 'Open',        color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
-  in_progress: { label: 'In progress', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-  closed:      { label: 'Resolved',    color: '#16a34a', bg: 'rgba(22,163,74,0.08)' },
+  open:        { label: 'Ouvert',    color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  in_progress: { label: 'En cours', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  closed:      { label: 'Résolu',   color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
 };
 
 const CATEGORY_CONFIG = {
-  bug:   { label: 'Bug',   icon: Bug,         color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
-  money: { label: 'Money', icon: DollarSign,  color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-  other: { label: 'Other', icon: HelpCircle,  color: '#6366f1', bg: 'rgba(99,102,241,0.08)' },
+  bug:   { label: 'Bug',     icon: Bug,        color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  money: { label: 'Paiement', icon: DollarSign, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  other: { label: 'Autre',   icon: HelpCircle, color: '#7B4FE0', bg: 'rgba(123,79,224,0.1)' },
 };
 
-function FileAttachment({ url, light = false }) {
+function FileAttachment({ url }) {
   const isImage = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url);
   const filename = url.split('/').pop().split('?')[0] || 'file';
   if (isImage) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer"
-        className="block rounded-lg overflow-hidden mt-1"
-        style={{ maxWidth: 160, border: '1px solid #E5E5E5' }}>
-        <img src={url} alt="attachment" className="w-full object-cover" style={{ maxHeight: 100 }} />
-        <p className="text-[9px] px-1.5 py-0.5 truncate" style={{ background: light ? 'rgba(0,0,0,0.1)' : '#F7F7F8', color: '#666' }}>
-          <ImageIcon className="inline w-2.5 h-2.5 mr-0.5" />{filename.slice(0, 20)}
-        </p>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 8, overflow: 'hidden', maxWidth: 140, border: '1px solid #2A2A2A', marginTop: 6 }}>
+        <img src={url} alt="attachment" style={{ width: '100%', objectFit: 'cover', maxHeight: 90 }} />
       </a>
     );
   }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg mt-1 text-xs font-medium hover:bg-[#F7F7F8] transition-colors"
-      style={{ color: '#666', border: '1px solid #E5E5E5', maxWidth: 180 }}>
-      <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="truncate">{filename.slice(0, 24)}</span>
+      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 7, marginTop: 6, fontSize: 11, color: '#888', border: '1px solid #2A2A2A', maxWidth: 180, textDecoration: 'none', background: '#141414' }}>
+      <FileText style={{ width: 12, height: 12, flexShrink: 0 }} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename.slice(0, 24)}</span>
     </a>
   );
 }
@@ -76,8 +75,7 @@ export default function SupportPage() {
       .then(t => {
         const support = t.filter(tk => tk.category !== 'cancellation' && tk.status !== 'closed');
         setAdminTickets(support.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
-      })
-      .catch(() => {});
+      }).catch(() => {});
   };
 
   useEffect(() => {
@@ -111,87 +109,93 @@ export default function SupportPage() {
   const refresh = () => { loadMyTickets(user); if (isAdmin) loadAdminTickets(); };
 
   return (
-    <div className="min-h-screen font-sans" style={{ background: '#FFFFFF' }}>
-      <div className="max-w-3xl mx-auto px-6 py-8 pb-16">
-        <div className="flex items-center justify-between mb-6">
-          <button onClick={() => setPage('landing')} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F7F7F8] transition-colors">
-            <ArrowLeft className="w-4 h-4 text-[#666666]" />
-          </button>
-          <h1 className="text-xl font-medium text-[#1A1A1A]">Support</h1>
-          <div className="flex gap-2">
-            <button onClick={refresh} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F7F7F8] transition-colors">
-              <MessageSquare className="w-4 h-4 text-[#666666]" />
+    <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setPage('landing')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+              <ArrowLeft style={{ width: 14, height: 14 }} />
             </button>
-            {activeTab === 'my' && (
-              <button onClick={() => setShowNewTicket(true)} className="px-4 h-9 flex items-center gap-2 text-xs font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors">
-                <Plus className="w-3.5 h-3.5" /> New ticket
-              </button>
-            )}
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Support</h1>
           </div>
+          {activeTab === 'my' && (
+            <button onClick={() => setShowNewTicket(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#fff', transition: 'opacity 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              <Plus style={{ width: 12, height: 12 }} />
+              Nouveau ticket
+            </button>
+          )}
         </div>
 
+        {/* Admin tabs */}
         {isAdmin && (
-          <div className="flex gap-2 mb-4">
-            {[{ id: 'my', label: 'My tickets' }, { id: 'admin', label: `All (${adminTickets.length})` }].map(tab => (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            {[{ id: 'my', label: 'Mes tickets' }, { id: 'admin', label: `Tous (${adminTickets.length})` }].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${activeTab === tab.id ? 'bg-[#1A1A1A] text-white' : 'bg-[#F7F7F8] text-[#666666] hover:bg-[#F0F0F0]'}`}>
+                style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 7, border: 'none', cursor: 'pointer', background: activeTab === tab.id ? '#fff' : '#2A2A2A', color: activeTab === tab.id ? '#000' : '#888', transition: 'background 120ms, color 120ms' }}>
                 {tab.label}
               </button>
             ))}
           </div>
         )}
 
+        {/* Filter tabs */}
         {activeTab === 'my' && (
-          <div className="flex gap-2 mb-4">
-            {['all', 'open', 'closed'].map(f => (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+            {[['all', 'Tous'], ['open', 'Ouverts'], ['closed', 'Résolus']].map(([f, l]) => (
               <button key={f} onClick={() => setTicketFilter(f)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors capitalize ${ticketFilter === f ? 'bg-[#1A1A1A] text-white' : 'bg-[#F7F7F8] text-[#666666] hover:bg-[#F0F0F0]'}`}>
-                {f}
+                style={{ padding: '6px 12px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: `1px solid ${ticketFilter === f ? '#444' : '#2A2A2A'}`, cursor: 'pointer', background: ticketFilter === f ? '#2A2A2A' : 'transparent', color: ticketFilter === f ? '#fff' : '#666', transition: 'all 120ms' }}>
+                {l}
               </button>
             ))}
           </div>
         )}
 
+        {/* Tickets list */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-5 h-5 border-2 border-[#E5E5E5] border-t-[#1A1A1A] rounded-full animate-spin" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+            <div style={{ width: 20, height: 20, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : filteredTickets.length === 0 ? (
-          <div className="flex flex-col items-center py-12 gap-3 border border-[#E5E5E5] rounded-lg bg-white">
-            <MessageSquare className="w-8 h-8 text-[#CCCCCC]" />
-            <p className="text-sm font-medium text-[#666666]">No tickets</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 48, gap: 12, border: '1px solid #2A2A2A', borderRadius: 12, background: '#141414' }}>
+            <MessageSquare style={{ width: 28, height: 28, color: '#333' }} />
+            <p style={{ fontSize: 13, color: '#555', margin: 0 }}>Aucun ticket</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filteredTickets.map(ticket => {
               const s = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
               const cat = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.other;
               const CatIcon = cat.icon;
               return (
-                <button key={ticket.id}
-                  onClick={() => setChatTicket(ticket)}
-                  className="w-full p-4 text-left transition-colors hover:bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg bg-white">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate text-[#1A1A1A]">
+                <button key={ticket.id} onClick={() => setChatTicket(ticket)}
+                  style={{ width: '100%', padding: '14px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', transition: 'border-color 120ms', display: 'block' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ticket.title || ticket.user_name || ticket.user_email?.split('@')[0] || 'Ticket'}
                       </p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <p className="text-xs text-[#999999]">{new Date(ticket.created_date).toLocaleDateString()}</p>
-                        {isAdmin && ticket.user_plan && (
-                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#F7F7F8] text-[#666666]">
-                            {ticket.user_plan}
-                          </span>
-                        )}
-                        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex items-center gap-0.5" style={{ background: cat.bg, color: cat.color }}>
-                          <CatIcon className="w-2.5 h-2.5" /> {cat.label}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: '#555' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR')}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: cat.bg, color: cat.color }}>
+                          <CatIcon style={{ width: 9, height: 9 }} />{cat.label}
                         </span>
+                        {isAdmin && ticket.user_plan && (
+                          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2A2A2A', color: '#666' }}>{ticket.user_plan}</span>
+                        )}
                         {isAdmin && activeTab === 'admin' && (
-                          <span className="text-[9px] text-[#999999] truncate max-w-[120px]">{ticket.user_email}</span>
+                          <span style={{ fontSize: 10, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{ticket.user_email}</span>
                         )}
                       </div>
                     </div>
-                    <span className="text-[10px] font-medium px-2 py-1 rounded" style={{ background: s.bg, color: s.color }}>
+                    <span style={{ fontSize: 10, fontWeight: 600, padding: '4px 9px', borderRadius: 5, background: s.bg, color: s.color, flexShrink: 0 }}>
                       {s.label}
                     </span>
                   </div>
@@ -211,44 +215,54 @@ export default function SupportPage() {
 
 function LandingPage({ onNavigate }) {
   return (
-    <div className="min-h-screen font-sans bg-white">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-medium mb-3 text-[#1A1A1A]">Help & Support</h1>
-          <p className="text-base text-[#666666]">Get the help you need</p>
+    <div style={{ minHeight: '100vh', background: '#1F1F1F', fontFamily: 'Inter, system-ui, sans-serif', color: '#fff' }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 80px' }}>
+
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Aide & Support</h1>
+          <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Notre équipe est là pour vous aider</p>
         </div>
-        <div className="max-w-md mx-auto mb-10">
+
+        {/* Main CTA */}
+        <button onClick={onNavigate}
+          style={{ width: '100%', padding: '28px 28px', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 16, transition: 'border-color 150ms' }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🎧</div>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Ouvrir un ticket support</h3>
+          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>Soumettez un ticket détaillé et recevez une assistance personnalisée.</p>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: '#F95738' }}>
+            Commencer <ChevronRight style={{ width: 14, height: 14 }} />
+          </span>
+        </button>
+
+        {/* Secondary cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <button onClick={onNavigate}
-            className="w-full p-8 rounded-lg text-left text-white transition-opacity hover:opacity-90 relative overflow-hidden"
-            style={{ background: '#2C3E50', minHeight: '220px' }}>
-            <div className="relative z-10">
-              <p className="text-5xl mb-4">🎧</p>
-              <h3 className="text-2xl font-medium mb-3">Open a support ticket</h3>
-              <p className="text-sm opacity-90 mb-6">Submit a detailed support ticket and get personalized assistance.</p>
-              <span className="text-xs font-medium flex items-center gap-1">
-                Get started <ChevronRight className="w-4 h-4" />
-              </span>
-            </div>
-          </button>
-        </div>
-        <div className="max-w-md mx-auto grid grid-cols-2 gap-4 mb-16">
-          <button onClick={onNavigate}
-            className="p-4 text-left rounded-lg transition-colors hover:bg-[#F7F7F8] border border-[#E5E5E5] bg-white">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-[#1A1A1A]" />
+            style={{ padding: '18px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(249,87,56,0.1)', border: '1px solid rgba(249,87,56,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MessageSquare style={{ width: 15, height: 15, color: '#F95738' }} />
+              </div>
               <div>
-                <p className="font-medium text-sm text-[#1A1A1A]">My tickets</p>
-                <p className="text-xs text-[#999999]">View & manage</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Mes tickets</p>
+                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>Voir & gérer</p>
               </div>
             </div>
           </button>
-          <a href="https://reddit.com/r/stensor" target="_blank" rel="noopener noreferrer"
-            className="p-4 text-left rounded-lg transition-colors hover:bg-[#F7F7F8] border border-[#E5E5E5] bg-white">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-[#1A1A1A]" />
+          <a href="https://discord.gg/wok" target="_blank" rel="noopener noreferrer"
+            style={{ padding: '18px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', textDecoration: 'none', transition: 'border-color 150ms', display: 'block' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(123,79,224,0.1)', border: '1px solid rgba(123,79,224,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MessageSquare style={{ width: 15, height: 15, color: '#7B4FE0' }} />
+              </div>
               <div>
-                <p className="font-medium text-sm text-[#1A1A1A]">Community</p>
-                <p className="text-xs text-[#999999]">Reddit community</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Communauté</p>
+                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>Discord</p>
               </div>
             </div>
           </a>
@@ -277,22 +291,13 @@ function NewTicketModal({ onClose, user }) {
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
-
     let file_urls = [];
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
-
-    const initialMsg = {
-      author: 'user',
-      text: description,
-      file_urls,
-      created_at: new Date().toISOString(),
-    };
-
+    const initialMsg = { author: 'user', text: description, file_urls, created_at: new Date().toISOString() };
     let userPlan = '';
     try { userPlan = getUserPlan(user)?.name || ''; } catch {}
-
     const ticket = await base44.entities.SupportTicket.create({
       title: user?.full_name || user?.email?.split('@')[0] || 'User',
       description,
@@ -304,101 +309,103 @@ function NewTicketModal({ onClose, user }) {
       file_urls,
       messages_json: JSON.stringify([initialMsg]),
     });
-
     setSubmitting(false);
     onClose();
     setTimeout(() => window.dispatchEvent(new CustomEvent('open-support-chat', { detail: ticket })), 300);
   };
 
   const CATS = [
-    { id: 'bug',   label: 'Bug',   icon: Bug,         color: '#ef4444' },
-    { id: 'money', label: 'Money', icon: DollarSign,  color: '#f59e0b' },
-    { id: 'other', label: 'Other', icon: HelpCircle,  color: '#6366f1' },
+    { id: 'bug', label: 'Bug', icon: Bug, color: '#ef4444' },
+    { id: 'money', label: 'Paiement', icon: DollarSign, color: '#f59e0b' },
+    { id: 'other', label: 'Autre', icon: HelpCircle, color: '#7B4FE0' },
   ];
 
-  return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50"
-      onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden"
-        onClick={e => e.stopPropagation()}>
+  const inputStyle = { width: '100%', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' };
 
-        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E5E5E5]">
-          <p className="font-medium text-[#1A1A1A]">New support ticket</p>
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+      onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
+      <div style={{ width: '100%', maxWidth: 440, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2A2A2A' }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Nouveau ticket</p>
           {step !== 1 && (
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#F7F7F8] transition-colors">
-              <X className="w-4 h-4 text-[#999999]" />
+            <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+              <X style={{ width: 13, height: 13 }} />
             </button>
           )}
         </div>
 
-        <div className="p-6">
+        <div style={{ padding: 20 }}>
           {step === 0 && (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label className="text-xs font-medium mb-2 block text-[#666666]">Describe your issue</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Décrivez votre problème</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)}
-                  placeholder="Explain the problem in detail…"
-                  rows={4} className="w-full px-4 py-3 text-sm focus:outline-none resize-none border border-[#E5E5E5] rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/20 transition-all" />
+                  placeholder="Expliquez le problème en détail…"
+                  rows={4} style={{ ...inputStyle, resize: 'none' }} />
               </div>
               <div>
-                <label className="text-xs font-medium mb-2 block text-[#666666]">Attach files (optional)</label>
-                <input ref={fileInputRef} type="file" multiple className="hidden"
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Fichiers joints (optionnel)</label>
+                <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
                   onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
                 <button onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-sm transition-colors border border-dashed border-[#E5E5E5] rounded-lg text-[#999999] hover:bg-[#F7F7F8]">
-                  <Upload className="w-4 h-4" /> Attach files
+                  style={{ width: '100%', padding: '11px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#555', background: 'transparent', border: '1px dashed #2A2A2A', borderRadius: 8, cursor: 'pointer', transition: 'border-color 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                  <Upload style={{ width: 13, height: 13 }} /> Joindre des fichiers
                 </button>
                 {files.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                     {files.map((f, i) => (
-                      <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#F7F7F8] rounded-lg">
-                        <FileText className="w-3 h-3 text-[#999999]" />
-                        <span className="text-[11px] max-w-[80px] truncate text-[#666666]">{f.name}</span>
-                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}><X className="w-2.5 h-2.5 text-[#CCCCCC]" /></button>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 6 }}>
+                        <FileText style={{ width: 10, height: 10, color: '#666' }} />
+                        <span style={{ fontSize: 10, color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#444' }}>
+                          <X style={{ width: 9, height: 9 }} />
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
               <button onClick={handleAnalyze} disabled={!description.trim()}
-                className="w-full py-3 text-sm font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
-                Continue
+                style={{ padding: '11px 0', background: !description.trim() ? '#2A2A2A' : '#fff', color: !description.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: description.trim() ? 'pointer' : 'not-allowed' }}>
+                Continuer
               </button>
             </div>
           )}
 
           {step === 1 && (
-            <div className="flex flex-col items-center justify-center py-12 gap-4">
-              <div className="w-10 h-10 rounded-full border-3 border-[#E5E5E5] border-t-[#1A1A1A] animate-spin" />
-              <div className="text-center">
-                <p className="font-medium text-sm text-[#1A1A1A]">Processing…</p>
-                <p className="text-xs mt-1 text-[#999999]">Please wait</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 0', gap: 14 }}>
+              <div style={{ width: 28, height: 28, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>Traitement…</p>
+                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>Veuillez patienter</p>
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-3 text-[#1A1A1A]">Select category</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {CATS.map(cat => {
-                    const Icon = cat.icon;
-                    const isSelected = selectedCategory === cat.id;
-                    return (
-                      <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                        className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg transition-colors relative border"
-                        style={{ borderColor: isSelected ? cat.color : '#E5E5E5', background: isSelected ? `${cat.color}12` : 'white' }}>
-                        <Icon className="w-5 h-5" style={{ color: cat.color }} />
-                        <span className="text-xs font-medium" style={{ color: isSelected ? cat.color : '#666666' }}>{cat.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Sélectionnez une catégorie</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {CATS.map(cat => {
+                  const Icon = cat.icon;
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 8px', borderRadius: 9, border: `1px solid ${isSelected ? cat.color : '#2A2A2A'}`, background: isSelected ? `${cat.color}18` : '#1A1A1A', cursor: 'pointer', transition: 'all 120ms' }}>
+                      <Icon style={{ width: 18, height: 18, color: cat.color }} />
+                      <span style={{ fontSize: 11, fontWeight: 600, color: isSelected ? cat.color : '#888' }}>{cat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               <button onClick={handleSubmit} disabled={submitting || !selectedCategory}
-                className="w-full py-3 text-sm font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
-                {submitting ? 'Submitting…' : 'Submit ticket'}
+                style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#2A2A2A' : '#fff', color: submitting || !selectedCategory ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
+                {submitting ? 'Envoi…' : 'Soumettre le ticket'}
               </button>
             </div>
           )}
@@ -425,10 +432,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   const CatIcon = cat.icon;
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   useEffect(() => {
     const id = currentTicket.id;
@@ -441,9 +445,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           setCurrentTicket(prev => ({ ...prev, status: updated.status }));
           try {
             const serverMessages = JSON.parse(updated.messages_json || '[]');
-            if (serverMessages.length > messagesRef.current.length) {
-              setMessages(serverMessages);
-            }
+            if (serverMessages.length > messagesRef.current.length) setMessages(serverMessages);
           } catch {}
         }
       } catch {}
@@ -459,22 +461,19 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
     for (const f of files) {
       try { const { file_url } = await base44.integrations.Core.UploadFile({ file: f }); file_urls.push(file_url); } catch {}
     }
-    const author = isAdmin ? 'admin' : 'user';
-    const msg = { author, text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
+    const msg = { author: isAdmin ? 'admin' : 'user', text: newMessage.trim(), file_urls, created_at: new Date().toISOString() };
     const updatedMessages = [...messagesRef.current, msg];
     setMessages(updatedMessages);
     setNewMessage('');
     setFiles([]);
-    await base44.entities.SupportTicket.update(currentTicket.id, {
-      messages_json: JSON.stringify(updatedMessages),
-    });
+    await base44.entities.SupportTicket.update(currentTicket.id, { messages_json: JSON.stringify(updatedMessages) });
     sendingRef.current = false;
     setSending(false);
   };
 
   const handleStatusChange = async (newStatus) => {
     if (newStatus === 'closed') {
-      const closedMsg = { author: 'system', text: 'This ticket has been resolved. You can no longer send messages.', created_at: new Date().toISOString() };
+      const closedMsg = { author: 'system', text: 'Ce ticket a été résolu. Vous ne pouvez plus envoyer de messages.', created_at: new Date().toISOString() };
       const updatedMessages = [...messagesRef.current, closedMsg];
       setMessages(updatedMessages);
       await base44.entities.SupportTicket.update(currentTicket.id, { status: 'closed', messages_json: JSON.stringify(updatedMessages) });
@@ -486,141 +485,116 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Delete this ticket?')) return;
+    if (!window.confirm('Supprimer ce ticket ?')) return;
     await base44.entities.SupportTicket.delete(currentTicket.id);
     onClose();
     onUpdate();
   };
 
-  const handleUserResolve = async () => {
-    if (!window.confirm("Mark this ticket as resolved? You won't be able to send more messages.")) return;
-    await handleStatusChange('closed');
-  };
-
   return (
-    <div className="fixed inset-0 z-[400] flex"
-      style={{ background: 'rgba(0,0,0,0.4)' }}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', background: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md ml-auto h-full flex flex-col bg-white shadow-lg"
+      <div style={{ width: '100%', maxWidth: 440, marginLeft: 'auto', height: '100%', display: 'flex', flexDirection: 'column', background: '#141414', borderLeft: '1px solid #2A2A2A' }}
         onClick={e => e.stopPropagation()}>
 
-        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-[#E5E5E5]">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-[#F7F7F8]">
-              <MessageSquare className="w-4 h-4 text-[#1A1A1A]" />
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #2A2A2A', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1A1A1A', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <MessageSquare style={{ width: 14, height: 14, color: '#888' }} />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <p className="text-sm font-medium truncate text-[#1A1A1A]">
-                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Support'}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Support WOK'}
                 </p>
-                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0" style={{ background: cat.bg, color: cat.color }}>
-                  <CatIcon className="w-2.5 h-2.5" />{cat.label}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: cat.bg, color: cat.color, flexShrink: 0 }}>
+                  <CatIcon style={{ width: 8, height: 8 }} />{cat.label}
                 </span>
               </div>
-              <p className="text-[10px] leading-none mt-0.5 text-[#999999]">
-                {isAdmin ? currentTicket.user_email : 'Reply within 24-48h'}
-                {isAdmin && currentTicket.user_plan && (
-                  <span className="ml-1.5 text-[9px] font-medium px-1 py-0.5 rounded bg-[#F7F7F8] text-[#666666]">
-                    {currentTicket.user_plan}
-                  </span>
-                )}
+              <p style={{ fontSize: 10, color: '#555', margin: 0 }}>
+                {isAdmin ? currentTicket.user_email : 'Réponse sous 24-48h'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-[10px] font-medium px-2 py-1 rounded" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4, background: s.bg, color: s.color }}>{s.label}</span>
             {!isAdmin && !isClosed && (
-              <button onClick={handleUserResolve}
-                className="w-8 h-8 flex items-center justify-center rounded-full transition-colors hover:bg-green-50"
-                title="Mark as resolved">
-                <CheckCircle className="w-4 h-4 text-[#16a34a]" />
+              <button onClick={async () => { if (window.confirm('Marquer comme résolu ?')) await handleStatusChange('closed'); }}
+                style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle style={{ width: 14, height: 14, color: '#22c55e' }} />
               </button>
             )}
             {isAdmin && (
-              <button onClick={handleDelete}
-                className="w-8 h-8 flex items-center justify-center rounded-full transition-colors hover:bg-red-50"
-                title="Delete ticket">
-                <Trash2 className="w-4 h-4 text-[#ef4444]" />
+              <button onClick={handleDelete} style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Trash2 style={{ width: 14, height: 14, color: '#ef4444' }} />
               </button>
             )}
-            <button onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full transition-colors hover:bg-[#F7F7F8]">
-              <X className="w-4 h-4 text-[#1A1A1A]" />
+            <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+              <X style={{ width: 14, height: 14 }} />
             </button>
           </div>
         </div>
 
+        {/* Admin status bar */}
         {isAdmin && (
-          <div className="px-4 py-2 flex-shrink-0 flex gap-2 border-b border-[#E5E5E5] bg-[#FAFAFA]">
+          <div style={{ padding: '8px 16px', display: 'flex', gap: 6, borderBottom: '1px solid #2A2A2A', background: '#1A1A1A', flexShrink: 0 }}>
             {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
               <button key={st} onClick={() => handleStatusChange(st)}
-                className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${currentTicket.status === st ? 'bg-[#1A1A1A] text-white' : 'bg-[#F7F7F8] text-[#666666] hover:bg-[#F0F0F0]'}`}>
+                style={{ flex: 1, padding: '6px 0', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', background: currentTicket.status === st ? '#fff' : '#2A2A2A', color: currentTicket.status === st ? '#000' : '#666', transition: 'all 120ms' }}>
                 {cfg.label}
               </button>
             ))}
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#FAFAFA]">
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10, background: '#1A1A1A' }}>
           {messages.length === 0 ? (
-            <p className="text-center text-sm py-8 text-[#999999]">No messages yet</p>
+            <p style={{ textAlign: 'center', fontSize: 13, color: '#555', padding: '32px 0' }}>Aucun message</p>
           ) : messages.map((msg, i) => {
             const isSystem = msg.author === 'system';
             const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
 
             if (isSystem) {
               return (
-                <div className="flex justify-center">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-green-50 text-[#16a34a] border border-green-200">
-                    <CheckCircle className="w-3.5 h-3.5" /> {msg.text}
+                <div key={i} style={{ display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: 'rgba(34,197,94,0.08)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.15)' }}>
+                    <CheckCircle style={{ width: 11, height: 11 }} /> {msg.text}
                   </div>
                 </div>
               );
             }
 
-            const isStensor = msg.author === 'admin';
-            const avatarLetter = isStensor ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U');
-            const avatarBg = isStensor ? '#DDFF00' : '#6366f1';
-            const avatarColor = isStensor ? '#1A1A1A' : 'white';
-
             return (
-              <div key={i} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                 {!isMe && (
-                  <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-medium shadow-sm"
-                    style={{ background: avatarBg, color: avatarColor, border: '1.5px solid #E5E5E5' }}>
-                    {avatarLetter}
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#F95738', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', border: '1px solid #333' }}>
+                    W
                   </div>
                 )}
-
-                <div className="max-w-[72%]">
-                  <div className="px-4 py-3 shadow-sm"
-                    style={{
-                      background: isMe ? '#1A1A1A' : 'white',
-                      color: isMe ? 'white' : '#1A1A1A',
-                      border: isMe ? 'none' : '1px solid #E5E5E5',
-                      borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
-                    }}>
-                    {msg.text && <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>}
+                <div style={{ maxWidth: '72%' }}>
+                  <div style={{
+                    padding: '10px 13px',
+                    background: isMe ? '#fff' : '#141414',
+                    color: isMe ? '#000' : '#ccc',
+                    border: isMe ? 'none' : '1px solid #2A2A2A',
+                    borderRadius: isMe ? '14px 3px 14px 14px' : '3px 14px 14px 14px',
+                  }}>
+                    {msg.text && <p style={{ fontSize: 13, lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>{msg.text}</p>}
                     {msg.file_urls?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} light={isMe} />)}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {msg.file_urls.map((url, j) => <FileAttachment key={j} url={url} />)}
                       </div>
                     )}
-                    <p className="text-[10px] mt-1.5 select-none" style={{ opacity: 0.45 }}>
+                    <p style={{ fontSize: 9, marginTop: 6, margin: '6px 0 0', opacity: 0.4 }}>
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
-
                 {isMe && (
-                  <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-medium shadow-sm"
-                    style={{
-                      background: isAdmin ? '#DDFF00' : '#6366f1',
-                      color: isAdmin ? '#1A1A1A' : 'white',
-                      border: '1.5px solid #E5E5E5',
-                    }}>
-                    {isAdmin ? 'S' : (currentTicket.user_name?.charAt(0)?.toUpperCase() || currentTicket.user_email?.charAt(0)?.toUpperCase() || 'U')}
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#2A2A2A', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#888', border: '1px solid #333' }}>
+                    {(currentTicket.user_name?.charAt(0) || 'U').toUpperCase()}
                   </div>
                 )}
               </div>
@@ -629,43 +603,44 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Input */}
         {isClosed ? (
-          <div className="px-4 py-4 flex-shrink-0 text-center border-t border-[#E5E5E5] bg-white">
-            <p className="text-sm font-medium text-[#999999]">
-              <CheckCircle className="inline w-4 h-4 mr-1.5 text-[#16a34a]" />
-              This ticket is resolved
+          <div style={{ padding: '14px 16px', textAlign: 'center', borderTop: '1px solid #2A2A2A', background: '#141414', flexShrink: 0 }}>
+            <p style={{ fontSize: 12, color: '#555', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <CheckCircle style={{ width: 13, height: 13, color: '#22c55e' }} />
+              Ce ticket est résolu
             </p>
           </div>
         ) : (
-          <div className="px-4 py-3 flex-shrink-0 border-t border-[#E5E5E5] bg-white">
+          <div style={{ padding: '10px 14px', borderTop: '1px solid #2A2A2A', background: '#141414', flexShrink: 0 }}>
             {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {files.map((f, i) => (
-                  <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F7F7F8] border border-[#E5E5E5]">
-                    <FileText className="w-3 h-3 flex-shrink-0 text-[#999999]" />
-                    <span className="text-[11px] max-w-[80px] truncate font-medium text-[#666666]">{f.name}</span>
-                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))}>
-                      <X className="w-2.5 h-2.5 text-[#CCCCCC]" />
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 6 }}>
+                    <FileText style={{ width: 10, height: 10, color: '#666', flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#444' }}>
+                      <X style={{ width: 8, height: 8 }} />
                     </button>
                   </div>
                 ))}
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <input ref={fileInputRef} type="file" multiple className="hidden"
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
                 onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
               <button onClick={() => fileInputRef.current?.click()}
-                className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors hover:bg-[#F7F7F8]">
-                <Upload className="w-4 h-4 text-[#1A1A1A]" />
+                style={{ width: 32, height: 32, borderRadius: '50%', background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', flexShrink: 0 }}>
+                <Upload style={{ width: 13, height: 13 }} />
               </button>
               <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                placeholder="Type your message…"
-                className="flex-1 px-4 py-2.5 text-sm focus:outline-none rounded-lg bg-[#F7F7F8] border border-[#E5E5E5] focus:border-[#1A1A1A] transition-colors" />
+                placeholder="Tapez votre message…"
+                style={{ flex: 1, padding: '9px 12px', fontSize: 13, color: '#ccc', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, outline: 'none', fontFamily: 'Inter, sans-serif' }} />
               <button onClick={handleSendMessage}
                 disabled={(!newMessage.trim() && files.length === 0) || sending}
-                className={`w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors disabled:opacity-30 ${newMessage.trim() || files.length > 0 ? 'bg-[#1A1A1A] text-white' : 'bg-[#F7F7F8] text-[#999999]'}`}>
-                <Send className="w-4 h-4" />
+                style={{ width: 32, height: 32, borderRadius: '50%', background: (newMessage.trim() || files.length > 0) ? '#F95738' : '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, transition: 'background 120ms' }}>
+                <Send style={{ width: 13, height: 13 }} />
               </button>
             </div>
           </div>

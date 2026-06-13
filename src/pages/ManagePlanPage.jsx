@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, TrendingUp, X, ChevronRight, Zap, Crown, Shield, Clock, Star, AlertTriangle, Lock, Wifi, MessageSquare, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
-import HomeEventBanner from '@/components/home/HomeEventBanner';
 import { toast } from 'sonner';
 
-const FG = '#0A0A0A';
-const YUZU = '#DDFF00';
-const GREEN = '#16a34a';
+const DK = {
+  bg: '#1F1F1F', surface: '#1A1A1A', border: '#2A2A2A',
+  text: '#fff', muted: '#888', faint: '#232323',
+};
+
 const PLAN_ICONS = { free: Zap, essential: Shield, advanced: TrendingUp, expert: TrendingUp, supreme: Crown };
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function getRenewalDate(user) {
@@ -24,43 +24,37 @@ function getRenewalDate(user) {
   const billing = user?.billing_cycle || 'monthly';
   const now = new Date();
   if (billing === 'yearly') {
-    // Advance by years until in the future
     while (d <= now) d.setFullYear(d.getFullYear() + 1);
   } else {
-    // Advance by months until in the future
     while (d <= now) d.setMonth(d.getMonth() + 1);
   }
   return d;
 }
 
-// ─── Rating Step ──────────────────────────────────────────────────────────────
 const RATING_ITEMS = [
-  { key: 'quality', label: 'Answer quality' },
-  { key: 'speed', label: 'Response speed' },
-  { key: 'value', label: 'Value for money' },
-  { key: 'ux', label: 'Ease of use' },
+  { key: 'quality', label: 'Qualité des réponses' },
+  { key: 'speed', label: 'Vitesse de génération' },
+  { key: 'value', label: 'Rapport qualité/prix' },
+  { key: 'ux', label: "Facilité d'utilisation" },
 ];
 
 function RatingStep({ ratings, setRatings, onNext }) {
   const allRated = RATING_ITEMS.every(i => ratings[i.key] > 0);
   return (
-    <div className="p-5 space-y-5">
-      <div className="text-center">
-        <p className="text-base font-black mb-1" style={{ color: FG }}>Before you go…</p>
-        <p className="text-xs" style={{ color: '#888' }}>Your feedback helps us improve Stensor for everyone.</p>
+    <div style={{ padding: '24px 24px 20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>Avant de partir…</p>
+        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Vos retours nous aident à améliorer WOK.</p>
       </div>
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {RATING_ITEMS.map(item => (
-          <div key={item.key} className="flex items-center justify-between">
-            <span className="text-sm" style={{ color: '#444' }}>{item.label}</span>
-            <div className="flex gap-1">
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13, color: '#ccc' }}>{item.label}</span>
+            <div style={{ display: 'flex', gap: 4 }}>
               {[1, 2, 3, 4, 5].map(star => (
-                <button key={star} onClick={() => setRatings(r => ({ ...r, [item.key]: star }))}>
-                  <Star
-                    className="w-5 h-5 transition-all"
-                    fill={ratings[item.key] >= star ? YUZU : 'transparent'}
-                    style={{ color: ratings[item.key] >= star ? '#bba800' : '#ddd' }}
-                  />
+                <button key={star} onClick={() => setRatings(r => ({ ...r, [item.key]: star }))}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+                  <Star style={{ width: 18, height: 18, color: ratings[item.key] >= star ? '#F95738' : '#333', fill: ratings[item.key] >= star ? '#F95738' : 'none', transition: 'color 100ms, fill 100ms' }} />
                 </button>
               ))}
             </div>
@@ -68,115 +62,96 @@ function RatingStep({ ratings, setRatings, onNext }) {
         ))}
       </div>
       <button onClick={onNext} disabled={!allRated}
-        className="w-full py-3 text-sm font-black transition-all disabled:opacity-30"
-        style={{ background: FG, color: 'white', borderRadius: '8px' }}>
-        Continue →
+        style={{ width: '100%', marginTop: 20, padding: '11px 0', background: !allRated ? '#2A2A2A' : '#fff', color: !allRated ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: allRated ? 'pointer' : 'not-allowed', transition: 'background 150ms' }}>
+        Continuer →
       </button>
     </div>
   );
 }
 
-// ─── What You'll Lose Step ────────────────────────────────────────────────────
 function LossStep({ userPlan, onNext, onBack }) {
   const losses = [
-    userPlan?.credits_limit && { icon: Zap, label: `${userPlan.credits_limit} Tensors/month`, desc: 'Your full AI query budget, gone.' },
-    userPlan?.internet_access && { icon: Wifi, label: 'Real-time Web Search', desc: 'Live market data & news in answers.' },
-    userPlan?.file_upload && { icon: FileText, label: 'File & Document Analysis', desc: 'Upload bank statements, reports, etc.' },
-    userPlan?.max_discussions === 0 && { icon: MessageSquare, label: 'Unlimited Discussions', desc: 'You\'ll be capped at 3 conversations.' },
-    userPlan?.ultimate_access && { icon: Crown, label: 'Expert Mode (Claude Opus)', desc: 'The most powerful AI model access.' },
-    { icon: Lock, label: 'All conversation history', desc: 'Access to past chats may be limited.' },
+    userPlan?.credits_limit && { icon: Zap, label: `${userPlan.credits_limit} crédits/mois`, desc: 'Votre quota IA complet, perdu.' },
+    userPlan?.internet_access && { icon: Wifi, label: 'Recherche web temps réel', desc: 'Données de marché en direct.' },
+    userPlan?.file_upload && { icon: FileText, label: 'Analyse de documents', desc: 'Upload de fichiers désactivé.' },
+    userPlan?.max_discussions === 0 && { icon: MessageSquare, label: 'Discussions illimitées', desc: 'Limité à 3 conversations.' },
+    userPlan?.ultimate_access && { icon: Crown, label: 'Mode Expert (Claude Opus)', desc: "Accès au modèle IA le plus puissant." },
+    { icon: Lock, label: 'Historique complet', desc: "L'accès aux chats passés sera limité." },
   ].filter(Boolean);
 
   return (
-    <div className="p-5 space-y-4">
-      <div className="text-center">
-        <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-full" style={{ background: 'rgba(239,68,68,0.08)' }}>
-          <AlertTriangle className="w-6 h-6" style={{ color: '#ef4444' }} />
+    <div style={{ padding: '24px 24px 20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+          <AlertTriangle style={{ width: 20, height: 20, color: '#ef4444' }} />
         </div>
-        <p className="text-base font-black mb-1" style={{ color: FG }}>You'll immediately lose access to:</p>
+        <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Vous perdrez immédiatement :</p>
       </div>
-      <div className="space-y-2">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
         {losses.map((loss, i) => {
           const Icon = loss.icon;
           return (
-            <motion.div key={i}
-              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-              style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)' }}>
-              <Icon className="w-4 h-4 flex-shrink-0" style={{ color: '#ef4444' }} />
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.12)' }}>
+              <Icon style={{ width: 14, height: 14, color: '#ef4444', flexShrink: 0 }} />
               <div>
-                <p className="text-xs font-bold" style={{ color: FG }}>{loss.label}</p>
-                <p className="text-[10px]" style={{ color: '#aaa' }}>{loss.desc}</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: DK.text, margin: 0 }}>{loss.label}</p>
+                <p style={{ fontSize: 11, color: DK.muted, margin: 0 }}>{loss.desc}</p>
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
-      <div className="flex gap-2 pt-1">
-        <button onClick={onBack} className="px-4 py-3 text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666', borderRadius: '8px' }}>
-          Back
-        </button>
-        <button onClick={onNext}
-          className="flex-1 py-3 text-sm font-bold transition-all"
-          style={{ background: '#ef4444', color: 'white', borderRadius: '8px' }}>
-          I understand, continue →
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Retour</button>
+        <button onClick={onNext} style={{ flex: 1, padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          Je comprends, continuer →
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Reason Step ─────────────────────────────────────────────────────────────
 function ReasonStep({ cancelNote, setCancelNote, cancelEmail, setCancelEmail, cancelLoading, onSubmit, onBack }) {
+  const inputStyle = { width: '100%', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 7, padding: '10px 12px', fontSize: 13, color: '#fff', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' };
   return (
-    <div className="p-5 space-y-4">
-      <div className="text-center">
-        <p className="text-base font-black mb-1" style={{ color: FG }}>One last thing</p>
-        <p className="text-xs" style={{ color: '#888' }}>Why are you cancelling? This helps us a lot.</p>
+    <div style={{ padding: '24px 24px 20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>Une dernière chose</p>
+        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Pourquoi annulez-vous ? Cela nous aide vraiment.</p>
       </div>
-      <div className="p-3 rounded-md text-xs" style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
-        <p style={{ color: '#555' }}>
-          Your request will be processed within <strong>24 hours</strong>. You'll be notified of the exact cancellation date once approved.
-        </p>
+      <div style={{ padding: '10px 12px', background: '#141414', borderRadius: 8, border: '1px solid #2A2A2A', marginBottom: 14, fontSize: 12, color: '#888', lineHeight: 1.6 }}>
+        Votre demande sera traitée sous <strong style={{ color: '#ccc' }}>24 heures</strong>. Vous recevrez la date exacte d'annulation par email.
       </div>
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-xs font-semibold" style={{ color: FG }}>Reason *</label>
-          <span className="text-[10px] font-bold" style={{ color: cancelNote.length >= 450 ? '#ef4444' : '#aaa' }}>{cancelNote.length}/500</span>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>Raison *</label>
+          <span style={{ fontSize: 10, color: cancelNote.length >= 450 ? '#ef4444' : '#555' }}>{cancelNote.length}/500</span>
         </div>
         <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value.slice(0, 500))}
-          placeholder="Tell us why you're cancelling..."
-          rows={3} className="w-full px-3 py-2.5 text-sm focus:outline-none resize-none"
-          style={{ border: `1.5px solid ${cancelNote ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px' }} />
+          placeholder="Dites-nous pourquoi vous annulez..."
+          rows={3} style={{ ...inputStyle, resize: 'none' }} />
       </div>
-      <div>
-        <label className="text-xs font-semibold block mb-1" style={{ color: '#555' }}>Payment email *</label>
-        <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)}
-          placeholder="email@example.com"
-          className="w-full px-3 py-2.5 text-sm focus:outline-none"
-          style={{ border: `1.5px solid ${cancelEmail ? FG : 'rgba(0,0,0,0.1)'}`, borderRadius: '6px' }} />
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 5 }}>Email de paiement *</label>
+        <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)} placeholder="email@example.com" style={inputStyle} />
       </div>
-      <div className="flex gap-2">
-        <button onClick={onBack} className="px-4 py-3 text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666', borderRadius: '6px' }}>
-          Back
-        </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Retour</button>
         <button onClick={onSubmit} disabled={cancelLoading || !cancelNote.trim() || !cancelEmail.trim()}
-          className="flex-1 py-3 text-sm font-bold transition-all disabled:opacity-40"
-          style={{ background: FG, color: 'white', borderRadius: '6px' }}>
-          {cancelLoading ? 'Sending...' : 'Send cancellation request'}
+          style={{ flex: 1, padding: '10px 0', background: cancelLoading || !cancelNote.trim() || !cancelEmail.trim() ? '#2A2A2A' : '#fff', color: cancelLoading || !cancelNote.trim() || !cancelEmail.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'background 150ms' }}>
+          {cancelLoading ? 'Envoi...' : "Envoyer la demande d'annulation"}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ManagePlanPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [showCancelFlow, setShowCancelFlow] = useState(false);
-  const [cancelStep, setCancelStep] = useState(1); // 1=rating, 2=losses, 3=reason
+  const [cancelStep, setCancelStep] = useState(1);
   const [ratings, setRatings] = useState({});
   const [cancelNote, setCancelNote] = useState('');
   const [cancelEmail, setCancelEmail] = useState('');
@@ -197,18 +172,15 @@ export default function ManagePlanPage() {
     base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: user.email })
       .then(res => {
         if (res.length > 0) {
-          // Prefer approved, then pending
           const sorted = res.sort((a, b) => {
             const rank = { approved: 0, pending: 1, rejected: 2 };
             return (rank[a.cancel_status] ?? 1) - (rank[b.cancel_status] ?? 1);
           });
           setExistingCancel(sorted[0]);
         }
-      })
-      .catch(() => {});
+      }).catch(() => {});
   }, [user?.email]);
 
-  const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const Icon = PLAN_ICONS[userPlan?.id] || Zap;
   const creditsUsed = user?.credits_used || 0;
   const creditsLimit = userPlan?.credits_limit || 10;
@@ -218,16 +190,13 @@ export default function ManagePlanPage() {
   const isYearly = billing === 'yearly';
 
   const features = [
-    userPlan?.credits_limit && `${userPlan.credits_limit} Tensors/month`,
-    userPlan?.internet_access && 'Web Search',
-    userPlan?.ultimate_access && 'Expert Mode',
-    userPlan?.file_upload && 'File Uploads',
-    userPlan?.max_discussions === 0 && 'Unlimited Discussions',
-    userPlan?.premium_support && 'Premium Support',
+    userPlan?.credits_limit && `${userPlan.credits_limit} crédits/mois`,
+    userPlan?.internet_access && 'Recherche web',
+    userPlan?.ultimate_access && 'Mode Expert',
+    userPlan?.file_upload && 'Fichiers',
+    userPlan?.max_discussions === 0 && 'Discussions illimitées',
+    userPlan?.premium_support && 'Support premium',
   ].filter(Boolean);
-
-  const openCancelFlow = () => { setCancelStep(1); setRatings({}); setShowCancelFlow(true); };
-  const closeCancelFlow = () => setShowCancelFlow(false);
 
   const submitCancel = async () => {
     if (!cancelNote.trim() || !cancelEmail.trim()) return;
@@ -236,9 +205,6 @@ export default function ManagePlanPage() {
     const planPrice = isYearly
       ? `$${userPlan?.price_yearly || userPlan?.price_monthly * 12}/yr`
       : `$${userPlan?.price_monthly}/mo`;
-
-    const ratingsText = Object.entries(ratings).map(([k, v]) => `${k}: ${v}/5`).join(', ');
-
     await base44.entities.SupportTicket.create({
       title: `Cancellation — ${userName}`,
       description: cancelNote,
@@ -253,194 +219,175 @@ export default function ManagePlanPage() {
       ratings_json: JSON.stringify(ratings),
       messages_json: JSON.stringify([{
         author: 'user',
-        text: `Reason: ${cancelNote}\nPayment email: ${cancelEmail}\nRatings: ${ratingsText}`,
+        text: `Raison: ${cancelNote}\nEmail: ${cancelEmail}`,
         file_urls: [],
         created_at: new Date().toISOString(),
       }]),
     });
-
     setCancelLoading(false);
     setCancelSent(true);
     setShowCancelFlow(false);
-    toast.success('Request sent — processed within 24 hours');
+    toast.success('Demande envoyée — traitée sous 24h');
   };
 
-  const STEP_TITLES = { 1: 'Rate Stensor', 2: "What you'll lose", 3: 'Cancel subscription' };
+  const STEP_TITLES = { 1: 'Évaluation', 2: 'Ce que vous perdez', 3: 'Annuler' };
 
   return (
-    <div className="min-h-screen bg-white font-be">
-      <div className="max-w-lg mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate('/settings')} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors" style={{ borderRadius: '4px' }}>
-            <ArrowLeft className="w-4 h-4" style={{ color: '#888' }} />
+    <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '32px 20px 80px' }}>
+
+        {/* Back */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
+          <button onClick={() => navigate('/settings')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', transition: 'background 120ms' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#333'}
+            onMouseLeave={e => e.currentTarget.style.background = '#2A2A2A'}>
+            <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
-          <h1 className="text-xl font-black" style={{ color: FG }}>Manage subscription</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Gérer l'abonnement</h1>
         </div>
 
         {/* Current plan card */}
-        <div className="p-5 mb-5" style={{ background: FG, borderRadius: '6px' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 flex items-center justify-center" style={{ background: YUZU, borderRadius: '4px' }}>
-              <Icon className="w-5 h-5" style={{ color: FG }} />
+        <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon style={{ width: 18, height: 18, color: '#F95738' }} />
             </div>
             <div>
-              <p className="font-black text-white text-lg">{userPlan?.name || 'Free'}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-white/50">
-                  {isYearly
-                    ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/year`
-                    : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/month` : 'Free'}
-                </p>
-                {isYearly && (
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm" style={{ background: YUZU, color: FG }}>YEARLY</span>
-                )}
-              </div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
+              <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
+                {isYearly
+                  ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/an`
+                  : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Gratuit'}
+                {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738' }}>ANNUEL</span>}
+              </p>
             </div>
           </div>
 
-          {/* Renewal date */}
           {renewalDate && userPlan?.price_monthly > 0 && (
-            <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <Clock className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.5)' }} />
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                {isYearly ? 'Annual renewal on ' : 'Monthly renewal on '}
-                <span style={{ color: 'rgba(255,255,255,0.85)' }}>{formatDate(renewalDate)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 7, background: 'rgba(255,255,255,0.04)', marginBottom: 14 }}>
+              <Clock style={{ width: 12, height: 12, color: '#555', flexShrink: 0 }} />
+              <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
+                {isYearly ? 'Renouvellement annuel le ' : 'Renouvellement mensuel le '}
+                <span style={{ color: '#aaa' }}>{formatDate(renewalDate)}</span>
               </p>
             </div>
           )}
 
-          <div className="mb-3">
-            <div className="flex justify-between mb-1">
-              <span className="text-xs text-white/60">Tensors this month</span>
-              <span className="text-xs font-bold text-white">{fmtN(creditsUsed)}/{fmtN(creditsLimit)}</span>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 11, color: DK.muted }}>Crédits ce mois</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#ccc' }}>{Math.round(creditsUsed * 10) / 10} / {creditsLimit}</span>
             </div>
-            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: YUZU }} />
+            <div style={{ width: '100%', height: 4, borderRadius: 999, background: '#2A2A2A', overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: '#F95738', transition: 'width 600ms ease' }} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {features.map((f, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <Check className="w-3 h-3 flex-shrink-0" style={{ color: YUZU }} />
-                <span className="text-xs text-white/70">{f}</span>
-              </div>
-            ))}
-          </div>
+
+          {features.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              {features.map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Check style={{ width: 11, height: 11, color: '#22c55e', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#888' }}>{f}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <HomeEventBanner large />
-
+        {/* Upgrade button */}
         <button onClick={() => navigate('/pricing')}
-          className="w-full flex items-center justify-between px-4 py-3 mb-3 transition-all hover:opacity-90"
-          style={{ background: YUZU, borderRadius: '5px' }}>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" style={{ color: FG }} />
-            <span className="text-sm font-black" style={{ color: FG }}>Upgrade my subscription</span>
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', marginBottom: 12, background: '#F95738', border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'opacity 150ms' }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <TrendingUp style={{ width: 15, height: 15, color: '#fff' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Améliorer mon abonnement</span>
           </div>
-          <ChevronRight className="w-4 h-4" style={{ color: FG }} />
+          <ChevronRight style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.7)' }} />
         </button>
 
         {/* Billing history */}
         {userPlan?.price_monthly > 0 && (
-          <div className="mb-4 border overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '5px' }}>
-            <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-              <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#aaa' }}>Billing history</p>
+          <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, marginBottom: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid #2A2A2A' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Historique de facturation</p>
             </div>
-            <div className="px-4 py-3 flex items-center justify-between">
+            <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className="text-sm font-semibold" style={{ color: FG }}>{userPlan.name} plan</p>
-                <p className="text-xs" style={{ color: '#999' }}>
-                  Since {formatDate(user?.subscription_date || user?.created_date)}
-                  {isYearly && <span className="ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: 'rgba(221,255,0,0.3)', color: '#555' }}>Annual</span>}
+                <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 2px' }}>{userPlan.name}</p>
+                <p style={{ fontSize: 11, color: DK.muted, margin: 0 }}>
+                  Depuis {formatDate(user?.subscription_date || user?.created_date)}
                 </p>
               </div>
-              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(22,163,74,0.1)', color: GREEN, borderRadius: '2px' }}>ACTIVE</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIF</span>
             </div>
           </div>
         )}
 
-        {/* Cancel section */}
+        {/* Cancel */}
         {userPlan?.price_monthly > 0 && (
           <>
             {cancelSent || existingCancel ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 mt-2" style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)' }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-3.5 h-3.5" style={{ color: existingCancel?.cancel_status === 'approved' ? '#16a34a' : '#888' }} />
-                  <p className="text-sm font-semibold" style={{ color: FG }}>
-                    {existingCancel?.cancel_status === 'approved' ? 'Subscription cancelled' : 'Cancellation request pending'}
+              <div style={{ padding: '14px 16px', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <Clock style={{ width: 13, height: 13, color: existingCancel?.cancel_status === 'approved' ? '#22c55e' : '#888', flexShrink: 0 }} />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: 0 }}>
+                    {existingCancel?.cancel_status === 'approved' ? 'Abonnement annulé' : "Demande d'annulation en attente"}
                   </p>
                 </div>
-                <p className="text-xs" style={{ color: '#888' }}>
+                <p style={{ fontSize: 12, color: DK.muted, margin: 0, lineHeight: 1.6 }}>
                   {existingCancel?.cancel_status === 'approved' && existingCancel?.cancel_ends_at
-                    ? `Your subscription will remain active until ${new Date(existingCancel.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}, then automatically downgrade to the free plan.`
-                    : "Your request has been received and will be processed within 24 hours. You'll be notified of the exact end date once approved."
+                    ? `Votre abonnement reste actif jusqu'au ${new Date(existingCancel.cancel_ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                    : "Votre demande a été reçue et sera traitée sous 24 heures."
                   }
                 </p>
-              </motion.div>
+              </div>
             ) : (
-              <button onClick={openCancelFlow}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-all mt-2"
-                style={{ background: 'white', color: '#999', border: '1px solid #e5e5e5', borderRadius: '4px' }}>
-                <X className="w-3 h-3" />
-                Cancel my subscription
+              <button onClick={() => { setCancelStep(1); setRatings({}); setShowCancelFlow(true); }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: 'transparent', color: '#555', border: '1px solid #2A2A2A', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'color 120ms, border-color 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#888'; e.currentTarget.style.borderColor = '#3A3A3A'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#2A2A2A'; }}>
+                <X style={{ width: 12, height: 12 }} />
+                Annuler mon abonnement
               </button>
             )}
           </>
         )}
       </div>
 
-      {/* ─── Cancel Flow Modal (multi-step) ─────────────────────── */}
-      <AnimatePresence>
-        {showCancelFlow && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
-            onClick={e => { if (e.target === e.currentTarget) closeCancelFlow(); }}>
-            <motion.div initial={{ scale: 0.96, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 12 }}
-              className="w-full max-w-sm bg-white overflow-hidden"
-              style={{ borderRadius: '14px', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
-
-              {/* Header */}
-              <div className="px-5 py-3.5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center gap-2">
-                  {/* Step indicators */}
-                  {[1, 2, 3].map(s => (
-                    <div key={s} className="w-2 h-2 rounded-full transition-all"
-                      style={{ background: s <= cancelStep ? FG : 'rgba(0,0,0,0.15)' }} />
-                  ))}
-                  <span className="text-xs font-semibold ml-1" style={{ color: '#999' }}>{STEP_TITLES[cancelStep]}</span>
-                </div>
-                <button onClick={closeCancelFlow} className="w-6 h-6 flex items-center justify-center hover:bg-black/5" style={{ borderRadius: '3px' }}>
-                  <X className="w-3.5 h-3.5" style={{ color: '#bbb' }} />
-                </button>
+      {/* Cancel Flow Modal */}
+      {showCancelFlow && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowCancelFlow(false); }}>
+          <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2A2A2A' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {[1, 2, 3].map(s => (
+                  <div key={s} style={{ width: 7, height: 7, borderRadius: '50%', background: s <= cancelStep ? '#F95738' : '#2A2A2A', transition: 'background 200ms' }} />
+                ))}
+                <span style={{ fontSize: 12, color: DK.muted, marginLeft: 4 }}>{STEP_TITLES[cancelStep]}</span>
               </div>
-
-              {/* Step content */}
-              <AnimatePresence mode="wait">
-                <motion.div key={cancelStep}
-                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.18 }}>
-                  {cancelStep === 1 && (
-                    <RatingStep ratings={ratings} setRatings={setRatings} onNext={() => setCancelStep(2)} />
-                  )}
-                  {cancelStep === 2 && (
-                    <LossStep userPlan={userPlan} onNext={() => setCancelStep(3)} onBack={() => setCancelStep(1)} />
-                  )}
-                  {cancelStep === 3 && (
-                    <ReasonStep
-                      cancelNote={cancelNote} setCancelNote={setCancelNote}
-                      cancelEmail={cancelEmail} setCancelEmail={setCancelEmail}
-                      cancelLoading={cancelLoading}
-                      onSubmit={submitCancel}
-                      onBack={() => setCancelStep(2)}
-                    />
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button onClick={() => setShowCancelFlow(false)} style={{ width: 24, height: 24, borderRadius: 5, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            </div>
+            {cancelStep === 1 && <RatingStep ratings={ratings} setRatings={setRatings} onNext={() => setCancelStep(2)} />}
+            {cancelStep === 2 && <LossStep userPlan={userPlan} onNext={() => setCancelStep(3)} onBack={() => setCancelStep(1)} />}
+            {cancelStep === 3 && (
+              <ReasonStep
+                cancelNote={cancelNote} setCancelNote={setCancelNote}
+                cancelEmail={cancelEmail} setCancelEmail={setCancelEmail}
+                cancelLoading={cancelLoading}
+                onSubmit={submitCancel}
+                onBack={() => setCancelStep(2)}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
