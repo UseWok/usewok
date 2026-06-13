@@ -59,6 +59,7 @@ import {
   orchestrateGeneration, patchCode, runSafetyFilter, runAutofixPipeline, MODELS as ORCH_MODELS,
 } from '@/lib/ai-orchestrator';
 import { formatCode, splitThinkingFromCode } from '@/lib/code-formatter';
+import { writeAuditLog } from '@/lib/serverGuard';
 
 // ── Automated thumbnail generator — fires only for published builds ──
 // Uses gpt-4o-mini to describe the app visually, then GenerateImage to produce a thumbnail.
@@ -615,6 +616,17 @@ export default function ChatPage() {
         },
       });
       setMessages([...newMessages, { role: 'assistant', content: classified.hint || classified.title }]);
+      // Server-side audit log for all generation errors (not just UI toasts)
+      if (user?.id) {
+        writeAuditLog(user.id, {
+          action: 'generate',
+          resource_type: 'Generation',
+          resource_id: convId,
+          status: 'failed',
+          error_message: err?.message || 'Unknown error',
+          metadata: { title: classified.title, hint: classified.hint, conv_id: convId },
+        }).catch(() => {});
+      }
     }
   }, [messages, isLoading, discussMode, currentWorkspace, user, ficheContent, editMode]);
 

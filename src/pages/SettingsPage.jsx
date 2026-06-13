@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { User, CreditCard, Zap, ArrowLeft, Save, Gift, Clock, Trash2, X, Download, ChevronRight, Check } from 'lucide-react';
+import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -56,18 +57,49 @@ function CodeRedeemer({ user, setUser }) {
         toast.success(`+${rec.credits} crédits`);
       }
 
+      // Anti-fraud: record full usage history as JSON array
+      const historyEntry = { email: user?.email, userId: user?.id, at: new Date().toISOString() };
+      const existingHistory = (() => { try { return JSON.parse(rec.used_by_history || '[]'); } catch { return []; } })();
+      existingHistory.push(historyEntry);
+
       // Mark code as used / increment
       if (rec.unlimited) {
-        await base44.entities.AccessCode.update(rec.id, { use_count: (rec.use_count || 0) + 1, used_by: user?.email });
+        await base44.entities.AccessCode.update(rec.id, {
+          use_count: (rec.use_count || 0) + 1,
+          used_by: user?.email,
+          used_by_history: JSON.stringify(existingHistory),
+        });
       } else {
-        await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email, use_count: (rec.use_count || 0) + 1 });
+        await base44.entities.AccessCode.update(rec.id, {
+          used: true, used_by: user?.email,
+          use_count: (rec.use_count || 0) + 1,
+          used_by_history: JSON.stringify(existingHistory),
+        });
       }
+
+      // Audit log — code redemption
+      writeAuditLog(user?.id, {
+        action: 'save',
+        resource_type: 'AccessCode',
+        resource_id: rec.id,
+        status: 'success',
+        metadata: { code: rec.code, plan_id: rec.plan_id, credits: rec.credits, email: user?.email },
+      }).catch(() => {});
 
       const updated = await base44.auth.me();
       if (setUser) setUser(updated);
       setCode('');
     } catch (e) {
-      setError('Erreur lors de la validation.');
+      // Audit log — failed redemption attempt (potential fraud signal)
+      writeAuditLog(user?.id || 'anonymous', {
+        action: 'save',
+        resource_type: 'AccessCode',
+        resource_id: 'failed_redemption',
+        status: 'failed',
+        error_message: e?.message || 'Validation error',
+        metadata: { attempted_code: code.trim(), email: user?.email },
+      }).catch(() => {});
+      setError('Error during validation.');
     }
     setLoading(false);
   };

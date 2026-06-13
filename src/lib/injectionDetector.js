@@ -20,23 +20,34 @@
 
 const INJECTION_PATTERNS = [
   // Instruction override attempts
-  { pattern: /ignore previous|forget the system|disregard (all|your|the)/i,       label: 'instruction-override' },
-  { pattern: /new instructions|override (the )?(system|prompt)|system prompt/i,   label: 'prompt-override' },
+  { pattern: /ignore previous|forget the system|disregard (all|your|the)/i,             label: 'instruction-override' },
+  { pattern: /new instructions|override (the )?(system|prompt)|system prompt/i,         label: 'prompt-override' },
+  { pattern: /from now on|starting now,? (you are|act|behave|respond)/i,                label: 'instruction-override-2' },
 
   // Role hijacking
-  { pattern: /pretend (you are|to be)|imagine you are|act as if you/i,            label: 'role-hijack' },
-  { pattern: /you are no longer|stop being (an AI|a model|an assistant)/i,        label: 'identity-reset' },
+  { pattern: /pretend (you are|to be)|imagine you are|act as if you/i,                  label: 'role-hijack' },
+  { pattern: /you are no longer|stop being (an AI|a model|an assistant)/i,              label: 'identity-reset' },
+  { pattern: /your (true|real|actual) (self|purpose|goal|identity)/i,                   label: 'identity-manipulation' },
 
   // Jailbreak vocabulary
-  { pattern: /unrestricted mode|no (limits|restrictions)|uncensored/i,            label: 'jailbreak-vocab' },
-  { pattern: /developer mode|DAN mode|jailbreak/i,                                label: 'jailbreak-mode' },
+  { pattern: /unrestricted mode|no (limits|restrictions)|uncensored/i,                  label: 'jailbreak-vocab' },
+  { pattern: /developer mode|DAN mode|jailbreak|god mode/i,                             label: 'jailbreak-mode' },
+  { pattern: /opposite (day|mode)|evil twin|anti-AI/i,                                  label: 'jailbreak-framing' },
 
   // Safety bypass
-  { pattern: /don't follow (the )?rules|bypass (safety|filter|restriction)/i,     label: 'safety-bypass' },
-  { pattern: /disable (safety|filter|moderation)|remove (restriction|limit)/i,    label: 'safety-disable' },
+  { pattern: /don't follow (the )?rules|bypass (safety|filter|restriction)/i,           label: 'safety-bypass' },
+  { pattern: /disable (safety|filter|moderation)|remove (restriction|limit)/i,          label: 'safety-disable' },
+  { pattern: /without (any )?(safety|ethical|moral) (filter|guidelines|constraints)/i,  label: 'safety-strip' },
+
+  // Prompt leaking / exfiltration
+  { pattern: /repeat (the|your) (system|initial|original) (prompt|instructions)/i,      label: 'prompt-leak' },
+  { pattern: /tell me (your|the) (system|initial) (prompt|instructions|context)/i,      label: 'prompt-exfil' },
+
+  // Many-shot / context stuffing
+  { pattern: /\[INST\]|\[\/INST\]|<<SYS>>|<\/SYS>|\[SYSTEM\]/i,                        label: 'llama-injection' },
 
   // Structural / delimiter injection — only explicit prompt markers, not JSX syntax
-  { pattern: /<prompt>|<\/prompt>|<system>|<\/system>/i,                           label: 'delimiter-injection' },
+  { pattern: /<prompt>|<\/prompt>|<system>|<\/system>/i,                                label: 'delimiter-injection' },
 ];
 
 /**

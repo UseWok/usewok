@@ -376,14 +376,40 @@ export function PublicLiveEngine({ content }) {
   );
 }
 
+function useDynamicSEO(title, description) {
+  useEffect(() => {
+    if (!title) return;
+    // Title
+    document.title = `${title} — Built with WOK`;
+    // Description
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) { meta = document.createElement('meta'); meta.setAttribute('name', 'description'); document.head.appendChild(meta); }
+    meta.setAttribute('content', description || `${title} — an app built with WOK AI.`);
+    // OG tags
+    const setOG = (prop, val) => {
+      let el = document.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+      el.setAttribute('content', val);
+    };
+    setOG('og:title', `${title} — Built with WOK`);
+    setOG('og:description', description || `${title} — an app built with WOK AI.`);
+    setOG('og:type', 'website');
+    setOG('og:url', window.location.href);
+    return () => { document.title = 'WOK'; };
+  }, [title, description]);
+}
+
 export default function PublicFiche() {
   const { id } = useParams();
   const conversationId = id?.split('--')[0];
 
   const [content, setContent] = useState(null);
+  const [appTitle, setAppTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+
+  useDynamicSEO(appTitle, appTitle ? `${appTitle} — an interactive app built with WOK AI.` : '');
 
   useEffect(() => {
     if (!conversationId) { setNotFound(true); setLoading(false); return; }
@@ -405,6 +431,8 @@ export default function PublicFiche() {
           setNotFound(true);
           return;
         }
+
+        if (record.title) setAppTitle(record.title);
 
         // Try direct content first, then fetch from URL if needed
         let content = record.raw_content;
@@ -494,6 +522,16 @@ export default function PublicFiche() {
         // Keep last 500 events per conv
         if (existing.length > 500) existing.splice(0, existing.length - 500);
         localStorage.setItem(key, JSON.stringify(existing));
+
+        // Persist to AuditLog entity for server-side durability (not just localStorage)
+        base44.entities.AuditLog.create({
+          created_by_id: 'public_visitor',
+          action: 'export', // closest semantic match for "view"
+          resource_type: 'PublicFiche',
+          resource_id: conversationId,
+          status: 'success',
+          metadata: JSON.stringify({ ip, device, os, referrer: referrer.slice(0, 100), ua: ua.slice(0, 150), language }),
+        }).catch(() => {});
 
         // Also track via base44 analytics
         base44.analytics.track({
