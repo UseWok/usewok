@@ -196,7 +196,7 @@ RULES:
 - Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
 
   const fixed = await base44.integrations.Core.InvokeLLM({
-    model: MODELS.BUILD, // gemini_3_1_pro — capable enough to fix real errors
+    model: MODELS.DEFAULT, // gpt_5_mini — fast and capable for autofix
     prompt: fixPrompt,
   });
 
