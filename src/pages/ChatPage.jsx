@@ -31,6 +31,7 @@ import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import HistoryPanel from '@/components/chat/HistoryPanel';
 import AnalyticsPanel from '@/components/chat/AnalyticsPanel.jsx';
+import MorePanel from '@/components/chat/MorePanel';
 import LogsPanel from '@/components/chat/LogsPanel.jsx';
 import { appendLog } from '@/components/chat/LogsPanel.jsx';
 import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
@@ -742,7 +743,7 @@ export default function ChatPage() {
         className="flex w-full h-full overflow-hidden"
         style={{ background: '#1F1F1F' }}>
 
-        <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px' }}>
+        <div className="flex w-full h-full" style={{ gap: 0, padding: '6px 6px 6px 6px', boxSizing: 'border-box' }}>
           {/* ── Left: Chat panel ── */}
           {chatVisible && (
             <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#1F1F1F', position: 'relative' }}>
@@ -839,7 +840,7 @@ export default function ChatPage() {
           {chatVisible && <ChatGutter />}
 
           {/* ── Right: Preview panel ── */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#1F1F1F' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#1F1F1F', display: 'flex', flexDirection: 'column' }}>
             {/* Header bar */}
             <ChatHeader
               user={user}
@@ -859,21 +860,24 @@ export default function ChatPage() {
 
             {/* Preview area */}
             <div style={{
-              position: 'absolute', top: 44, left: 4, right: 0, bottom: 0,
+              position: 'absolute', top: 44, left: 4, right: 6, bottom: 6,
               display: 'flex', alignItems: 'stretch', justifyContent: 'center',
+              borderRadius: 10,
+              border: '0.5px solid rgba(250,249,246,0.2)',
+              overflow: 'hidden',
             }}>
 
             {/* Analytics panel */}
             {viewMode === 'analytics' && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 8, overflow: 'hidden', border: '1px solid #D9D5CC' }}>
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#141414', borderRadius: 8, overflow: 'hidden' }}>
                 <AnalyticsPanel convId={conversationId || convId} />
               </div>
             )}
 
-            {/* Logs panel */}
-            {viewMode === 'logs' && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#FAF9F5', borderRadius: 8, overflow: 'hidden', border: '1px solid #D9D5CC' }}>
-                <LogsPanel />
+            {/* More panel (Logs + Code) */}
+            {viewMode === 'more' && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, borderRadius: 8, overflow: 'hidden' }}>
+                <MorePanel content={ficheContent} />
               </div>
             )}
 
@@ -881,14 +885,14 @@ export default function ChatPage() {
             <motion.div
               animate={mobilePreview
                 ? { width: 390, borderRadius: 20 }
-                : { width: '100%', borderRadius: 10 }
+                : { width: '100%', borderRadius: 0 }
               }
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               style={{
                 overflow: 'hidden', background: '#FFFFFF', flexShrink: 0,
                 alignSelf: mobilePreview ? 'center' : 'stretch',
                 boxShadow: 'none',
-                border: '1px solid #2A2A2A',
+                border: 'none',
                 height: mobilePreview ? 'calc(100% - 0px)' : '100%',
               }}
             >

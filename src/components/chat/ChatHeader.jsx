@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  Globe, MoreHorizontal, RefreshCw, BarChart2, Settings2, Check, X,
+  Globe, RefreshCw, X,
   ChevronDown, ArrowLeft, Star, HelpCircle,
   Pencil, Smartphone, Monitor,
-  Settings, FileCode } from 'lucide-react';
+  Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingPage from '@/pages/PricingPage';
 
@@ -14,10 +14,11 @@ const HistoryIcon = () =>
     <path d="M3 3v5h5" /><path d="M12 7v5l4 2" />
   </svg>;
 
-const UpArrowIcon = () =>
-<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 19V5M5 12l7-7 7 7" />
-  </svg>;
+const DiamondIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="#000" stroke="none">
+    <path d="M12 2L2 9l10 13 10-13z"/>
+  </svg>
+);
 
 const PanelIcon = () =>
 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -118,7 +119,7 @@ function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgr
       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#7B4FE0', fontFamily: 'Inter, sans-serif' }}
       onMouseEnter={(e) => e.currentTarget.style.background = '#1A1A1A'}
       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-        <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><UpArrowIcon /></span>
+        <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>↑</span>
         Upgrade to Creator
       </button>
       {sep()}
@@ -143,47 +144,12 @@ function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgr
     </div>);
 }
 
-// ── More dropdown ──
-function MoreMenu({ onClose, setViewMode }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => {if (ref.current && !ref.current.contains(e.target)) onClose();};
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
 
-  const items = [
-  { icon: BarChart2, label: 'Analytics', action: () => {setViewMode('analytics');onClose();} },
-  { icon: Settings2, label: 'Logs', action: () => {setViewMode('logs');onClose();} },
-  { icon: Settings2, label: 'Settings', action: () => {setViewMode('dashboard');onClose();} }];
-
-
-  return (
-    <div ref={ref} style={{
-      position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-      background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 99999, padding: '4px', minWidth: 160
-    }}>
-      {items.map(({ icon: Icon, label, action }) =>
-      <button key={label} onClick={action} style={{
-        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-        padding: '7px 10px', background: 'transparent', border: 'none',
-        borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif', textAlign: 'left'
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.background = '#1E1E1E'}
-      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-        
-          <Icon style={{ width: 13, height: 13, color: '#555' }} />{label}
-        </button>
-      )}
-    </div>);
-
-}
 
 // ── Tab icons ──
-const CodeIcon = () => (
+const AnalyticsIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
   </svg>
 );
 const LayersIcon = () => (
@@ -194,7 +160,7 @@ const LayersIcon = () => (
 
 const TABS = [
 { id: 'preview', icon: Globe, label: 'Preview' },
-{ id: 'code', icon: CodeIcon, label: 'Code' },
+{ id: 'analytics', icon: AnalyticsIcon, label: 'Analytics' },
 { id: 'more', icon: LayersIcon, label: 'More' }];
 
 
@@ -205,7 +171,6 @@ export default function ChatHeader({
   showHistory, setShowHistory
 }) {
   const [showProjectMenu, setShowProjectMenu] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showRename, setShowRename] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -225,7 +190,7 @@ export default function ChatHeader({
     color: '#fff', fontFamily: 'Inter, sans-serif'
   };
 
-  const activeTab = viewMode === 'code' ? 'code' : viewMode === 'preview' ? 'preview' : 'more';
+  const activeTab = viewMode === 'analytics' ? 'analytics' : viewMode === 'preview' ? 'preview' : viewMode === 'more' ? 'more' : 'preview';
   const HEADER_BG = '#1F1F1F';
 
   return (
@@ -286,7 +251,7 @@ export default function ChatHeader({
               return (
                 <div key={id} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                   <button
-                    onClick={() => { if (isMore) setShowMore(v => !v); else { setViewMode(id); setShowMore(false); } }}
+                    onClick={() => { setViewMode(id); }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       gap: isActive ? 5 : 0,
@@ -311,7 +276,7 @@ export default function ChatHeader({
                   {!isLast && !isActive && activeTab !== TABS[idx + 1]?.id && (
                     <div style={{ width: 1, height: 12, background: '#2A2A2A', flexShrink: 0 }} />
                   )}
-                  {isMore && showMore && <MoreMenu onClose={() => setShowMore(false)} setViewMode={setViewMode} />}
+
                 </div>
               );
             })}
@@ -355,31 +320,30 @@ export default function ChatHeader({
           <button
             onClick={() => setShowUpgrade(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              height: 27, padding: '0 13px', border: '1px solid rgba(249,130,80,0.35)', borderRadius: 999, cursor: 'pointer',
-              background: 'linear-gradient(90deg, #F97240 0%, #FBAF82 40%, #FAF6F0 100%)',
-              color: '#5A2A0A', fontSize: 12, fontWeight: 700, flexShrink: 0,
+              display: 'flex', alignItems: 'center', gap: 6,
+              height: 27, padding: '0 12px 0 10px', border: '1px solid rgba(249,130,80,0.35)', borderRadius: 999, cursor: 'pointer',
+              background: 'linear-gradient(100deg, #FAF0E8 0%, #FBD5B0 45%, #F97240 100%)',
+              color: '#C45000', fontSize: 12, fontWeight: 700, flexShrink: 0,
               boxShadow: 'none',
               transition: 'filter 180ms ease, box-shadow 180ms ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.05)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(249,114,64,0.3)'; }}
+            onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.04)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(249,114,64,0.28)'; }}
             onMouseLeave={e => { e.currentTarget.style.filter = 'brightness(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
-            <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(90,42,10,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UpArrowIcon /></span>
+            <DiamondIcon />
             Upgrade
           </button>
 
-          {/* Publish */}
+          {/* Publish — flush right */}
           <button onClick={onPublish} style={{
-            display: 'flex', alignItems: 'center', height: 27, padding: '0 12px',
+            display: 'flex', alignItems: 'center', height: 27, padding: '0 14px',
             border: 'none', borderRadius: 7, cursor: 'pointer',
-            background: '#2563EB', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0
+            background: '#2563EB', color: '#fff', fontSize: 12, fontWeight: 600, flexShrink: 0,
+            marginRight: 0,
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = '#1d4ed8'}
           onMouseLeave={(e) => e.currentTarget.style.background = '#2563EB'}>
             Publish
           </button>
-
-          <div style={{ width: 1, height: 16, background: '#2A2A2A', margin: '0 2px', flexShrink: 0 }} />
           
 
 
