@@ -1,80 +1,116 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { User, CreditCard, Zap, ArrowLeft, Save, Gift, Clock, Brain, Cpu, Trash2, X, Download, ChevronRight } from 'lucide-react';
+import { User, CreditCard, Zap, ArrowLeft, Save, Gift, Clock, Trash2, X, Download, ChevronRight, Check } from 'lucide-react';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
-function AccessCodeRedeemer({ user, setUser }) {
+const DK = { bg: '#1F1F1F', surface: '#141414', border: '#2A2A2A', text: '#fff', muted: '#888' };
+
+const inputStyle = {
+  width: '100%', background: '#141414', border: '1px solid #2A2A2A',
+  borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff',
+  outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box',
+};
+
+function CodeRedeemer({ user, setUser }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleRedeem = async () => {
-    setError('');
-    if (!code.trim()) { setError('Please enter a code.'); return; }
+    setError(''); setSuccess('');
+    if (!code.trim()) { setError('Entrez un code.'); return; }
     setLoading(true);
-    const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), used: false });
-    if (results.length === 0) {
-      const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
-      setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.');
-      setLoading(false); return;
-    }
-    const rec = results[0];
-
-    if (rec.plan_id) {
-      const plans = getPlansConfig();
-      const newPlan = plans.find(p => p.id === rec.plan_id);
-      if (newPlan) {
-        await base44.auth.updateMe({
-          subscription_plan: newPlan.id,
-          credits_limit: newPlan.credits_limit || rec.credits || 10,
-          credits_used: 0,
-          credits_bonus: rec.credits > 0 ? (user?.credits_bonus || 0) + rec.credits : (user?.credits_bonus || 0),
-          billing_cycle: 'monthly',
-          subscription_date: new Date().toISOString(),
-        });
-        toast.success(`${newPlan.name} subscription activated${rec.credits > 0 ? ` +${rec.credits} bonus credits` : ''}`);
+    try {
+      // Try AccessCode first
+      const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), visible: true });
+      const usable = results.filter(r => !r.used || r.unlimited || (r.max_uses && (r.use_count || 0) < r.max_uses));
+      if (usable.length === 0) {
+        const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
+        setError(any.length > 0 ? 'Ce code a déjà été utilisé.' : 'Code invalide.');
+        setLoading(false); return;
       }
-    } else {
-      await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
-      toast.success(`+${rec.credits} credits added to your account`);
-    }
+      const rec = usable[0];
+      if (rec.plan_id) {
+        const plans = getPlansConfig();
+        const newPlan = plans.find(p => p.id === rec.plan_id);
+        const billing = rec.billing || 'monthly';
+        if (newPlan) {
+          await base44.auth.updateMe({
+            subscription_plan: newPlan.id,
+            credits_limit: newPlan.credits_limit || 10,
+            credits_used: 0,
+            billing_cycle: billing,
+            subscription_date: new Date().toISOString(),
+          });
+          setSuccess(`Plan ${newPlan.name} (${billing === 'yearly' ? 'annuel' : 'mensuel'}) activé !`);
+          toast.success(`Plan ${newPlan.name} activé`);
+        }
+      } else if (rec.credits > 0) {
+        await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
+        setSuccess(`+${rec.credits} crédits ajoutés !`);
+        toast.success(`+${rec.credits} crédits`);
+      }
 
-    await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email });
-    const updated = await base44.auth.me();
-    if (setUser) setUser(updated);
-    setCode('');
+      // Mark code as used / increment
+      if (rec.unlimited) {
+        await base44.entities.AccessCode.update(rec.id, { use_count: (rec.use_count || 0) + 1, used_by: user?.email });
+      } else {
+        await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email, use_count: (rec.use_count || 0) + 1 });
+      }
+
+      const updated = await base44.auth.me();
+      if (setUser) setUser(updated);
+      setCode('');
+    } catch (e) {
+      setError('Erreur lors de la validation.');
+    }
     setLoading(false);
   };
 
   return (
-    <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-      <div className="flex items-center gap-2 mb-2">
-        <Gift className="w-4 h-4 text-[#1A1A1A]" />
-        <p className="text-xs font-medium text-[#666666]">Credits code</p>
+    <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        <Gift style={{ width: 14, height: 14, color: '#F95738' }} />
+        <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: 0 }}>Activer un code</p>
       </div>
-      <p className="text-xs mb-3 text-[#666666]">Enter a code to receive bonus credits on your account.</p>
-      <div className="flex gap-2">
+      <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Entrez un code d'accès pour activer un abonnement.</p>
+      <div style={{ display: 'flex', gap: 8 }}>
         <input
           value={code}
-          onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
-          placeholder="Ex: ABCD-EFGH-IJKL"
-          maxLength={20}
+          onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); setSuccess(''); }}
+          placeholder="XXXX-XXXX-XXXX"
+          maxLength={24}
           onKeyDown={e => { if (e.key === 'Enter') handleRedeem(); }}
-          className={`flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-400 focus:ring-red-200' : 'border-[#E5E5E5] focus:ring-[#1A1A1A]/20'}`}
+          style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : DK.border}` }}
         />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
-          className="px-4 py-2 text-sm font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors disabled:opacity-50">
-          {loading ? '...' : 'Redeem'}
+          style={{ padding: '10px 16px', background: !code.trim() ? '#2A2A2A' : '#fff', color: !code.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'opacity 150ms' }}>
+          {loading ? '...' : 'Activer'}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+      {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>{error}</p>}
+      {success && <p style={{ fontSize: 11, color: '#22c55e', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><Check style={{ width: 10, height: 10 }} />{success}</p>}
     </div>
   );
 }
+
+function getRenewalDate(user) {
+  const base = user?.subscription_date || user?.created_date;
+  if (!base) return null;
+  const d = new Date(base);
+  const now = new Date();
+  const yearly = user?.billing_cycle === 'yearly';
+  if (yearly) { while (d <= now) d.setFullYear(d.getFullYear() + 1); }
+  else { while (d <= now) d.setMonth(d.getMonth() + 1); }
+  return d;
+}
+
+const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -84,9 +120,6 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
-  const [activationCode, setActivationCode] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
-  const [codeError, setCodeError] = useState('');
   const [invoiceRequested, setInvoiceRequested] = useState({});
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -102,22 +135,6 @@ export default function SettingsPage() {
       setInvoiceEmail(u?.email || '');
       const plan = getUserPlan(u);
       setUserPlan(plan);
-
-      if (u && plan.price_monthly > 0) {
-        try {
-          const tickets = await base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email, cancel_status: 'approved' });
-          const expiredTicket = tickets.find(t => t.cancel_ends_at && new Date(t.cancel_ends_at) <= new Date());
-          if (expiredTicket) {
-            const freePlans = getPlansConfig();
-            const freePlan = freePlans.find(p => p.id === 'free') || freePlans[0];
-            await base44.auth.updateMe({ subscription_plan: 'free', credits_limit: freePlan.credits_limit, credits_used: 0 });
-            const updated = await base44.auth.me();
-            setUser(updated);
-            setUserPlan(getUserPlan(updated));
-          }
-        } catch {}
-      }
-
       if (u?.email) {
         base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
           if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
@@ -126,10 +143,10 @@ export default function SettingsPage() {
     }).catch(() => {});
   }, []);
 
-  const fmtN = (n) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? r.toString() : r.toFixed(1); };
   const creditsUsed = user?.credits_used || 0;
-  const creditsLimit = userPlan ? userPlan.credits_limit + (user?.credits_bonus || 0) : 10;
+  const creditsLimit = (userPlan?.credits_limit || 10) + (user?.credits_bonus || 0);
   const pct = Math.min((creditsUsed / creditsLimit) * 100, 100);
+  const isYearly = user?.billing_cycle === 'yearly';
 
   const getDailyUsage = () => {
     try {
@@ -137,81 +154,36 @@ export default function SettingsPage() {
       return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(); d.setDate(d.getDate() - (6 - i));
         const key = d.toISOString().slice(0, 10);
-        return { date: d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 };
+        return { date: d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 };
       });
     } catch { return []; }
   };
 
   const saveProfile = async () => {
     setProfileError('');
-    if (!fullName.trim()) { setProfileError('Full name cannot be empty.'); return; }
-    if (fullName.trim().length < 2) { setProfileError('Full name must be at least 2 characters.'); return; }
+    if (!fullName.trim() || fullName.trim().length < 2) { setProfileError('Le nom doit comporter au moins 2 caractères.'); return; }
     if (!user) return;
     setSavingProfile(true);
     await base44.auth.updateMe({ full_name: fullName.trim() });
     setSavingProfile(false);
-    toast.success('Profile updated');
-  };
-
-  const activateCode = async () => {
-    setCodeError('');
-    if (!activationCode.trim()) { setCodeError('Please enter an activation code.'); return; }
-    if (activationCode.trim().length < 8) { setCodeError('Code too short.'); return; }
-    if (!user) return;
-    setCodeLoading(true);
-    const results = await base44.entities.ActivationCode.filter({ code: activationCode.trim(), used: false });
-    if (results.length === 0) {
-      const anyMatch = await base44.entities.ActivationCode.filter({ code: activationCode.trim() });
-      setCodeError(anyMatch.length > 0 ? 'This code has already been used.' : 'Code not found.');
-      setCodeLoading(false); return;
-    }
-    const codeRecord = results[0];
-    const plans = getPlansConfig();
-    const newPlan = plans.find(p => p.id === codeRecord.plan_id);
-    if (!newPlan) { setCodeError('Plan associated with this code no longer exists.'); setCodeLoading(false); return; }
-
-    const currentPlan = getUserPlan(user);
-    const currentRank = plans.findIndex(p => p.id === currentPlan.id);
-    const newRank = plans.findIndex(p => p.id === newPlan.id);
-    const keepCurrent = currentRank > newRank && currentPlan.price_monthly > 0;
-
-    if (keepCurrent) {
-      const bonusCredits = newPlan.credits_limit;
-      await base44.auth.updateMe({ credits_bonus: (user.credits_bonus || 0) + bonusCredits });
-      toast.success(`Code applied! +${bonusCredits} bonus credits added`);
-    } else {
-      await base44.auth.updateMe({
-        subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit, credits_used: 0,
-        credits_bonus: 0, billing_cycle: codeRecord.billing || 'monthly', subscription_date: new Date().toISOString(),
-      });
-      toast.success(`${newPlan.name} plan activated`);
-    }
-    await base44.entities.ActivationCode.update(codeRecord.id, { used: true, used_by: user.email });
-    setActivationCode('');
-    const updated = await base44.auth.me();
-    setUser(updated); setUserPlan(getUserPlan(updated));
-    setCodeLoading(false);
+    toast.success('Profil mis à jour');
   };
 
   const requestInvoice = async () => {
     if (!user || !invoiceEmail.trim()) return;
     setInvoiceLoading(true);
     await base44.entities.SupportTicket.create({
-      title: `Invoice request — ${user.full_name || user.email}`,
-      description: `Invoice request for the ${userPlan?.name} plan. Payment email: ${invoiceEmail.trim()}`,
-      category: 'invoice',
-      status: 'open',
-      user_email: user.email,
-      user_name: user.full_name || user.email,
-      user_plan: userPlan?.name,
-      user_plan_price: userPlan?.price_monthly ? `$${userPlan.price_monthly}/mo` : 'Free',
-      invoice_email: invoiceEmail.trim(),
+      title: `Demande de facture — ${user.full_name || user.email}`,
+      description: `Demande de facture pour le plan ${userPlan?.name}. Email: ${invoiceEmail.trim()}`,
+      category: 'invoice', status: 'open',
+      user_email: user.email, user_name: user.full_name || user.email,
+      user_plan: userPlan?.name, invoice_email: invoiceEmail.trim(),
       messages_json: JSON.stringify([]),
     });
     setInvoiceLoading(false);
     setShowInvoiceModal(false);
     setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
-    toast.success('Invoice request sent');
+    toast.success('Demande de facture envoyée');
   };
 
   const deleteAccount = async () => {
@@ -221,35 +193,35 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
-    { id: 'usage', label: 'Usage', icon: Zap },
+    { id: 'profile', label: 'Profil', icon: User },
+    { id: 'plan', label: 'Plan & Facturation', icon: CreditCard },
+    { id: 'usage', label: 'Utilisation', icon: Zap },
   ];
 
-  const sharedProps = { user, setUser, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, fmtN, setShowInvoiceModal, cancelTicket };
-
   return (
-    <div className="min-h-screen font-sans" style={{ background: '#FFFFFF' }}>
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F7F7F8] transition-colors">
-            <ArrowLeft className="w-4 h-4 text-[#666666]" />
+    <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
+          <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+            <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
-          <h1 className="text-xl font-medium text-[#1A1A1A]">Settings</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Paramètres</h1>
         </div>
 
-        {/* Desktop: sidebar + panel */}
-        <div className="flex gap-8">
+        <div style={{ display: 'flex', gap: 32 }}>
           {/* Sidebar */}
-          <nav className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0">
+          <nav style={{ width: 180, flexShrink: 0 }}>
             {navItems.map(item => {
               const Icon = item.icon;
               const active = activeSection === item.id;
               return (
-                <button key={item.id} onClick={() => item.modal ? setShowAIDNAModal(true) : setActiveSection(item.id)}
-                  className={`flex items-center gap-3 px-3 py-2.5 text-sm text-left rounded-lg transition-all ${active ? 'text-[#1A1A1A] font-medium' : 'text-[#666666] hover:text-[#1A1A1A]'}`}>
-                  <div className={`w-px h-4 ${active ? 'bg-[#1A1A1A]' : 'bg-transparent'}`} />
-                  <Icon className="w-4 h-4 flex-shrink-0" />
+                <button key={item.id} onClick={() => setActiveSection(item.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', background: active ? '#2A2A2A' : 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DK.text : DK.muted, fontFamily: 'Inter, sans-serif', textAlign: 'left', marginBottom: 2, transition: 'all 120ms' }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#1A1A1A'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
+                  <Icon style={{ width: 14, height: 14 }} />
                   {item.label}
                 </button>
               );
@@ -257,41 +229,153 @@ export default function SettingsPage() {
           </nav>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
-            <SectionContent section={activeSection} {...sharedProps} desktop />
-          </div>
-        </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
 
-        {/* Modern Code Redemption Section - Full Width */}
-        <div className="mt-8 pt-8 border-t border-[#E5E5E5]">
-          <div className="max-w-2xl">
-            <h2 className="text-sm font-semibold text-[#1A1A1A] mb-4">Redeem Code</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <AccessCodeRedeemer user={user} setUser={setUser} />
-              <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <Gift className="w-4 h-4 text-[#1A1A1A]" />
-                  <p className="text-xs font-medium text-[#666666]">Activation Code</p>
+            {/* PROFILE */}
+            {activeSection === 'profile' && (
+              <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Email (lecture seule)</label>
+                  <input value={user?.email || ''} disabled style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }} />
                 </div>
-                <p className="text-xs mb-3 text-[#666666]">Activate a subscription plan with a code.</p>
-                <div className="flex gap-2">
-                  <input
-                    value={activationCode}
-                    onChange={e => { setActivationCode(e.target.value.toUpperCase()); setCodeError(''); }}
-                    placeholder="Ex: 4F7K-9M2X-1R8P"
-                    maxLength={20}
-                    onKeyDown={e => { if (e.key === 'Enter') activateCode(); }}
-                    className={`flex-1 px-3 py-2 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${codeError ? 'border-red-400 focus:ring-red-200' : 'border-[#E5E5E5] focus:ring-[#1A1A1A]/20'}`}
-                  />
-                  <button onClick={activateCode} disabled={codeLoading || !activationCode.trim()}
-                    className="px-4 py-2 text-sm font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
-                    {codeLoading ? '...' : 'Activate'}
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Nom complet</label>
+                  <input value={fullName} onChange={e => setFullName(e.target.value)} style={{ ...inputStyle, border: `1px solid ${profileError ? '#ef4444' : DK.border}` }} />
+                  {profileError && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{profileError}</p>}
+                </div>
+                <button onClick={saveProfile} disabled={savingProfile}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start', opacity: savingProfile ? 0.6 : 1 }}>
+                  <Save style={{ width: 13, height: 13 }} />
+                  {savingProfile ? 'Sauvegarde...' : 'Enregistrer'}
+                </button>
+
+                <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${DK.border}` }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 6px' }}>Supprimer le compte</p>
+                  <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées.</p>
+                  <button onClick={() => setShowDeleteModal(true)}
+                    style={{ padding: '9px 16px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    Supprimer mon compte
                   </button>
                 </div>
-                {codeError && <p className="text-xs text-red-500 mt-2">{codeError}</p>}
               </div>
-            </div>
-        </div>
+            )}
+
+            {/* PLAN */}
+            {activeSection === 'plan' && (
+              <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Current plan */}
+                <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 12, padding: 18 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>Abonnement actuel</p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Gratuit'}</p>
+                        {isYearly && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.12)', color: '#F95738' }}>ANNUEL</span>}
+                        {!isYearly && userPlan?.price_monthly > 0 && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(59,139,235,0.12)', color: '#3B8BEB' }}>MENSUEL</span>}
+                      </div>
+                      <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
+                        {isYearly
+                          ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/an`
+                          : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Gratuit'}
+                      </p>
+                      {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
+                        <p style={{ fontSize: 11, color: '#555', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock style={{ width: 10, height: 10 }} />
+                          {isYearly ? 'Renouvellement annuel le' : 'Renouvellement mensuel le'} {formatDate(getRenewalDate(user))}
+                        </p>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#2A2A2A', color: DK.muted }}>
+                      {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('fr-FR')} crédits/mois` : 'Gratuit'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                    <button onClick={() => navigate('/manage-plan')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', background: 'transparent', border: `1px solid ${DK.border}`, borderRadius: 7, fontSize: 12, color: DK.muted, cursor: 'pointer' }}>
+                      Gérer <ChevronRight style={{ width: 11, height: 11 }} />
+                    </button>
+                    <button onClick={() => navigate('/pricing')}
+                      style={{ padding: '7px 14px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
+                      Améliorer
+                    </button>
+                  </div>
+                </div>
+
+                {/* Code redeemer */}
+                <CodeRedeemer user={user} setUser={setUser} />
+
+                {/* Billing history */}
+                {userPlan?.price_monthly > 0 && (
+                  <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 16px', borderBottom: `1px solid ${DK.border}` }}>
+                      <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Historique de facturation</p>
+                    </div>
+                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 2px' }}>{userPlan.name}</p>
+                        <p style={{ fontSize: 11, color: DK.muted, margin: 0 }}>
+                          Depuis {formatDate(user?.subscription_date || user?.created_date)}
+                          {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#2A2A2A', color: '#888' }}>Annuel</span>}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {cancelTicket?.cancel_status === 'pending' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>EN ATTENTE D'ANNULATION</span>}
+                        {cancelTicket?.cancel_status === 'approved' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>ANNULÉ</span>}
+                        {!cancelTicket && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIF</span>}
+                        <button onClick={() => setShowInvoiceModal(true)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 9px', background: '#2A2A2A', border: 'none', borderRadius: 5, fontSize: 10, fontWeight: 600, color: invoiceRequested[userPlan.name] ? '#22c55e' : DK.muted, cursor: 'pointer' }}>
+                          <Download style={{ width: 10, height: 10 }} />
+                          {invoiceRequested[userPlan.name] ? 'Envoyé' : 'Facture'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* USAGE */}
+            {activeSection === 'usage' && (
+              <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 10 }}>
+                  <div>
+                    <p style={{ fontSize: 10, color: '#555', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Plan actuel</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Gratuit'}</p>
+                  </div>
+                  <button onClick={() => navigate('/pricing')}
+                    style={{ padding: '7px 12px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 11, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
+                    Améliorer
+                  </button>
+                </div>
+
+                {/* Credits — used/total */}
+                <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: DK.muted, margin: 0 }}>Crédits Flash</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: DK.text, margin: 0 }}>
+                      {creditsUsed.toLocaleString('fr-FR')} / {creditsLimit.toLocaleString('fr-FR')}
+                    </p>
+                  </div>
+                  <div style={{ width: '100%', height: 6, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: pct > 80 ? '#ef4444' : '#F95738', transition: 'width 400ms ease' }} />
+                  </div>
+                  <p style={{ fontSize: 10, color: '#555', margin: '6px 0 0' }}>{Math.round(pct)}% utilisé</p>
+                </div>
+
+                {/* Daily usage chart */}
+                <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: '14px 16px' }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: DK.muted, margin: '0 0 14px' }}>Activité — 7 derniers jours</p>
+                  <ResponsiveContainer width="100%" height={90}>
+                    <BarChart data={getDailyUsage()} barSize={14}>
+                      <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#555' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: 11, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 6, color: '#fff' }} />
+                      <Bar dataKey="tensors" fill="#F95738" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -299,26 +383,19 @@ export default function SettingsPage() {
 
       {/* Invoice modal */}
       {showInvoiceModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
-          <div className="w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="px-5 py-4 flex items-center justify-between border-b border-[#E5E5E5]">
-              <p className="text-sm font-medium text-[#1A1A1A]">Request an invoice</p>
-              <button onClick={() => setShowInvoiceModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-[#F7F7F8] rounded">
-                <X className="w-4 h-4 text-[#666666]" />
-              </button>
+          <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${DK.border}` }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Demander une facture</p>
+              <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555' }}><X style={{ width: 14, height: 14 }} /></button>
             </div>
-            <div className="p-5 space-y-4">
-              <p className="text-xs text-[#666666]">Enter the email used for your payment. We'll forward your request to our team.</p>
-              <div>
-                <label className="text-xs font-medium block mb-1 text-[#666666]">Payment email</label>
-                <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20" />
-              </div>
+            <div style={{ padding: 18 }}>
+              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Entrez l'email utilisé pour votre paiement.</p>
+              <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)} placeholder="email@example.com" style={{ ...inputStyle, marginBottom: 12 }} />
               <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
-                className="w-full py-2 text-sm font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
-                {invoiceLoading ? 'Sending...' : 'Submit request'}
+                style={{ width: '100%', padding: '10px 0', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
+                {invoiceLoading ? 'Envoi...' : 'Envoyer la demande'}
               </button>
             </div>
           </div>
@@ -327,25 +404,22 @@ export default function SettingsPage() {
 
       {/* Delete modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <div className="w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="px-6 pt-5 pb-4 bg-red-500 flex items-center justify-between">
-              <p className="text-base font-medium text-white">Delete account</p>
-              <button onClick={() => setShowDeleteModal(false)} className="w-6 h-6 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
-                <X className="w-4 h-4 text-white" />
-              </button>
+          <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px 12px', background: 'rgba(239,68,68,0.1)', borderBottom: `1px solid rgba(239,68,68,0.2)` }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', margin: 0 }}>Supprimer le compte</p>
             </div>
-            <div className="p-5 space-y-4">
-              <p className="text-xs font-medium text-[#666666]">This action is irreversible. All your data will be permanently deleted.</p>
-              <div className="p-3 bg-[#F7F7F8] rounded-lg">
-                <p className="text-xs text-[#666666]">Email: <strong className="text-[#1A1A1A]">{user?.email}</strong></p>
+            <div style={{ padding: 18 }}>
+              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées.</p>
+              <div style={{ background: '#1A1A1A', borderRadius: 7, padding: '8px 12px', marginBottom: 14 }}>
+                <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Email : <strong style={{ color: DK.text }}>{user?.email}</strong></p>
               </div>
-              <button onClick={deleteAccount} className="w-full py-2.5 font-medium text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                Confirm deletion
+              <button onClick={deleteAccount} style={{ width: '100%', padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 8 }}>
+                Confirmer la suppression
               </button>
-              <button onClick={() => setShowDeleteModal(false)} className="w-full py-2 text-sm font-medium text-[#666666] rounded-lg hover:bg-[#F7F7F8] transition-colors">
-                Cancel
+              <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: DK.muted, border: `1px solid ${DK.border}`, borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
+                Annuler
               </button>
             </div>
           </div>
@@ -353,168 +427,4 @@ export default function SettingsPage() {
       )}
     </div>
   );
-}
-
-function SectionContent({ section, desktop, user, setUser, userPlan, fullName, setFullName, saveProfile, savingProfile, profileError, navigate, pct, creditsUsed, creditsLimit, getDailyUsage, activationCode, setActivationCode, activateCode, codeLoading, codeError, invoiceRequested, requestInvoice, setShowDeleteModal, fmtN, setShowInvoiceModal, cancelTicket }) {
-  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-  const isYearly = user?.billing_cycle === 'yearly';
-
-  function getRenewalDate(u) {
-    const base = u?.subscription_date || u?.created_date;
-    if (!base) return null;
-    const d = new Date(base);
-    const now = new Date();
-    const yearly = u?.billing_cycle === 'yearly';
-    if (yearly) { while (d <= now) d.setFullYear(d.getFullYear() + 1); }
-    else { while (d <= now) d.setMonth(d.getMonth() + 1); }
-    return d;
-  }
-
-  if (section === 'profile') return (
-    <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-      <div>
-        <label className="text-xs font-medium block mb-1.5 text-[#666666]">Email (read-only)</label>
-        <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 text-sm bg-[#F7F7F8] border border-[#E5E5E5] rounded-lg text-[#666666] cursor-not-allowed" />
-      </div>
-      <div>
-        <label className="text-xs font-medium block mb-1.5 text-[#666666]">Full name</label>
-        <input value={fullName} onChange={e => setFullName(e.target.value)}
-          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all ${profileError ? 'border-red-400 focus:ring-red-200' : 'border-[#E5E5E5] focus:ring-[#1A1A1A]/20'}`} />
-        {profileError && <p className="text-xs text-red-500 mt-1">{profileError}</p>}
-      </div>
-      <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors disabled:opacity-50">
-        <Save className="w-4 h-4" /> {savingProfile ? 'Saving...' : 'Save changes'}
-      </button>
-
-      <div className="pt-6 mt-6 border-t border-[#E5E5E5]">
-        <p className="text-sm font-medium mb-2 text-[#1A1A1A]">Delete account</p>
-        <p className="text-xs mb-3 text-[#666666]">This action is irreversible. All your data will be permanently deleted.</p>
-        <button onClick={() => setShowDeleteModal(true)} className="w-full py-2 text-sm font-medium border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-          Delete account
-        </button>
-      </div>
-    </div>
-  );
-
-  if (section === 'plan') {
-    const renewalDate = getRenewalDate(user);
-    const isCancelPending = cancelTicket?.cancel_status === 'pending';
-    const isCancelApproved = cancelTicket?.cancel_status === 'approved';
-    const displayPrice = isYearly
-      ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/year`
-      : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/month` : 'Free';
-    return (
-      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-        <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-          <p className="text-xs font-medium mb-2 text-[#666666]">Current subscription</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-medium text-[#1A1A1A]">{userPlan?.name || 'Free'}</p>
-                {isYearly && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#F7F7F8] text-[#666666]">YEARLY</span>}
-              </div>
-              <p className="text-xs mt-0.5 text-[#666666]">{displayPrice}</p>
-              {renewalDate && userPlan?.price_monthly > 0 && (
-                <p className="text-xs mt-1 text-[#666666] flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {isYearly ? 'Annual renewal on' : 'Monthly renewal on'} {formatDate(renewalDate)}
-                </p>
-              )}
-            </div>
-            <span className="px-3 py-1.5 text-xs font-medium bg-[#F7F7F8] text-[#1A1A1A] rounded-lg">
-              {userPlan?.credits_limit} credits/mo
-            </span>
-          </div>
-          <div className="flex gap-2 mt-3">
-            <button onClick={() => navigate('/manage-plan')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors">
-              Manage <ChevronRight className="w-3 h-3" />
-            </button>
-            <button onClick={() => navigate('/pricing')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors">
-              Upgrade
-            </button>
-          </div>
-        </div>
-
-        {userPlan?.price_monthly > 0 && (
-          <div>
-            <p className="text-xs font-medium mb-2 text-[#666666]">Billing history</p>
-            <div className="border border-[#E5E5E5] rounded-lg overflow-hidden bg-white">
-              <div className="flex items-center gap-3 px-4 py-3 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1A1A]">{userPlan.name} plan</p>
-                  <p className="text-xs text-[#666666]">
-                    Since {formatDate(user?.subscription_date || user?.created_date)}
-                    {isYearly && <span className="ml-1.5 text-[9px] font-medium px-1 py-0.5 rounded bg-[#F7F7F8] text-[#666666]">Annual</span>}
-                  </p>
-                </div>
-                <span className="text-sm font-medium text-[#1A1A1A]">{displayPrice}</span>
-                {isCancelPending && <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-700">CANCELLATION PENDING</span>}
-                {isCancelApproved && cancelTicket?.cancel_ends_at && <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-red-50 text-red-700">CANCELLED · ENDS {new Date(cancelTicket.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>}
-                {!cancelTicket && <span className="text-[10px] font-medium px-2 py-0.5 bg-green-50 text-green-700 rounded">ACTIVE</span>}
-                <button onClick={() => setShowInvoiceModal(true)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-medium rounded-lg transition-colors ${invoiceRequested[userPlan.name] ? 'bg-green-50 text-green-700' : 'bg-[#F7F7F8] text-[#666666] hover:bg-[#F0F0F0]'}`}>
-                  <Download className="w-3 h-3" />
-                  {invoiceRequested[userPlan.name] ? 'Sent' : 'Invoice'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (section === 'usage') {
-    const deepUsed = user?.deep_credits_used || 0;
-    const deepLimit = userPlan?.deep_credits_limit || 0;
-    const deepPct = deepLimit > 0 ? Math.min((deepUsed / deepLimit) * 100, 100) : 0;
-    return (
-      <div className={`space-y-4 ${desktop ? 'max-w-lg' : 'pt-2'}`}>
-        <div className="flex items-center justify-between px-4 py-3 bg-[#1A1A1A] rounded-lg">
-          <div>
-            <p className="text-xs text-white/60">Current plan</p>
-            <p className="text-sm font-medium text-white">{userPlan?.name || 'Free'}</p>
-          </div>
-          <button onClick={() => navigate('/pricing')} className="px-3 py-1.5 text-xs font-medium bg-white text-[#1A1A1A] rounded-lg hover:opacity-90 transition-opacity">Upgrade</button>
-        </div>
-
-        <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-[#666666]">Flash Credits</p>
-            <p className="text-xs font-medium text-[#1A1A1A]">{fmtN(creditsUsed)} / {fmtN(creditsLimit)}</p>
-          </div>
-          <div className="w-full h-2 bg-[#F7F7F8] rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all bg-[#1A1A1A]" style={{ width: `${pct}%` }} />
-          </div>
-          <p className="text-[10px] mt-1.5 text-[#666666]">{Math.round(pct)}% used</p>
-        </div>
-
-        {deepLimit > 0 && (
-          <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-[#666666]">Deep Credits</p>
-              <p className="text-xs font-medium text-[#1A1A1A]">{deepUsed} / {deepLimit}</p>
-            </div>
-            <div className="w-full h-2 bg-[#F7F7F8] rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all bg-[#1A1A1A]" style={{ width: `${deepPct}%` }} />
-            </div>
-            <p className="text-[10px] mt-1.5 text-[#666666]">{Math.round(deepPct)}% used</p>
-          </div>
-        )}
-
-        <div className="p-4 border border-[#E5E5E5] rounded-lg bg-white">
-          <p className="text-xs font-medium mb-4 text-[#666666]">Activity — Last 7 Days</p>
-          <ResponsiveContainer width="100%" height={90}>
-            <BarChart data={getDailyUsage()} barSize={14}>
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#999' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, border: '1px solid #E5E5E5', borderRadius: '8px' }} />
-              <Bar dataKey="tensors" fill="#1A1A1A" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
 }

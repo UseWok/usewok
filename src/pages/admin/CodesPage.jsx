@@ -8,6 +8,7 @@ import {
   RefreshCw, Calendar, Users, Infinity as InfinityIcon, Home,
   AlertCircle, CheckCircle, XCircle, PauseCircle, PlayCircle, FileText
 } from 'lucide-react';
+import { getPlansConfig } from '@/lib/plans-config';
 
 const generateCode = (prefix = '') => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -74,13 +75,8 @@ export default function CodesPage() {
     }
   };
 
-  const loadPlans = async () => {
-    try {
-      const data = await base44.entities.SubscriptionPlan.list();
-      setPlans(data || []);
-    } catch (error) {
-      console.error('Failed to load plans:', error);
-    }
+  const loadPlans = () => {
+    try { setPlans(getPlansConfig() || []); } catch { setPlans([]); }
   };
 
   const handleCopyCode = async (code) => {
@@ -438,8 +434,9 @@ function GenerateCodeModal({ onClose, onCodeGenerated, plans }) {
     prefix: '',
     plan_id: plans && plans.length > 0 ? plans[0].id : '',
     plan_name: plans && plans.length > 0 ? plans[0].name : '',
-    duration_value: 30,
-    duration_type: 'day',
+    billing: 'monthly',
+    duration_value: 1,
+    duration_type: 'month',
     type: 'single',
     max_uses: 1,
     unlimited: false,
@@ -469,7 +466,9 @@ function GenerateCodeModal({ onClose, onCodeGenerated, plans }) {
         description: formData.note,
         used: false,
         used_by: null,
-        billing: 'monthly'
+        billing: formData.billing,
+        visible: true,
+        use_count: 0,
       });
       
       toast.success('Code généré avec succès !');
@@ -590,6 +589,16 @@ function GenerateCodeModal({ onClose, onCodeGenerated, plans }) {
             </select>
           </div>
 
+          {/* Billing */}
+          <div>
+            <label className="block text-[12px] font-medium text-[#888888] mb-2">Facturation *</label>
+            <select value={formData.billing} onChange={(e) => setFormData({ ...formData, billing: e.target.value })}
+              className="w-full px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20">
+              <option value="monthly">Mensuel</option>
+              <option value="yearly">Annuel</option>
+            </select>
+          </div>
+
           {/* Duration */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -692,8 +701,9 @@ function BulkPasteModal({ onClose, onPasteComplete, plans }) {
   const [pastedCodes, setPastedCodes] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState(plans && plans.length > 0 ? plans[0].id : '');
   const [selectedPlanName, setSelectedPlanName] = useState(plans && plans.length > 0 ? plans[0].name : '');
-  const [durationValue, setDurationValue] = useState(30);
-  const [durationType, setDurationType] = useState('day');
+  const [billing, setBilling] = useState('monthly');
+  const [durationValue, setDurationValue] = useState(1);
+  const [durationType, setDurationType] = useState('month');
   const [maxUses, setMaxUses] = useState(1);
   const [codeType, setCodeType] = useState('single');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -730,8 +740,9 @@ function BulkPasteModal({ onClose, onPasteComplete, plans }) {
           description: 'Import en masse',
           used: false,
           used_by: null,
-          billing: 'monthly',
-          visible: true
+          billing: billing,
+          visible: true,
+          use_count: 0,
         });
         successful.push(code);
       } catch (error) {
@@ -826,6 +837,15 @@ function BulkPasteModal({ onClose, onPasteComplete, plans }) {
               {plans.map(plan => (
                 <option key={plan.id} value={plan.id}>{plan.name}</option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[12px] font-medium text-[#888888] mb-2">Facturation *</label>
+            <select value={billing} onChange={(e) => setBilling(e.target.value)}
+              className="w-full px-4 py-2.5 text-[14px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20">
+              <option value="monthly">Mensuel</option>
+              <option value="yearly">Annuel</option>
             </select>
           </div>
 

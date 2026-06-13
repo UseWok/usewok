@@ -1,113 +1,66 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Home, Plus, BookOpen, Clock, X, Globe, Lock, ExternalLink } from 'lucide-react';
+import { Search, Home, Plus, BookOpen, Clock, X, Globe, Lock } from 'lucide-react';
 import { loadDiscussionsFromCloud, getLocalDiscussions } from '@/lib/chat-storage';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return 'À l\'instant';
+  if (mins < 60) return `${mins}m`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}h`;
   const days = Math.floor(hrs / 24);
-  return days < 30 ? `${days}d ago` : new Date(dateStr).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+  return days < 30 ? `${days}j` : new Date(dateStr).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
 }
+
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; return Math.abs(h); }
+const COLORS = ['#F95738', '#7B4FE0', '#3B8BEB', '#22c55e', '#f59e0b', '#e879f9'];
 
 function BuildRow({ build, onClick }) {
   const [hovered, setHovered] = useState(false);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const rowRef = useRef(null);
-
+  const color = COLORS[hashStr(build.id || build.title || '') % COLORS.length];
   const initial = (build.title || 'U').charAt(0).toUpperCase();
 
-  const handleMouseMove = (e) => {
-    if (!rowRef.current) return;
-    const rect = rowRef.current.getBoundingClientRect();
-    setTooltipPos({ x: e.clientX - rect.left + 16, y: e.clientY - rect.top - 60 });
-  };
-
   return (
-    <div
-      ref={rowRef}
+    <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onMouseMove={handleMouseMove}
       style={{
         display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-        borderRadius: 8, cursor: 'pointer', position: 'relative',
-        background: hovered ? '#F7F7F7' : 'transparent',
+        borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', border: 'none',
+        background: hovered ? '#2A2A2A' : 'transparent',
         transition: 'background 120ms',
       }}
     >
-      {/* Avatar */}
-      <div style={{ width: 30, height: 30, borderRadius: 999, background: '#8B9EB0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+      <div style={{ width: 30, height: 30, borderRadius: 8, background: color + '22', border: `1px solid ${color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color, flexShrink: 0 }}>
         {initial}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: '#fff', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {build.title || 'Untitled build'}
         </p>
-        <p style={{ fontSize: 11, color: '#999', margin: 0 }}>
-          Modifié {timeAgo(build.updatedAt || build.date)}
+        <p style={{ fontSize: 11, color: '#555', margin: 0 }}>
+          {timeAgo(build.updatedAt || build.date)}
         </p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
         {build.is_public ? (
-          <Globe style={{ width: 12, height: 12, color: '#22C55E' }} />
+          <Globe style={{ width: 11, height: 11, color: '#22c55e' }} />
         ) : (
-          <Lock style={{ width: 12, height: 12, color: '#999' }} />
+          <Lock style={{ width: 11, height: 11, color: '#444' }} />
         )}
-        <span style={{ fontSize: 11, color: '#999' }}>{build.is_public ? 'Public' : 'Privé'}</span>
       </div>
-
-      {/* Hover tooltip card */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 4 }}
-            transition={{ duration: 0.12 }}
-            style={{
-              position: 'absolute', left: '100%', top: '50%', transform: 'translateY(-50%)',
-              marginLeft: 10, zIndex: 9999, pointerEvents: 'none',
-              background: '#fff', border: '1px solid #E8E8E6', borderRadius: 12,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: 14, width: 220,
-            }}
-          >
-            {/* Thumbnail placeholder */}
-            <div style={{ width: '100%', aspectRatio: '16/10', borderRadius: 8, background: '#F5F5F5', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #EBEBEB' }}>
-              <span style={{ fontSize: 10, color: '#CCC' }}>Preview</span>
-            </div>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#111', margin: '0 0 6px' }}>{build.title || 'Untitled'}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {[
-                ['Statut', 'Actif'],
-                ['Visibilité', build.is_public ? 'Public' : 'Privé'],
-                ['Créé le', build.date ? new Date(build.date).toLocaleDateString('fr-FR') : '—'],
-                ['Modifié', timeAgo(build.updatedAt || build.date)],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, color: '#999' }}>{k}</span>
-                  <span style={{ fontSize: 11, color: '#333', fontWeight: 500 }}>{v}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    </button>
   );
 }
 
 const QUICK_LINKS = [
   { icon: Home, label: 'Home', path: '/app' },
-  { icon: Plus, label: 'Create a new build', path: '/app' },
-  { icon: BookOpen, label: 'Documentation', path: null, action: () => window.open('https://docs.wok.app', '_blank') },
+  { icon: Plus, label: 'Créer un nouveau build', path: '/app' },
+  { icon: BookOpen, label: 'Documentation', path: null, action: () => window.open('https://docs.wok.so', '_blank') },
 ];
 
 export default function SearchModal({ open, onClose }) {
@@ -128,12 +81,12 @@ export default function SearchModal({ open, onClose }) {
   }, [open]);
 
   useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  if (!open) return null;
 
   const filtered = query.trim()
     ? builds.filter(b => (b.title || '').toLowerCase().includes(query.toLowerCase()))
@@ -142,105 +95,91 @@ export default function SearchModal({ open, onClose }) {
   const go = (path) => { navigate(path); onClose(); };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop — very light blur, no dark overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={onClose}
-            style={{ position: 'fixed', inset: 0, zIndex: 9998, backdropFilter: 'blur(2px)', background: 'rgba(255,255,255,0.4)' }}
-          />
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      />
 
-          {/* Modal */}
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, pointerEvents: 'none' }}>
-            <motion.div
-              initial={{ opacity: 0, y: -16, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -16, scale: 0.97 }}
-              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-              style={{
-                width: '100%', maxWidth: 600, maxHeight: '75vh',
-                background: '#fff', borderRadius: 16,
-                border: '1px solid #E8E8E6',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.14)',
-                display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                pointerEvents: 'auto',
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Search input */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
-                <Search style={{ width: 18, height: 18, color: '#AAAAAA', flexShrink: 0 }} />
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  placeholder="Search builds…"
-                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: '#111', background: 'transparent', fontFamily: 'Inter, sans-serif' }}
-                />
-                <button onClick={onClose}
-                  style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: '1px solid #E8E8E6', background: 'transparent', cursor: 'pointer', color: '#999', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
+      {/* Modal */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '80px 24px 24px', pointerEvents: 'none' }}>
+        <div
+          style={{
+            width: '100%', maxWidth: 560, maxHeight: '70vh',
+            background: '#141414', borderRadius: 14,
+            border: '1px solid #2A2A2A',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            pointerEvents: 'auto',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Search input */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: '1px solid #2A2A2A', flexShrink: 0 }}>
+            <Search style={{ width: 16, height: 16, color: '#555', flexShrink: 0 }} />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Rechercher un build…"
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#fff', background: 'transparent', fontFamily: 'Inter, sans-serif' }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <kbd style={{ fontSize: 10, color: '#444', background: '#222', border: '1px solid #333', borderRadius: 4, padding: '2px 5px', fontFamily: 'monospace' }}>ESC</kbd>
+              <button onClick={onClose}
+                style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: '1px solid #2A2A2A', background: 'transparent', cursor: 'pointer', color: '#555', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <X style={{ width: 11, height: 11 }} />
+              </button>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {/* Recent builds */}
+            <div style={{ padding: '10px 10px 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6, padding: '0 4px' }}>
+                <Clock style={{ width: 11, height: 11, color: '#444' }} />
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#444', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  {query ? 'Résultats' : 'Builds récents'}
+                </span>
+              </div>
+              {filtered.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#444', padding: '8px 12px' }}>Aucun build trouvé</p>
+              ) : (
+                filtered.map(b => (
+                  <BuildRow key={b.id} build={b} onClick={() => go(`/chat?conversationId=${b.id}`)} />
+                ))
+              )}
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: '#2A2A2A', margin: '6px 0' }} />
+
+            {/* Quick nav */}
+            <div style={{ padding: '4px 10px 10px' }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: '#444', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '6px 0 4px 4px' }}>Navigation</p>
+              {QUICK_LINKS.map(({ icon: Icon, label, path, action }) => (
+                <button
+                  key={label}
+                  onClick={() => { if (action) { action(); onClose(); } else go(path); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', transition: 'background 100ms', color: '#ccc' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#2A2A2A'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <X style={{ width: 13, height: 13 }} />
+                  <span style={{ width: 28, height: 28, borderRadius: 7, background: '#1E1E1E', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon style={{ width: 13, height: 13, color: '#666' }} />
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>{label}</span>
                 </button>
-              </div>
-
-              {/* Body — scrollable */}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-                {/* Recent builds */}
-                <div style={{ padding: '12px 12px 4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <Clock style={{ width: 13, height: 13, color: '#AAAAAA' }} />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#AAAAAA', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      {query ? 'Résultats' : 'Mes builds récents'}
-                    </span>
-                  </div>
-                  {filtered.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#CCC', padding: '8px 12px' }}>Aucun build trouvé</p>
-                  ) : (
-                    filtered.map(b => (
-                      <BuildRow
-                        key={b.id}
-                        build={b}
-                        onClick={() => go(`/chat?conversationId=${b.id}`)}
-                      />
-                    ))
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div style={{ height: 1, background: '#F0F0F0', margin: '8px 0' }} />
-
-                {/* Quick nav */}
-                <div style={{ padding: '4px 12px 12px' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#AAAAAA', letterSpacing: '0.04em', textTransform: 'uppercase', margin: '8px 0 6px 12px' }}>Navigation rapide</p>
-                  {QUICK_LINKS.map(({ icon: Icon, label, path, action }) => (
-                    <button
-                      key={label}
-                      onClick={() => { if (action) { action(); onClose(); } else go(path); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'Inter, sans-serif', transition: 'background 100ms' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F7F7F7'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ width: 30, height: 30, borderRadius: 8, background: '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon style={{ width: 14, height: 14, color: '#555' }} />
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: '#222' }}>{label}</span>
-                      <ExternalLink style={{ width: 12, height: 12, color: '#CCC', marginLeft: 'auto' }} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </div>
-        </>
-      )}
-    </AnimatePresence>
+        </div>
+      </div>
+    </>
   );
 }

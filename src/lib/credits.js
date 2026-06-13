@@ -46,13 +46,14 @@ export function isUserLocked(user) {
 export async function initUserCredits(user) {
   if (!user) return;
   const hasCreditField = typeof user.credits_balance === 'number';
-  if (hasCreditField) return; // already initialized
-
-  const resetAt = new Date(Date.now() + RESET_INTERVAL_DAYS * 86_400_000).toISOString();
-  await base44.auth.updateMe({
-    credits_balance: FREE_PLAN_CREDITS,
-    credits_reset_at: resetAt,
-  });
+  // Ensure subscription_plan defaults to 'free'
+  const updates = {};
+  if (!user.subscription_plan) updates.subscription_plan = 'free';
+  if (!hasCreditField) {
+    updates.credits_balance = FREE_PLAN_CREDITS;
+    updates.credits_reset_at = new Date(Date.now() + RESET_INTERVAL_DAYS * 86_400_000).toISOString();
+  }
+  if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
 }
 
 // ── Check if renewal is due, apply it, return updated user ──────

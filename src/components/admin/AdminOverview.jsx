@@ -44,6 +44,7 @@ export default function AdminOverview() {
   const totalUsers = users.length;
   const activeUsers = users.filter(u => !u.disabled).length;
   const adminCount = users.filter(u => u.role === 'admin').length;
+  const paidUsers = users.filter(u => u.subscription_plan && u.subscription_plan !== 'free').length;
   const totalConvs = convs.length;
   const newLeads = leads.filter(l => l.status === 'new').length;
 
@@ -74,10 +75,10 @@ export default function AdminOverview() {
   });
 
   const kpis = [
-    { label: 'Total Users', value: totalUsers, icon: Users, accent: '#8b5cf6', color: 'from-violet-500/20 to-violet-500/5' },
-    { label: 'Active Users', value: activeUsers, icon: Activity, accent: '#10b981', color: 'from-emerald-500/20 to-emerald-500/5' },
+    { label: 'Total Utilisateurs', value: totalUsers, icon: Users, accent: '#8b5cf6', color: 'from-violet-500/20 to-violet-500/5' },
+    { label: 'Utilisateurs Payants', value: paidUsers, icon: Activity, accent: '#10b981', color: 'from-emerald-500/20 to-emerald-500/5' },
     { label: 'Conversations', value: totalConvs, icon: MessageSquare, accent: '#f59e0b', color: 'from-amber-500/20 to-amber-500/5' },
-    { label: 'Enterprise Leads', value: newLeads, icon: Star, accent: '#f43f5e', color: 'from-rose-500/20 to-rose-500/5' },
+    { label: 'Leads Entreprise', value: newLeads, icon: Star, accent: '#f43f5e', color: 'from-rose-500/20 to-rose-500/5' },
   ];
 
   return (
@@ -161,9 +162,9 @@ export default function AdminOverview() {
       {/* Stats Footer */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Admin Accounts', value: adminCount, note: 'with full access' },
-          { label: 'Non-admin Users', value: totalUsers - adminCount, note: 'regular accounts' },
-          { label: 'New Enterprise Leads', value: newLeads, note: 'awaiting response' },
+          { label: 'Comptes Admin', value: adminCount, note: 'accès complet' },
+          { label: 'Utilisateurs Free', value: totalUsers - adminCount - paidUsers, note: 'plan gratuit' },
+          { label: 'Leads Enterprise', value: newLeads, note: 'en attente' },
         ].map((s, i) => (
           <motion.div key={s.label} variants={FADE} initial="hidden" animate="show" transition={{ delay: 0.4 + i * 0.05 }}
             className="bg-[#0d0e14] border border-white/[0.07] rounded-xl p-5 text-center"
