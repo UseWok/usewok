@@ -748,31 +748,25 @@ export default function ChatPage() {
           {chatVisible && (
             <div style={{ width: 420, minWidth: 420, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#1F1F1F', position: 'relative' }}>
 
-              {/* ── Chat top bar: sidebar toggle (left) + history clock (right) ── */}
+              {/* ── Chat top bar: logo+title (left) + history clock (right) ── */}
               <div style={{
-                height: 38, flexShrink: 0,
+                height: 44, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '0 8px',
+                padding: '0 8px 0 4px',
                 position: 'relative', zIndex: 10,
                 background: 'transparent',
               }}>
-                {/* Sidebar toggle — top left of chat */}
-                <button
-                  title={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-                  onClick={() => setIsSidebarOpen(v => !v)}
-                  style={{
-                    width: 28, height: 28, borderRadius: 7, border: 'none',
-                    background: isSidebarOpen ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', transition: 'background 120ms',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
-                    onMouseLeave={e => e.currentTarget.style.background = isSidebarOpen ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
-                  </svg>
-                </button>
+                {/* WOK logo + project name — mirrors ChatHeader left section */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <img
+                    src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png"
+                    alt="WOK"
+                    style={{ width: 36, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+                    {appSettings?.title || 'My App'}
+                  </span>
+                </div>
 
                 {/* History (clock) — top right of chat */}
                 <button
