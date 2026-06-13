@@ -124,7 +124,6 @@ export function PublicLiveEngine({ content }) {
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"><\/script>
-  <script src="https://cdn.jsdelivr.net/npm/framer-motion@11.18.2/dist/framer-motion.js"><\/script>
   ${usesRecharts ? `<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"><\/script>
    <script src="https://cdn.jsdelivr.net/npm/recharts@2.1.9/umd/Recharts.min.js"><\/script>` : ''}
   <script>
@@ -147,8 +146,161 @@ export function PublicLiveEngine({ content }) {
       }
     });
     window.lucide = window.lucideReact;
-    // Expose framer-motion from UMD bundle
-    window.Motion = window.Motion || window.FramerMotion || {};
+
+    // ── Framer-motion functional stub ──
+    // Converts initial/animate/transition props into real CSS transitions via useEffect
+    (function() {
+      var noop = function() {};
+      var motionVal = function(v) {
+        var _v = v, _cbs = [];
+        return { get: function(){ return _v; }, set: function(n){ _v=n; _cbs.forEach(function(c){c(n);}); }, onChange: function(cb){ _cbs.push(cb); return function(){ _cbs = _cbs.filter(function(c){return c!==cb;}); }; } };
+      };
+
+      // Convert framer animate object to CSS transition string
+      function buildTransition(transition) {
+        if (!transition) return 'all 0.3s ease';
+        var dur = (transition.duration != null ? transition.duration : 0.3) + 's';
+        var ease = transition.ease
+          ? (Array.isArray(transition.ease) ? 'cubic-bezier(' + transition.ease.join(',') + ')' : transition.ease)
+          : (transition.type === 'spring' ? 'cubic-bezier(0.34,1.56,0.64,1)' : 'ease');
+        var delay = transition.delay ? transition.delay + 's' : '0s';
+        return 'all ' + dur + ' ' + ease + ' ' + delay;
+      }
+
+      // Merge framer style object into element.style
+      function applyStyles(el, styleObj) {
+        if (!el || !styleObj) return;
+        Object.keys(styleObj).forEach(function(k) {
+          try { el.style[k] = styleObj[k]; } catch(e) {}
+        });
+      }
+
+      // Create a motion component for a given HTML tag
+      function createMotionComponent(tag) {
+        return React.forwardRef(function MotionEl(props, ref) {
+          var elRef = React.useRef(null);
+          var combinedRef = ref || elRef;
+
+          var initial = props.initial;
+          var animate = props.animate;
+          var transition = props.transition;
+          var whileHover = props.whileHover;
+          var whileTap = props.whileTap;
+
+          // Apply initial styles synchronously before paint
+          var initialStyle = (initial && typeof initial === 'object') ? initial : {};
+          var animateStyle = (animate && typeof animate === 'object') ? animate : {};
+
+          React.useLayoutEffect(function() {
+            var el = (typeof combinedRef === 'object' && combinedRef) ? combinedRef.current : null;
+            if (!el) return;
+            // Set initial state immediately (no transition)
+            el.style.transition = 'none';
+            applyStyles(el, initialStyle);
+            // Trigger animate on next frame so CSS transition fires
+            var raf = requestAnimationFrame(function() {
+              el.style.transition = buildTransition(transition);
+              applyStyles(el, animateStyle);
+            });
+            return function() { cancelAnimationFrame(raf); };
+          }, []);
+
+          // Re-animate when animate prop changes
+          React.useEffect(function() {
+            var el = (typeof combinedRef === 'object' && combinedRef) ? combinedRef.current : null;
+            if (!el || !animate || typeof animate !== 'object') return;
+            el.style.transition = buildTransition(transition);
+            applyStyles(el, animate);
+          }, [JSON.stringify(animate)]);
+
+          // Build clean props (strip framer-only ones)
+          var clean = {};
+          var SKIP = {initial:1,animate:1,exit:1,transition:1,variants:1,whileHover:1,whileTap:1,whileFocus:1,whileInView:1,whileDrag:1,drag:1,layout:1,layoutId:1,onAnimationStart:1,onAnimationComplete:1,onUpdate:1};
+          Object.keys(props).forEach(function(k){ if (!SKIP[k]) clean[k] = props[k]; });
+
+          // Merge initial style so element starts at initial state before JS runs
+          if (Object.keys(initialStyle).length > 0) {
+            clean.style = Object.assign({}, initialStyle, clean.style || {});
+          }
+
+          // Wire hover/tap
+          if (whileHover) {
+            var origEnter = clean.onMouseEnter;
+            var origLeave = clean.onMouseLeave;
+            clean.onMouseEnter = function(e) {
+              var el = e.currentTarget;
+              el.style.transition = buildTransition(transition);
+              applyStyles(el, whileHover);
+              if (origEnter) origEnter(e);
+            };
+            clean.onMouseLeave = function(e) {
+              var el = e.currentTarget;
+              el.style.transition = buildTransition(transition);
+              applyStyles(el, animateStyle);
+              if (origLeave) origLeave(e);
+            };
+          }
+          if (whileTap) {
+            var origDown = clean.onMouseDown;
+            var origUp = clean.onMouseUp;
+            clean.onMouseDown = function(e) {
+              var el = e.currentTarget;
+              el.style.transition = 'all 0.1s ease';
+              applyStyles(el, whileTap);
+              if (origDown) origDown(e);
+            };
+            clean.onMouseUp = function(e) {
+              var el = e.currentTarget;
+              el.style.transition = buildTransition(transition);
+              applyStyles(el, animateStyle);
+              if (origUp) origUp(e);
+            };
+          }
+
+          clean.ref = combinedRef;
+          return React.createElement(tag, clean);
+        });
+      }
+
+      var _cache = {};
+      function getMotion(tag) {
+        if (!_cache[tag]) _cache[tag] = createMotionComponent(tag);
+        return _cache[tag];
+      }
+
+      var motionProxy = new Proxy({}, {
+        get: function(_, tag) {
+          if (typeof tag !== 'string' || tag === 'then') return undefined;
+          return getMotion(tag);
+        }
+      });
+
+      window.Motion = {
+        motion: motionProxy,
+        m: motionProxy,
+        AnimatePresence: function(props) {
+          var children = props ? props.children : null;
+          if (!children) return null;
+          var arr = Array.isArray(children) ? children.filter(Boolean) : [children];
+          if (arr.length === 0) return null;
+          if (arr.length === 1) return arr[0];
+          return React.createElement(React.Fragment, null, arr);
+        },
+        useAnimation: function() {
+          var _style = {};
+          return { start: function(s){ _style = s; }, stop: noop, set: noop, _style: _style };
+        },
+        useAnimate: function() { return [React.useRef(null), noop]; },
+        useInView: function(ref) { return [ref, true]; },
+        useMotionValue: motionVal,
+        useSpring: motionVal,
+        useTransform: function(v, i, o) { return motionVal(Array.isArray(o) ? o[0] : 0); },
+        useScroll: function() { return { scrollY: motionVal(0), scrollX: motionVal(0), scrollYProgress: motionVal(0) }; },
+        useCycle: function() { var args = Array.prototype.slice.call(arguments); var idx=0; var setter=function(){ idx=(idx+1)%args.length; }; return [args[0], setter]; },
+        useReducedMotion: function() { return false; },
+        animate: noop,
+      };
+    })();
   <\/script>
   <style>
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -159,8 +311,7 @@ export function PublicLiveEngine({ content }) {
   <div id="root" style="width:100%;height:100%"></div>
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
-    const _FM = window.FramerMotion || window.Motion || {};
-    const { motion, AnimatePresence, useAnimation, useInView, useMotionValue, useSpring, useTransform, useScroll, useCycle, useReducedMotion, m = motion } = _FM;
+    const { motion, AnimatePresence, useAnimation, useAnimate, useInView, useMotionValue, useSpring, useTransform, useScroll, useCycle, useReducedMotion, m } = window.Motion;
     const Recharts = window.Recharts || {};
     // Alias Recharts.Tooltip to avoid naming conflict
     if (Recharts.Tooltip) Recharts.RechartsTooltip = Recharts.Tooltip;
