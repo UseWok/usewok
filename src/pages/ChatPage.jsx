@@ -611,8 +611,8 @@ export default function ChatPage() {
     // Reset logs for every new build session
     if (!conversationId) {
       try {
-        ['wok_logs_0','wok_logs_1','wok_logs_2'].forEach(k => localStorage.removeItem(k));
-        localStorage.removeItem('wok_logs_ptr');
+        ['wok_log_0','wok_log_1','wok_log_2'].forEach(k => localStorage.removeItem(k));
+        localStorage.removeItem('wok_log_slot');
       } catch {}
     }
     if (initialQ && (messages?.length || 0) === 0 && !conversationId) sendMessage(initialQ);

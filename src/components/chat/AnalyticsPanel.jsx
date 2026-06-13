@@ -4,6 +4,13 @@ import { ChevronDown } from 'lucide-react';
 
 const RANGES = ['Today', 'Yesterday', 'Last 24 hours', 'Last 7 days', 'Last 14 days', 'Last 30 days', 'Last 90 days', 'This month'];
 
+// ── Dark palette tokens ──
+const DK = {
+  bg: '#141414', surface: '#1C1C1C', border: '#2A2A2A',
+  text: '#E0DDD8', muted: '#666', faint: '#333',
+  active: '#2563EB',
+};
+
 function DateRangePicker({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -16,25 +23,25 @@ function DateRangePicker({ value, onChange }) {
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => setOpen(v => !v)} style={{
         display: 'flex', alignItems: 'center', gap: 6,
-        padding: '6px 12px', border: '1px solid #E0E0DC', borderRadius: 8,
-        background: '#fff', fontSize: 13, color: '#333', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        padding: '6px 12px', border: `1px solid ${DK.border}`, borderRadius: 8,
+        background: DK.surface, fontSize: 13, color: DK.text, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
       }}>
         {value} <ChevronDown style={{ width: 13, height: 13 }} />
       </button>
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-          background: '#fff', border: '1px solid #E4E4E0', borderRadius: 10,
-          boxShadow: '0 6px 24px rgba(0,0,0,0.10)', zIndex: 9999, padding: '4px', minWidth: 160,
+          background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10,
+          boxShadow: '0 6px 24px rgba(0,0,0,0.5)', zIndex: 9999, padding: '4px', minWidth: 160,
         }}>
           {RANGES.map(r => (
             <button key={r} onClick={() => { onChange(r); setOpen(false); }} style={{
               display: 'block', width: '100%', padding: '7px 12px',
-              background: r === value ? '#F0F0EE' : 'transparent', border: 'none',
-              borderRadius: 6, fontSize: 13, color: '#333', cursor: 'pointer',
+              background: r === value ? DK.faint : 'transparent', border: 'none',
+              borderRadius: 6, fontSize: 13, color: DK.text, cursor: 'pointer',
               textAlign: 'left', fontFamily: 'Inter, sans-serif',
             }}
-              onMouseEnter={e => { if (r !== value) e.currentTarget.style.background = '#F8F8F6'; }}
+              onMouseEnter={e => { if (r !== value) e.currentTarget.style.background = DK.faint; }}
               onMouseLeave={e => { if (r !== value) e.currentTarget.style.background = 'transparent'; }}
             >{r}</button>
           ))}
@@ -48,34 +55,34 @@ function StatCard({ label, value, active }) {
   return (
     <div style={{
       padding: '14px 16px', borderRadius: 10,
-      border: active ? '1.5px solid #2563EB' : '1px solid #E8E6E0',
-      background: '#FAFAF8', minWidth: 100, flex: 1,
+      border: active ? `1.5px solid ${DK.active}` : `1px solid ${DK.border}`,
+      background: DK.surface, minWidth: 100, flex: 1,
     }}>
-      <div style={{ fontSize: 12, color: '#888', marginBottom: 6, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>{value}</div>
+      <div style={{ fontSize: 12, color: DK.muted, marginBottom: 6, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: DK.text }}>{value}</div>
     </div>
   );
 }
 
 function TableBlock({ title, rows }) {
   return (
-    <div style={{ border: '1px solid #E8E6E0', borderRadius: 10, background: '#FAFAF8', overflow: 'hidden', flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #EDEAE4' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{title}</span>
-        <span style={{ fontSize: 12, color: '#888' }}>Visitors</span>
+    <div style={{ border: `1px solid ${DK.border}`, borderRadius: 10, background: DK.surface, overflow: 'hidden', flex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${DK.border}` }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: DK.text }}>{title}</span>
+        <span style={{ fontSize: 12, color: DK.muted }}>Visitors</span>
       </div>
       {rows.length === 0 ? (
-        <div style={{ padding: '16px', fontSize: 13, color: '#CCC', textAlign: 'center' }}>No data</div>
+        <div style={{ padding: '16px', fontSize: 13, color: DK.faint, textAlign: 'center' }}>No data</div>
       ) : rows.map((row, i) => (
         <div key={i} style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '9px 16px', background: i % 2 === 0 ? 'rgba(37,99,235,0.04)' : 'transparent',
+          padding: '9px 16px', background: i % 2 === 0 ? 'rgba(37,99,235,0.06)' : 'transparent',
         }}>
-          <span style={{ fontSize: 13, color: '#333', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13, color: DK.text, display: 'flex', alignItems: 'center', gap: 8 }}>
             {row.flag && <span>{row.flag}</span>}
             {row.label}
           </span>
-          <span style={{ fontSize: 13, color: '#555', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
+          <span style={{ fontSize: 13, color: DK.muted, fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
         </div>
       ))}
     </div>
@@ -157,9 +164,9 @@ export default function AnalyticsPanel({ convId }) {
   }, [range, convId]);
 
   return (
-    <div style={{ width: '100%', height: '100%', overflowY: 'auto', background: '#FAF9F5', padding: 20, fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', height: '100%', overflowY: 'auto', background: DK.bg, padding: 20, fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginBottom: 16 }}>
-        <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 12, color: DK.muted, display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
           0 current visitors
         </span>
@@ -174,24 +181,22 @@ export default function AnalyticsPanel({ convId }) {
         <StatCard label="Bounce Rate" value={data?.stats.bounceRate ?? '—'} />
       </div>
 
-      {/* Chart — type="linear" enforces straight geometric lines (no bezier) */}
-      <div style={{ border: '1px solid #E8E6E0', borderRadius: 10, background: '#FAFAF8', padding: '16px 8px 8px', marginBottom: 16 }}>
+      <div style={{ border: `1px solid ${DK.border}`, borderRadius: 10, background: DK.surface, padding: '16px 8px 8px', marginBottom: 16 }}>
         {loading || !data ? (
-          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CCC', fontSize: 13 }}>Loading…</div>
+          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: DK.muted, fontSize: 13 }}>Loading…</div>
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={data.chart} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15}/>
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2}/>
                   <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EDEAE4" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#AAA' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#AAA' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 12, border: '1px solid #E0E0DC', borderRadius: 8, boxShadow: 'none' }} />
-              {/* type="linear" = straight lines, no bezier curves */}
+              <CartesianGrid strokeDasharray="3 3" stroke={DK.faint} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: DK.muted }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: DK.muted }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 12, border: `1px solid ${DK.border}`, borderRadius: 8, boxShadow: 'none', background: DK.surface, color: DK.text }} />
               <Area type="linear" dataKey="visitors" stroke="#2563EB" fill="url(#agrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
