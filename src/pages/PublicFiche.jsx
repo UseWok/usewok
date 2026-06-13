@@ -149,20 +149,34 @@ export function PublicLiveEngine({ content }) {
     // Framer-motion stub — covers motion.*, AnimatePresence and common hooks
     var _motionNoop = function() {};
     var _motionVal = function(v) { return { get: function() { return v; }, set: _motionNoop, onChange: function() { return _motionNoop; } }; };
+    var _MOTION_STRIP = ['initial','animate','exit','transition','variants','whileHover','whileTap','whileFocus','whileInView','whileDrag','drag','layout','layoutId','onAnimationStart','onAnimationComplete','onUpdate'];
+    function _makeMotionComponent(tag) {
+      return React.forwardRef(function(props, ref) {
+        var p = Object.assign({}, props);
+        _MOTION_STRIP.forEach(function(k){ delete p[k]; });
+        if (ref) p.ref = ref;
+        return React.createElement(tag, p);
+      });
+    }
     window.Motion = {
       motion: new Proxy({}, {
         get: function(_, tag) {
           if (typeof tag !== 'string' || tag === 'then') return undefined;
-          return function(props) {
-            var p = Object.assign({}, props);
-            // Strip framer-motion-only props that React would warn about on native elements
-            ['initial','animate','exit','transition','variants','whileHover','whileTap','whileFocus','whileInView','whileDrag','drag','layout','layoutId'].forEach(function(k){ delete p[k]; });
-            return React.createElement(tag, p, p.children);
-          };
+          return _makeMotionComponent(tag);
         }
       }),
-      AnimatePresence: function(props) { return props.children || null; },
+      AnimatePresence: function(props) {
+        var children = props.children;
+        if (!children) return null;
+        // Flatten arrays, filter falsy
+        var arr = Array.isArray(children) ? children : [children];
+        var valid = arr.filter(Boolean);
+        if (valid.length === 0) return null;
+        if (valid.length === 1) return valid[0];
+        return React.createElement(React.Fragment, null, valid);
+      },
       useAnimation: function() { return { start: _motionNoop, stop: _motionNoop, set: _motionNoop }; },
+      useAnimate: function() { return [{ current: null }, _motionNoop]; },
       useInView: function() { return [null, true]; },
       useMotionValue: _motionVal,
       useSpring: _motionVal,
@@ -170,7 +184,8 @@ export function PublicLiveEngine({ content }) {
       useScroll: function() { return { scrollY: _motionVal(0), scrollX: _motionVal(0), scrollYProgress: _motionVal(0) }; },
       useCycle: function() { var args = Array.prototype.slice.call(arguments); return [args[0], function() {}]; },
       useReducedMotion: function() { return false; },
-      m: new Proxy({}, { get: function(_, tag) { return window.Motion.motion[tag]; } }),
+      animate: _motionNoop,
+      m: new Proxy({}, { get: function(_, tag) { return _makeMotionComponent(tag); } }),
     };
   <\/script>
   <style>

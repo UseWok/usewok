@@ -278,7 +278,7 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{textOnly}</ReactMarkdown>
           </div>
         )}
-        {rawContent && <CodePreviewBox code={rawContent} />}
+        {/* Code preview box removed — preview is shown in the right panel */}
       </div>
     );
   }
