@@ -254,22 +254,160 @@ export function PublicLiveEngine({ content }) {
         });
       }
 
-      var _cache = {};
-      function getMotion(tag) {
-        if (!_cache[tag]) _cache[tag] = createMotionComponent(tag);
-        return _cache[tag];
+      // ── Resolve variant name to style object ──
+      function resolveVariant(variants, name, props) {
+        if (!variants || !name || typeof name !== 'string') return null;
+        var v = variants[name];
+        if (typeof v === 'function') v = v(props || {});
+        return (v && typeof v === 'object') ? v : null;
       }
 
-      var motionProxy = new Proxy({}, {
+      // ── Enhanced motion component: handles whileInView, variants, string initial/animate ──
+      function createMotionComponent2(tag) {
+        return React.forwardRef(function MotionEl(props, ref) {
+          var elRef = React.useRef(null);
+          var combinedRef = ref || elRef;
+          var inViewRef = React.useRef(false);
+
+          var variants = props.variants;
+          var initialProp = props.initial;
+          var animateProp = props.animate;
+          var whileInViewProp = props.whileInView;
+          var viewportProp = props.viewport || {};
+          var transition = props.transition;
+          var whileHover = props.whileHover;
+          var whileTap = props.whileTap;
+
+          // Resolve initial style
+          var initialStyle = {};
+          if (initialProp && typeof initialProp === 'object') initialStyle = initialProp;
+          else if (typeof initialProp === 'string' && variants) initialStyle = resolveVariant(variants, initialProp, props) || {};
+
+          // Resolve animate style
+          var animateStyle = {};
+          if (animateProp && typeof animateProp === 'object') animateStyle = animateProp;
+          else if (typeof animateProp === 'string' && variants) animateStyle = resolveVariant(variants, animateProp, props) || {};
+
+          // Resolve whileInView style
+          var inViewStyle = {};
+          if (whileInViewProp && typeof whileInViewProp === 'object') inViewStyle = whileInViewProp;
+          else if (typeof whileInViewProp === 'string' && variants) inViewStyle = resolveVariant(variants, whileInViewProp, props) || {};
+
+          // If whileInView is set, target style is inViewStyle; otherwise animateStyle
+          var targetStyle = (whileInViewProp != null) ? inViewStyle : animateStyle;
+
+          React.useLayoutEffect(function() {
+            var el = (typeof combinedRef === 'object' && combinedRef) ? combinedRef.current : null;
+            if (!el) return;
+            el.style.transition = 'none';
+            applyStyles(el, initialStyle);
+            // If no whileInView, animate immediately
+            if (whileInViewProp == null) {
+              var raf = requestAnimationFrame(function() {
+                el.style.transition = buildTransition(transition);
+                applyStyles(el, targetStyle);
+              });
+              return function() { cancelAnimationFrame(raf); };
+            }
+          }, []);
+
+          // IntersectionObserver for whileInView
+          React.useEffect(function() {
+            if (whileInViewProp == null) return;
+            var el = (typeof combinedRef === 'object' && combinedRef) ? combinedRef.current : null;
+            if (!el) return;
+            var once = viewportProp.once !== false; // default true
+            var observer = new IntersectionObserver(function(entries) {
+              entries.forEach(function(entry) {
+                if (entry.isIntersecting && !inViewRef.current) {
+                  inViewRef.current = true;
+                  el.style.transition = buildTransition(transition);
+                  applyStyles(el, inViewStyle);
+                  if (once) observer.unobserve(el);
+                } else if (!entry.isIntersecting && !once) {
+                  inViewRef.current = false;
+                  el.style.transition = buildTransition(transition);
+                  applyStyles(el, initialStyle);
+                }
+              });
+            }, { threshold: 0.1, rootMargin: viewportProp.margin || '0px' });
+            observer.observe(el);
+            return function() { observer.unobserve(el); };
+          }, []);
+
+          // Re-animate when animate prop changes (string variant changes)
+          React.useEffect(function() {
+            if (whileInViewProp != null) return; // managed by observer
+            var el = (typeof combinedRef === 'object' && combinedRef) ? combinedRef.current : null;
+            if (!el) return;
+            var resolved = {};
+            if (animateProp && typeof animateProp === 'object') resolved = animateProp;
+            else if (typeof animateProp === 'string' && variants) resolved = resolveVariant(variants, animateProp, props) || {};
+            if (Object.keys(resolved).length > 0) {
+              el.style.transition = buildTransition(transition);
+              applyStyles(el, resolved);
+            }
+          }, [JSON.stringify(animateProp)]);
+
+          // Build clean props
+          var clean = {};
+          var SKIP = {initial:1,animate:1,exit:1,transition:1,variants:1,whileHover:1,whileTap:1,whileFocus:1,whileInView:1,whileDrag:1,drag:1,layout:1,layoutId:1,viewport:1,onAnimationStart:1,onAnimationComplete:1,onUpdate:1};
+          Object.keys(props).forEach(function(k){ if (!SKIP[k]) clean[k] = props[k]; });
+
+          // Start at initial style
+          if (Object.keys(initialStyle).length > 0) {
+            clean.style = Object.assign({}, initialStyle, clean.style || {});
+          }
+
+          if (whileHover) {
+            var origEnter = clean.onMouseEnter, origLeave = clean.onMouseLeave;
+            var resolvedHover = (typeof whileHover === 'object') ? whileHover : (resolveVariant(variants, whileHover, props) || {});
+            clean.onMouseEnter = function(e) {
+              e.currentTarget.style.transition = buildTransition(transition);
+              applyStyles(e.currentTarget, resolvedHover);
+              if (origEnter) origEnter(e);
+            };
+            clean.onMouseLeave = function(e) {
+              e.currentTarget.style.transition = buildTransition(transition);
+              applyStyles(e.currentTarget, targetStyle);
+              if (origLeave) origLeave(e);
+            };
+          }
+          if (whileTap) {
+            var origDown = clean.onMouseDown, origUp = clean.onMouseUp;
+            var resolvedTap = (typeof whileTap === 'object') ? whileTap : (resolveVariant(variants, whileTap, props) || {});
+            clean.onMouseDown = function(e) {
+              e.currentTarget.style.transition = 'all 0.1s ease';
+              applyStyles(e.currentTarget, resolvedTap);
+              if (origDown) origDown(e);
+            };
+            clean.onMouseUp = function(e) {
+              e.currentTarget.style.transition = buildTransition(transition);
+              applyStyles(e.currentTarget, targetStyle);
+              if (origUp) origUp(e);
+            };
+          }
+
+          clean.ref = combinedRef;
+          return React.createElement(tag, clean);
+        });
+      }
+
+      var _cache2 = {};
+      function getMotion2(tag) {
+        if (!_cache2[tag]) _cache2[tag] = createMotionComponent2(tag);
+        return _cache2[tag];
+      }
+      var motionProxy2 = new Proxy({}, {
         get: function(_, tag) {
           if (typeof tag !== 'string' || tag === 'then') return undefined;
-          return getMotion(tag);
+          return getMotion2(tag);
         }
       });
 
       window.Motion = {
-        motion: motionProxy,
-        m: motionProxy,
+        motion: motionProxy2,
+        m: motionProxy2,
         AnimatePresence: function(props) {
           var children = props ? props.children : null;
           if (!children) return null;
@@ -279,11 +417,23 @@ export function PublicLiveEngine({ content }) {
           return React.createElement(React.Fragment, null, arr);
         },
         useAnimation: function() {
-          var _style = {};
-          return { start: function(s){ _style = s; }, stop: noop, set: noop, _style: _style };
+          var _s = {};
+          return { start: function(s){ _s = s; }, stop: noop, set: noop };
         },
         useAnimate: function() { return [React.useRef(null), noop]; },
-        useInView: function(ref) { return [ref, true]; },
+        useInView: function(ref, opts) {
+          var inView = React.useState(false);
+          React.useEffect(function() {
+            var el = ref && ref.current;
+            if (!el) { inView[1](true); return; }
+            var obs = new IntersectionObserver(function(entries) {
+              entries.forEach(function(e) { if (e.isIntersecting) { inView[1](true); if (opts && opts.once !== false) obs.unobserve(el); } });
+            }, { threshold: 0.1 });
+            obs.observe(el);
+            return function() { obs.unobserve(el); };
+          }, []);
+          return inView[0];
+        },
         useMotionValue: motionVal,
         useSpring: motionVal,
         useTransform: function(v, i, o) { return motionVal(Array.isArray(o) ? o[0] : 0); },
