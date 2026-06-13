@@ -632,14 +632,14 @@ export default function ChatPage() {
           setMessages(safe);
           saveConversationMessages(conversationId, safe);
         }
-        // Sync publish state from cloud
-        if (cloud.is_public === true) {
-          setIsAppPublished(true);
-          setAppSettings(prev => ({ ...prev, isPublic: true }));
-        } else {
-          setIsAppPublished(false);
-          setAppSettings(prev => ({ ...prev, isPublic: false }));
+        // Restore title from cloud
+        if (cloud.title) {
+          setAppSettings(prev => ({ ...prev, title: cloud.title }));
         }
+        // Sync publish state from cloud
+        setIsAppPublished(!!cloud.is_public);
+        setAppSettings(prev => ({ ...prev, isPublic: !!cloud.is_public }));
+
         if (cloud.rawContent) {
           setFicheContent(cloud.rawContent);
           localStorage.setItem(`fiche_${conversationId}`, cloud.rawContent);
