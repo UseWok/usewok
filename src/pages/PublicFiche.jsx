@@ -5,56 +5,48 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { base44 } from '@/api/base44Client';
 
-const LOGO_URL = 'https://media.base44.com/images/public/6a12017561bfacd95e612b0d/d38ba30f1_image.png';
+// Orange logo (specific brand logo, no default)
+const ORANGE_LOGO_URL = 'https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png';
 
 function WokBadge() {
   const [visible, setVisible] = useState(true);
-
   if (!visible) return null;
-
   return (
     <div style={{
       position: 'fixed', bottom: 16, right: 16, zIndex: 99999,
       display: 'flex', alignItems: 'center', gap: 0,
-      background: '#111', borderRadius: 6,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
+      background: '#000000', borderRadius: 8,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
       overflow: 'hidden',
-      fontFamily: "'Space Grotesk', system-ui, sans-serif",
+      fontFamily: 'Inter, system-ui, sans-serif',
     }}>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet" />
       <a
         href="https://wok.so"
-        target="_blank"
-        rel="noopener noreferrer"
         style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '7px 10px 7px 12px',
+          display: 'flex', alignItems: 'center',
+          padding: '6px 10px',
           textDecoration: 'none',
         }}
       >
         <img
-          src={LOGO_URL}
-          alt="Wok"
-          style={{ height: 15, width: 'auto', objectFit: 'contain', filter: 'invert(1)' }}
+          src={ORANGE_LOGO_URL}
+          alt="WOK"
+          style={{ height: 16, width: 'auto', objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }}
         />
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#fff', letterSpacing: 0.1, whiteSpace: 'nowrap' }}>
-          Built with Wok
-        </span>
       </a>
       <button
         onClick={() => setVisible(false)}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 28, height: '100%', minHeight: 30,
+          width: 24, height: '100%', minHeight: 28,
           background: 'transparent', border: 'none',
-          borderLeft: '1px solid rgba(255,255,255,0.1)',
-          color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+          borderLeft: '1px solid rgba(255,255,255,0.08)',
+          color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
           padding: 0,
         }}
       >
-        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-          <path d="M1 1L8 8M8 1L1 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+        <svg width="8" height="8" viewBox="0 0 9 9" fill="none">
+          <path d="M1 1L8 8M8 1L1 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       </button>
     </div>
@@ -450,6 +442,68 @@ export default function PublicFiche() {
     document.body.style.backgroundColor = '#fff';
     return () => { document.body.style.backgroundColor = prev; };
   }, []);
+
+  // ── Real public link analytics: track visit with IP, platform, user-agent ──
+  useEffect(() => {
+    if (!conversationId || loading || notFound) return;
+    const trackVisit = async () => {
+      try {
+        // Fetch real IP via ipify
+        let ip = 'unknown';
+        try {
+          const r = await fetch('https://api.ipify.org?format=json');
+          const d = await r.json();
+          ip = d.ip || 'unknown';
+        } catch {}
+
+        const ua = navigator.userAgent || 'unknown';
+        const platform = navigator.platform || navigator.userAgentData?.platform || 'unknown';
+        const referrer = document.referrer || 'direct';
+        const language = navigator.language || 'unknown';
+
+        // Detect device type
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+        const device = isMobile ? 'mobile' : 'desktop';
+
+        // Detect OS
+        let os = 'Unknown';
+        if (/Windows/.test(ua)) os = 'Windows';
+        else if (/Mac OS X/.test(ua)) os = 'macOS';
+        else if (/Linux/.test(ua)) os = 'Linux';
+        else if (/Android/.test(ua)) os = 'Android';
+        else if (/iPhone|iPad/.test(ua)) os = 'iOS';
+
+        // Persist to AnalyticsEvent entity (track only on public links)
+        const event = {
+          conv_id: conversationId,
+          event_type: 'public_visit',
+          ip_address: ip,
+          user_agent: ua.slice(0, 300),
+          platform: platform,
+          os,
+          device,
+          referrer: referrer.slice(0, 200),
+          language,
+          page_url: window.location.href,
+          timestamp: new Date().toISOString(),
+        };
+        // Store in localStorage keyed by convId for the Analytics panel
+        const key = `wok_analytics_${conversationId}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        existing.push(event);
+        // Keep last 500 events per conv
+        if (existing.length > 500) existing.splice(0, existing.length - 500);
+        localStorage.setItem(key, JSON.stringify(existing));
+
+        // Also track via base44 analytics
+        base44.analytics.track({
+          eventName: 'public_link_visit',
+          properties: { conv_id: conversationId, device, os, referrer: referrer.slice(0, 100), ip: ip.slice(0, 40) },
+        });
+      } catch {}
+    };
+    trackVisit();
+  }, [conversationId, loading, notFound]);
 
   if (loading) {
     return (

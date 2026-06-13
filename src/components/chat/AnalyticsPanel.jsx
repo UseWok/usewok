@@ -129,7 +129,27 @@ export default function AnalyticsPanel({ convId }) {
     const daysMap = { 'Today': 1, 'Yesterday': 1, 'Last 24 hours': 1, 'Last 7 days': 7, 'Last 14 days': 14, 'Last 30 days': 30, 'Last 90 days': 90, 'This month': 30 };
     const days = daysMap[range] || 7;
     const cutoff = now - days * 86400000;
-    const filtered = events.filter(e => e.ts > cutoff);
+
+    // Normalize: support both legacy {ts, sid, source, page, country, device}
+    // and new public-visit {timestamp, ip_address, os, device, referrer, platform}
+    const normalized = events.map(e => {
+      if (e.event_type === 'public_visit') {
+        return {
+          ts: e.timestamp ? new Date(e.timestamp).getTime() : Date.now(),
+          sid: e.ip_address || 'unknown',
+          source: e.referrer && e.referrer !== 'direct' ? (() => { try { return new URL(e.referrer).hostname; } catch { return e.referrer; } })() : 'Direct',
+          page: e.page_url ? (() => { try { return new URL(e.page_url).pathname; } catch { return '/'; } })() : '/',
+          country: e.os || 'Unknown',
+          device: e.device ? (e.device.charAt(0).toUpperCase() + e.device.slice(1)) : 'Desktop',
+          ip: e.ip_address,
+          platform: e.platform || e.os,
+          ua: e.user_agent,
+        };
+      }
+      return e;
+    });
+
+    const filtered = normalized.filter(e => e.ts > cutoff);
 
     const points = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -139,7 +159,8 @@ export default function AnalyticsPanel({ convId }) {
       points.push({ date: label, visitors: count });
     }
 
-    const visitors = new Set(filtered.map(e => e.sid)).size;
+    const uniqueIPs = new Set(filtered.map(e => e.ip || e.sid)).size;
+    const visitors = uniqueIPs || new Set(filtered.map(e => e.sid)).size;
     const pageviews = filtered.length;
     const sources = {}, pages = {}, countries = {}, devices = {};
     filtered.forEach(e => {
@@ -150,7 +171,7 @@ export default function AnalyticsPanel({ convId }) {
     });
 
     const toRows = (obj) => Object.entries(obj).sort((a,b) => b[1]-a[1]).map(([k,v]) => ({ label: k, value: v }));
-    const countryFlags = { 'United States': '🇺🇸', 'France': '🇫🇷', 'Germany': '🇩🇪', 'UK': '🇬🇧', 'Spain': '🇪🇸' };
+    const countryFlags = { 'United States': '🇺🇸', 'France': '🇫🇷', 'Germany': '🇩🇪', 'UK': '🇬🇧', 'Spain': '🇪🇸', 'Windows': '🪟', 'macOS': '🍎', 'Linux': '🐧', 'Android': '🤖', 'iOS': '📱' };
 
     setData({
       chart: points,

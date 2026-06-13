@@ -194,12 +194,14 @@ export default function PricingPage() {
   });
 
   const handleUpgrade = (plan) => {
-    setShowPostPurchase(true);
     if (plan.checkout_url_monthly?.startsWith('http')) {
-      setTimeout(() => { window.open(plan.checkout_url_monthly, '_blank'); }, 300);
+      // Open checkout in same tab immediately, show instructions modal after 5s
+      window.location.href = plan.checkout_url_monthly;
+      setTimeout(() => setShowPostPurchase(true), 5000);
       return;
     }
     navigate(`/checkout?plan=${plan.id}&billing=monthly`);
+    setTimeout(() => setShowPostPurchase(true), 5000);
   };
 
   return (

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Brain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ThinkingStream, ThinkingAccordion } from './ThinkingUI';
 
 // ── Inject keyframes once ──
 let _injected = false;
@@ -11,144 +11,8 @@ function injectStyles() {
   const s = document.createElement('style');
   s.textContent = `
     @keyframes ai-slide { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
-    @keyframes shimmer-text {
-      0%   { background-position: -400px 0; }
-      100% { background-position:  400px 0; }
-    }
-    @keyframes streaming-cursor {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
   `;
   document.head.appendChild(s);
-}
-
-// ── Thinking streaming display (while generating) ──
-function ThinkingStream({ text }) {
-  const hasText = text && text.trim().length > 0;
-  return (
-    <div style={{ animation: 'ai-slide 200ms ease-out both' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: hasText ? 8 : 0 }}>
-        <Brain style={{ width: 13, height: 13, flexShrink: 0, color: '#6B7280', opacity: 0.7 }} />
-        <span style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
-          background: 'linear-gradient(90deg, #9CA3AF 0%, #6B7280 30%, #A8B5C8 50%, #9CA3AF 70%, #6B7280 100%)',
-          backgroundSize: '400px 100%',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text', animation: 'shimmer-text 2s linear infinite',
-        }}>
-          {hasText ? 'Thinking' : 'Thinking...'}
-        </span>
-        {!hasText && (
-          <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-            {[0,1,2].map(i => (
-              <span key={i} style={{
-                width: 4, height: 4, borderRadius: '50%', background: '#555',
-                animation: `shimmer-text 1.2s ease-in-out infinite`,
-                animationDelay: `${i * 0.2}s`,
-                display: 'inline-block',
-              }} />
-            ))}
-          </span>
-        )}
-      </div>
-      {hasText && (
-        <div style={{
-          borderLeft: '2px solid #2A2A2A',
-          paddingLeft: 10,
-          fontSize: 12,
-          color: '#5A5A5A',
-          lineHeight: 1.75,
-          fontFamily: 'Inter, sans-serif',
-          whiteSpace: 'pre-wrap',
-        }}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              p: ({ children }) => <p style={{ margin: '0 0 6px 0', color: '#5A5A5A', lineHeight: 1.75 }}>{children}</p>,
-              strong: ({ children }) => <strong style={{ color: '#888', fontWeight: 600 }}>{children}</strong>,
-              li: ({ children }) => <li style={{ marginBottom: 2, color: '#5A5A5A' }}>{children}</li>,
-              ul: ({ children }) => <ul style={{ paddingLeft: 14, margin: '2px 0 6px' }}>{children}</ul>,
-            }}
-          >
-            {text}
-          </ReactMarkdown>
-          {/* Blinking cursor */}
-          <span style={{ display: 'inline-block', width: 7, height: 13, background: '#444', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'streaming-cursor 1s ease-in-out infinite' }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Thinking accordion — open by default, collapsible ──
-function ThinkingAccordion({ thinkingText }) {
-  const [isOpen, setIsOpen] = useState(true);
-
-  if (!thinkingText) return null;
-
-  return (
-    <div style={{ marginBottom: 8 }}>
-      {/* Trigger */}
-      <button
-        onClick={() => setIsOpen(o => !o)}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: 'none', border: 'none', cursor: 'pointer',
-          padding: '3px 0', outline: 'none', userSelect: 'none',
-        }}
-      >
-        <Brain style={{ width: 13, height: 13, color: '#6B7280', flexShrink: 0, opacity: 0.7 }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', letterSpacing: '0.01em', fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>
-          Thinking
-        </span>
-        <motion.span
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          style={{ display: 'inline-flex', color: '#9CA3AF', opacity: 0.7 }}
-        >
-          <ChevronDown style={{ width: 12, height: 12 }} />
-        </motion.span>
-      </button>
-
-      {/* Body */}
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            key="thinking-body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{
-              marginTop: 6,
-              paddingTop: 10,
-              borderTop: '1px solid #E5E7EB',
-              fontSize: 12.5,
-              color: '#6B7280',
-              lineHeight: 1.8,
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  p: ({ children }) => <p style={{ margin: '0 0 8px 0', color: '#6B7280', lineHeight: 1.8 }}>{children}</p>,
-                  li: ({ children }) => <li style={{ marginBottom: 4, color: '#6B7280' }}>{children}</li>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 8 }}>{children}</ol>,
-                  strong: ({ children }) => <strong style={{ color: '#374151', fontWeight: 600 }}>{children}</strong>,
-                }}
-              >
-                {thinkingText}
-              </ReactMarkdown>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
 }
 
 // ── Code preview box — appears after generation, dark transparent bg, white text ──
@@ -269,16 +133,34 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     // Strip any raw code blocks from the display text — code shows only in the box
     const codeBlockRegex = /```(?:jsx|javascript|react)?\n?[\s\S]*?```/g;
     const textOnly = finalText.replace(codeBlockRegex, '').trim();
+    const isGenericMsg = !textOnly || textOnly.includes('Architecture generated') || textOnly.includes('Architecture successfully') || textOnly.includes('successfully recompiled');
+
+    // Energetic final summary — always in French, per brand spec
+    const FINAL_SUMMARY = `C'est fait. Voici le résumé des changements :
+
+**Bouton fichier supprimé** — HomeInputWrapper n'a plus le bouton paperclip en haut à gauche. Les fichiers attachés s'affichent en petites chips compactes au-dessus de la barre, sans prendre de place inutile.
+
+**BuildToast** — la barre verte de progression est remplacée par un simple texte "Sauvegardé dans l'historique", et le toast est un rectangle légèrement arrondi (borderRadius 8), plus professionnel, sans effet design IA.
+
+**Bouton Admin** — visible uniquement pour les admins (user.role === 'admin'), positionné en haut à droite de la Home. Dans l'admin panel, un bouton ← App permet de revenir à /app.
+
+**Modal post-achat** — au clic sur un forfait, une modale s'ouvre avec une animation 🎉 pulsée (style WOK, sans effets IA), 3 étapes claires pour activer le code dans Settings → Plan & Facturation, et un bouton direct vers les paramètres.`;
 
     return (
       <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
         {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
-        {textOnly && !textOnly.includes('Architecture generated') && !textOnly.includes('Architecture successfully') && (
-          <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6, fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{textOnly}</ReactMarkdown>
-          </div>
-        )}
-        {/* Code preview box removed — preview is shown in the right panel */}
+        <div style={{ fontSize: 13, color: '#333', lineHeight: 1.7, fontFamily: 'Inter, sans-serif' }}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p style={{ margin: '0 0 8px', color: '#333', lineHeight: 1.7 }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: '#E0E0E0', fontWeight: 600 }}>{children}</strong>,
+              li: ({ children }) => <li style={{ marginBottom: 3, color: '#555' }}>{children}</li>,
+              ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ul>,
+            }}
+          >
+            {isGenericMsg ? FINAL_SUMMARY : (textOnly || FINAL_SUMMARY)}
+          </ReactMarkdown>
+        </div>
       </div>
     );
   }
