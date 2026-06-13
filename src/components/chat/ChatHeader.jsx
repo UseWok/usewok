@@ -206,7 +206,30 @@ export default function ChatHeader({
         fontFamily: 'Inter, system-ui, sans-serif', userSelect: 'none'
       }}>
 
-
+        {/* ── LEFT: WOK logo + project name ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px 0 12px', flexShrink: 0 }}>
+          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK"
+          style={{ width: 36, height: 'auto', objectFit: 'contain', mixBlendMode: 'screen', flexShrink: 0 }} />
+          <div ref={projectAreaRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowProjectMenu((v) => !v)}
+              style={{ ...btnBase, height: 28, padding: '0 7px', gap: 4, fontSize: 13, fontWeight: 500, color: '#ccc', maxWidth: 180 }}
+              onMouseEnter={(e) => {e.currentTarget.style.background = '#2A2A2A';e.currentTarget.style.color = '#fff';}}
+              onMouseLeave={(e) => {e.currentTarget.style.background = 'transparent';e.currentTarget.style.color = '#ccc';}}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appTitle || 'My App'}</span>
+              <ChevronDown style={{ width: 10, height: 10, color: '#555', flexShrink: 0 }} />
+            </button>
+            {showProjectMenu &&
+            <ProjectMenu
+              onClose={() => setShowProjectMenu(false)}
+              appTitle={appTitle}
+              onRename={() => setShowRename(true)}
+              onOpenSettings={() => setViewMode('dashboard')}
+              onUpgrade={() => setShowUpgrade(true)}
+              user={user} />
+            }
+          </div>
+        </div>
 
         {/* ── CENTER / PREVIEW controls ── */}
         <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px' }}>

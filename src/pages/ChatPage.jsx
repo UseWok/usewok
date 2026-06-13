@@ -788,12 +788,7 @@ export default function ChatPage() {
                 </button>
               </div>
 
-              {/* ── Blur banner separator ── */}
-              <div style={{
-                height: 1, flexShrink: 0,
-                background: 'linear-gradient(90deg, transparent 0%, #2A2A2A 20%, #2A2A2A 80%, transparent 100%)',
-                opacity: 0.6,
-              }} />
+
 
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
