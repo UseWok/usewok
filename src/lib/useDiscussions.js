@@ -36,11 +36,7 @@ function mergeDiscussions(cloudDiscs, localDiscs) {
 async function fetchDiscussions() {
   const me = await base44.auth.me();
   if (!me?.email) return getDiscussions();
-  const cloudDiscs = await base44.entities.Conversation.filter(
-    { created_by: me.email },
-    '-updated_date',
-    100
-  );
+  const cloudDiscs = await base44.entities.Conversation.list('-updated_date', 100);
   const local = getDiscussions();
   const merged = mergeDiscussions(cloudDiscs, local);
   // Keep localStorage in sync
