@@ -34,8 +34,8 @@ import AnalyticsPanel from '@/components/chat/AnalyticsPanel.jsx';
 import MorePanel from '@/components/chat/MorePanel';
 import LogsPanel from '@/components/chat/LogsPanel.jsx';
 import { appendLog } from '@/components/chat/LogsPanel.jsx';
-import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
-import { secureDeductCredits, isUserBanned } from '@/lib/credit-engine';
+import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits, fetchCreditsFromBackend } from '@/lib/credits';
+import { isUserBanned } from '@/lib/credit-engine';
 import { getBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
 
 
@@ -229,16 +229,15 @@ export default function ChatPage() {
     return unsub;
   }, []);
 
-  // ── Credits helper — secure engine with idempotency ──
+  // ── Credits helper — backend autoritaire ──
   const handleUpdateCredits = async (cost, idempotencyKey) => {
-    if (!user) return;
+    if (!user || user.role === 'admin') return;
     try {
-      const updatedUser = await secureDeductCredits(user, cost, idempotencyKey);
+      const updatedUser = await deductCredits(user, cost, idempotencyKey);
       if (updatedUser) setUser(updatedUser);
     } catch (err) {
-      if (err.message?.startsWith('ACCOUNT_BANNED')) {
-        toast.error('Your account has been suspended. Contact support.');
-        base44.auth.logout('/');
+      if (err.message === 'CREDITS_LOCKED') {
+        toast.error('Crédits épuisés pour ce cycle.');
       }
     }
   };

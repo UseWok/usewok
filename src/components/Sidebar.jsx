@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight } from 'lucide-react';
@@ -69,14 +69,19 @@ function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettin
         ))}
       </div>
 
-      {/* Credits bar */}
+      {/* Credits bar — direction 0 → limite (consommés) */}
       <div style={{ margin: '6px', padding: '10px 10px 8px', background: '#1A1A1A', borderRadius: 8, border: '1px solid #242424' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Credits</span>
-          <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} / {creditsLimit.toLocaleString()}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Crédits</span>
+          <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} restants</span>
         </div>
-        <div style={{ height: 3, background: '#2A2A2A', borderRadius: 999 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        {/* Barre consommés 0 → limite */}
+        <div style={{ height: 3, background: '#2A2A2A', borderRadius: 999, marginBottom: 4 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: pct > 85 ? '#ef4444' : '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 9, color: '#333' }}>0</span>
+          <span style={{ fontSize: 9, color: '#333' }}>{creditsLimit.toLocaleString()}</span>
         </div>
       </div>
 
@@ -328,8 +333,19 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const wsRef = useRef(null);
   const profileRef = useRef(null);
   const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'Workspace' };
-  const creditsUsed = user?.credits_used || 0;
-  const creditsLimit = user?.credits_limit || userPlan?.credits_limit || 10;
+  const [cloudCredits, setCloudCredits] = useState(null);
+
+  // Fetch authoritative credits when workspace dropdown opens
+  const fetchCloudCredits = async () => {
+    try {
+      const result = await base44.functions.invoke('creditEngine', { action: 'get' });
+      if (result?.data) setCloudCredits(result.data);
+    } catch {}
+  };
+
+  // Crédits authoritatifs: backend > user props
+  const creditsUsed = cloudCredits?.credits_used ?? user?.credits_used ?? 0;
+  const creditsLimit = cloudCredits?.credits_limit ?? user?.credits_limit ?? userPlan?.credits_limit ?? 150_000;
 
   // Load recents
   useEffect(() => {
@@ -425,7 +441,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {/* ── Workspace Selector ── */}
         <div ref={wsRef} style={{ padding: expanded ? '8px 8px 4px' : '8px 6px 4px', flexShrink: 0, position: 'relative' }}>
           <button
-            onClick={() => { if (expanded) setShowWsMenu(v => !v); else setExpanded(true); }}
+            onClick={() => { if (expanded) { setShowWsMenu(v => !v); fetchCloudCredits(); } else setExpanded(true); }}
             title={!expanded ? currentWs.name : undefined}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,

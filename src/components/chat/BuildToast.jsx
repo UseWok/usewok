@@ -1,20 +1,33 @@
 /**
- * BuildToast — minimal white pill, bottom-right, horizontal drag only.
- * - Left drag: allowed (reveals nothing — just offset)
- * - Right drag past +80px: dismisses
- * - Snaps back if released without dismissing
- * - Close X only on hover
+ * BuildToast — pill persistant, suit l'utilisateur sur TOUTES les pages.
+ * - Mode "working": spinner + lien cliquable vers le build en cours
+ * - Mode "saved": point vert + auto-dismiss 7s
+ * - Mode "error": point rouge + bouton Fix
+ * - Drag horizontal pour dismiss
+ * - Persiste en localStorage: si l'IA bosse et l'user quitte, le toast réapparaît
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const STORAGE_KEY = 'wok_build_in_progress';
 
 // ── Global event bus ──────────────────────────────────────────────
 const listeners = new Set();
+
 export function showBuildToast(mode, opts = {}) {
+  // Persiste en localStorage si mode 'working' (build en cours)
+  if (mode === 'working' && opts.convUrl) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, ...opts, ts: Date.now() })); } catch {}
+  } else if (mode !== 'working') {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }
   listeners.forEach(fn => fn({ mode, ...opts }));
 }
+
 export function hideBuildToast() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   listeners.forEach(fn => fn(null));
 }
 
@@ -32,12 +45,30 @@ export default function BuildToast() {
   const dismissTimer = useRef(null);
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-60, 0, 80], [0.7, 1, 0]);
+  const navigate = useNavigate();
 
   const dismiss = useCallback(() => {
     clearTimeout(dismissTimer.current);
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
     setToast(null);
     animate(x, 0, { duration: 0 });
   }, [x]);
+
+  // Restaurer un build en cours depuis localStorage au montage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        // Si le build date de moins de 30 minutes, restaurer le toast
+        if (data && data.ts && Date.now() - data.ts < 30 * 60_000) {
+          setToast(data);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const handler = (data) => {
@@ -46,7 +77,10 @@ export default function BuildToast() {
       animate(x, 0, { duration: 0 });
       setToast(data);
       if (data.mode === 'saved') {
-        dismissTimer.current = setTimeout(() => setToast(null), 7000);
+        dismissTimer.current = setTimeout(() => {
+          setToast(null);
+          try { localStorage.removeItem(STORAGE_KEY); } catch {}
+        }, 7000);
       }
     };
     listeners.add(handler);
@@ -57,13 +91,15 @@ export default function BuildToast() {
     return <style>{`@keyframes bt-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>;
   }
 
-  const { mode, title, body, onFix } = toast;
+  const { mode, title, body, onFix, convUrl } = toast;
+  const label = title || (mode === 'working' ? 'Build en cours…' : mode === 'saved' ? 'Sauvegardé' : 'Erreur');
+  const dot = mode === 'error' ? '#EF4444' : mode === 'saved' ? '#22C55E' : null;
 
-  const label =
-    title || (mode === 'working' ? 'Building…' : mode === 'saved' ? 'Saved' : 'Error');
-
-  const dot =
-    mode === 'error' ? '#EF4444' : mode === 'saved' ? '#22C55E' : null;
+  const handleClick = () => {
+    if (convUrl && mode === 'working') {
+      navigate(convUrl);
+    }
+  };
 
   return (
     <>
@@ -73,10 +109,8 @@ export default function BuildToast() {
           key="build-toast"
           style={{
             position: 'fixed', bottom: 24, right: 20, zIndex: 99999,
-            x, opacity,
-            cursor: 'grab',
-            touchAction: 'none',
-            userSelect: 'none',
+            x, opacity, cursor: mode === 'working' && convUrl ? 'pointer' : 'grab',
+            touchAction: 'none', userSelect: 'none',
           }}
           initial={{ y: 14, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -86,12 +120,10 @@ export default function BuildToast() {
           dragConstraints={{ left: -300, right: 300 }}
           dragElastic={{ left: 0.15, right: 0.08 }}
           onDragEnd={(_, info) => {
-            if (info.offset.x > 80) {
-              dismiss();
-            } else {
-              animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
-            }
+            if (info.offset.x > 80) { dismiss(); }
+            else { animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 }); }
           }}
+          onClick={handleClick}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
@@ -105,7 +137,6 @@ export default function BuildToast() {
             fontFamily: 'Inter, sans-serif',
             position: 'relative',
           }}>
-
             {/* Close X — hover only */}
             <AnimatePresence>
               {hovered && (
@@ -132,12 +163,15 @@ export default function BuildToast() {
                 ? <SpinnerRing />
                 : <div style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />
               }
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#111', lineHeight: 1.3 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#111', lineHeight: 1.3, flex: 1 }}>
                 {label}
               </span>
+              {/* Lien vers le build si mode working */}
+              {mode === 'working' && convUrl && (
+                <ExternalLink style={{ width: 11, height: 11, color: '#aaa', flexShrink: 0 }} />
+              )}
             </div>
 
-            {/* Body */}
             {body && (
               <p style={{
                 fontSize: 11.5, color: '#888', margin: '4px 0 0',
@@ -149,11 +183,18 @@ export default function BuildToast() {
               </p>
             )}
 
+            {/* Working: sous-texte lien cliquable */}
+            {mode === 'working' && convUrl && (
+              <p style={{ fontSize: 11, color: '#3B8BEB', margin: '4px 0 0', paddingLeft: 14, lineHeight: 1.4 }}>
+                Cliquer pour voir le build →
+              </p>
+            )}
+
             {/* Error Fix button */}
             {mode === 'error' && onFix && (
               <div style={{ marginTop: 8 }}>
                 <button
-                  onClick={() => { onFix(); dismiss(); }}
+                  onClick={(e) => { e.stopPropagation(); onFix(); dismiss(); }}
                   style={{
                     width: '100%', padding: '7px 0',
                     background: '#111', border: 'none',
@@ -167,12 +208,11 @@ export default function BuildToast() {
                   Fix with AI
                 </button>
                 <p style={{ fontSize: 10.5, color: '#C0C0C0', margin: '5px 0 0', textAlign: 'center' }}>
-                  This will use credits
+                  Uses credits
                 </p>
               </div>
             )}
 
-            {/* Saved: simple sub-text, no green bar */}
             {mode === 'saved' && (
               <p style={{ fontSize: 11, color: '#AAA', margin: '4px 0 0', paddingLeft: 14, lineHeight: 1.4 }}>
                 Sauvegardé dans l'historique

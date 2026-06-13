@@ -70,6 +70,7 @@ import ResetPassword from './pages/ResetPassword';
 
 import SEOHead from './components/SEOHead';
 import GlobalNotifications from './components/GlobalNotifications';
+import BuildToast from './components/chat/BuildToast';
 
 
 
@@ -162,6 +163,8 @@ const AuthenticatedApp = () => {
     <>
 
       <ScrollToTop />
+      {/* BuildToast global — suit l'utilisateur sur toutes les pages */}
+      <BuildToast />
 
       <Routes>
 
