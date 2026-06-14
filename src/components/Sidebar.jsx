@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
+import { useCredits } from '@/hooks/useCredits';
 
 export const COLLAPSED_W = 52;
 export const EXPANDED_W = 232;
