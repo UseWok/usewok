@@ -133,32 +133,26 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     // Strip any raw code blocks from the display text — code shows only in the box
     const codeBlockRegex = /```(?:jsx|javascript|react)?\n?[\s\S]*?```/g;
     const textOnly = finalText.replace(codeBlockRegex, '').trim();
-    const isGenericMsg = !textOnly || textOnly.includes('Architecture generated') || textOnly.includes('Architecture successfully') || textOnly.includes('successfully recompiled');
-
-    // Energetic final summary — always in French, per brand spec
-    const FINAL_SUMMARY = `C'est fait. Voici le résumé des changements :
-
-**Bouton fichier supprimé** — HomeInputWrapper n'a plus le bouton paperclip en haut à gauche. Les fichiers attachés s'affichent en petites chips compactes au-dessus de la barre, sans prendre de place inutile.
-
-**BuildToast** — la barre verte de progression est remplacée par un simple texte "Sauvegardé dans l'historique", et le toast est un rectangle légèrement arrondi (borderRadius 8), plus professionnel, sans effet design IA.
-
-**Bouton Admin** — visible uniquement pour les admins (user.role === 'admin'), positionné en haut à droite de la Home. Dans l'admin panel, un bouton ← App permet de revenir à /app.
-
-**Modal post-achat** — au clic sur un forfait, une modale s'ouvre avec une animation 🎉 pulsée (style WOK, sans effets IA), 3 étapes claires pour activer le code dans Settings → Plan & Facturation, et un bouton direct vers les paramètres.`;
+    const displayText = textOnly || 'Interface générée avec succès.';
 
     return (
       <div style={{ animation: 'ai-slide 150ms ease-out both' }}>
         {thinkingText && <ThinkingAccordion thinkingText={thinkingText} />}
-        <div style={{ fontSize: 13, color: '#333', lineHeight: 1.7, fontFamily: 'Inter, sans-serif' }}>
+        {/* Success badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 0 3px rgba(34,197,94,0.15)', flexShrink: 0 }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Inter, sans-serif' }}>Build réussi</span>
+        </div>
+        <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7, fontFamily: 'Inter, sans-serif' }}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}
             components={{
-              p: ({ children }) => <p style={{ margin: '0 0 8px', color: '#333', lineHeight: 1.7 }}>{children}</p>,
-              strong: ({ children }) => <strong style={{ color: '#E0E0E0', fontWeight: 600 }}>{children}</strong>,
-              li: ({ children }) => <li style={{ marginBottom: 3, color: '#555' }}>{children}</li>,
+              p: ({ children }) => <p style={{ margin: '0 0 6px', color: '#555', lineHeight: 1.7 }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: '#333', fontWeight: 600 }}>{children}</strong>,
+              li: ({ children }) => <li style={{ marginBottom: 3, color: '#666' }}>{children}</li>,
               ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ul>,
             }}
           >
-            {isGenericMsg ? FINAL_SUMMARY : (textOnly || FINAL_SUMMARY)}
+            {displayText}
           </ReactMarkdown>
         </div>
       </div>

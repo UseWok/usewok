@@ -8,7 +8,7 @@
  * - Spinning indicator while active
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -47,75 +47,118 @@ function ThinkingDots() {
   );
 }
 
+// Build steps — animated sequence shown during generation
+const BUILD_STEPS = [
+  { label: 'Analyse de la requête', duration: 1200 },
+  { label: 'Construction de l\'architecture', duration: 2000 },
+  { label: 'Génération du code', duration: 3500 },
+  { label: 'Validation des imports', duration: 900 },
+  { label: 'Compilation React', duration: 800 },
+];
+
+function BuildStepsIndicator({ text }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    let idx = 0;
+    const advance = () => {
+      if (idx < BUILD_STEPS.length - 1) {
+        idx++;
+        setStepIdx(idx);
+        timerRef.current = setTimeout(advance, BUILD_STEPS[idx].duration);
+      }
+    };
+    timerRef.current = setTimeout(advance, BUILD_STEPS[0].duration);
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {BUILD_STEPS.map((step, i) => {
+        const done = i < stepIdx;
+        const active = i === stepIdx;
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: i <= stepIdx ? 1 : 0.25, x: 0 }}
+            transition={{ duration: 0.2, delay: i * 0.05 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            {done ? (
+              <span style={{ width: 14, height: 14, borderRadius: '50%', background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            ) : active ? (
+              <SpinnerIcon />
+            ) : (
+              <span style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #2A2A2A', flexShrink: 0 }} />
+            )}
+            <span style={{ fontSize: 12, color: done ? '#22C55E' : active ? '#ccc' : '#3A3A3A', fontWeight: active ? 500 : 400, fontFamily: 'Inter, sans-serif' }}>
+              {step.label}
+              {active && <ThinkingDots />}
+            </span>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * ThinkingStream — shown WHILE generating.
- * Streams the internal monologue character by character, grayed italic.
- * Exactly like Claude's "Réflexion" block while thinking.
+ * Affiche les steps de build animés + le texte de réflexion en streaming.
  */
 export function ThinkingStream({ text }) {
   useEffect(() => { injectKF(); }, []);
-  const [open, setOpen] = useState(true);
+  const [showThinking, setShowThinking] = useState(false);
+
+  // Auto-show thinking section once text starts flowing
+  useEffect(() => {
+    if (text && text.length > 20) setShowThinking(true);
+  }, [text]);
 
   return (
-    <div style={{ fontFamily:'Inter, sans-serif', marginBottom:10 }}>
-      {/* Header — "Réflexion" style toggle */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display:'inline-flex', alignItems:'center', gap:7,
-          background:'none', border:'none', cursor:'pointer',
-          padding:'2px 0', outline:'none', userSelect:'none',
-        }}
-      >
-        <SpinnerIcon />
-        <span style={{ fontSize:12, fontWeight:500, color:'#6B7280', letterSpacing:'-0.01em' }}>
-          Réflexion{!text && <ThinkingDots />}
-        </span>
-        <motion.span
-          animate={{ rotate: open ? 90 : 0 }}
-          transition={{ duration:0.14 }}
-          style={{ display:'inline-flex', color:'#4B5563' }}
-        >
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </motion.span>
-      </button>
+    <div style={{ fontFamily: 'Inter, sans-serif', marginBottom: 10 }}>
+      {/* Build steps — always visible during generation */}
+      <div style={{
+        padding: '12px 14px',
+        background: 'rgba(255,255,255,0.025)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 10,
+        marginBottom: showThinking ? 8 : 0,
+      }}>
+        <BuildStepsIndicator text={text} />
+      </div>
 
-      <AnimatePresence initial={false}>
-        {open && (
+      {/* Thinking stream — collapsible once text flows */}
+      <AnimatePresence>
+        {showThinking && (
           <motion.div
-            key="th-stream"
-            initial={{ height:0, opacity:0 }}
-            animate={{ height:'auto', opacity:1 }}
-            exit={{ height:0, opacity:0 }}
-            transition={{ duration:0.16, ease:[0.4,0,0.2,1] }}
-            style={{ overflow:'hidden' }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
           >
+            <button
+              onClick={() => setShowThinking(v => !v)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', marginBottom: 5 }}
+            >
+              <SpinnerIcon />
+              <span style={{ fontSize: 11, fontWeight: 500, color: '#6B7280' }}>Réflexion en cours</span>
+            </button>
             <div style={{
-              marginTop:6, padding:'9px 12px',
-              background:'rgba(255,255,255,0.025)',
-              border:'1px solid rgba(255,255,255,0.05)',
-              borderRadius:8,
-              fontSize:12, color:'#6B7280', lineHeight:1.8,
-              fontStyle:'italic', fontFamily:'Inter, sans-serif',
-              maxHeight:200, overflowY:'auto',
+              padding: '8px 12px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.04)',
+              borderRadius: 8,
+              fontSize: 12, color: '#4B5563', lineHeight: 1.75,
+              fontStyle: 'italic', maxHeight: 160, overflowY: 'auto',
             }}>
-              {text ? (
-                <>
-                  {text}
-                  <span style={{
-                    display:'inline-block', width:1.5, height:11,
-                    background:'#6B7280', borderRadius:1, marginLeft:2,
-                    verticalAlign:'middle',
-                    animation:'th-cursor 0.85s ease-in-out infinite',
-                  }}/>
-                </>
-              ) : (
-                <span style={{ color:'#4B5563' }}>
-                  Analyse de votre requête<ThinkingDots />
-                </span>
-              )}
+              {text}
+              <span style={{ display: 'inline-block', width: 1.5, height: 10, background: '#6B7280', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'th-cursor 0.85s ease-in-out infinite' }} />
             </div>
           </motion.div>
         )}

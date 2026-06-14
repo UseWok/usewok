@@ -31,6 +31,7 @@ import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import HistoryPanel from '@/components/chat/HistoryPanel';
 import AnalyticsPanel from '@/components/chat/AnalyticsPanel.jsx';
+import MorePanel from '@/components/chat/MorePanel';
 import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits, fetchCreditsFromBackend } from '@/lib/credits';
 import { isUserBanned } from '@/lib/credit-engine';
 import { getBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
@@ -635,9 +636,13 @@ export default function ChatPage() {
       await safeAsync(() => initAgentsFromDB(), null, 'Init agents');
       let u = await safeAsync(() => base44.auth.me(), null, 'Fetch user');
       if (u) {
-        // Initialize credits for new users, check renewal
+        // Initialize credits for new users — always calls backend, no exemptions
         await initUserCredits(u);
+        // Re-fetch user after init to get fresh credits_used/credits_limit from backend
+        u = await safeAsync(() => base44.auth.me(), u, 'Refresh user after init');
         u = await checkAndRenewCredits(u);
+        // Final re-fetch to ensure credits_used is accurate after potential renewal
+        u = await safeAsync(() => base44.auth.me(), u, 'Refresh user after renewal');
         setUser(u);
         if (u.id) setCurrentUser(u.id);
         setUserPlan(getUserPlan(u));
@@ -962,6 +967,18 @@ export default function ChatPage() {
             {viewMode === 'analytics' && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 99, background: '#141414', borderRadius: 8, overflow: 'hidden' }}>
                 <AnalyticsPanel convId={conversationId || convId} />
+              </div>
+            )}
+
+            {/* More panel — logs + code editor */}
+            {viewMode === 'more' && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 99, borderRadius: 8, overflow: 'hidden' }}>
+                <MorePanel
+                  ficheContent={ficheContent}
+                  onUpdateContent={setFicheContent}
+                  user={user}
+                  isLoading={isLoading}
+                />
               </div>
             )}
 
