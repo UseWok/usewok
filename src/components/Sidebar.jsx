@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight } from 'lucide-react';
@@ -392,20 +393,25 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const isActive = path => location.pathname === path;
   const nav = path => navigate(path);
 
+  const isMobile = useIsMobile();
+
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile overlay backdrop */}
       <AnimatePresence>
-        {expanded && (
+        {expanded && isMobile && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }} onClick={() => setExpanded(false)} className="md:hidden"
-            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.4)' }} />
+            transition={{ duration: 0.16 }} onClick={() => setExpanded(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }} />
         )}
       </AnimatePresence>
 
       <motion.aside
         initial={false}
-        animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
+        animate={isMobile
+          ? { x: expanded ? 0 : -EXPANDED_W, width: EXPANDED_W }
+          : { width: expanded ? EXPANDED_W : COLLAPSED_W }
+        }
         transition={T}
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
@@ -413,7 +419,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           background: '#0B0B0B',
           borderRight: '1px solid #181818',
           fontFamily: 'Inter, system-ui, sans-serif',
-          minWidth: COLLAPSED_W,
+          minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
       >
         {/* ── Logo / Toggle ── */}

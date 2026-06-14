@@ -38,7 +38,7 @@ export default function Layout() {
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  const showSidebar = !isMobile;
+  const showSidebar = true;
 
   const handleSetExpanded = (val) => {
     setExpanded(val);
@@ -91,14 +91,32 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
+  // On mobile, sidebar slides in as overlay — no content offset needed
   const BORDER_W = 11;
   const CORNER_R = 14;
 
   return (
     <div style={{ minHeight: '100vh', background: '#0E0E0E', display: 'flex' }}>
-      {showSidebar && <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />}
+      <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />
 
-      {/* Device frame — content area with rounded corners inset by border width */}
+      {/* Mobile hamburger toggle — only visible on mobile */}
+      {isMobile && !expanded && (
+        <button
+          onClick={() => handleSetExpanded(true)}
+          style={{
+            position: 'fixed', top: 12, left: 12, zIndex: 50,
+            width: 36, height: 36, borderRadius: 9, border: 'none',
+            background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(8px)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      )}
+
       <motion.main
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}

@@ -326,7 +326,7 @@ export default function Home() {
       )}
 
       {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 16px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 8px', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -367,7 +367,7 @@ export default function Home() {
 
       {/* ── My Builds section ── */}
       <div style={{
-        padding: '0 28px 48px', marginTop: 80, position: 'relative', zIndex: 1,
+        padding: '0 16px 48px', marginTop: 80, position: 'relative', zIndex: 1,
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -395,7 +395,7 @@ export default function Home() {
 
         {/* 3-col grid — skeleton while loading, real cards or empty state after */}
         {projectsLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '28px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '28px 24px' }}>
             {[0,1,2,3,4,5].map(i => (
               <div key={i}>
                 <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, overflow: 'hidden', marginBottom: 10, background: 'rgba(255,255,255,0.04)' }}>
@@ -417,7 +417,7 @@ export default function Home() {
             <style>{`@keyframes skshimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
           </div>
         ) : projects.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '28px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '28px 24px' }}>
             {projects.slice(0, 12).map(p => (
               <ProjectCard key={p.id} conv={p}
                 onClick={() => navigate(`/chat?conversationId=${p.id}`)}
@@ -427,7 +427,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '28px 24px' }}>
             {['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
               <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
                 style={{ cursor: 'pointer' }}>
