@@ -8,8 +8,8 @@ export default function WorkspaceSettings() {
   const navigate = useNavigate();
   const fileRef = useRef(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
-  const [name, setName] = useState("Antoine's Lovable");
-  const [handle, setHandle] = useState('antoine-lovable');
+  const [name, setName] = useState("User's WOK");
+  const [handle, setHandle] = useState('user-wok');
   const [creditLimit, setCreditLimit] = useState('');
   const [saving, setSaving] = useState(false);
 
