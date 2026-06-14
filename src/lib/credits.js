@@ -70,24 +70,28 @@ export async function checkAndRenewCredits(user) {
 }
 
 // ── Déduire des crédits via le backend (autoritaire) ─────────────
-export async function deductCredits(user, cost, idempotencyKey) {
+export async function deductCredits(user, cost, idempotencyKey, isNewBuild = false) {
   if (!user) return user;
   try {
     const result = await base44.functions.invoke('creditEngine', {
       action: 'deduct',
       cost,
       idempotency_key: idempotencyKey || null,
+      is_new_build: isNewBuild,
     });
     if (result?.data?.success) {
       return {
         ...user,
         credits_used: result.data.credits_used,
         credits_limit: result.data.credits_limit,
+        project_count: result.data.project_count,
       };
     }
   } catch (err) {
     if (err?.response?.data?.error === 'LOCKED') {
       throw new Error('CREDITS_LOCKED');
+    } else if (err?.response?.data?.error === 'LIMIT_REACHED') {
+      throw new Error('LIMIT_REACHED');
     }
   }
   return user;

@@ -353,7 +353,7 @@ export default function SettingsPage() {
                       </div>
                       <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
                         {isYearly
-                          ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/yr`
+                          ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/mo (billed annually)`
                           : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free'}
                       </p>
                       {getRenewalDate(user) && userPlan?.price_monthly > 0 && (

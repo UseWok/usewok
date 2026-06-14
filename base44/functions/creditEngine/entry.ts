@@ -18,6 +18,13 @@ const PLAN_LIMITS = {
   pro:      5_000_000,
 };
 
+const PLAN_FEATURE_FLAGS = {
+  free:    { max_builds: 15 },
+  starter: { max_builds: Infinity },
+  creator: { max_builds: Infinity },
+  pro:     { max_builds: Infinity },
+};
+
 const RESET_DAYS = 30;
 
 Deno.serve(async (req) => {
@@ -81,7 +88,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'deduct') {
+      const { is_new_build } = body;
       if (!cost || cost <= 0) return Response.json({ error: 'Invalid cost' }, { status: 400 });
+
+      if (is_new_build) {
+        const featureFlags = PLAN_FEATURE_FLAGS[planId] || PLAN_FEATURE_FLAGS.free;
+        if (featureFlags.max_builds !== undefined && (user.project_count || 0) >= featureFlags.max_builds) {
+          return Response.json({ error: 'LIMIT_REACHED', message: `You have reached the maximum of ${featureFlags.max_builds} builds.` }, { status: 403 });
+        }
+      }
 
       // Idempotency: check if already processed (stored in user metadata)
       if (idempotency_key) {
@@ -109,6 +124,9 @@ Deno.serve(async (req) => {
       }
 
       const updates = { credits_used: newUsed };
+      if (is_new_build) {
+         updates.project_count = (user.project_count || 0) + 1;
+      }
       if (idempotency_key) updates.idempotency_keys = JSON.stringify(idemStore);
 
       await base44.auth.updateMe(updates);
@@ -138,6 +156,7 @@ Deno.serve(async (req) => {
         remaining: creditsLimit - newUsed,
         locked: newUsed >= creditsLimit,
         plan: planId,
+        project_count: updates.project_count || user.project_count || 0,
       });
     }
 

@@ -31,9 +31,6 @@ import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import HistoryPanel from '@/components/chat/HistoryPanel';
 import AnalyticsPanel from '@/components/chat/AnalyticsPanel.jsx';
-import MorePanel from '@/components/chat/MorePanel';
-import LogsPanel from '@/components/chat/LogsPanel.jsx';
-import { appendLog } from '@/components/chat/LogsPanel.jsx';
 import { computeCreditCost, deductCredits, isUserLocked, initUserCredits, checkAndRenewCredits, fetchCreditsFromBackend } from '@/lib/credits';
 import { isUserBanned } from '@/lib/credit-engine';
 import { getBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
@@ -44,7 +41,7 @@ import { safeAsync, checkRateLimit, sanitizeInput } from '@/lib/code-quality';
 import { classifyError } from '@/lib/error-handler';
 import { initAgentsFromDB } from '@/lib/agents-config';
 import { setCurrentUser, loadConversationFromCloud } from '@/lib/discussions';
-import { getUserPlan } from '@/lib/plans-config';
+import { getUserPlan, getPlanFeatures } from '@/lib/plans-config';
 import {
   getLocalDiscussions, saveLocalDiscussions,
   getConversationMessages, saveConversationMessages,
@@ -230,14 +227,17 @@ export default function ChatPage() {
   }, []);
 
   // ── Credits helper — backend autoritaire ──
-  const handleUpdateCredits = async (cost, idempotencyKey) => {
+  const handleUpdateCredits = async (cost, idempotencyKey, isNewBuild = false) => {
     if (!user || user.role === 'admin') return;
     try {
-      const updatedUser = await deductCredits(user, cost, idempotencyKey);
+      const updatedUser = await deductCredits(user, cost, idempotencyKey, isNewBuild);
       if (updatedUser) setUser(updatedUser);
     } catch (err) {
       if (err.message === 'CREDITS_LOCKED') {
         toast.error('Crédits épuisés pour ce cycle.');
+      } else if (err.message === 'LIMIT_REACHED') {
+        toast.error('Build limit reached for your plan.');
+        throw err;
       }
     }
   };
@@ -364,22 +364,6 @@ export default function ChatPage() {
     // Re-assign text to sanitized version
     text = safeText;
 
-    // ── Heuristic pre-filter (zero API cost) ──
-    const trimmed = text.trim();
-    const isTooShort = trimmed.length < 8;
-    const isRepetitive = /(.)\1{5,}/.test(trimmed); // "aaaaaaa", "1111111"
-    const isGibberish = /^[^aeiou\s]{8,}$/i.test(trimmed.replace(/\s/g, '').slice(0, 20)); // no vowels
-    const isAllSameWord = /^(\w+)\s+\1+$/i.test(trimmed);
-    const isSpam = /^[^a-zA-Z0-9\u00C0-\u017E\s.,!?]+$/.test(trimmed) && trimmed.length > 3;
-
-    if (isTooShort || isRepetitive || isGibberish || isAllSameWord || isSpam) {
-      const userMsg = { role: 'user', content: text };
-      setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '__INSUFFICIENT__' }]);
-      setInput('');
-      setFiles([]);
-      return;
-    }
-
     // Easter egg
     if (text.trim() === '16/06/2010') {
       const userMsg = { role: 'user', content: text };
@@ -467,19 +451,21 @@ export default function ChatPage() {
         return;
       }
 
-      // ── Safety filter (disabled after 4th user message) ──
       const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
-      if (userMessageIndex < 4) {
-        const safety = await runSafetyFilter(text, userMessageIndex);
-        if (!safety.safe) {
-          setMessages([...newMessages, { role: 'assistant', content: '__INSUFFICIENT__' }]);
-          setIsLoading(false);
-          return;
-        }
-      }
 
       // ── Build / modify path ──
       const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
+      
+      if (user && !isModification && !discussMode) {
+        const planFeatures = getPlanFeatures(user);
+        const userPlanInfo = getUserPlan(user);
+        if (planFeatures.max_builds !== undefined && (user.project_count || 0) >= planFeatures.max_builds) {
+          toast.error(`You have reached the maximum of ${planFeatures.max_builds} builds for the ${userPlanInfo?.name} plan. Please upgrade to continue.`);
+          setIsLoading(false);
+          setMessages([...newMessages, { role: 'assistant', content: `You've hit the ${planFeatures.max_builds} build limit for your plan. Please upgrade to continue building.` }]);
+          return;
+        }
+      }
       const imageUrls2 = (options.files || files || []).filter(f => f.type?.startsWith('image/')).map(f => f.url);
 
       // ── Thinking layer: call first, stream result char-by-char ──
@@ -562,13 +548,8 @@ export default function ChatPage() {
       // ── Deduct credits — secure, irreversible, idempotent ──
       const cost = computeCreditCost(buildMode, isModification);
       const iKey = `build_${convId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      await handleUpdateCredits(cost, iKey);
-
-      if (!isModification && !discussMode && user) {
-        const newCount = (user.project_count || 0) + 1;
-        base44.entities.User.update(user.id, { project_count: newCount }).catch(() => {});
-        setUser((prev) => ({ ...prev, project_count: newCount }));
-      }
+      const isNewBuild = !isModification && !discussMode && !!user;
+      await handleUpdateCredits(cost, iKey, isNewBuild);
 
       // Always persist URL first so the build is reachable even if user leaves immediately
       if (!conversationId) window.history.replaceState(null, '', `/chat?conversationId=${convId}`);
@@ -645,18 +626,7 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ── Telemetry logging ──
-  useEffect(() => {
-    appendLog('INFO', `APP_START path=${window.location.pathname}`);
-    const handleUnload = () => appendLog('INFO', 'APP_CLOSE');
-    const handleVisibility = () => appendLog('INFO', `VISIBILITY_CHANGE state=${document.visibilityState}`);
-    window.addEventListener('beforeunload', handleUnload);
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => {
-      window.removeEventListener('beforeunload', handleUnload);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, []);
+
 
   useEffect(() => {
     const initAuth = async () => {
@@ -988,12 +958,7 @@ export default function ChatPage() {
               </div>
             )}
 
-            {/* More panel (Logs + Code) */}
-            {viewMode === 'more' && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 99, borderRadius: 8, overflow: 'hidden' }}>
-                <MorePanel content={ficheContent} />
-              </div>
-            )}
+
 
             {/* Preview container — mobile mode centers the phone, desktop fills full width */}
             <motion.div

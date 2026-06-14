@@ -23,7 +23,6 @@ import Home from './pages/Home';
 import AllProjects from './pages/AllProjects';
 
 import ChatPage from './pages/ChatPage';
-import ChatOverlay from './components/ChatOverlay';
 
 import PricingPage from './pages/PricingPage';
 
@@ -170,7 +169,7 @@ const AuthenticatedApp = () => {
 
         <Route path="/" element={<Navigate to="/app" replace />} />
 
-        <Route path="/chat" element={<ChatOverlay><ChatPage /></ChatOverlay>} />
+        <Route path="/chat" element={<ChatPage />} />
         <Route path="/ui-showcase" element={<UIShowcase />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
