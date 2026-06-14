@@ -28,7 +28,7 @@ function Avatar({ user, size = 24 }) {
 }
 
 // ─── Workspace Switcher Dropdown ──────────────────────────────────
-function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettings, onClose, user, userPlan, creditsUsed, creditsLimit }) {
+function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettings, onClose, user, userPlan }) {
   const navigate = useNavigate();
   const ref = useRef(null);
   useEffect(() => {
@@ -37,8 +37,8 @@ function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettin
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  const pct = creditsLimit > 0 ? Math.min(100, Math.round((creditsUsed / creditsLimit) * 100)) : 0;
-  const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
+  const { used, limit, pct, remaining, barColor } = useCredits(user);
+  const creditsLeft = remaining;
 
   return (
     <motion.div ref={ref}
@@ -69,19 +69,18 @@ function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettin
         ))}
       </div>
 
-      {/* Credits bar — direction 0 → limite (consommés) */}
+      {/* Credits bar — temps réel */}
       <div style={{ margin: '6px', padding: '10px 10px 8px', background: '#1A1A1A', borderRadius: 8, border: '1px solid #242424' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Crédits</span>
-          <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} restants</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} restants</span>
         </div>
-        {/* Barre consommés 0 → limite */}
-        <div style={{ height: 3, background: '#2A2A2A', borderRadius: 999, marginBottom: 4 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: pct > 85 ? '#ef4444' : '#F95738', borderRadius: 999, transition: 'width 0.4s ease' }} />
+        <div style={{ height: 7, background: '#2A2A2A', borderRadius: 999, marginBottom: 5 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 9, color: '#333' }}>0</span>
-          <span style={{ fontSize: 9, color: '#333' }}>{creditsLimit.toLocaleString()}</span>
+          <span style={{ fontSize: 10, color: '#aaa' }}>0</span>
+          <span style={{ fontSize: 10, color: '#aaa' }}>{limit.toLocaleString()}</span>
         </div>
       </div>
 
