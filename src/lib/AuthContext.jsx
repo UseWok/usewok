@@ -110,6 +110,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Call this after any operation that mutates user data (plan upgrade, code redemption, etc.)
+  const refreshUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      return currentUser;
+    } catch { return null; }
+  };
+
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
@@ -124,7 +133,9 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, 
+      user,
+      setUser,
+      refreshUser,
       isAuthenticated, 
       isLoadingAuth,
       isLoadingPublicSettings,

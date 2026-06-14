@@ -1,3 +1,14 @@
+// Keyframes injected once
+if (typeof document !== 'undefined' && !document.getElementById('sk-keyframes')) {
+  const s = document.createElement('style');
+  s.id = 'sk-keyframes';
+  s.textContent = `
+    @keyframes sk-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes sk-shimmer-dark { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  `;
+  document.head.appendChild(s);
+}
+
 export default function Skeleton({ height, width, radius = 6, className = '', style = {} }) {
   return (
     <div

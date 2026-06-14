@@ -35,8 +35,10 @@ export function useCredits(user) {
   useEffect(() => {
     if (!user?.id) return;
     const unsub = base44.entities.User.subscribe((event) => {
-      if (event?.data?.id !== user.id && event?.data?.credits_used === undefined) return;
       const data = event?.data;
+      // Accept any update event that carries credits_used for this user
+      if (!data || (data.id && data.id !== user.id)) return;
+      if (typeof data.credits_used !== 'number') return;
       if (data && typeof data.credits_used === 'number') {
         setCredits(prev => ({
           ...prev,

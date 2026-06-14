@@ -8,6 +8,7 @@ import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import CreditsBar from '@/components/CreditsBar';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/AuthContext';
 
 const DK = { bg: '#1F1F1F', surface: '#141414', border: '#2A2A2A', text: '#fff', muted: '#888' };
 
@@ -148,6 +149,7 @@ const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { da
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { user: authUser, refreshUser: refreshAuthUser } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
@@ -162,19 +164,37 @@ export default function SettingsPage() {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
 
+  const loadUser = (u) => {
+    if (!u) return;
+    setUser(u);
+    setFullName(u?.full_name || '');
+    setInvoiceEmail(u?.email || '');
+    setUserPlan(getUserPlan(u));
+    if (u?.email) {
+      base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
+        if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
+      }).catch(() => {});
+    }
+  };
+
+  // Wrapped setUser that also refreshes AuthContext
+  const handleSetUser = async (u) => {
+    // u may be the newly fetched user from CodeRedeemer, or we re-fetch
+    if (u) loadUser(u);
+    // Also refresh AuthContext so Layout/Sidebar/PricingPage see the new plan
+    if (refreshAuthUser) {
+      const freshUser = await refreshAuthUser();
+      if (freshUser) loadUser(freshUser);
+    }
+  };
+
   useEffect(() => {
-    base44.auth.me().then(async u => {
-      setUser(u);
-      setFullName(u?.full_name || '');
-      setInvoiceEmail(u?.email || '');
-      const plan = getUserPlan(u);
-      setUserPlan(plan);
-      if (u?.email) {
-        base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
-          if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
-        }).catch(() => {});
-      }
-    }).catch(() => {});
+    if (authUser?.id) {
+      loadUser(authUser);
+    } else {
+      base44.auth.me().then(loadUser).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isYearly = user?.billing_cycle === 'yearly';
@@ -359,7 +379,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <CodeRedeemer user={user} setUser={setUser} />
+                <CodeRedeemer user={user} setUser={handleSetUser} />
 
                 {userPlan?.price_monthly > 0 && (
                   <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, overflow: 'hidden' }}>

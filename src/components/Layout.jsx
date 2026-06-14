@@ -8,6 +8,7 @@ import { onCreditsUpdate } from '@/lib/credits-events';
 import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { initTheme } from '@/lib/theme';
+import { useAuth } from '@/lib/AuthContext';
 
 const SESSION_KEY = 'stensor_total_minutes';
 
@@ -31,6 +32,7 @@ export default function Layout() {
   const [expanded, setExpanded] = useState(() => {
     try { return localStorage.getItem('wok_sidebar_expanded') === 'true'; } catch { return false; }
   });
+  const { user: authUser, setUser: setAuthUser } = useAuth();
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const isMobile = useIsMobile();
@@ -46,7 +48,6 @@ export default function Layout() {
   useEffect(() => {
     const saved = localStorage.getItem('wok_sidebar_expanded');
     if (saved === null) {
-      // First visit: expand on certain paths
       const shouldExpand = SIDEBAR_EXPANDED_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
       handleSetExpanded(shouldExpand);
     }
@@ -56,18 +57,36 @@ export default function Layout() {
   useEffect(() => {
     initTheme();
     captureReferralFromUrl();
-    base44.auth.me().then(u => {
-      if (!u?.id) return;
-      setUser(u);
-      setUserPlan(getUserPlan(u));
-      const cleanup = trackSession(u.id);
+    if (authUser?.id) {
+      setUser(authUser);
+      setUserPlan(getUserPlan(authUser));
+      const cleanup = trackSession(authUser.id);
       return cleanup;
-    }).catch(() => {});
+    } else {
+      base44.auth.me().then(u => {
+        if (!u?.id) return;
+        setUser(u);
+        setUserPlan(getUserPlan(u));
+        setAuthUser(u);
+        const cleanup = trackSession(u.id);
+        return cleanup;
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep local user in sync with AuthContext (e.g. after plan upgrade)
+  useEffect(() => {
+    if (authUser?.id) {
+      setUser(authUser);
+      setUserPlan(getUserPlan(authUser));
+    }
+  }, [authUser]);
 
   useEffect(() => {
     return onCreditsUpdate(({ credits_used }) => {
       setUser(prev => prev ? { ...prev, credits_used } : prev);
+      setAuthUser(prev => prev ? { ...prev, credits_used } : prev);
     });
   }, []);
 

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig, getUserPlan } from '@/lib/plans-config';
 import { Check, X, Zap, Shield, Users, Headphones, Settings } from 'lucide-react';
 import { PlanCardSkeleton } from '@/components/ui/Skeleton.jsx';
+import { useAuth } from '@/lib/AuthContext';
 
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -149,24 +150,33 @@ function PostPurchaseModal({ onClose }) {
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [showPostPurchase, setShowPostPurchase] = useState(false);
   const [plans, setPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const [userPlanId, setUserPlanId] = useState(null);
 
   useEffect(() => {
     loadPlansFromDB()
       .then(dbPlans => { setPlans(dbPlans || getPlansConfig()); setPlansLoading(false); })
       .catch(() => { setPlans(getPlansConfig()); setPlansLoading(false); });
-
-    base44.auth.me().then(u => {
-      setCurrentUser(u);
-      const plan = getUserPlan(u);
-      setUserPlanId(plan?.id || null);
-    }).catch(() => {});
   }, []);
+
+  // Derive plan from AuthContext user (always up-to-date)
+  useEffect(() => {
+    const u = authUser;
+    if (u) {
+      const plan = getUserPlan(u);
+      setUserPlanId(plan?.id || 'free');
+    } else {
+      // Fallback: fetch directly if AuthContext hasn't loaded yet
+      base44.auth.me().then(u => {
+        const plan = getUserPlan(u);
+        setUserPlanId(plan?.id || 'free');
+      }).catch(() => {});
+    }
+  }, [authUser]);
 
   const cardPlans = plans.filter(p => {
     const url = p.checkout_url_monthly || '';
