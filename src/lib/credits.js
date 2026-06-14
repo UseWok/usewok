@@ -38,7 +38,7 @@ export function isUserLocked(user) {
 
 // ── Initialiser les crédits d'un nouvel utilisateur via backend ──
 export async function initUserCredits(user) {
-  if (!user || user.role === 'admin') return;
+  if (!user) return;
   // Si pas encore de champ credits_used/limit, appeler le backend pour initialiser
   if (typeof user.credits_used !== 'number' || typeof user.credits_limit !== 'number') {
     try {
@@ -50,7 +50,7 @@ export async function initUserCredits(user) {
 
 // ── Vérifier et renouveler si le cycle est dépassé ──────────────
 export async function checkAndRenewCredits(user) {
-  if (!user || user.role === 'admin') return user;
+  if (!user) return user;
   const resetAt = user.credits_reset_at ? new Date(user.credits_reset_at) : null;
   if (!resetAt || Date.now() < resetAt.getTime()) return user;
 
@@ -71,7 +71,7 @@ export async function checkAndRenewCredits(user) {
 
 // ── Déduire des crédits via le backend (autoritaire) ─────────────
 export async function deductCredits(user, cost, idempotencyKey) {
-  if (!user || user.role === 'admin') return user;
+  if (!user) return user;
   try {
     const result = await base44.functions.invoke('creditEngine', {
       action: 'deduct',

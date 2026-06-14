@@ -89,6 +89,8 @@ export function PublicLiveEngine({ content }) {
       js = js.replace(/import\s+React.*?from\s+['"]react['"];?/g, '');
       js = js.replace(/import\s+\{\s*([^}]+)\s*\}\s*from\s*['"]react['"];?/g, 'const { $1 } = React;');
       js = js.replace(/import\s+.*?from\s+['"].*?['"];?/g, '');
+      // Stub @/components/ui/* shadcn elements used in generated code
+      // These are no-ops since generated code uses Tailwind + inline styles primarily
       // Track default export name before stripping it
       var defaultExportMatch = js.match(/export\s+default\s+function\s+([A-Za-z0-9_]+)/);
       if (!defaultExportMatch) defaultExportMatch = js.match(/export\s+default\s+([A-Za-z0-9_]+)\s*;/);
@@ -112,7 +114,42 @@ export function PublicLiveEngine({ content }) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Barlow+Condensed:ital,wght@1,900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"><\/script>
+  <script>
+    // Configure Tailwind with the same design tokens as the main app
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            primary: { DEFAULT: 'hsl(12,94%,59%)', foreground: '#fff' },
+            secondary: { DEFAULT: 'hsl(262,71%,60%)', foreground: '#fff' },
+            accent: { DEFAULT: 'hsl(345,82%,51%)', foreground: '#fff' },
+            background: 'hsl(36,33%,93%)',
+            foreground: 'hsl(0,0%,10%)',
+            muted: { DEFAULT: 'hsl(36,20%,88%)', foreground: 'hsl(0,0%,53%)' },
+            border: 'hsl(36,15%,83%)',
+            coral: '#F95738',
+            rose: '#E8184A',
+            violet: '#7B4FE0',
+            blue: '#3B8BEB',
+            cream: '#F5F0E8',
+            dark: '#1A1A1A',
+          },
+          borderRadius: {
+            sm: '6px', DEFAULT: '8px', md: '10px', lg: '12px',
+            xl: '14px', '2xl': '18px', '3xl': '24px',
+          },
+        }
+      }
+    };
+  <\/script>
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"><\/script>
@@ -409,6 +446,7 @@ export function PublicLiveEngine({ content }) {
         motion: motionProxy2,
         m: motionProxy2,
         AnimatePresence: function(props) {
+          // Render children directly — exit animations handled via CSS transitions on motion elements
           var children = props ? props.children : null;
           if (!children) return null;
           var arr = Array.isArray(children) ? children.filter(Boolean) : [children];
@@ -445,16 +483,68 @@ export function PublicLiveEngine({ content }) {
     })();
   <\/script>
   <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    :root {
+      --font-inter: 'Inter', system-ui, sans-serif;
+      --background: 36 33% 93%;
+      --foreground: 0 0% 10%;
+      --card: 36 33% 97%;
+      --card-foreground: 0 0% 10%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 0 0% 10%;
+      --primary: 12 94% 59%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 262 71% 60%;
+      --secondary-foreground: 0 0% 100%;
+      --muted: 36 20% 88%;
+      --muted-foreground: 0 0% 53%;
+      --accent: 345 82% 51%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 345 82% 51%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 36 15% 83%;
+      --input: 36 15% 83%;
+      --ring: 12 94% 59%;
+      --radius: 0.75rem;
+      --sidebar-background: 0 0% 10%;
+      --sidebar-foreground: 0 0% 90%;
+      --sidebar-primary: 12 94% 59%;
+      --sidebar-primary-foreground: 0 0% 100%;
+      --sidebar-accent: 0 0% 16%;
+      --sidebar-accent-foreground: 0 0% 95%;
+      --sidebar-border: 0 0% 20%;
+      --sidebar-ring: 12 94% 59%;
+      --support: 213 80% 57%;
+      --support-foreground: 0 0% 100%;
+    }
+    * { box-sizing: border-box; scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    h1,h2,h3,h4,h5,h6 { font-weight: 700; letter-spacing: -0.02em; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+    @keyframes bounce { 0%,100% { transform:translateY(-25%); animation-timing-function:cubic-bezier(.8,0,1,1); } 50% { transform:translateY(0); animation-timing-function:cubic-bezier(0,0,.2,1); } }
+    @keyframes ping { 75%,100% { transform:scale(2); opacity:0; } }
+    @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+    @keyframes slide-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
     ${css}
   </style>
 </head>
 <body>
   <div id="root" style="width:100%;height:100%"></div>
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component } = React;
+    const { useState, useEffect, useRef, useMemo, useCallback, useReducer, useContext, createContext, Component, forwardRef, Fragment, Children, cloneElement } = React;
     const { motion, AnimatePresence, useAnimation, useAnimate, useInView, useMotionValue, useSpring, useTransform, useScroll, useCycle, useReducedMotion, m } = window.Motion;
     const Recharts = window.Recharts || {};
+    // Stub for common utilities used in generated code
+    const cn = (...args) => args.filter(Boolean).join(' ');
+    const clsx = cn;
+    // date-fns stubs
+    const format = (d, fmt) => { try { return new Date(d).toLocaleDateString(); } catch { return ''; } };
+    const formatDate = format;
+    const parseISO = (s) => new Date(s);
+    const addDays = (d, n) => { var r = new Date(d); r.setDate(r.getDate()+n); return r; };
+    const subDays = (d, n) => addDays(d, -n);
+    const isValid = (d) => d instanceof Date && !isNaN(d);
     // Expose ALL Recharts components as individual variables in scope
     const { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
       RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -520,7 +610,7 @@ export function PublicLiveEngine({ content }) {
         onLoad={() => { setReady(true); setError(null); }}
         onError={() => { setError('iframe load error'); }}
         style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
-        sandbox="allow-scripts allow-forms allow-popups"
+        sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
       />
     </div>
   );
