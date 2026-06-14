@@ -333,20 +333,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const wsRef = useRef(null);
   const profileRef = useRef(null);
   const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'Workspace' };
-  const [cloudCredits, setCloudCredits] = useState(null);
-
-  // Fetch authoritative credits when workspace dropdown opens
-  const fetchCloudCredits = async () => {
-    try {
-      const result = await base44.functions.invoke('creditEngine', { action: 'get' });
-      if (result?.data) setCloudCredits(result.data);
-    } catch {}
-  };
-
-  // Crédits authoritatifs: backend > user props
-  const creditsUsed = cloudCredits?.credits_used ?? user?.credits_used ?? 0;
-  const creditsLimit = cloudCredits?.credits_limit ?? user?.credits_limit ?? userPlan?.credits_limit ?? 150_000;
-
   // Load recents
   useEffect(() => {
     loadDiscussionsFromCloud().then(discs => {
@@ -441,7 +427,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {/* ── Workspace Selector ── */}
         <div ref={wsRef} style={{ padding: expanded ? '8px 8px 4px' : '8px 6px 4px', flexShrink: 0, position: 'relative' }}>
           <button
-            onClick={() => { if (expanded) { setShowWsMenu(v => !v); fetchCloudCredits(); } else setExpanded(true); }}
+            onClick={() => { if (expanded) { setShowWsMenu(v => !v); } else setExpanded(true); }}
             title={!expanded ? currentWs.name : undefined}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
@@ -474,7 +460,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 onSettings={() => nav('/workspace-settings')}
                 onClose={() => setShowWsMenu(false)}
                 user={user} userPlan={userPlan}
-                creditsUsed={creditsUsed} creditsLimit={creditsLimit}
+
               />
             )}
           </AnimatePresence>
