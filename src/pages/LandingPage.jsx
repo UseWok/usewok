@@ -572,9 +572,9 @@ function BeforeAfterCard({ before, after, desc, delay = 0 }) {
 
 function SolutionScene({ onCta }) {
   const BEFORES = [
-    { before: '📄 Un PDF ou une vidéo statique que personne ne regarde', after: '⚡ Un outil interactif qui engage et qui reste', desc: 'Calculateur, quiz, simulateur, dashboard — vos clients l'utilisent encore et encore, et le partagent.' },
-    { before: '😤 2 à 4 semaines de galère pour un résultat moyen', after: '🚀 Un résultat pro en 30 secondes chrono', desc: 'Décrivez ce que vous voulez en français. L'IA génère. Vous affinez. Vous publiez.' },
-    { before: '🔗 5 outils à connecter, 5 abonnements à payer', after: '✅ Tout-en-un : création, publication, analytics', desc: 'Pas de Zapier, pas de dev, pas de migraine. Un outil. Un lien. Prêt à vendre.' },
+    { before: '📄 Un PDF ou une vidéo statique que personne ne regarde', after: '⚡ Un outil interactif qui engage et qui reste', desc: "Calculateur, quiz, simulateur, dashboard — vos clients l'utilisent encore et encore, et le partagent." },
+    { before: '😤 2 à 4 semaines de galère pour un résultat moyen', after: '🚀 Un résultat pro en 30 secondes chrono', desc: "Décrivez ce que vous voulez en français. L'IA génère. Vous affinez. Vous publiez." },
+    { before: '🔗 5 outils à connecter, 5 abonnements à payer', after: '✅ Tout-en-un : création, publication, analytics', desc: "Pas de Zapier, pas de dev, pas de migraine. Un outil. Un lien. Prêt à vendre." },
   ];
 
   return (
@@ -603,8 +603,8 @@ function SolutionScene({ onCta }) {
           {[
             { icon: '🎯', title: 'Quiz & diagnostics', desc: 'Qualifiez vos leads automatiquement. Chaque résultat personnalisé mène à votre offre.' },
             { icon: '📊', title: 'Calculateurs interactifs', desc: 'Montrez la valeur que vous apportez avec des chiffres. Vos prospects se convainquent eux-mêmes.' },
-            { icon: '🤖', title: 'Apps IA intégrées', desc: 'Propulsez vos outils avec GPT-4o. Vos clients ont l'impression d'un service premium.' },
-            { icon: '🛍️', title: 'Formations dynamiques', desc: 'Des parcours qui s'adaptent à chaque élève. La rétention explose, les avis aussi.' },
+            { icon: '🤖', title: 'Apps IA intégrées', desc: "Propulsez vos outils avec GPT-4o. Vos clients ont l'impression d'un service premium." },
+            { icon: '🛍️', title: 'Formations dynamiques', desc: "Des parcours qui s'adaptent à chaque élève. La rétention explose, les avis aussi." },
             { icon: '⚡', title: 'Généré en 30 secondes', desc: 'Décrivez en français. WOK code. Vous validez. Personne ne sait que vous n\'avez pas de dev.' },
             { icon: '🌐', title: 'Publié & partageable', desc: 'Un lien propre. Pas de compte requis pour vos clients. Juste le WOW effect.' },
           ].map((f, i) => (
