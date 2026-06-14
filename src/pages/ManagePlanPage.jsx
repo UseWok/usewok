@@ -14,7 +14,7 @@ const PLAN_ICONS = { free: Zap, essential: Shield, advanced: TrendingUp, expert:
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function getRenewalDate(user) {
@@ -32,10 +32,10 @@ function getRenewalDate(user) {
 }
 
 const RATING_ITEMS = [
-  { key: 'quality', label: 'Qualité des réponses' },
-  { key: 'speed', label: 'Vitesse de génération' },
-  { key: 'value', label: 'Rapport qualité/prix' },
-  { key: 'ux', label: "Facilité d'utilisation" },
+  { key: 'quality', label: 'Response quality' },
+  { key: 'speed', label: 'Generation speed' },
+  { key: 'value', label: 'Value for money' },
+  { key: 'ux', label: 'Ease of use' },
 ];
 
 function RatingStep({ ratings, setRatings, onNext }) {
@@ -43,8 +43,8 @@ function RatingStep({ ratings, setRatings, onNext }) {
   return (
     <div style={{ padding: '24px 24px 20px' }}>
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>Avant de partir…</p>
-        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Vos retours nous aident à améliorer WOK.</p>
+        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>Before you go…</p>
+        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Your feedback helps us improve WOK.</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {RATING_ITEMS.map(item => (
@@ -63,7 +63,7 @@ function RatingStep({ ratings, setRatings, onNext }) {
       </div>
       <button onClick={onNext} disabled={!allRated}
         style={{ width: '100%', marginTop: 20, padding: '11px 0', background: !allRated ? '#2A2A2A' : '#fff', color: !allRated ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: allRated ? 'pointer' : 'not-allowed', transition: 'background 150ms' }}>
-        Continuer →
+        Continue →
       </button>
     </div>
   );
@@ -71,12 +71,12 @@ function RatingStep({ ratings, setRatings, onNext }) {
 
 function LossStep({ userPlan, onNext, onBack }) {
   const losses = [
-    userPlan?.credits_limit && { icon: Zap, label: `${userPlan.credits_limit} crédits/mois`, desc: 'Votre quota IA complet, perdu.' },
-    userPlan?.internet_access && { icon: Wifi, label: 'Recherche web temps réel', desc: 'Données de marché en direct.' },
-    userPlan?.file_upload && { icon: FileText, label: 'Analyse de documents', desc: 'Upload de fichiers désactivé.' },
-    userPlan?.max_discussions === 0 && { icon: MessageSquare, label: 'Discussions illimitées', desc: 'Limité à 3 conversations.' },
-    userPlan?.ultimate_access && { icon: Crown, label: 'Mode Expert (Claude Opus)', desc: "Accès au modèle IA le plus puissant." },
-    { icon: Lock, label: 'Historique complet', desc: "L'accès aux chats passés sera limité." },
+    userPlan?.credits_limit && { icon: Zap, label: `${userPlan.credits_limit} credits/mo`, desc: 'Your full AI quota, lost.' },
+    userPlan?.internet_access && { icon: Wifi, label: 'Real-time web search', desc: 'Live market data disabled.' },
+    userPlan?.file_upload && { icon: FileText, label: 'Document analysis', desc: 'File uploads disabled.' },
+    userPlan?.max_discussions === 0 && { icon: MessageSquare, label: 'Unlimited discussions', desc: 'Limited to 3 conversations.' },
+    userPlan?.ultimate_access && { icon: Crown, label: 'Expert mode (Claude Opus)', desc: 'Access to the most powerful AI model.' },
+    { icon: Lock, label: 'Full history', desc: 'Access to past chats will be limited.' },
   ].filter(Boolean);
 
   return (
@@ -85,7 +85,7 @@ function LossStep({ userPlan, onNext, onBack }) {
         <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
           <AlertTriangle style={{ width: 20, height: 20, color: '#ef4444' }} />
         </div>
-        <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Vous perdrez immédiatement :</p>
+        <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>You will immediately lose:</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
         {losses.map((loss, i) => {
@@ -102,9 +102,9 @@ function LossStep({ userPlan, onNext, onBack }) {
         })}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Retour</button>
+        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Back</button>
         <button onClick={onNext} style={{ flex: 1, padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-          Je comprends, continuer →
+          I understand, continue →
         </button>
       </div>
     </div>
@@ -116,30 +116,30 @@ function ReasonStep({ cancelNote, setCancelNote, cancelEmail, setCancelEmail, ca
   return (
     <div style={{ padding: '24px 24px 20px' }}>
       <div style={{ textAlign: 'center', marginBottom: 18 }}>
-        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>Une dernière chose</p>
-        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Pourquoi annulez-vous ? Cela nous aide vraiment.</p>
+        <p style={{ fontSize: 15, fontWeight: 700, color: DK.text, margin: '0 0 4px' }}>One last thing</p>
+        <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Why are you cancelling? This really helps us.</p>
       </div>
       <div style={{ padding: '10px 12px', background: '#141414', borderRadius: 8, border: '1px solid #2A2A2A', marginBottom: 14, fontSize: 12, color: '#888', lineHeight: 1.6 }}>
-        Votre demande sera traitée sous <strong style={{ color: '#ccc' }}>24 heures</strong>. Vous recevrez la date exacte d'annulation par email.
+        Your request will be processed within <strong style={{ color: '#ccc' }}>24 hours</strong>. You will receive the exact cancellation date by email.
       </div>
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>Raison *</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>Reason *</label>
           <span style={{ fontSize: 10, color: cancelNote.length >= 450 ? '#ef4444' : '#555' }}>{cancelNote.length}/500</span>
         </div>
         <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value.slice(0, 500))}
-          placeholder="Dites-nous pourquoi vous annulez..."
+          placeholder="Tell us why you're cancelling…"
           rows={3} style={{ ...inputStyle, resize: 'none' }} />
       </div>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 5 }}>Email de paiement *</label>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 5 }}>Payment email *</label>
         <input value={cancelEmail} onChange={e => setCancelEmail(e.target.value)} placeholder="email@example.com" style={inputStyle} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Retour</button>
+        <button onClick={onBack} style={{ padding: '10px 16px', background: '#2A2A2A', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Back</button>
         <button onClick={onSubmit} disabled={cancelLoading || !cancelNote.trim() || !cancelEmail.trim()}
           style={{ flex: 1, padding: '10px 0', background: cancelLoading || !cancelNote.trim() || !cancelEmail.trim() ? '#2A2A2A' : '#fff', color: cancelLoading || !cancelNote.trim() || !cancelEmail.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'background 150ms' }}>
-          {cancelLoading ? 'Envoi...' : "Envoyer la demande d'annulation"}
+          {cancelLoading ? 'Sending...' : 'Send cancellation request'}
         </button>
       </div>
     </div>
@@ -190,12 +190,12 @@ export default function ManagePlanPage() {
   const isYearly = billing === 'yearly';
 
   const features = [
-    userPlan?.credits_limit && `${userPlan.credits_limit} crédits/mois`,
-    userPlan?.internet_access && 'Recherche web',
-    userPlan?.ultimate_access && 'Mode Expert',
-    userPlan?.file_upload && 'Fichiers',
-    userPlan?.max_discussions === 0 && 'Discussions illimitées',
-    userPlan?.premium_support && 'Support premium',
+    userPlan?.credits_limit && `${userPlan.credits_limit} credits/mo`,
+    userPlan?.internet_access && 'Web search',
+    userPlan?.ultimate_access && 'Expert mode',
+    userPlan?.file_upload && 'Files',
+    userPlan?.max_discussions === 0 && 'Unlimited discussions',
+    userPlan?.premium_support && 'Premium support',
   ].filter(Boolean);
 
   const submitCancel = async () => {
@@ -219,7 +219,7 @@ export default function ManagePlanPage() {
       ratings_json: JSON.stringify(ratings),
       messages_json: JSON.stringify([{
         author: 'user',
-        text: `Raison: ${cancelNote}\nEmail: ${cancelEmail}`,
+        text: `Reason: ${cancelNote}\nEmail: ${cancelEmail}`,
         file_urls: [],
         created_at: new Date().toISOString(),
       }]),
@@ -227,26 +227,24 @@ export default function ManagePlanPage() {
     setCancelLoading(false);
     setCancelSent(true);
     setShowCancelFlow(false);
-    toast.success('Demande envoyée — traitée sous 24h');
+    toast.success('Request sent — processed within 24h');
   };
 
-  const STEP_TITLES = { 1: 'Évaluation', 2: 'Ce que vous perdez', 3: 'Annuler' };
+  const STEP_TITLES = { 1: 'Rating', 2: 'What you lose', 3: 'Cancel' };
 
   return (
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '32px 20px 80px' }}>
 
-        {/* Back */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
           <button onClick={() => navigate('/settings')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = '#333'}
             onMouseLeave={e => e.currentTarget.style.background = '#2A2A2A'}>
             <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Gérer l'abonnement</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Manage subscription</h1>
         </div>
 
-        {/* Current plan card */}
         <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 12, padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -256,9 +254,9 @@ export default function ManagePlanPage() {
               <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
               <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
                 {isYearly
-                  ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/an`
-                  : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Gratuit'}
-                {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738' }}>ANNUEL</span>}
+                  ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/yr`
+                  : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free'}
+                {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738' }}>YEARLY</span>}
               </p>
             </div>
           </div>
@@ -267,7 +265,7 @@ export default function ManagePlanPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 7, background: 'rgba(255,255,255,0.04)', marginBottom: 14 }}>
               <Clock style={{ width: 12, height: 12, color: '#555', flexShrink: 0 }} />
               <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-                {isYearly ? 'Renouvellement annuel le ' : 'Renouvellement mensuel le '}
+                {isYearly ? 'Yearly renewal on ' : 'Monthly renewal on '}
                 <span style={{ color: '#aaa' }}>{formatDate(renewalDate)}</span>
               </p>
             </div>
@@ -275,7 +273,7 @@ export default function ManagePlanPage() {
 
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 11, color: DK.muted }}>Crédits ce mois</span>
+              <span style={{ fontSize: 11, color: DK.muted }}>Credits this month</span>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#ccc' }}>{Math.round(creditsUsed * 10) / 10} / {creditsLimit}</span>
             </div>
             <div style={{ width: '100%', height: 4, borderRadius: 999, background: '#2A2A2A', overflow: 'hidden' }}>
@@ -295,37 +293,34 @@ export default function ManagePlanPage() {
           )}
         </div>
 
-        {/* Upgrade button */}
         <button onClick={() => navigate('/pricing')}
           style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', marginBottom: 12, background: '#F95738', border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'opacity 150ms' }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <TrendingUp style={{ width: 15, height: 15, color: '#fff' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Améliorer mon abonnement</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Upgrade your plan</span>
           </div>
           <ChevronRight style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.7)' }} />
         </button>
 
-        {/* Billing history */}
         {userPlan?.price_monthly > 0 && (
           <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, marginBottom: 12, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #2A2A2A' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Historique de facturation</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Billing history</p>
             </div>
             <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 2px' }}>{userPlan.name}</p>
                 <p style={{ fontSize: 11, color: DK.muted, margin: 0 }}>
-                  Depuis {formatDate(user?.subscription_date || user?.created_date)}
+                  Since {formatDate(user?.subscription_date || user?.created_date)}
                 </p>
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIF</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIVE</span>
             </div>
           </div>
         )}
 
-        {/* Cancel */}
         {userPlan?.price_monthly > 0 && (
           <>
             {cancelSent || existingCancel ? (
@@ -333,13 +328,13 @@ export default function ManagePlanPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <Clock style={{ width: 13, height: 13, color: existingCancel?.cancel_status === 'approved' ? '#22c55e' : '#888', flexShrink: 0 }} />
                   <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: 0 }}>
-                    {existingCancel?.cancel_status === 'approved' ? 'Abonnement annulé' : "Demande d'annulation en attente"}
+                    {existingCancel?.cancel_status === 'approved' ? 'Subscription cancelled' : 'Cancellation request pending'}
                   </p>
                 </div>
                 <p style={{ fontSize: 12, color: DK.muted, margin: 0, lineHeight: 1.6 }}>
                   {existingCancel?.cancel_status === 'approved' && existingCancel?.cancel_ends_at
-                    ? `Votre abonnement reste actif jusqu'au ${new Date(existingCancel.cancel_ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.`
-                    : "Votre demande a été reçue et sera traitée sous 24 heures."
+                    ? `Your subscription remains active until ${new Date(existingCancel.cancel_ends_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                    : 'Your request has been received and will be processed within 24 hours.'
                   }
                 </p>
               </div>
@@ -349,20 +344,18 @@ export default function ManagePlanPage() {
                 onMouseEnter={e => { e.currentTarget.style.color = '#888'; e.currentTarget.style.borderColor = '#3A3A3A'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#2A2A2A'; }}>
                 <X style={{ width: 12, height: 12 }} />
-                Annuler mon abonnement
+                Cancel my subscription
               </button>
             )}
           </>
         )}
       </div>
 
-      {/* Cancel Flow Modal */}
       {showCancelFlow && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowCancelFlow(false); }}>
           <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
             onClick={e => e.stopPropagation()}>
-            {/* Header */}
             <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2A2A2A' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {[1, 2, 3].map(s => (

@@ -25,15 +25,14 @@ function CodeRedeemer({ user, setUser }) {
 
   const handleRedeem = async () => {
     setError(''); setSuccess('');
-    if (!code.trim()) { setError('Entrez un code.'); return; }
+    if (!code.trim()) { setError('Enter a code.'); return; }
     setLoading(true);
     try {
-      // Try AccessCode first
       const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), visible: true });
       const usable = results.filter(r => !r.used || r.unlimited || (r.max_uses && (r.use_count || 0) < r.max_uses));
       if (usable.length === 0) {
         const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
-        setError(any.length > 0 ? 'Ce code a déjà été utilisé.' : 'Code invalide.');
+        setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.');
         setLoading(false); return;
       }
       const rec = usable[0];
@@ -45,26 +44,24 @@ function CodeRedeemer({ user, setUser }) {
           await base44.auth.updateMe({
             subscription_plan: newPlan.id,
             credits_limit: newPlan.credits_limit || 150_000,
-            credits_used: 0, // reset au renouvellement du plan
+            credits_used: 0,
             billing_cycle: billing,
             subscription_date: new Date().toISOString(),
             credits_reset_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
           });
-          setSuccess(`Plan ${newPlan.name} (${billing === 'yearly' ? 'annuel' : 'mensuel'}) activé !`);
-          toast.success(`Plan ${newPlan.name} activé`);
+          setSuccess(`Plan ${newPlan.name} (${billing === 'yearly' ? 'yearly' : 'monthly'}) activated!`);
+          toast.success(`Plan ${newPlan.name} activated`);
         }
       } else if (rec.credits > 0) {
         await base44.auth.updateMe({ credits_bonus: (user?.credits_bonus || 0) + rec.credits });
-        setSuccess(`+${rec.credits} crédits ajoutés !`);
-        toast.success(`+${rec.credits} crédits`);
+        setSuccess(`+${rec.credits} credits added!`);
+        toast.success(`+${rec.credits} credits`);
       }
 
-      // Anti-fraud: record full usage history as JSON array
       const historyEntry = { email: user?.email, userId: user?.id, at: new Date().toISOString() };
       const existingHistory = (() => { try { return JSON.parse(rec.used_by_history || '[]'); } catch { return []; } })();
       existingHistory.push(historyEntry);
 
-      // Mark code as used / increment
       if (rec.unlimited) {
         await base44.entities.AccessCode.update(rec.id, {
           use_count: (rec.use_count || 0) + 1,
@@ -79,7 +76,6 @@ function CodeRedeemer({ user, setUser }) {
         });
       }
 
-      // Audit log — code redemption
       writeAuditLog(user?.id, {
         action: 'save',
         resource_type: 'AccessCode',
@@ -92,7 +88,6 @@ function CodeRedeemer({ user, setUser }) {
       if (setUser) setUser(updated);
       setCode('');
     } catch (e) {
-      // Audit log — failed redemption attempt (potential fraud signal)
       writeAuditLog(user?.id || 'anonymous', {
         action: 'save',
         resource_type: 'AccessCode',
@@ -110,9 +105,9 @@ function CodeRedeemer({ user, setUser }) {
     <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <Gift style={{ width: 14, height: 14, color: '#F95738' }} />
-        <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: 0 }}>Activer un code</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: 0 }}>Activate a code</p>
       </div>
-      <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Entrez un code d'accès pour activer un abonnement.</p>
+      <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Enter an access code to activate a subscription.</p>
       <div style={{ display: 'flex', gap: 8 }}>
         <input
           value={code}
@@ -124,7 +119,7 @@ function CodeRedeemer({ user, setUser }) {
         />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
           style={{ padding: '10px 16px', background: !code.trim() ? '#2A2A2A' : '#fff', color: !code.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'opacity 150ms' }}>
-          {loading ? '...' : 'Activer'}
+          {loading ? '...' : 'Activate'}
         </button>
       </div>
       {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>{error}</p>}
@@ -144,7 +139,7 @@ function getRenewalDate(user) {
   return d;
 }
 
-const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -162,7 +157,6 @@ export default function SettingsPage() {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
 
-
   useEffect(() => {
     base44.auth.me().then(async u => {
       setUser(u);
@@ -176,7 +170,6 @@ export default function SettingsPage() {
         }).catch(() => {});
       }
     }).catch(() => {});
-
   }, []);
 
   const isYearly = user?.billing_cycle === 'yearly';
@@ -187,27 +180,27 @@ export default function SettingsPage() {
       return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(); d.setDate(d.getDate() - (6 - i));
         const key = d.toISOString().slice(0, 10);
-        return { date: d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 };
+        return { date: d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }), tensors: data[key] || 0 };
       });
     } catch { return []; }
   };
 
   const saveProfile = async () => {
     setProfileError('');
-    if (!fullName.trim() || fullName.trim().length < 2) { setProfileError('Le nom doit comporter au moins 2 caractères.'); return; }
+    if (!fullName.trim() || fullName.trim().length < 2) { setProfileError('Name must be at least 2 characters.'); return; }
     if (!user) return;
     setSavingProfile(true);
     await base44.auth.updateMe({ full_name: fullName.trim() });
     setSavingProfile(false);
-    toast.success('Profil mis à jour');
+    toast.success('Profile updated');
   };
 
   const requestInvoice = async () => {
     if (!user || !invoiceEmail.trim()) return;
     setInvoiceLoading(true);
     await base44.entities.SupportTicket.create({
-      title: `Demande de facture — ${user.full_name || user.email}`,
-      description: `Demande de facture pour le plan ${userPlan?.name}. Email: ${invoiceEmail.trim()}`,
+      title: `Invoice request — ${user.full_name || user.email}`,
+      description: `Invoice request for plan ${userPlan?.name}. Email: ${invoiceEmail.trim()}`,
       category: 'invoice', status: 'open',
       user_email: user.email, user_name: user.full_name || user.email,
       user_plan: userPlan?.name, invoice_email: invoiceEmail.trim(),
@@ -216,7 +209,7 @@ export default function SettingsPage() {
     setInvoiceLoading(false);
     setShowInvoiceModal(false);
     setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
-    toast.success('Demande de facture envoyée');
+    toast.success('Invoice request sent');
   };
 
   const deleteAccount = async () => {
@@ -226,21 +219,19 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: 'Profil', icon: User },
-    { id: 'plan', label: 'Plan & Facturation', icon: CreditCard },
-    { id: 'usage', label: 'Utilisation', icon: Zap },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
+    { id: 'usage', label: 'Usage', icon: Zap },
   ];
 
   if (!user) return (
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>
-        {/* Header skeleton */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A' }} />
           <div style={{ width: 110, height: 20, borderRadius: 6, background: '#2A2A2A' }} />
         </div>
         <div style={{ display: 'flex', gap: 32 }}>
-          {/* Nav skeleton */}
           <div style={{ width: 180, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[120, 150, 100].map((w, i) => (
               <div key={i} style={{ height: 36, borderRadius: 8, background: '#1A1A1A', width: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -248,7 +239,6 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-          {/* Content skeleton */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[1,2,3].map(i => (
               <div key={i} style={{ height: 52, borderRadius: 8, background: '#141414', position: 'relative', overflow: 'hidden' }}>
@@ -271,7 +261,7 @@ export default function SettingsPage() {
           <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
             <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Paramètres</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Settings</h1>
         </div>
 
         <div style={{ display: 'flex', gap: 32 }}>
@@ -299,26 +289,26 @@ export default function SettingsPage() {
             {activeSection === 'profile' && (
               <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Email (lecture seule)</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Email (read-only)</label>
                   <input value={user?.email || ''} disabled style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Nom complet</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: DK.muted, marginBottom: 6 }}>Full name</label>
                   <input value={fullName} onChange={e => setFullName(e.target.value)} style={{ ...inputStyle, border: `1px solid ${profileError ? '#ef4444' : DK.border}` }} />
                   {profileError && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{profileError}</p>}
                 </div>
                 <button onClick={saveProfile} disabled={savingProfile}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start', opacity: savingProfile ? 0.6 : 1 }}>
                   <Save style={{ width: 13, height: 13 }} />
-                  {savingProfile ? 'Sauvegarde...' : 'Enregistrer'}
+                  {savingProfile ? 'Saving...' : 'Save'}
                 </button>
 
                 <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${DK.border}` }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 6px' }}>Supprimer le compte</p>
-                  <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées.</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 6px' }}>Delete account</p>
+                  <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be deleted.</p>
                   <button onClick={() => setShowDeleteModal(true)}
                     style={{ padding: '9px 16px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    Supprimer mon compte
+                    Delete my account
                   </button>
                 </div>
               </div>
@@ -327,69 +317,66 @@ export default function SettingsPage() {
             {/* PLAN */}
             {activeSection === 'plan' && (
               <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Current plan */}
                 <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 12, padding: 18 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>Abonnement actuel</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>Current plan</p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Gratuit'}</p>
-                        {isYearly && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.12)', color: '#F95738' }}>ANNUEL</span>}
-                        {!isYearly && userPlan?.price_monthly > 0 && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(59,139,235,0.12)', color: '#3B8BEB' }}>MENSUEL</span>}
+                        <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
+                        {isYearly && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.12)', color: '#F95738' }}>YEARLY</span>}
+                        {!isYearly && userPlan?.price_monthly > 0 && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(59,139,235,0.12)', color: '#3B8BEB' }}>MONTHLY</span>}
                       </div>
                       <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
                         {isYearly
-                          ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/an`
-                          : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mois` : 'Gratuit'}
+                          ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/yr`
+                          : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free'}
                       </p>
                       {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
                         <p style={{ fontSize: 11, color: '#555', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Clock style={{ width: 10, height: 10 }} />
-                          {isYearly ? 'Renouvellement annuel le' : 'Renouvellement mensuel le'} {formatDate(getRenewalDate(user))}
+                          {isYearly ? 'Yearly renewal on' : 'Monthly renewal on'} {formatDate(getRenewalDate(user))}
                         </p>
                       )}
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#2A2A2A', color: DK.muted }}>
-                      {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('fr-FR')} crédits/mois` : 'Gratuit'}
+                      {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('en-US')} credits/mo` : 'Free'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                     <button onClick={() => navigate('/manage-plan')}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', background: 'transparent', border: `1px solid ${DK.border}`, borderRadius: 7, fontSize: 12, color: DK.muted, cursor: 'pointer' }}>
-                      Gérer <ChevronRight style={{ width: 11, height: 11 }} />
+                      Manage <ChevronRight style={{ width: 11, height: 11 }} />
                     </button>
                     <button onClick={() => navigate('/pricing')}
                       style={{ padding: '7px 14px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
-                      Améliorer
+                      Upgrade your plan
                     </button>
                   </div>
                 </div>
 
-                {/* Code redeemer */}
                 <CodeRedeemer user={user} setUser={setUser} />
 
-                {/* Billing history */}
                 {userPlan?.price_monthly > 0 && (
                   <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, overflow: 'hidden' }}>
                     <div style={{ padding: '10px 16px', borderBottom: `1px solid ${DK.border}` }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Historique de facturation</p>
+                      <p style={{ fontSize: 10, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Billing history</p>
                     </div>
                     <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 2px' }}>{userPlan.name}</p>
                         <p style={{ fontSize: 11, color: DK.muted, margin: 0 }}>
-                          Depuis {formatDate(user?.subscription_date || user?.created_date)}
-                          {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#2A2A2A', color: '#888' }}>Annuel</span>}
+                          Since {formatDate(user?.subscription_date || user?.created_date)}
+                          {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#2A2A2A', color: '#888' }}>Yearly</span>}
                         </p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {cancelTicket?.cancel_status === 'pending' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>EN ATTENTE D'ANNULATION</span>}
-                        {cancelTicket?.cancel_status === 'approved' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>ANNULÉ</span>}
-                        {!cancelTicket && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIF</span>}
+                        {cancelTicket?.cancel_status === 'pending' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>CANCELLATION PENDING</span>}
+                        {cancelTicket?.cancel_status === 'approved' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>CANCELLED</span>}
+                        {!cancelTicket && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIVE</span>}
                         <button onClick={() => setShowInvoiceModal(true)}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 9px', background: '#2A2A2A', border: 'none', borderRadius: 5, fontSize: 10, fontWeight: 600, color: invoiceRequested[userPlan.name] ? '#22c55e' : DK.muted, cursor: 'pointer' }}>
                           <Download style={{ width: 10, height: 10 }} />
-                          {invoiceRequested[userPlan.name] ? 'Envoyé' : 'Facture'}
+                          {invoiceRequested[userPlan.name] ? 'Sent' : 'Invoice'}
                         </button>
                       </div>
                     </div>
@@ -403,21 +390,19 @@ export default function SettingsPage() {
               <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 10 }}>
                   <div>
-                    <p style={{ fontSize: 10, color: '#555', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Plan actuel</p>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Gratuit'}</p>
+                    <p style={{ fontSize: 10, color: '#555', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Current plan</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
                   </div>
                   <button onClick={() => navigate('/pricing')}
                     style={{ padding: '7px 12px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 11, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
-                    Améliorer
+                    Upgrade
                   </button>
                 </div>
 
-                {/* Credits — temps réel via CreditsBar */}
                 <CreditsBar user={user} variant="settings" />
 
-                {/* Daily usage chart */}
                 <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: '14px 16px' }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: DK.muted, margin: '0 0 14px' }}>Activité — 7 derniers jours</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: DK.muted, margin: '0 0 14px' }}>Activity — last 7 days</p>
                   <ResponsiveContainer width="100%" height={90}>
                     <BarChart data={getDailyUsage()} barSize={14}>
                       <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#555' }} axisLine={false} tickLine={false} />
@@ -440,15 +425,15 @@ export default function SettingsPage() {
           onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
           <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${DK.border}` }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Demander une facture</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Request an invoice</p>
               <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555' }}><X style={{ width: 14, height: 14 }} /></button>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Entrez l'email utilisé pour votre paiement.</p>
+              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Enter the email used for your payment.</p>
               <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)} placeholder="email@example.com" style={{ ...inputStyle, marginBottom: 12 }} />
               <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
                 style={{ width: '100%', padding: '10px 0', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
-                {invoiceLoading ? 'Envoi...' : 'Envoyer la demande'}
+                {invoiceLoading ? 'Sending...' : 'Send request'}
               </button>
             </div>
           </div>
@@ -461,18 +446,18 @@ export default function SettingsPage() {
           onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
           <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px 12px', background: 'rgba(239,68,68,0.1)', borderBottom: `1px solid rgba(239,68,68,0.2)` }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', margin: 0 }}>Supprimer le compte</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', margin: 0 }}>Delete account</p>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées.</p>
+              <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be deleted.</p>
               <div style={{ background: '#1A1A1A', borderRadius: 7, padding: '8px 12px', marginBottom: 14 }}>
-                <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Email : <strong style={{ color: DK.text }}>{user?.email}</strong></p>
+                <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Email: <strong style={{ color: DK.text }}>{user?.email}</strong></p>
               </div>
               <button onClick={deleteAccount} style={{ width: '100%', padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 8 }}>
-                Confirmer la suppression
+                Confirm deletion
               </button>
               <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: DK.muted, border: `1px solid ${DK.border}`, borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
-                Annuler
+                Cancel
               </button>
             </div>
           </div>

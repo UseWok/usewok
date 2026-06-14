@@ -10,15 +10,15 @@ const DK = {
 };
 
 const STATUS_CONFIG = {
-  open:        { label: 'Ouvert',    color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-  in_progress: { label: 'En cours', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-  closed:      { label: 'Résolu',   color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+  open:        { label: 'Open',        color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  in_progress: { label: 'In progress', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  closed:      { label: 'Resolved',    color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
 };
 
 const CATEGORY_CONFIG = {
   bug:   { label: 'Bug',     icon: Bug,        color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-  money: { label: 'Paiement', icon: DollarSign, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-  other: { label: 'Autre',   icon: HelpCircle, color: '#7B4FE0', bg: 'rgba(123,79,224,0.1)' },
+  money: { label: 'Payment', icon: DollarSign, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  other: { label: 'Other',   icon: HelpCircle, color: '#7B4FE0', bg: 'rgba(123,79,224,0.1)' },
 };
 
 function FileAttachment({ url }) {
@@ -90,7 +90,6 @@ export default function SupportPage() {
 
   if (page === 'landing') return <LandingPage onNavigate={() => setPage('tickets')} />;
 
-  // Skeleton while user loads
   if (!user && loading) return (
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
@@ -133,7 +132,6 @@ export default function SupportPage() {
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif', color: DK.text }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
 
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => setPage('landing')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
@@ -147,15 +145,14 @@ export default function SupportPage() {
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <Plus style={{ width: 12, height: 12 }} />
-              Nouveau ticket
+              New ticket
             </button>
           )}
         </div>
 
-        {/* Admin tabs */}
         {isAdmin && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-            {[{ id: 'my', label: 'Mes tickets' }, { id: 'admin', label: `Tous (${adminTickets.length})` }].map(tab => (
+            {[{ id: 'my', label: 'My tickets' }, { id: 'admin', label: `All (${adminTickets.length})` }].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 7, border: 'none', cursor: 'pointer', background: activeTab === tab.id ? '#fff' : '#2A2A2A', color: activeTab === tab.id ? '#000' : '#888', transition: 'background 120ms, color 120ms' }}>
                 {tab.label}
@@ -164,10 +161,9 @@ export default function SupportPage() {
           </div>
         )}
 
-        {/* Filter tabs */}
         {activeTab === 'my' && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
-            {[['all', 'Tous'], ['open', 'Ouverts'], ['closed', 'Résolus']].map(([f, l]) => (
+            {[['all', 'All'], ['open', 'Open'], ['closed', 'Resolved']].map(([f, l]) => (
               <button key={f} onClick={() => setTicketFilter(f)}
                 style={{ padding: '6px 12px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: `1px solid ${ticketFilter === f ? '#444' : '#2A2A2A'}`, cursor: 'pointer', background: ticketFilter === f ? '#2A2A2A' : 'transparent', color: ticketFilter === f ? '#fff' : '#666', transition: 'all 120ms' }}>
                 {l}
@@ -176,7 +172,6 @@ export default function SupportPage() {
           </div>
         )}
 
-        {/* Tickets list */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
             <div style={{ width: 20, height: 20, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -185,7 +180,7 @@ export default function SupportPage() {
         ) : filteredTickets.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 48, gap: 12, border: '1px solid #2A2A2A', borderRadius: 12, background: '#141414' }}>
             <MessageSquare style={{ width: 28, height: 28, color: '#333' }} />
-            <p style={{ fontSize: 13, color: '#555', margin: 0 }}>Aucun ticket</p>
+            <p style={{ fontSize: 13, color: '#555', margin: 0 }}>No tickets</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -204,7 +199,7 @@ export default function SupportPage() {
                         {ticket.title || ticket.user_name || ticket.user_email?.split('@')[0] || 'Ticket'}
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, color: '#555' }}>{new Date(ticket.created_date).toLocaleDateString('fr-FR')}</span>
+                        <span style={{ fontSize: 11, color: '#555' }}>{new Date(ticket.created_date).toLocaleDateString('en-US')}</span>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: cat.bg, color: cat.color }}>
                           <CatIcon style={{ width: 9, height: 9 }} />{cat.label}
                         </span>
@@ -240,24 +235,22 @@ function LandingPage({ onNavigate }) {
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 80px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Aide & Support</h1>
-          <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Notre équipe est là pour vous aider</p>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Help & Support</h1>
+          <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Our team is here to help you</p>
         </div>
 
-        {/* Main CTA */}
         <button onClick={onNavigate}
           style={{ width: '100%', padding: '28px 28px', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 16, transition: 'border-color 150ms' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
           onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>🎧</div>
-          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Ouvrir un ticket support</h3>
-          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>Soumettez un ticket détaillé et recevez une assistance personnalisée.</p>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Open a support ticket</h3>
+          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>Submit a detailed ticket and receive personalized assistance.</p>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: '#F95738' }}>
-            Commencer <ChevronRight style={{ width: 14, height: 14 }} />
+            Get started <ChevronRight style={{ width: 14, height: 14 }} />
           </span>
         </button>
 
-        {/* Secondary cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <button onClick={onNavigate}
             style={{ padding: '18px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
@@ -268,8 +261,8 @@ function LandingPage({ onNavigate }) {
                 <MessageSquare style={{ width: 15, height: 15, color: '#F95738' }} />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Mes tickets</p>
-                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>Voir & gérer</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>My tickets</p>
+                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>View & manage</p>
               </div>
             </div>
           </button>
@@ -282,7 +275,7 @@ function LandingPage({ onNavigate }) {
                 <MessageSquare style={{ width: 15, height: 15, color: '#7B4FE0' }} />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Communauté</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Community</p>
                 <p style={{ fontSize: 11, color: '#666', margin: 0 }}>Discord</p>
               </div>
             </div>
@@ -337,8 +330,8 @@ function NewTicketModal({ onClose, user }) {
 
   const CATS = [
     { id: 'bug', label: 'Bug', icon: Bug, color: '#ef4444' },
-    { id: 'money', label: 'Paiement', icon: DollarSign, color: '#f59e0b' },
-    { id: 'other', label: 'Autre', icon: HelpCircle, color: '#7B4FE0' },
+    { id: 'money', label: 'Payment', icon: DollarSign, color: '#f59e0b' },
+    { id: 'other', label: 'Other', icon: HelpCircle, color: '#7B4FE0' },
   ];
 
   const inputStyle = { width: '100%', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' };
@@ -349,7 +342,7 @@ function NewTicketModal({ onClose, user }) {
       <div style={{ width: '100%', maxWidth: 440, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
         onClick={e => e.stopPropagation()}>
         <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2A2A2A' }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Nouveau ticket</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>New ticket</p>
           {step !== 1 && (
             <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
               <X style={{ width: 13, height: 13 }} />
@@ -361,20 +354,20 @@ function NewTicketModal({ onClose, user }) {
           {step === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Décrivez votre problème</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Describe your issue</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)}
-                  placeholder="Expliquez le problème en détail…"
+                  placeholder="Explain the problem in detail…"
                   rows={4} style={{ ...inputStyle, resize: 'none' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Fichiers joints (optionnel)</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 6 }}>Attachments (optional)</label>
                 <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
                   onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
                 <button onClick={() => fileInputRef.current?.click()}
                   style={{ width: '100%', padding: '11px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#555', background: 'transparent', border: '1px dashed #2A2A2A', borderRadius: 8, cursor: 'pointer', transition: 'border-color 120ms' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
-                  <Upload style={{ width: 13, height: 13 }} /> Joindre des fichiers
+                  <Upload style={{ width: 13, height: 13 }} /> Attach files
                 </button>
                 {files.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
@@ -392,7 +385,7 @@ function NewTicketModal({ onClose, user }) {
               </div>
               <button onClick={handleAnalyze} disabled={!description.trim()}
                 style={{ padding: '11px 0', background: !description.trim() ? '#2A2A2A' : '#fff', color: !description.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: description.trim() ? 'pointer' : 'not-allowed' }}>
-                Continuer
+                Continue
               </button>
             </div>
           )}
@@ -402,15 +395,15 @@ function NewTicketModal({ onClose, user }) {
               <div style={{ width: 28, height: 28, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>Traitement…</p>
-                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>Veuillez patienter</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>Processing…</p>
+                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>Please wait</p>
               </div>
             </div>
           )}
 
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Sélectionnez une catégorie</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Select a category</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {CATS.map(cat => {
                   const Icon = cat.icon;
@@ -426,7 +419,7 @@ function NewTicketModal({ onClose, user }) {
               </div>
               <button onClick={handleSubmit} disabled={submitting || !selectedCategory}
                 style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#2A2A2A' : '#fff', color: submitting || !selectedCategory ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
-                {submitting ? 'Envoi…' : 'Soumettre le ticket'}
+                {submitting ? 'Submitting…' : 'Submit ticket'}
               </button>
             </div>
           )}
@@ -494,7 +487,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
 
   const handleStatusChange = async (newStatus) => {
     if (newStatus === 'closed') {
-      const closedMsg = { author: 'system', text: 'Ce ticket a été résolu. Vous ne pouvez plus envoyer de messages.', created_at: new Date().toISOString() };
+      const closedMsg = { author: 'system', text: 'This ticket has been resolved. You can no longer send messages.', created_at: new Date().toISOString() };
       const updatedMessages = [...messagesRef.current, closedMsg];
       setMessages(updatedMessages);
       await base44.entities.SupportTicket.update(currentTicket.id, { status: 'closed', messages_json: JSON.stringify(updatedMessages) });
@@ -506,7 +499,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Supprimer ce ticket ?')) return;
+    if (!window.confirm('Delete this ticket?')) return;
     await base44.entities.SupportTicket.delete(currentTicket.id);
     onClose();
     onUpdate();
@@ -518,7 +511,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
       <div style={{ width: '100%', maxWidth: 440, marginLeft: 'auto', height: '100%', display: 'flex', flexDirection: 'column', background: '#141414', borderLeft: '1px solid #2A2A2A' }}
         onClick={e => e.stopPropagation()}>
 
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #2A2A2A', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1A1A1A', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -527,21 +519,21 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'Support WOK'}
+                  {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'WOK Support'}
                 </p>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: cat.bg, color: cat.color, flexShrink: 0 }}>
                   <CatIcon style={{ width: 8, height: 8 }} />{cat.label}
                 </span>
               </div>
               <p style={{ fontSize: 10, color: '#555', margin: 0 }}>
-                {isAdmin ? currentTicket.user_email : 'Réponse sous 24-48h'}
+                {isAdmin ? currentTicket.user_email : 'Reply within 24-48h'}
               </p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4, background: s.bg, color: s.color }}>{s.label}</span>
             {!isAdmin && !isClosed && (
-              <button onClick={async () => { if (window.confirm('Marquer comme résolu ?')) await handleStatusChange('closed'); }}
+              <button onClick={async () => { if (window.confirm('Mark as resolved?')) await handleStatusChange('closed'); }}
                 style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <CheckCircle style={{ width: 14, height: 14, color: '#22c55e' }} />
               </button>
@@ -557,7 +549,6 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Admin status bar */}
         {isAdmin && (
           <div style={{ padding: '8px 16px', display: 'flex', gap: 6, borderBottom: '1px solid #2A2A2A', background: '#1A1A1A', flexShrink: 0 }}>
             {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
@@ -569,10 +560,9 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         )}
 
-        {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10, background: '#1A1A1A' }}>
           {messages.length === 0 ? (
-            <p style={{ textAlign: 'center', fontSize: 13, color: '#555', padding: '32px 0' }}>Aucun message</p>
+            <p style={{ textAlign: 'center', fontSize: 13, color: '#555', padding: '32px 0' }}>No messages</p>
           ) : messages.map((msg, i) => {
             const isSystem = msg.author === 'system';
             const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
@@ -624,12 +614,11 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         {isClosed ? (
           <div style={{ padding: '14px 16px', textAlign: 'center', borderTop: '1px solid #2A2A2A', background: '#141414', flexShrink: 0 }}>
             <p style={{ fontSize: 12, color: '#555', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <CheckCircle style={{ width: 13, height: 13, color: '#22c55e' }} />
-              Ce ticket est résolu
+              This ticket is resolved
             </p>
           </div>
         ) : (
@@ -656,7 +645,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
               </button>
               <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                placeholder="Tapez votre message…"
+                placeholder="Type your message…"
                 style={{ flex: 1, padding: '9px 12px', fontSize: 13, color: '#ccc', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, outline: 'none', fontFamily: 'Inter, sans-serif' }} />
               <button onClick={handleSendMessage}
                 disabled={(!newMessage.trim() && files.length === 0) || sending}

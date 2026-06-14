@@ -38,8 +38,7 @@ function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettin
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  const { used, limit, pct, remaining, barColor } = useCredits(user);
-  const creditsLeft = remaining;
+  const { used, limit, pct, barColor } = useCredits(user);
 
   return (
     <motion.div ref={ref}
@@ -70,11 +69,10 @@ function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettin
         ))}
       </div>
 
-      {/* Credits bar — temps réel */}
       <div style={{ margin: '6px', padding: '10px 10px 8px', background: '#1A1A1A', borderRadius: 8, border: '1px solid #242424' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Crédits</span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{creditsLeft.toLocaleString()} restants</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>Usage</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{used.toLocaleString()} / {limit.toLocaleString()}</span>
         </div>
         <div style={{ height: 7, background: '#2A2A2A', borderRadius: 999, marginBottom: 5 }}>
           <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
@@ -145,7 +143,7 @@ function ProfileMenu({ user, onClose, navigate }) {
       </div>
       <div style={{ padding: '4px 0' }}>
         <Row icon={Settings} label="Account settings" onClick={() => navigate('/settings')} />
-        <Row icon={CreditCard} label="Upgrade to Pro" onClick={() => navigate('/pricing')} />
+        <Row icon={CreditCard} label="Upgrade your plan" onClick={() => navigate('/pricing')} />
         <Row icon={HelpCircle} label="Support" onClick={() => navigate('/support')} />
       </div>
       <div style={{ height: 1, background: '#1E1E1E' }} />
@@ -583,7 +581,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <Divider />
             {/* ── Consumption bar (expanded only) ── */}
             {expanded && user && user.role !== 'admin' && <SidebarCreditsBar user={user} onUpgrade={() => nav('/pricing')} />}
-            <NavItem icon={CreditCard} label="Upgrade to Pro" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
+            <NavItem icon={CreditCard} label="Upgrade your plan" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
             <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
             <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
           </div>
