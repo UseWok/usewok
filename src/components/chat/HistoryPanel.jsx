@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Bookmark, RotateCcw, Cloud, CloudOff } from 'lucide-react';
+import { Bookmark, RotateCcw, Cloud, CloudOff, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { getVersionHistoryDays } from '@/lib/plans-config';
 
 // ── Revert confirmation modal ──
 function RevertModal({ open, onClose, onConfirm, version }) {
@@ -64,7 +65,7 @@ function VersionRow({ version, isActive, isBookmarked, onPreview, onBookmark, on
   );
 }
 
-export default function HistoryPanel({ messages, ficheContent, setFicheContent, convId }) {
+export default function HistoryPanel({ messages, ficheContent, setFicheContent, convId, user }) {
   const [tab, setTab] = useState('history');
   const [cloudVersions, setCloudVersions] = useState([]);
   const [activeVersionId, setActiveVersionId] = useState(null);
@@ -139,7 +140,21 @@ export default function HistoryPanel({ messages, ficheContent, setFicheContent, 
     toast.success(`Reverted — ${toDelete.length} later version${toDelete.length !== 1 ? 's' : ''} permanently deleted.`);
   };
 
-  const displayList = tab === 'bookmarks' ? cloudVersions.filter(v => v.bookmarked) : [...cloudVersions].reverse();
+  const historyDays = getVersionHistoryDays(user);
+  const hasHistoryAccess = historyDays > 0;
+
+  // Filter versions to plan retention window
+  const cutoffDate = historyDays > 0 && historyDays < 9999
+    ? new Date(Date.now() - historyDays * 86_400_000)
+    : null;
+
+  const filteredVersions = cutoffDate
+    ? cloudVersions.filter(v => !v.created_date || new Date(v.created_date) >= cutoffDate)
+    : cloudVersions;
+
+  const displayList = tab === 'bookmarks'
+    ? filteredVersions.filter(v => v.bookmarked)
+    : [...filteredVersions].reverse();
 
   const tabBtn = (id, label) => (
     <button onClick={() => setTab(id)} style={{
@@ -153,13 +168,34 @@ export default function HistoryPanel({ messages, ficheContent, setFicheContent, 
     </button>
   );
 
+  // Plan gate: no history access
+  if (!hasHistoryAccess) {
+    return (
+      <div style={{ width: '100%', height: '100%', background: '#0D0D0D', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 32, textAlign: 'center' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: '#1A1A1A', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+          <Lock size={20} color="#555" />
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', margin: '0 0 6px' }}>Version history locked</p>
+        <p style={{ fontSize: 12, color: '#555', lineHeight: 1.6, margin: '0 0 18px' }}>
+          Version history is available on Starter plans and above.<br />Upgrade to access up to 90 days of build history.
+        </p>
+        <a href="/pricing" style={{ padding: '9px 20px', background: '#F95738', color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+          Upgrade plan
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', height: '100%', background: '#0D0D0D', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
 
       {/* Header */}
       <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #1E1E1E' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Version history</h3>
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 2px' }}>Version history</h3>
+            {historyDays < 9999 && <span style={{ fontSize: 10, color: '#555' }}>Last {historyDays} days</span>}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {cloudOk === true && <Cloud size={13} color="#4ade80" title="Cloud synced" />}
             {cloudOk === false && <CloudOff size={13} color="#E8184A" title="Cloud sync failed" />}

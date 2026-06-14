@@ -17,10 +17,10 @@ export const PLAN_CREDIT_LIMITS = {
  * Admin can override these per-plan via the admin panel (stored in AppSettings).
  */
 export const PLAN_FEATURE_FLAGS = {
-  free:    { web_search: false, max_model: false, file_upload: false, concurrent_builds: 1,  daily_burn_cap: 150_000,   white_label: false },
-  starter: { web_search: true,  max_model: false, file_upload: true,  concurrent_builds: 2,  daily_burn_cap: 500_000,   white_label: false },
-  creator: { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 5,  daily_burn_cap: 1_000_000, white_label: false },
-  pro:     { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 10, daily_burn_cap: 5_000_000, white_label: true  },
+  free:    { web_search: false, max_model: false, file_upload: false, concurrent_builds: 1,  daily_burn_cap: 150_000,   white_label: false, private_builds: false, version_history_days: 0  },
+  starter: { web_search: true,  max_model: false, file_upload: true,  concurrent_builds: 2,  daily_burn_cap: 500_000,   white_label: false, private_builds: false, version_history_days: 7  },
+  creator: { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 5,  daily_burn_cap: 1_000_000, white_label: false, private_builds: true,  version_history_days: 30 },
+  pro:     { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 10, daily_burn_cap: 5_000_000, white_label: true,  private_builds: true,  version_history_days: 90 },
 };
 
 export const DEFAULT_PLANS = [
@@ -37,6 +37,7 @@ export const DEFAULT_PLANS = [
       { text: '150,000 credits / month' },
       { text: '1 concurrent build' },
       { text: 'Standard AI model only' },
+      { text: 'Public builds only' },
       { text: 'WOK badge on public links' },
     ],
   },
@@ -54,6 +55,7 @@ export const DEFAULT_PLANS = [
       { text: '2 concurrent builds' },
       { text: 'Web search enabled' },
       { text: 'File uploads (up to 10MB)' },
+      { text: '7-day version history' },
     ],
   },
   {
@@ -71,7 +73,8 @@ export const DEFAULT_PLANS = [
       { text: '5 concurrent builds' },
       { text: 'Max AI model unlocked' },
       { text: 'File uploads (up to 100MB)' },
-      { text: 'Priority support' },
+      { text: 'Private builds' },
+      { text: '30-day version history' },
     ],
   },
   {
@@ -89,6 +92,7 @@ export const DEFAULT_PLANS = [
       { text: '10 concurrent builds' },
       { text: 'White-label (remove WOK badge)' },
       { text: 'Unlimited file uploads' },
+      { text: '90-day version history' },
       { text: 'Dedicated support' },
     ],
   },
@@ -98,18 +102,20 @@ export const COMPARISON_FEATURES = [
   {
     category: 'AI Capabilities',
     items: [
-      { name: 'Monthly credits',  free: '150K',     starter: '1M',       creator: '2.5M',    pro: '5M' },
-      { name: 'AI model',         free: 'Standard', starter: 'Standard', creator: 'Max',     pro: 'Max' },
-      { name: 'Web search',       free: '-',        starter: 'Yes',      creator: 'Yes',     pro: 'Yes' },
-      { name: 'File upload',      free: '-',        starter: '10MB',     creator: '100MB',   pro: 'Unlimited' },
+      { name: 'Monthly credits',       free: '150K',     starter: '1M',       creator: '2.5M',    pro: '5M' },
+      { name: 'AI model',              free: 'Standard', starter: 'Standard', creator: 'Max',     pro: 'Max' },
+      { name: 'Web search',            free: '-',        starter: 'Yes',      creator: 'Yes',     pro: 'Yes' },
+      { name: 'File upload',           free: '-',        starter: '10MB',     creator: '100MB',   pro: 'Unlimited' },
     ],
   },
   {
     category: 'Build Limits',
     items: [
-      { name: 'Concurrent builds',  free: '1',   starter: '2',       creator: '5',        pro: '10' },
-      { name: 'Daily burn cap',     free: '150K', starter: '500K',   creator: '1M',       pro: '5M' },
-      { name: 'White-label badge',  free: '-',   starter: '-',       creator: '-',        pro: 'Yes' },
+      { name: 'Concurrent builds',     free: '1',        starter: '2',        creator: '5',        pro: '10' },
+      { name: 'Daily burn cap',        free: '150K',     starter: '500K',     creator: '1M',       pro: '5M' },
+      { name: 'Private builds',        free: '-',        starter: '-',        creator: 'Yes',      pro: 'Yes' },
+      { name: 'Version history',       free: '-',        starter: '7 days',   creator: '30 days',  pro: '90 days' },
+      { name: 'White-label badge',     free: '-',        starter: '-',        creator: '-',        pro: 'Yes' },
     ],
   },
   {
@@ -166,4 +172,23 @@ export function getUserPlan(user) {
 export function getPlanFeatures(user) {
   const planId = user?.subscription_plan || 'free';
   return PLAN_FEATURE_FLAGS[planId] || PLAN_FEATURE_FLAGS.free;
+}
+
+/**
+ * Check if user can use private builds.
+ */
+export function canUsePrivateBuilds(user) {
+  if (user?.role === 'admin') return true;
+  const features = getPlanFeatures(user);
+  return !!features.private_builds;
+}
+
+/**
+ * Get the version history retention days for a user's plan.
+ * Returns 0 if the plan has no version history access.
+ */
+export function getVersionHistoryDays(user) {
+  if (user?.role === 'admin') return 9999;
+  const features = getPlanFeatures(user);
+  return features.version_history_days ?? 0;
 }

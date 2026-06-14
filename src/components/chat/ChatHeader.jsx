@@ -6,6 +6,14 @@ import {
   Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingPage from '@/pages/PricingPage';
+import { useCredits } from '@/hooks/useCredits';
+
+function formatNum(n) {
+  if (typeof n !== 'number') return '—';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
+  return n.toLocaleString();
+}
 
 // ── SVG icons ──
 const HistoryIcon = () =>
@@ -75,6 +83,8 @@ function RenameModal({ open, onClose, currentTitle, onRename }) {
 function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgrade }) {
   const ref = useRef(null);
   const [starred, setStarred] = useState(false);
+  const { consumed, limit, pct, barColor, isLow } = useCredits(user);
+
   useEffect(() => {
     const h = (e) => {if (ref.current && !ref.current.contains(e.target)) onClose();};
     document.addEventListener('mousedown', h);
@@ -82,6 +92,7 @@ function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgr
   }, [onClose]);
 
   const userInitial = user?.full_name?.charAt(0)?.toUpperCase() || 'W';
+  const planName = (user?.subscription_plan || 'free').toUpperCase();
 
   const row = (icon, label, action, right) =>
   <button key={label} onClick={() => {action?.();onClose();}}
@@ -104,29 +115,33 @@ function ProjectMenu({ onClose, appTitle, onRename, onOpenSettings, user, onUpgr
     }}>
       {row(ic(ArrowLeft), 'Go to Dashboard', () => window.location.href = '/app')}
       {sep()}
+      {/* Live credits section */}
       <div style={{ padding: '10px 14px', borderBottom: '1px solid #2A2A2A' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <div style={{ width: 26, height: 26, borderRadius: 6, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff' }}>{userInitial}</div>
           <span style={{ fontSize: 13, color: '#ccc', fontWeight: 500 }}>{user?.full_name || 'WOK'}</span>
-          <span style={{ fontSize: 10, color: '#555', background: '#1E1E1E', borderRadius: 4, padding: '2px 6px', marginLeft: 'auto' }}>FREE</span>
+          <span style={{ fontSize: 10, color: '#555', background: '#1E1E1E', borderRadius: 4, padding: '2px 6px', marginLeft: 'auto' }}>{planName}</span>
         </div>
-        <div style={{ height: 5, background: '#1E1E1E', borderRadius: 999, overflow: 'hidden', marginBottom: 5 }}>
-          <div style={{ width: '80%', height: '100%', background: '#2563EB', borderRadius: 999 }} />
+        <div style={{ height: 4, background: '#1E1E1E', borderRadius: 999, overflow: 'hidden', marginBottom: 5 }}>
+          <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
         </div>
-        <span style={{ fontSize: 11, color: '#444' }}>Daily credits reset at midnight UTC</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 11, color: isLow ? '#ef4444' : '#444' }}>
+            {formatNum(consumed)} / {formatNum(limit)} consumed
+          </span>
+          <span style={{ fontSize: 11, color: '#333' }}>{Math.round(pct)}%</span>
+        </div>
       </div>
       <button onClick={() => {onUpgrade?.();onClose();}}
       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#7B4FE0', fontFamily: 'Inter, sans-serif' }}
       onMouseEnter={(e) => e.currentTarget.style.background = '#1A1A1A'}
       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
         <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#7B4FE0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>↑</span>
-        Upgrade to Creator
+        Upgrade plan
       </button>
       {sep()}
-      {/* Settings — first item, opens full settings modal */}
       {row(<Settings style={{ width: 13, height: 13, color: '#555' }} />, 'Settings', () => onOpenSettings?.())}
       {row(ic(Pencil), 'Rename project', onRename)}
-      {/* Star — toggle with solid white fill when active */}
       <button onClick={() => setStarred(v => !v)}
         style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif', textAlign: 'left' }}
         onMouseEnter={(e) => e.currentTarget.style.background = '#1E1E1E'}

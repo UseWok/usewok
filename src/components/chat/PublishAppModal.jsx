@@ -4,16 +4,20 @@ import { X, Copy, Check, Globe, Lock, ExternalLink, Link as LinkIcon } from 'luc
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { syncToCloud } from '@/lib/chat-storage';
+import { canUsePrivateBuilds } from '@/lib/plans-config';
 
 export default function PublishAppModal({
   open, onClose,
   appUrl, isPublished, setIsPublished,
   customSlug, appSettings, onUpdateSettings,
-  ficheContent,
+  ficheContent, user,
 }) {
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isPublic, setIsPublic] = useState(isPublished || appSettings?.isPublic || false);
+  const [showPrivateUpgradeHint, setShowPrivateUpgradeHint] = useState(false);
+
+  const canPrivate = canUsePrivateBuilds(user);
 
   useEffect(() => {
     setIsPublic(isPublished || appSettings?.isPublic || false);
@@ -215,6 +219,50 @@ export default function PublishAppModal({
 
             {/* Separator */}
             <div style={{ height: 1, background: '#1A1A1A', margin: '0 18px' }} />
+
+            {/* Visibility toggle: Public / Private */}
+            <div style={{ padding: '14px 18px 0' }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#555', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Visibility
+              </label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {/* Public option */}
+                <button
+                  onClick={() => { setIsPublic(true); setShowPrivateUpgradeHint(false); }}
+                  style={{
+                    flex: 1, padding: '9px 0', borderRadius: 8, border: `1px solid ${isPublic ? 'rgba(34,197,94,0.4)' : '#2A2A2A'}`,
+                    background: isPublic ? 'rgba(34,197,94,0.08)' : '#0D0D0D', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    fontSize: 12, fontWeight: isPublic ? 600 : 400, color: isPublic ? '#22C55E' : '#555',
+                    transition: 'all 120ms',
+                  }}>
+                  <Globe style={{ width: 12, height: 12 }} /> Public
+                </button>
+                {/* Private option — gated by plan */}
+                <button
+                  onClick={() => {
+                    if (!canPrivate) { setShowPrivateUpgradeHint(true); return; }
+                    setIsPublic(false);
+                    setShowPrivateUpgradeHint(false);
+                  }}
+                  style={{
+                    flex: 1, padding: '9px 0', borderRadius: 8, border: `1px solid ${!isPublic && canPrivate ? 'rgba(123,79,224,0.4)' : '#2A2A2A'}`,
+                    background: !isPublic && canPrivate ? 'rgba(123,79,224,0.08)' : '#0D0D0D', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    fontSize: 12, fontWeight: !isPublic && canPrivate ? 600 : 400, color: !isPublic && canPrivate ? '#7B4FE0' : '#555',
+                    transition: 'all 120ms', position: 'relative',
+                  }}>
+                  <Lock style={{ width: 12, height: 12 }} /> Private
+                  {!canPrivate && <span style={{ fontSize: 8, padding: '1px 4px', background: '#F95738', borderRadius: 3, color: '#fff', fontWeight: 700, marginLeft: 2 }}>PRO</span>}
+                </button>
+              </div>
+              {showPrivateUpgradeHint && (
+                <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.2)', borderRadius: 7, fontSize: 12, color: '#F95738' }}>
+                  Private builds require <strong>Creator</strong> plan or above.{' '}
+                  <a href="/pricing" style={{ color: '#F95738', fontWeight: 700, textDecoration: 'underline' }}>Upgrade →</a>
+                </div>
+              )}
+            </div>
 
             {/* Publish / Unpublish CTA */}
             <div style={{ padding: '16px 18px 18px' }}>

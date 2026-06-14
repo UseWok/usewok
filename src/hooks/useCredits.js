@@ -49,11 +49,13 @@ export function useCredits(user) {
     return unsub;
   }, [user?.id]);
 
+  // "consumed" = credits.used, bar fills as you consume
   const pct = credits.limit > 0 ? Math.min((credits.used / credits.limit) * 100, 100) : 0;
   const remaining = Math.max(0, credits.limit - credits.used);
+  const consumed = credits.used;
   const isLow = pct > 85;
   const isMedium = pct > 60;
   const barColor = isLow ? '#ef4444' : isMedium ? '#f59e0b' : '#F95738';
 
-  return { ...credits, pct, remaining, barColor, isLow };
+  return { ...credits, pct, remaining, consumed, barColor, isLow };
 }

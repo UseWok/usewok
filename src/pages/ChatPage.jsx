@@ -824,6 +824,7 @@ export default function ChatPage() {
         appSettings={appSettings}
         onUpdateSettings={handleUpdateAppMeta}
         ficheContent={ficheContent}
+        user={user}
       />
       
       {/* Global draggable build toast */}
@@ -905,7 +906,7 @@ export default function ChatPage() {
               {/* History panel replaces chat when open — stays in chat column, never over preview */}
               {showHistory ? (
                 <div style={{ flex: 1, overflow: 'hidden', borderRadius: 10, border: '1px solid #2A2A2A', background: '#1E1E1E', margin: '6px 0 0 0' }}>
-                  <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} />
+                  <HistoryPanel messages={messages} ficheContent={ficheContent} convId={conversationId || convId} setFicheContent={(c) => { setFicheContent(c); setShowHistory(false); }} user={user} />
                 </div>
               ) : isLoadingConversation ? (
                 <div style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'hidden' }}>

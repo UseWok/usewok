@@ -1,86 +1,99 @@
 /**
- * CreditsBar — barre de crédits temps réel réutilisable
- * Utilisée dans Home et Settings/Usage
- * variant: "home" (dark, compact, bottom) | "settings" (dark panel, full detail)
+ * CreditsBar — real-time credit consumption display
+ * variant="home"     → floating widget at bottom of Home page
+ * variant="settings" → embedded panel in SettingsPage usage tab
  */
 import { useNavigate } from 'react-router-dom';
 import { useCredits } from '@/hooks/useCredits';
 
+function formatNum(n) {
+  if (typeof n !== 'number') return '—';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
+  return n.toLocaleString('fr-FR');
+}
+
+function formatResetDate(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+}
+
 export default function CreditsBar({ user, variant = 'home' }) {
   const navigate = useNavigate();
-  const { used, limit, pct, remaining, barColor, resetAt, loading } = useCredits(user);
+  const { used, limit, resetAt, pct, consumed, barColor, loading, isLow } = useCredits(user);
 
-  if (loading || !user || user.role === 'admin') return null;
+  // Don't render for admins or unauthenticated users
+  if (!user || user.role === 'admin') return null;
+  if (loading) return null;
 
-  const resetDisplay = resetAt
-    ? new Date(resetAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-    : null;
+  const resetLabel = formatResetDate(resetAt);
 
+  // ── HOME variant: compact floating chip at bottom-center ──
   if (variant === 'home') {
     return (
       <div
         onClick={() => navigate('/settings?tab=usage')}
         style={{
-          position: 'fixed', bottom: 18, left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
           zIndex: 50, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 10,
-          background: 'rgba(18,18,18,0.85)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,0.09)',
-          borderRadius: 999, padding: '7px 16px 7px 12px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.09)', borderRadius: 999,
+          padding: '6px 14px 6px 10px',
+          boxShadow: '0 4px 18px rgba(0,0,0,0.4)',
+          fontFamily: 'Inter, sans-serif',
           transition: 'border-color 150ms',
-          minWidth: 220,
+          whiteSpace: 'nowrap',
         }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
+        onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'}
         onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'}
       >
-        {/* Mini barre */}
-        <div style={{ width: 80, height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 999, overflow: 'hidden', flexShrink: 0 }}>
-          <div style={{
-            width: `${pct}%`, height: '100%', borderRadius: 999,
-            background: barColor,
-            transition: 'width 600ms ease',
-          }} />
+        {/* Bar */}
+        <div style={{ width: 56, height: 4, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', flexShrink: 0 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
         </div>
-        {/* Texte */}
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
-          <span style={{ color: barColor, fontWeight: 600 }}>{remaining.toLocaleString('fr-FR')}</span>
-          {' '}crédits restants
-          {resetDisplay && <span style={{ color: 'rgba(255,255,255,0.25)', marginLeft: 6 }}>· renouvellement {resetDisplay}</span>}
+        {/* Label */}
+        <span style={{ fontSize: 12, color: isLow ? '#ef4444' : '#888', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ color: '#fff', fontWeight: 600 }}>{formatNum(consumed)}</span>
+          <span style={{ color: '#555', margin: '0 3px' }}>/</span>
+          <span>{formatNum(limit)}</span>
+          <span style={{ marginLeft: 6, color: '#555' }}>consumed</span>
         </span>
+        {resetLabel && (
+          <span style={{ fontSize: 10, color: '#444', borderLeft: '1px solid #2A2A2A', paddingLeft: 10 }}>
+            resets {resetLabel}
+          </span>
+        )}
       </div>
     );
   }
 
-  // variant === 'settings'
+  // ── SETTINGS variant: full embedded card ──
   return (
-    <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, padding: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#888', margin: 0 }}>Crédits consommés</p>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', margin: 0 }}>
-          {used.toLocaleString('fr-FR')}
-          <span style={{ color: '#555', fontWeight: 400 }}> / {limit.toLocaleString('fr-FR')}</span>
-        </p>
-      </div>
-      {/* Barre épaisse */}
-      <div style={{ width: '100%', height: 10, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-        <div style={{
-          width: `${pct}%`, height: '100%', borderRadius: 999,
-          background: barColor,
-          transition: 'width 600ms ease',
-        }} />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <p style={{ fontSize: 11, color: '#555', margin: 0 }}>{Math.round(pct)}% utilisé</p>
-        {resetDisplay && <p style={{ fontSize: 11, color: '#555', margin: 0 }}>Renouvellement : {resetDisplay}</p>}
-      </div>
-      {/* Restants */}
-      <div style={{ padding: '7px 12px', background: '#1A1A1A', borderRadius: 7, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: '#555' }}>Restants</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: pct > 85 ? '#ef4444' : '#4ade80' }}>
-          {remaining.toLocaleString('fr-FR')}
+    <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, padding: '14px 16px', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>Consommation de crédits</span>
+        <span style={{ fontSize: 11, color: isLow ? '#ef4444' : '#888', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+          {formatNum(consumed)} / {formatNum(limit)}
         </span>
       </div>
+      {/* Progress bar */}
+      <div style={{ height: 6, background: '#2A2A2A', borderRadius: 999, marginBottom: 8 }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#555' }}>
+          {formatNum(consumed)} crédits consommés ce cycle
+        </span>
+        {resetLabel && (
+          <span style={{ fontSize: 11, color: '#444' }}>Renouvellement le {resetLabel}</span>
+        )}
+      </div>
+      {isLow && (
+        <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 7, fontSize: 12, color: '#ef4444', fontWeight: 500 }}>
+          ⚠ Crédits presque épuisés — pensez à upgrader votre plan.
+        </div>
+      )}
     </div>
   );
 }
