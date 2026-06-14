@@ -20,8 +20,8 @@ function formatResetDate(iso) {
 export default function CreditsBar({ user, variant = 'settings' }) {
   const { used, limit, resetAt, pct, consumed, barColor, loading, isLow } = useCredits(user);
 
-  // Don't render for admins or unauthenticated users
-  if (!user || user.role === 'admin') return null;
+  // Don't render for unauthenticated users
+  if (!user) return null;
   if (loading) return null;
 
   // home variant is removed — render nothing

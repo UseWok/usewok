@@ -30,7 +30,6 @@ export function computeCreditCost(buildMode = 'Flash', isModification = false) {
 // ── Locked si credits_used >= credits_limit ──────────────────────
 export function isUserLocked(user) {
   if (!user) return false;
-  if (user.role === 'admin') return false;
   const used = user.credits_used ?? 0;
   const limit = user.credits_limit ?? getPlanCreditLimit(user);
   return used >= limit;

@@ -228,7 +228,7 @@ export default function ChatPage() {
 
   // ── Credits helper — backend autoritaire ──
   const handleUpdateCredits = async (cost, idempotencyKey, isNewBuild = false) => {
-    if (!user || user.role === 'admin') return;
+    if (!user) return;
     try {
       const updatedUser = await deductCredits(user, cost, idempotencyKey, isNewBuild);
       if (updatedUser) setUser(updatedUser);
