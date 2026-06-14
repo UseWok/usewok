@@ -5,7 +5,7 @@ import { User, CreditCard, Zap, ArrowLeft, Save, Gift, Clock, Trash2, X, Downloa
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
-import { fetchCreditsFromBackend, formatResetDate } from '@/lib/credits';
+import CreditsBar from '@/components/CreditsBar';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
@@ -161,7 +161,7 @@ export default function SettingsPage() {
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
-  const [creditsData, setCreditsData] = useState(null);
+
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -176,17 +176,9 @@ export default function SettingsPage() {
         }).catch(() => {});
       }
     }).catch(() => {});
-    // Fetch authoritative credits from backend
-    fetchCreditsFromBackend().then(d => { if (d) setCreditsData(d); }).catch(() => {});
+
   }, []);
 
-  // Crédits depuis backend (autorité) — direction 0 → limite
-  const creditsUsed = creditsData?.credits_used ?? user?.credits_used ?? 0;
-  const creditsLimit = creditsData?.credits_limit ?? user?.credits_limit ?? userPlan?.credits_limit ?? 150_000;
-  const pct = creditsLimit > 0 ? Math.min((creditsUsed / creditsLimit) * 100, 100) : 0;
-  const resetDateDisplay = creditsData?.credits_reset_at
-    ? new Date(creditsData.credits_reset_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    : formatResetDate(user);
   const isYearly = user?.billing_cycle === 'yearly';
 
   const getDailyUsage = () => {
@@ -420,34 +412,8 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
-                {/* Credits — 0 → limite (consommés) */}
-                <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: DK.muted, margin: 0 }}>Crédits consommés</p>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: DK.text, margin: 0 }}>
-                      {creditsUsed.toLocaleString('fr-FR')} <span style={{ color: '#555' }}>/ {creditsLimit.toLocaleString('fr-FR')}</span>
-                    </p>
-                  </div>
-                  {/* Barre 0 → limite */}
-                  <div style={{ width: '100%', height: 6, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
-                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#F95738', transition: 'width 400ms ease' }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ fontSize: 10, color: '#555', margin: 0 }}>{Math.round(pct)}% du quota utilisé</p>
-                    {resetDateDisplay && <p style={{ fontSize: 10, color: '#555', margin: 0 }}>Renouvellement : {resetDateDisplay}</p>}
-                  </div>
-                  {/* Restant */}
-                  <div style={{ marginTop: 8, padding: '6px 10px', background: '#1A1A1A', borderRadius: 6, display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, color: '#555' }}>Restants</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: pct > 85 ? '#ef4444' : '#4ade80' }}>
-                      {Math.max(0, creditsLimit - creditsUsed).toLocaleString('fr-FR')}
-                    </span>
-                  </div>
-                  <button onClick={() => fetchCreditsFromBackend().then(d => { if (d) setCreditsData(d); })}
-                    style={{ marginTop: 8, fontSize: 10, color: '#444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    ↻ Actualiser
-                  </button>
-                </div>
+                {/* Credits — temps réel via CreditsBar */}
+                <CreditsBar user={user} variant="settings" />
 
                 {/* Daily usage chart */}
                 <div style={{ background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, padding: '14px 16px' }}>
