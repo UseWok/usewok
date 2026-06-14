@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Globe, RefreshCw, X,
   ChevronDown, ArrowLeft, Star, HelpCircle,
-  Pencil, Smartphone, Monitor,
-  Settings } from 'lucide-react';
+  Pencil, Smartphone, Monitor, Download,
+  Settings, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingPage from '@/pages/PricingPage';
 import { useCredits } from '@/hooks/useCredits';
@@ -181,7 +181,7 @@ const TABS = [
 
 export default function ChatHeader({
   user, chatVisible, setChatVisible, viewMode, setViewMode,
-  onPublish, onRefresh, appTitle, onTitleChange,
+  onPublish, onRefresh, onExport, appTitle, onTitleChange,
   mobilePreview, setMobilePreview,
   showHistory, setShowHistory
 }) {
@@ -189,7 +189,15 @@ export default function ChatHeader({
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showRename, setShowRename] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef(null);
   const projectAreaRef = useRef(null);
+
+  useEffect(() => {
+    const h = (e) => { if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) setShowMoreMenu(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
 
   const handleRefresh = () => {
     if (isRefreshing) return;
@@ -344,6 +352,40 @@ export default function ChatHeader({
             <DiamondIcon />
             Upgrade
           </button>
+
+          {/* ··· More menu */}
+          <div style={{ position: 'relative' }} ref={moreMenuRef}>
+            <button
+              title="More options"
+              onClick={() => setShowMoreMenu(v => !v)}
+              style={{ ...btnBase, width: 26, height: 26, background: showMoreMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.14)'}
+              onMouseLeave={e => e.currentTarget.style.background = showMoreMenu ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}>
+              <MoreHorizontal style={{ width: 14, height: 14 }} />
+            </button>
+            {showMoreMenu && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10,
+                overflow: 'hidden', minWidth: 160,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 99999,
+              }}>
+                <button
+                  onClick={() => { onExport?.(); setShowMoreMenu(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '10px 14px', border: 'none',
+                    background: 'transparent', cursor: 'pointer',
+                    fontSize: 13, color: '#ccc', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1E1E1E'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Download style={{ width: 13, height: 13, color: '#555' }} />
+                  Exporter en ZIP
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Publish — flush right */}
           <button onClick={onPublish} style={{

@@ -936,6 +936,10 @@ export default function ChatPage() {
               setViewMode={setViewMode}
               onPublish={() => setShowPublishModal(true)}
               onRefresh={() => { setIframeRefreshKey(k => k + 1); setIsRefreshingPreview(true); setTimeout(() => setIsRefreshingPreview(false), 1200); }}
+              onExport={() => {
+                // Trigger export via a custom event that FichePanel listens to
+                window.dispatchEvent(new CustomEvent('wok_export_zip'));
+              }}
               appTitle={appSettings?.title || 'My App'}
               onTitleChange={(t) => handleUpdateAppMeta({ ...appSettings, title: t })}
               mobilePreview={mobilePreview}
