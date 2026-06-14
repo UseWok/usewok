@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, Clock, Tag } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 
-const FG = '#0A0A0A';
-const YELLOW = '#DDFF00';
-const LOGO = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
+const CORAL = '#F95738';
+const BG = '#111111';
 
-function BlogNavbar() {
+function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
@@ -21,36 +20,38 @@ function BlogNavbar() {
   }, []);
 
   return (
-    <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center" style={{ paddingTop: 20 }}>
-        <div className="flex items-center justify-between w-full px-6 py-3"
-          style={{ maxWidth: 900, background: scrolled ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transition: 'all 0.3s', borderRadius: 999, border: '1px solid rgba(0,0,0,0.07)', boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.04)' }}>
-          <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-            <img src={LOGO} alt="Stensor" className="w-7 h-7 object-contain" />
-            <span className="text-sm font-black tracking-tight" style={{ color: FG }}>Stensor</span>
-          </button>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="/fonctionnalites" className="text-xs text-gray-400 hover:text-black transition-colors">Features</a>
-            <a href="/tarifs" className="text-xs text-gray-400 hover:text-black transition-colors">Pricing</a>
-            <span className="text-xs font-black text-black border-b border-black pb-0.5">Blog</span>
-          </div>
+    <motion.header
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        display: 'flex', justifyContent: 'center', padding: '14px 20px',
+      }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', maxWidth: 980, padding: '10px 20px',
+        background: scrolled ? 'rgba(17,17,17,0.97)' : 'rgba(17,17,17,0.75)',
+        backdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 999,
+        transition: 'background 0.3s',
+      }}>
+        <button onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
+          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 30, height: 'auto', mixBlendMode: 'screen' }} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>WOK</span>
+        </button>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <a href="/tarifs" style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }} className="hidden md:block">Pricing</a>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', borderBottom: `1px solid ${CORAL}`, paddingBottom: 2 }} className="hidden md:block">Blog</span>
           {isAuth
-            ? <button onClick={() => navigate('/app')} className="text-xs font-black px-4 py-2 rounded-lg" style={{ background: FG, color: 'white' }}>Go to app →</button>
-            : <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-4 py-2.5 rounded-lg border-2 border-black hover:bg-black hover:text-white transition-all" style={{ color: FG }}>Sign in</button>
+            ? <button onClick={() => navigate('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '9px 20px', cursor: 'pointer' }}>Open app →</button>
+            : <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '9px 20px', cursor: 'pointer' }}>Start free →</button>
           }
         </div>
-      </header>
-      {/* Mobile */}
-      <div className="fixed bottom-4 left-4 right-4 z-50 flex md:hidden items-center justify-between px-5 py-3.5 rounded-full"
-        style={{ background: 'rgba(10,10,10,0.94)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-        <a href="/fonctionnalites" className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.5)' }}>Features</a>
-        <span className="text-xs font-black text-white border-b border-white pb-0.5">Blog</span>
-        {isAuth
-          ? <button onClick={() => navigate('/app')} className="text-xs font-black px-3 py-1.5 rounded-full" style={{ background: YELLOW, color: FG }}>App →</button>
-          : <button onClick={() => base44.auth.redirectToLogin('/app')} className="text-xs font-black px-3 py-1.5 rounded-full" style={{ background: YELLOW, color: FG }}>Sign in</button>
-        }
       </div>
-    </>
+    </motion.header>
   );
 }
 
@@ -58,51 +59,62 @@ function PostCard({ post, index }) {
   const navigate = useNavigate();
   return (
     <motion.article
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.06, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       onClick={() => navigate(`/blog/${post.slug}`)}
-      className="group cursor-pointer flex flex-col overflow-hidden rounded-2xl border border-black/7 hover:border-black/15 hover:shadow-lg transition-all duration-300"
-      style={{ background: 'white' }}
+      style={{
+        cursor: 'pointer',
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 18,
+        overflow: 'hidden',
+        transition: 'border-color 200ms, transform 200ms',
+        display: 'flex', flexDirection: 'column',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(249,87,56,0.3)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       {post.cover_image && (
-        <div className="overflow-hidden" style={{ height: 200 }}>
-          <img src={post.cover_image} alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <div style={{ height: 200, overflow: 'hidden' }}>
+          <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 400ms' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          />
         </div>
       )}
-      <div className="flex flex-col flex-1 p-7">
-        <div className="flex items-center gap-3 mb-4">
+      <div style={{ padding: '28px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
           {post.category && (
-            <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(221,255,0,0.2)', color: '#6b7c00' }}>
-              <Tag className="w-2.5 h-2.5" />
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: CORAL }}>
               {post.category}
             </span>
           )}
           {post.reading_time && (
-            <span className="flex items-center gap-1 text-[10px] text-gray-400">
-              <Clock className="w-3 h-3" />
-              {post.reading_time} min read
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+              <Clock style={{ width: 11, height: 11 }} />
+              {post.reading_time} min
             </span>
           )}
         </div>
-        <h2 className="font-black text-lg leading-tight mb-3 group-hover:text-black transition-colors" style={{ color: FG }}>
+        <h2 style={{ fontSize: 17, fontWeight: 800, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
           {post.title}
         </h2>
         {post.summary && (
-          <p className="text-sm leading-relaxed text-gray-500 mb-5"
-            style={{ fontFamily: 'var(--font-open)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <p style={{
+            fontSize: 13, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65, margin: '0 0 20px', flex: 1,
+            display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
             {post.summary}
           </p>
         )}
-        <div className="flex items-center justify-between pt-4 border-t border-black/5">
-          <span className="text-xs text-gray-300">
-            {new Date(post.created_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto' }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>
+            {new Date(post.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
-          <span className="text-xs font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: FG }}>
-            Read <ArrowRight className="w-3 h-3" />
+          <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, display: 'flex', alignItems: 'center', gap: 4 }}>
+            Read <ArrowRight style={{ width: 12, height: 12 }} />
           </span>
         </div>
       </div>
@@ -115,9 +127,7 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'Blog — Stensor';
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Financial insights, wealth-building strategies, and real stories from the Stensor team.');
+    document.title = 'Blog — WOK';
     base44.entities.BlogPost.filter({ published: true }, '-created_date', 50)
       .then(setPosts)
       .catch(() => {})
@@ -125,54 +135,78 @@ export default function BlogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen font-inter bg-white pb-20 md:pb-0">
-      <BlogNavbar />
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', background: BG, minHeight: '100vh' }}>
+      <Navbar />
 
-      {/* Hero */}
-      <div className="pt-36 pb-20 px-6 text-center" style={{ background: 'linear-gradient(to bottom, #fafaf8, white)' }}>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-[10px] font-black tracking-[0.35em] uppercase mb-6" style={{ color: 'rgba(0,0,0,0.2)' }}>
-          The Stensor Blog
-        </motion.p>
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8 }}
-          className="font-black tracking-tighter mb-4" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', color: FG }}>
-          Financial clarity,<br /><span style={{ color: YELLOW }}>without the sacrifice.</span>
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="text-base text-gray-400 max-w-md mx-auto" style={{ fontFamily: 'var(--font-open)' }}>
-          Real insights on wealth, lifestyle, and the psychology of money.
-        </motion.p>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+          width: 600, height: 400,
+          background: `radial-gradient(ellipse, rgba(249,87,56,0.09) 0%, transparent 65%)`,
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: '160px 24px 72px' }}>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+            style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)', marginBottom: 20 }}>
+            The WOK Blog
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900, letterSpacing: '-0.04em', color: '#fff', lineHeight: 0.95, margin: '0 0 20px' }}
+          >
+            Build better.<br /><span style={{ color: CORAL }}>Ship faster.</span>
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            style={{ fontSize: 15, color: 'rgba(255,255,255,0.32)', maxWidth: 400, margin: '0 auto' }}>
+            Tips, stories, and inspiration for creators building with WOK.
+          </motion.p>
+        </div>
       </div>
 
-      {/* Posts grid */}
-      <div className="max-w-6xl mx-auto px-6 pb-24">
+      <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px 100px' }}>
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-black/7 overflow-hidden">
-                <div className="h-48 animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
-                <div className="p-7 space-y-3">
-                  <div className="h-4 rounded animate-pulse" style={{ background: 'rgba(0,0,0,0.06)', width: '40%' }} />
-                  <div className="h-6 rounded animate-pulse" style={{ background: 'rgba(0,0,0,0.08)' }} />
-                  <div className="h-4 rounded animate-pulse" style={{ background: 'rgba(0,0,0,0.05)', width: '80%' }} />
+              <div key={i} style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: 180, background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div style={{ padding: '28px' }}>
+                  <div style={{ height: 12, borderRadius: 6, background: 'rgba(255,255,255,0.06)', marginBottom: 12, width: '40%' }} />
+                  <div style={{ height: 20, borderRadius: 6, background: 'rgba(255,255,255,0.08)', marginBottom: 8 }} />
+                  <div style={{ height: 14, borderRadius: 6, background: 'rgba(255,255,255,0.05)', width: '70%' }} />
                 </div>
               </div>
             ))}
+            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
           </div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-32">
-            <p className="text-4xl mb-4">✍️</p>
-            <p className="font-black text-xl mb-2" style={{ color: FG }}>No articles yet</p>
-            <p className="text-sm text-gray-400">Check back soon — great content is coming.</p>
+          <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+            <p style={{ fontSize: 36, marginBottom: 16 }}>✍️</p>
+            <p style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 8 }}>Nothing here yet</p>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>Great content is coming soon.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {posts.map((post, i) => (
-              <PostCard key={post.id} post={post} index={i} />
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+            {posts.map((post, i) => <PostCard key={post.id} post={post} index={i} />)}
           </div>
         )}
       </div>
+
+      <footer style={{ background: '#0A0A0A', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '28px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 26, height: 'auto', mixBlendMode: 'screen' }} />
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>WOK</span>
+        </a>
+        <div style={{ display: 'flex', gap: 20 }}>
+          {[['Home', '/'], ['Pricing', '/tarifs'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
+            <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.22)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.22)'}>{l}</a>
+          ))}
+        </div>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', margin: 0 }}>© 2026 WOK</p>
+      </footer>
     </div>
   );
 }
