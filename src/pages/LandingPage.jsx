@@ -527,7 +527,6 @@ export default function LandingPage() {
       <Stats />
       <HowItWorks onCta={onCta} />
       <UseCases onCta={onCta} />
-      <Testimonials />
       <FinalCta onCta={onCta} />
       <Footer />
     </div>
