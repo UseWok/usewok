@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Star, FileText, XCircle, Send, Check, X, RefreshCw,
-  ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle, Filter
+  ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle, Filter, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,6 +43,19 @@ function ItemCard({ item, type, onRefetch }) {
   const [expanded, setExpanded] = useState(false);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm('Permanently delete this item?')) return;
+    try {
+      if (type === 'tickets' || type === 'cancellations' || type === 'invoices') {
+        await base44.entities.SupportTicket.delete(item.id);
+      } else if (type === 'leads') {
+        await base44.entities.ContactLead.delete(item.id);
+      }
+      toast.success('Deleted');
+      onRefetch();
+    } catch { toast.error('Error deleting'); }
+  };
 
   const handleReplyTicket = async () => {
     if (!reply.trim()) return;
@@ -148,6 +161,15 @@ function ItemCard({ item, type, onRefetch }) {
             <span>{date}</span>
           </div>
         </div>
+          <button
+          onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+          style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', flexShrink: 0, marginLeft: 4 }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.color = '#ef4444'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555'; }}
+          title="Delete permanently"
+        >
+          <Trash2 size={13} />
+        </button>
         {expanded ? <ChevronUp size={14} color="#555" /> : <ChevronDown size={14} color="#555" />}
       </button>
 
@@ -282,7 +304,7 @@ export default function AdminInboxPage() {
           <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.3px' }}>Unified Inbox</h1>
           <p style={{ fontSize: 13, color: '#888', marginTop: 4 }}>All inbound requests in one place — real data only</p>
         </div>
-        <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, color: '#888', fontSize: 12, cursor: 'pointer' }}>
+        <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, color: '#888', fontSize: 12, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
           <RefreshCw size={13} /> Refresh
         </button>
       </div>

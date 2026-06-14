@@ -84,6 +84,11 @@ function CodeRedeemer({ user, setUser }) {
         metadata: { code: rec.code, plan_id: rec.plan_id, credits: rec.credits, email: user?.email },
       }).catch(() => {});
 
+      // Auto-delete single-use codes after successful redemption
+      if (!rec.unlimited && (!rec.max_uses || (rec.use_count || 0) + 1 >= rec.max_uses)) {
+        base44.entities.AccessCode.delete(rec.id).catch(() => {});
+      }
+
       const updated = await base44.auth.me();
       if (setUser) setUser(updated);
       setCode('');
