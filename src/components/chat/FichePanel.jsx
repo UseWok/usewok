@@ -676,17 +676,21 @@ export default function FichePanel({
       {hasComponent ? (
         viewMode === 'preview' ? (
           <div className="w-full h-full relative bg-white overflow-hidden">
+            {/* Orange glowing top line + blur overlay during compile — keeps UI visible */}
             <AnimatePresence>
               {isCompiling && (
                 <motion.div
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm"
+                  style={{ position: 'absolute', inset: 0, zIndex: 10, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}
                 >
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-zinc-200 shadow-sm">
-                    <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
-                    <span className="text-xs font-medium text-zinc-500">Building…</span>
-                  </div>
+                  {/* Glowing orange line strictly at top edge */}
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+                    background: 'linear-gradient(90deg, transparent 0%, #F95738 20%, #FF8C42 50%, #F95738 80%, transparent 100%)',
+                    boxShadow: '0 0 8px 2px rgba(249,87,56,0.7), 0 0 20px 4px rgba(249,87,56,0.35)',
+                    borderRadius: 0,
+                  }} />
                 </motion.div>
               )}
             </AnimatePresence>

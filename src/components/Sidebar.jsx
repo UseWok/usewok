@@ -145,7 +145,7 @@ function ProfileMenu({ user, onClose, navigate }) {
       </div>
       <div style={{ padding: '4px 0' }}>
         <Row icon={Settings} label="Account settings" onClick={() => navigate('/settings')} />
-        <Row icon={CreditCard} label="Billing & plans" onClick={() => navigate('/pricing')} />
+        <Row icon={CreditCard} label="Upgrade to Pro" onClick={() => navigate('/pricing')} />
         <Row icon={HelpCircle} label="Support" onClick={() => navigate('/support')} />
       </div>
       <div style={{ height: 1, background: '#1E1E1E' }} />
@@ -295,6 +295,28 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
         </span>
       )}
     </button>
+  );
+}
+
+// ─── Sidebar Credits Bar ──────────────────────────────────────────
+function SidebarCreditsBar({ user, onUpgrade }) {
+  const { used, limit, pct, barColor, isLow } = useCredits(user);
+  const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
+  return (
+    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#141414', borderRadius: 8, border: '1px solid #1E1E1E' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Consumption</span>
+        {isLow && (
+          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#F95738', background: 'rgba(249,87,56,0.12)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
+        )}
+      </div>
+      <div style={{ height: 5, background: '#2A2A2A', borderRadius: 999, marginBottom: 5 }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
+      </div>
+      <span style={{ fontSize: 10, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+        Usage: {formatK(used)} / {formatK(limit)}
+      </span>
+    </div>
   );
 }
 
@@ -559,7 +581,9 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {/* Bottom utility links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, paddingBottom: 4 }}>
             <Divider />
-            <NavItem icon={CreditCard} label="Billing" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
+            {/* ── Consumption bar (expanded only) ── */}
+            {expanded && user && user.role !== 'admin' && <SidebarCreditsBar user={user} onUpgrade={() => nav('/pricing')} />}
+            <NavItem icon={CreditCard} label="Upgrade to Pro" onClick={() => nav('/pricing')} active={isActive('/pricing')} expanded={expanded} />
             <NavItem icon={Settings} label="Settings" onClick={() => nav('/settings')} active={isActive('/settings')} expanded={expanded} />
             <NavItem icon={HelpCircle} label="Support" onClick={() => nav('/support')} active={isActive('/support')} expanded={expanded} />
           </div>

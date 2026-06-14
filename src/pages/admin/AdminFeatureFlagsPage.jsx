@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Flag, Save, RefreshCw, Shield } from 'lucide-react';
+import { Flag, Save, RefreshCw, Shield, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { PLAN_FEATURE_FLAGS, DEFAULT_PLANS } from '@/lib/plans-config';
 
@@ -19,12 +19,14 @@ const DEFAULT_FLAGS = [
 ];
 
 const PLAN_FLAG_DEFS = [
-  { key: 'web_search',        label: 'Web Search',         description: 'Google Search capability in builds',          type: 'bool' },
-  { key: 'max_model',         label: 'Max AI Model',        description: 'Access to Max/Pro AI models (vs Standard)',   type: 'bool' },
-  { key: 'file_upload',       label: 'File Upload',         description: 'Attach files to prompts',                    type: 'bool' },
-  { key: 'white_label',       label: 'White-label Badge',   description: 'Remove WOK badge from public links',         type: 'bool' },
-  { key: 'concurrent_builds', label: 'Concurrent Builds',   description: 'Max simultaneous active builds',             type: 'number' },
-  { key: 'daily_burn_cap',    label: 'Daily Burn Cap',      description: 'Max credits a user can spend per day',       type: 'number' },
+  { key: 'web_search',          label: 'Web Search',          description: 'Google Search capability in builds',          type: 'bool' },
+  { key: 'max_model',           label: 'Max AI Model',         description: 'Access to Max/Pro AI models (vs Standard)',   type: 'bool' },
+  { key: 'file_upload',         label: 'File Upload',          description: 'Attach files to prompts',                    type: 'bool' },
+  { key: 'white_label',         label: 'White-label Badge',    description: 'Remove WOK badge from public links',         type: 'bool' },
+  { key: 'private_builds',      label: 'Private Builds',       description: 'Allow users to set builds as private',       type: 'bool', requiresPro: true },
+  { key: 'version_restoration', label: 'Version Restoration',  description: 'Restore previous versions from history',      type: 'bool', requiresPro: true },
+  { key: 'concurrent_builds',   label: 'Concurrent Builds',    description: 'Max simultaneous active builds',             type: 'number' },
+  { key: 'daily_burn_cap',      label: 'Daily Burn Cap',       description: 'Max credits a user can spend per day',       type: 'number' },
 ];
 
 const CATEGORY_COLORS = { UI: '#3B8BEB', Core: '#F95738', Growth: '#4ade80', Integrations: '#7B4FE0', System: '#E8184A' };
@@ -54,15 +56,23 @@ function PlanFlagsEditor({ planFlags, onChange }) {
                       <p style={{ fontSize: 10, color: '#555', margin: '2px 0 0' }}>{def.description}</p>
                     </div>
                     {def.type === 'bool' ? (
-                      <button
-                        onClick={() => onChange(plan.id, def.key, !val)}
-                        style={{
-                          width: 40, height: 22, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0,
-                          background: val ? PLAN_COLORS[plan.id] || '#F95738' : '#2A2A2A', position: 'relative', transition: 'background 200ms',
-                        }}
-                      >
-                        <div style={{ position: 'absolute', top: 2, left: val ? 20 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 200ms', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }} />
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        {def.requiresPro && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Lock size={10} color="#F95738" />
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#F95738', background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.3)', borderRadius: 3, padding: '1px 4px' }}>PRO</span>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => onChange(plan.id, def.key, !val)}
+                          style={{
+                            width: 40, height: 22, borderRadius: 999, border: 'none', cursor: 'pointer',
+                            background: val ? PLAN_COLORS[plan.id] || '#F95738' : '#2A2A2A', position: 'relative', transition: 'background 200ms',
+                          }}
+                        >
+                          <div style={{ position: 'absolute', top: 2, left: val ? 20 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 200ms', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }} />
+                        </button>
+                      </div>
                     ) : (
                       <input
                         type="number"
