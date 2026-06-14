@@ -10,7 +10,6 @@ import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboardi
 import { loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { getBuildMode, setBuildMode as setGlobalBuildMode, subscribeBuildMode, hydrateBuildModeFromCloud } from '@/lib/build-mode-store';
 import { isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
-import CreditsBar from '@/components/CreditsBar';
 
 const PENDING_KEY = 'stensor_pending_query';
 
@@ -357,8 +356,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Credits bar — temps réel, bottom-center ── */}
-      <CreditsBar user={user} variant="home" />
+
 
       {/* ── Glow ambiance — fixed, bottom-anchored, never touches chat bar ── */}
       <div style={{

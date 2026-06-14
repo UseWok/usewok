@@ -314,7 +314,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
       <span style={{ fontSize: 10, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-        Usage: {formatK(used)} / {formatK(limit)}
+        {formatK(used)} / {formatK(limit)} used
       </span>
     </div>
   );
