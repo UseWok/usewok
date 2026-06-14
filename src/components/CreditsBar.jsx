@@ -20,7 +20,7 @@ function formatResetDate(iso) {
 
 export default function CreditsBar({ user, variant = 'home' }) {
   const navigate = useNavigate();
-  const { used, limit, resetAt, pct, consumed, barColor, loading, isLow } = useCredits(user);
+  const { used, limit, resetAt, pct, remaining, consumed, barColor, loading, isLow } = useCredits(user);
 
   // Don't render for admins or unauthenticated users
   if (!user || user.role === 'admin') return null;
@@ -39,7 +39,7 @@ export default function CreditsBar({ user, variant = 'home' }) {
           display: 'flex', alignItems: 'center', gap: 10,
           background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255,255,255,0.09)', borderRadius: 999,
-          padding: '6px 14px 6px 10px',
+          padding: '6px 14px',
           boxShadow: '0 4px 18px rgba(0,0,0,0.4)',
           fontFamily: 'Inter, sans-serif',
           transition: 'border-color 150ms',
@@ -48,22 +48,12 @@ export default function CreditsBar({ user, variant = 'home' }) {
         onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'}
         onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'}
       >
-        {/* Bar */}
-        <div style={{ width: 56, height: 4, background: '#2A2A2A', borderRadius: 999, overflow: 'hidden', flexShrink: 0 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
-        </div>
-        {/* Label */}
-        <span style={{ fontSize: 12, color: isLow ? '#ef4444' : '#888', fontVariantNumeric: 'tabular-nums' }}>
-          <span style={{ color: '#fff', fontWeight: 600 }}>{formatNum(consumed)}</span>
+        {/* Label only — no bar, no reset date */}
+        <span style={{ fontSize: 12, fontVariantNumeric: 'tabular-nums', color: isLow ? '#ef4444' : '#888' }}>
+          <span style={{ color: isLow ? '#ef4444' : '#fff', fontWeight: 600 }}>{formatNum(remaining)}</span>
           <span style={{ color: '#555', margin: '0 3px' }}>/</span>
-          <span>{formatNum(limit)}</span>
-          <span style={{ marginLeft: 6, color: '#555' }}>consumed</span>
+          <span style={{ color: '#888' }}>{limit.toLocaleString('fr-FR')} crédits restants</span>
         </span>
-        {resetLabel && (
-          <span style={{ fontSize: 10, color: '#444', borderLeft: '1px solid #2A2A2A', paddingLeft: 10 }}>
-            resets {resetLabel}
-          </span>
-        )}
       </div>
     );
   }
