@@ -80,5 +80,14 @@
       "title": "Suspended",
       "default": false
     }
-  }
+  },
+  "required": [
+    "subscription_date",
+    "subscription_expires_at",
+    "subscription_source",
+    "credits_reset_at",
+    "ban_reason",
+    "ban_date",
+    "banned_by"
+  ]
 }

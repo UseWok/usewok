@@ -7,7 +7,7 @@ import { useRef } from 'react';
 import { X, FileText } from 'lucide-react';
 import ChatInputBar from '@/components/chat/ChatInputBar';
 
-export default function HomeInputWrapper({ input, setInput, onSend, buildMode, files, setFiles }) {
+export default function HomeInputWrapper({ input, setInput, onSend, buildMode, files, setFiles, user }) {
   return (
     <div style={{ width: '100%' }}>
       {/* Compact file chips — shown above input bar when files are attached */}
@@ -42,6 +42,7 @@ export default function HomeInputWrapper({ input, setInput, onSend, buildMode, f
         files={files}
         setFiles={setFiles}
         buildMode={buildMode}
+        user={user}
       />
     </div>
   );

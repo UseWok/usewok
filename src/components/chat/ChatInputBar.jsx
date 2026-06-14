@@ -15,6 +15,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp, X, FileText, Mic, MicOff, ChevronDown, Check, Lock, Upload, Plus } from 'lucide-react';
 import { getBuildMode, setBuildMode as setGlobalBuildMode } from '@/lib/build-mode-store';
+import { getPlanFeatures } from '@/lib/plans-config';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -171,13 +172,15 @@ function BuildMenuItem({ active, isAutomatic, onClick, children }) {
   );
 }
 
-function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
+function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, planFeatures }) {
   const ref = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
+
+  const canUseMax = !!(planFeatures?.max_model);
 
   return (
     <motion.div
@@ -207,20 +210,28 @@ function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose }) {
 
       <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
 
-      <BuildMenuItem active={buildMode === 'Flash'} onClick={() => { setBuildMode('Flash'); setDiscussMode?.(false); onClose(); }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <StandardLogo />
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
-        </span>
-      </BuildMenuItem>
+      {/* Standard — locked: always requires paid plan to pick manually */}
+      <div style={{ position: 'relative', opacity: 0.45, cursor: 'not-allowed' }} title="Upgrade to choose model manually">
+        <BuildMenuItem active={buildMode === 'Flash'} onClick={() => {}}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <StandardLogo />
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
+            <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />
+          </span>
+        </BuildMenuItem>
+      </div>
 
-      <BuildMenuItem active={buildMode === 'Max'} onClick={() => { setBuildMode('Max'); setDiscussMode?.(false); onClose(); }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MaxLogo />
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
-          <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 999, padding: '1px 7px' }}>NEW</span>
-        </span>
-      </BuildMenuItem>
+      {/* Max — locked unless creator/pro */}
+      <div style={{ position: 'relative', opacity: canUseMax ? 1 : 0.45, cursor: canUseMax ? 'pointer' : 'not-allowed' }} title={canUseMax ? undefined : 'Upgrade to Creator or Pro to use Max model'}>
+        <BuildMenuItem active={buildMode === 'Max'} onClick={() => { if (canUseMax) { setBuildMode('Max'); setDiscussMode?.(false); onClose(); } }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MaxLogo />
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
+            <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 999, padding: '1px 7px' }}>NEW</span>
+            {!canUseMax && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
+          </span>
+        </BuildMenuItem>
+      </div>
     </motion.div>
   );
 }
@@ -251,7 +262,7 @@ function AIMenuItem({ onClick, disabled, active, children }) {
   );
 }
 
-function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEnhancing, searchActive }) {
+function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEnhancing, searchActive, planFeatures }) {
   const ref = useRef(null);
   const importRef = useRef(null);
   useEffect(() => {
@@ -259,6 +270,9 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
+
+  const canSearch = !!(planFeatures?.web_search);
+  const canUpload = !!(planFeatures?.file_upload);
 
   return (
     <motion.div
@@ -290,19 +304,25 @@ function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEn
 
       <input ref={importRef} type="file" multiple accept="image/*,application/pdf,.txt,.csv,.json,.md"
         style={{ display: 'none' }} onChange={(e) => { onImportFile?.(e); onClose(); }} />
-      <AIMenuItem onClick={() => importRef.current?.click()}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
-        </span>
-      </AIMenuItem>
+      <div title={canUpload ? undefined : 'File upload requires Starter plan or higher'} style={{ opacity: canUpload ? 1 : 0.45, cursor: canUpload ? 'pointer' : 'not-allowed' }}>
+        <AIMenuItem onClick={() => { if (canUpload) importRef.current?.click(); }} disabled={!canUpload}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
+            {!canUpload && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
+          </span>
+        </AIMenuItem>
+      </div>
 
-      <AIMenuItem active={searchActive} onClick={() => { onToggleSearch?.(); onClose(); }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
-        </span>
-      </AIMenuItem>
+      <div title={canSearch ? undefined : 'Google Search requires Starter plan or higher'} style={{ opacity: canSearch ? 1 : 0.45, cursor: canSearch ? 'pointer' : 'not-allowed' }}>
+        <AIMenuItem active={searchActive} onClick={() => { if (canSearch) { onToggleSearch?.(); onClose(); } }} disabled={!canSearch}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
+            {!canSearch && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
+          </span>
+        </AIMenuItem>
+      </div>
     </motion.div>
   );
 }
@@ -339,8 +359,10 @@ export default function ChatInputBar({
   onUpgrade,
   locked = false,
   buildMode: externalBuildMode,
+  user,
   _extraTextareaPaddingLeft = 0,   // used by HomeInputWrapper to offset textarea for the attach button
 }) {
+  const planFeatures = getPlanFeatures(user);
   const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
   useEffect(() => {
     if (externalBuildMode && externalBuildMode !== buildMode) setBuildModeLocal(externalBuildMode);
@@ -596,6 +618,7 @@ export default function ChatInputBar({
                     onImportFile={handleImportFile}
                     isEnhancing={isEnhancing}
                     searchActive={searchActive}
+                    planFeatures={planFeatures}
                   />
                 )}
               </AnimatePresence>
@@ -646,7 +669,7 @@ export default function ChatInputBar({
                 <AnimatePresence>
                   {showBuildMenu && (
                     <BuildMenu buildMode={buildMode} setBuildMode={setBuildMode}
-                      setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} />
+                      setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} planFeatures={planFeatures} />
                   )}
                 </AnimatePresence>
               </div>

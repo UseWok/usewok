@@ -60,7 +60,7 @@ async function writeAuditLog(userId, action, resourceType, metadata) {
  */
 export async function secureDeductCredits(user, appCredits, idempotencyKey) {
   if (!user) return null;
-  if (user.role === 'admin') return user; // admins are exempt
+  // No exemptions — all users including admins consume credits
 
   // ── Ban check ──
   if (user.banned || user.disabled) {

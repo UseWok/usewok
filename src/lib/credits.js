@@ -36,13 +36,13 @@ export function isUserLocked(user) {
 }
 
 // ── Initialiser les crédits d'un nouvel utilisateur via backend ──
+// No exemptions — all users (including admins) must have credits initialized
 export async function initUserCredits(user) {
   if (!user) return;
-  // Si pas encore de champ credits_used/limit, appeler le backend pour initialiser
-  if (typeof user.credits_used !== 'number' || typeof user.credits_limit !== 'number') {
+  // Always call backend to init if missing — no exemptions for any role
+  if (typeof user.credits_used !== 'number' || typeof user.credits_limit !== 'number' || !user.credits_reset_at) {
     try {
-      await base44.functions.invoke('creditEngine', { action: 'get' });
-      // Le backend gère l'initialisation automatiquement
+      await base44.functions.invoke('creditEngine', { action: 'renew' });
     } catch {}
   }
 }

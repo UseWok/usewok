@@ -915,6 +915,7 @@ export default function ChatPage() {
                       onUpgrade={() => {}}
                       locked={isUserLocked(user)}
                       buildMode={buildMode}
+                      user={user}
                     />
                   </div>
                 </>

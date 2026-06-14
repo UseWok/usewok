@@ -352,6 +352,7 @@ export default function Home() {
             buildMode={buildMode}
             files={homeFiles}
             setFiles={setHomeFiles}
+            user={user}
           />
         </div>
       </div>
