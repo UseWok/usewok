@@ -196,7 +196,7 @@ RULES:
 - Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
 
   const fixed = await base44.integrations.Core.InvokeLLM({
-    model: MODELS.BUILD, // gemini_3_1_pro — best for full-code correction
+    model: MODELS.DEFAULT, // gpt_5_mini — strict routing for all code corrections & bug fixes
     prompt: fixPrompt,
   });
 
@@ -345,6 +345,7 @@ RULES:
 - Keep ALL existing functionality, layout, styles, and logic intact.
 - Only change what the user explicitly asked for.
 - Do NOT rewrite or redesign parts that were not mentioned.
+- CRITICAL — IMAGE PERSISTENCE: If the existing code contains any image URLs (src="...", url("..."), backgroundImage, etc.), you MUST preserve every single one exactly as-is. Do NOT replace, regenerate, or remove any image URL unless the user's instruction explicitly asks to change that specific image.
 - Output ONLY raw JSX/JS code. No markdown fences. No explanation.`;
 
   const modifiedCode = await base44.integrations.Core.InvokeLLM({

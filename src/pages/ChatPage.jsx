@@ -423,7 +423,7 @@ export default function ChatPage() {
     }
 
     try {
-      // ── Auto-fix path — surgical gpt-4o-mini correction ──
+      // ── Auto-fix path — routes strictly to gpt_5_mini ──
       if (options.isCorrection) {
         const rawCode = ficheContent || '';
         // Extract raw code without fences for the pipeline
@@ -454,6 +454,8 @@ export default function ChatPage() {
       const userMessageIndex = (messages || []).filter(m => m.role === 'user').length;
 
       // ── Build / modify path ──
+      // #15: Preserve any existing generated images — strip image-regen instructions unless explicit
+      const hasExplicitImageRequest = /\b(new image|regenerate image|generate image|change image|replace image|update image)\b/i.test(text);
       const isModification = !!(editMode && ficheContent) || !!(ficheContent && MODIFY_KEYWORDS.test(text));
       
       if (user && !isModification && !discussMode) {

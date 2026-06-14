@@ -238,7 +238,7 @@ export default function PublishAppModal({
                   }}>
                   <Globe style={{ width: 12, height: 12 }} /> Public
                 </button>
-                {/* Private option — gated by plan */}
+                {/* Private option — hard-gated by plan */}
                 <button
                   onClick={() => {
                     if (!canPrivate) { setShowPrivateUpgradeHint(true); return; }
@@ -246,22 +246,34 @@ export default function PublishAppModal({
                     setShowPrivateUpgradeHint(false);
                   }}
                   style={{
-                    flex: 1, padding: '9px 0', borderRadius: 8, border: `1px solid ${!isPublic && canPrivate ? 'rgba(123,79,224,0.4)' : '#2A2A2A'}`,
-                    background: !isPublic && canPrivate ? 'rgba(123,79,224,0.08)' : '#0D0D0D', cursor: 'pointer',
+                    flex: 1, padding: '9px 0', borderRadius: 8,
+                    border: `1px solid ${!isPublic && canPrivate ? 'rgba(123,79,224,0.4)' : '#2A2A2A'}`,
+                    background: !canPrivate ? 'rgba(0,0,0,0.2)' : (!isPublic ? 'rgba(123,79,224,0.08)' : '#0D0D0D'),
+                    cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    fontSize: 12, fontWeight: !isPublic && canPrivate ? 600 : 400, color: !isPublic && canPrivate ? '#7B4FE0' : '#555',
+                    fontSize: 12, fontWeight: !isPublic && canPrivate ? 600 : 400,
+                    color: !canPrivate ? '#3A3A3A' : (!isPublic ? '#7B4FE0' : '#555'),
                     transition: 'all 120ms', position: 'relative',
                   }}>
                   <Lock style={{ width: 12, height: 12 }} /> Private
-                  {!canPrivate && <span style={{ fontSize: 8, padding: '1px 4px', background: '#F95738', borderRadius: 3, color: '#fff', fontWeight: 700, marginLeft: 2 }}>PRO</span>}
+                  {!canPrivate && (
+                    <span style={{ fontSize: 8, padding: '1px 5px', background: 'rgba(123,79,224,0.25)', borderRadius: 3, color: '#9B7FEA', fontWeight: 700, marginLeft: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Creator+
+                    </span>
+                  )}
                 </button>
-              </div>
-              {showPrivateUpgradeHint && (
-                <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.2)', borderRadius: 7, fontSize: 12, color: '#F95738' }}>
-                  Private builds require <strong>Creator</strong> plan or above.{' '}
-                  <a href="/pricing" style={{ color: '#F95738', fontWeight: 700, textDecoration: 'underline' }}>Upgrade →</a>
                 </div>
-              )}
+                {showPrivateUpgradeHint && (
+                <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(123,79,224,0.08)', border: '1px solid rgba(123,79,224,0.25)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#9B7FEA', margin: '0 0 2px' }}>Creator plan required</p>
+                    <p style={{ fontSize: 11, color: '#666', margin: 0, lineHeight: 1.4 }}>Private builds are available on Creator and above.</p>
+                  </div>
+                  <a href="/pricing" style={{ flexShrink: 0, padding: '6px 12px', background: '#7B4FE0', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    Upgrade →
+                  </a>
+                </div>
+                )}
             </div>
 
             {/* Publish / Unpublish CTA */}
