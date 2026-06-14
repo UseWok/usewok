@@ -174,8 +174,8 @@ Return JSON:
 }
 
 /**
- * Full autofix pipeline — sends the COMPLETE code + error to gemini_3_1_pro.
- * Never tries to patch a tiny section (too fragile). Returns the full fixed component.
+ * Full autofix pipeline — sends the COMPLETE code + error, returns the full fixed component.
+ * Uses gemini_3_1_pro for maximum reliability on error correction.
  */
 export async function runAutofixPipeline(errorMessage, fullCode) {
   const fixPrompt = `You are an expert React debugger. A React component has a runtime error. Fix it completely.
@@ -184,19 +184,19 @@ RUNTIME ERROR:
 ${errorMessage.slice(0, 600)}
 
 FULL COMPONENT CODE:
-${fullCode.slice(0, 12000)}
+${fullCode}
 
 RULES:
-- Return the COMPLETE fixed component. No partial patches.
-- Keep all existing functionality, layout, and design intact.
-- Fix ONLY what is broken. Do not redesign or rewrite working parts.
+- Return the COMPLETE fixed component. Never return a partial snippet.
+- Keep ALL existing functionality, layout, styles and design intact — do not redesign anything.
+- Fix ONLY what is broken by the error above. Do not touch working parts.
 - If a lucide-react icon is missing/crashing: replace with Activity or Zap.
 - If a recharts component crashes: replace with a simpler valid equivalent.
 - Remove any import that references a non-existent package.
 - Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
 
   const fixed = await base44.integrations.Core.InvokeLLM({
-    model: MODELS.DEFAULT, // gpt_5_mini — fast and capable for autofix
+    model: MODELS.BUILD, // gemini_3_1_pro — best for full-code correction
     prompt: fixPrompt,
   });
 
@@ -326,35 +326,38 @@ export async function orchestrateGeneration(userMessage, options = {}) {
   }
 
   // ══════════════════════════════════════
-  // MODIFICATION — surgical extraction + routing
-  // Modifications: always gpt_5_mini (simple) or gemini_3_1_pro (complex)
-  // Max mode does NOT change modification routing — cost kept low
+  // MODIFICATION — send full code, return full code
+  // Never extract sections — prevents "Hello World" regressions
   // ══════════════════════════════════════
 
-  // Step A: extract only the relevant code section
-  const extracted = await extractRelevantCodeSection(userMessage, existingCode);
-
-  // Step B: decide complexity — always Flash routing regardless of buildMode
+  // Decide complexity
   const selectedModel = await routeModificationComplexity(userMessage);
 
-  // Step C: build telegraphic prompt with just the section
-  const prompt = buildTelegraphicPrompt(userMessage, {
-    isModification: true,
-    codeSection: extracted.section,
-    locationHint: extracted.location_hint,
-    systemPrompt,
-  });
+  const prompt = `You are an expert React developer. You must modify an existing component based on the user's instruction.
 
-  const modifiedSection = await base44.integrations.Core.InvokeLLM({
+EXISTING FULL CODE:
+${existingCode}
+
+USER INSTRUCTION: ${userMessage}
+
+RULES:
+- Return the COMPLETE modified component. Never return a partial snippet.
+- Keep ALL existing functionality, layout, styles, and logic intact.
+- Only change what the user explicitly asked for.
+- Do NOT rewrite or redesign parts that were not mentioned.
+- Output ONLY raw JSX/JS code. No markdown fences. No explanation.`;
+
+  const modifiedCode = await base44.integrations.Core.InvokeLLM({
     model: selectedModel,
     prompt,
   });
 
+  // Return with no codeSection so patchCode is bypassed (code is already complete)
   return {
-    code: modifiedSection,
+    code: modifiedCode,
     model: selectedModel,
-    codeSection: extracted.section,
-    locationHint: extracted.location_hint,
+    codeSection: null,
+    locationHint: null,
   };
 }
 

@@ -26,10 +26,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Admins are exempt from all credit checks
-    if (user.role === 'admin') {
-      return Response.json({ success: true, exempt: true, credits_used: 0, credits_limit: 999_999_999 });
-    }
+    // No exemptions — admins and users all follow their plan limits
 
     const body = await req.json().catch(() => ({}));
     const { action = 'get', cost = 0, idempotency_key = null } = body;
