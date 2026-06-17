@@ -47,7 +47,8 @@ Deno.serve(async (req) => {
     let creditsUsed = typeof user.credits_used === 'number' ? user.credits_used : 0;
     let creditsLimit = typeof user.credits_limit === 'number' ? user.credits_limit : planLimit;
 
-    const renewalDue = !resetAt || Date.now() >= resetAt.getTime();
+    const isFirstInit = !resetAt; // No reset date = first time ever
+    const renewalDue = resetAt && Date.now() >= resetAt.getTime(); // Reset date exists AND is past
 
     if (action === 'renew' || renewalDue) {
       // Reset cycle — credits_used back to 0, new reset date
@@ -74,6 +75,26 @@ Deno.serve(async (req) => {
         credits_used: 0, credits_limit: planLimit,
         credits_reset_at: nextReset, plan: planId,
       });
+    }
+
+    // ── First init: set reset date and limit WITHOUT resetting credits_used ──
+    if (isFirstInit) {
+      const nextReset = new Date(Date.now() + RESET_DAYS * 86_400_000).toISOString();
+      await base44.auth.updateMe({
+        credits_limit: planLimit,
+        credits_reset_at: nextReset,
+        subscription_plan: planId,
+        // credits_used intentionally NOT reset — keep existing value
+      });
+      creditsLimit = planLimit;
+      if (action === 'get' || action === 'renew') {
+        return Response.json({
+          success: true, action: 'initialized',
+          credits_used: creditsUsed, credits_limit: planLimit,
+          credits_reset_at: nextReset, plan: planId,
+          locked: creditsUsed >= planLimit,
+        });
+      }
     }
 
     if (action === 'get') {
