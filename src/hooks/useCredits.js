@@ -43,6 +43,24 @@ export function useCredits(user) {
     }).catch(() => setCredits(prev => ({ ...prev, loading: false })));
   }, [user?.id]);
 
+  // Poll backend every 10s to stay in sync with any server-side deductions
+  useEffect(() => {
+    if (!user?.id) return;
+    const interval = setInterval(() => {
+      fetchCreditsFromBackend().then(d => {
+        if (d && typeof d.credits_used === 'number') {
+          setCredits(prev => ({
+            ...prev,
+            used: d.credits_used,
+            limit: d.credits_limit ?? prev.limit,
+            resetAt: d.credits_reset_at ?? prev.resetAt,
+          }));
+        }
+      }).catch(() => {});
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
   // Real-time subscription: when creditEngine updates credits_used on the user, this fires
   useEffect(() => {
     if (!user?.id) return;

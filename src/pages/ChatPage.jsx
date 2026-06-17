@@ -232,7 +232,11 @@ export default function ChatPage() {
     if (!user) return;
     try {
       const updatedUser = await deductCredits(user, cost, idempotencyKey, isNewBuild);
-      if (updatedUser) setUser(updatedUser);
+      if (updatedUser) {
+        setUser(updatedUser);
+        // Re-fetch from auth to get the fully accurate server value
+        base44.auth.me().then(fresh => { if (fresh) setUser(fresh); }).catch(() => {});
+      }
     } catch (err) {
       if (err.message === 'CREDITS_LOCKED') {
         toast.error('Crédits épuisés pour ce cycle.');
