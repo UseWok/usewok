@@ -284,18 +284,22 @@ The visitor must feel they have stumbled upon the most beautiful interface they 
 It must leave the user breathless — "how was this built in seconds?"
 
 ABSOLUTE QUALITY GATES (every build must pass ALL of these):
-✅ Hero: word-by-word reveal with blur/fade, animated accent underline at 100% width
-✅ At minimum 2 animated stat counters (0→value, cubic ease-out, triggered by scroll)
-✅ At minimum 2 recharts charts with gradient fills, custom tooltips, animated draw
-✅ Minimum 4 scroll-triggered sections (whileInView, staggered children)
-✅ All cards: 3D tilt with rotateX/rotateY on mouse move (useMotionValue + useTransform)
-✅ CTA button: magnetic cursor follow ±6px
-✅ SVG animated progress ring or animated path as a visual accent
-✅ Floating particle / noise / grid background in hero (CSS only, no libs)
-✅ Color palette: ONE strong accent + ink black + cream — never generic blue/gray
-✅ Typography: Google Font for display (Syne, Space Grotesk, DM Serif, Instrument Serif)
-✅ Every interactive element has a state change visible to the user
-✅ Animated tab indicator with layoutId (framer-motion)
+✅ Hero: animated entrance (fade + y translate), accent underline that animates width 0→100%
+✅ At minimum 1 animated stat counter (0→value, cubic ease-out, triggered by scroll)
+✅ At minimum 1 recharts chart with custom tooltip and animated draw
+✅ Minimum 3 scroll-triggered sections (whileInView, staggered children)
+✅ Color palette: ONE strong accent + near-black text + light background — never generic blue/gray
+✅ Typography: Google Font for display headers (Space Grotesk, DM Serif, Instrument Serif, Syne)
+✅ Every interactive element has a visible state change on click/hover
+✅ At least ONE micro-interaction (hover lift on cards, or magnetic button, or animated tab indicator)
+
+⚠️ STABILITY RULES — NEVER BREAK THESE:
+🚫 NEVER import icons that may not exist — only use icons from this safe list: ArrowRight, ArrowUpRight, CheckCircle2, Zap, Activity, Layers, Rocket, Brain, Target, Globe, Plus, TrendingUp, TrendingDown, BarChart2, Users, Star, ChevronRight, ChevronDown, Settings, Sparkles, Shield, Clock, Eye, Heart, Search, Filter, Bell, X, Play, Pause, RotateCcw, Menu, Info, AlertCircle, Check, Download, Upload, Trash2, Edit, Copy, ExternalLink, Home, Lock, Mail, Phone, Calendar, Tag, Bookmark, Flag, Lightbulb, Award, Cpu, Database, Code, GitBranch, Wifi, Battery
+🚫 NEVER use useMotionValue/useTransform unless you are 100% certain the syntax is correct — prefer simpler whileHover animations when unsure
+🚫 NEVER nest more than 3 levels of framer-motion variants — causes silent crashes
+🚫 NEVER use recharts components that require complex nested config — keep charts simple: AreaChart or BarChart with ResponsiveContainer, XAxis, YAxis, Tooltip only
+🚫 NEVER use external fonts in @import inside JSX strings — place Google Font import at the very top of the file as a comment-style injection via a useEffect or a style tag in JSX
+🚫 NEVER create infinite animation loops with useEffect + setState without a cleanup ref — causes memory leaks and re-render crashes
 
 The copy must feel written by a human creative director — emotional, direct, never robotic.
 The layout must breathe — luxury is space, not decoration.`;

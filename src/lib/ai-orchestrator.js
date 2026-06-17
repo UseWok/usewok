@@ -175,33 +175,59 @@ Return JSON:
 }
 
 /**
- * Full autofix pipeline — sends the COMPLETE code + error, returns the full fixed component.
- * Uses gemini_3_1_pro for maximum reliability on error correction.
+ * Full autofix pipeline — 2-step: extract broken section first, then fix only that section.
+ * Step 1 (automatic/fast): locate the broken snippet
+ * Step 2 (gpt_5_mini): fix only the broken snippet, then patch back into full code
  */
 export async function runAutofixPipeline(errorMessage, fullCode) {
-  const fixPrompt = `You are an expert React debugger. A React component has a runtime error. Fix it completely.
+  // Step 1 — extract the broken section (fast, cheap model)
+  const extracted = await extractBrokenSection(errorMessage, fullCode);
+  const brokenSection = extracted?.broken_section || '';
 
-RUNTIME ERROR:
-${errorMessage.slice(0, 600)}
+  // Step 2 — fix only the broken section
+  const fixPrompt = `You are a surgical React debugger. Fix ONLY this broken code section.
 
-FULL COMPONENT CODE:
-${fullCode}
+ERROR: ${errorMessage.slice(0, 400)}
+LOCATION: ${extracted?.location || 'unknown'}
+FIX HINT: ${extracted?.fix_hint || ''}
+
+BROKEN CODE:
+${brokenSection || fullCode.slice(0, 3000)}
 
 RULES:
-- Return the COMPLETE fixed component. Never return a partial snippet.
-- Keep ALL existing functionality, layout, styles and design intact — do not redesign anything.
-- Fix ONLY what is broken by the error above. Do not touch working parts.
-- If a lucide-react icon is missing/crashing: replace with Activity or Zap.
+- Return ONLY the corrected snippet. No fences. No explanation.
+- Fix the minimal amount of code to resolve the error.
+- If a lucide-react icon crashes: replace with Activity or TrendingUp.
 - If a recharts component crashes: replace with a simpler valid equivalent.
 - Remove any import that references a non-existent package.
-- Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
+- Never rewrite the full component.`;
 
-  const fixed = await base44.integrations.Core.InvokeLLM({
-    model: MODELS.AUTOFIX, // gpt_5_mini — fast autofix
+  const fixedSection = await base44.integrations.Core.InvokeLLM({
+    model: MODELS.AUTOFIX,
     prompt: fixPrompt,
   });
 
-  return { patched: fixed, brokenSection: null, fixedSection: fixed };
+  // Step 3 — patch the fixed section back into the full code
+  let patched = fullCode;
+  if (brokenSection && fullCode.includes(brokenSection)) {
+    patched = fullCode.replace(brokenSection, fixedSection);
+  } else {
+    // Fallback: send full code to fix if extraction failed
+    const fallbackPrompt = `Fix this React component. Return the COMPLETE fixed component. No fences. No explanation.
+
+ERROR: ${errorMessage.slice(0, 400)}
+
+CODE:
+${fullCode}
+
+RULES: Fix only what's broken. Keep all layout and design intact. If a lucide icon crashes, replace with Activity. If recharts crashes, replace with simpler equivalent. Output raw JSX only.`;
+    patched = await base44.integrations.Core.InvokeLLM({
+      model: MODELS.AUTOFIX,
+      prompt: fallbackPrompt,
+    });
+  }
+
+  return { patched, brokenSection, fixedSection };
 }
 
 // ─────────────────────────────────────────────
