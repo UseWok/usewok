@@ -60,11 +60,15 @@ export async function createConversationInCloud(convId, title = 'New Chat') {
  */
 export async function syncToCloud(convId, messages, meta = {}) {
   try {
-    // Serialize messages but strip rawContent from each message to keep messages_json small
-    // rawContent is stored separately in raw_content field
-    const msgsForStorage = messages.map(m => {
-      if (m.role === 'assistant' && m.rawContent) {
-        const { rawContent, ...rest } = m;
+    const rawContent = meta.rawContent || null;
+
+    // Keep rawContent embedded in the last assistant message so it's always recoverable
+    // even if raw_content field is wiped/missing
+    const msgsForStorage = messages.map((m, idx) => {
+      const isLastAssistant = m.role === 'assistant' && idx === messages.length - 1;
+      if (m.role === 'assistant' && m.rawContent && !isLastAssistant) {
+        // Strip rawContent from all but the last assistant message to save space
+        const { rawContent: _rc, ...rest } = m;
         return rest;
       }
       return m;
@@ -77,12 +81,23 @@ export async function syncToCloud(convId, messages, meta = {}) {
       preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
     };
 
-    // Always save the latest rawContent (the preview code) if provided
-    if (meta.rawContent) {
-      data.raw_content = meta.rawContent;
+    // Always save rawContent — upload as file if > 400KB to avoid field size limits
+    if (rawContent) {
+      if (rawContent.length > 400_000) {
+        try {
+          const blob = new Blob([rawContent], { type: 'text/plain' });
+          const file = new File([blob], 'raw_content.jsx', { type: 'text/plain' });
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          data.raw_content_url = file_url;
+          data.raw_content = rawContent.slice(0, 400_000); // partial fallback
+        } catch {
+          data.raw_content = rawContent.slice(0, 400_000);
+        }
+      } else {
+        data.raw_content = rawContent;
+      }
     }
 
-    // Only set is_public if explicitly passed, never override
     if (meta.is_public !== undefined) data.is_public = meta.is_public;
 
     const results = await base44.entities.Conversation.filter({ conv_id: convId });
@@ -114,7 +129,14 @@ export async function loadFromCloud(convId) {
     if (record.created_by_id && record.created_by_id !== me.id) return null;
 
     const messages = record.messages_json ? JSON.parse(record.messages_json) : [];
-    const rawContent = record.raw_content || null;
+
+    // Primary: raw_content field. Fallback: embedded in last assistant message.
+    let rawContent = record.raw_content || null;
+    if (!rawContent && messages.length > 0) {
+      const lastWithCode = [...messages].reverse().find(m => m.role === 'assistant' && m.rawContent);
+      if (lastWithCode) rawContent = lastWithCode.rawContent;
+    }
+
     const rawContentUrl = record.raw_content_url || null;
     const thumbnailUrl = record.thumbnail_url || null;
 
