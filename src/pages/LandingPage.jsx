@@ -215,10 +215,18 @@ function Hero({ onCta }) {
   return (
     <section style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 40px 80px', position: 'relative', overflow: 'hidden' }}>
 
-      {/* Very subtle single horizon line */}
-      <div style={{ position: 'absolute', bottom: '38%', left: 0, right: 0, height: 1, background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+      {/* Background landscape image */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 0,
+        backgroundImage: `url("https://media.base44.com/images/public/6a2edc91082e534601118582/9830084bd_Sanstitre.jpg")`,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        filter: 'blur(2px) brightness(0.35)',
+        transform: 'scale(1.05)',
+      }} />
+      {/* Bottom fade to BG */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: `linear-gradient(to bottom, transparent, ${BG})`, zIndex: 1, pointerEvents: 'none' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 900, margin: '0 auto' }}>
 
         {/* Label */}
         <motion.div
@@ -291,38 +299,36 @@ function Hero({ onCta }) {
         </motion.div>
       </div>
 
-      {/* Interface cards floating below */}
+      {/* Hero screenshot image — 50% screen width */}
       <motion.div
         id="interfaces"
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.1, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          position: 'relative', zIndex: 1,
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-          gap: 20, marginTop: 80, flexWrap: 'wrap',
+          position: 'relative', zIndex: 2,
+          marginTop: 72,
+          width: '50vw', maxWidth: 800, minWidth: 320,
         }}
       >
-        <div style={{ marginTop: 24 }}>
-          <InterfaceCard
-            url="https://wok-co.base44.app/p/conv_1781371421484"
-            label="Financial simulator"
-            delay={1.2}
-            rotation={-3}
+        <div style={{
+          borderRadius: 16, overflow: 'hidden',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
+        }}>
+          <img
+            src="https://media.base44.com/images/public/6a2edc91082e534601118582/32e59afe8_image.png"
+            alt="WOK interface preview"
+            style={{ width: '100%', height: 'auto', display: 'block' }}
           />
-        </div>
-        <div style={{ marginTop: -24 }}>
-          <InterfaceCard
-            url="https://wok-co.base44.app/p/conv_1781438064546"
-            label="AI diagnostic tool"
-            delay={1.35}
-            rotation={3}
-          />
+          {/* Bottom blur fade */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
+            background: `linear-gradient(to bottom, transparent, ${BG})`,
+            pointerEvents: 'none',
+          }} />
         </div>
       </motion.div>
-
-      {/* Scroll fade */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(to bottom, transparent, #0A0A0A)', pointerEvents: 'none' }} />
     </section>
   );
 }
