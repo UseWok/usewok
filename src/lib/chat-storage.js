@@ -87,32 +87,33 @@ export async function syncToCloud(convId, messages, meta = {}) {
       preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
     };
 
-    // Upload messages_json as file if too large (> 200KB)
-    if (msgsJson.length > 200_000) {
+    // Upload messages_json as file if too large (> 80KB — field DB limit is ~100KB)
+    if (msgsJson.length > 80_000) {
       try {
         const blob = new Blob([msgsJson], { type: 'application/json' });
         const file = new File([blob], 'messages.json', { type: 'application/json' });
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        data.raw_content_url = file_url; // reuse url field for messages fallback
-        data.messages_json = msgsJson.slice(0, 200_000); // partial fallback
+        data.messages_json_url = file_url;
+        data.messages_json = msgsJson.slice(0, 80_000); // partial fallback
       } catch {
-        data.messages_json = msgsJson.slice(0, 200_000);
+        data.messages_json = msgsJson.slice(0, 80_000);
       }
     } else {
       data.messages_json = msgsJson;
     }
 
-    // Save rawContent — upload as file if > 300KB
+    // Save rawContent — upload as file if > 80KB (field DB limit is ~100KB)
     if (rawContent) {
-      if (rawContent.length > 300_000) {
+      if (rawContent.length > 80_000) {
         try {
           const blob = new Blob([rawContent], { type: 'text/plain' });
           const file = new File([blob], 'raw_content.jsx', { type: 'text/plain' });
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           data.raw_content_url = file_url;
-          data.raw_content = rawContent.slice(0, 300_000);
+          // Store a small stub so we know content exists but is in the URL
+          data.raw_content = rawContent.slice(0, 500);
         } catch {
-          data.raw_content = rawContent.slice(0, 300_000);
+          data.raw_content = rawContent.slice(0, 80_000);
         }
       } else {
         data.raw_content = rawContent;
