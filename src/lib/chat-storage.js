@@ -102,21 +102,18 @@ export async function syncToCloud(convId, messages, meta = {}) {
       data.messages_json = msgsJson;
     }
 
-    // Save rawContent — upload as file if > 80KB (field DB limit is ~100KB)
+    // Save rawContent — always upload as file (raw_content field has a very low limit)
     if (rawContent) {
-      if (rawContent.length > 80_000) {
-        try {
-          const blob = new Blob([rawContent], { type: 'text/plain' });
-          const file = new File([blob], 'raw_content.jsx', { type: 'text/plain' });
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          data.raw_content_url = file_url;
-          // Store a small stub so we know content exists but is in the URL
-          data.raw_content = rawContent.slice(0, 500);
-        } catch {
-          data.raw_content = rawContent.slice(0, 80_000);
-        }
-      } else {
-        data.raw_content = rawContent;
+      try {
+        const blob = new Blob([rawContent], { type: 'text/plain' });
+        const file = new File([blob], 'raw_content.jsx', { type: 'text/plain' });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        data.raw_content_url = file_url;
+        // Do NOT write raw_content inline — it will exceed the field size limit
+        data.raw_content = '';
+      } catch {
+        // Upload failed — store truncated inline as last resort
+        data.raw_content = rawContent.slice(0, 10_000);
       }
     }
 
