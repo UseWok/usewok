@@ -62,36 +62,57 @@ export async function syncToCloud(convId, messages, meta = {}) {
   try {
     const rawContent = meta.rawContent || null;
 
-    // Keep rawContent embedded in the last assistant message so it's always recoverable
-    // even if raw_content field is wiped/missing
-    const msgsForStorage = messages.map((m, idx) => {
-      const isLastAssistant = m.role === 'assistant' && idx === messages.length - 1;
-      if (m.role === 'assistant' && m.rawContent && !isLastAssistant) {
-        // Strip rawContent from all but the last assistant message to save space
+    // Strip rawContent from all messages — stored separately in raw_content field
+    // This keeps messages_json small and prevents the 400KB field size error
+    const msgsForStorage = messages.map(m => {
+      if (m.role === 'assistant' && m.rawContent) {
         const { rawContent: _rc, ...rest } = m;
         return rest;
       }
       return m;
     });
 
+    // Truncate content field in messages to avoid bloat (keep only first 500 chars per message)
+    const msgsCompact = msgsForStorage.map(m => {
+      if (m.role === 'assistant' && typeof m.content === 'string' && m.content.length > 500) {
+        return { ...m, content: m.content.slice(0, 500) };
+      }
+      return m;
+    });
+
+    const msgsJson = JSON.stringify(msgsCompact);
     const data = {
       conv_id: convId,
-      messages_json: JSON.stringify(msgsForStorage),
       title: meta.title || 'New Chat',
       preview: meta.preview || (messages[messages.length - 1]?.content || '').slice(0, 120),
     };
 
-    // Always save rawContent — upload as file if > 400KB to avoid field size limits
+    // Upload messages_json as file if too large (> 200KB)
+    if (msgsJson.length > 200_000) {
+      try {
+        const blob = new Blob([msgsJson], { type: 'application/json' });
+        const file = new File([blob], 'messages.json', { type: 'application/json' });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        data.raw_content_url = file_url; // reuse url field for messages fallback
+        data.messages_json = msgsJson.slice(0, 200_000); // partial fallback
+      } catch {
+        data.messages_json = msgsJson.slice(0, 200_000);
+      }
+    } else {
+      data.messages_json = msgsJson;
+    }
+
+    // Save rawContent — upload as file if > 300KB
     if (rawContent) {
-      if (rawContent.length > 400_000) {
+      if (rawContent.length > 300_000) {
         try {
           const blob = new Blob([rawContent], { type: 'text/plain' });
           const file = new File([blob], 'raw_content.jsx', { type: 'text/plain' });
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           data.raw_content_url = file_url;
-          data.raw_content = rawContent.slice(0, 400_000); // partial fallback
+          data.raw_content = rawContent.slice(0, 300_000);
         } catch {
-          data.raw_content = rawContent.slice(0, 400_000);
+          data.raw_content = rawContent.slice(0, 300_000);
         }
       } else {
         data.raw_content = rawContent;

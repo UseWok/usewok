@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ThinkingStream, ThinkingAccordion } from './ThinkingUI';
+import { ThinkingAccordion } from './ThinkingUI';
+import ThinkingSteps from './ThinkingSteps';
 
 // ── Inject keyframes once ──
 let _injected = false;
@@ -117,8 +118,8 @@ export default function AssistantMessage({ content, isGenerating, query, rawCont
     }
   }, [isGenerating, localGenerating]);
 
-  // While generating → show thinking stream in real time
-  if (localGenerating) return <ThinkingStream text={streamingThinking || ''} />;
+  // While generating → show ThinkingSteps (no thinking text)
+  if (localGenerating) return <ThinkingSteps isLoading={true} text={query || ''} />;
   if (!content) return null;
 
   const safeText = typeof content === 'string' ? content : JSON.stringify(content);

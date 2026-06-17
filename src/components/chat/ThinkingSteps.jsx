@@ -7,104 +7,171 @@ const FG = '#0A0A0A';
 const YUZU = '#DDFF00';
 const CORAL = '#FF4F00';
 
-// ── Step pools by category ───────────────────────────────────────────────────
-const STEP_POOLS = {
-  investment: [
-    { label: 'Parsing your investment intent', type: 'check' },
-    { label: 'Loading market knowledge base', type: 'check' },
-    { label: 'Retrieving historical return data', type: 'check' },
-    { label: 'Profiling your risk tolerance', type: 'check' },
-    { label: 'Selecting optimal asset classes', type: 'check' },
-    { label: 'Cross-checking allocation rules', type: 'correct' },
-    { label: 'Running 10-year compound projections', type: 'check' },
-    { label: 'Stress-testing worst-case scenarios', type: 'check' },
-    { label: 'Adjusting for inflation & tax drag', type: 'correct' },
-    { label: 'Benchmarking against global ETF data', type: 'check' },
-    { label: 'Filtering actionable recommendations', type: 'check' },
-    { label: 'Structuring final response', type: 'check' },
+// ── 10 variants per step — random pick at runtime ────────────────────────────
+const STEP_VARIANTS = {
+  parsing: [
+    'Parsing your request',
+    'Reading your message',
+    'Understanding your intent',
+    'Analysing the request',
+    'Decoding your query',
+    'Processing your input',
+    'Interpreting the prompt',
+    'Scanning your message',
+    'Breaking down the request',
+    'Extracting key intent',
   ],
-  budget: [
-    { label: 'Reading your financial context', type: 'check' },
-    { label: 'Mapping income vs. expense patterns', type: 'check' },
-    { label: 'Identifying compressible spending', type: 'check' },
-    { label: 'Calculating savings capacity', type: 'check' },
-    { label: 'Checking 50/30/20 rule alignment', type: 'correct' },
-    { label: 'Modeling budget rebalance scenarios', type: 'check' },
-    { label: 'Prioritizing guilt-free spending zones', type: 'check' },
-    { label: 'Validating emergency fund runway', type: 'correct' },
-    { label: 'Generating monthly optimization plan', type: 'check' },
-    { label: 'Formatting actionable next steps', type: 'check' },
+  loading_kb: [
+    'Loading knowledge base',
+    'Fetching relevant context',
+    'Loading domain knowledge',
+    'Pulling up related data',
+    'Accessing knowledge store',
+    'Retrieving context layers',
+    'Hydrating context window',
+    'Loading reference data',
+    'Activating knowledge graph',
+    'Connecting to knowledge base',
   ],
-  debt: [
-    { label: 'Detecting debt-related signals', type: 'check' },
-    { label: 'Mapping active debt obligations', type: 'check' },
-    { label: 'Computing total interest cost', type: 'check' },
-    { label: 'Running avalanche strategy model', type: 'check' },
-    { label: 'Running snowball strategy model', type: 'check' },
-    { label: 'Comparing payoff timelines', type: 'correct' },
-    { label: 'Estimating financial freedom date', type: 'check' },
-    { label: 'Checking refinancing options', type: 'check' },
-    { label: 'Prioritizing highest-impact actions', type: 'correct' },
-    { label: 'Building personalized debt roadmap', type: 'check' },
-    { label: 'Formatting step-by-step action plan', type: 'check' },
+  mapping: [
+    'Mapping relevant concepts',
+    'Connecting the dots',
+    'Building concept graph',
+    'Linking key ideas',
+    'Structuring the context',
+    'Organizing key concepts',
+    'Tracing concept paths',
+    'Anchoring core ideas',
+    'Building mental model',
+    'Aligning concepts to query',
   ],
-  realestate: [
-    { label: 'Analyzing real estate question', type: 'check' },
-    { label: 'Loading property market benchmarks', type: 'check' },
-    { label: 'Calculating borrowing capacity', type: 'check' },
-    { label: 'Running rent vs. buy comparison', type: 'check' },
-    { label: 'Computing gross & net rental yield', type: 'correct' },
-    { label: 'Assessing leverage effect', type: 'check' },
-    { label: 'Estimating transaction costs & taxes', type: 'check' },
-    { label: 'Projecting 10-year property value', type: 'check' },
-    { label: 'Cross-validating with local data', type: 'correct' },
-    { label: 'Summarizing key decision criteria', type: 'check' },
-    { label: 'Writing personalized recommendation', type: 'check' },
+  checking: [
+    'Checking data accuracy',
+    'Verifying assumptions',
+    'Running consistency check',
+    'Cross-checking references',
+    'Validating data points',
+    'Auditing key facts',
+    'Confirming data integrity',
+    'Double-checking sources',
+    'Applying accuracy filter',
+    'Running fact-check pass',
   ],
-  document: [
-    { label: 'Extracting document content', type: 'check' },
-    { label: 'Identifying financial figures', type: 'check' },
-    { label: 'Normalizing data format', type: 'check' },
-    { label: 'Launching 578 parallel simulations', type: 'check' },
-    { label: 'Detecting hidden opportunities', type: 'correct' },
-    { label: 'Validating assumptions (pass 1/3)', type: 'check' },
-    { label: 'Validating assumptions (pass 2/3)', type: 'check' },
-    { label: 'Validating assumptions (pass 3/3)', type: 'check' },
-    { label: 'Computing best-case scenario (85% confidence)', type: 'correct' },
-    { label: 'Isolating top 3 actionable insights', type: 'check' },
-    { label: 'Structuring synthesis', type: 'check' },
-    { label: 'Finalizing answer', type: 'check' },
+  cross_validating: [
+    'Running cross-validation pass',
+    'Cross-referencing outputs',
+    'Comparing approaches',
+    'Stress-testing assumptions',
+    'Validating via second pass',
+    'Triangulating the answer',
+    'Checking for blind spots',
+    'Running sanity check',
+    'Applying validation layer',
+    'Re-checking edge cases',
   ],
-  greeting: [
-    { label: 'Reading your message', type: 'check' },
-    { label: 'Preparing a warm reply', type: 'check' },
+  insights: [
+    'Identifying key insights',
+    'Extracting top signals',
+    'Surfacing key patterns',
+    'Finding critical points',
+    'Distilling key findings',
+    'Isolating high-value info',
+    'Picking top 3 insights',
+    'Highlighting what matters',
+    'Extracting action signals',
+    'Ranking key takeaways',
   ],
-  default: [
-    { label: 'Parsing your message', type: 'check' },
-    { label: 'Loading financial knowledge base', type: 'check' },
-    { label: 'Mapping relevant concepts', type: 'check' },
-    { label: 'Checking data accuracy', type: 'correct' },
-    { label: 'Running cross-validation pass', type: 'check' },
-    { label: 'Identifying key insights', type: 'check' },
-    { label: 'Filtering noise from signal', type: 'check' },
-    { label: 'Structuring optimal response', type: 'correct' },
-    { label: 'Applying personalization layer', type: 'check' },
-    { label: 'Formatting final answer', type: 'check' },
+  filtering: [
+    'Filtering noise from signal',
+    'Removing irrelevant data',
+    'Pruning low-quality paths',
+    'Discarding weak signals',
+    'Focusing on what matters',
+    'Cutting through the noise',
+    'Keeping only the essential',
+    'Distilling signal vs noise',
+    'Applying relevance filter',
+    'Stripping filler content',
+  ],
+  structuring: [
+    'Structuring optimal response',
+    'Drafting response layout',
+    'Organizing the answer',
+    'Building response outline',
+    'Designing response flow',
+    'Arranging key sections',
+    'Formatting the answer',
+    'Composing response structure',
+    'Setting up answer layers',
+    'Creating response scaffold',
+  ],
+  personalizing: [
+    'Applying personalization layer',
+    'Tailoring to your context',
+    'Adapting tone and depth',
+    'Tuning for your profile',
+    'Adding personal touches',
+    'Calibrating to your needs',
+    'Aligning with your goals',
+    'Customizing the response',
+    'Matching your context',
+    'Adjusting for your case',
+  ],
+  finalizing: [
+    'Formatting final answer',
+    'Polishing the response',
+    'Finalizing the output',
+    'Preparing the answer',
+    'Wrapping up the response',
+    'Packaging the insights',
+    'Delivering the final result',
+    'Completing the response',
+    'Assembling final output',
+    'Sending your answer',
+  ],
+  // Correction-type steps (shown with RotateCcw icon)
+  correcting: [
+    'Re-checking assumptions',
+    'Re-validating key steps',
+    'Adjusting for edge cases',
+    'Revisiting approach',
+    'Correcting inconsistencies',
+    'Patching the logic path',
+    'Refining the model',
+    'Applying correction pass',
+    'Fixing detected issues',
+    'Re-running validation',
   ],
 };
 
-function detectCategory(text = '', hasFiles = false) {
-  if (hasFiles) return 'document';
-  const t = text.toLowerCase();
-  if (/investis|etf|bourse|action|crypto|portefeuille|dividende|rendement|invest/.test(t)) return 'investment';
-  if (/budget|dépense|charge|loyer|salaire|revenu|économis|épargn|spend|income|expense/.test(t)) return 'budget';
-  if (/dette|crédit|remboursement|prêt|intérêt|endett|debt|loan/.test(t)) return 'debt';
-  if (/immobilier|appartement|maison|achat|locatif|emprunt|real estate|property/.test(t)) return 'realestate';
-  if (/bonjour|salut|merci|ok|ciao|hello|ça va|bonne|hi |hey /.test(t)) return 'greeting';
-  return 'default';
+// Pick a random variant from a pool
+function pick(pool) {
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
-// step status: 'pending' | 'active' | 'correcting' | 'done'
+// ── Step definition: { type: keyof STEP_VARIANTS, isCorrection?: true } ──────
+const STEP_SEQUENCE = [
+  { key: 'parsing' },
+  { key: 'loading_kb' },
+  { key: 'mapping' },
+  { key: 'checking', isCorrection: true },
+  { key: 'cross_validating' },
+  { key: 'insights' },
+  { key: 'filtering' },
+  { key: 'structuring', isCorrection: true },
+  { key: 'personalizing' },
+  { key: 'finalizing' },
+];
+
+// Build a randomized step list once per session
+function buildSteps() {
+  return STEP_SEQUENCE.map(s => ({
+    label: pick(STEP_VARIANTS[s.isCorrection ? 'correcting' : s.key]),
+    type: s.isCorrection ? 'correct' : 'check',
+  }));
+}
+
+// ── StepRow ───────────────────────────────────────────────────────────────────
 function StepRow({ step, status, index }) {
   return (
     <motion.div
@@ -113,7 +180,6 @@ function StepRow({ step, status, index }) {
       transition={{ delay: index * 0.04, duration: 0.22 }}
       className="flex items-center gap-2.5 py-[3px]"
     >
-      {/* Icon */}
       <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
         {status === 'done' && (
           <motion.div
@@ -147,7 +213,6 @@ function StepRow({ step, status, index }) {
         )}
       </div>
 
-      {/* Label */}
       <span
         className="text-[12px] font-medium leading-tight"
         style={{
@@ -159,7 +224,6 @@ function StepRow({ step, status, index }) {
         {step.label}
       </span>
 
-      {/* Correction badge */}
       {status === 'correcting' && (
         <motion.span
           initial={{ opacity: 0, scale: 0.8 }}
@@ -174,9 +238,12 @@ function StepRow({ step, status, index }) {
   );
 }
 
+// ── Main component ────────────────────────────────────────────────────────────
 export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, useWebSearch = false }) {
-  const category = detectCategory(text, hasFiles);
-  const steps = STEP_POOLS[category];
+  // Build randomized steps once per load — stable ref
+  const stepsRef = useRef(null);
+  if (!stepsRef.current) stepsRef.current = buildSteps();
+  const steps = stepsRef.current;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [phase, setPhase] = useState('active');
@@ -185,11 +252,12 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
 
   useEffect(() => {
     if (!isLoading) return;
+    // Rebuild steps on each new load
+    stepsRef.current = buildSteps();
     setCurrentStep(0);
     setPhase('active');
     correctionLockRef.current = false;
 
-    // Advance a step every ~900ms — fast enough to feel busy
     timerRef.current = setInterval(() => {
       setCurrentStep(prev => {
         const next = prev + 1;
@@ -197,7 +265,6 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
           clearInterval(timerRef.current);
           return prev;
         }
-        // Trigger correction animation on 'correct' type steps
         if (steps[prev]?.type === 'correct' && !correctionLockRef.current) {
           correctionLockRef.current = true;
           setPhase('correcting');
@@ -224,18 +291,16 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
       exit={{ opacity: 0 }}
       className="flex gap-3 justify-start"
     >
-      {/* Logo */}
       <img
         src={LOGO_URL}
-        alt="Stensor"
+        alt="WOK"
         className="w-6 h-6 object-contain flex-shrink-0 mt-1"
         style={{ opacity: 0.7 }}
       />
 
       <div className="flex flex-col gap-1.5 max-w-[82%]">
-        {/* Header label */}
         <div className="flex items-center gap-1.5 px-1">
-          <p className="text-[11px] font-black" style={{ color: FG }}>Stensor</p>
+          <p className="text-[11px] font-black" style={{ color: FG }}>WOK</p>
           <motion.span
             animate={{ opacity: [0.35, 1, 0.35] }}
             transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
@@ -246,7 +311,6 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
           </motion.span>
         </div>
 
-        {/* Web search badge */}
         {useWebSearch && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -264,12 +328,10 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
           </motion.div>
         )}
 
-        {/* Card — NO left border */}
         <div
           className="bg-white border border-border rounded-sm shadow-sm px-4 py-3"
           style={{ minWidth: '260px' }}
         >
-          {/* Progress header */}
           <div className="flex items-center gap-2 mb-3 pb-2">
             <motion.div
               animate={{ rotate: 360 }}
@@ -285,7 +347,6 @@ export default function ThinkingSteps({ isLoading, text = '', hasFiles = false, 
             </span>
           </div>
 
-          {/* Steps */}
           <div className="space-y-0.5">
             {steps.map((step, i) => {
               let status = 'pending';
