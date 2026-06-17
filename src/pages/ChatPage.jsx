@@ -1052,6 +1052,7 @@ export default function ChatPage() {
                   onUnpublish={handleUnpublishApp}
                   customSlug={customSlug}
                   onUpdateContent={setFicheContent}
+                  user={user}
                 />
               ) : isLoading && messages.length === 0 ? (
                 <PreviewLoadingFeature />
@@ -1108,7 +1109,7 @@ export default function ChatPage() {
         {mobileView === 'preview' && (
           <div className="flex-1 overflow-hidden relative bg-black">
             <EditModeOverlay active={editMode} onDisable={() => setEditMode(false)} />
-            {ficheContent && <FichePanel content={ficheContent} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} setViewMode={setViewMode} appSettings={appSettings} onUpdateSettings={handleUpdateAppMeta} onClone={handleCloneApp} onDelete={handleDeleteApp} onUnpublish={handleUnpublishApp} customSlug={customSlug} onUpdateContent={setFicheContent} />}
+            {ficheContent && <FichePanel content={ficheContent} onError={setRuntimeError} onSuccess={() => setRuntimeError(null)} isPublic={false} viewMode={viewMode} setViewMode={setViewMode} appSettings={appSettings} onUpdateSettings={handleUpdateAppMeta} onClone={handleCloneApp} onDelete={handleDeleteApp} onUnpublish={handleUnpublishApp} customSlug={customSlug} onUpdateContent={setFicheContent} user={user} />}
           </div>
         )}
       </div>

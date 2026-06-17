@@ -1,17 +1,21 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2, Pencil } from 'lucide-react';
+import { Settings, Copy, AlertTriangle, Trash2, LayoutDashboard, Share2, ExternalLink, Sparkles, Code2, FileCode, CheckCircle2, Pencil, Lock, Download, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import VisualEditorToolbar from './VisualEditorToolbar';
+import { getPlanFeatures } from '@/lib/plans-config';
 
 const LOGO_URL = 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png';
 
 // ─────────────────────────────────────────────
 // CODE EDITOR PANEL (DARK THEME - #0F0F0F)
 // ─────────────────────────────────────────────
-const CodeEditorPanel = ({ code, onUpdateContent }) => {
+const CodeEditorPanel = ({ code, onUpdateContent, user }) => {
+  const planFeatures = getPlanFeatures(user);
+  const canEdit = !!(planFeatures?.code_editor);
+
   const [editedCode, setEditedCode] = useState(code || '');
   const [savedCode, setSavedCode] = useState(code || '');
   const textareaRef = useRef(null);
@@ -24,9 +28,9 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
     setSavedCode(code || '');
   }, [code]);
 
-  const hasChanges = editedCode !== savedCode;
+  const hasChanges = canEdit && editedCode !== savedCode;
 
-  const handleChange = (e) => setEditedCode(e.target.value);
+  const handleChange = (e) => { if (canEdit) setEditedCode(e.target.value); };
 
   const handleScroll = useCallback(() => {
     if (lineNumbersRef.current && textareaRef.current) {
@@ -35,6 +39,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
   }, []);
 
   const handleSave = () => {
+    if (!canEdit) return;
     setSavedCode(editedCode);
     if (onUpdateContent) onUpdateContent(editedCode);
     toast.success('Code saved — preview updated.');
@@ -44,6 +49,7 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
 
   // Tab key inserts spaces instead of moving focus
   const handleKeyDown = (e) => {
+    if (!canEdit) return;
     if (e.key === 'Tab') {
       e.preventDefault();
       const { selectionStart, selectionEnd, value } = e.target;
@@ -122,7 +128,14 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             <span className="text-[10px] text-slate-500 font-mono">{label}</span>
           </div>
         ))}
-        <span className="ml-auto text-[10px] text-slate-500 font-mono">⌘S / Ctrl+S to save</span>
+        {canEdit ? (
+          <span className="ml-auto text-[10px] text-slate-500 font-mono">⌘S / Ctrl+S to save</span>
+        ) : (
+          <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: '#F97316' }}>
+            <Lock style={{ width: 10, height: 10 }} />
+            Read-only — Starter+ to edit
+          </span>
+        )}
       </div>
 
       {/* ── Editor body ── */}
@@ -175,12 +188,15 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
             onChange={handleChange}
             onScroll={handleScroll}
             onKeyDown={handleKeyDown}
+            readOnly={!canEdit}
             className="flex-1 bg-[#0F0F0F] text-[#E2E8F0] resize-none outline-none overflow-auto py-4 px-4 text-[13px] leading-none"
             style={{
               lineHeight: `${LINE_H}px`,
-              caretColor: '#0055FF',
+              caretColor: canEdit ? '#0055FF' : 'transparent',
               tabSize: 2,
               fontFamily: '"Fira Code", "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, monospace',
+              userSelect: 'text',
+              cursor: canEdit ? 'text' : 'default',
             }}
             spellCheck={false}
             autoComplete="off"
@@ -222,6 +238,66 @@ const CodeEditorPanel = ({ code, onUpdateContent }) => {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+};
+
+
+// ─────────────────────────────────────────────
+// EXPORT ZIP MODAL
+// ─────────────────────────────────────────────
+const ExportZipModal = ({ open, onClose, onConfirm, canExport }) => {
+  if (!open) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 8 }}
+        transition={{ duration: 0.16 }}
+        onClick={e => e.stopPropagation()}
+        style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 16, padding: 28, width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.7)', fontFamily: 'Inter, sans-serif' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: canExport ? '#1C2A1A' : '#2A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {canExport ? <Archive style={{ width: 20, height: 20, color: '#22C55E' }} /> : <Lock style={{ width: 20, height: 20, color: '#F97316' }} />}
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Exporter en ZIP</div>
+            <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>{canExport ? 'Télécharger le code source complet' : 'Fonctionnalité payante'}</div>
+          </div>
+        </div>
+
+        {canExport ? (
+          <>
+            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6, marginBottom: 20 }}>
+              L'export inclut <strong style={{ color: '#ccc' }}>index.html</strong>, <strong style={{ color: '#ccc' }}>app.jsx</strong> et un <strong style={{ color: '#ccc' }}>README.md</strong>. L'app est autonome — elle s'ouvre directement dans un navigateur sans serveur.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={onClose} style={{ flex: 1, padding: '10px 0', background: '#2A2A2A', border: 'none', borderRadius: 8, color: '#aaa', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => { onConfirm(); onClose(); }} style={{ flex: 1, padding: '10px 0', background: '#22C55E', border: 'none', borderRadius: 8, color: '#000', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Download style={{ width: 14, height: 14 }} /> Télécharger
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ background: '#2A1A0A', border: '1px solid #3A2A1A', borderRadius: 10, padding: '12px 14px', marginBottom: 20 }}>
+              <p style={{ fontSize: 13, color: '#F97316', fontWeight: 600, marginBottom: 6 }}>Plan Starter ou supérieur requis</p>
+              <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6 }}>
+                L'export ZIP est disponible à partir du plan <strong style={{ color: '#ccc' }}>Starter</strong> (€11.50/mois). Passez à niveau pour télécharger votre code source complet.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={onClose} style={{ flex: 1, padding: '10px 0', background: '#2A2A2A', border: 'none', borderRadius: 8, color: '#aaa', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Fermer</button>
+              <button onClick={() => { onClose(); window.location.href = '/pricing'; }} style={{ flex: 1, padding: '10px 0', background: 'linear-gradient(100deg, #FAF0E8 0%, #FBD5B0 45%, #F97240 100%)', border: 'none', borderRadius: 8, color: '#C45000', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Voir les plans →
+              </button>
+            </div>
+          </>
+        )}
+      </motion.div>
     </div>
   );
 };
@@ -489,9 +565,14 @@ export default function FichePanel({
   onDelete,
   onUnpublish,
   onUpdateContent,
+  user,
 }) {
+  const planFeatures = getPlanFeatures(user);
+  const canExportZip = !!(planFeatures?.zip_export);
+
   const [isCompiling, setIsCompiling] = useState(true);
   const [compiledCode, setCompiledCode] = useState({ html: '', css: '', js: '', rawComponent: '' });
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Sub-tab within dashboard ('overview' | 'code' | 'advanced')
   const [dashboardTab, setDashboardTab] = useState('overview');
@@ -517,10 +598,10 @@ export default function FichePanel({
 
   // Listen for export trigger from ChatHeader's ··· menu
   useEffect(() => {
-    const handler = () => handleExportZip();
+    const handler = () => setShowExportModal(true);
     window.addEventListener('wok_export_zip', handler);
     return () => window.removeEventListener('wok_export_zip', handler);
-  }, [content, compiledCode]);
+  }, []);
 
   const handleExportZip = async () => {
     setShowOptionsMenu(false);
@@ -879,6 +960,16 @@ Generated by WOK · ${new Date().toLocaleDateString()}
 
   return (
     <div className="w-full h-full relative font-sans overflow-hidden">
+      <AnimatePresence>
+        {showExportModal && (
+          <ExportZipModal
+            open={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            onConfirm={handleExportZip}
+            canExport={canExportZip}
+          />
+        )}
+      </AnimatePresence>
       {hasComponent ? (
         viewMode === 'preview' ? (
           <div className="w-full h-full relative bg-white overflow-hidden">
@@ -974,7 +1065,7 @@ Generated by WOK · ${new Date().toLocaleDateString()}
           </div>
 
         ) : viewMode === 'code' ? (
-          <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} />
+          <CodeEditorPanel code={content} onUpdateContent={onUpdateContent} user={user} />
         ) : (
           <AppDashboard
             settings={appSettings}
