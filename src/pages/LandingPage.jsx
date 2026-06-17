@@ -219,9 +219,10 @@ function Hero({ onCta }) {
       <div style={{
         position: 'absolute', inset: 0, zIndex: 0,
         backgroundImage: `url("https://media.base44.com/images/public/6a2edc91082e534601118582/ae0bcf9a2_x1.jpg")`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'saturate(1.3)',
-        transform: 'scale(1.05)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        imageRendering: 'high-quality',
+        transform: 'scale(1)',
       }} />
       {/* Bottom fade to BG */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: `linear-gradient(to bottom, transparent, ${BG})`, zIndex: 1, pointerEvents: 'none' }} />
