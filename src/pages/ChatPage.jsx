@@ -661,24 +661,10 @@ export default function ChatPage() {
         setIsAppPublished(!!cloud.is_public);
         setAppSettings(prev => ({ ...prev, isPublic: !!cloud.is_public }));
 
-        // 3. Restore preview content — try all sources in order of reliability
+        // 3. Restore preview content — loadFromCloud already fetched URL content
         let rawContent = cloud.rawContent;
 
-        // 3a. If stored as a URL (large content), fetch it
-        if (!rawContent && cloud.rawContentUrl) {
-          try {
-            const res = await fetch(cloud.rawContentUrl);
-            rawContent = await res.text();
-          } catch {}
-        }
-
-        // 3b. Fallback: extract from last assistant message with rawContent
-        if (!rawContent && safe.length > 0) {
-          const last = safe.filter(m => m.role === 'assistant' && m.rawContent).pop();
-          rawContent = last?.rawContent || null;
-        }
-
-        // 3c. Last resort: local localStorage
+        // Fallback: local localStorage
         if (!rawContent) {
           rawContent = localStorage.getItem(`fiche_${conversationId}`);
         }

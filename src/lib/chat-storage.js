@@ -150,16 +150,42 @@ export async function loadFromCloud(convId) {
     // Double-check ownership (RLS should already enforce this, but belt-and-suspenders)
     if (record.created_by_id && record.created_by_id !== me.id) return null;
 
-    const messages = record.messages_json ? JSON.parse(record.messages_json) : [];
+    // Load messages — if stored as URL (large payload), fetch the file
+    let messages = [];
+    if (record.messages_json_url) {
+      try {
+        const res = await fetch(record.messages_json_url);
+        messages = await res.json();
+      } catch {
+        messages = record.messages_json ? JSON.parse(record.messages_json) : [];
+      }
+    } else {
+      messages = record.messages_json ? JSON.parse(record.messages_json) : [];
+    }
 
-    // Primary: raw_content field. Fallback: embedded in last assistant message.
-    let rawContent = record.raw_content || null;
+    // Primary: raw_content_url (large content stored as file). Fallback: raw_content field.
+    let rawContent = null;
+    let rawContentUrl = null;
+
+    if (record.raw_content_url) {
+      rawContentUrl = record.raw_content_url;
+      try {
+        const res = await fetch(record.raw_content_url);
+        rawContent = await res.text();
+      } catch {}
+    }
+
+    // If no URL or fetch failed, use inline raw_content (only valid if it's not a truncated stub)
+    if (!rawContent && record.raw_content && record.raw_content.length > 500) {
+      rawContent = record.raw_content;
+    }
+
+    // Last resort: look in messages array
     if (!rawContent && messages.length > 0) {
       const lastWithCode = [...messages].reverse().find(m => m.role === 'assistant' && m.rawContent);
       if (lastWithCode) rawContent = lastWithCode.rawContent;
     }
 
-    const rawContentUrl = record.raw_content_url || null;
     const thumbnailUrl = record.thumbnail_url || null;
 
     return { messages, rawContent, rawContentUrl, thumbnailUrl, title: record.title, is_public: record.is_public };

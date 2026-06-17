@@ -15,7 +15,19 @@ export function useCredits(user) {
     loading: true,
   });
 
-  // Fetch initial value from backend
+  // Sync from user prop whenever it changes (e.g. after deductCredits updates ChatPage state)
+  useEffect(() => {
+    if (typeof user?.credits_used === 'number') {
+      setCredits(prev => ({
+        ...prev,
+        used: user.credits_used,
+        limit: user.credits_limit ?? prev.limit,
+        resetAt: user.credits_reset_at ?? prev.resetAt,
+      }));
+    }
+  }, [user?.credits_used, user?.credits_limit]);
+
+  // Fetch authoritative value from backend on mount / user change
   useEffect(() => {
     fetchCreditsFromBackend().then(d => {
       if (d) {
