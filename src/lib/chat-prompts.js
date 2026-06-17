@@ -258,11 +258,19 @@ CODE QUALITY RULES
 - Google Fonts via @import at top when a distinctive typeface is needed.
 - All imports at top. Use only installed packages.
 
-REQUIRED IMPORTS (include all, tree-shake unused):
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useInView, useSpring } from 'framer-motion';
-import { ArrowRight, ArrowUpRight, CheckCircle2, Zap, Activity, Layers, Rocket, Brain, Target, Globe, Plus, TrendingUp, TrendingDown, BarChart2, Users, Star, ChevronRight, ChevronDown, Settings, Sparkles, Shield, Clock, Eye, Heart, Search, Filter, Bell, X, Play, Pause, RotateCcw } from 'lucide-react';
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, Legend } from 'recharts';
+IMPORT RULES — CRITICAL FOR IFRAME STABILITY:
+🚫 NEVER pre-import everything. Import ONLY what you actually USE in the component.
+🚫 NEVER import lucide-react icons you don't reference in JSX — each unused import risks a crash.
+🚫 NEVER import recharts components you don't render — the full bundle can timeout in the iframe.
+
+✅ Only import what is strictly needed. Examples:
+- If you use 3 icons: import { ArrowRight, Check, Star } from 'lucide-react';
+- If you use one chart: import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+- If you use basic motion: import { motion, AnimatePresence } from 'framer-motion';
+- Always include: import React, { useState } from 'react'; — add useEffect, useRef etc. only if used.
+
+SAFE ICON LIST (only use icons from this list):
+ArrowRight, ArrowUpRight, CheckCircle2, Zap, Activity, Layers, Rocket, Brain, Target, Globe, Plus, TrendingUp, TrendingDown, BarChart2, Users, Star, ChevronRight, ChevronDown, Settings, Sparkles, Shield, Clock, Eye, Heart, Search, Filter, Bell, X, Play, Pause, RotateCcw, Menu, Info, AlertCircle, Check, Download, Upload, Trash2, Edit, Copy, ExternalLink, Home, Lock, Mail, Phone, Calendar, Tag, Bookmark, Flag, Lightbulb, Award, Cpu, Database, Code, GitBranch, Wifi, Battery
 
 ══════════════════════════════════════
 FUNCTIONAL DEPTH — ZERO EMPTY STATES (non-negotiable):
