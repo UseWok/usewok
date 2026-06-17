@@ -218,7 +218,7 @@ function Hero({ onCta }) {
       {/* Background landscape image */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 0,
-        backgroundImage: `url("https://media.base44.com/images/public/6a2edc91082e534601118582/9830084bd_Sanstitre.jpg")`,
+        backgroundImage: `url("https://media.base44.com/images/public/6a2edc91082e534601118582/ae0bcf9a2_x1.jpg")`,
         backgroundSize: 'cover', backgroundPosition: 'center',
         filter: 'saturate(1.3)',
         transform: 'scale(1.05)',
