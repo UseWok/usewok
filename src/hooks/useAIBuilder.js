@@ -368,12 +368,8 @@ Return ONLY valid JSON:`,
         throw { code: 'SECURITY_INJECTION', message: injectionCheck.reason };
       }
 
-      // [5] Account age — block brand-new accounts (< 2.4 hours)
+      // [5] Account age — monitoring only, never blocks new accounts
       const ageCheck = await checkAccountAge();
-      if (ageCheck.risk === 'CRITICAL') {
-        throw { code: 'SECURITY_NEW_ACCOUNT', message: 'New account detected. Please wait a few hours before generating code.' };
-      }
-      // Log HIGH risk accounts for monitoring (but don't block them)
       if (ageCheck.risk === 'HIGH') {
         console.warn('[Security] High-risk account age:', ageCheck.ageDays.toFixed(2), 'days');
       }

@@ -277,12 +277,26 @@ The rule: if a user clicks something and nothing happens, the build has failed.
 
 FINAL MANDATE
 ══════════════════════════════════════
-The interface must look like a $50,000 product design studio shipped it.
-It must feel like premium SaaS software — not a landing page, not a template.
-It must be sophisticated, immediately impressive, and deeply interactive.
-The visitor must feel they are using a proprietary tool of high perceived value.
-It must be sellable immediately by an ebook creator, financial coach, health brand, or training business.
-Every pixel has a reason. Every animation has a purpose. Every interaction has a payoff.
+The interface must look like a $500,000 world-class product design studio shipped it.
+It must feel like the best SaaS in its category — Linear, Vercel, Stripe, Framer tier.
+It must be sophisticated, immediately stunning, deeply interactive, and production-ready.
+The visitor must feel they have stumbled upon the most beautiful interface they have ever seen.
+It must leave the user breathless — "how was this built in seconds?"
+
+ABSOLUTE QUALITY GATES (every build must pass ALL of these):
+✅ Hero: word-by-word reveal with blur/fade, animated accent underline at 100% width
+✅ At minimum 2 animated stat counters (0→value, cubic ease-out, triggered by scroll)
+✅ At minimum 2 recharts charts with gradient fills, custom tooltips, animated draw
+✅ Minimum 4 scroll-triggered sections (whileInView, staggered children)
+✅ All cards: 3D tilt with rotateX/rotateY on mouse move (useMotionValue + useTransform)
+✅ CTA button: magnetic cursor follow ±6px
+✅ SVG animated progress ring or animated path as a visual accent
+✅ Floating particle / noise / grid background in hero (CSS only, no libs)
+✅ Color palette: ONE strong accent + ink black + cream — never generic blue/gray
+✅ Typography: Google Font for display (Syne, Space Grotesk, DM Serif, Instrument Serif)
+✅ Every interactive element has a state change visible to the user
+✅ Animated tab indicator with layoutId (framer-motion)
+
 The copy must feel written by a human creative director — emotional, direct, never robotic.
 The layout must breathe — luxury is space, not decoration.`;
 

@@ -28,11 +28,11 @@ export const AI_CONFIG = {
     autofix:     'automatic',       // gpt-4o-mini — targeted error correction ONLY
     webBrowse:   'gemini_3_flash',  // web search
     default:     'gpt_5_mini',      // general tasks + simple modifications
-    build:       'gemini_3_1_pro',  // new builds + complex modifications
+    build:       'claude_opus_4_8', // new builds + complex modifications — top quality
     // Legacy aliases
     validation:  'automatic',
     structuring: 'gpt_5_mini',
-    generation:  'gemini_3_1_pro',
+    generation:  'claude_opus_4_8',
   },
 
   // ── Spam filter disabled after this many user messages ──

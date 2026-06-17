@@ -30,8 +30,8 @@ export const MODELS = {
   FILE_READ:   'automatic',          // gpt_4o_mini — file & image analysis
   WEB_BROWSE:  'gemini_3_flash',     // web search tasks
   DEFAULT:     'gpt_5_mini',         // all general tasks + simple modifications
-  BUILD:       'gemini_3_1_pro',     // Flash: new builds + complex modifications
-  BUILD_MAX:   'claude_sonnet_4_6',  // Max mode: Sonnet 4.6 exclusively
+  BUILD:       'claude_opus_4_8',    // Flash: new builds + complex modifications — top quality
+  BUILD_MAX:   'claude_opus_4_8',    // Max mode: same top model
 };
 
 // ─────────────────────────────────────────────
@@ -196,7 +196,7 @@ RULES:
 - Output ONLY raw JSX. No markdown fences. No explanation. No comments about the fix.`;
 
   const fixed = await base44.integrations.Core.InvokeLLM({
-    model: MODELS.DEFAULT, // gpt_5_mini — strict routing for all code corrections & bug fixes
+    model: MODELS.BUILD, // claude_opus_4_8 — best model for reliable error correction
     prompt: fixPrompt,
   });
 

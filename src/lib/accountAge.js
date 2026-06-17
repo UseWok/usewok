@@ -17,7 +17,7 @@
 import { base44 } from '@/api/base44Client';
 
 const THRESHOLDS = {
-  CRITICAL_DAYS: 0.1,  // 0.1 day = 2.4 hours
+  CRITICAL_DAYS: 0,    // 0 = disabled — no new-account blocking
   HIGH_DAYS: 1,        // 1 day
   MEDIUM_DAYS: 7,      // 1 week
 };
