@@ -29,43 +29,52 @@ function Navbar({ onLogin, onSignup }) {
   return (
     <header style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
-      height: 44, display: 'flex', alignItems: 'center',
-      padding: '0 24px', fontFamily: F,
-      background: 'rgba(15,15,15,0.85)', backdropFilter: 'blur(16px)',
-      borderBottom: `1px solid ${BORDER}`,
+      height: 48, display: 'flex', alignItems: 'center',
+      padding: '0 20px', fontFamily: F,
+      background: '#0D0D0D',
+      borderBottom: `1px solid rgba(255,255,255,0.06)`,
     }}>
       {/* Logo */}
-      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flexShrink: 0 }}>
+      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0, minWidth: 90 }}>
         <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
           <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="white"/>
           <path d="M0.133 12.646L5.354 17.867C5.527 17.951 5.724 17.963 5.912 17.888L0.112 12.088C0.037 12.276 0.049 12.473 0.133 12.646Z" fill="white"/>
           <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="white"/>
           <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/>
         </svg>
-        <span style={{ fontSize: 14, fontWeight: 600, color: T1, letterSpacing: '-0.01em' }}>Linear</span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: T1, letterSpacing: '-0.01em' }}>Linear</span>
       </a>
 
-      {/* Nav links */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 22, marginLeft: 40 }}>
-        {['Product','Resources','Customers','Pricing','Now','Contact'].map(l => (
-          <a key={l} href={l === 'Pricing' ? '/pricing' : '#'} style={{ fontSize: 13, fontWeight: 400, color: T2, textDecoration: 'none', transition: 'color 150ms' }}
+      <div style={{ flex: 1 }} />
+
+      {/* Nav links — centered */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        {[['Product','#'],['Resources','#'],['Customers','#'],['Pricing','/pricing'],['Now','#'],['Contact','#']].map(([l,h]) => (
+          <a key={l} href={h} style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 150ms', whiteSpace: 'nowrap' }}
             onMouseEnter={e => e.currentTarget.style.color = T1}
-            onMouseLeave={e => e.currentTarget.style.color = T2}>{l}</a>
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>{l}</a>
         ))}
       </nav>
 
       <div style={{ flex: 1 }} />
 
       {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <a href="#" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, minWidth: 90, justifyContent: 'flex-end' }}>
+        <a href="#" style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', whiteSpace: 'nowrap' }}
           onMouseEnter={e => e.currentTarget.style.color = T1}
-          onMouseLeave={e => e.currentTarget.style.color = T2}>Docs</a>
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>Docs</a>
         <button onClick={onSignup} style={{
           fontFamily: F, fontSize: 13, fontWeight: 500,
-          color: '#000', background: T1, border: 'none',
-          borderRadius: 6, padding: '6px 14px', cursor: 'pointer',
-        }}>Open app</button>
+          color: T1, background: 'transparent',
+          border: '1px solid rgba(255,255,255,0.22)',
+          borderRadius: 20, padding: '5px 16px', cursor: 'pointer',
+          transition: 'border-color 150ms',
+          whiteSpace: 'nowrap',
+        }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'}>
+          Open app
+        </button>
       </div>
     </header>
   );
