@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { LandingPricingLight } from './LandingPricingPage';
 
 const F = "'Inter', -apple-system, system-ui, sans-serif";
 const BG = '#0F0F0F';
@@ -969,6 +970,7 @@ export default function LandingPage() {
         <MonitorMock />
       </FeatureSection>
 
+      <LandingPricingLight onSignup={onSignup} />
       <Changelog />
       <Testimonials />
       <FinalCta onSignup={onSignup} />
