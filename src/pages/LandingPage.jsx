@@ -1,613 +1,378 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 
-// ── Tokens ──────────────────────────────────────────────────────────────────
-const CORAL  = '#F95738';
-const BG     = '#0A0A0A';
-const S = {
-  font: "'Space Grotesk', system-ui, sans-serif",
-};
+// ── Design tokens ──
+const BG = '#0A0A0A';
+const BG2 = '#111111';
+const BORDER = 'rgba(255,255,255,0.08)';
+const TEXT = '#FFFFFF';
+const MUTED = 'rgba(255,255,255,0.45)';
+const DIM = 'rgba(255,255,255,0.22)';
+const ACCENT = '#5B57F8'; // Linear purple
 
-// ── Inject Space Grotesk ──────────────────────────────────────────────────────
+// ── Font injection ──
 function FontLoader() {
   useEffect(() => {
+    if (document.getElementById('linear-font')) return;
     const l = document.createElement('link');
+    l.id = 'linear-font';
     l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap';
+    l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
     document.head.appendChild(l);
   }, []);
   return null;
 }
 
-// ── Magnetic button ───────────────────────────────────────────────────────────
-function MagneticButton({ children, onClick, style = {} }) {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 20 });
-  const sy = useSpring(y, { stiffness: 200, damping: 20 });
+const F = "'Inter', system-ui, sans-serif";
 
-  const onMove = (e) => {
-    const r = ref.current.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    x.set((e.clientX - cx) * 0.35);
-    y.set((e.clientY - cy) * 0.35);
-  };
-  const onLeave = () => { x.set(0); y.set(0); };
-
-  return (
-    <motion.button
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      onClick={onClick}
-      style={{ x: sx, y: sy, ...style }}
-      whileTap={{ scale: 0.96 }}
-    >
-      {children}
-    </motion.button>
-  );
-}
-
-// ── Cursor follower ───────────────────────────────────────────────────────────
-function CursorGlow() {
-  const x = useMotionValue(-200);
-  const y = useMotionValue(-200);
-  useEffect(() => {
-    const h = (e) => { x.set(e.clientX); y.set(e.clientY); };
-    window.addEventListener('mousemove', h);
-    return () => window.removeEventListener('mousemove', h);
-  }, []);
-  return (
-    <motion.div
-      style={{
-        position: 'fixed', top: 0, left: 0,
-        width: 400, height: 400,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(249,87,56,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-        translateX: '-50%', translateY: '-50%',
-        x, y,
-      }}
-    />
-  );
-}
-
-// ── Noise grain overlay ───────────────────────────────────────────────────────
-function Grain() {
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 999, pointerEvents: 'none', opacity: 0.025,
-      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-      backgroundSize: '160px 160px',
-    }} />
-  );
-}
-
-// ── Navbar ────────────────────────────────────────────────────────────────────
-function Navbar({ onCta }) {
+// ── Navbar ──
+function Navbar({ onLogin, onSignup }) {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 40);
+    const h = () => setScrolled(window.scrollY > 30);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        background: scrolled ? 'rgba(10,10,10,0.92)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(24px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
-        transition: 'all 0.4s ease',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png"
-          alt="WOK" style={{ width: 28, mixBlendMode: 'screen' }} />
-        <span style={{ fontFamily: S.font, fontSize: 15, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>WOK</span>
+    <header style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+      height: 56,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 32px',
+      background: scrolled ? 'rgba(10,10,10,0.94)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      borderBottom: scrolled ? `1px solid ${BORDER}` : '1px solid transparent',
+      transition: 'all 0.3s ease',
+      fontFamily: F,
+    }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+          <path d="M0 50C0 22.4 22.4 0 50 0s50 22.4 50 50-22.4 50-50 50S0 77.6 0 50z" fill="#5B57F8"/>
+          <path d="M15 15L85 85M15 85L85 15" stroke="white" strokeWidth="12" strokeLinecap="round"/>
+        </svg>
+        <span style={{ fontSize: 16, fontWeight: 700, color: TEXT, letterSpacing: '-0.02em' }}>Linear</span>
       </div>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-        {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs'], ['Blog', '/blog']].map(([l, h]) => (
-          <a key={l} href={h} style={{ fontFamily: S.font, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-          >{l}</a>
+
+      {/* Nav links */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }} className="hidden-mobile">
+        {[['Product', '#product'], ['Resources', '#features'], ['Customers', '#testimonials'], ['Pricing', '#pricing'], ['Now', '#now'], ['Contact', '#contact']].map(([label, href]) => (
+          <a key={label} href={href} style={{ fontSize: 14, fontWeight: 500, color: MUTED, textDecoration: 'none', transition: 'color 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.color = TEXT}
+            onMouseLeave={e => e.currentTarget.style.color = MUTED}>
+            {label}
+          </a>
         ))}
-        <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontFamily: S.font, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}>
-          Sign in
-        </button>
-        <MagneticButton onClick={onCta} style={{
-          fontFamily: S.font, fontSize: 13, fontWeight: 700, color: '#fff',
-          background: CORAL, border: 'none', borderRadius: 100,
-          padding: '10px 22px', cursor: 'pointer',
-        }}>
-          Get started
-        </MagneticButton>
       </nav>
-    </motion.header>
+
+      {/* Auth buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button onClick={onLogin} style={{
+          fontFamily: F, fontSize: 14, fontWeight: 500, color: MUTED,
+          background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', transition: 'color 150ms',
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = TEXT}
+          onMouseLeave={e => e.currentTarget.style.color = MUTED}>
+          Log in
+        </button>
+        <button onClick={onSignup} style={{
+          fontFamily: F, fontSize: 14, fontWeight: 600, color: TEXT,
+          background: ACCENT, border: 'none', borderRadius: 8,
+          padding: '8px 18px', cursor: 'pointer', transition: 'opacity 150ms',
+        }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          Sign up
+        </button>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) { .hidden-mobile { display: none !important; } }
+      `}</style>
+    </header>
   );
 }
 
-// ── Interface preview card ────────────────────────────────────────────────────
-function InterfaceCard({ url, label, delay = 0, rotation = 0, scale = 1 }) {
-  const [hovered, setHovered] = useState(false);
+// ── Hero Section ──
+function Hero({ onSignup }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, rotate: rotation }}
-      animate={{ opacity: 1, y: 0, rotate: rotation }}
-      transition={{ delay, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ rotate: 0, scale: 1.04, zIndex: 10 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative', cursor: 'pointer',
-        borderRadius: 16,
-        border: `1px solid ${hovered ? 'rgba(249,87,56,0.4)' : 'rgba(255,255,255,0.08)'}`,
-        overflow: 'hidden',
-        boxShadow: hovered ? '0 32px 80px rgba(0,0,0,0.6)' : '0 16px 48px rgba(0,0,0,0.4)',
-        transition: 'border-color 300ms, box-shadow 300ms',
-        scale,
-      }}
-      onClick={() => window.open(url, '_blank')}
-    >
-      <iframe
-        src={url}
-        title={label}
-        style={{ width: 520, height: 360, border: 'none', display: 'block', pointerEvents: hovered ? 'none' : 'none', transform: 'scale(0.75)', transformOrigin: '0 0', width: '133%', height: '133%' }}
-        loading="lazy"
-      />
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)',
-              display: 'flex', alignItems: 'flex-end', padding: 20,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <p style={{ fontFamily: S.font, fontSize: 14, fontWeight: 600, color: '#fff', margin: 0 }}>{label}</p>
-              <ArrowUpRight style={{ width: 16, height: 16, color: CORAL }} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// ── Word reveal animation ─────────────────────────────────────────────────────
-function WordReveal({ text, style = {}, delay = 0 }) {
-  const words = text.split(' ');
-  return (
-    <span style={{ display: 'inline', ...style }}>
-      {words.map((w, i) => (
-        <span key={i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
-          <motion.span
-            display="inline-block"
-            initial={{ y: '100%', opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: delay + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: 'inline-block', marginRight: '0.25em' }}
-          >
-            {w}
-          </motion.span>
-        </span>
-      ))}
-    </span>
-  );
-}
-
-// ── 01 HERO ───────────────────────────────────────────────────────────────────
-function Hero({ onCta }) {
-  return (
-    <section style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 40px 80px', position: 'relative', overflow: 'hidden' }}>
-
-      {/* Background landscape image */}
+    <section style={{
+      minHeight: '100vh', background: BG,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      padding: '120px 32px 80px', position: 'relative', overflow: 'hidden', fontFamily: F,
+    }}>
+      {/* Radial glow */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 0,
-        backgroundImage: `url("https://media.base44.com/images/public/6a2edc91082e534601118582/ae0bcf9a2_x1.jpg")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        imageRendering: 'high-quality',
-        transform: 'scale(1)',
+        position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
+        width: 800, height: 500,
+        background: 'radial-gradient(ellipse, rgba(91,87,248,0.15) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
       }} />
-      {/* Bottom fade to BG */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: `linear-gradient(to bottom, transparent, ${BG})`, zIndex: 1, pointerEvents: 'none' }} />
 
-      <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 900, margin: '0 auto' }}>
-
-        {/* Label */}
-        <motion.div
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 900 }}>
+        {/* New badge */}
+        <motion.a
+          href="#coding-sessions"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6 }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 48 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 40,
+            padding: '5px 14px 5px 8px',
+            background: 'rgba(91,87,248,0.1)', border: `1px solid rgba(91,87,248,0.25)`,
+            borderRadius: 100, textDecoration: 'none',
+            transition: 'background 200ms',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,87,248,0.18)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(91,87,248,0.1)'}
         >
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px #4ade80' }} />
-          <span style={{ fontFamily: S.font, fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.08em' }}>
-            300 creators already building — join them
-          </span>
-        </motion.div>
+          <span style={{ fontSize: 10, fontWeight: 700, color: ACCENT, background: ACCENT + '22', borderRadius: 100, padding: '2px 8px', letterSpacing: '0.05em' }}>NEW</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Coding Sessions →</span>
+        </motion.a>
 
         {/* Headline */}
-        <h1 style={{ fontFamily: S.font, fontSize: 'clamp(3.5rem, 8vw, 7.5rem)', fontWeight: 700, lineHeight: 0.92, letterSpacing: '-0.04em', color: '#fff', margin: '0 0 32px' }}>
-          <div style={{ overflow: 'hidden' }}>
-            <motion.span
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ display: 'block' }}
-            >
-              Sell smarter.
-            </motion.span>
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <motion.span
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              style={{ display: 'block', color: 'rgba(255,255,255,0.2)' }}
-            >
-              Win faster.
-            </motion.span>
-          </div>
-        </h1>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            fontSize: 'clamp(2.8rem, 7vw, 6.5rem)', fontWeight: 700,
+            color: TEXT, letterSpacing: '-0.04em', lineHeight: 1.0,
+            margin: '0 0 24px',
+          }}
+        >
+          The product<br />development system<br />
+          <span style={{ color: 'rgba(255,255,255,0.25)' }}>for teams and agents</span>
+        </motion.h1>
 
         {/* Sub */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          style={{ fontFamily: S.font, fontSize: 'clamp(15px, 2vw, 18px)', color: 'rgba(255,255,255,0.35)', lineHeight: 1.75, maxWidth: 520, margin: '0 auto 52px', fontWeight: 400 }}
+          transition={{ delay: 0.5, duration: 0.7 }}
+          style={{
+            fontSize: 18, fontWeight: 400, color: MUTED,
+            lineHeight: 1.7, maxWidth: 500, margin: '0 auto 48px',
+          }}
         >
-          Build AI-powered interactive interfaces — calculators, quizzes, tools — that make your clients say <em style={{ color: 'rgba(255,255,255,0.6)', fontStyle: 'normal' }}>"wow"</em> and buy on the spot. No code. 30 seconds.
+          Purpose-built for planning and building products. Designed for the AI era.
         </motion.p>
 
-        {/* CTAs */}
+        {/* CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.6 }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}
         >
-          <MagneticButton onClick={onCta} style={{
-            fontFamily: S.font, display: 'flex', alignItems: 'center', gap: 10,
-            padding: '16px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: CORAL, color: '#fff', fontSize: 15, fontWeight: 700,
-          }}>
-            Start building free <ArrowRight style={{ width: 17, height: 17 }} />
-          </MagneticButton>
-          <button onClick={() => document.getElementById('interfaces')?.scrollIntoView({ behavior: 'smooth' })}
-            style={{ fontFamily: S.font, fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.4)', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '16px 28px', cursor: 'pointer', transition: 'all 200ms', letterSpacing: '-0.01em' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-          >
-            See live examples
+          <button onClick={onSignup} style={{
+            fontFamily: F, fontSize: 15, fontWeight: 600, color: TEXT,
+            background: ACCENT, border: 'none', borderRadius: 10,
+            padding: '14px 32px', cursor: 'pointer', transition: 'opacity 150ms',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            Get started
+          </button>
+          <button onClick={() => document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' })} style={{
+            fontFamily: F, fontSize: 15, fontWeight: 500, color: MUTED,
+            background: 'none', border: `1px solid ${BORDER}`, borderRadius: 10,
+            padding: '14px 28px', cursor: 'pointer', transition: 'all 200ms',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = TEXT; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = MUTED; }}>
+            Learn more
           </button>
         </motion.div>
       </div>
 
-      {/* Hero screenshot image — 50% screen width */}
+      {/* App screenshot */}
       <motion.div
-        id="interfaces"
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.1, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          position: 'relative', zIndex: 2,
-          marginTop: 72,
-          width: '50vw', maxWidth: 800, minWidth: 320,
-        }}
+        transition={{ delay: 1.0, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        style={{ position: 'relative', zIndex: 1, marginTop: 80, width: '90vw', maxWidth: 1100 }}
       >
-        <div style={{
-          borderRadius: 16, overflow: 'hidden',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
-        }}>
-          <img
-            src="https://media.base44.com/images/public/6a2edc91082e534601118582/32e59afe8_image.png"
-            alt="WOK interface preview"
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
-          {/* Bottom blur fade */}
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-            background: `linear-gradient(to bottom, transparent, ${BG})`,
-            pointerEvents: 'none',
-          }} />
-        </div>
+        <AppMockup />
       </motion.div>
     </section>
   );
 }
 
-// ── 02 BENEFIT STRIP ─────────────────────────────────────────────────────────
-function BenefitStrip() {
-  const items = [
-    { metric: 'More revenue', desc: 'Interactive tools convert 4× better than PDFs' },
-    { metric: 'More leads', desc: 'People share tools they love — viral by design' },
-    { metric: 'Sell faster', desc: 'Your client says "wow" before you say a word' },
-  ];
-
+// ── App Mockup (the big Linear-style UI preview) ──
+function AppMockup() {
   return (
-    <section style={{ background: '#0E0E0E', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '72px 40px' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 1 }}>
-        {items.map((item, i) => (
-          <motion.div key={i}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-            style={{
-              padding: '40px 40px',
-              borderRight: i < items.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-            }}
-          >
-            <p style={{ fontFamily: S.font, fontSize: 'clamp(1.8rem, 3vw, 2.4rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', margin: '0 0 10px' }}>
-              {item.metric}
-            </p>
-            <p style={{ fontFamily: S.font, fontSize: 14, color: 'rgba(255,255,255,0.3)', lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ── 03 INTERFACES SHOWCASE ────────────────────────────────────────────────────
-function InterfaceShowcase({ onCta }) {
-  const [active, setActive] = useState(0);
-
-  const interfaces = [
-    {
-      url: 'https://wok-co.base44.app/p/conv_1781371421484',
-      tag: 'Financial tool',
-      title: 'Give your client a calculator they\'ll open every day.',
-      desc: 'Instead of a PDF they\'ll forget, give them something they actually use. Every interaction is a reminder of your expertise.',
-    },
-    {
-      url: 'https://wok-co.base44.app/p/conv_1781438064546',
-      tag: 'AI diagnostic',
-      title: 'Qualify leads automatically — before you even get on a call.',
-      desc: 'Your interface asks the questions. The client gets a personalized result. You get a warm lead who already trusts you.',
-    },
-  ];
-
-  return (
-    <section style={{ background: BG, padding: '120px 40px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-        <div style={{ marginBottom: 80 }}>
-          <motion.p
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            style={{ fontFamily: S.font, fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: 24 }}
-          >
-            What you build
-          </motion.p>
-          <h2 style={{ fontFamily: S.font, fontSize: 'clamp(2.2rem, 5vw, 4rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.035em', lineHeight: 1.05, margin: 0 }}>
-            <WordReveal text="Not a file." delay={0} />
-            {' '}
-            <WordReveal text="An experience." style={{ color: 'rgba(255,255,255,0.25)' }} delay={0.1} />
-          </h2>
+    <div style={{
+      borderRadius: 14, overflow: 'hidden',
+      border: `1px solid ${BORDER}`,
+      boxShadow: '0 40px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03)',
+      background: '#161616',
+      fontFamily: F,
+    }}>
+      {/* Window bar */}
+      <div style={{ height: 36, background: '#1A1A1A', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 8 }}>
+        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F56' }} />
+        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
+        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27C93F' }} />
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 160, height: 18, background: '#222', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>linear.app / workspace</span>
         </div>
+        <div style={{ flex: 1 }} />
+      </div>
 
-        {/* Tab selector */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 40 }}>
-          {interfaces.map((iface, i) => (
-            <button key={i} onClick={() => setActive(i)}
-              style={{
-                fontFamily: S.font, fontSize: 12, fontWeight: 600,
-                padding: '8px 18px', borderRadius: 100, cursor: 'pointer',
-                border: '1px solid',
-                borderColor: active === i ? CORAL : 'rgba(255,255,255,0.1)',
-                background: active === i ? 'rgba(249,87,56,0.12)' : 'transparent',
-                color: active === i ? CORAL : 'rgba(255,255,255,0.35)',
-                transition: 'all 200ms',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {iface.tag}
-            </button>
+      {/* Main layout */}
+      <div style={{ display: 'flex', height: 520 }}>
+        {/* Sidebar */}
+        <div style={{ width: 220, borderRight: `1px solid ${BORDER}`, padding: '12px 0', flexShrink: 0, background: '#161616' }}>
+          <div style={{ padding: '8px 12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>L</span>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Linear</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>∨</span>
+          </div>
+
+          {[
+            { icon: '📥', label: 'Inbox' },
+            { icon: '🔶', label: 'My issues' },
+            { icon: '📋', label: 'Reviews' },
+            { icon: '💡', label: 'Pulse' },
+          ].map((item, i) => (
+            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <span style={{ fontSize: 11 }}>{item.icon}</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>{item.label}</span>
+            </div>
+          ))}
+
+          <div style={{ padding: '16px 12px 6px', fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Workspace</div>
+          {['Initiatives', 'Projects', 'More'].map((item, i) => (
+            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>{item}</span>
+            </div>
+          ))}
+
+          <div style={{ padding: '16px 12px 6px', fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Favorites</div>
+          {[
+            { dot: '#F95738', label: 'Faster app launch' },
+            { dot: '#22c55e', label: 'Agent tasks' },
+            { dot: ACCENT, label: 'UI Refresh' },
+            { dot: '#ef4444', label: 'Agents Insights' },
+          ].map((item, i) => (
+            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>{item.label}</span>
+            </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 60, alignItems: 'center' }}>
+        {/* Main content */}
+        <div style={{ flex: 1, padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Issue header */}
+          <div style={{ padding: '12px 20px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Faster app launch</span>
+            <span style={{ fontSize: 10, color: MUTED }}>⭐</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>···</span>
+            <div style={{ flex: 1 }} />
+            <span style={{ fontSize: 12, color: MUTED }}>02 / 145</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>ENG-2703</span>
+          </div>
 
-          {/* Text side */}
-          <AnimatePresence mode="wait">
-            <motion.div key={active}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24, padding: '6px 14px', background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 100 }}>
-                <span style={{ fontFamily: S.font, fontSize: 11, fontWeight: 600, color: CORAL, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{interfaces[active].tag}</span>
-              </div>
-              <h3 style={{ fontFamily: S.font, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.2, margin: '0 0 20px' }}>
-                {interfaces[active].title}
-              </h3>
-              <p style={{ fontFamily: S.font, fontSize: 15, color: 'rgba(255,255,255,0.35)', lineHeight: 1.75, margin: '0 0 40px' }}>
-                {interfaces[active].desc}
+          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 220px', overflow: 'hidden' }}>
+            {/* Issue body */}
+            <div style={{ padding: '20px', overflowY: 'auto', borderRight: `1px solid ${BORDER}` }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.02em' }}>Faster app launch</h3>
+              <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.65, margin: '0 0 24px' }}>
+                Render UI before <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>vehicle_state</code> sync when minimum required state is present, instead of blocking on full refresh during iOS startup.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 48 }}>
-                {['Built in under 30 seconds', 'Shared with a single link', 'No account needed for your client'].map((t, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Check style={{ width: 9, height: 9, color: CORAL, strokeWidth: 3 }} />
-                    </div>
-                    <span style={{ fontFamily: S.font, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>{t}</span>
-                  </div>
-                ))}
-              </div>
-              <a href={interfaces[active].url} target="_blank" rel="noopener noreferrer"
-                style={{ fontFamily: S.font, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#fff', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2, transition: 'border-color 200ms' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = CORAL}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-              >
-                Open live interface <ArrowUpRight style={{ width: 14, height: 14 }} />
-              </a>
-            </motion.div>
-          </AnimatePresence>
 
-          {/* Interface preview */}
-          <AnimatePresence mode="wait">
-            <motion.div key={active}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
-              onClick={() => window.open(interfaces[active].url, '_blank')}
-              whileHover={{ borderColor: 'rgba(249,87,56,0.3)' }}
-            >
-              <iframe
-                src={interfaces[active].url}
-                title={interfaces[active].tag}
-                style={{ width: '133%', height: '133%', border: 'none', display: 'block', transform: 'scale(0.75)', transformOrigin: '0 0', minHeight: 500 }}
-                loading="lazy"
-              />
-              <div style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(to bottom, transparent, rgba(10,10,10,0.8))' }} />
-              <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.7)', borderRadius: 100, padding: '5px 12px', backdropFilter: 'blur(8px)' }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#4ade80' }} />
-                <span style={{ fontFamily: S.font, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.05em' }}>LIVE</span>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>Activity</div>
+
+              {[
+                { avatar: '🔷', text: 'Linear created the issue via Slack on behalf of karri', time: '2min ago' },
+                { avatar: '🏷️', text: 'Triage Intelligence added the label Performance and iOS', time: '2min ago' },
+                { avatar: '👤', text: 'karri · 4 min ago — Right now we show a spinner forever, which makes it look like the car disappeared...', time: '' },
+                { avatar: '💬', text: 'jori · just now — @Linear can you take a stab at this?', time: '' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>{item.avatar}</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
+                    {item.text}
+                    {item.time && <span style={{ color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>{item.time}</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Sidebar meta */}
+            <div style={{ padding: '16px', fontSize: 12, fontWeight: 500 }}>
+              {[
+                { label: 'Status', value: 'In Progress', color: '#22c55e' },
+                { label: 'Priority', value: 'High', color: '#ef4444' },
+                { label: 'Assignee', value: 'jori', color: null },
+                { label: 'Team', value: 'Linear', color: null },
+              ].map((meta, i) => (
+                <div key={i} style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginBottom: 4, fontWeight: 500, letterSpacing: '0.04em' }}>{meta.label}</div>
+                  <div style={{ fontSize: 13, color: meta.color || 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{meta.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
-// ── 04 HOW IT WORKS — process steps ─────────────────────────────────────────
-function HowItWorks({ onCta }) {
-  const steps = [
-    { n: '01', title: 'Describe your tool', body: 'Type what you want in plain English. "A mortgage calculator for my real estate clients." That\'s it.' },
-    { n: '02', title: 'WOK builds it instantly', body: 'AI generates a fully working, beautiful interface in under 30 seconds. No templates. No drag-and-drop.' },
-    { n: '03', title: 'Share. Convert. Win.', body: 'One link. Your client opens it, gets value, remembers you. Revenue follows.' },
+// ── Three pillars section ──
+function ThreePillars() {
+  const pillars = [
+    { fig: 'FIG 0.2', label: 'Built for purpose', desc: 'Linear is shaped by the practices and principles of world-class product teams.' },
+    { fig: 'FIG 0.3', label: 'Powered by AI agents', desc: 'Designed for workflows shared by humans and agents. From drafting PRDs to pushing PRs.' },
+    { fig: 'FIG 0.4', label: 'Designed for speed', desc: 'Reduces noise and restores momentum to help teams ship with high velocity and focus.' },
   ];
 
   return (
-    <section style={{ background: '#0E0E0E', padding: '120px 40px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ marginBottom: 80 }}>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            style={{ fontFamily: S.font, fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: 24 }}>
-            How it works
-          </motion.p>
-          <h2 style={{ fontFamily: S.font, fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, margin: 0, maxWidth: 600 }}>
-            From idea to<br /><span style={{ color: 'rgba(255,255,255,0.2)' }}>live interface in 30 seconds.</span>
-          </h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, position: 'relative' }}>
-          {/* Connecting line */}
-          <div style={{ position: 'absolute', top: 28, left: '16%', right: '16%', height: 1, background: 'linear-gradient(to right, rgba(249,87,56,0.3), rgba(249,87,56,0.1), rgba(249,87,56,0.3))', zIndex: 0 }} />
-
-          {steps.map((s, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.12, duration: 0.7 }}
-              style={{ padding: '0 32px 0 0', position: 'relative', zIndex: 1 }}
-            >
-              {/* Step number */}
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%',
-                background: BG,
-                border: `1px solid rgba(255,255,255,0.1)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 32,
-              }}>
-                <span style={{ fontFamily: S.font, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '-0.01em' }}>{s.n}</span>
-              </div>
-              <h3 style={{ fontFamily: S.font, fontSize: 18, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', margin: '0 0 12px' }}>{s.title}</h3>
-              <p style={{ fontFamily: S.font, fontSize: 14, color: 'rgba(255,255,255,0.3)', lineHeight: 1.7, margin: 0 }}>{s.body}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+    <section id="product" style={{ background: BG2, borderTop: `1px solid ${BORDER}`, padding: '80px 32px', fontFamily: F }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          style={{ marginTop: 80, display: 'flex', justifyContent: 'center' }}
+          style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 64px', maxWidth: 700 }}
         >
-          <MagneticButton onClick={onCta} style={{
-            fontFamily: S.font, display: 'flex', alignItems: 'center', gap: 10,
-            padding: '16px 40px', borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: CORAL, color: '#fff', fontSize: 15, fontWeight: 700,
-          }}>
-            Try it free — no card needed <ArrowRight style={{ width: 17, height: 17 }} />
-          </MagneticButton>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
+          A new species of product tool.{' '}
+          <span style={{ color: 'rgba(255,255,255,0.22)' }}>Purpose-built for modern teams with AI workflows at its core.</span>
+        </motion.h2>
 
-// ── 05 TESTIMONIALS — ultra minimal ──────────────────────────────────────────
-const TESTIMONIALS = [
-  { name: 'Camille R.', role: 'Personal development coach', quote: 'My clients share the tool themselves. I haven\'t done any marketing in 3 weeks and my leads doubled.', metric: '×2 leads' },
-  { name: 'Thomas M.', role: 'Finance educator', quote: 'I sent a savings simulator instead of a brochure. The client signed within the hour.', metric: 'Signed same day' },
-  { name: 'Sophie L.', role: 'Marketing consultant', quote: 'I stopped using Canva, Notion, and Teachable. WOK replaced all three.', metric: '3 tools → 1' },
-  { name: 'Kevin A.', role: 'Online fitness coach', quote: 'First sale came from someone who found my tool shared in a Facebook group. I didn\'t even know.', metric: 'Organic reach' },
-];
-
-function TestimonialsScene() {
-  return (
-    <section style={{ background: BG, padding: '120px 40px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <div style={{ marginBottom: 72 }}>
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            style={{ fontFamily: S.font, fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: 24 }}>
-            Creators
-          </motion.p>
-          <h2 style={{ fontFamily: S.font, fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
-            300 builders.<br /><span style={{ color: 'rgba(255,255,255,0.2)' }}>Real results.</span>
-          </h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 1 }}>
-          {TESTIMONIALS.map((t, i) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1 }}>
+          {pillars.map((p, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
+              transition={{ delay: i * 0.1 }}
               style={{
-                padding: '40px',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: i % 2 === 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                padding: '40px 32px',
+                borderTop: `1px solid ${BORDER}`,
+                borderRight: i < pillars.length - 1 ? `1px solid ${BORDER}` : 'none',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                <div>
-                  <p style={{ fontFamily: S.font, fontSize: 14, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>{t.name}</p>
-                  <p style={{ fontFamily: S.font, fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: 0 }}>{t.role}</p>
-                </div>
-                <div style={{ padding: '4px 10px', background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 6 }}>
-                  <p style={{ fontFamily: S.font, fontSize: 11, fontWeight: 700, color: CORAL, margin: 0 }}>{t.metric}</p>
-                </div>
-              </div>
-              <p style={{ fontFamily: S.font, fontSize: 15, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: 0 }}>"{t.quote}"</p>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.1em', marginBottom: 20 }}>{p.fig}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: TEXT, margin: '0 0 10px', letterSpacing: '-0.01em' }}>{p.label}</h3>
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -616,36 +381,417 @@ function TestimonialsScene() {
   );
 }
 
-// ── 06 FINAL CTA ──────────────────────────────────────────────────────────────
-function FinalCta({ onCta }) {
+// ── Feature sections ──
+function FeatureSection({ id, num, title, subtitle, linkLabel, linkHref, children, bg = BG }) {
   return (
-    <section style={{ background: '#0E0E0E', padding: '160px 40px', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', textAlign: 'center', zIndex: 1 }}>
+    <section id={id} style={{ background: bg, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em' }}>{num}</span>
+          <a href={linkHref} style={{ fontSize: 14, fontWeight: 600, color: TEXT, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, transition: 'color 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.color = ACCENT}
+            onMouseLeave={e => e.currentTarget.style.color = TEXT}>
+            {linkLabel} <span style={{ fontSize: 12 }}>→</span>
+          </a>
+        </div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ fontSize: 'clamp(1.8rem, 4vw, 3.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 16px', maxWidth: 700 }}
+        >
+          {title}
+        </motion.h2>
+        <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.65, maxWidth: 560, marginBottom: 56 }}>{subtitle}</p>
+
+        {children}
+      </div>
+    </section>
+  );
+}
+
+// ── Intake / Issue tracker mock ──
+function IntakeMock() {
+  const groups = [
+    { label: 'Backlog', count: 8, color: 'rgba(255,255,255,0.3)', issues: ['Reduce UI flicker during autonomy...', 'Add buffering for autonomy event streams', 'Reduce startup delay caused by vehicle sync', 'Fix delayed route updates during rerouting'] },
+    { label: 'Todo', count: 71, color: ACCENT, issues: ['Remove UI inconsistencies', 'TypeError: Cannot read properties', 'Upgrade to Claude Opus 4.5', 'Optimize load times'] },
+    { label: 'In Progress', count: 3, color: '#22c55e', issues: ['Remove contentData from GraphQL API', 'Launch page assets', 'Prevent duplicate ride requests on poor...'] },
+    { label: 'Done', count: 53, color: '#6b7280', issues: ['Clean up deprecated APIs...', 'Reduce latency in autonomy st...', 'Reduce ETA fluctuations durin...', 'Improve fallback messaging'] },
+  ];
+
+  return (
+    <div style={{ background: '#141414', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: F }}>
+      {groups.map((g, gi) => (
+        <div key={gi} style={{ borderBottom: gi < groups.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+          <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.02)' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: g.color }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{g.label}</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: 4, padding: '0 5px' }}>{g.count}</span>
+          </div>
+          {g.issues.map((issue, ii) => (
+            <div key={ii} style={{ padding: '9px 16px 9px 36px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${g.color}`, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', flex: 1 }}>{issue}</span>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>ENG-{2000 + gi * 100 + ii}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Roadmap mock ──
+function RoadmapMock() {
+  const months = ['FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG'];
+  const tracks = [
+    { label: 'UI Refresh', start: 0, end: 2, color: ACCENT },
+    { label: 'Split fares', start: 2, end: 4, color: '#22c55e' },
+    { label: 'Autonomy status clarity', start: 1, end: 5, color: '#f59e0b' },
+    { label: 'Core Product', start: 0, end: 6, color: '#6b7280' },
+    { label: 'APAC Expansion', start: 4, end: 6, color: '#ec4899' },
+  ];
+
+  return (
+    <div style={{ background: '#141414', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: F }}>
+      {/* Month header */}
+      <div style={{ display: 'grid', gridTemplateColumns: `140px repeat(${months.length}, 1fr)`, borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ padding: '10px 16px', borderRight: `1px solid ${BORDER}` }} />
+        {months.map(m => (
+          <div key={m} style={{ padding: '10px 8px', fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.06em', textAlign: 'center', borderRight: `1px solid rgba(255,255,255,0.04)` }}>
+            {m}
+          </div>
+        ))}
+      </div>
+      {/* Tracks */}
+      {tracks.map((track, ti) => (
+        <div key={ti} style={{ display: 'grid', gridTemplateColumns: `140px repeat(${months.length}, 1fr)`, borderBottom: ti < tracks.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+          <div style={{ padding: '12px 16px', fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: 500, borderRight: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center' }}>{track.label}</div>
+          {months.map((m, mi) => (
+            <div key={mi} style={{ position: 'relative', padding: '8px 4px', borderRight: `1px solid rgba(255,255,255,0.04)`, display: 'flex', alignItems: 'center' }}>
+              {mi === track.start && (
+                <div style={{
+                  position: 'absolute', left: 4, right: mi === track.end ? 4 : '-100%',
+                  height: 24, borderRadius: mi === track.end ? 6 : '6px 0 0 6px',
+                  background: track.color + '33', border: `1px solid ${track.color}55`,
+                  zIndex: 1,
+                }} />
+              )}
+              {mi > track.start && mi <= track.end && (
+                <div style={{
+                  position: 'absolute', left: 0, right: mi === track.end ? 4 : 0,
+                  height: 24, borderRadius: mi === track.end ? '0 6px 6px 0' : 0,
+                  background: track.color + '33',
+                  border: `1px solid ${track.color}55`,
+                  borderLeft: 'none',
+                  zIndex: 1,
+                }} />
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Agent terminal mock ──
+function AgentMock() {
+  return (
+    <div style={{ background: '#0D0D0D', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: "'Fira Code', monospace" }}>
+      {/* Terminal header */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: 10, background: '#141414' }}>
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5F56' }} />
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FFBD2E' }} />
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27C93F' }} />
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginLeft: 8, fontFamily: F }}>Linear Agent · kinetic-iOS</span>
+      </div>
+      <div style={{ padding: '16px 20px', fontSize: 12, lineHeight: 1.9 }}>
+        {[
+          { color: '#22c55e', text: '✓ On it! I\'ve received your request.' },
+          { color: MUTED, text: 'Kicked off a task in kinetic/kinetic-iOS environment.' },
+          { color: 'rgba(255,255,255,0.25)', text: '$ rg --files -g \'AGENTS.md\'' },
+          { color: '#22c55e', text: '  AGENTS.md' },
+          { color: MUTED, text: 'Locating initialization logic for vehicle_state...' },
+          { color: '#f59e0b', text: 'Thinking...' },
+          { color: 'rgba(255,255,255,0.2)', text: '' },
+          { color: MUTED, text: 'Examining startup path...' },
+        ].map((line, i) => (
+          <div key={i} style={{ color: line.color }}>{line.text}</div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: ACCENT, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <span style={{ color: ACCENT, fontSize: 11, fontWeight: 600, fontFamily: F }}>Agent working...</span>
+        </div>
+      </div>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+    </div>
+  );
+}
+
+// ── Code diff mock ──
+function DiffMock() {
+  const lines = [
+    { type: 'file', text: 'kinetic-ios/src/screens/Home/HomeScreen.tsx' },
+    { type: 'removed', text: "  const { vehicleState, isFullySynced } = useVehicleState()" },
+    { type: 'removed', text: "  if (!isFullySynced) {" },
+    { type: 'removed', text: "    return <ActivityIndicator />" },
+    { type: 'removed', text: "  }" },
+    { type: 'added', text: "  const { vehicleState, hasMinState } = useVehicleState()" },
+    { type: 'added', text: "  if (!hasMinState) {" },
+    { type: 'added', text: "    return <ActivityIndicator />" },
+    { type: 'added', text: "  }" },
+    { type: 'normal', text: "  return <Dashboard vehicleState={vehicleState} />" },
+  ];
+
+  return (
+    <div style={{ background: '#0D0D0D', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: "'Fira Code', monospace", fontSize: 12 }}>
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, background: '#141414', fontFamily: F, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Code Review</span>
+        <span style={{ fontSize: 10, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 4, padding: '1px 7px', marginLeft: 'auto' }}>+4</span>
+        <span style={{ fontSize: 10, color: '#ef4444', background: 'rgba(239,68,68,0.1)', borderRadius: 4, padding: '1px 7px' }}>-3</span>
+      </div>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          padding: '3px 16px',
+          background: line.type === 'file' ? 'rgba(255,255,255,0.03)' :
+            line.type === 'added' ? 'rgba(34,197,94,0.07)' :
+            line.type === 'removed' ? 'rgba(239,68,68,0.07)' : 'transparent',
+          color: line.type === 'file' ? 'rgba(255,255,255,0.35)' :
+            line.type === 'added' ? '#86efac' :
+            line.type === 'removed' ? '#fca5a5' : 'rgba(255,255,255,0.45)',
+          borderLeft: line.type === 'added' ? '2px solid #22c55e' :
+            line.type === 'removed' ? '2px solid #ef4444' : '2px solid transparent',
+          lineHeight: 1.8,
+        }}>
+          {line.type === 'added' && <span style={{ marginRight: 8, color: '#22c55e' }}>+</span>}
+          {line.type === 'removed' && <span style={{ marginRight: 8, color: '#ef4444' }}>-</span>}
+          {line.type === 'file' && <span style={{ marginRight: 8, color: 'rgba(255,255,255,0.2)' }}>📄</span>}
+          {line.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Pricing section ──
+function Pricing({ onSignup }) {
+  const [annual, setAnnual] = useState(true);
+
+  const plans = [
+    {
+      name: 'Free',
+      price: annual ? 0 : 0,
+      unit: 'per member/month',
+      desc: 'For individuals and small teams getting started.',
+      cta: 'Get started',
+      primary: false,
+      features: ['Up to 5 members', 'Unlimited issues', 'Cycles & backlogs', '250MB file storage', 'Integrations'],
+    },
+    {
+      name: 'Standard',
+      price: annual ? 8 : 10,
+      unit: 'per member/month',
+      desc: 'For growing teams that need more control.',
+      cta: 'Get started',
+      primary: true,
+      badge: 'Most popular',
+      features: ['Unlimited members', 'Advanced roadmaps', 'Analytics & insights', '10GB file storage', 'Priority support', 'Admin controls'],
+    },
+    {
+      name: 'Plus',
+      price: annual ? 16 : 20,
+      unit: 'per member/month',
+      desc: 'For scaling teams that need enterprise power.',
+      cta: 'Get started',
+      primary: false,
+      features: ['Everything in Standard', 'SLA uptime guarantee', 'Advanced security', 'Custom integrations', 'Dedicated support', 'SAML SSO'],
+    },
+  ];
+
+  return (
+    <section id="pricing" style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 16px' }}
+          >
+            Simple, transparent pricing
+          </motion.h2>
+          <p style={{ fontSize: 17, color: MUTED, marginBottom: 32 }}>Start free. Scale when you're ready.</p>
+
+          {/* Toggle */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, background: '#1A1A1A', borderRadius: 100, padding: '5px 6px', border: `1px solid ${BORDER}` }}>
+            {['Monthly', 'Annual'].map(opt => (
+              <button key={opt} onClick={() => setAnnual(opt === 'Annual')} style={{
+                fontFamily: F, fontSize: 13, fontWeight: 600,
+                padding: '7px 20px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                background: (annual && opt === 'Annual') || (!annual && opt === 'Monthly') ? '#fff' : 'transparent',
+                color: (annual && opt === 'Annual') || (!annual && opt === 'Monthly') ? '#000' : MUTED,
+                transition: 'all 200ms',
+              }}>
+                {opt} {opt === 'Annual' && <span style={{ color: '#22c55e', fontSize: 11, marginLeft: 4 }}>–20%</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1 }}>
+          {plans.map((plan, i) => (
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              style={{
+                padding: '40px 32px',
+                background: plan.primary ? 'rgba(91,87,248,0.06)' : 'transparent',
+                border: `1px solid ${plan.primary ? 'rgba(91,87,248,0.25)' : BORDER}`,
+                borderRadius: 12,
+                position: 'relative',
+                margin: '0 0 0 0',
+              }}
+            >
+              {plan.badge && (
+                <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: ACCENT, borderRadius: 100, padding: '3px 14px', fontSize: 11, fontWeight: 700, color: '#fff' }}>
+                  {plan.badge}
+                </div>
+              )}
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: TEXT, margin: '0 0 4px' }}>{plan.name}</h3>
+              <p style={{ fontSize: 13, color: MUTED, margin: '0 0 20px', lineHeight: 1.6 }}>{plan.desc}</p>
+              <div style={{ marginBottom: 24 }}>
+                <span style={{ fontSize: 40, fontWeight: 700, color: TEXT, letterSpacing: '-0.04em' }}>${plan.price}</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginLeft: 6 }}>{plan.unit}</span>
+              </div>
+              <button onClick={onSignup} style={{
+                fontFamily: F, fontSize: 14, fontWeight: 600, width: '100%',
+                padding: '12px 0', borderRadius: 8, border: `1px solid ${plan.primary ? 'transparent' : BORDER}`,
+                background: plan.primary ? ACCENT : 'transparent', color: plan.primary ? '#fff' : MUTED,
+                cursor: 'pointer', marginBottom: 28, transition: 'all 200ms',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
+                {plan.cta}
+              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {plan.features.map((f, fi) => (
+                  <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid rgba(255,255,255,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 9, color: TEXT }}>✓</span>
+                    </div>
+                    <span style={{ fontSize: 13, color: MUTED }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Testimonials ──
+function Testimonials() {
+  const logos = ['Vercel', 'Notion', 'Loom', 'Raycast', 'Mercury', 'Perplexity', 'Arc', 'Figma'];
+  const testimonials = [
+    { name: 'Guillermo Rauch', role: 'CEO, Vercel', quote: 'Linear has fundamentally changed how we build products. The speed and quality of the tool itself shows what\'s possible.' },
+    { name: 'Ivan Zhao', role: 'CEO, Notion', quote: 'We use Linear to build Notion. The attention to detail and performance is exactly what we look for in tools we use.' },
+    { name: 'Joe Thomas', role: 'CEO, Loom', quote: 'Our entire engineering org moved to Linear in a week. The quality bar Linear sets is unlike anything else.' },
+    { name: 'Thomas Paul Mann', role: 'CEO, Raycast', quote: 'Linear is how software should be built. Fast, focused, and opinionated in the best way.' },
+  ];
+
+  return (
+    <section id="testimonials" style={{ background: BG2, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.03em', margin: '0 0 16px' }}
+        >
+          Loved by builders worldwide
+        </motion.h2>
+        <p style={{ fontSize: 17, color: MUTED, marginBottom: 64 }}>The best product teams in the world run on Linear.</p>
+
+        {/* Logo strip */}
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 72 }}>
+          {logos.map(logo => (
+            <span key={logo} style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.2)', letterSpacing: '-0.01em' }}>{logo}</span>
+          ))}
+        </div>
+
+        {/* Quotes grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: 1 }}>
+          {testimonials.map((t, i) => (
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              style={{ padding: '40px', borderTop: `1px solid ${BORDER}`, borderLeft: i % 2 === 1 ? `1px solid ${BORDER}` : 'none' }}
+            >
+              <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, margin: '0 0 24px', fontStyle: 'italic' }}>
+                "{t.quote}"
+              </p>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: TEXT, margin: '0 0 2px' }}>{t.name}</p>
+                <p style={{ fontSize: 12, color: DIM, margin: 0 }}>{t.role}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Final CTA ──
+function FinalCta({ onSignup }) {
+  return (
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '160px 32px', fontFamily: F, position: 'relative', overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+        width: 600, height: 400,
+        background: 'radial-gradient(ellipse, rgba(91,87,248,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{ position: 'relative', maxWidth: 700, margin: '0 auto', textAlign: 'center', zIndex: 1 }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h2 style={{ fontFamily: S.font, fontSize: 'clamp(3rem, 8vw, 7rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 0.92, margin: '0 0 28px' }}>
-            Your expertise<br />
-            <span style={{ color: 'rgba(255,255,255,0.15)' }}>deserves better.</span>
+          <h2 style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.04em', lineHeight: 0.95, margin: '0 0 28px' }}>
+            Build what matters.<br />
+            <span style={{ color: 'rgba(255,255,255,0.18)' }}>Ship with clarity.</span>
           </h2>
-          <p style={{ fontFamily: S.font, fontSize: 17, color: 'rgba(255,255,255,0.3)', marginBottom: 52, lineHeight: 1.65, maxWidth: 460, margin: '0 auto 52px' }}>
-            Stop selling files. Start delivering experiences that make people talk.
+          <p style={{ fontSize: 18, color: MUTED, marginBottom: 48, lineHeight: 1.65, maxWidth: 460, margin: '0 auto 48px' }}>
+            Join 10,000+ product teams who use Linear to plan, build, and ship faster.
           </p>
-
-          <MagneticButton onClick={onCta} style={{
-            fontFamily: S.font, display: 'inline-flex', alignItems: 'center', gap: 12,
-            padding: '20px 52px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: CORAL, color: '#fff', fontSize: 17, fontWeight: 700,
-            letterSpacing: '-0.01em',
-          }}>
-            Build your first interface free <ArrowRight style={{ width: 20, height: 20 }} />
-          </MagneticButton>
-
-          <p style={{ fontFamily: S.font, fontSize: 12, color: 'rgba(255,255,255,0.18)', marginTop: 24 }}>
-            No credit card · No code · Works in 30 seconds
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={onSignup} style={{
+              fontFamily: F, fontSize: 16, fontWeight: 600, color: TEXT,
+              background: ACCENT, border: 'none', borderRadius: 10,
+              padding: '16px 40px', cursor: 'pointer', transition: 'opacity 150ms',
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              Start for free
+            </button>
+            <button onClick={() => window.open('https://linear.app', '_blank')} style={{
+              fontFamily: F, fontSize: 16, fontWeight: 500, color: MUTED,
+              background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 10,
+              padding: '16px 32px', cursor: 'pointer', transition: 'all 200ms',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = TEXT; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = MUTED; }}>
+              Contact sales
+            </button>
+          </div>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.18)', marginTop: 24 }}>
+            Free forever · No credit card required
           </p>
         </motion.div>
       </div>
@@ -653,27 +799,64 @@ function FinalCta({ onCta }) {
   );
 }
 
-// ── Footer ─────────────────────────────────────────────────────────────────────
+// ── Footer ──
 function Footer() {
+  const cols = [
+    { title: 'Product', links: [['Intake', '#'], ['Plan', '#'], ['Build', '#'], ['Diffs', '#'], ['Cycles', '#'], ['Mobile', '#']] },
+    { title: 'Resources', links: [['Docs', '#'], ['Changelog', '#'], ['Blog', '#'], ['API', '#'], ['Status', '#'], ['Security', '#']] },
+    { title: 'Company', links: [['About', '#'], ['Careers', '#'], ['Customers', '#'], ['Contact', '#'], ['Terms', '/terms'], ['Privacy', '/privacy']] },
+  ];
+
   return (
-    <footer style={{ background: BG, borderTop: '1px solid rgba(255,255,255,0.05)', padding: '32px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 24, mixBlendMode: 'screen' }} />
-        <span style={{ fontFamily: S.font, fontSize: 13, fontWeight: 700, color: '#fff' }}>WOK</span>
+    <footer style={{ background: '#060606', borderTop: `1px solid ${BORDER}`, padding: '64px 32px 32px', fontFamily: F }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(3, 1fr)', gap: 40, marginBottom: 48 }}>
+          {/* Brand */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <svg width="18" height="18" viewBox="0 0 100 100" fill="none">
+                <path d="M0 50C0 22.4 22.4 0 50 0s50 22.4 50 50-22.4 50-50 50S0 77.6 0 50z" fill="#5B57F8"/>
+                <path d="M15 15L85 85M15 85L85 15" stroke="white" strokeWidth="12" strokeLinecap="round"/>
+              </svg>
+              <span style={{ fontSize: 15, fontWeight: 700, color: TEXT, letterSpacing: '-0.02em' }}>Linear</span>
+            </div>
+            <p style={{ fontSize: 13, color: DIM, lineHeight: 1.7, margin: 0 }}>The product development system for teams and agents.</p>
+          </div>
+
+          {cols.map((col, i) => (
+            <div key={i}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: DIM, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>{col.title}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {col.links.map(([label, href]) => (
+                  <a key={label} href={href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'color 150ms' }}
+                    onMouseEnter={e => e.currentTarget.style.color = MUTED}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}>
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.15)', margin: 0 }}>© 2026 Linear Orbit, Inc.</p>
+          <div style={{ display: 'flex', gap: 24 }}>
+            {['Twitter', 'GitHub', 'YouTube', 'LinkedIn'].map(s => (
+              <a key={s} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textDecoration: 'none', transition: 'color 150ms' }}
+                onMouseEnter={e => e.currentTarget.style.color = MUTED}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
+                {s}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
-        {[['Features', '/fonctionnalites'], ['Pricing', '/tarifs'], ['Blog', '/blog'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
-          <a key={l} href={h} style={{ fontFamily: S.font, fontSize: 12, color: 'rgba(255,255,255,0.18)', textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.18)'}>{l}</a>
-        ))}
-      </div>
-      <p style={{ fontFamily: S.font, fontSize: 11, color: 'rgba(255,255,255,0.12)', margin: 0 }}>© 2026 WOK</p>
     </footer>
   );
 }
 
-// ── ROOT ──────────────────────────────────────────────────────────────────────
+// ── ROOT ──
 export default function LandingPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
@@ -686,25 +869,67 @@ export default function LandingPage() {
 
   if (!ready) return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
-      <div style={{ width: 28, height: 28, border: '2px solid rgba(255,255,255,0.06)', borderTopColor: CORAL, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 24, height: 24, border: '2px solid rgba(255,255,255,0.06)', borderTopColor: ACCENT, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
-  const onCta = () => base44.auth.redirectToLogin('/app');
+  const onSignup = () => base44.auth.redirectToLogin('/app');
+  const onLogin = () => base44.auth.redirectToLogin('/app');
 
   return (
-    <div style={{ background: BG }}>
+    <div style={{ background: BG, fontFamily: F }}>
       <FontLoader />
-      <Grain />
-      <CursorGlow />
-      <Navbar onCta={onCta} />
-      <Hero onCta={onCta} />
-      <BenefitStrip />
-      <InterfaceShowcase onCta={onCta} />
-      <HowItWorks onCta={onCta} />
-      <TestimonialsScene />
-      <FinalCta onCta={onCta} />
+      <Navbar onLogin={onLogin} onSignup={onSignup} />
+      <Hero onSignup={onSignup} />
+      <ThreePillars />
+
+      <FeatureSection
+        id="product-section"
+        num="1.0"
+        title={<>Make product<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>operations self-driving</span></>}
+        subtitle="Turn conversations and customer feedback into actionable issues that are routed, labeled, and prioritized for the right team."
+        linkLabel="Intake"
+        linkHref="#"
+        bg={BG2}
+      >
+        <IntakeMock />
+      </FeatureSection>
+
+      <FeatureSection
+        num="2.0"
+        title={<>Define the<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>product direction</span></>}
+        subtitle="Plan and navigate from idea to launch. Align your team with product initiatives, strategic roadmaps, and clear, up-to-date PRDs."
+        linkLabel="Plan"
+        linkHref="#"
+      >
+        <RoadmapMock />
+      </FeatureSection>
+
+      <FeatureSection
+        num="3.0"
+        title={<>Move work forward<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>across teams and agents</span></>}
+        subtitle="Build and deploy AI agents that work alongside your team. Work on complex tasks together or delegate entire issues end-to-end."
+        linkLabel="Build"
+        linkHref="#"
+        bg={BG2}
+      >
+        <AgentMock />
+      </FeatureSection>
+
+      <FeatureSection
+        num="4.0"
+        title={<>Review PRs and<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>agent output</span></>}
+        subtitle="Understand code changes at a glance with structural diffs for human and agent output. Review, discuss, and merge — all within Linear."
+        linkLabel="Diffs"
+        linkHref="#"
+      >
+        <DiffMock />
+      </FeatureSection>
+
+      <Testimonials />
+      <Pricing onSignup={onSignup} />
+      <FinalCta onSignup={onSignup} />
       <Footer />
     </div>
   );
