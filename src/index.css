@@ -6,7 +6,7 @@
 
 /* ── Global artistic background ── */
 body {
-  background-color: #1F1F1F !important;
+  background-color: #F8F7F4 !important;
 }
 
 /* Grain overlay — applied via pseudo on #root */
@@ -36,84 +36,84 @@ body {
     ════════════════════════════════════════ */
 
     /* Backgrounds */
-    --background: 36 33% 93%;         /* #F5F0E8 — crème */
+    --background: 50 20% 97%;         /* #F8F7F4 — blanc cassé légèrement jaune */
     --foreground: 0 0% 10%;           /* #1A1A1A — near-black */
 
     /* Cards / surfaces */
-    --card: 36 33% 97%;               /* slightly lighter crème */
+    --card: 50 20% 98%;               /* quasi-blanc cassé */
     --card-foreground: 0 0% 10%;
 
     /* Popovers / dropdowns */
-    --popover: 0 0% 100%;
+    --popover: 50 20% 98%;
     --popover-foreground: 0 0% 10%;
 
-    /* Primary: coral */
-    --primary: 12 94% 59%;            /* #F95738 */
-    --primary-foreground: 0 0% 100%;
+    /* Primary: blanc cassé jaune (remplace orange) */
+    --primary: 50 20% 97%;            /* #F8F7F4 */
+    --primary-foreground: 0 0% 10%;
 
     /* Secondary: violet */
     --secondary: 262 71% 60%;         /* #7B4FE0 */
     --secondary-foreground: 0 0% 100%;
 
     /* Muted */
-    --muted: 36 20% 88%;
+    --muted: 50 15% 92%;
     --muted-foreground: 0 0% 53%;     /* #888 */
 
-    /* Accent: rose-red */
-    --accent: 345 82% 51%;            /* #E8184A */
-    --accent-foreground: 0 0% 100%;
+    /* Accent */
+    --accent: 50 20% 94%;
+    --accent-foreground: 0 0% 10%;
 
     /* Destructive */
-    --destructive: 345 82% 51%;       /* #E8184A */
+    --destructive: 345 82% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders */
-    --border: 36 15% 83%;
-    --input: 36 15% 83%;
-    --ring: 12 94% 59%;               /* coral focus ring */
+    /* Borders — gris sidebar */
+    --border: 0 0% 82%;               /* #D1D1D1 — gris sidebar */
+    --input: 0 0% 82%;
+    --ring: 0 0% 60%;
 
     /* Radius token */
     --radius: 0.75rem;
 
-    /* Sidebar — dark */
-    --sidebar-background: 0 0% 10%;   /* #1A1A1A */
-    --sidebar-foreground: 0 0% 90%;   /* near-white */
-    --sidebar-primary: 12 94% 59%;    /* #F95738 coral active */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;       /* subtle hover on dark */
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 12 94% 59%;
+    /* Sidebar — même blanc cassé jaune */
+    --sidebar-background: 50 20% 97%; /* #F8F7F4 */
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 50 20% 97%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 50 15% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 82%;       /* gris sidebar */
+    --sidebar-ring: 0 0% 60%;
 
     /* Support blue */
     --support: 213 80% 57%;           /* #3B8BEB */
     --support-foreground: 0 0% 100%;
   }
 
-  /* Dark mode = same palette (always cream-based) */
+  /* Dark mode = same palette */
   .dark {
-    --background: 36 33% 93%;
+    --background: 50 20% 97%;
     --foreground: 0 0% 10%;
-    --card: 36 33% 97%;
+    --card: 50 20% 98%;
     --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
+    --popover: 50 20% 98%;
     --popover-foreground: 0 0% 10%;
-    --primary: 12 94% 59%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 50 20% 97%;
+    --primary-foreground: 0 0% 10%;
     --secondary: 262 71% 60%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 36 20% 88%;
+    --muted: 50 15% 92%;
     --muted-foreground: 0 0% 53%;
-    --accent: 345 82% 51%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 50 20% 94%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 345 82% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 15% 83%;
-    --input: 36 15% 83%;
-    --ring: 12 94% 59%;
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 20%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
+    --ring: 0 0% 60%;
+    --sidebar-background: 50 20% 97%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 82%;
   }
 }
 
