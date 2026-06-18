@@ -19,12 +19,12 @@ import { toast } from 'sonner';
 // LOGOS
 // ─────────────────────────────────────────────────────────────────
 
+// Clean monochrome dot for Claude (no Anthropic branding)
 const ClaudeLogo = ({ size = 16 }) => (
-  <img
-    src="https://www.anthropic.com/images/icons/apple-touch-icon.png"
-    alt="Claude"
-    style={{ width: size, height: size, borderRadius: 4, objectFit: 'contain', flexShrink: 0 }}
-  />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+    <circle cx="12" cy="12" r="9" stroke="#1A1A1A" strokeWidth="1.6"/>
+    <path d="M8 12h8M12 8v8" stroke="#1A1A1A" strokeWidth="1.6" strokeLinecap="round"/>
+  </svg>
 );
 
 const OpenAILogo = ({ size = 16 }) => (
@@ -192,15 +192,15 @@ function ObjectifButton({ active, onToggle, dropDirection = 'up' }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           width: 30, height: 30, borderRadius: 8,
-          border: active ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(0,0,0,0.10)',
-          background: active ? 'rgba(59,130,246,0.08)' : 'transparent',
+          border: 'none',
+          background: active ? '#3B82F6' : '#111',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 120ms',
         }}
-        onMouseEnter={e => { setHovered(true); if (!active) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-        onMouseLeave={e => { setHovered(false); if (!active) e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={e => { setHovered(true); if (!active) e.currentTarget.style.background = '#333'; }}
+        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? '#3B82F6' : '#111'; }}
       >
-        <CrosshairIcon size={14} color={active ? '#3B82F6' : 'rgba(0,0,0,0.45)'} />
+        <CrosshairIcon size={14} color='#fff' />
       </button>
     </div>
   );
@@ -226,20 +226,19 @@ function CompetenceButton({ selected, onClick }) {
       <button
         onClick={onClick}
         style={{
-          height: 30, paddingLeft: 8, paddingRight: 8,
+          height: 30, paddingLeft: 9, paddingRight: 9,
           display: 'flex', alignItems: 'center', gap: 5,
-          borderRadius: 8,
-          border: selected ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(0,0,0,0.10)',
-          background: selected ? 'rgba(99,102,241,0.08)' : 'transparent',
-          cursor: 'pointer', fontSize: 12,
-          color: selected ? '#6366F1' : 'rgba(0,0,0,0.55)',
+          borderRadius: 8, border: 'none',
+          background: selected ? '#6366F1' : '#111',
+          cursor: 'pointer', fontSize: 12, fontWeight: 500,
+          color: '#fff',
           transition: 'all 120ms',
         }}
-        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-        onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = '#333'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = selected ? '#6366F1' : '#111'; }}
       >
-        <Zap style={{ width: 12, height: 12, color: selected ? '#6366F1' : 'rgba(0,0,0,0.45)' }} />
-        <span style={{ fontWeight: selected ? 600 : 400 }}>Skill</span>
+        <Zap style={{ width: 12, height: 12, color: '#fff' }} />
+        <span>Skill</span>
       </button>
     </div>
   );
@@ -479,11 +478,11 @@ export default function ChatInputBar({
               <div ref={plusMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowPlusMenu(!showPlusMenu)}
-                  style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: showPlusMenu ? 'rgba(0,0,0,0.05)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? 'rgba(0,0,0,0.05)' : 'transparent'}
+                  style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: showPlusMenu ? '#333' : '#111', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#333'}
+                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? '#333' : '#111'}
                 >
-                  <Plus style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
+                  <Plus style={{ width: 14, height: 14, color: '#fff' }} />
                 </button>
                 <AnimatePresence>
                   {showPlusMenu && (
@@ -563,15 +562,14 @@ export default function ChatInputBar({
               <div ref={modelMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowModelMenu(v => !v)}
-                  style={{ height: 30, padding: '0 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'rgba(0,0,0,0.65)', transition: 'background 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  style={{ height: 30, padding: '0 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: showModelMenu ? '#1A1A1A' : '#111', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#fff', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#333'}
+                  onMouseLeave={e => e.currentTarget.style.background = showModelMenu ? '#1A1A1A' : '#111'}
                 >
-                  <ModelLogo type={activeModel.logo} size={13} />
-                  <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {activeModel.name.replace('Claude ', '').replace('ChatGPT ', '').replace('Gemini ', '')}
+                  <span style={{ maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeModel.name}
                   </span>
-                  <ChevronDown style={{ width: 11, height: 11, opacity: 0.45, flexShrink: 0 }} />
+                  <ChevronDown style={{ width: 11, height: 11, opacity: 0.6, flexShrink: 0 }} />
                 </button>
 
                 <AnimatePresence>
@@ -579,23 +577,7 @@ export default function ChatInputBar({
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
                       style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '6px', minWidth: 272 }}>
 
-                      {/* Header */}
-                      <div style={{ padding: '4px 10px 8px', borderBottom: '1px solid rgba(0,0,0,0.05)', marginBottom: 6 }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.35)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Model</span>
-                      </div>
-
-                      {MODEL_GROUPS.map((group, gi) => (
-                        <div key={group.id}>
-                          {/* Group label (not for auto) */}
-                          {group.label && (
-                            <div style={{ padding: '6px 10px 3px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <ModelLogo type={group.models[0].logo} size={12} />
-                              <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                                {group.label}
-                              </span>
-                            </div>
-                          )}
-                          {group.models.map((m) => {
+                      {ALL_MODELS.map((m) => {
                             const isAuto = m.isAuto;
                             const isSelected = selectedModel === m.id;
                             return (
@@ -603,34 +585,27 @@ export default function ChatInputBar({
                                 key={m.id}
                                 onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
                                 style={{
-                                  width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                                  padding: isAuto ? '9px 10px' : '7px 10px',
-                                  background: isSelected ? 'rgba(0,0,0,0.04)' : 'transparent',
-                                  border: 'none', borderRadius: 9, cursor: 'pointer', textAlign: 'left',
-                                  marginBottom: isAuto ? 4 : 0, transition: 'background 100ms',
+                                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                                  padding: '8px 10px',
+                                  background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                                  border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                                  transition: 'background 100ms',
                                 }}
                                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-                                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.04)' : 'transparent'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
                               >
-                                <div style={{ flexShrink: 0 }}><ModelLogo type={m.logo} size={isAuto ? 15 : 14} /></div>
                                 <div style={{ flex: 1 }}>
-                                  <span style={{ fontSize: 13, fontWeight: isAuto ? 600 : 500, color: isAuto ? '#6366F1' : '#1A1A1A', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                                  <span style={{ fontSize: 13, fontWeight: isAuto ? 600 : 400, color: '#1A1A1A', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
                                   {isAuto && m.desc && <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.4, display: 'block', marginTop: 1 }}>{m.desc}</span>}
                                 </div>
                                 {isSelected && (
-                                  <div style={{ width: 17, height: 17, borderRadius: '50%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                    <Check style={{ width: 9, height: 9, color: '#fff' }} />
+                                  <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Check style={{ width: 8, height: 8, color: '#fff' }} />
                                   </div>
                                 )}
                               </button>
                             );
                           })}
-                          {/* Separator between groups */}
-                          {gi < MODEL_GROUPS.length - 1 && (
-                            <div style={{ height: 1, background: 'rgba(0,0,0,0.05)', margin: '4px 8px' }} />
-                          )}
-                        </div>
-                      ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
