@@ -9,16 +9,14 @@ import { base44 } from '@/api/base44Client';
 
 const CONNECTOR_ID = '6a344ff39cf46d20611a4dba';
 
-// Google Drive colour logo
+// Google Drive logo — official image asset
 const DriveLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 87.3 78" fill="none">
-    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L38 53H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066DA"/>
-    <path d="M43.65 25L29.4 0c-1.35.8-2.5 1.9-3.3 3.3L1.2 48.5C.4 49.9 0 51.45 0 53h38z" fill="#00AC47"/>
-    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H49.3l8.1 15.35z" fill="#EA4335"/>
-    <path d="M43.65 25L57.9 0H43.65 29.4L43.65 25z" fill="#00832D"/>
-    <path d="M73.55 76.8L49.3 53H38L13.75 76.8l14.85.2H58.7z" fill="#2684FC"/>
-    <path d="M86.1 48.5L61.2 3.3C60.4 1.9 59.25.8 57.9 0L43.65 25 81.3 53h6c0-1.55-.4-3.1-1.2-4.5z" fill="#FFBA00"/>
-  </svg>
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/882b6af1a_image.png"
+    width={size} height={size}
+    style={{ objectFit: 'contain', mixBlendMode: 'multiply', flexShrink: 0 }}
+    alt="Google Drive"
+  />
 );
 
 function FileIcon({ mimeType }) {

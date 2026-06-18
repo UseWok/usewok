@@ -51,21 +51,28 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo
+// Google Drive logo — official image asset, black bg made transparent via mix-blend-mode
 const DriveLogo = ({ size = 15 }) => (
-  <svg width={size} height={size} viewBox="0 0 87.3 78" fill="none" style={{ flexShrink: 0 }}>
-    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L38 53H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066DA"/>
-    <path d="M43.65 25L29.4 0c-1.35.8-2.5 1.9-3.3 3.3L1.2 48.5C.4 49.9 0 51.45 0 53h38z" fill="#00AC47"/>
-    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H49.3l8.1 15.35z" fill="#EA4335"/>
-    <path d="M43.65 25L57.9 0H43.65 29.4L43.65 25z" fill="#00832D"/>
-    <path d="M73.55 76.8L49.3 53H38L13.75 76.8l14.85.2H58.7z" fill="#2684FC"/>
-    <path d="M86.1 48.5L61.2 3.3C60.4 1.9 59.25.8 57.9 0L43.65 25 81.3 53h6c0-1.55-.4-3.1-1.2-4.5z" fill="#FFBA00"/>
-  </svg>
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/882b6af1a_image.png"
+    width={size} height={size}
+    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+    alt="Google Drive"
+  />
+);
+
+// Claude logo — official burst image asset
+const ClaudeLogo = ({ size = 16 }) => (
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
+    width={size} height={size}
+    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+    alt="Claude"
+  />
 );
 
 const AutoLogo = ({ size = 16 }) => <StarIcon size={size} color="#6366F1" />;
 const GeminiLogo = ({ size = 16 }) => <GeminiStarIcon size={size} />;
-const ClaudeLogo = ({ size = 16 }) => <StarIcon size={size} color="#D97757" />;
 
 // Crosshair / Focus SVG for "Objectif"
 const CrosshairIcon = ({ size = 14, color = 'rgba(0,0,0,0.45)' }) => (
@@ -92,16 +99,17 @@ function modelNameStyle(m) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// MODEL LIST
+// MODEL LIST — exact hierarchy, immutable order
 // ─────────────────────────────────────────────────────────────────
-// Flat list matching img2 exactly
 const ALL_MODELS = [
-  { id: 'automatic',       name: 'Automatic',      desc: 'The best AI model is selected for each request', logo: 'auto',   isAuto: true },
-  { id: 'gemini-31-pro',   name: 'Gemini 3.1 Pro',  logo: 'gemini' },
-  { id: 'claude-sonnet-46',name: 'Sonnet 4.6',       logo: 'claude' },
-  { id: 'claude-opus-46',  name: 'Opus 4.6',         logo: 'claude' },
-  { id: 'claude-opus-48',  name: 'Opus 4.8',         logo: 'claude' },
-  { id: 'chatgpt-55',      name: 'GPT-5.5',          logo: 'openai' },
+  { id: 'claude-opus-48',   name: 'Claude Opus 4.8',   logo: 'claude' },
+  { id: 'claude-opus-47',   name: 'Claude Opus 4.7',   logo: 'claude' },
+  { id: 'claude-opus-46',   name: 'Claude Opus 4.6',   logo: 'claude' },
+  { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
+  { id: 'chatgpt-55',       name: 'ChatGPT 5.5',       logo: 'openai' },
+  { id: 'chatgpt-54',       name: 'ChatGPT 5.4',       logo: 'openai' },
+  { id: 'gemini-31-pro',    name: 'Gemini 3.1 Pro',    logo: 'gemini' },
+  { id: 'gemini-3-flash',   name: 'Gemini 3 Flash',    logo: 'gemini' },
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -185,16 +193,16 @@ function ObjectifButton({ active, onToggle, dropDirection = 'up' }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          width: 32, height: 32, borderRadius: 10,
+          width: 28, height: 28, borderRadius: 6,
           border: active ? '1px solid rgba(59,130,246,0.35)' : 'none',
-          background: active ? 'rgba(59,130,246,0.07)' : 'transparent',
+          background: active ? 'rgba(59,130,246,0.12)' : '#E5E5E3',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 120ms',
         }}
-        onMouseEnter={e => { setHovered(true); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.12)' : 'rgba(0,0,0,0.06)'; }}
-        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.07)' : 'transparent'; }}
+        onMouseEnter={e => { setHovered(true); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.18)' : '#D0D0CE'; }}
+        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.12)' : '#E5E5E3'; }}
       >
-        <CrosshairIcon size={14} color={active ? '#3B82F6' : 'rgba(0,0,0,0.5)'} />
+        <CrosshairIcon size={13} color={active ? '#3B82F6' : '#111'} />
       </button>
     </div>
   );
@@ -340,17 +348,17 @@ export default function ChatInputBar({
 
   const dropdownBase = {
     background: '#FFFFFF',
-    border: '1px solid rgba(0,0,0,0.08)',
-    borderRadius: 14,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06)',
+    border: '1px solid rgba(0,0,0,0.09)',
+    borderRadius: 8,
+    boxShadow: '0 6px 20px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06)',
     zIndex: 999,
   };
 
-  // Pure black button style
+  // Square gray button — gray bg, black icon
   const lightBtn = {
-    width: 32, height: 32, borderRadius: 10,
+    width: 28, height: 28, borderRadius: 6,
     border: 'none',
-    background: 'transparent',
+    background: '#E5E5E3',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'background 120ms',
   };
@@ -443,57 +451,53 @@ export default function ChatInputBar({
               <div ref={plusMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowPlusMenu(!showPlusMenu)}
-                  style={{ ...lightBtn, background: showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
-                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent'}
+                  style={{ ...lightBtn, background: showPlusMenu ? '#D0D0CE' : '#E5E5E3' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#D0D0CE'}
+                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? '#D0D0CE' : '#E5E5E3'}
                 >
-                  <Plus style={{ width: 15, height: 15, color: '#111' }} />
+                  <Plus style={{ width: 14, height: 14, color: '#111' }} />
                 </button>
                 <AnimatePresence>
                   {showPlusMenu && (
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
-                      style={{ position: 'absolute', ...menuPos, left: 0, ...dropdownBase, minWidth: 248, overflow: 'hidden' }}>
+                      style={{ position: 'absolute', ...menuPos, left: 0, ...dropdownBase, minWidth: 220, overflow: 'hidden', padding: '4px' }}>
 
                       {/* Upload from computer */}
                       <button onClick={() => { if (canUpload) { fileInputRef.current?.click(); setShowPlusMenu(false); } }} disabled={!canUpload}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: canUpload ? 'pointer' : 'default', opacity: canUpload ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
-                        onMouseEnter={e => { if (canUpload) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: canUpload ? 'pointer' : 'default', opacity: canUpload ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
+                        onMouseEnter={e => { if (canUpload) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                          <Upload style={{ width: 14, height: 14, color: '#6366F1', flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Upload from computer</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <Upload style={{ width: 13, height: 13, color: '#6366F1', flexShrink: 0 }} />
+                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Upload from computer</span>
                         </div>
-                        {!canUpload && <Lock style={{ width: 11, height: 11, color: '#BBB' }} />}
+                        {!canUpload && <Lock style={{ width: 10, height: 10, color: '#BBB' }} />}
                       </button>
-
-                      <div style={{ height: 1, background: 'rgba(0,0,0,0.05)', margin: '0 10px' }} />
 
                       {/* Web search */}
                       <button onClick={() => { if (hasInternet) { setSearchActive(v => !v); setShowPlusMenu(false); } }} disabled={!hasInternet}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: hasInternet ? 'pointer' : 'default', opacity: hasInternet ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
-                        onMouseEnter={e => { if (hasInternet) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: hasInternet ? 'pointer' : 'default', opacity: hasInternet ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
+                        onMouseEnter={e => { if (hasInternet) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                          <GeminiLogo size={14} />
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Search Google</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <GeminiLogo size={13} />
+                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Search Google</span>
                           {hasInternet && (
-                            <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 999, background: searchActive ? '#111' : 'rgba(0,0,0,0.06)', color: searchActive ? '#fff' : '#888', letterSpacing: '0.04em' }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 999, background: searchActive ? '#111' : 'rgba(0,0,0,0.06)', color: searchActive ? '#fff' : '#888', letterSpacing: '0.04em' }}>
                               {searchActive ? 'ON' : 'OFF'}
                             </span>
                           )}
                         </div>
-                        {!hasInternet && <Lock style={{ width: 11, height: 11, color: '#BBB' }} />}
+                        {!hasInternet && <Lock style={{ width: 10, height: 10, color: '#BBB' }} />}
                       </button>
-
-                      <div style={{ height: 1, background: 'rgba(0,0,0,0.05)', margin: '0 10px' }} />
 
                       {/* Import from Google Drive */}
                       <button onClick={() => { setShowPlusMenu(false); setShowDrivePicker(true); }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <DriveLogo size={14} />
-                        <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
+                        <DriveLogo size={13} />
+                        <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
                       </button>
                     </motion.div>
                   )}
@@ -553,38 +557,34 @@ export default function ChatInputBar({
                 <AnimatePresence>
                   {showModelMenu && (
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
-                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '8px', minWidth: 280 }}>
+                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '4px', minWidth: 230 }}>
 
-                      {ALL_MODELS.map((m, idx) => {
+                      {ALL_MODELS.map((m) => {
                         const isSelected = selectedModel === m.id;
-                        const showDivider = idx === 0; // divider after Automatic
                         return (
-                          <React.Fragment key={m.id}>
-                            <button
-                              onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
-                              style={{
-                                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                                padding: '10px 12px',
-                                background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
-                                border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                                transition: 'background 100ms',
-                              }}
-                              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
-                            >
-                              <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <ModelLogo type={m.logo} size={18} />
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <span style={modelNameStyle(m)}>{m.name}</span>
-                                {m.desc && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', lineHeight: 1.4, display: 'block', marginTop: 1 }}>{m.desc}</span>}
-                              </div>
-                              {isSelected && (
-                                <Check style={{ width: 14, height: 14, color: '#111', flexShrink: 0 }} />
-                              )}
-                            </button>
-                            {showDivider && <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 4px' }} />}
-                          </React.Fragment>
+                          <button
+                            key={m.id}
+                            onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
+                            style={{
+                              width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                              padding: '7px 10px',
+                              background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                              border: 'none', borderRadius: 5, cursor: 'pointer', textAlign: 'left',
+                              transition: 'background 100ms',
+                            }}
+                            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
+                          >
+                            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <ModelLogo type={m.logo} size={15} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: 12.5, fontWeight: isSelected ? 500 : 400, color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                            </div>
+                            {isSelected && (
+                              <Check style={{ width: 12, height: 12, color: '#111', flexShrink: 0 }} />
+                            )}
+                          </button>
                         );
                       })}
                     </motion.div>
@@ -596,12 +596,12 @@ export default function ChatInputBar({
               <button
                 onClick={handleMicClick}
                 style={{ ...lightBtn }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onMouseEnter={e => e.currentTarget.style.background = '#D0D0CE'}
+                onMouseLeave={e => e.currentTarget.style.background = '#E5E5E3'}
               >
                 {micDenied
-                  ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
-                  : <Mic style={{ width: 14, height: 14, color: '#111' }} />}
+                  ? <MicOff style={{ width: 13, height: 13, color: '#EF4444' }} />
+                  : <Mic style={{ width: 13, height: 13, color: '#111' }} />}
               </button>
 
               {/* Send button */}
