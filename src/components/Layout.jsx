@@ -92,8 +92,8 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  // Frame bg matches app background exactly
-  const FRAME_BG = '#F8F7F4';
+  // Frame bg — slightly grayer than white content so the border frame is visible
+  const FRAME_BG = '#ECEBE6';
   const BORDER_TOP = 8;
   const BORDER_SIDE = 8;
   const BORDER_BOTTOM = 40;     // thick bottom border (above feedback button)
@@ -229,6 +229,9 @@ export default function Layout() {
             borderRadius: CORNER_R,
             overflow: 'hidden',
             boxSizing: 'border-box',
+            background: '#FFFFFF',
+            border: '1px solid #E2E1DC',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           }),
         }}
       >
