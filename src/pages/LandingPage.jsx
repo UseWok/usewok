@@ -3,21 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
-// ── Design tokens ──
+const F = "'Inter', system-ui, sans-serif";
 const BG = '#0A0A0A';
-const BG2 = '#111111';
 const BORDER = 'rgba(255,255,255,0.08)';
-const TEXT = '#FFFFFF';
-const MUTED = 'rgba(255,255,255,0.45)';
-const DIM = 'rgba(255,255,255,0.22)';
-const ACCENT = '#5B57F8'; // Linear purple
 
-// ── Font injection ──
 function FontLoader() {
   useEffect(() => {
-    if (document.getElementById('linear-font')) return;
+    if (document.getElementById('lp-font')) return;
     const l = document.createElement('link');
-    l.id = 'linear-font';
+    l.id = 'lp-font';
     l.rel = 'stylesheet';
     l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
     document.head.appendChild(l);
@@ -25,15 +19,11 @@ function FontLoader() {
   return null;
 }
 
-const F = "'Inter', system-ui, sans-serif";
-
-// ── Navbar ──
+// ── Navbar ──────────────────────────────────────────────────────────────────
 function Navbar({ onLogin, onSignup }) {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 30);
+    const h = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
@@ -41,293 +31,279 @@ function Navbar({ onLogin, onSignup }) {
   return (
     <header style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-      height: 56,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 32px',
-      background: scrolled ? 'rgba(10,10,10,0.94)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 32px', fontFamily: F,
+      background: scrolled ? 'rgba(10,10,10,0.92)' : 'rgba(10,10,10,0.6)',
+      backdropFilter: 'blur(20px)',
       borderBottom: scrolled ? `1px solid ${BORDER}` : '1px solid transparent',
       transition: 'all 0.3s ease',
-      fontFamily: F,
     }}>
       {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
-          <path d="M0 50C0 22.4 22.4 0 50 0s50 22.4 50 50-22.4 50-50 50S0 77.6 0 50z" fill="#5B57F8"/>
-          <path d="M15 15L85 85M15 85L85 15" stroke="white" strokeWidth="12" strokeLinecap="round"/>
+      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="white"/>
+          <path d="M0.133 12.646L5.354 17.867C5.527 17.951 5.724 17.963 5.912 17.888L0.112 12.088C0.037 12.276 0.049 12.473 0.133 12.646Z" fill="white"/>
+          <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="white"/>
+          <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/>
         </svg>
-        <span style={{ fontSize: 16, fontWeight: 700, color: TEXT, letterSpacing: '-0.02em' }}>Linear</span>
-      </div>
+        <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>Linear</span>
+      </a>
 
-      {/* Nav links */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }} className="hidden-mobile">
-        {[['Product', '#product'], ['Resources', '#features'], ['Customers', '#testimonials'], ['Pricing', '#pricing'], ['Now', '#now'], ['Contact', '#contact']].map(([label, href]) => (
-          <a key={label} href={href} style={{ fontSize: 14, fontWeight: 500, color: MUTED, textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = TEXT}
-            onMouseLeave={e => e.currentTarget.style.color = MUTED}>
-            {label}
+      {/* Nav */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        {[['Product', '#'], ['Resources', '#'], ['Customers', '#testimonials'], ['Pricing', '/pricing'], ['Now', '#'], ['Contact', '#']].map(([l, h]) => (
+          <a key={l} href={h} style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', transition: 'color 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}>
+            {l}
           </a>
         ))}
-      </nav>
-
-      {/* Auth buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <button onClick={onLogin} style={{
-          fontFamily: F, fontSize: 14, fontWeight: 500, color: MUTED,
-          background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', transition: 'color 150ms',
-        }}
-          onMouseEnter={e => e.currentTarget.style.color = TEXT}
-          onMouseLeave={e => e.currentTarget.style.color = MUTED}>
+        <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)' }} />
+        <button onClick={onLogin} style={{ fontFamily: F, fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 150ms', padding: 0 }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}>
           Log in
         </button>
         <button onClick={onSignup} style={{
-          fontFamily: F, fontSize: 14, fontWeight: 600, color: TEXT,
-          background: ACCENT, border: 'none', borderRadius: 8,
-          padding: '8px 18px', cursor: 'pointer', transition: 'opacity 150ms',
+          fontFamily: F, fontSize: 14, fontWeight: 500, color: '#000',
+          background: '#fff', border: 'none', borderRadius: 20,
+          padding: '7px 18px', cursor: 'pointer', transition: 'opacity 150ms',
         }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
           Sign up
         </button>
-      </div>
-
-      <style>{`
-        @media (max-width: 768px) { .hidden-mobile { display: none !important; } }
-      `}</style>
+      </nav>
     </header>
   );
 }
 
-// ── Hero Section ──
+// ── Hero ─────────────────────────────────────────────────────────────────────
 function Hero({ onSignup }) {
   return (
     <section style={{
-      minHeight: '100vh', background: BG,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: '120px 32px 80px', position: 'relative', overflow: 'hidden', fontFamily: F,
+      background: BG, minHeight: '100vh',
+      display: 'flex', flexDirection: 'column',
+      padding: '0', position: 'relative', overflow: 'hidden', fontFamily: F,
     }}>
-      {/* Radial glow */}
-      <div style={{
-        position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
-        width: 800, height: 500,
-        background: 'radial-gradient(ellipse, rgba(91,87,248,0.15) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-
-      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 900 }}>
-        {/* New badge */}
-        <motion.a
-          href="#coding-sessions"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 40,
-            padding: '5px 14px 5px 8px',
-            background: 'rgba(91,87,248,0.1)', border: `1px solid rgba(91,87,248,0.25)`,
-            borderRadius: 100, textDecoration: 'none',
-            transition: 'background 200ms',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,87,248,0.18)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(91,87,248,0.1)'}
-        >
-          <span style={{ fontSize: 10, fontWeight: 700, color: ACCENT, background: ACCENT + '22', borderRadius: 100, padding: '2px 8px', letterSpacing: '0.05em' }}>NEW</span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Coding Sessions →</span>
-        </motion.a>
-
-        {/* Headline */}
+      {/* Text area */}
+      <div style={{ padding: '160px 80px 0', position: 'relative', zIndex: 1 }}>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            fontSize: 'clamp(2.8rem, 7vw, 6.5rem)', fontWeight: 700,
-            color: TEXT, letterSpacing: '-0.04em', lineHeight: 1.0,
-            margin: '0 0 24px',
+            fontSize: 'clamp(2.4rem, 5.5vw, 5rem)', fontWeight: 700,
+            color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.05,
+            margin: '0 0 20px', maxWidth: 680,
           }}
         >
-          The product<br />development system<br />
-          <span style={{ color: 'rgba(255,255,255,0.25)' }}>for teams and agents</span>
+          The product development<br />system for teams<br />and agents
         </motion.h1>
-
-        {/* Sub */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.7 }}
-          style={{
-            fontSize: 18, fontWeight: 400, color: MUTED,
-            lineHeight: 1.7, maxWidth: 500, margin: '0 auto 48px',
-          }}
-        >
-          Purpose-built for planning and building products. Designed for the AI era.
-        </motion.p>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}
-        >
-          <button onClick={onSignup} style={{
-            fontFamily: F, fontSize: 15, fontWeight: 600, color: TEXT,
-            background: ACCENT, border: 'none', borderRadius: 10,
-            padding: '14px 32px', cursor: 'pointer', transition: 'opacity 150ms',
-          }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            Get started
-          </button>
-          <button onClick={() => document.getElementById('product-section')?.scrollIntoView({ behavior: 'smooth' })} style={{
-            fontFamily: F, fontSize: 15, fontWeight: 500, color: MUTED,
-            background: 'none', border: `1px solid ${BORDER}`, borderRadius: 10,
-            padding: '14px 28px', cursor: 'pointer', transition: 'all 200ms',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = TEXT; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = MUTED; }}>
-            Learn more
-          </button>
-        </motion.div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 820 }}>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', margin: 0, fontWeight: 400 }}>
+            Purpose-built for planning and building products. Designed for the AI era.
+          </p>
+          <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.12)', borderRadius: 4, padding: '2px 6px', letterSpacing: '0.01em' }}>New</span>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>Coding Sessions →</span>
+          </a>
+        </div>
       </div>
 
       {/* App screenshot */}
       <motion.div
-        initial={{ opacity: 0, y: 60 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        style={{ position: 'relative', zIndex: 1, marginTop: 80, width: '90vw', maxWidth: 1100 }}
+        transition={{ delay: 0.4, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        style={{ padding: '60px 40px 0', position: 'relative', zIndex: 1 }}
       >
-        <AppMockup />
+        <LinearAppMockup />
       </motion.div>
     </section>
   );
 }
 
-// ── App Mockup (the big Linear-style UI preview) ──
-function AppMockup() {
+// ── Big app mockup — pixel faithful ─────────────────────────────────────────
+function LinearAppMockup() {
   return (
     <div style={{
-      borderRadius: 14, overflow: 'hidden',
-      border: `1px solid ${BORDER}`,
-      boxShadow: '0 40px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03)',
-      background: '#161616',
-      fontFamily: F,
+      borderRadius: '12px 12px 0 0', overflow: 'hidden',
+      border: `1px solid rgba(255,255,255,0.1)`,
+      borderBottom: 'none',
+      boxShadow: '0 -8px 60px rgba(0,0,0,0.5)',
+      background: '#1C1C1E',
+      fontFamily: F, fontSize: 13,
     }}>
-      {/* Window bar */}
-      <div style={{ height: 36, background: '#1A1A1A', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 8 }}>
+      {/* Traffic lights bar */}
+      <div style={{ height: 40, background: '#161618', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 8 }}>
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F56' }} />
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27C93F' }} />
-        <div style={{ flex: 1 }} />
-        <div style={{ width: 160, height: 18, background: '#222', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>linear.app / workspace</span>
-        </div>
-        <div style={{ flex: 1 }} />
       </div>
 
-      {/* Main layout */}
-      <div style={{ display: 'flex', height: 520 }}>
+      {/* App layout */}
+      <div style={{ display: 'flex', height: 540 }}>
         {/* Sidebar */}
-        <div style={{ width: 220, borderRight: `1px solid ${BORDER}`, padding: '12px 0', flexShrink: 0, background: '#161616' }}>
-          <div style={{ padding: '8px 12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>L</span>
+        <div style={{ width: 220, background: '#1C1C1E', borderRight: `1px solid rgba(255,255,255,0.06)`, padding: '8px 0', flexShrink: 0 }}>
+          {/* Workspace header */}
+          <div style={{ padding: '6px 12px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 20, height: 20, borderRadius: 5, background: '#5A5AF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="12" height="12" viewBox="0 0 18 18" fill="none">
+                <path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/>
+              </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Linear</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>∨</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Linear</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>∨</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginLeft: 4 }}>🔍</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>✏️</span>
           </div>
 
           {[
             { icon: '📥', label: 'Inbox' },
-            { icon: '🔶', label: 'My issues' },
-            { icon: '📋', label: 'Reviews' },
-            { icon: '💡', label: 'Pulse' },
+            { icon: '◈', label: 'My issues' },
+            { icon: '⟳', label: 'Reviews' },
+            { icon: '⚡', label: 'Pulse' },
           ].map((item, i) => (
-            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <span style={{ fontSize: 11 }}>{item.icon}</span>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>{item.label}</span>
-            </div>
+            <SidebarItem key={i} icon={item.icon} label={item.label} />
           ))}
 
-          <div style={{ padding: '16px 12px 6px', fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Workspace</div>
-          {['Initiatives', 'Projects', 'More'].map((item, i) => (
-            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>{item}</span>
-            </div>
-          ))}
+          <SidebarSection label="Workspace" />
+          <SidebarItem icon="◎" label="Initiatives" />
+          <SidebarItem icon="◉" label="Projects" />
+          <SidebarItem icon="···" label="More" />
 
-          <div style={{ padding: '16px 12px 6px', fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Favorites</div>
-          {[
-            { dot: '#F95738', label: 'Faster app launch' },
-            { dot: '#22c55e', label: 'Agent tasks' },
-            { dot: ACCENT, label: 'UI Refresh' },
-            { dot: '#ef4444', label: 'Agents Insights' },
-          ].map((item, i) => (
-            <div key={i} style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>{item.label}</span>
-            </div>
-          ))}
+          <SidebarSection label="Favorites" />
+          <SidebarItem icon="🟠" label="Faster app launch" active />
+          <SidebarItem icon="🟢" label="Agent tasks" />
+          <SidebarItem icon="✕" label="UI Refresh" />
+          <SidebarItem icon="🔴" label="Agents Insights" />
         </div>
 
         {/* Main content */}
-        <div style={{ flex: 1, padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Issue header */}
-          <div style={{ padding: '12px 20px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Faster app launch</span>
-            <span style={{ fontSize: 10, color: MUTED }}>⭐</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>···</span>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1C1C1E', overflow: 'hidden' }}>
+          {/* Issue top bar */}
+          <div style={{ height: 44, borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>Faster app launch</span>
+            <span style={{ fontSize: 12, color: '#FFBD2E' }}>★</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>···</span>
             <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 12, color: MUTED }}>02 / 145</span>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>ENG-2703</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>02 / 145</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>⌃ ⌄</span>
+            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>ENG-2703</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>🔗 ⊞ ↗</span>
           </div>
 
-          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 220px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             {/* Issue body */}
-            <div style={{ padding: '20px', overflowY: 'auto', borderRight: `1px solid ${BORDER}` }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.02em' }}>Faster app launch</h3>
-              <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.65, margin: '0 0 24px' }}>
-                Render UI before <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>vehicle_state</code> sync when minimum required state is present, instead of blocking on full refresh during iOS startup.
+            <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', borderRight: `1px solid rgba(255,255,255,0.06)` }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Faster app launch</h2>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: '0 0 24px' }}>
+                Render UI before{' '}
+                <code style={{ background: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: 3, fontSize: 12, color: 'rgba(255,255,255,0.75)', fontFamily: 'monospace' }}>vehicle_state</code>
+                {' '}sync when minimum required state is present, instead of blocking on full refresh during iOS startup.
               </p>
 
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>Activity</div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', margin: '0 0 16px' }}>Activity</p>
 
               {[
-                { avatar: '🔷', text: 'Linear created the issue via Slack on behalf of karri', time: '2min ago' },
-                { avatar: '🏷️', text: 'Triage Intelligence added the label Performance and iOS', time: '2min ago' },
-                { avatar: '👤', text: 'karri · 4 min ago — Right now we show a spinner forever, which makes it look like the car disappeared...', time: '' },
-                { avatar: '💬', text: 'jori · just now — @Linear can you take a stab at this?', time: '' },
-              ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>{item.avatar}</span>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-                    {item.text}
-                    {item.time && <span style={{ color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>{item.time}</span>}
-                  </span>
+                { icon: '🔷', text: <>Linear created the issue via <span style={{ color: 'rgba(255,255,255,0.7)' }}>Slack</span> on behalf of <span style={{ color: 'rgba(255,255,255,0.7)' }}>karri</span> · 2min ago</> },
+                { icon: '🏷', text: <><span style={{ color: 'rgba(255,255,255,0.7)' }}>Triage Intelligence</span> added the label <span style={{ color: 'rgba(255,255,255,0.7)' }}>Performance</span> and <span style={{ color: 'rgba(255,255,255,0.7)' }}>iOS</span> · 2min ago</> },
+              ].map((a, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 12, marginTop: 1, flexShrink: 0 }}>{a.icon}</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>{a.text}</span>
                 </div>
               ))}
+
+              <div style={{ display: 'flex', gap: 10, margin: '14px 0', alignItems: 'flex-start' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#5A5AF0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>K</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>karri</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 8 }}>4 min ago</span>
+                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0', lineHeight: 1.6 }}>
+                    Right now we show a spinner forever, which makes it look like the car disappeared...
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, margin: '14px 0', alignItems: 'flex-start' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#2D6A4F', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>J</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>jori</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 8 }}>just now</span>
+                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0', lineHeight: 1.6 }}>
+                    @Linear can you take a stab at this?
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, margin: '14px 0', alignItems: 'flex-start' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="12" height="12" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.6)"/></svg>
+                </div>
+                <div>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Linear</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 8 }}>connected by jori · 2 min ago</span>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>✦ Changed 2 files — Draft PR awaiting your review · 2 min ago</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, margin: '14px 0', alignItems: 'flex-start' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>⊙</span>
+                </div>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>Linear moved from <span style={{ color: 'rgba(255,255,255,0.55)' }}>Todo</span> to <span style={{ color: 'rgba(255,255,255,0.55)' }}>In Progress</span> · just now</span>
+              </div>
             </div>
 
-            {/* Sidebar meta */}
-            <div style={{ padding: '16px', fontSize: 12, fontWeight: 500 }}>
-              {[
-                { label: 'Status', value: 'In Progress', color: '#22c55e' },
-                { label: 'Priority', value: 'High', color: '#ef4444' },
-                { label: 'Assignee', value: 'jori', color: null },
-                { label: 'Team', value: 'Linear', color: null },
-              ].map((meta, i) => (
-                <div key={i} style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginBottom: 4, fontWeight: 500, letterSpacing: '0.04em' }}>{meta.label}</div>
-                  <div style={{ fontSize: 13, color: meta.color || 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{meta.value}</div>
+            {/* Right meta panel */}
+            <div style={{ width: 240, padding: '16px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <MetaRow icon="⊙" iconColor="#22c55e" label="In Progress" />
+              <MetaRow icon="▪" iconColor="rgba(255,255,255,0.6)" label="High" isBar />
+              <MetaRow avatar="J" label="jori" avatarBg="#2D6A4F" />
+              <MetaRow logoLinear label="Linear" />
+
+              {/* AI Panel */}
+              <div style={{ marginTop: 20, background: '#141416', border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.7)"/></svg>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>Linear</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Opus 4.8</span>
+                  <div style={{ flex: 1 }} />
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', cursor: 'pointer' }}>− □ ✕</span>
                 </div>
-              ))}
+                <div style={{ padding: '12px 14px', fontSize: 12, lineHeight: 1.8 }}>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', margin: '0 0 6px' }}>jori connected Linear to ENG-2703</p>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0 0 4px', fontWeight: 500 }}>Examining the startup path...</p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', margin: '0 0 8px' }}>Worked for 7s ▾</p>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', margin: '0 0 8px' }}>Pushed and opened a draft PR. Changes:</p>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 2px', fontFamily: 'monospace', fontSize: 11 }}>• useRideHistory.ts: build a <span style={{ background: 'rgba(255,255,255,0.08)', padding: '0 3px', borderRadius: 2 }}>waitingStatusById</span> map</p>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 8px', fontFamily: 'monospace', fontSize: 11 }}>• <span style={{ background: 'rgba(255,255,255,0.08)', padding: '0 3px', borderRadius: 2 }}>RideHistoryPage.tsx</span>: dimmed rows reset</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Changed 2 files</span>
+                    <span style={{ fontSize: 10, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 3, padding: '1px 5px' }}>+4</span>
+                    <span style={{ fontSize: 10, color: '#ef4444', background: 'rgba(239,68,68,0.1)', borderRadius: 3, padding: '1px 5px' }}>-4</span>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto', cursor: 'pointer' }}>Preview</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', background: 'rgba(255,255,255,0.04)', borderRadius: 4, padding: '6px 8px' }}>
+                    <div>↑ Draft Update homepage H1</div>
+                    <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10 }}>master ← ride/drv-899-update-homepage-h1-65a6</div>
+                  </div>
+                </div>
+                {/* Chat input */}
+                <div style={{ padding: '8px 14px', borderTop: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', flex: 1 }}>Tell Linear what to do next...</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>↺ 🔗 ↑</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -336,527 +312,616 @@ function AppMockup() {
   );
 }
 
-// ── Three pillars section ──
-function ThreePillars() {
-  const pillars = [
-    { fig: 'FIG 0.2', label: 'Built for purpose', desc: 'Linear is shaped by the practices and principles of world-class product teams.' },
-    { fig: 'FIG 0.3', label: 'Powered by AI agents', desc: 'Designed for workflows shared by humans and agents. From drafting PRDs to pushing PRs.' },
-    { fig: 'FIG 0.4', label: 'Designed for speed', desc: 'Reduces noise and restores momentum to help teams ship with high velocity and focus.' },
-  ];
-
+function SidebarItem({ icon, label, active }) {
   return (
-    <section id="product" style={{ background: BG2, borderTop: `1px solid ${BORDER}`, padding: '80px 32px', fontFamily: F }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 64px', maxWidth: 700 }}
-        >
-          A new species of product tool.{' '}
-          <span style={{ color: 'rgba(255,255,255,0.22)' }}>Purpose-built for modern teams with AI workflows at its core.</span>
-        </motion.h2>
+    <div style={{
+      padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+      background: active ? 'rgba(255,255,255,0.07)' : 'transparent',
+      borderRadius: active ? 4 : 0, margin: active ? '0 6px' : '0',
+      transition: 'background 150ms',
+    }}
+      onMouseEnter={e => !active && (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+      onMouseLeave={e => !active && (e.currentTarget.style.background = 'transparent')}>
+      <span style={{ fontSize: 11, width: 14, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontSize: 13, color: active ? '#fff' : 'rgba(255,255,255,0.45)', fontWeight: active ? 500 : 400 }}>{label}</span>
+    </div>
+  );
+}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1 }}>
-          {pillars.map((p, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              style={{
-                padding: '40px 32px',
-                borderTop: `1px solid ${BORDER}`,
-                borderRight: i < pillars.length - 1 ? `1px solid ${BORDER}` : 'none',
-              }}
-            >
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.1em', marginBottom: 20 }}>{p.fig}</div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: TEXT, margin: '0 0 10px', letterSpacing: '-0.01em' }}>{p.label}</h3>
-              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
-            </motion.div>
-          ))}
+function SidebarSection({ label }) {
+  return (
+    <div style={{ padding: '12px 12px 4px', fontSize: 11, color: 'rgba(255,255,255,0.2)', fontWeight: 500, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 4 }}>
+      {label} <span style={{ fontSize: 10 }}>▾</span>
+    </div>
+  );
+}
+
+function MetaRow({ icon, iconColor, label, isBar, avatar, avatarBg, logoLinear }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+      {avatar && (
+        <div style={{ width: 16, height: 16, borderRadius: '50%', background: avatarBg || '#444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 9, color: '#fff', fontWeight: 700 }}>{avatar}</span>
         </div>
+      )}
+      {logoLinear && (
+        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.6)"/></svg>
+        </div>
+      )}
+      {icon && !avatar && !logoLinear && (
+        isBar
+          ? <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="3" width="3" height="4" fill="rgba(255,255,255,0.3)"/><rect x="4" y="1" width="3" height="6" fill="rgba(255,255,255,0.5)"/><rect x="8" y="0" width="3" height="8" fill="rgba(255,255,255,0.7)"/><rect x="12" y="2" width="2" height="5" fill="rgba(255,255,255,0.4)"/></svg>
+          : <span style={{ fontSize: 12, color: iconColor }}>{icon}</span>
+      )}
+      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>{label}</span>
+    </div>
+  );
+}
+
+// ── Logo strip ────────────────────────────────────────────────────────────────
+function LogoStrip() {
+  const logos = ['▲ Vercel', '⊕ CURSOR', 'OSCAR', 'OpenAI', 'coinbase', '$ Cash App', '⊗ BOOM', 'ramp ↗'];
+  return (
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '48px 80px', fontFamily: F }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
+        {logos.map(l => (
+          <span key={l} style={{ fontSize: 16, fontWeight: 600, color: 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em' }}>{l}</span>
+        ))}
       </div>
     </section>
   );
 }
 
-// ── Feature sections ──
-function FeatureSection({ id, num, title, subtitle, linkLabel, linkHref, children, bg = BG }) {
+// ── "A new species" big statement ─────────────────────────────────────────────
+function NewSpecies() {
   return (
-    <section id={id} style={{ background: bg, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em' }}>{num}</span>
-          <a href={linkHref} style={{ fontSize: 14, fontWeight: 600, color: TEXT, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = ACCENT}
-            onMouseLeave={e => e.currentTarget.style.color = TEXT}>
-            {linkLabel} <span style={{ fontSize: 12 }}>→</span>
-          </a>
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '120px 80px', fontFamily: F }}>
+      <h2 style={{
+        fontSize: 'clamp(2.4rem, 5vw, 5rem)', fontWeight: 700, letterSpacing: '-0.04em',
+        lineHeight: 1.05, margin: 0, maxWidth: 900,
+        color: 'transparent',
+        backgroundImage: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.4) 100%)',
+        WebkitBackgroundClip: 'text', backgroundClip: 'text',
+      }}>
+        A new species of product tool. <span style={{ color: 'transparent', backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>Purpose-built for modern teams with AI workflows at its core, Linear sets a new standard for planning and building products.</span>
+      </h2>
+    </section>
+  );
+}
+
+// ── Three pillars with 3D isometric images ────────────────────────────────────
+function ThreePillars() {
+  const pillars = [
+    {
+      fig: 'FIG 0.2',
+      img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7b144b7-4ef0-4991-9bcb-617c6a37d200/f=auto,dpr=2,fit=scale-down,metadata=none',
+      label: 'Built for purpose',
+      desc: 'Linear is shaped by the practices and principles of world-class product teams.',
+    },
+    {
+      fig: 'FIG 0.3',
+      img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/6600ca96-e49b-4fd9-c03a-7979faddad00/f=auto,dpr=2,fit=scale-down,metadata=none',
+      label: 'Powered by AI agents',
+      desc: 'Designed for workflows shared by humans and agents, from PRD to PR.',
+    },
+    {
+      fig: 'FIG 0.4',
+      img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7fa8f5f-d439-4329-6a65-de549b51e300/f=auto,dpr=2,fit=scale-down,metadata=none',
+      label: 'Designed for speed',
+      desc: 'Reduces noise and restores momentum to help teams ship with high velocity and focus.',
+    },
+  ];
+
+  return (
+    <section style={{ background: BG, padding: '0', fontFamily: F }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderTop: `1px solid ${BORDER}` }}>
+        {pillars.map((p, i) => (
+          <motion.div key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            style={{
+              borderRight: i < 2 ? `1px solid ${BORDER}` : 'none',
+              padding: '0 0 48px 0',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ padding: '40px 40px 0', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em', marginBottom: 0 }}>{p.fig}</div>
+            <img
+              src={p.img}
+              alt={p.label}
+              style={{ width: '100%', height: 280, objectFit: 'contain', display: 'block', padding: '20px 40px' }}
+            />
+            <div style={{ padding: '0 40px' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{p.label}</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', lineHeight: 1.65, margin: 0 }}>{p.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Feature section template ──────────────────────────────────────────────────
+function FeatureSplit({ title, desc, linkNum, linkLabel, children, flip = false }) {
+  return (
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '120px 80px', fontFamily: F }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        {/* Text header row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, marginBottom: 80 }}>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.8rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.05, margin: 0 }}>
+            {title}
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+            <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: '0 0 24px' }}>{desc}</p>
+            <a href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>{linkNum}</span>
+              <span style={{ color: 'rgba(255,255,255,0.55)' }}>{linkLabel} →</span>
+            </a>
+          </div>
         </div>
-
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ fontSize: 'clamp(1.8rem, 4vw, 3.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 16px', maxWidth: 700 }}
-        >
-          {title}
-        </motion.h2>
-        <p style={{ fontSize: 17, color: MUTED, lineHeight: 1.65, maxWidth: 560, marginBottom: 56 }}>{subtitle}</p>
-
         {children}
       </div>
     </section>
   );
 }
 
-// ── Intake / Issue tracker mock ──
+// ── Intake section mock ───────────────────────────────────────────────────────
 function IntakeMock() {
-  const groups = [
-    { label: 'Backlog', count: 8, color: 'rgba(255,255,255,0.3)', issues: ['Reduce UI flicker during autonomy...', 'Add buffering for autonomy event streams', 'Reduce startup delay caused by vehicle sync', 'Fix delayed route updates during rerouting'] },
-    { label: 'Todo', count: 71, color: ACCENT, issues: ['Remove UI inconsistencies', 'TypeError: Cannot read properties', 'Upgrade to Claude Opus 4.5', 'Optimize load times'] },
-    { label: 'In Progress', count: 3, color: '#22c55e', issues: ['Remove contentData from GraphQL API', 'Launch page assets', 'Prevent duplicate ride requests on poor...'] },
-    { label: 'Done', count: 53, color: '#6b7280', issues: ['Clean up deprecated APIs...', 'Reduce latency in autonomy st...', 'Reduce ETA fluctuations durin...', 'Improve fallback messaging'] },
-  ];
-
   return (
-    <div style={{ background: '#141414', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: F }}>
-      {groups.map((g, gi) => (
-        <div key={gi} style={{ borderBottom: gi < groups.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
-          <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.02)' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: g.color }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{g.label}</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: 4, padding: '0 5px' }}>{g.count}</span>
-          </div>
-          {g.issues.map((issue, ii) => (
-            <div key={ii} style={{ padding: '9px 16px 9px 36px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${g.color}`, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', flex: 1 }}>{issue}</span>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>ENG-{2000 + gi * 100 + ii}</span>
-            </div>
-          ))}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, fontFamily: F }}>
+      {/* Slack thread */}
+      <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13 }}>⚙</span>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>Thread in <span style={{ color: '#fff' }}>#feedback</span></span>
+          <div style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>⋮</span>
         </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Roadmap mock ──
-function RoadmapMock() {
-  const months = ['FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG'];
-  const tracks = [
-    { label: 'UI Refresh', start: 0, end: 2, color: ACCENT },
-    { label: 'Split fares', start: 2, end: 4, color: '#22c55e' },
-    { label: 'Autonomy status clarity', start: 1, end: 5, color: '#f59e0b' },
-    { label: 'Core Product', start: 0, end: 6, color: '#6b7280' },
-    { label: 'APAC Expansion', start: 4, end: 6, color: '#ec4899' },
-  ];
-
-  return (
-    <div style={{ background: '#141414', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: F }}>
-      {/* Month header */}
-      <div style={{ display: 'grid', gridTemplateColumns: `140px repeat(${months.length}, 1fr)`, borderBottom: `1px solid ${BORDER}` }}>
-        <div style={{ padding: '10px 16px', borderRight: `1px solid ${BORDER}` }} />
-        {months.map(m => (
-          <div key={m} style={{ padding: '10px 8px', fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.06em', textAlign: 'center', borderRight: `1px solid rgba(255,255,255,0.04)` }}>
-            {m}
-          </div>
-        ))}
-      </div>
-      {/* Tracks */}
-      {tracks.map((track, ti) => (
-        <div key={ti} style={{ display: 'grid', gridTemplateColumns: `140px repeat(${months.length}, 1fr)`, borderBottom: ti < tracks.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
-          <div style={{ padding: '12px 16px', fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: 500, borderRight: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center' }}>{track.label}</div>
-          {months.map((m, mi) => (
-            <div key={mi} style={{ position: 'relative', padding: '8px 4px', borderRight: `1px solid rgba(255,255,255,0.04)`, display: 'flex', alignItems: 'center' }}>
-              {mi === track.start && (
-                <div style={{
-                  position: 'absolute', left: 4, right: mi === track.end ? 4 : '-100%',
-                  height: 24, borderRadius: mi === track.end ? 6 : '6px 0 0 6px',
-                  background: track.color + '33', border: `1px solid ${track.color}55`,
-                  zIndex: 1,
-                }} />
-              )}
-              {mi > track.start && mi <= track.end && (
-                <div style={{
-                  position: 'absolute', left: 0, right: mi === track.end ? 4 : 0,
-                  height: 24, borderRadius: mi === track.end ? '0 6px 6px 0' : 0,
-                  background: track.color + '33',
-                  border: `1px solid ${track.color}55`,
-                  borderLeft: 'none',
-                  zIndex: 1,
-                }} />
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Agent terminal mock ──
-function AgentMock() {
-  return (
-    <div style={{ background: '#0D0D0D', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: "'Fira Code', monospace" }}>
-      {/* Terminal header */}
-      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: 10, background: '#141414' }}>
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5F56' }} />
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FFBD2E' }} />
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27C93F' }} />
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginLeft: 8, fontFamily: F }}>Linear Agent · kinetic-iOS</span>
-      </div>
-      <div style={{ padding: '16px 20px', fontSize: 12, lineHeight: 1.9 }}>
         {[
-          { color: '#22c55e', text: '✓ On it! I\'ve received your request.' },
-          { color: MUTED, text: 'Kicked off a task in kinetic/kinetic-iOS environment.' },
-          { color: 'rgba(255,255,255,0.25)', text: '$ rg --files -g \'AGENTS.md\'' },
-          { color: '#22c55e', text: '  AGENTS.md' },
-          { color: MUTED, text: 'Locating initialization logic for vehicle_state...' },
-          { color: '#f59e0b', text: 'Thinking...' },
-          { color: 'rgba(255,255,255,0.2)', text: '' },
-          { color: MUTED, text: 'Examining startup path...' },
-        ].map((line, i) => (
-          <div key={i} style={{ color: line.color }}>{line.text}</div>
+          { name: 'lena', time: '3:06 PM', msg: "Anyone else noticing the iOS app feels slow to open if you haven't used it in a bit?", color: '#7C6AF4' },
+          { name: 'didier', time: '3:06 PM', msg: "Yea, we're still blocking initial render on a full vehicle_state sync every time...", color: '#E87C3E' },
+          { name: 'andreas', time: '3:06 PM', msg: 'Feels like we could render sooner and load the rest in the background. Probably also worth tracking startup timing so we know how often this happens!', color: '#4E9CF5' },
+        ].map((m, i) => (
+          <div key={i} style={{ padding: '12px 16px', display: 'flex', gap: 10, borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+            <div style={{ width: 30, height: 30, borderRadius: 6, background: m.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{m.name[0].toUpperCase()}</span>
+            </div>
+            <div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 3 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{m.name}</span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{m.time}</span>
+              </div>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.55, margin: 0 }}>{m.msg}</p>
+            </div>
+          </div>
         ))}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: ACCENT, animation: 'pulse 1.5s ease-in-out infinite' }} />
-          <span style={{ color: ACCENT, fontSize: 11, fontWeight: 600, fontFamily: F }}>Agent working...</span>
+        <div style={{ padding: '12px 16px' }}>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: '0 0 10px' }}>
+            <span style={{ background: 'rgba(90,90,240,0.2)', color: '#7C6AF4', borderRadius: 3, padding: '0 3px' }}>@Linear</span>{' '}create urgent issues and assign to me
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {['＋', 'Aa', '☺', '@', '⬡', '🎤', '/'].map((c, i) => (
+              <span key={i} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', cursor: 'pointer' }}>{c}</span>
+            ))}
+            <div style={{ flex: 1 }} />
+            <button style={{ background: '#5A5AF0', border: 'none', borderRadius: 6, padding: '6px 14px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              ▶ <span style={{ fontSize: 11 }}>1× ▾</span>
+            </button>
+          </div>
         </div>
       </div>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+
+      {/* Issue list */}
+      <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>In Progress</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.06)', borderRadius: 4, padding: '0 5px' }}>3</span>
+          <div style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>＋ ···</span>
+        </div>
+        {[
+          { label: 'Remove contentData from GraphQL API', tag: '61039', avatar: 'R' },
+          { label: 'Launch page assets', tag: 'Design', avatar: 'L' },
+          { label: 'Prevent duplicate ride requests on poor...', tag: 'Bug  62048', avatar: 'P' },
+        ].map((item, i) => (
+          <div key={i} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid rgba(255,255,255,0.04)`, cursor: 'pointer' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #22c55e', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', flex: 1 }}>{item.label}</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: 3, padding: '1px 5px' }}>{item.tag}</span>
+            <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#5A5AF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 9, color: '#fff', fontWeight: 700 }}>{item.avatar}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ── Code diff mock ──
-function DiffMock() {
-  const lines = [
-    { type: 'file', text: 'kinetic-ios/src/screens/Home/HomeScreen.tsx' },
-    { type: 'removed', text: "  const { vehicleState, isFullySynced } = useVehicleState()" },
-    { type: 'removed', text: "  if (!isFullySynced) {" },
-    { type: 'removed', text: "    return <ActivityIndicator />" },
-    { type: 'removed', text: "  }" },
-    { type: 'added', text: "  const { vehicleState, hasMinState } = useVehicleState()" },
-    { type: 'added', text: "  if (!hasMinState) {" },
-    { type: 'added', text: "    return <ActivityIndicator />" },
-    { type: 'added', text: "  }" },
-    { type: 'normal', text: "  return <Dashboard vehicleState={vehicleState} />" },
-  ];
-
+// ── Roadmap mock ──────────────────────────────────────────────────────────────
+function RoadmapMock() {
   return (
-    <div style={{ background: '#0D0D0D', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', fontFamily: "'Fira Code', monospace", fontSize: 12 }}>
-      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, background: '#141414', fontFamily: F, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Code Review</span>
-        <span style={{ fontSize: 10, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 4, padding: '1px 7px', marginLeft: 'auto' }}>+4</span>
-        <span style={{ fontSize: 10, color: '#ef4444', background: 'rgba(239,68,68,0.1)', borderRadius: 4, padding: '1px 7px' }}>-3</span>
-      </div>
-      {lines.map((line, i) => (
-        <div key={i} style={{
-          padding: '3px 16px',
-          background: line.type === 'file' ? 'rgba(255,255,255,0.03)' :
-            line.type === 'added' ? 'rgba(34,197,94,0.07)' :
-            line.type === 'removed' ? 'rgba(239,68,68,0.07)' : 'transparent',
-          color: line.type === 'file' ? 'rgba(255,255,255,0.35)' :
-            line.type === 'added' ? '#86efac' :
-            line.type === 'removed' ? '#fca5a5' : 'rgba(255,255,255,0.45)',
-          borderLeft: line.type === 'added' ? '2px solid #22c55e' :
-            line.type === 'removed' ? '2px solid #ef4444' : '2px solid transparent',
-          lineHeight: 1.8,
-        }}>
-          {line.type === 'added' && <span style={{ marginRight: 8, color: '#22c55e' }}>+</span>}
-          {line.type === 'removed' && <span style={{ marginRight: 8, color: '#ef4444' }}>-</span>}
-          {line.type === 'file' && <span style={{ marginRight: 8, color: 'rgba(255,255,255,0.2)' }}>📄</span>}
-          {line.text}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24, fontFamily: F }}>
+      {/* Initiatives panel */}
+      <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Initiatives</span>
         </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Pricing section ──
-function Pricing({ onSignup }) {
-  const [annual, setAnnual] = useState(true);
-
-  const plans = [
-    {
-      name: 'Free',
-      price: annual ? 0 : 0,
-      unit: 'per member/month',
-      desc: 'For individuals and small teams getting started.',
-      cta: 'Get started',
-      primary: false,
-      features: ['Up to 5 members', 'Unlimited issues', 'Cycles & backlogs', '250MB file storage', 'Integrations'],
-    },
-    {
-      name: 'Standard',
-      price: annual ? 8 : 10,
-      unit: 'per member/month',
-      desc: 'For growing teams that need more control.',
-      cta: 'Get started',
-      primary: true,
-      badge: 'Most popular',
-      features: ['Unlimited members', 'Advanced roadmaps', 'Analytics & insights', '10GB file storage', 'Priority support', 'Admin controls'],
-    },
-    {
-      name: 'Plus',
-      price: annual ? 16 : 20,
-      unit: 'per member/month',
-      desc: 'For scaling teams that need enterprise power.',
-      cta: 'Get started',
-      primary: false,
-      features: ['Everything in Standard', 'SLA uptime guarantee', 'Advanced security', 'Custom integrations', 'Dedicated support', 'SAML SSO'],
-    },
-  ];
-
-  return (
-    <section id="pricing" style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 16px' }}
-          >
-            Simple, transparent pricing
-          </motion.h2>
-          <p style={{ fontSize: 17, color: MUTED, marginBottom: 32 }}>Start free. Scale when you're ready.</p>
-
-          {/* Toggle */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, background: '#1A1A1A', borderRadius: 100, padding: '5px 6px', border: `1px solid ${BORDER}` }}>
-            {['Monthly', 'Annual'].map(opt => (
-              <button key={opt} onClick={() => setAnnual(opt === 'Annual')} style={{
-                fontFamily: F, fontSize: 13, fontWeight: 600,
-                padding: '7px 20px', borderRadius: 100, border: 'none', cursor: 'pointer',
-                background: (annual && opt === 'Annual') || (!annual && opt === 'Monthly') ? '#fff' : 'transparent',
-                color: (annual && opt === 'Annual') || (!annual && opt === 'Monthly') ? '#000' : MUTED,
-                transition: 'all 200ms',
-              }}>
-                {opt} {opt === 'Annual' && <span style={{ color: '#22c55e', fontSize: 11, marginLeft: 4 }}>–20%</span>}
-              </button>
+        {[
+          { label: 'Core Product', count: 99, indent: 0, icon: '◎', color: '#5A5AF0', children: [{ label: 'Infra stability', count: 28, icon: '⬡', color: '#E87C3E' }, { label: 'Autonomous systems', count: 16, icon: '＋', color: '#4E9CF5' }, { label: 'Mobile apps', count: 8, icon: '📱', color: '#22c55e' }] },
+          { label: 'APAC Expansion', count: 21, indent: 0, icon: '◎', color: '#E87C3E', children: [{ label: 'Japan Launch', count: 12, icon: '⬡', color: '#ef4444' }, { label: 'Customer-driven priorities', count: 9, icon: '⬡', color: '#7C6AF4' }] },
+        ].map((item, i) => (
+          <div key={i}>
+            <div style={{ padding: '9px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <span style={{ fontSize: 13, color: item.color }}>{item.icon}</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', flex: 1 }}>{item.label}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>{item.count}</span>
+            </div>
+            {item.children?.map((c, ci) => (
+              <div key={ci} style={{ padding: '7px 16px 7px 40px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <span style={{ fontSize: 12, color: c.color }}>{c.icon}</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', flex: 1 }}>{c.label}</span>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>{c.count}</span>
+              </div>
             ))}
           </div>
-        </div>
+        ))}
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1 }}>
-          {plans.map((plan, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              style={{
-                padding: '40px 32px',
-                background: plan.primary ? 'rgba(91,87,248,0.06)' : 'transparent',
-                border: `1px solid ${plan.primary ? 'rgba(91,87,248,0.25)' : BORDER}`,
-                borderRadius: 12,
-                position: 'relative',
-                margin: '0 0 0 0',
-              }}
-            >
-              {plan.badge && (
-                <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: ACCENT, borderRadius: 100, padding: '3px 14px', fontSize: 11, fontWeight: 700, color: '#fff' }}>
-                  {plan.badge}
+      {/* Timeline */}
+      <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', gap: 24 }}>
+          {['FEB', 'MAR', 'APR', 'JUL', 'AUG', 'SEP'].map(m => (
+            <span key={m} style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontWeight: 600, letterSpacing: '0.05em' }}>{m}</span>
+          ))}
+        </div>
+        <div style={{ padding: '16px' }}>
+          {[
+            { label: 'UI Refresh', color: '#7C6AF4', w: '30%', ml: '0%' },
+            { label: 'Split fares', color: '#22c55e', w: '25%', ml: '25%' },
+            { label: 'Autonomy status clarity', color: '#f59e0b', w: '50%', ml: '15%' },
+            { label: 'Core Product', color: '#6b7280', w: '80%', ml: '0%' },
+            { label: 'APAC Expansion', color: '#ec4899', w: '30%', ml: '55%' },
+          ].map((t, i) => (
+            <div key={i} style={{ marginBottom: 10 }}>
+              <div style={{ height: 24, display: 'flex', alignItems: 'center', position: 'relative', background: 'rgba(255,255,255,0.02)', borderRadius: 4 }}>
+                <div style={{
+                  position: 'absolute', left: t.ml, width: t.w, height: '100%',
+                  background: t.color + '33', border: `1px solid ${t.color}55`,
+                  borderRadius: 4, display: 'flex', alignItems: 'center', paddingLeft: 8,
+                }}>
+                  <span style={{ fontSize: 11, color: t.color, fontWeight: 500, whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
-              )}
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: TEXT, margin: '0 0 4px' }}>{plan.name}</h3>
-              <p style={{ fontSize: 13, color: MUTED, margin: '0 0 20px', lineHeight: 1.6 }}>{plan.desc}</p>
-              <div style={{ marginBottom: 24 }}>
-                <span style={{ fontSize: 40, fontWeight: 700, color: TEXT, letterSpacing: '-0.04em' }}>${plan.price}</span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginLeft: 6 }}>{plan.unit}</span>
               </div>
-              <button onClick={onSignup} style={{
-                fontFamily: F, fontSize: 14, fontWeight: 600, width: '100%',
-                padding: '12px 0', borderRadius: 8, border: `1px solid ${plan.primary ? 'transparent' : BORDER}`,
-                background: plan.primary ? ACCENT : 'transparent', color: plan.primary ? '#fff' : MUTED,
-                cursor: 'pointer', marginBottom: 28, transition: 'all 200ms',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
-                {plan.cta}
-              </button>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {plan.features.map((f, fi) => (
-                  <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid rgba(255,255,255,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 9, color: TEXT }}>✓</span>
-                    </div>
-                    <span style={{ fontSize: 13, color: MUTED }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
-// ── Testimonials ──
-function Testimonials() {
-  const logos = ['Vercel', 'Notion', 'Loom', 'Raycast', 'Mercury', 'Perplexity', 'Arc', 'Figma'];
-  const testimonials = [
-    { name: 'Guillermo Rauch', role: 'CEO, Vercel', quote: 'Linear has fundamentally changed how we build products. The speed and quality of the tool itself shows what\'s possible.' },
-    { name: 'Ivan Zhao', role: 'CEO, Notion', quote: 'We use Linear to build Notion. The attention to detail and performance is exactly what we look for in tools we use.' },
-    { name: 'Joe Thomas', role: 'CEO, Loom', quote: 'Our entire engineering org moved to Linear in a week. The quality bar Linear sets is unlike anything else.' },
-    { name: 'Thomas Paul Mann', role: 'CEO, Raycast', quote: 'Linear is how software should be built. Fast, focused, and opinionated in the best way.' },
+// ── Agent assign mock ─────────────────────────────────────────────────────────
+function AgentMock() {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, fontFamily: F }}>
+      {/* Terminal */}
+      <div style={{ background: '#141416', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.7)"/></svg>
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Codex</span>
+        </div>
+        <div style={{ padding: '16px', fontSize: 13, lineHeight: 1.9 }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0 0 4px' }}>On it! I've received your request.</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>Kicked off a task in <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 4px', borderRadius: 3, fontSize: 12, fontFamily: 'monospace' }}>kinetic/kinetic-iOS</code> environment.</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>Searching for root AGENTS file</p>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: '8px 12px', margin: '4px 0 8px', fontFamily: 'monospace', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+            kinetic/kinetic-iOS$ /bin/bash -lc rg --files -g 'AGENTS.md'<br />
+            <span style={{ color: 'rgba(255,255,255,0.7)' }}>AGENTS.md</span>
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>Locating initialization logic for <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 4px', borderRadius: 3, fontSize: 12, fontFamily: 'monospace' }}>vehicle_state</code></p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {[0,1,2,3,4,5].map(i => <div key={i} style={{ width: 3, height: 12, background: `rgba(255,255,255,${0.1 + i * 0.05})`, borderRadius: 2 }} />)}
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>Thinking...</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Assign dropdown */}
+      <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input placeholder="Assign to..." style={{ background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'rgba(255,255,255,0.6)', flex: 1, fontFamily: F }} />
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>···</span>
+        </div>
+        {[
+          { name: 'Codex', tag: 'Agent', avatar: '⊙', color: '#5A5AF0', check: true },
+          { name: 'Steven', avatar: 'S', color: '#E87C3E' },
+          { name: 'Ema', avatar: 'E', color: '#4E9CF5' },
+          { name: 'GitHub Copilot', tag: 'Agent', avatar: '⊗', color: '#444' },
+          { name: 'Cursor', tag: 'Agent', avatar: '◊', color: '#666' },
+          { name: 'Meg', avatar: 'M', color: '#7C6AF4' },
+        ].map((item, i) => (
+          <div key={i} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <div style={{ width: 26, height: 26, borderRadius: '50%', background: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>{item.avatar}</span>
+            </div>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flex: 1 }}>{item.name}</span>
+            {item.tag && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)', borderRadius: 4, padding: '1px 6px' }}>{item.tag}</span>}
+            {item.check && <span style={{ fontSize: 14, color: '#22c55e' }}>✓</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Code diff mock ─────────────────────────────────────────────────────────────
+function DiffMock() {
+  const lines = [
+    { n: '01', text: "import React from 'react'", removed: false },
+    { n: '02', text: "import { View, ActivityIndicator } from 'react-native'", removed: false },
+    { n: '03', text: "import { useVehicleState } from '@hooks/useVehicleState'", removed: true, addedText: "import { useVehicleState, SyncStatus } from '@hooks/useVehicleSt..." },
+    { n: '04', text: "import { Dashboard } from '@components/Dashboard'", removed: false },
+    { n: '05', text: '', removed: false },
+    { n: '06', text: "export const HomeScreen = () => {", removed: false },
+    { n: '07', text: "  const { vehicleState, isFullySynced } = useVehicleState()", removed: true, addedText: "  const { vehicleState, syncStatus } = useVehicleState()" },
+    { n: '08', text: '', removed: false },
+    { n: '09', text: "  if (!isFullySynced) {", removed: true, addedText: "  if (syncStatus === SyncStatus.PENDING) {" },
+    { n: '10', text: "    return <ActivityIndicator size=\"large\" />", removed: false },
+    { n: '11', text: "  }", removed: false },
   ];
 
   return (
-    <section id="testimonials" style={{ background: BG2, borderTop: `1px solid ${BORDER}`, padding: '120px 32px', fontFamily: F }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.03em', margin: '0 0 16px' }}
-        >
-          Loved by builders worldwide
-        </motion.h2>
-        <p style={{ fontSize: 17, color: MUTED, marginBottom: 64 }}>The best product teams in the world run on Linear.</p>
-
-        {/* Logo strip */}
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 72 }}>
-          {logos.map(logo => (
-            <span key={logo} style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.2)', letterSpacing: '-0.01em' }}>{logo}</span>
+    <div style={{ background: '#141416', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden', fontFamily: F }}>
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>📄 kinetic-ios/src/screens/Home/HomeScreen.tsx</span>
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>Linear ↗</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        {/* Left (before) */}
+        <div style={{ borderRight: `1px solid rgba(255,255,255,0.06)` }}>
+          {lines.map((line, i) => (
+            <div key={i} style={{ display: 'flex', padding: '2px 0', background: line.removed ? 'rgba(239,68,68,0.07)' : 'transparent', borderLeft: line.removed ? '2px solid rgba(239,68,68,0.4)' : '2px solid transparent' }}>
+              <span style={{ width: 32, textAlign: 'right', paddingRight: 12, fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: 'monospace', flexShrink: 0 }}>{line.n}</span>
+              <span style={{ fontSize: 12, color: line.removed ? '#fca5a5' : 'rgba(255,255,255,0.45)', fontFamily: 'monospace', whiteSpace: 'pre' }}>{line.text}</span>
+            </div>
           ))}
         </div>
+        {/* Right (after) */}
+        <div>
+          {lines.map((line, i) => (
+            <div key={i} style={{ display: 'flex', padding: '2px 0', background: line.addedText ? 'rgba(34,197,94,0.07)' : 'transparent', borderLeft: line.addedText ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
+              <span style={{ width: 32, textAlign: 'right', paddingRight: 12, fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: 'monospace', flexShrink: 0 }}>{line.n}</span>
+              <span style={{ fontSize: 12, color: line.addedText ? '#86efac' : 'rgba(255,255,255,0.45)', fontFamily: 'monospace', whiteSpace: 'pre' }}>{line.addedText || line.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Quotes grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: 1 }}>
-          {testimonials.map((t, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              style={{ padding: '40px', borderTop: `1px solid ${BORDER}`, borderLeft: i % 2 === 1 ? `1px solid ${BORDER}` : 'none' }}
-            >
-              <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, margin: '0 0 24px', fontStyle: 'italic' }}>
-                "{t.quote}"
-              </p>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: TEXT, margin: '0 0 2px' }}>{t.name}</p>
-                <p style={{ fontSize: 12, color: DIM, margin: 0 }}>{t.role}</p>
-              </div>
+// ── Pulse / Monitor mock ──────────────────────────────────────────────────────
+function MonitorMock() {
+  return (
+    <div style={{ background: '#1A1A1E', borderRadius: 12, border: `1px solid rgba(255,255,255,0.08)`, overflow: 'hidden', fontFamily: F, maxWidth: 460 }}>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.06)`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Weekly Pulse for Jun 18</span>
+        <div style={{ flex: 1 }} />
+        <button style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
+          ▶ Listen
+        </button>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>1.0× ⋮</span>
+      </div>
+      <div style={{ padding: '12px 16px 6px', fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 500, letterSpacing: '0.04em' }}>Projects</div>
+
+      {[
+        { title: 'UI refresh', status: 'At risk', statusColor: '#ef4444', by: 'romain', when: '1 day ago', bullets: ['iOS implementation is mostly complete, but Android updates are still work in progress', 'Risk of timeline slip if remaining design decisions aren\'t finalized soon'] },
+        { title: 'Tokyo launch', status: 'On track', statusColor: '#22c55e', by: 'julian', when: '3 hours ago', bullets: ['Localization efforts have been completed', 'Everything else on track for launch in early September'] },
+      ].map((p, i) => (
+        <div key={i} style={{ padding: '10px 16px', borderTop: `1px solid rgba(255,255,255,0.04)` }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>{p.title}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: p.statusColor }} />
+            <span style={{ fontSize: 12, color: p.statusColor, fontWeight: 500 }}>{p.status}</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>· By {p.by} · {p.when}</span>
+          </div>
+          {p.bullets.map((b, bi) => (
+            <div key={bi} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', flexShrink: 0, marginTop: 1 }}>•</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>{b}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Changelog section ──────────────────────────────────────────────────────────
+function ChangelogSection() {
+  const posts = [
+    { dot: '#ef4444', title: 'Coding sessions in Linear', desc: 'Earlier this year, we launched Linear Agent, giving teams a ne...', date: 'JUN 10, 2026' },
+    { dot: '#6b7280', title: 'Team documents', desc: "Important team context doesn't always belong in a specific issue,...", date: 'JUN 3, 2026' },
+    { dot: '#6b7280', title: 'Linear Diffs', desc: 'Agents generate large volumes of code, but individuals are still...', date: 'MAY 27, 2026' },
+    { dot: '#6b7280', title: 'Project Slack channels', desc: 'Project teams often use a Slack channel to discuss and share...', date: 'MAY 21, 2026' },
+  ];
+
+  return (
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '120px 80px', fontFamily: F }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 'clamp(2.4rem, 5vw, 5rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.05, margin: '0 0 80px' }}>Changelog</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+          {posts.map((p, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.dot, marginBottom: 16 }} />
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{p.title}</h3>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.65, margin: '0 0 12px' }}>{p.desc}</p>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>{p.date}</span>
             </motion.div>
           ))}
+        </div>
+        <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 40, fontSize: 14, color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
+          View all →
+        </a>
+      </div>
+    </section>
+  );
+}
+
+// ── Testimonials big cards ────────────────────────────────────────────────────
+function TestimonialCards() {
+  return (
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '0 80px 80px', fontFamily: F }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+          {/* OpenAI — light purple card */}
+          <div style={{ background: '#E8E8F0', borderRadius: '12px 0 0 12px', padding: '48px', position: 'relative', overflow: 'hidden' }}>
+            <p style={{ fontSize: 'clamp(1.4rem, 2.5vw, 2rem)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.3, margin: '0 0 48px', letterSpacing: '-0.02em' }}>
+              "You'll probably build a better product, just because of the craft that{' '}
+              <span style={{ color: '#5A5AF0' }}>using Linear infuses on your brain.</span>"
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 16, color: '#fff' }}>⊛</span>
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e', margin: 0 }}>Gabriel Peal</p>
+                <p style={{ fontSize: 13, color: 'rgba(26,26,46,0.6)', margin: 0 }}>Staff Software Engineer, OpenAI</p>
+              </div>
+            </div>
+          </div>
+          {/* Ramp — yellow card */}
+          <div style={{ background: '#E8F060', borderRadius: '0 12px 12px 0', padding: '48px', position: 'relative', overflow: 'hidden' }}>
+            <p style={{ fontSize: 'clamp(1.4rem, 2.5vw, 2rem)', fontWeight: 700, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 48px', letterSpacing: '-0.02em' }}>
+              "Our speed is intense and Linear helps us be action biased."
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 16, color: '#E8F060' }}>↗</span>
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>Nik Koblov</p>
+                <p style={{ fontSize: 13, color: 'rgba(26,26,26,0.6)', margin: 0 }}>Head of Engineering, Ramp</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 40 }}>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+            Linear powers over <strong style={{ color: '#fff' }}>33,000</strong> product teams. From ambitious startups to major enterprises.
+          </p>
+          <a href="#" style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
+            Customer stories →
+          </a>
         </div>
       </div>
     </section>
   );
 }
 
-// ── Final CTA ──
+// ── Final CTA ─────────────────────────────────────────────────────────────────
 function FinalCta({ onSignup }) {
   return (
-    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '160px 32px', fontFamily: F, position: 'relative', overflow: 'hidden' }}>
-      <div style={{
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        width: 600, height: 400,
-        background: 'radial-gradient(ellipse, rgba(91,87,248,0.12) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{ position: 'relative', maxWidth: 700, margin: '0 auto', textAlign: 'center', zIndex: 1 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <h2 style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', fontWeight: 700, color: TEXT, letterSpacing: '-0.04em', lineHeight: 0.95, margin: '0 0 28px' }}>
-            Build what matters.<br />
-            <span style={{ color: 'rgba(255,255,255,0.18)' }}>Ship with clarity.</span>
-          </h2>
-          <p style={{ fontSize: 18, color: MUTED, marginBottom: 48, lineHeight: 1.65, maxWidth: 460, margin: '0 auto 48px' }}>
-            Join 10,000+ product teams who use Linear to plan, build, and ship faster.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={onSignup} style={{
-              fontFamily: F, fontSize: 16, fontWeight: 600, color: TEXT,
-              background: ACCENT, border: 'none', borderRadius: 10,
-              padding: '16px 40px', cursor: 'pointer', transition: 'opacity 150ms',
-            }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              Start for free
-            </button>
-            <button onClick={() => window.open('https://linear.app', '_blank')} style={{
-              fontFamily: F, fontSize: 16, fontWeight: 500, color: MUTED,
-              background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 10,
-              padding: '16px 32px', cursor: 'pointer', transition: 'all 200ms',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = TEXT; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = MUTED; }}>
-              Contact sales
-            </button>
-          </div>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.18)', marginTop: 24 }}>
-            Free forever · No credit card required
-          </p>
-        </motion.div>
-      </div>
+    <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '160px 80px', fontFamily: F, textAlign: 'center' }}>
+      <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9 }}>
+        <h2 style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.0, margin: '0 0 40px' }}>
+          Built for the future.<br />Available today.
+        </h2>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <button onClick={onSignup} style={{
+            fontFamily: F, fontSize: 15, fontWeight: 500, color: '#000',
+            background: '#fff', border: 'none', borderRadius: 8,
+            padding: '12px 28px', cursor: 'pointer', transition: 'opacity 150ms',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            Get started
+          </button>
+          <button style={{
+            fontFamily: F, fontSize: 15, fontWeight: 500, color: 'rgba(255,255,255,0.6)',
+            background: 'transparent', border: `1px solid rgba(255,255,255,0.15)`, borderRadius: 8,
+            padding: '12px 28px', cursor: 'pointer', transition: 'all 200ms',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}>
+            Contact sales
+          </button>
+        </div>
+      </motion.div>
     </section>
   );
 }
 
-// ── Footer ──
+// ── Footer ────────────────────────────────────────────────────────────────────
 function Footer() {
   const cols = [
-    { title: 'Product', links: [['Intake', '#'], ['Plan', '#'], ['Build', '#'], ['Diffs', '#'], ['Cycles', '#'], ['Mobile', '#']] },
-    { title: 'Resources', links: [['Docs', '#'], ['Changelog', '#'], ['Blog', '#'], ['API', '#'], ['Status', '#'], ['Security', '#']] },
-    { title: 'Company', links: [['About', '#'], ['Careers', '#'], ['Customers', '#'], ['Contact', '#'], ['Terms', '/terms'], ['Privacy', '/privacy']] },
+    { title: 'Product', links: ['Intake', 'Plan', 'Build', 'Diffs', 'Monitor', 'Pricing', 'Security'] },
+    { title: 'Features', links: ['Asks', 'Agents', 'Coding Sessions', 'Customer Requests', 'Insights', 'Mobile', 'Integrations', 'Changelog'] },
+    { title: 'Company', links: ['About', 'Customers', 'Careers', 'Blog', 'Method', 'Quality', 'Brand'] },
+    { title: 'Resources', links: ['Switch', 'Download', 'Documentation', 'Developers', 'Status', 'Enterprise', 'Startups'] },
+    { title: 'Connect', links: ['Contact us', 'Community', 'X (Twitter)', 'GitHub', 'YouTube'] },
   ];
 
   return (
-    <footer style={{ background: '#060606', borderTop: `1px solid ${BORDER}`, padding: '64px 32px 32px', fontFamily: F }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(3, 1fr)', gap: 40, marginBottom: 48 }}>
-          {/* Brand */}
+    <footer style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '60px 80px 40px', fontFamily: F }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(5, 1fr)', gap: 32, marginBottom: 48 }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <svg width="18" height="18" viewBox="0 0 100 100" fill="none">
-                <path d="M0 50C0 22.4 22.4 0 50 0s50 22.4 50 50-22.4 50-50 50S0 77.6 0 50z" fill="#5B57F8"/>
-                <path d="M15 15L85 85M15 85L85 15" stroke="white" strokeWidth="12" strokeLinecap="round"/>
-              </svg>
-              <span style={{ fontSize: 15, fontWeight: 700, color: TEXT, letterSpacing: '-0.02em' }}>Linear</span>
-            </div>
-            <p style={{ fontSize: 13, color: DIM, lineHeight: 1.7, margin: 0 }}>The product development system for teams and agents.</p>
+            <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+              <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="rgba(255,255,255,0.5)"/>
+              <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="rgba(255,255,255,0.5)"/>
+              <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.5)"/>
+            </svg>
           </div>
-
           {cols.map((col, i) => (
             <div key={i}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: DIM, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>{col.title}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>{col.title}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {col.links.map(([label, href]) => (
-                  <a key={label} href={href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'color 150ms' }}
-                    onMouseEnter={e => e.currentTarget.style.color = MUTED}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}>
-                    {label}
+                {col.links.map(link => (
+                  <a key={link} href="#" style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                    {link}
                   </a>
                 ))}
               </div>
             </div>
           ))}
         </div>
-
-        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.15)', margin: 0 }}>© 2026 Linear Orbit, Inc.</p>
-          <div style={{ display: 'flex', gap: 24 }}>
-            {['Twitter', 'GitHub', 'YouTube', 'LinkedIn'].map(s => (
-              <a key={s} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textDecoration: 'none', transition: 'color 150ms' }}
-                onMouseEnter={e => e.currentTarget.style.color = MUTED}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
-                {s}
-              </a>
-            ))}
-          </div>
+        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 24, display: 'flex', gap: 24 }}>
+          {['Privacy', 'Terms', 'DPA', 'AUP'].map(l => (
+            <a key={l} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
+              {l}
+            </a>
+          ))}
         </div>
       </div>
     </footer>
   );
 }
 
-// ── ROOT ──
+// ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
@@ -869,7 +934,7 @@ export default function LandingPage() {
 
   if (!ready) return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
-      <div style={{ width: 24, height: 24, border: '2px solid rgba(255,255,255,0.06)', borderTopColor: ACCENT, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 24, height: 24, border: '2px solid rgba(255,255,255,0.06)', borderTopColor: '#5A5AF0', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -882,53 +947,52 @@ export default function LandingPage() {
       <FontLoader />
       <Navbar onLogin={onLogin} onSignup={onSignup} />
       <Hero onSignup={onSignup} />
+      <LogoStrip />
+      <NewSpecies />
       <ThreePillars />
 
-      <FeatureSection
-        id="product-section"
-        num="1.0"
-        title={<>Make product<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>operations self-driving</span></>}
-        subtitle="Turn conversations and customer feedback into actionable issues that are routed, labeled, and prioritized for the right team."
-        linkLabel="Intake"
-        linkHref="#"
-        bg={BG2}
+      <FeatureSplit
+        title={<>Make product operations<br />self-driving</>}
+        desc="Turn conversations and customer feedback into actionable issues that are routed, labeled, and prioritized for the right team."
+        linkNum="1.0" linkLabel="Intake"
       >
         <IntakeMock />
-      </FeatureSection>
+      </FeatureSplit>
 
-      <FeatureSection
-        num="2.0"
-        title={<>Define the<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>product direction</span></>}
-        subtitle="Plan and navigate from idea to launch. Align your team with product initiatives, strategic roadmaps, and clear, up-to-date PRDs."
-        linkLabel="Plan"
-        linkHref="#"
+      <FeatureSplit
+        title={<>Define the product<br />direction</>}
+        desc="Plan and navigate from idea to launch. Align your team with product initiatives, strategic roadmaps, and clear, up-to-date PRDs."
+        linkNum="2.0" linkLabel="Plan"
       >
         <RoadmapMock />
-      </FeatureSection>
+      </FeatureSplit>
 
-      <FeatureSection
-        num="3.0"
-        title={<>Move work forward<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>across teams and agents</span></>}
-        subtitle="Build and deploy AI agents that work alongside your team. Work on complex tasks together or delegate entire issues end-to-end."
-        linkLabel="Build"
-        linkHref="#"
-        bg={BG2}
+      <FeatureSplit
+        title={<>Move work forward across<br />teams and agents</>}
+        desc="Build and deploy AI agents that work alongside your team. Work on complex tasks together or delegate entire issues end-to-end."
+        linkNum="3.0" linkLabel="Build"
       >
         <AgentMock />
-      </FeatureSection>
+      </FeatureSplit>
 
-      <FeatureSection
-        num="4.0"
-        title={<>Review PRs and<br /><span style={{ color: 'rgba(255,255,255,0.22)' }}>agent output</span></>}
-        subtitle="Understand code changes at a glance with structural diffs for human and agent output. Review, discuss, and merge — all within Linear."
-        linkLabel="Diffs"
-        linkHref="#"
+      <FeatureSplit
+        title={<>Review PRs and agent<br />output</>}
+        desc="Understand code changes at a glance with structural diffs for human and agent output. Review, discuss, and merge — all within Linear."
+        linkNum="4.0" linkLabel="Diffs"
       >
         <DiffMock />
-      </FeatureSection>
+      </FeatureSplit>
 
-      <Testimonials />
-      <Pricing onSignup={onSignup} />
+      <FeatureSplit
+        title={<>Understand progress<br />at scale</>}
+        desc="Take the guesswork out of product development with project updates, analytics, and dashboards that surface what needs your attention."
+        linkNum="5.0" linkLabel="Monitor"
+      >
+        <MonitorMock />
+      </FeatureSplit>
+
+      <ChangelogSection />
+      <TestimonialCards />
       <FinalCta onSignup={onSignup} />
       <Footer />
     </div>
