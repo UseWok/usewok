@@ -15,16 +15,32 @@ import { Plus, Mic, MicOff, ChevronDown, Check, Lock, Upload, X, FileText } from
 import { getPlanFeatures } from '@/lib/plans-config';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import GoogleDrivePickerModal from '@/components/chat/GoogleDrivePickerModal';
 
 // ─────────────────────────────────────────────────────────────────
 // LOGOS
 // ─────────────────────────────────────────────────────────────────
 
-// Claude logo — official Anthropic shape (beige/sand tones)
-const ClaudeLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 46 46" fill="none" style={{ flexShrink: 0 }}>
-    <rect width="46" height="46" rx="10" fill="#D97757"/>
-    <path d="M29.1 11.5L23 28.9L16.9 11.5H11L19.7 35.5H26.3L35 11.5H29.1Z" fill="white"/>
+// ✦ Star icon used for Auto + Claude models (like img2)
+const StarIcon = ({ size = 15, color = '#111' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+    <path d="M12 2C12 2 12.8 7.2 15.5 9.5C18.2 11.8 23 12 23 12C23 12 18.2 12.2 15.5 14.5C12.8 16.8 12 22 12 22C12 22 11.2 16.8 8.5 14.5C5.8 12.2 1 12 1 12C1 12 5.8 11.8 8.5 9.5C11.2 7.2 12 2 12 2Z" fill={color}/>
+  </svg>
+);
+
+// Gemini 4-color star
+const GeminiStarIcon = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+    <path d="M12 2C12 2 12.8 7.2 15.5 9.5C18.2 11.8 23 12 23 12C23 12 18.2 12.2 15.5 14.5C12.8 16.8 12 22 12 22C12 22 11.2 16.8 8.5 14.5C5.8 12.2 1 12 1 12C1 12 5.8 11.8 8.5 9.5C11.2 7.2 12 2 12 2Z"
+      fill="url(#geminiGrad)" />
+    <defs>
+      <linearGradient id="geminiGrad" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#4285F4"/>
+        <stop offset="33%" stopColor="#34A853"/>
+        <stop offset="66%" stopColor="#FBBC05"/>
+        <stop offset="100%" stopColor="#EA4335"/>
+      </linearGradient>
+    </defs>
   </svg>
 );
 
@@ -35,22 +51,21 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Official Google "G" logo for Gemini
-const GeminiLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+// Google Drive logo
+const DriveLogo = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 87.3 78" fill="none" style={{ flexShrink: 0 }}>
+    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L38 53H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066DA"/>
+    <path d="M43.65 25L29.4 0c-1.35.8-2.5 1.9-3.3 3.3L1.2 48.5C.4 49.9 0 51.45 0 53h38z" fill="#00AC47"/>
+    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H49.3l8.1 15.35z" fill="#EA4335"/>
+    <path d="M43.65 25L57.9 0H43.65 29.4L43.65 25z" fill="#00832D"/>
+    <path d="M73.55 76.8L49.3 53H38L13.75 76.8l14.85.2H58.7z" fill="#2684FC"/>
+    <path d="M86.1 48.5L61.2 3.3C60.4 1.9 59.25.8 57.9 0L43.65 25 81.3 53h6c0-1.55-.4-3.1-1.2-4.5z" fill="#FFBA00"/>
   </svg>
 );
 
-const AutoLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 2 L13.8 8.5 L20.5 8.5 L15.1 12.5 L17.2 19 L12 15 L6.8 19 L8.9 12.5 L3.5 8.5 L10.2 8.5 Z"
-      fill="#6366F1" stroke="none"/>
-  </svg>
-);
+const AutoLogo = ({ size = 16 }) => <StarIcon size={size} color="#6366F1" />;
+const GeminiLogo = ({ size = 16 }) => <GeminiStarIcon size={size} />;
+const ClaudeLogo = ({ size = 16 }) => <StarIcon size={size} color="#D97757" />;
 
 // Crosshair / Focus SVG for "Objectif"
 const CrosshairIcon = ({ size = 14, color = 'rgba(0,0,0,0.45)' }) => (
@@ -71,45 +86,23 @@ function ModelLogo({ type, size = 16 }) {
   return <AutoLogo size={size} />;
 }
 
+// Model name color: auto=black bold, claude=black, gemini=black, openai=black
+function modelNameStyle(m) {
+  return { fontSize: 14, fontWeight: m.isAuto ? 600 : 400, color: '#111', display: 'block', lineHeight: 1.3 };
+}
+
 // ─────────────────────────────────────────────────────────────────
 // MODEL LIST
 // ─────────────────────────────────────────────────────────────────
-const MODEL_GROUPS = [
-  {
-    id: 'auto-group',
-    models: [
-      { id: 'automatic', name: 'Automatic', desc: 'Intelligently picks the best model per request', logo: 'auto', isAuto: true },
-    ],
-  },
-  {
-    id: 'claude',
-    label: 'Claude',
-    models: [
-      { id: 'claude-opus-48', name: 'Claude Opus 4.8', logo: 'claude' },
-      { id: 'claude-opus-47', name: 'Claude Opus 4.7', logo: 'claude' },
-      { id: 'claude-opus-46', name: 'Claude Opus 4.6', logo: 'claude' },
-      { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
-    ],
-  },
-  {
-    id: 'openai',
-    label: 'ChatGPT',
-    models: [
-      { id: 'chatgpt-55', name: 'ChatGPT 5.5', logo: 'openai' },
-      { id: 'chatgpt-54', name: 'ChatGPT 5.4', logo: 'openai' },
-    ],
-  },
-  {
-    id: 'gemini',
-    label: 'Gemini',
-    models: [
-      { id: 'gemini-31-pro', name: 'Gemini 3.1 PRO', logo: 'gemini' },
-      { id: 'gemini-3-flash', name: 'Gemini 3 Flash', logo: 'gemini' },
-    ],
-  },
+// Flat list matching img2 exactly
+const ALL_MODELS = [
+  { id: 'automatic',       name: 'Automatic',      desc: 'The best AI model is selected for each request', logo: 'auto',   isAuto: true },
+  { id: 'gemini-31-pro',   name: 'Gemini 3.1 Pro',  logo: 'gemini' },
+  { id: 'claude-sonnet-46',name: 'Sonnet 4.6',       logo: 'claude' },
+  { id: 'claude-opus-46',  name: 'Opus 4.6',         logo: 'claude' },
+  { id: 'claude-opus-48',  name: 'Opus 4.8',         logo: 'claude' },
+  { id: 'chatgpt-55',      name: 'GPT-5.5',          logo: 'openai' },
 ];
-
-const ALL_MODELS = MODEL_GROUPS.flatMap(g => g.models);
 
 // ─────────────────────────────────────────────────────────────────
 // IOS-STYLE MIC ANIMATION
@@ -225,8 +218,9 @@ export default function ChatInputBar({
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [objectifActive, setObjectifActive] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
+
   const [isRecording, setIsRecording] = useState(false);
+  const [showDrivePicker, setShowDrivePicker] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [micDenied, setMicDenied] = useState(false);
 
@@ -288,21 +282,7 @@ export default function ChatInputBar({
     setShowPlusMenu(false);
   };
 
-  const handleEnhancePrompt = async () => {
-    if (!input.trim() || isEnhancing) return;
-    setIsEnhancing(true); setShowPlusMenu(false);
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        model: 'gpt_5_mini',
-        prompt: `Rewrite this user prompt to be highly optimized, clear, and specific for an AI UI builder. Output ONLY the rewritten prompt in English, under 150 characters. No explanation, no quotes, no prefix.\n\nOriginal: "${input.trim()}"`,
-      });
-      if (typeof result === 'string' && result.trim()) setInput(result.trim().slice(0, 200));
-    } catch {
-      toast.error('Could not enhance prompt.', { style: { background: '#3F3F46', color: '#fff', borderRadius: '999px' } });
-    } finally {
-      setIsEnhancing(false);
-    }
-  };
+
 
   // Mic recording logic
   const handleMicClick = async () => {
@@ -375,8 +355,21 @@ export default function ChatInputBar({
     transition: 'background 120ms',
   };
 
+  const handleDriveImport = (importedFiles) => {
+    setFiles(prev => [...(prev || []), ...importedFiles]);
+  };
+
   return (
     <div style={{ padding: '0 8px 8px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* Google Drive Picker Modal */}
+      <AnimatePresence>
+        {showDrivePicker && (
+          <GoogleDrivePickerModal
+            onClose={() => setShowDrivePicker(false)}
+            onImport={handleDriveImport}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── File previews ── */}
       <AnimatePresence>
@@ -461,18 +454,7 @@ export default function ChatInputBar({
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
                       style={{ position: 'absolute', ...menuPos, left: 0, ...dropdownBase, minWidth: 248, overflow: 'hidden' }}>
 
-                      {/* Enhance prompt */}
-                      <button onClick={handleEnhancePrompt} disabled={isEnhancing || !input.trim()}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: input.trim() ? 'pointer' : 'default', opacity: input.trim() ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
-                        onMouseEnter={e => { if (input.trim()) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-                        onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <AutoLogo size={15} />
-                        <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>{isEnhancing ? 'Enhancing…' : 'Enhance prompt'}</span>
-                      </button>
-
-                      <div style={{ height: 1, background: 'rgba(0,0,0,0.05)', margin: '0 10px' }} />
-
-                      {/* Upload */}
+                      {/* Upload from computer */}
                       <button onClick={() => { if (canUpload) { fileInputRef.current?.click(); setShowPlusMenu(false); } }} disabled={!canUpload}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: canUpload ? 'pointer' : 'default', opacity: canUpload ? 1 : 0.4, fontFamily: 'Inter, sans-serif' }}
                         onMouseEnter={e => { if (canUpload) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
@@ -501,6 +483,17 @@ export default function ChatInputBar({
                           )}
                         </div>
                         {!hasInternet && <Lock style={{ width: 11, height: 11, color: '#BBB' }} />}
+                      </button>
+
+                      <div style={{ height: 1, background: 'rgba(0,0,0,0.05)', margin: '0 10px' }} />
+
+                      {/* Import from Google Drive */}
+                      <button onClick={() => { setShowPlusMenu(false); setShowDrivePicker(true); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <DriveLogo size={14} />
+                        <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
                       </button>
                     </motion.div>
                   )}
@@ -560,39 +553,38 @@ export default function ChatInputBar({
                 <AnimatePresence>
                   {showModelMenu && (
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
-                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '6px', minWidth: 272 }}>
+                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '8px', minWidth: 280 }}>
 
-                      {ALL_MODELS.map((m) => {
-                        const isAuto = m.isAuto;
+                      {ALL_MODELS.map((m, idx) => {
                         const isSelected = selectedModel === m.id;
+                        const showDivider = idx === 0; // divider after Automatic
                         return (
-                          <button
-                            key={m.id}
-                            onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
-                            style={{
-                              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                              padding: '8px 10px',
-                              background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
-                              border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                              transition: 'background 100ms',
-                            }}
-                            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
-                          >
-                            {/* Logo — same size for all */}
-                            <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <ModelLogo type={m.logo} size={16} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: 13, fontWeight: isAuto ? 600 : 400, color: '#1A1A1A', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
-                              {isAuto && m.desc && <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.4, display: 'block', marginTop: 1 }}>{m.desc}</span>}
-                            </div>
-                            {isSelected && (
-                              <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Check style={{ width: 8, height: 8, color: '#fff' }} />
+                          <React.Fragment key={m.id}>
+                            <button
+                              onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
+                              style={{
+                                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                                padding: '10px 12px',
+                                background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                                border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+                                transition: 'background 100ms',
+                              }}
+                              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
+                            >
+                              <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <ModelLogo type={m.logo} size={18} />
                               </div>
-                            )}
-                          </button>
+                              <div style={{ flex: 1 }}>
+                                <span style={modelNameStyle(m)}>{m.name}</span>
+                                {m.desc && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', lineHeight: 1.4, display: 'block', marginTop: 1 }}>{m.desc}</span>}
+                              </div>
+                              {isSelected && (
+                                <Check style={{ width: 14, height: 14, color: '#111', flexShrink: 0 }} />
+                              )}
+                            </button>
+                            {showDivider && <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 4px' }} />}
+                          </React.Fragment>
                         );
                       })}
                     </motion.div>
