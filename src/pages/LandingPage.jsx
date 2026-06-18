@@ -5,12 +5,12 @@ import { base44 } from '@/api/base44Client';
 import { LandingPricingLight } from './LandingPricingPage';
 
 const F = "'Inter', -apple-system, system-ui, sans-serif";
-const BG = '#0F0F0F';
-const BG2 = '#111111';
-const BORDER = 'rgba(255,255,255,0.07)';
-const T1 = '#FFFFFF';
-const T2 = 'rgba(255,255,255,0.5)';
-const T3 = 'rgba(255,255,255,0.28)';
+const BG = '#F9F9F8';
+const BG2 = '#FFFFFF';
+const BORDER = 'rgba(0,0,0,0.08)';
+const T1 = '#111111';
+const T2 = 'rgba(0,0,0,0.55)';
+const T3 = 'rgba(0,0,0,0.28)';
 
 useEffect: null; // suppress unused import warning
 
@@ -32,16 +32,16 @@ function Navbar({ onLogin, onSignup }) {
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
       height: 48, display: 'flex', alignItems: 'center',
       padding: '0 20px', fontFamily: F,
-      background: '#0D0D0D',
-      borderBottom: `1px solid rgba(255,255,255,0.06)`,
+      background: '#F9F9F8',
+      borderBottom: `1px solid rgba(0,0,0,0.06)`,
     }}>
       {/* Logo */}
       <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0, minWidth: 90 }}>
         <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-          <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="white"/>
-          <path d="M0.133 12.646L5.354 17.867C5.527 17.951 5.724 17.963 5.912 17.888L0.112 12.088C0.037 12.276 0.049 12.473 0.133 12.646Z" fill="white"/>
-          <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="white"/>
-          <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/>
+          <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="#111111"/>
+          <path d="M0.133 12.646L5.354 17.867C5.527 17.951 5.724 17.963 5.912 17.888L0.112 12.088C0.037 12.276 0.049 12.473 0.133 12.646Z" fill="#111111"/>
+          <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="#111111"/>
+          <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="#111111"/>
         </svg>
         <span style={{ fontSize: 14, fontWeight: 500, color: T1, letterSpacing: '-0.01em' }}>Linear</span>
       </a>
@@ -51,9 +51,9 @@ function Navbar({ onLogin, onSignup }) {
       {/* Nav links — centered */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
         {[['Product','#'],['Resources','#'],['Customers','#'],['Pricing','/pricing'],['Now','#'],['Contact','#']].map(([l,h]) => (
-          <a key={l} href={h} style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 150ms', whiteSpace: 'nowrap' }}
+          <a key={l} href={h} style={{ fontSize: 13, fontWeight: 400, color: 'rgba(0,0,0,0.6)', textDecoration: 'none', transition: 'color 150ms', whiteSpace: 'nowrap' }}
             onMouseEnter={e => e.currentTarget.style.color = T1}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>{l}</a>
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.6)'}>{l}</a>
         ))}
       </nav>
 
@@ -61,19 +61,19 @@ function Navbar({ onLogin, onSignup }) {
 
       {/* Right */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, minWidth: 90, justifyContent: 'flex-end' }}>
-        <a href="#" style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+        <a href="#" style={{ fontSize: 13, fontWeight: 400, color: 'rgba(0,0,0,0.6)', textDecoration: 'none', whiteSpace: 'nowrap' }}
           onMouseEnter={e => e.currentTarget.style.color = T1}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>Docs</a>
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.6)'}>Docs</a>
         <button onClick={onSignup} style={{
           fontFamily: F, fontSize: 13, fontWeight: 500,
           color: T1, background: 'transparent',
-          border: '1px solid rgba(255,255,255,0.22)',
+          border: '1px solid rgba(0,0,0,0.22)',
           borderRadius: 20, padding: '5px 16px', cursor: 'pointer',
           transition: 'border-color 150ms',
           whiteSpace: 'nowrap',
         }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'}>
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.5)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.22)'}>
           Open app
         </button>
       </div>
@@ -107,7 +107,7 @@ function Hero({ onSignup }) {
               Purpose-built for planning and building products. Designed for the AI era.
             </p>
             <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#000', background: T1, borderRadius: 3, padding: '1px 6px', letterSpacing: '0.01em' }}>New</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: T1, borderRadius: 3, padding: '1px 6px', letterSpacing: '0.01em' }}>New</span>
               <span style={{ fontSize: 13, color: T2 }}>Coding Sessions →</span>
             </a>
           </div>
@@ -117,7 +117,7 @@ function Hero({ onSignup }) {
         <div style={{ padding: '48px 120px 0', position: 'relative', zIndex: 1 }}>
           <div style={{
             borderRadius: '10px 10px 0 0', overflow: 'hidden',
-            border: `1px solid rgba(255,255,255,0.09)`, borderBottom: 'none',
+            border: `1px solid rgba(0,0,0,0.09)`, borderBottom: 'none',
             boxShadow: '0 -4px 40px rgba(0,0,0,0.6)',
           }}>
             <AppScreenshot />
@@ -131,21 +131,21 @@ function Hero({ onSignup }) {
 // ─── APP SCREENSHOT MOCKUP ────────────────────────────────────────────────────
 function AppScreenshot() {
   return (
-    <div style={{ background: '#1C1C1E', fontFamily: F }}>
+    <div style={{ background: '#FFFFFF', fontFamily: F }}>
       {/* Window bar */}
-      <div style={{ height: 34, background: '#161618', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', padding: '0 14px', gap: 6 }}>
+      <div style={{ height: 34, background: '#F4F4F5', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', padding: '0 14px', gap: 6 }}>
         {['#FF5F56','#FFBD2E','#27C93F'].map(c => (
           <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
         ))}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#5A5AF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/></svg>
+              <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="#111111"/></svg>
             </div>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Linear</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>∨</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>🔍</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>✏️</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.6)' }}>Linear</span>
+            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.2)' }}>∨</span>
+            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)' }}>🔍</span>
+            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)' }}>✏️</span>
           </div>
         </div>
       </div>
@@ -153,7 +153,7 @@ function AppScreenshot() {
       {/* Main layout */}
       <div style={{ display: 'flex', height: 480 }}>
         {/* Sidebar */}
-        <div style={{ width: 196, background: '#1A1A1C', borderRight: `1px solid rgba(255,255,255,0.05)`, padding: '6px 0', flexShrink: 0 }}>
+        <div style={{ width: 196, background: '#FFFFFF', borderRight: `1px solid rgba(0,0,0,0.05)`, padding: '6px 0', flexShrink: 0 }}>
           {[
             { icon: '📥', label: 'Inbox' },
             { icon: '◈', label: 'My issues' },
@@ -162,26 +162,26 @@ function AppScreenshot() {
           ].map((item, i) => (
             <div key={i} style={{ padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{ fontSize: 10, width: 14, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{item.label}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>{item.label}</span>
             </div>
           ))}
-          <div style={{ padding: '10px 10px 3px', fontSize: 10, color: 'rgba(255,255,255,0.18)', fontWeight: 500, letterSpacing: '0.04em' }}>Workspace ▾</div>
+          <div style={{ padding: '10px 10px 3px', fontSize: 10, color: 'rgba(0,0,0,0.18)', fontWeight: 500, letterSpacing: '0.04em' }}>Workspace ▾</div>
           {['Initiatives', 'Projects', 'More'].map(l => (
             <div key={l} style={{ padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontSize: 10, width: 14, textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}>◎</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)' }}>{l}</span>
+              <span style={{ fontSize: 10, width: 14, textAlign: 'center', color: 'rgba(0,0,0,0.2)' }}>◎</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)' }}>{l}</span>
             </div>
           ))}
-          <div style={{ padding: '10px 10px 3px', fontSize: 10, color: 'rgba(255,255,255,0.18)', fontWeight: 500, letterSpacing: '0.04em' }}>Favorites ▾</div>
+          <div style={{ padding: '10px 10px 3px', fontSize: 10, color: 'rgba(0,0,0,0.18)', fontWeight: 500, letterSpacing: '0.04em' }}>Favorites ▾</div>
           {[
             { label: 'Faster app launch', color: '#FF8C42', active: true },
             { label: 'Agent tasks', color: '#22c55e' },
             { label: 'UI Refresh', color: '#ef4444' },
             { label: 'Agents Insights', color: '#5A5AF0' },
           ].map((item, i) => (
-            <div key={i} style={{ padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 7, background: item.active ? 'rgba(255,255,255,0.06)' : 'transparent', borderRadius: item.active ? 4 : 0, margin: item.active ? '0 5px' : '0' }}>
+            <div key={i} style={{ padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 7, background: item.active ? 'rgba(0,0,0,0.06)' : 'transparent', borderRadius: item.active ? 4 : 0, margin: item.active ? '0 5px' : '0' }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: item.active ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)' }}>{item.label}</span>
+              <span style={{ fontSize: 12, color: item.active ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.38)' }}>{item.label}</span>
             </div>
           ))}
         </div>
@@ -189,42 +189,42 @@ function AppScreenshot() {
         {/* Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Top bar */}
-          <div style={{ height: 38, borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', padding: '0 18px', gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>Faster app launch</span>
+          <div style={{ height: 38, borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', padding: '0 18px', gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(0,0,0,0.7)' }}>Faster app launch</span>
             <span style={{ fontSize: 11, color: '#FFBD2E' }}>★</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>···</span>
+            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.2)' }}>···</span>
             <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>02 / 145 ⌃⌄</span>
-            <div style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.08)', margin: '0 6px' }} />
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>ENG-2703</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>🔗 ⊞ ↗</span>
+            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>02 / 145 ⌃⌄</span>
+            <div style={{ width: 1, height: 10, background: 'rgba(0,0,0,0.08)', margin: '0 6px' }} />
+            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>ENG-2703</span>
+            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)' }}>🔗 ⊞ ↗</span>
           </div>
 
           <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             {/* Issue body */}
-            <div style={{ flex: 1, padding: '20px 22px', overflowY: 'auto', borderRight: `1px solid rgba(255,255,255,0.05)` }}>
+            <div style={{ flex: 1, padding: '20px 22px', overflowY: 'auto', borderRight: `1px solid rgba(0,0,0,0.05)` }}>
               <h2 style={{ fontSize: 17, fontWeight: 700, color: T1, margin: '0 0 9px', letterSpacing: '-0.02em' }}>Faster app launch</h2>
               <p style={{ fontSize: 12, color: T2, lineHeight: 1.6, margin: '0 0 20px' }}>
                 Render UI before{' '}
-                <code style={{ background: 'rgba(255,255,255,0.09)', padding: '1px 5px', borderRadius: 3, fontSize: 11, color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace' }}>vehicle_state</code>
+                <code style={{ background: 'rgba(0,0,0,0.09)', padding: '1px 5px', borderRadius: 3, fontSize: 11, color: 'rgba(0,0,0,0.7)', fontFamily: 'monospace' }}>vehicle_state</code>
                 {' '}sync when minimum required state is present, instead of blocking on full refresh during iOS startup.
               </p>
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', margin: '0 0 12px' }}>Activity</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.6)', margin: '0 0 12px' }}>Activity</p>
               {[
                 { color: '#5A5AF0', icon: '◈', text: <>Linear created the issue via <u>Slack</u> on behalf of <u>karri</u> · 2min ago</> },
                 { color: '#888', icon: '🏷', text: <><u>Triage Intelligence</u> added the label <u>Performance</u> and <u>iOS</u> · 2min ago</> },
               ].map((a, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
                   <span style={{ fontSize: 11, color: a.color, marginTop: 1, flexShrink: 0 }}>{a.icon}</span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.32)', lineHeight: 1.6 }}>{a.text}</span>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.32)', lineHeight: 1.6 }}>{a.text}</span>
                 </div>
               ))}
 
               <div style={{ margin: '12px 0', display: 'flex', gap: 9 }}>
                 <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#5A5AF0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#fff', fontWeight: 700 }}>K</div>
                 <div>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>karri</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>4 min ago</span>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.5)', fontWeight: 500 }}>karri</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)', marginLeft: 6 }}>4 min ago</span>
                   <p style={{ fontSize: 12, color: T2, margin: '3px 0 0', lineHeight: 1.55 }}>Right now we show a spinner forever, which makes it look like the car disappeared...</p>
                 </div>
               </div>
@@ -232,28 +232,28 @@ function AppScreenshot() {
               <div style={{ margin: '12px 0', display: 'flex', gap: 9 }}>
                 <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#2D6A4F', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#fff', fontWeight: 700 }}>J</div>
                 <div>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>jori</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>just now</span>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.5)', fontWeight: 500 }}>jori</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)', marginLeft: 6 }}>just now</span>
                   <p style={{ fontSize: 12, color: T2, margin: '3px 0 0', lineHeight: 1.55 }}>@Linear can you take a stab at this?</p>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.5)"/></svg>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.18)', background: 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(0,0,0,0.5)"/></svg>
                 </div>
                 <div>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Linear</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>connected by jori · 2 min ago</span>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '3px 0' }}>✦ Changed 2 files — Draft PR awaiting your review · 2 min ago</p>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.5)', fontWeight: 500 }}>Linear</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.2)', marginLeft: 6 }}>connected by jori · 2 min ago</span>
+                  <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)', margin: '3px 0' }}>✦ Changed 2 files — Draft PR awaiting your review · 2 min ago</p>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginTop: 12 }}>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.35)' }}>⊙</span>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.12)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 8, color: 'rgba(0,0,0,0.35)' }}>⊙</span>
                 </div>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.5 }}>Linear moved from <span style={{ color: 'rgba(255,255,255,0.5)' }}>Todo</span> to <span style={{ color: 'rgba(255,255,255,0.5)' }}>In Progress</span> · just now</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)', lineHeight: 1.5 }}>Linear moved from <span style={{ color: 'rgba(0,0,0,0.5)' }}>Todo</span> to <span style={{ color: 'rgba(0,0,0,0.5)' }}>In Progress</span> · just now</span>
               </div>
             </div>
 
@@ -265,47 +265,47 @@ function AppScreenshot() {
                 { initials: 'J', bg: '#2D6A4F', label: 'jori' },
                 { linearLogo: true, label: 'Linear' },
               ].map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 0', borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 0', borderBottom: `1px solid rgba(0,0,0,0.04)` }}>
                   {r.dot && <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.dot, flexShrink: 0 }} />}
-                  {r.bar && <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="3" width="3" height="4" fill="rgba(255,255,255,0.2)"/><rect x="4" y="1" width="3" height="6" fill="rgba(255,255,255,0.4)"/><rect x="8" y="0" width="3" height="8" fill="rgba(255,255,255,0.65)"/><rect x="12" y="2" width="2" height="5" fill="rgba(255,255,255,0.3)"/></svg>}
-                  {r.initials && <div style={{ width: 14, height: 14, borderRadius: '50%', background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#fff', fontWeight: 700, flexShrink: 0 }}>{r.initials}</div>}
-                  {r.linearLogo && <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.55)"/></svg></div>}
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{r.label}</span>
+                  {r.bar && <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="3" width="3" height="4" fill="rgba(0,0,0,0.2)"/><rect x="4" y="1" width="3" height="6" fill="rgba(0,0,0,0.4)"/><rect x="8" y="0" width="3" height="8" fill="rgba(0,0,0,0.65)"/><rect x="12" y="2" width="2" height="5" fill="rgba(0,0,0,0.3)"/></svg>}
+                  {r.initials && <div style={{ width: 14, height: 14, borderRadius: '50%', background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#111', fontWeight: 700, flexShrink: 0 }}>{r.initials}</div>}
+                  {r.linearLogo && <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(0,0,0,0.55)"/></svg></div>}
+                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{r.label}</span>
                 </div>
               ))}
 
               {/* AI panel */}
-              <div style={{ marginTop: 16, background: '#141416', border: `1px solid rgba(255,255,255,0.09)`, borderRadius: 8, overflow: 'hidden' }}>
-                <div style={{ padding: '8px 12px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.65)"/></svg>
+              <div style={{ marginTop: 16, background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.09)`, borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ padding: '8px 12px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(0,0,0,0.65)"/></svg>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 600, color: T1 }}>Linear</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>Opus 4.8</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.25)' }}>Opus 4.8</span>
                   <div style={{ flex: 1 }} />
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.18)' }}>− □ ✕</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.18)' }}>− □ ✕</span>
                 </div>
                 <div style={{ padding: '10px 12px', fontSize: 11, lineHeight: 1.75 }}>
-                  <p style={{ color: 'rgba(255,255,255,0.45)', margin: '0 0 4px' }}>jori connected Linear to ENG-2703</p>
-                  <p style={{ color: 'rgba(255,255,255,0.65)', margin: '0 0 3px', fontWeight: 500 }}>Examining the startup path...</p>
-                  <p style={{ color: 'rgba(255,255,255,0.3)', margin: '0 0 7px' }}>Worked for 7s ▾</p>
-                  <p style={{ color: 'rgba(255,255,255,0.45)', margin: '0 0 6px' }}>Pushed and opened a draft PR. Changes:</p>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', margin: '0 0 2px', fontFamily: 'monospace', fontSize: 10 }}>• useRideHistory.ts : build a <span style={{ background: 'rgba(255,255,255,0.07)', padding: '0 3px', borderRadius: 2 }}>waitingStatusById</span> map and use it as the <span style={{ background: 'rgba(255,255,255,0.07)', padding: '0 3px', borderRadius: 2 }}>getLastAction</span> by line</p>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', margin: '2px 0 6px', fontFamily: 'monospace', fontSize: 10 }}>• <span style={{ background: 'rgba(255,255,255,0.07)', padding: '0 3px', borderRadius: 2 }}>RideHistoryPage.tsx</span> : dimmed rows reset</p>
+                  <p style={{ color: 'rgba(0,0,0,0.45)', margin: '0 0 4px' }}>jori connected Linear to ENG-2703</p>
+                  <p style={{ color: 'rgba(0,0,0,0.65)', margin: '0 0 3px', fontWeight: 500 }}>Examining the startup path...</p>
+                  <p style={{ color: 'rgba(0,0,0,0.3)', margin: '0 0 7px' }}>Worked for 7s ▾</p>
+                  <p style={{ color: 'rgba(0,0,0,0.45)', margin: '0 0 6px' }}>Pushed and opened a draft PR. Changes:</p>
+                  <p style={{ color: 'rgba(0,0,0,0.4)', margin: '0 0 2px', fontFamily: 'monospace', fontSize: 10 }}>• useRideHistory.ts : build a <span style={{ background: 'rgba(0,0,0,0.07)', padding: '0 3px', borderRadius: 2 }}>waitingStatusById</span> map and use it as the <span style={{ background: 'rgba(0,0,0,0.07)', padding: '0 3px', borderRadius: 2 }}>getLastAction</span> by line</p>
+                  <p style={{ color: 'rgba(0,0,0,0.4)', margin: '2px 0 6px', fontFamily: 'monospace', fontSize: 10 }}>• <span style={{ background: 'rgba(0,0,0,0.07)', padding: '0 3px', borderRadius: 2 }}>RideHistoryPage.tsx</span> : dimmed rows reset</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Changed 2 files</span>
+                    <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)' }}>Changed 2 files</span>
                     <span style={{ fontSize: 10, color: '#22c55e', background: 'rgba(34,197,94,0.1)', borderRadius: 2, padding: '0 4px' }}>+4</span>
                     <span style={{ fontSize: 10, color: '#ef4444', background: 'rgba(239,68,68,0.1)', borderRadius: 2, padding: '0 4px' }}>-4</span>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>Preview</span>
+                    <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.25)', marginLeft: 'auto' }}>Preview</span>
                   </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', background: 'rgba(255,255,255,0.03)', borderRadius: 4, padding: '5px 7px' }}>
+                  <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)', fontFamily: 'monospace', background: 'rgba(0,0,0,0.03)', borderRadius: 4, padding: '5px 7px' }}>
                     ↑ Draft Update homepage H1<br />
-                    <span style={{ color: 'rgba(255,255,255,0.16)' }}>master ← ride/drv-899-update-homepage-h1-65a6</span>
+                    <span style={{ color: 'rgba(0,0,0,0.16)' }}>master ← ride/drv-899-update-homepage-h1-65a6</span>
                   </div>
                 </div>
-                <div style={{ padding: '6px 12px', borderTop: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.18)', flex: 1 }}>Tell Linear what to do next...</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>↺ 🔗 ↑</span>
+                <div style={{ padding: '6px 12px', borderTop: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.18)', flex: 1 }}>Tell Linear what to do next...</span>
+                  <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.15)' }}>↺ 🔗 ↑</span>
                 </div>
               </div>
             </div>
@@ -332,7 +332,7 @@ function LogoStrip() {
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '36px 120px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {logos.map(l => (
-          <span key={l.text} style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.22)', letterSpacing: '-0.01em', fontFamily: F }}>{l.text}</span>
+          <span key={l.text} style={{ fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.22)', letterSpacing: '-0.01em', fontFamily: F }}>{l.text}</span>
         ))}
       </div>
     </section>
@@ -348,7 +348,7 @@ function NewSpecies() {
         letterSpacing: '-0.04em', margin: 0, maxWidth: 680,
       }}>
         <span style={{ color: T1 }}>A new species of product tool.</span>{' '}
-        <span style={{ color: 'rgba(255,255,255,0.32)' }}>Purpose-built for modern teams with AI workflows at its core, Linear sets a new standard for planning and building products.</span>
+        <span style={{ color: 'rgba(0,0,0,0.32)' }}>Purpose-built for modern teams with AI workflows at its core, Linear sets a new standard for planning and building products.</span>
       </h2>
     </section>
   );
@@ -420,7 +420,7 @@ function FeatureSection({ title, desc, num, linkLabel, subLinks, children }) {
             <a key={i} href="#" style={{ fontSize: 13, color: T3, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}
               onMouseEnter={e => e.currentTarget.style.color = T2}
               onMouseLeave={e => e.currentTarget.style.color = T3}>
-              <span style={{ color: 'rgba(255,255,255,0.18)', fontSize: 12 }}>{sl.num}</span>
+              <span style={{ color: 'rgba(0,0,0,0.18)', fontSize: 12 }}>{sl.num}</span>
               <span>{sl.label}</span>
             </a>
           ))}
@@ -435,10 +435,10 @@ function IntakeMock() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16, fontFamily: F }}>
       {/* Slack thread */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
           <span style={{ fontSize: 12 }}>⚙</span>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>Thread in <span style={{ color: T1 }}>#feedback</span></span>
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>Thread in <span style={{ color: T1 }}>#feedback</span></span>
           <div style={{ flex: 1 }} /><span style={{ fontSize: 11, color: T3 }}>⋮</span>
         </div>
         {[
@@ -446,8 +446,8 @@ function IntakeMock() {
           { name: 'didier', color: '#E87C3E', time: '3:06 PM', msg: "Yea, we're still blocking initial render on a full vehicle_state sync every time..." },
           { name: 'andreas', color: '#4E9CF5', time: '3:06 PM', msg: 'Feels like we could render sooner and load the rest in the background. Probably also worth tracking startup timing so we know how often this happens!' },
         ].map((m, i) => (
-          <div key={i} style={{ padding: '10px 14px', display: 'flex', gap: 9, borderBottom: `1px solid rgba(255,255,255,0.03)` }}>
-            <div style={{ width: 28, height: 28, borderRadius: 6, background: m.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff' }}>{m.name[0].toUpperCase()}</div>
+          <div key={i} style={{ padding: '10px 14px', display: 'flex', gap: 9, borderBottom: `1px solid rgba(0,0,0,0.03)` }}>
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: m.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#111' }}>{m.name[0].toUpperCase()}</div>
             <div>
               <div style={{ display: 'flex', gap: 5, marginBottom: 2 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: T1 }}>{m.name}</span>
@@ -458,7 +458,7 @@ function IntakeMock() {
           </div>
         ))}
         <div style={{ padding: '10px 14px' }}>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', margin: '0 0 8px' }}>
+          <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', margin: '0 0 8px' }}>
             <span style={{ background: 'rgba(90,90,240,0.18)', color: '#7C6AF4', borderRadius: 3, padding: '0 4px' }}>@Linear</span>{' '}create urgent issues and assign to me
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -470,29 +470,29 @@ function IntakeMock() {
       </div>
 
       {/* Kanban columns */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', height: '100%' }}>
           {[
             { title: 'Todo', count: 71, color: '#888', items: ['Remove UI inconsistencies', 'TypedError: Cannot read properties', 'Upgrade to Claude Opus 4.5', 'Retrieve backtrace'] },
             { title: 'In-Progress', count: 3, color: '#22c55e', items: ['Remove contentData from GraphQL API', 'Launch page assets', 'Prevent duplicate ride requests on po...'] },
             { title: 'Done', count: '', color: '#4E9CF5', items: [] },
           ].map((col, i) => (
-            <div key={i} style={{ borderRight: i < 2 ? `1px solid rgba(255,255,255,0.05)` : 'none', padding: '10px 0' }}>
+            <div key={i} style={{ borderRight: i < 2 ? `1px solid rgba(0,0,0,0.05)` : 'none', padding: '10px 0' }}>
               <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: col.color }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>{col.title}</span>
-                {col.count && <span style={{ fontSize: 10, color: T3, background: 'rgba(255,255,255,0.05)', borderRadius: 3, padding: '0 4px' }}>{col.count}</span>}
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.5)' }}>{col.title}</span>
+                {col.count && <span style={{ fontSize: 10, color: T3, background: 'rgba(0,0,0,0.05)', borderRadius: 3, padding: '0 4px' }}>{col.count}</span>}
                 <div style={{ flex:1 }} /><span style={{ fontSize: 11, color: T3 }}>＋ ···</span>
               </div>
               {col.items.map((item, ii) => (
-                <div key={ii} style={{ margin: '0 8px 4px', padding: '7px 10px', background: '#222224', borderRadius: 6, border: `1px solid rgba(255,255,255,0.05)` }}>
+                <div key={ii} style={{ margin: '0 8px 4px', padding: '7px 10px', background: '#F4F4F5', borderRadius: 6, border: `1px solid rgba(0,0,0,0.05)` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${col.color}`, flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>{item}</span>
+                    <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', lineHeight: 1.4 }}>{item}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <span style={{ fontSize: 9, color: T3, background: 'rgba(255,255,255,0.06)', borderRadius: 3, padding: '1px 5px' }}>Bug</span>
-                    <span style={{ fontSize: 9, color: T3, background: 'rgba(255,255,255,0.06)', borderRadius: 3, padding: '1px 5px' }}>Design</span>
+                    <span style={{ fontSize: 9, color: T3, background: 'rgba(0,0,0,0.06)', borderRadius: 3, padding: '1px 5px' }}>Bug</span>
+                    <span style={{ fontSize: 9, color: T3, background: 'rgba(0,0,0,0.06)', borderRadius: 3, padding: '1px 5px' }}>Design</span>
                   </div>
                 </div>
               ))}
@@ -509,9 +509,9 @@ function PlanMock() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16, fontFamily: F }}>
       {/* Initiatives */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Initiatives</span>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)` }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.6)' }}>Initiatives</span>
         </div>
         {[
           { label: 'Core Product', count: 99, icon: '◎', color: '#5A5AF0', children: [
@@ -527,13 +527,13 @@ function PlanMock() {
           <div key={i}>
             <div style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: item.color }}>{item.icon}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', flex: 1 }}>{item.label}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)', flex: 1 }}>{item.label}</span>
               <span style={{ fontSize: 11, color: T3 }}>{item.count}</span>
             </div>
             {item.children?.map((c, ci) => (
               <div key={ci} style={{ padding: '6px 14px 6px 36px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 11, color: c.color }}>{c.icon}</span>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', flex: 1 }}>{c.label}</span>
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', flex: 1 }}>{c.label}</span>
                 <span style={{ fontSize: 11, color: T3 }}>{c.count}</span>
               </div>
             ))}
@@ -542,8 +542,8 @@ function PlanMock() {
       </div>
 
       {/* Gantt */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '8px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', gap: 20 }}>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '8px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', gap: 20 }}>
           {['APR','MAY','JUN','JUL','AUG','SEP'].map(m => (
             <span key={m} style={{ fontSize: 10, fontWeight: 600, color: T3, letterSpacing: '0.06em' }}>{m}</span>
           ))}
@@ -555,7 +555,7 @@ function PlanMock() {
             { label: 'Autonomy status clarity', color: '#f59e0b', left: '42%', width: '45%' },
           ].map((t, i) => (
             <div key={i} style={{ marginBottom: 8 }}>
-              <div style={{ position: 'relative', height: 26, background: 'rgba(255,255,255,0.02)', borderRadius: 4 }}>
+              <div style={{ position: 'relative', height: 26, background: 'rgba(0,0,0,0.02)', borderRadius: 4 }}>
                 <div style={{
                   position: 'absolute', left: t.left, width: t.width, height: '100%',
                   background: t.color + '28', border: `1px solid ${t.color}50`,
@@ -577,27 +577,27 @@ function BuildMock() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, fontFamily: F }}>
       {/* Terminal */}
-      <div style={{ background: '#141416', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
-          <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.65)"/></svg>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 18 18" fill="none"><path d="M9 0C4.029 0 0 4.029 0 9C0 13.971 4.029 18 9 18C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(0,0,0,0.65)"/></svg>
           </div>
           <span style={{ fontSize: 12, fontWeight: 600, color: T1 }}>Codex</span>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: 10, color: T3 }}>—</span>
         </div>
         <div style={{ padding: '14px', fontSize: 12, lineHeight: 1.8 }}>
-          <p style={{ color: 'rgba(255,255,255,0.65)', margin: '0 0 4px' }}>On it! I've received your request.</p>
-          <p style={{ color: T2, margin: '0 0 4px' }}>Kicked off a task in <code style={{ background: 'rgba(255,255,255,0.07)', padding: '1px 4px', borderRadius: 3, fontSize: 11, fontFamily: 'monospace' }}>kinetic/kinetic-iOS</code> environment.</p>
+          <p style={{ color: 'rgba(0,0,0,0.65)', margin: '0 0 4px' }}>On it! I've received your request.</p>
+          <p style={{ color: T2, margin: '0 0 4px' }}>Kicked off a task in <code style={{ background: 'rgba(0,0,0,0.07)', padding: '1px 4px', borderRadius: 3, fontSize: 11, fontFamily: 'monospace' }}>kinetic/kinetic-iOS</code> environment.</p>
           <p style={{ color: T2, margin: '0 0 4px' }}>Searching for root AGENTS file</p>
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 6, padding: '7px 10px', margin: '4px 0 8px', fontFamily: 'monospace', fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
+          <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 6, padding: '7px 10px', margin: '4px 0 8px', fontFamily: 'monospace', fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>
             kinetic/kinetic-iOS$ /bin/bash -lc rg --files -g 'AGENTS.md'<br />
-            <span style={{ color: 'rgba(255,255,255,0.65)' }}>AGENTS.md</span>
+            <span style={{ color: 'rgba(0,0,0,0.65)' }}>AGENTS.md</span>
           </div>
-          <p style={{ color: T2, margin: '0 0 4px' }}>Locating initialization logic for <code style={{ background: 'rgba(255,255,255,0.07)', padding: '1px 4px', borderRadius: 3, fontSize: 11, fontFamily: 'monospace' }}>vehicle_state</code></p>
+          <p style={{ color: T2, margin: '0 0 4px' }}>Locating initialization logic for <code style={{ background: 'rgba(0,0,0,0.07)', padding: '1px 4px', borderRadius: 3, fontSize: 11, fontFamily: 'monospace' }}>vehicle_state</code></p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8 }}>
             <div style={{ display: 'flex', gap: 2 }}>
-              {[0,1,2,3,4,5].map(i => <div key={i} style={{ width: 3, height: 12, background: `rgba(255,255,255,${0.08 + i * 0.04})`, borderRadius: 2 }} />)}
+              {[0,1,2,3,4,5].map(i => <div key={i} style={{ width: 3, height: 12, background: `rgba(0,0,0,${0.08 + i * 0.04})`, borderRadius: 2 }} />)}
             </div>
             <span style={{ color: T3, fontSize: 12 }}>Thinking...</span>
           </div>
@@ -605,9 +605,9 @@ function BuildMock() {
       </div>
 
       {/* Assign dropdown */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center' }}>
-          <input readOnly value="Assign to..." style={{ background: 'none', border: 'none', outline: 'none', fontSize: 13, color: 'rgba(255,255,255,0.45)', flex: 1, fontFamily: F, cursor: 'default' }} />
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center' }}>
+          <input readOnly value="Assign to..." style={{ background: 'none', border: 'none', outline: 'none', fontSize: 13, color: 'rgba(0,0,0,0.45)', flex: 1, fontFamily: F, cursor: 'default' }} />
           <span style={{ fontSize: 10, color: T3 }}>···</span>
         </div>
         {[
@@ -619,11 +619,11 @@ function BuildMock() {
           { name: 'Meg', avatar: 'M', color: '#7C6AF4' },
         ].map((item, i) => (
           <div key={i} style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 10, transition: 'background 150ms', cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', background: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 10, color: '#fff', fontWeight: 700 }}>{item.avatar}</div>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', flex: 1 }}>{item.name}</span>
-            {item.tag && <span style={{ fontSize: 10, color: T3, background: 'rgba(255,255,255,0.05)', borderRadius: 3, padding: '1px 6px' }}>{item.tag}</span>}
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', flex: 1 }}>{item.name}</span>
+            {item.tag && <span style={{ fontSize: 10, color: T3, background: 'rgba(0,0,0,0.05)', borderRadius: 3, padding: '1px 6px' }}>{item.tag}</span>}
             {item.check && <span style={{ fontSize: 12, color: '#22c55e' }}>✓</span>}
           </div>
         ))}
@@ -648,18 +648,18 @@ function DiffMock() {
     { n: '11', before: '  }', after: '  }', changed: false },
   ];
   return (
-    <div style={{ background: '#141416', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden', fontFamily: F }}>
-      <div style={{ padding: '8px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden', fontFamily: F }}>
+      <div style={{ padding: '8px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 11, color: T3 }}>📄 kinetic-ios/src/screens/Home/HomeScreen.tsx</span>
         <div style={{ flex: 1 }} />
         <span style={{ fontSize: 11, color: T2 }}>Linear ↗</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-        <div style={{ borderRight: `1px solid rgba(255,255,255,0.05)` }}>
+        <div style={{ borderRight: `1px solid rgba(0,0,0,0.05)` }}>
           {lines.map((line, i) => (
             <div key={i} style={{ display: 'flex', padding: '1.5px 0', background: line.changed ? 'rgba(239,68,68,0.06)' : 'transparent', borderLeft: line.changed ? '2px solid rgba(239,68,68,0.35)' : '2px solid transparent' }}>
               <span style={{ width: 28, textAlign: 'right', paddingRight: 10, fontSize: 10, color: T3, fontFamily: 'monospace', flexShrink: 0 }}>{line.n}</span>
-              <span style={{ fontSize: 11, color: line.changed ? '#fca5a5' : 'rgba(255,255,255,0.4)', fontFamily: 'monospace', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line.before}</span>
+              <span style={{ fontSize: 11, color: line.changed ? '#fca5a5' : 'rgba(0,0,0,0.4)', fontFamily: 'monospace', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line.before}</span>
             </div>
           ))}
         </div>
@@ -667,7 +667,7 @@ function DiffMock() {
           {lines.map((line, i) => (
             <div key={i} style={{ display: 'flex', padding: '1.5px 0', background: line.changed ? 'rgba(34,197,94,0.06)' : 'transparent', borderLeft: line.changed ? '2px solid rgba(34,197,94,0.35)' : '2px solid transparent' }}>
               <span style={{ width: 28, textAlign: 'right', paddingRight: 10, fontSize: 10, color: T3, fontFamily: 'monospace', flexShrink: 0 }}>{line.n}</span>
-              <span style={{ fontSize: 11, color: line.changed ? '#86efac' : 'rgba(255,255,255,0.4)', fontFamily: 'monospace', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line.after}</span>
+              <span style={{ fontSize: 11, color: line.changed ? '#86efac' : 'rgba(0,0,0,0.4)', fontFamily: 'monospace', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line.after}</span>
             </div>
           ))}
         </div>
@@ -681,11 +681,11 @@ function MonitorMock() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, fontFamily: F }}>
       {/* Pulse card */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: T1 }}>Weekly Pulse for Jun 18</span>
           <div style={{ flex: 1 }} />
-          <button style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.05)', border: `1px solid rgba(255,255,255,0.09)`, borderRadius: 5, padding: '4px 10px', cursor: 'pointer', color: T2, fontSize: 11 }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(0,0,0,0.05)', border: `1px solid rgba(0,0,0,0.09)`, borderRadius: 5, padding: '4px 10px', cursor: 'pointer', color: T2, fontSize: 11 }}>
             ▶ Listen
           </button>
           <span style={{ fontSize: 10, color: T3 }}>1.0× ⋮</span>
@@ -697,7 +697,7 @@ function MonitorMock() {
           { title: 'Tokyo launch', status: 'On track', statusColor: '#22c55e', by: 'julian', when: '3 hours ago',
             bullets: ['Localization efforts have been completed', 'Everything else on track for launch in early September'] },
         ].map((p, i) => (
-          <div key={i} style={{ padding: '8px 14px 12px', borderTop: `1px solid rgba(255,255,255,0.04)` }}>
+          <div key={i} style={{ padding: '8px 14px 12px', borderTop: `1px solid rgba(0,0,0,0.04)` }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: T1, margin: '0 0 4px' }}>{p.title}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: p.statusColor }} />
@@ -715,9 +715,9 @@ function MonitorMock() {
       </div>
 
       {/* Cycle time chart */}
-      <div style={{ background: '#1A1A1C', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>Cycle time by agent</span>
+      <div style={{ background: '#FFFFFF', border: `1px solid rgba(0,0,0,0.07)`, borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: `1px solid rgba(0,0,0,0.05)` }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(0,0,0,0.5)' }}>Cycle time by agent</span>
         </div>
         <div style={{ padding: '14px', height: 260, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', position: 'relative' }}>
           {/* Y axis */}
@@ -831,10 +831,10 @@ function FinalCta({ onSignup }) {
         Built for the future.<br />Available today.
       </h2>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-        <button onClick={onSignup} style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: '#000', background: T1, border: 'none', borderRadius: 7, padding: '10px 24px', cursor: 'pointer' }}>Get started</button>
-        <button style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: T2, background: 'transparent', border: `1px solid rgba(255,255,255,0.14)`, borderRadius: 7, padding: '10px 24px', cursor: 'pointer' }}
-          onMouseEnter={e => { e.currentTarget.style.color = T1; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = T2; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; }}>
+        <button onClick={onSignup} style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: '#fff', background: T1, border: 'none', borderRadius: 7, padding: '10px 24px', cursor: 'pointer' }}>Get started</button>
+        <button style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: T2, background: 'transparent', border: `1px solid rgba(0,0,0,0.14)`, borderRadius: 7, padding: '10px 24px', cursor: 'pointer' }}
+          onMouseEnter={e => { e.currentTarget.style.color = T1; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = T2; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.14)'; }}>
           Contact sales
         </button>
       </div>
@@ -856,14 +856,14 @@ function Footer() {
       <div style={{ display: 'grid', gridTemplateColumns: '72px repeat(5,1fr)', gap: 28, marginBottom: 44 }}>
         <div style={{ paddingTop: 2 }}>
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="rgba(255,255,255,0.45)"/>
-            <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="rgba(255,255,255,0.45)"/>
-            <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.45)"/>
+            <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="rgba(0,0,0,0.45)"/>
+            <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="rgba(0,0,0,0.45)"/>
+            <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(0,0,0,0.45)"/>
           </svg>
         </div>
         {cols.map((col, i) => (
           <div key={i}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 14px' }}>{col.title}</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.5)', margin: '0 0 14px' }}>{col.title}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               {col.links.map(link => (
                 <a key={link} href="#" style={{ fontSize: 12, color: T3, textDecoration: 'none', transition: 'color 150ms' }}
@@ -897,7 +897,7 @@ export default function LandingPage() {
   if (!ready) return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.05)', borderTopColor: 'rgba(255,255,255,0.4)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 20, height: 20, border: '2px solid rgba(0,0,0,0.05)', borderTopColor: 'rgba(0,0,0,0.4)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
     </div>
   );
 
