@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -29,82 +29,32 @@ function Avatar({ user, size = 24 }) {
   );
 }
 
-// ─── Workspace Switcher Dropdown ──────────────────────────────────
-function WorkspaceDropdown({ workspaces, currentWs, onSwitch, onCreate, onSettings, onClose, user, userPlan }) {
-  const navigate = useNavigate();
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = e => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  const { used, limit, pct, barColor } = useCredits(user);
-
+// ─── Referral Banner ──────────────────────────────────────────────
+function ReferralBanner({ expanded, onClick }) {
+  if (!expanded) return null;
   return (
-    <motion.div ref={ref}
-      initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.14 }}
-      onClick={e => e.stopPropagation()}
+    <button
+      onClick={onClick}
       style={{
-        position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-        background: '#fff', border: '1px solid #E5E5E5', borderRadius: 10,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 999, overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '10px 12px', margin: '0 0 0 0',
+        background: '#fff', border: '1px solid rgba(0,0,0,0.10)',
+        borderRadius: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.05)', transition: 'box-shadow 120ms',
       }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.09)'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'}
     >
-      {/* Workspace list */}
-      <div style={{ padding: '6px 6px 0' }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 8px 6px' }}>Workspaces</p>
-        {workspaces.map(ws => (
-          <button key={ws.id} onClick={() => { onSwitch(ws.id); onClose(); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <div style={{ width: 22, height: 22, borderRadius: 5, background: ws.current ? '#F95738' : '#2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-              {ws.name?.charAt(0).toUpperCase()}
-            </div>
-            <span style={{ flex: 1, fontSize: 13, color: ws.current ? '#111' : '#666', fontWeight: ws.current ? 500 : 400 }}>{ws.name}</span>
-            {ws.current && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />}
-          </button>
-        ))}
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0, letterSpacing: '-0.01em' }}>Gagnez des crédits bonus</p>
+        <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', margin: 0 }}>Parrainer un ami</p>
       </div>
-
-      <div style={{ margin: '6px', padding: '10px 10px 8px', background: '#F8F7F4', borderRadius: 8, border: '1px solid #E5E5E5' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#333' }}>Usage</span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#333', fontVariantNumeric: 'tabular-nums' }}>{used.toLocaleString()} / {limit.toLocaleString()}</span>
-        </div>
-        <div style={{ height: 7, background: '#E5E5E5', borderRadius: 999, marginBottom: 5 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 10, color: '#999' }}>0</span>
-          <span style={{ fontSize: 10, color: '#999' }}>{limit.toLocaleString()}</span>
-        </div>
-      </div>
-
-      <div style={{ padding: '4px 6px', borderTop: '1px solid #F0F0F0' }}>
-        <button onClick={() => { onSettings(); onClose(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: '#777', fontFamily: 'inherit' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#F5F5F5'; e.currentTarget.style.color = '#111'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#777'; }}
-        >
-          <Settings style={{ width: 12, height: 12 }} /> Workspace settings
-        </button>
-        <button onClick={() => { onCreate(); onClose(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: '#777', fontFamily: 'inherit' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#F5F5F5'; e.currentTarget.style.color = '#111'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#777'; }}
-        >
-          <Plus style={{ width: 12, height: 12 }} /> New workspace
-        </button>
-      </div>
-    </motion.div>
+      <Gift style={{ width: 16, height: 16, color: 'rgba(0,0,0,0.4)', flexShrink: 0 }} />
+    </button>
   );
 }
 
-// ─── Profile Menu ─────────────────────────────────────────────────
+// ─── Profile Menu (style img2) ────────────────────────────────────
 function ProfileMenu({ user, onClose, navigate }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -113,43 +63,56 @@ function ProfileMenu({ user, onClose, navigate }) {
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
+  const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
   const email = user?.email || '';
-  const Row = ({ icon: Icon, label, onClick, danger }) => (
-    <button onClick={onClick}
-      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, color: danger ? '#E8184A' : '#666', textAlign: 'left', fontFamily: 'inherit' }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#F5F5F5'; e.currentTarget.style.color = danger ? '#E8184A' : '#111'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = danger ? '#E8184A' : '#666'; }}
-    >
-      <Icon style={{ width: 13, height: 13, flexShrink: 0 }} /> {label}
-    </button>
-  );
+
+  const Row = ({ label, shortcut, onClick, danger, separator }) => {
+    if (separator) return <div style={{ height: 1, background: '#F0F0F0', margin: '4px 0' }} />;
+    return (
+      <button onClick={onClick}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '7px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: danger ? '#E8184A' : '#333', textAlign: 'left', fontFamily: 'inherit' }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#F5F5F5'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        <span>{label}</span>
+        {shortcut && <span style={{ fontSize: 11, color: '#999', letterSpacing: '0.01em' }}>{shortcut}</span>}
+      </button>
+    );
+  };
 
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }}
       transition={{ duration: 0.13 }}
       onClick={e => e.stopPropagation()}
       style={{
-        position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
-        background: '#fff', border: '1px solid #E5E5E5', borderRadius: 10,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.10)', zIndex: 999, overflow: 'hidden',
+        position: 'absolute', top: 'calc(100% + 6px)', left: 0,
+        background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 12,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 999, overflow: 'hidden',
+        minWidth: 220,
       }}
     >
-      <div style={{ padding: '12px', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 9 }}>
-        <Avatar user={user} size={28} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.full_name || 'User'}</p>
-          <p style={{ fontSize: 10, color: '#888', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
+      {/* Header: avatar + name + chevron */}
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#7C6AF4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+          {initials}
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 500, color: '#111', flex: 1 }}>{user?.full_name || email.split('@')[0]} ∨</span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => { navigate('/app'); onClose(); }} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid #E5E5E5', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Search style={{ width: 13, height: 13, color: '#555' }} />
+          </button>
+          <button onClick={() => { navigate('/app'); onClose(); }} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid #E5E5E5', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          </button>
         </div>
       </div>
       <div style={{ padding: '4px 0' }}>
-        <Row icon={Settings} label="Account settings" onClick={() => navigate('/settings')} />
-        <Row icon={CreditCard} label="Upgrade your plan" onClick={() => navigate('/pricing')} />
-        <Row icon={HelpCircle} label="Support" onClick={() => navigate('/support')} />
-      </div>
-      <div style={{ height: 1, background: '#F0F0F0' }} />
-      <div style={{ padding: '4px 0' }}>
-        <Row icon={LogOut} label="Sign out" danger onClick={async () => { await base44.auth.logout(); window.location.reload(); }} />
+        <Row label="Settings" shortcut="G then S" onClick={() => { navigate('/settings'); onClose(); }} />
+        <Row label="Invite and manage members" onClick={() => { navigate('/settings'); onClose(); }} />
+        <Row label="Download desktop app" onClick={() => {}} />
+        <Row separator />
+        <Row label="Log out" shortcut="Alt ⇧ Q" danger onClick={async () => { await base44.auth.logout(); window.location.reload(); }} />
       </div>
     </motion.div>
   );
@@ -338,23 +301,16 @@ function Divider() {
 export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showWsMenu, setShowWsMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showCreateWs, setShowCreateWs] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [recents, setRecents] = useState([]);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
-  const [workspaces, setWorkspaces] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('wok_workspaces')) || [{ id: 'default', name: "My Workspace", current: true }]; }
-    catch { return [{ id: 'default', name: "My Workspace", current: true }]; }
-  });
 
-  const wsRef = useRef(null);
   const profileRef = useRef(null);
-  const currentWs = workspaces.find(w => w.current) || workspaces[0] || { name: 'Workspace' };
   // Load recents
+
   useEffect(() => {
     loadDiscussionsFromCloud().then(discs => {
       if (discs.length > 0) {
@@ -377,18 +333,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
   }, []);
-
-  const handleSwitchWorkspace = id => {
-    const updated = workspaces.map(w => ({ ...w, current: w.id === id }));
-    setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-  };
-  const handleCreateWorkspace = name => {
-    if (workspaces.length >= 4) { toast.error('Max 4 workspaces'); return; }
-    const nw = { id: `ws_${Date.now()}`, name, current: true };
-    const updated = workspaces.map(w => ({ ...w, current: false })).concat(nw);
-    setWorkspaces(updated); localStorage.setItem('wok_workspaces', JSON.stringify(updated));
-    toast.success('Workspace created');
-  };
 
   const isActive = path => location.pathname === path;
   const nav = path => navigate(path);
@@ -417,80 +361,42 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
           background: '#F7F7F5',
-          borderRight: '1px solid #F7F7F5',
+          borderRight: '1px solid #C8C8C8',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
       >
-        {/* ── Logo / Toggle ── */}
-        <div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '0 12px 0 14px' : '0', borderBottom: '1px solid #EBEBEA' }}>
+        {/* ── Toggle button ── */}
+        <div style={{ height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-end' : 'center', padding: expanded ? '0 10px' : '0', borderBottom: '1px solid #EBEBEA' }}>
           {expanded ? (
-            <>
-              <button onClick={() => nav('/app')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
-                <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 38, height: 'auto', objectFit: 'contain', filter: 'invert(1)' }} />
-              </button>
-              <button onClick={() => setExpanded(false)} title="Collapse"
-                style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', flexShrink: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#EDEAE5'; e.currentTarget.style.color = '#333'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888'; }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
-                </svg>
-              </button>
-            </>
+            <button onClick={() => setExpanded(false)} title="Collapse"
+              style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#EDEAE5'; e.currentTarget.style.color = '#333'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888'; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+              </svg>
+            </button>
           ) : (
             <button onClick={() => setExpanded(true)} title="Expand"
-              style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer' }}
+              style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888' }}
               onMouseEnter={e => e.currentTarget.style.background = '#EDEAE5'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="WOK" style={{ width: 30, height: 'auto', objectFit: 'contain', filter: 'invert(1)' }} />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+              </svg>
             </button>
           )}
         </div>
 
-        {/* ── Workspace Selector ── */}
-        <div ref={wsRef} style={{ padding: expanded ? '8px 8px 4px' : '8px 6px 4px', flexShrink: 0, position: 'relative' }}>
-          <button
-            onClick={() => { if (expanded) { setShowWsMenu(v => !v); } else setExpanded(true); }}
-            title={!expanded ? currentWs.name : undefined}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              width: '100%', height: 34,
-              padding: expanded ? '0 8px' : '0',
-              justifyContent: expanded ? 'flex-start' : 'center',
-              borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#EDEAE5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <div style={{ width: 22, height: 22, borderRadius: 5, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-              {currentWs.name?.charAt(0).toUpperCase() || 'W'}
-            </div>
-            {expanded && (
-              <>
-                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', letterSpacing: '-0.01em' }}>
-                  {currentWs.name}
-                </span>
-                <ChevronDown style={{ width: 12, height: 12, color: '#999', flexShrink: 0, transform: showWsMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
-              </>
-            )}
-          </button>
-          <AnimatePresence>
-            {showWsMenu && expanded && (
-              <WorkspaceDropdown
-                workspaces={workspaces} currentWs={currentWs}
-                onSwitch={handleSwitchWorkspace}
-                onCreate={() => setShowCreateWs(true)}
-                onSettings={() => nav('/workspace-settings')}
-                onClose={() => setShowWsMenu(false)}
-                user={user} userPlan={userPlan}
-
-              />
-            )}
-          </AnimatePresence>
-        </div>
+        {/* ── Referral Banner (expanded only) ── */}
+        {expanded && (
+          <div style={{ padding: '8px 8px 4px', flexShrink: 0 }}>
+            <ReferralBanner expanded={expanded} onClick={() => nav('/settings')} />
+          </div>
+        )}
 
         <Divider />
 
@@ -593,25 +499,22 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           </div>
         </div>
 
-        {/* ── Footer / Profile ── */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid #EBEBEA', padding: expanded ? '8px 8px 10px' : '8px 6px 10px', position: 'relative' }} ref={profileRef}>
-          <button onClick={() => setShowProfileMenu(v => !v)} title={!expanded ? user?.email || 'Profile' : undefined}
+        {/* ── Footer / Profile dot ── */}
+        <div style={{ flexShrink: 0, borderTop: '1px solid #EBEBEA', padding: '8px 6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }} ref={profileRef}>
+          <button
+            onClick={() => setShowProfileMenu(v => !v)}
+            title={user?.email || 'Profile'}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              width: '100%', height: 34,
-              padding: expanded ? '0 8px' : '0',
-              justifyContent: expanded ? 'flex-start' : 'center',
-              borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer',
+              width: 28, height: 28, borderRadius: '50%',
+              border: '1.5px solid rgba(0,0,0,0.15)',
+              background: showProfileMenu ? '#EDEAE5' : '#fff',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 120ms', flexShrink: 0,
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#EDEAE5'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseLeave={e => e.currentTarget.style.background = showProfileMenu ? '#EDEAE5' : '#fff'}
           >
-            <Avatar user={user} size={24} />
-            {expanded && (
-              <span style={{ fontSize: 12.5, fontWeight: 500, color: '#111', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
-                {user?.full_name || user?.email?.split('@')[0] || 'Account'}
-              </span>
-            )}
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#111' }} />
           </button>
           <AnimatePresence>
             {showProfileMenu && (
@@ -621,7 +524,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         </div>
       </motion.aside>
 
-      <CreateWorkspaceModal open={showCreateWs} onClose={() => setShowCreateWs(false)} onCreate={handleCreateWorkspace} />
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
       <SearchModal open={showSearch} onClose={() => setShowSearch(false)} />
     </>

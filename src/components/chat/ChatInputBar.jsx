@@ -20,27 +20,11 @@ import { toast } from 'sonner';
 // LOGOS
 // ─────────────────────────────────────────────────────────────────
 
-// Claude logo — asterisk / sunburst shape (coral/terracotta, img3)
+// Claude logo — official Anthropic shape (beige/sand tones)
 const ClaudeLogo = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ flexShrink: 0 }}>
-    <g transform="translate(50,50)">
-      {Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i * 30 * Math.PI) / 180;
-        const x1 = Math.cos(angle) * 14;
-        const y1 = Math.sin(angle) * 14;
-        const x2 = Math.cos(angle) * 42;
-        const y2 = Math.sin(angle) * 42;
-        return (
-          <line
-            key={i}
-            x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke="#C96D4E"
-            strokeWidth="10"
-            strokeLinecap="round"
-          />
-        );
-      })}
-    </g>
+  <svg width={size} height={size} viewBox="0 0 46 46" fill="none" style={{ flexShrink: 0 }}>
+    <rect width="46" height="46" rx="10" fill="#D97757"/>
+    <path d="M29.1 11.5L23 28.9L16.9 11.5H11L19.7 35.5H26.3L35 11.5H29.1Z" fill="white"/>
   </svg>
 );
 
@@ -63,8 +47,8 @@ const GeminiLogo = ({ size = 16 }) => (
 
 const AutoLogo = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 3L13.5 9H19.5L14.5 13L16.5 19L12 15.5L7.5 19L9.5 13L4.5 9H10.5L12 3Z"
-      fill="none" stroke="#6366F1" strokeWidth="1.8" strokeLinejoin="round"/>
+    <path d="M12 2 L13.8 8.5 L20.5 8.5 L15.1 12.5 L17.2 19 L12 15 L6.8 19 L8.9 12.5 L3.5 8.5 L10.2 8.5 Z"
+      fill="#6366F1" stroke="none"/>
   </svg>
 );
 
@@ -209,13 +193,13 @@ function ObjectifButton({ active, onToggle, dropDirection = 'up' }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           width: 32, height: 32, borderRadius: 10,
-          border: `1px solid ${active ? 'rgba(59,130,246,0.35)' : 'rgba(0,0,0,0.10)'}`,
-          background: active ? 'rgba(59,130,246,0.07)' : '#F5F5F3',
+          border: active ? '1px solid rgba(59,130,246,0.35)' : 'none',
+          background: active ? 'rgba(59,130,246,0.07)' : 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 120ms',
         }}
-        onMouseEnter={e => { setHovered(true); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.12)' : '#EBEBEA'; }}
-        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.07)' : '#F5F5F3'; }}
+        onMouseEnter={e => { setHovered(true); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.12)' : 'rgba(0,0,0,0.06)'; }}
+        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.07)' : 'transparent'; }}
       >
         <CrosshairIcon size={14} color={active ? '#3B82F6' : 'rgba(0,0,0,0.5)'} />
       </button>
@@ -382,11 +366,11 @@ export default function ChatInputBar({
     zIndex: 999,
   };
 
-  // Light button style (img1: white bg, border, dark icon)
+  // Pure black button style
   const lightBtn = {
     width: 32, height: 32, borderRadius: 10,
-    border: '1px solid rgba(0,0,0,0.10)',
-    background: '#F5F5F3',
+    border: 'none',
+    background: 'transparent',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'background 120ms',
   };
@@ -466,11 +450,11 @@ export default function ChatInputBar({
               <div ref={plusMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowPlusMenu(!showPlusMenu)}
-                  style={{ ...lightBtn, background: showPlusMenu ? '#EBEBEA' : '#F5F5F3' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EBEBEA'}
-                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? '#EBEBEA' : '#F5F5F3'}
+                  style={{ ...lightBtn, background: showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
+                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent'}
                 >
-                  <Plus style={{ width: 15, height: 15, color: 'rgba(0,0,0,0.55)' }} />
+                  <Plus style={{ width: 15, height: 15, color: '#111' }} />
                 </button>
                 <AnimatePresence>
                   {showPlusMenu && (
@@ -550,15 +534,15 @@ export default function ChatInputBar({
                 <button
                   onClick={() => setShowModelMenu(v => !v)}
                   style={{
-                    height: 32, padding: hideName ? '0 8px' : '0 10px',
-                    borderRadius: 10, border: '1px solid rgba(0,0,0,0.10)',
-                    background: showModelMenu ? '#EBEBEA' : '#F5F5F3',
+                    height: 32, padding: hideName ? '0 6px' : '0 10px',
+                    borderRadius: 10, border: 'none',
+                    background: showModelMenu ? 'rgba(0,0,0,0.06)' : 'transparent',
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                     fontSize: 12, fontWeight: 500, color: 'rgba(0,0,0,0.65)',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EBEBEA'}
-                  onMouseLeave={e => e.currentTarget.style.background = showModelMenu ? '#EBEBEA' : '#F5F5F3'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
+                  onMouseLeave={e => e.currentTarget.style.background = showModelMenu ? 'rgba(0,0,0,0.06)' : 'transparent'}
                 >
                   {/* Always show logo */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -619,13 +603,13 @@ export default function ChatInputBar({
               {/* Mic button */}
               <button
                 onClick={handleMicClick}
-                style={{ ...lightBtn, background: 'transparent', border: 'none' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F0F0EE'}
+                style={{ ...lightBtn }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 {micDenied
                   ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
-                  : <Mic style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.45)' }} />}
+                  : <Mic style={{ width: 14, height: 14, color: '#111' }} />}
               </button>
 
               {/* Send button */}

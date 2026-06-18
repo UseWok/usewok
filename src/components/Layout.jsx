@@ -96,7 +96,7 @@ export default function Layout() {
   const CORNER_R = 14;
 
   return (
-    <div style={{ height: '100vh', background: '#D1D1D1', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', background: '#C8C8C8', display: 'flex', overflow: 'hidden' }}>
       <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />
 
       {/* Mobile hamburger toggle — only visible on mobile */}
@@ -131,6 +131,7 @@ export default function Layout() {
             margin: `${BORDER_W}px ${BORDER_W}px ${BORDER_W}px 0`,
             borderRadius: CORNER_R,
             overflow: 'hidden',
+            boxSizing: 'border-box',
           }),
         }}
       >
