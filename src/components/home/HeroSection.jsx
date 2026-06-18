@@ -167,91 +167,111 @@ export default function HeroSection({ agentId }) {
         Ask anything. Get expert-grade answers, instantly.
       </p>
 
-      {/* Input */}
-      <div className="bg-white border" style={{ borderColor: 'rgba(0,0,0,0.09)', maxWidth: '640px' }}>
+      {/* ── Input card — style image 1 ── */}
+      <div style={{
+        maxWidth: 640, background: '#FFFFFF',
+        border: '1.5px solid rgba(0,0,0,0.09)',
+        borderRadius: 16, overflow: 'visible',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+      }}>
+        {/* File chips */}
         {files.length > 0 && (
-          <div className="flex gap-2 flex-wrap px-4 pt-3">
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '12px 16px 0' }}>
             {files.map((file, idx) => (
-              <div key={idx} className="flex items-center gap-2 px-2 py-1 group" style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)' }}>
-                <FileText className="w-3 h-3" style={{ color: FG }} />
-                <span className="text-[10px] font-medium max-w-[80px] truncate" style={{ color: '#444' }}>{file.name}</span>
-                <button onClick={() => removeFile(idx)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <X className="w-2 h-2" />
+              <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 6, fontSize: 11, color: '#555' }}>
+                <FileText style={{ width: 11, height: 11 }} />
+                <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                <button onClick={() => removeFile(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#aaa' }}>
+                  <X style={{ width: 9, height: 9 }} />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <div className="px-4 pt-4 pb-2">
+        {/* Textarea */}
+        <div style={{ padding: '16px 18px 8px' }}>
           <textarea
             ref={textareaRef}
             value={query}
             onChange={(e) => { setQuery(e.target.value); localStorage.setItem('stensor_home_draft', e.target.value); }}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!isBlocked) handleSend(); } }}
-            placeholder={isBlocked ? 'Limit reached — upgrade to continue' : 'Ask me anything about your finances...'}
+            placeholder={isBlocked ? 'Limit reached — upgrade to continue' : 'Essayez tâches, flux ou jobs récurrents — tapez @ pour ajouter fichiers ou skills'}
             disabled={isBlocked}
-            rows={3}
-            className="w-full resize-none bg-transparent focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ fontSize: '15px', lineHeight: '1.6', color: FG, minHeight: '72px' }}
+            rows={2}
+            style={{
+              width: '100%', resize: 'none', background: 'transparent', outline: 'none', border: 'none',
+              fontSize: 14, lineHeight: '1.6', color: '#1A1A1A', minHeight: 52,
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+            className="placeholder:text-[rgba(0,0,0,0.32)] disabled:opacity-40 disabled:cursor-not-allowed"
           />
         </div>
 
-        <div className="flex items-center justify-between px-3 pb-3 gap-2">
-          <div className="flex items-center gap-1">
-            <div className="relative" ref={fileMenuRef}>
+        {/* Toolbar */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '6px 12px 12px', gap: 4 }}>
+          {/* LEFT tools */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {/* Plus */}
+            <div style={{ position: 'relative' }} ref={fileMenuRef}>
               <button onClick={() => { setShowFileMenu(!showFileMenu); setShowSkillMenu(false); }}
-                className="w-8 h-8 flex items-center justify-center hover:bg-black/5 transition-colors">
-                <Plus className="w-4 h-4" style={{ color: 'rgba(0,0,0,0.4)' }} />
+                style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                <Plus style={{ width: 15, height: 15, color: 'rgba(0,0,0,0.5)' }} />
               </button>
               <AnimatePresence>
                 {showFileMenu && (
-                  <motion.div {...popAnim} className="absolute bottom-full mb-1 left-0 bg-white z-50 min-w-[190px]"
-                    style={{ border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+                  <motion.div {...popAnim} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, background: '#fff', zIndex: 50, minWidth: 190, borderRadius: 10, border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                     <button onClick={() => { if (!canUpload) return; fileInputRef.current?.click(); setShowFileMenu(false); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left hover:bg-black/5 ${canUpload ? 'text-zinc-600' : 'text-zinc-300'}`}>
-                      <FileText className="w-3.5 h-3.5" />
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'none', border: 'none', cursor: canUpload ? 'pointer' : 'default', fontSize: 13, color: canUpload ? '#333' : '#bbb', fontFamily: 'Inter, sans-serif', textAlign: 'left', opacity: canUpload ? 1 : 0.5 }}
+                      onMouseEnter={e => { if (canUpload) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                      <FileText style={{ width: 13, height: 13 }} />
                       Attach file
-                      {!canUpload && <span className="ml-auto text-[9px] font-black px-1 py-0.5" style={{ background: '#ede9fe', color: '#6d28d9' }}>Essential+</span>}
                     </button>
                     <button onClick={() => { if (!hasInternet) { setShowFileMenu(false); return; } setUseWebSearch(w => !w); setShowFileMenu(false); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left hover:bg-black/5 ${hasInternet ? 'text-zinc-600' : 'text-zinc-300'}`}>
-                      <Wifi className="w-3.5 h-3.5" />
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'none', border: 'none', cursor: hasInternet ? 'pointer' : 'default', fontSize: 13, color: hasInternet ? '#333' : '#bbb', fontFamily: 'Inter, sans-serif', textAlign: 'left', opacity: hasInternet ? 1 : 0.5 }}
+                      onMouseEnter={e => { if (hasInternet) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                      <Wifi style={{ width: 13, height: 13 }} />
                       Web Search
-                      {!hasInternet && <span className="ml-auto text-[9px] font-black px-1 py-0.5 bg-black/6 text-zinc-400">Advanced+</span>}
-                      {hasInternet && <span className="ml-auto text-[9px] font-black px-1 py-0.5" style={{ background: useWebSearch ? FG : 'rgba(0,0,0,0.07)', color: useWebSearch ? YUZU : '#999' }}>{useWebSearch ? 'ON' : 'OFF'}</span>}
+                      {hasInternet && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: useWebSearch ? FG : 'rgba(0,0,0,0.07)', color: useWebSearch ? YUZU : '#999' }}>{useWebSearch ? 'ON' : 'OFF'}</span>}
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="relative" ref={skillMenuRef}>
+            {/* Skills button */}
+            <div style={{ position: 'relative' }} ref={skillMenuRef}>
               {selectedSkill ? (
                 <button onClick={() => setSelectedSkill(null)}
-                  className="h-8 px-2 flex items-center gap-1 transition-colors"
-                  style={{ background: 'rgba(221,255,0,0.2)' }}>
-                  <Zap className="w-3 h-3" style={{ color: FG }} />
-                  <span className="text-xs font-semibold hidden sm:block" style={{ color: FG }}>{SKILLS.find(s => s.id === selectedSkill)?.label}</span>
-                  <X className="w-3 h-3" style={{ color: FG }} />
+                  style={{ height: 32, paddingLeft: 10, paddingRight: 10, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(221,255,0,0.5)', background: 'rgba(221,255,0,0.12)', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: FG, fontFamily: 'Inter, sans-serif' }}>
+                  <Zap style={{ width: 13, height: 13 }} />
+                  <span>{SKILLS.find(s => s.id === selectedSkill)?.label}</span>
+                  <X style={{ width: 11, height: 11, color: 'rgba(0,0,0,0.4)' }} />
                 </button>
               ) : (
                 <button onClick={() => { setShowSkillMenu(s => !s); setShowFileMenu(false); }}
-                  className="h-8 px-2 flex items-center gap-1 hover:bg-black/5 transition-colors">
-                  <Zap className="w-3 h-3" style={{ color: 'rgba(0,0,0,0.4)' }} />
-                  <span className="text-xs font-medium hidden sm:block" style={{ color: 'rgba(0,0,0,0.4)' }}>Skills</span>
-                  <ChevronDown className="w-3 h-3" style={{ color: 'rgba(0,0,0,0.3)' }} />
+                  style={{ height: 32, paddingLeft: 10, paddingRight: 10, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: '#fff', cursor: 'pointer', fontSize: 13, color: 'rgba(0,0,0,0.5)', fontFamily: 'Inter, sans-serif', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                  <Zap style={{ width: 13, height: 13 }} />
+                  <span>Compétence</span>
+                  <ChevronDown style={{ width: 12, height: 12, opacity: 0.5 }} />
                 </button>
               )}
               <AnimatePresence>
                 {showSkillMenu && (
-                  <motion.div {...popAnim} className="absolute bottom-full mb-1 left-0 bg-white z-50 min-w-[180px]"
-                    style={{ border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+                  <motion.div {...popAnim} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, background: '#fff', zIndex: 50, minWidth: 180, borderRadius: 10, border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                     {SKILLS.map(s => (
                       <button key={s.id} onClick={() => { setSelectedSkill(s.id); setShowSkillMenu(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left hover:bg-black/5 text-zinc-600">
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#333', fontFamily: 'Inter, sans-serif', textAlign: 'left' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}>
                         <span>{s.emoji}</span>
-                        <span className="font-medium">{s.label}</span>
+                        <span style={{ fontWeight: 500 }}>{s.label}</span>
                       </button>
                     ))}
                   </motion.div>
@@ -260,25 +280,30 @@ export default function HeroSection({ agentId }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button onClick={toggleRecording}
-              className="w-8 h-8 flex items-center justify-center transition-colors"
-              style={{ background: isRecording || voiceLoading ? FG : 'rgba(0,0,0,0.05)' }}>
-              {isRecording ? (
-                <div className="w-2.5 h-2.5" style={{ background: YUZU }} />
-              ) : (
-                <Mic className="w-4 h-4" style={{ color: 'rgba(0,0,0,0.4)' }} />
-              )}
+          <div style={{ flex: 1 }} />
+
+          {/* RIGHT: model + mic + send */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* Model selector */}
+            <button style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'rgba(0,0,0,0.55)', fontFamily: 'Inter, sans-serif', transition: 'background 120ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3L13.5 9H19.5L14.5 13L16.5 19L12 15.5L7.5 19L9.5 13L4.5 9H10.5L12 3Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              </svg>
+              Modèle intelligent
+              <ChevronDown style={{ width: 11, height: 11, opacity: 0.5 }} />
             </button>
 
+            {/* Send */}
             <button onClick={handleSend} disabled={!hasText || isBlocked}
-              className="h-8 px-4 text-sm font-black transition-colors flex items-center gap-2"
               style={{
-                background: hasText && !isBlocked ? FG : 'rgba(0,0,0,0.05)',
-                color: hasText && !isBlocked ? 'white' : 'rgba(0,0,0,0.2)',
-                cursor: !hasText || isBlocked ? 'not-allowed' : 'pointer',
+                width: 36, height: 36, borderRadius: 10, border: 'none', cursor: !hasText || isBlocked ? 'not-allowed' : 'pointer',
+                background: hasText && !isBlocked ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.08)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 120ms',
               }}>
-              <Send className="w-3.5 h-3.5" />
+              <Send style={{ width: 14, height: 14, color: hasText && !isBlocked ? '#fff' : 'rgba(0,0,0,0.25)' }} />
             </button>
           </div>
         </div>
