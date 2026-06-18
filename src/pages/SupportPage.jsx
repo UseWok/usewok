@@ -5,8 +5,8 @@ import { ArrowLeft, MessageSquare, X, Plus, Upload, Send, Trash2, CheckCircle, F
 import { getUserPlan } from '@/lib/plans-config';
 
 const DK = {
-  bg: '#1F1F1F', surface: '#1A1A1A', border: '#2A2A2A',
-  text: '#fff', muted: '#888', faint: '#141414',
+  bg: '#F9F9F8', surface: '#FFFFFF', border: 'rgba(0,0,0,0.09)',
+  text: '#111', muted: '#666', faint: '#F5F5F3',
 };
 
 const STATUS_CONFIG = {
@@ -101,8 +101,8 @@ export default function SupportPage() {
           <div style={{ width: 120, height: 34, borderRadius: 8, background: '#2A2A2A' }} />
         </div>
         {[1,2,3,4].map(i => (
-          <div key={i} style={{ height: 70, borderRadius: 10, background: '#141414', border: '1px solid #2A2A2A', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
+          <div key={i} style={{ height: 70, borderRadius: 10, background: '#EBEBEA', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
           </div>
         ))}
       </div>
@@ -134,7 +134,7 @@ export default function SupportPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={() => setPage('landing')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+            <button onClick={() => setPage('landing')} style={{ width: 32, height: 32, borderRadius: 8, background: '#EBEBEA', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
               <ArrowLeft style={{ width: 14, height: 14 }} />
             </button>
             <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Support</h1>
@@ -178,9 +178,9 @@ export default function SupportPage() {
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : filteredTickets.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 48, gap: 12, border: '1px solid #2A2A2A', borderRadius: 12, background: '#141414' }}>
-            <MessageSquare style={{ width: 28, height: 28, color: '#333' }} />
-            <p style={{ fontSize: 13, color: '#555', margin: 0 }}>No tickets</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 48, gap: 12, border: `1px solid ${DK.border}`, borderRadius: 12, background: DK.surface }}>
+            <MessageSquare style={{ width: 28, height: 28, color: '#CCC' }} />
+            <p style={{ fontSize: 13, color: DK.muted, margin: 0 }}>No tickets</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -190,9 +190,9 @@ export default function SupportPage() {
               const CatIcon = cat.icon;
               return (
                 <button key={ticket.id} onClick={() => setChatTicket(ticket)}
-                  style={{ width: '100%', padding: '14px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', transition: 'border-color 120ms', display: 'block' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                  style={{ width: '100%', padding: '14px 16px', textAlign: 'left', background: DK.surface, border: `1px solid ${DK.border}`, borderRadius: 10, cursor: 'pointer', transition: 'border-color 120ms', display: 'block' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = DK.border}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 600, color: DK.text, margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -231,21 +231,21 @@ export default function SupportPage() {
 
 function LandingPage({ onNavigate }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#1F1F1F', fontFamily: 'Inter, system-ui, sans-serif', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#F9F9F8', fontFamily: 'Inter, system-ui, sans-serif', color: '#111' }}>
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 80px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Help & Support</h1>
-          <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Our team is here to help you</p>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111', margin: '0 0 10px', letterSpacing: '-0.02em' }}>Help & Support</h1>
+          <p style={{ fontSize: 14, color: '#666', margin: 0 }}>Our team is here to help you</p>
         </div>
 
         <button onClick={onNavigate}
-          style={{ width: '100%', padding: '28px 28px', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 16, transition: 'border-color 150ms' }}
+          style={{ width: '100%', padding: '28px 28px', background: '#fff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 16, transition: 'border-color 150ms' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = '#F95738'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>🎧</div>
-          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Open a support ticket</h3>
-          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>Submit a detailed ticket and receive personalized assistance.</p>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Open a support ticket</h3>
+          <p style={{ fontSize: 13, color: '#666', margin: '0 0 20px', lineHeight: 1.6 }}>Submit a detailed ticket and receive personalized assistance.</p>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: '#F95738' }}>
             Get started <ChevronRight style={{ width: 14, height: 14 }} />
           </span>
@@ -253,30 +253,30 @@ function LandingPage({ onNavigate }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <button onClick={onNavigate}
-            style={{ padding: '18px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+            style={{ padding: '18px 16px', textAlign: 'left', background: '#fff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 10, cursor: 'pointer', transition: 'border-color 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(249,87,56,0.1)', border: '1px solid rgba(249,87,56,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <MessageSquare style={{ width: 15, height: 15, color: '#F95738' }} />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>My tickets</p>
-                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>View & manage</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0 }}>My tickets</p>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>View & manage</p>
               </div>
             </div>
           </button>
           <a href="https://discord.gg/wok" target="_blank" rel="noopener noreferrer"
-            style={{ padding: '18px 16px', textAlign: 'left', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 10, cursor: 'pointer', textDecoration: 'none', transition: 'border-color 150ms', display: 'block' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+            style={{ padding: '18px 16px', textAlign: 'left', background: '#fff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 10, cursor: 'pointer', textDecoration: 'none', transition: 'border-color 150ms', display: 'block' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(123,79,224,0.1)', border: '1px solid rgba(123,79,224,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(123,79,224,0.08)', border: '1px solid rgba(123,79,224,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <MessageSquare style={{ width: 15, height: 15, color: '#7B4FE0' }} />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Community</p>
-                <p style={{ fontSize: 11, color: '#666', margin: 0 }}>Discord</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0 }}>Community</p>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>Discord</p>
               </div>
             </div>
           </a>
@@ -334,17 +334,17 @@ function NewTicketModal({ onClose, user }) {
     { id: 'other', label: 'Other', icon: HelpCircle, color: '#7B4FE0' },
   ];
 
-  const inputStyle = { width: '100%', background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' };
+  const inputStyle = { width: '100%', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#111', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }}
       onClick={e => { if (e.target === e.currentTarget && step !== 1) onClose(); }}>
-      <div style={{ width: '100%', maxWidth: 440, background: '#141414', border: '1px solid #2A2A2A', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
+      <div style={{ width: '100%', maxWidth: 440, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.15)' }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2A2A2A' }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>New ticket</p>
+        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>New ticket</p>
           {step !== 1 && (
-            <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+            <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
               <X style={{ width: 13, height: 13 }} />
             </button>
           )}
@@ -384,7 +384,7 @@ function NewTicketModal({ onClose, user }) {
                 )}
               </div>
               <button onClick={handleAnalyze} disabled={!description.trim()}
-                style={{ padding: '11px 0', background: !description.trim() ? '#2A2A2A' : '#fff', color: !description.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: description.trim() ? 'pointer' : 'not-allowed' }}>
+                style={{ padding: '11px 0', background: !description.trim() ? '#EBEBEA' : '#111', color: !description.trim() ? '#888' : '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: description.trim() ? 'pointer' : 'not-allowed' }}>
                 Continue
               </button>
             </div>
@@ -418,7 +418,7 @@ function NewTicketModal({ onClose, user }) {
                 })}
               </div>
               <button onClick={handleSubmit} disabled={submitting || !selectedCategory}
-                style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#2A2A2A' : '#fff', color: submitting || !selectedCategory ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
+                style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#EBEBEA' : '#111', color: submitting || !selectedCategory ? '#888' : '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
                 {submitting ? 'Submitting…' : 'Submit ticket'}
               </button>
             </div>
@@ -508,12 +508,12 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', background: 'rgba(0,0,0,0.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width: '100%', maxWidth: 440, marginLeft: 'auto', height: '100%', display: 'flex', flexDirection: 'column', background: '#141414', borderLeft: '1px solid #2A2A2A' }}
+      <div style={{ width: '100%', maxWidth: 440, marginLeft: 'auto', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff', borderLeft: '1px solid rgba(0,0,0,0.09)' }}
         onClick={e => e.stopPropagation()}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #2A2A2A', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid rgba(0,0,0,0.09)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1A1A1A', border: '1px solid #2A2A2A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <MessageSquare style={{ width: 14, height: 14, color: '#888' }} />
             </div>
             <div style={{ minWidth: 0 }}>
@@ -550,10 +550,10 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
         </div>
 
         {isAdmin && (
-          <div style={{ padding: '8px 16px', display: 'flex', gap: 6, borderBottom: '1px solid #2A2A2A', background: '#1A1A1A', flexShrink: 0 }}>
+          <div style={{ padding: '8px 16px', display: 'flex', gap: 6, borderBottom: '1px solid rgba(0,0,0,0.09)', background: '#F5F5F3', flexShrink: 0 }}>
             {Object.entries(STATUS_CONFIG).map(([st, cfg]) => (
               <button key={st} onClick={() => handleStatusChange(st)}
-                style={{ flex: 1, padding: '6px 0', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', background: currentTicket.status === st ? '#fff' : '#2A2A2A', color: currentTicket.status === st ? '#000' : '#666', transition: 'all 120ms' }}>
+                style={{ flex: 1, padding: '6px 0', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', background: currentTicket.status === st ? '#111' : '#EBEBEA', color: currentTicket.status === st ? '#fff' : '#666', transition: 'all 120ms' }}>
                 {cfg.label}
               </button>
             ))}

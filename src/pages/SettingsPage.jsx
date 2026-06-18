@@ -10,11 +10,11 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
 
-const DK = { bg: '#1F1F1F', surface: '#141414', border: '#2A2A2A', text: '#fff', muted: '#888' };
+const DK = { bg: '#F9F9F8', surface: '#FFFFFF', border: 'rgba(0,0,0,0.09)', text: '#111', muted: '#666' };
 
 const inputStyle = {
-  width: '100%', background: '#141414', border: '1px solid #2A2A2A',
-  borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#fff',
+  width: '100%', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.10)',
+  borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#111',
   outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box',
 };
 
@@ -124,7 +124,7 @@ function CodeRedeemer({ user, setUser }) {
           style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : DK.border}` }}
         />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
-          style={{ padding: '10px 16px', background: !code.trim() ? '#2A2A2A' : '#fff', color: !code.trim() ? '#555' : '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'opacity 150ms' }}>
+          style={{ padding: '10px 16px', background: !code.trim() ? '#EBEBEA' : '#111', color: !code.trim() ? '#888' : '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'opacity 150ms' }}>
           {loading ? '...' : 'Activate'}
         </button>
       </div>
@@ -253,21 +253,21 @@ export default function SettingsPage() {
     <div style={{ minHeight: '100vh', background: DK.bg, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A' }} />
-          <div style={{ width: 110, height: 20, borderRadius: 6, background: '#2A2A2A' }} />
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#E5E5E0' }} />
+          <div style={{ width: 110, height: 20, borderRadius: 6, background: '#E5E5E0' }} />
         </div>
         <div style={{ display: 'flex', gap: 32 }}>
           <div style={{ width: 180, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[120, 150, 100].map((w, i) => (
-              <div key={i} style={{ height: 36, borderRadius: 8, background: '#1A1A1A', width: '100%', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: 'sk 1.4s ease-in-out infinite' }} />
+              <div key={i} style={{ height: 36, borderRadius: 8, background: '#EBEBEA', width: '100%', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)', backgroundSize: '200% 100%', animation: 'sk 1.4s ease-in-out infinite' }} />
               </div>
             ))}
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[1,2,3].map(i => (
-              <div key={i} style={{ height: 52, borderRadius: 8, background: '#141414', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.1}s infinite` }} />
+              <div key={i} style={{ height: 52, borderRadius: 8, background: '#F0F0EE', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.1}s infinite` }} />
               </div>
             ))}
           </div>
@@ -283,7 +283,7 @@ export default function SettingsPage() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
-          <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+          <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, background: '#EBEBEA', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
             <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: DK.text, margin: 0 }}>Settings</h1>
@@ -297,8 +297,8 @@ export default function SettingsPage() {
               const active = activeSection === item.id;
               return (
                 <button key={item.id} onClick={() => setActiveSection(item.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', background: active ? '#2A2A2A' : 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DK.text : DK.muted, fontFamily: 'Inter, sans-serif', textAlign: 'left', marginBottom: 2, transition: 'all 120ms' }}
-                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#1A1A1A'; }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', background: active ? '#EBEBEA' : 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: active ? 600 : 400, color: active ? DK.text : DK.muted, fontFamily: 'Inter, sans-serif', textAlign: 'left', marginBottom: 2, transition: 'all 120ms' }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F0F0EE'; }}
                   onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
                   <Icon style={{ width: 14, height: 14 }} />
                   {item.label}
@@ -446,18 +446,18 @@ export default function SettingsPage() {
 
       {/* Invoice modal */}
       {showInvoiceModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
-          <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${DK.border}` }}>
               <p style={{ fontSize: 14, fontWeight: 700, color: DK.text, margin: 0 }}>Request an invoice</p>
-              <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555' }}><X style={{ width: 14, height: 14 }} /></button>
+              <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X style={{ width: 14, height: 14 }} /></button>
             </div>
             <div style={{ padding: 18 }}>
               <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Enter the email used for your payment.</p>
               <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)} placeholder="email@example.com" style={{ ...inputStyle, marginBottom: 12 }} />
               <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
-                style={{ width: '100%', padding: '10px 0', background: '#fff', color: '#000', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
+                style={{ width: '100%', padding: '10px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
                 {invoiceLoading ? 'Sending...' : 'Send request'}
               </button>
             </div>
@@ -467,15 +467,15 @@ export default function SettingsPage() {
 
       {/* Delete modal */}
       {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <div style={{ width: '100%', maxWidth: 380, background: '#141414', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 18px 12px', background: 'rgba(239,68,68,0.1)', borderBottom: `1px solid rgba(239,68,68,0.2)` }}>
+          <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: `1px solid ${DK.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px 12px', background: 'rgba(239,68,68,0.07)', borderBottom: `1px solid rgba(239,68,68,0.15)` }}>
               <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', margin: 0 }}>Delete account</p>
             </div>
             <div style={{ padding: 18 }}>
               <p style={{ fontSize: 12, color: DK.muted, margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be deleted.</p>
-              <div style={{ background: '#1A1A1A', borderRadius: 7, padding: '8px 12px', marginBottom: 14 }}>
+              <div style={{ background: '#F5F5F3', borderRadius: 7, padding: '8px 12px', marginBottom: 14 }}>
                 <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>Email: <strong style={{ color: DK.text }}>{user?.email}</strong></p>
               </div>
               <button onClick={deleteAccount} style={{ width: '100%', padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 8 }}>
