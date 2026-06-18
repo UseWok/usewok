@@ -43,6 +43,7 @@ export default function HomeInputWrapper({ input, setInput, onSend, buildMode, f
         setFiles={setFiles}
         buildMode={buildMode}
         user={user}
+        dropDirection="down"
       />
     </div>
   );

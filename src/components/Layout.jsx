@@ -96,7 +96,7 @@ export default function Layout() {
   const CORNER_R = 14;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex' }}>
+    <div style={{ height: '100vh', background: '#F7F7F5', display: 'flex', overflow: 'hidden' }}>
       <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />
 
       {/* Mobile hamburger toggle — only visible on mobile */}
@@ -122,9 +122,11 @@ export default function Layout() {
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
         style={{
           flex: 1,
-          minHeight: '100vh',
+          height: '100vh',
           overflow: 'hidden',
           position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
           ...(isMobile ? {} : {
             margin: `${BORDER_W}px ${BORDER_W}px ${BORDER_W}px 0`,
             borderRadius: CORNER_R,
@@ -132,7 +134,10 @@ export default function Layout() {
           }),
         }}
       >
-        <Outlet />
+        {/* Inner scroll container so bottom border is always visible */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <Outlet />
+        </div>
       </motion.main>
     </div>
   );
