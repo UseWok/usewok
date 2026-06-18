@@ -302,14 +302,14 @@ function SidebarCreditsBar({ user, onUpgrade }) {
   const { used, limit, pct, barColor, isLow } = useCredits(user);
   const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
   return (
-    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#F5F3EF', borderRadius: 8, border: '1px solid #E5E5E5' }}>
+    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#EFEFED', borderRadius: 8, border: '1px solid #E5E5E3' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Consumption</span>
         {isLow && (
           <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#F95738', background: 'rgba(249,87,56,0.12)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
         )}
       </div>
-      <div style={{ height: 5, background: '#E0DDD8', borderRadius: 999, marginBottom: 5 }}>
+      <div style={{ height: 5, background: '#DDDDD9', borderRadius: 999, marginBottom: 5 }}>
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
       <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>
@@ -331,7 +331,7 @@ function SectionLabel({ label, expanded }) {
 
 // ─── Divider ──────────────────────────────────────────────────────
 function Divider() {
-  return <div style={{ height: 1, background: '#E8E5E0', margin: '6px 0' }} />;
+  return <div style={{ height: 1, background: '#EBEBEA', margin: '6px 0' }} />;
 }
 
 // ─── Main Sidebar ─────────────────────────────────────────────────
@@ -416,14 +416,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          background: '#F8F7F4',
-          borderRight: '1px solid #E0DDD8',
+          background: '#F7F7F5',
+          borderRight: '1px solid #F7F7F5',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
       >
         {/* ── Logo / Toggle ── */}
-        <div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '0 12px 0 14px' : '0', borderBottom: '1px solid #E0DDD8' }}>
+        <div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '0 12px 0 14px' : '0', borderBottom: '1px solid #EBEBEA' }}>
           {expanded ? (
             <>
               <button onClick={() => nav('/app')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
@@ -594,7 +594,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         </div>
 
         {/* ── Footer / Profile ── */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid #E0DDD8', padding: expanded ? '8px 8px 10px' : '8px 6px 10px', position: 'relative' }} ref={profileRef}>
+        <div style={{ flexShrink: 0, borderTop: '1px solid #EBEBEA', padding: expanded ? '8px 8px 10px' : '8px 6px 10px', position: 'relative' }} ref={profileRef}>
           <button onClick={() => setShowProfileMenu(v => !v)} title={!expanded ? user?.email || 'Profile' : undefined}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,

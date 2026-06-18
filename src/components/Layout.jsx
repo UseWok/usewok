@@ -96,7 +96,7 @@ export default function Layout() {
   const CORNER_R = 14;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EDE7', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex' }}>
       <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />
 
       {/* Mobile hamburger toggle — only visible on mobile */}

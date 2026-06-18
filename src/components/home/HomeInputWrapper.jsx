@@ -16,8 +16,8 @@ export default function HomeInputWrapper({ input, setInput, onSend, buildMode, f
           {files.map((file, i) => (
             <div key={i} style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
-              background: '#2A2A2A', border: '1px solid #3A3A3A',
-              borderRadius: 6, padding: '3px 7px', fontSize: 11, color: '#bbb',
+              background: '#F0F0EE', border: '1px solid #DDDDD9',
+              borderRadius: 6, padding: '3px 7px', fontSize: 11, color: '#555',
               maxWidth: 140,
             }}>
               {file.type?.startsWith('image/')

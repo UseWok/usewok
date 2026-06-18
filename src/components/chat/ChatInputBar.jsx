@@ -46,7 +46,7 @@ const LOGO_SIZE = 16;
 const StandardLogo = ({ size = LOGO_SIZE }) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
     <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png" alt="Standard"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
   </span>
 );
 
@@ -54,7 +54,7 @@ const StandardLogo = ({ size = LOGO_SIZE }) => (
 const MaxLogo = ({ size = LOGO_SIZE }) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
     <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png" alt="Max"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
   </span>
 );
 
@@ -62,7 +62,7 @@ const MaxLogo = ({ size = LOGO_SIZE }) => (
 const GoogleGLogo = ({ size = LOGO_SIZE }) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
     <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/3a327ee44_image.png" alt="Google"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', mixBlendMode: 'screen', display: 'block' }} />
+      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
   </span>
 );
 
@@ -340,11 +340,11 @@ function PlusBtn({ active, onToggle, disabled }) {
         width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0, transition: 'background 100ms',
-        background: (active || hovered) ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
+        background: (active || hovered) ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)',
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <Plus style={{ width: 14, height: 14, color: '#fff' }} />
+      <Plus style={{ width: 14, height: 14, color: '#444' }} />
     </button>
   );
 }
@@ -513,11 +513,11 @@ export default function ChatInputBar({
       width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       transition: 'background 120ms',
-      background: active ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)',
+      background: active ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)',
       ...extraStyle,
     }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; Object.assign(e.currentTarget.style, onMouseEnterStyle); }}
-      onMouseLeave={e => { e.currentTarget.style.background = active ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.10)'; Object.assign(e.currentTarget.style, onMouseLeaveStyle); }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.09)'; Object.assign(e.currentTarget.style, onMouseEnterStyle); }}
+      onMouseLeave={e => { e.currentTarget.style.background = active ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)'; Object.assign(e.currentTarget.style, onMouseLeaveStyle); }}
     >
       {children}
     </button>
@@ -533,19 +533,19 @@ export default function ChatInputBar({
             style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, maxHeight: 200, overflowY: 'auto', padding: '0 8px' }}>
             {files.map((file, i) => (
               <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#2A2A2A', borderRadius: 12, padding: '7px 10px', border: '1px solid #333' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: '#1A1A1A' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#EFEFED', borderRadius: 12, padding: '7px 10px', border: '1px solid #E0E0DC' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: '#E0E0DC' }}>
                   {file.type?.startsWith('image/') ? (
                     <img src={file.url} style={{ objectFit: 'cover', width: '100%', height: '100%' }} alt="preview" />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <FileText style={{ width: 14, height: 14, color: '#666' }} />
+                      <FileText style={{ width: 14, height: 14, color: '#999' }} />
                     </div>
                   )}
                 </div>
-                <span style={{ fontSize: 12, color: '#aaa', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                <button onClick={() => removeFile(i)} style={{ width: 20, height: 20, background: 'transparent', color: '#555', borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#ccc'} onMouseLeave={e => e.currentTarget.style.color = '#555'}>
+                <span style={{ fontSize: 12, color: '#555', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                <button onClick={() => removeFile(i)} style={{ width: 20, height: 20, background: 'transparent', color: '#AAA', borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#333'} onMouseLeave={e => e.currentTarget.style.color = '#AAA'}>
                   <X style={{ width: 12, height: 12 }} />
                 </button>
               </motion.div>
@@ -555,7 +555,7 @@ export default function ChatInputBar({
       </AnimatePresence>
 
       {/* ── Main input card ── */}
-      <div style={{ background: '#242424', border: '1.5px solid rgba(255,255,255,0.10)', borderRadius: 22, overflow: 'visible', position: 'relative' }}>
+      <div style={{ background: '#F7F7F5', border: '1.5px solid #DDDDD9', borderRadius: 22, overflow: 'visible', position: 'relative' }}>
 
         <AnimatePresence mode="wait">
           {isRecording ? (
@@ -570,7 +570,7 @@ export default function ChatInputBar({
                   <motion.div key="design-chip" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }}
                     style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: '#333', fontSize: 12, fontWeight: 500, color: '#fff' }}>
+                    <div                 style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: '#E8E8E6', fontSize: 12, fontWeight: 500, color: '#333' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
                         <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/><circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
@@ -588,12 +588,12 @@ export default function ChatInputBar({
                   placeholder={locked ? '⛔ Credits exhausted — renewal in a few days' : 'Ask anything...'}
                   style={{
                     width: '100%', background: 'transparent', outline: 'none', border: 'none',
-                    resize: 'none', fontSize: 14, color: '#fff', lineHeight: '24px', height: '24px',
+                    resize: 'none', fontSize: 14, color: '#111', lineHeight: '24px', height: '24px',
                     maxHeight: '288px', overflowY: 'hidden',
                     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box', display: 'block',
                   }}
-                  className="placeholder:text-[#555] textarea-custom-scroll"
+                  className="placeholder:text-[#AAA] textarea-custom-scroll"
                 />
               </div>
             </motion.div>
@@ -650,11 +650,11 @@ export default function ChatInputBar({
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                     height: 30, padding: '0 10px', borderRadius: 999, border: 'none',
-                    background: 'rgba(255,255,255,0.10)', cursor: 'pointer',
-                    fontSize: 12, fontWeight: 500, color: '#fff', transition: 'background 120ms',
+                    background: 'rgba(0,0,0,0.05)', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 500, color: '#333', transition: 'background 120ms',
                     }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.09)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
                 >
                   <ModelLogos />
                   {/* Google search indicator — shown when active */}
@@ -681,15 +681,15 @@ export default function ChatInputBar({
                 style={{
                   width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  background: micDenied ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.10)',
+                  background: micDenied ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.05)',
                   transition: 'background 120ms',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.18)'}
-                onMouseLeave={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.10)'}
+                onMouseEnter={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.09)'}
+                onMouseLeave={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.05)'}
               >
                 {micDenied
                   ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
-                  : <Mic style={{ width: 14, height: 14, color: '#fff' }} />
+                  : <Mic style={{ width: 14, height: 14, color: '#555' }} />
                 }
               </button>
 
@@ -701,19 +701,19 @@ export default function ChatInputBar({
                 </button>
               ) : isLoading ? (
                 <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 999, background: 'rgba(255,255,255,0.10)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 10, height: 10, background: '#FFF', borderRadius: 3 }} />
+                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 999, background: 'rgba(0,0,0,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 10, height: 10, background: '#333', borderRadius: 3 }} />
                 </button>
               ) : (
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
                     flexShrink: 0, width: 30, height: 30, borderRadius: 999,
-                    background: hasContent ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                    background: hasContent ? '#111111' : 'rgba(0,0,0,0.12)',
                     border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'background 120ms',
                   }}>
-                  <ArrowUp style={{ width: 15, height: 15, color: '#111', strokeWidth: 2 }} />
+                  <ArrowUp style={{ width: 15, height: 15, color: '#fff', strokeWidth: 2 }} />
                 </button>
               )}
             </>
