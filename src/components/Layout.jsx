@@ -92,11 +92,11 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  // Frame colors match sidebar
-  const FRAME_BG = '#F7F7F5';   // matches sidebar background
+  // Frame bg matches app background exactly
+  const FRAME_BG = '#F8F7F4';
   const BORDER_TOP = 8;
   const BORDER_SIDE = 8;
-  const BORDER_BOTTOM = 32;     // thick bottom border
+  const BORDER_BOTTOM = 40;     // thick bottom border (above feedback button)
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);

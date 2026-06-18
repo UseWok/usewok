@@ -99,7 +99,7 @@ function modelNameStyle(m) {
 // MODEL LIST — exact hierarchy, immutable order
 // ─────────────────────────────────────────────────────────────────
 const ALL_MODELS = [
-  { id: 'automatic',        name: 'Automatic',         logo: 'auto',   isAuto: true },
+  { id: 'automatic',        name: 'Automatic',         subtitle: 'Best model selected for each request', logo: 'auto',   isAuto: true },
   { id: 'gemini-31-pro',    name: 'Gemini 3.1 Pro',    logo: 'gemini' },
   { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
   { id: 'claude-opus-46',   name: 'Claude Opus 4.6',   logo: 'claude' },
@@ -574,7 +574,10 @@ export default function ChatInputBar({
                               <ModelLogo type={m.logo} size={15} />
                             </div>
                             <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: 12.5, fontWeight: isSelected ? 500 : 400, color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                              <span style={{ fontSize: 12.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                              {m.subtitle && (
+                                <span style={{ fontSize: 11, color: '#888', display: 'block', lineHeight: 1.4, marginTop: 1 }}>{m.subtitle}</span>
+                              )}
                             </div>
                             {isSelected && (
                               <Check style={{ width: 12, height: 12, color: '#111', flexShrink: 0 }} />

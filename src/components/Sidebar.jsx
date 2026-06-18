@@ -395,7 +395,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         }}
       >
         {/* ── Top: User dropdown + toggle ── */}
-        <div style={{ flexShrink: 0, borderBottom: '1px solid #EBEBEA' }}>
+        <div style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '4px 8px 4px 0' : '6px 0' }}>
             {expanded
               ? <TopUserDropdown user={user} expanded={expanded} navigate={nav} userPlan={userPlan} />
