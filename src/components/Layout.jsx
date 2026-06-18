@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
 import { base44 } from '@/api/base44Client';
 import Sidebar, { COLLAPSED_W, EXPANDED_W } from './Sidebar';
 import { getUserPlan } from '@/lib/plans-config';
@@ -91,12 +92,34 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  // On mobile, sidebar slides in as overlay — no content offset needed
-  const BORDER_W = 11;
+  // Frame colors match sidebar
+  const FRAME_BG = '#F7F7F5';   // matches sidebar background
+  const BORDER_TOP = 8;
+  const BORDER_SIDE = 8;
+  const BORDER_BOTTOM = 32;     // thick bottom border
   const CORNER_R = 14;
 
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackEmoji, setFeedbackEmoji] = useState(null);
+  const [feedbackNote, setFeedbackNote] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const EMOJIS = [
+    { icon: '😡', label: 'Terrible' },
+    { icon: '😕', label: 'Poor' },
+    { icon: '😐', label: 'Okay' },
+    { icon: '😊', label: 'Good' },
+    { icon: '🤩', label: 'Amazing' },
+  ];
+
+  const handleFeedbackSend = () => {
+    if (!feedbackEmoji) return;
+    setFeedbackSent(true);
+    setTimeout(() => { setShowFeedback(false); setFeedbackSent(false); setFeedbackEmoji(null); setFeedbackNote(''); }, 1800);
+  };
+
   return (
-    <div style={{ height: '100vh', background: '#C8C8C8', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', background: FRAME_BG, display: 'flex', overflow: 'hidden' }}>
       <Sidebar expanded={expanded} setExpanded={handleSetExpanded} user={user} userPlan={userPlan} />
 
       {/* Mobile hamburger toggle — only visible on mobile */}
@@ -117,6 +140,77 @@ export default function Layout() {
         </button>
       )}
 
+      {/* Feedback button — bottom-right of thick bottom border */}
+      {!isMobile && (
+        <button
+          onClick={() => setShowFeedback(true)}
+          style={{
+            position: 'fixed', bottom: 9, right: 14, zIndex: 60,
+            height: 22, padding: '0 10px',
+            background: '#111', border: 'none', borderRadius: 6,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+            fontSize: 11, fontWeight: 500, color: '#fff', letterSpacing: '-0.01em',
+            opacity: 0.75, transition: 'opacity 120ms',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '0.75'}
+        >
+          <span style={{ fontSize: 12 }}>💬</span> Feedback
+        </button>
+      )}
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {showFeedback && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
+              onClick={() => setShowFeedback(false)} />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.17 }}
+                onClick={e => e.stopPropagation()}
+                style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 16, padding: '24px', width: '100%', maxWidth: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.14)' }}
+              >
+                {feedbackSent ? (
+                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                    <p style={{ fontSize: 28, margin: '0 0 8px' }}>🎉</p>
+                    <p style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>Thank you!</p>
+                    <p style={{ fontSize: 13, color: '#888', margin: 0 }}>Your feedback helps us improve.</p>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>How's your experience?</p>
+                    <p style={{ fontSize: 12.5, color: '#888', margin: '0 0 18px' }}>Tap an emoji to rate, then add a note.</p>
+                    {/* Emoji row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                      {EMOJIS.map(e => (
+                        <button key={e.label} onClick={() => setFeedbackEmoji(e.label)}
+                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', borderRadius: 10, border: feedbackEmoji === e.label ? '1.5px solid #111' : '1.5px solid transparent', background: feedbackEmoji === e.label ? 'rgba(0,0,0,0.05)' : 'transparent', cursor: 'pointer', transition: 'all 120ms' }}>
+                          <span style={{ fontSize: 24 }}>{e.icon}</span>
+                          <span style={{ fontSize: 10, color: '#888', fontWeight: feedbackEmoji === e.label ? 600 : 400 }}>{e.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Note */}
+                    <textarea
+                      value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)}
+                      placeholder="Anything else you'd like to share? (optional)"
+                      style={{ width: '100%', height: 72, padding: '9px 11px', fontSize: 12.5, border: '1px solid #E0E0E0', borderRadius: 8, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#333', background: '#FAFAFA', boxSizing: 'border-box', marginBottom: 12 }}
+                    />
+                    <button onClick={handleFeedbackSend} disabled={!feedbackEmoji}
+                      style={{ width: '100%', padding: '10px 0', background: feedbackEmoji ? '#111' : '#F0F0EE', border: 'none', borderRadius: 9, cursor: feedbackEmoji ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 600, color: feedbackEmoji ? '#fff' : '#aaa', transition: 'all 120ms' }}>
+                      Send Feedback
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       <motion.main
         animate={{ marginLeft: sidebarOffset }}
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
@@ -128,7 +222,10 @@ export default function Layout() {
           display: 'flex',
           flexDirection: 'column',
           ...(isMobile ? {} : {
-            margin: `${BORDER_W}px ${BORDER_W}px ${BORDER_W}px 0`,
+            marginTop: BORDER_TOP,
+            marginRight: BORDER_SIDE,
+            marginBottom: BORDER_BOTTOM,
+            marginLeft: 0,
             borderRadius: CORNER_R,
             overflow: 'hidden',
             boxSizing: 'border-box',

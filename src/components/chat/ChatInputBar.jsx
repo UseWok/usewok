@@ -28,20 +28,14 @@ const StarIcon = ({ size = 15, color = '#111' }) => (
   </svg>
 );
 
-// Gemini 4-color star
-const GeminiStarIcon = ({ size = 15 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-    <path d="M12 2C12 2 12.8 7.2 15.5 9.5C18.2 11.8 23 12 23 12C23 12 18.2 12.2 15.5 14.5C12.8 16.8 12 22 12 22C12 22 11.2 16.8 8.5 14.5C5.8 12.2 1 12 1 12C1 12 5.8 11.8 8.5 9.5C11.2 7.2 12 2 12 2Z"
-      fill="url(#geminiGrad)" />
-    <defs>
-      <linearGradient id="geminiGrad" x1="1" y1="2" x2="23" y2="22" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#4285F4"/>
-        <stop offset="33%" stopColor="#34A853"/>
-        <stop offset="66%" stopColor="#FBBC05"/>
-        <stop offset="100%" stopColor="#EA4335"/>
-      </linearGradient>
-    </defs>
-  </svg>
+// Gemini logo — official image asset (Img 1)
+const GeminiLogoImg = ({ size = 15 }) => (
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/eedccfc9a_image.png"
+    width={size} height={size}
+    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'screen' }}
+    alt="Gemini"
+  />
 );
 
 // OpenAI / ChatGPT logo
@@ -51,7 +45,7 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — official image asset, black bg made transparent via mix-blend-mode
+// Google Drive logo — official image asset
 const DriveLogo = ({ size = 15 }) => (
   <img
     src="https://media.base44.com/images/public/6a2edc91082e534601118582/882b6af1a_image.png"
@@ -61,18 +55,21 @@ const DriveLogo = ({ size = 15 }) => (
   />
 );
 
-// Claude logo — official burst image asset
-const ClaudeLogo = ({ size = 16 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
-    width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
-    alt="Claude"
-  />
-);
+// Claude logo — official burst image asset (rendered ~15% larger than peers)
+const ClaudeLogo = ({ size = 16 }) => {
+  const s = Math.round(size * 1.18);
+  return (
+    <img
+      src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
+      width={s} height={s}
+      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+      alt="Claude"
+    />
+  );
+};
 
 const AutoLogo = ({ size = 16 }) => <StarIcon size={size} color="#6366F1" />;
-const GeminiLogo = ({ size = 16 }) => <GeminiStarIcon size={size} />;
+const GeminiLogo = ({ size = 16 }) => <GeminiLogoImg size={size} />;
 
 // Crosshair / Focus SVG for "Objectif"
 const CrosshairIcon = ({ size = 14, color = 'rgba(0,0,0,0.45)' }) => (
@@ -90,7 +87,7 @@ function ModelLogo({ type, size = 16 }) {
   if (type === 'claude') return <ClaudeLogo size={size} />;
   if (type === 'openai') return <OpenAILogo size={size} />;
   if (type === 'gemini') return <GeminiLogo size={size} />;
-  return <AutoLogo size={size} />;
+  return <AutoLogo size={size} />; // 'auto' or fallback
 }
 
 // Model name color: auto=black bold, claude=black, gemini=black, openai=black
@@ -102,14 +99,12 @@ function modelNameStyle(m) {
 // MODEL LIST — exact hierarchy, immutable order
 // ─────────────────────────────────────────────────────────────────
 const ALL_MODELS = [
-  { id: 'claude-opus-48',   name: 'Claude Opus 4.8',   logo: 'claude' },
-  { id: 'claude-opus-47',   name: 'Claude Opus 4.7',   logo: 'claude' },
-  { id: 'claude-opus-46',   name: 'Claude Opus 4.6',   logo: 'claude' },
-  { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
-  { id: 'chatgpt-55',       name: 'ChatGPT 5.5',       logo: 'openai' },
-  { id: 'chatgpt-54',       name: 'ChatGPT 5.4',       logo: 'openai' },
+  { id: 'automatic',        name: 'Automatic',         logo: 'auto',   isAuto: true },
   { id: 'gemini-31-pro',    name: 'Gemini 3.1 Pro',    logo: 'gemini' },
-  { id: 'gemini-3-flash',   name: 'Gemini 3 Flash',    logo: 'gemini' },
+  { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
+  { id: 'claude-opus-46',   name: 'Claude Opus 4.6',   logo: 'claude' },
+  { id: 'claude-opus-48',   name: 'Claude Opus 4.8',   logo: 'claude' },
+  { id: 'chatgpt-55',       name: 'ChatGPT 5.5',       logo: 'openai' },
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -333,7 +328,7 @@ export default function ChatInputBar({
 
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
   const hasContent = !!(input.trim() || (files?.length || 0) > 0);
-  const activeModel = ALL_MODELS.find(m => m.id === selectedModel) || ALL_MODELS[0];
+  const activeModel = ALL_MODELS.find(m => m.id === selectedModel) || ALL_MODELS[0]; // fallback to Automatic
   const canUpload = !!(planFeatures?.file_upload);
   const hasInternet = !!(planFeatures?.web_search);
 
