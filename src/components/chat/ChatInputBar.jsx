@@ -3,17 +3,13 @@
  *
  * DESIGN RULES:
  * - ALL dropdowns open UPWARD.
- * - img2 (be26ef948) = Standard logo. img3 (0e46ff93c) = Max logo (transparent).
- * - Automatic mode: shows both logos side by side.
- * - Google Search active: shows Google G logo next to model logos in toolbar.
- * - Action button (AI Settings) is leftmost, isolated with white bg.
- * - All buttons: rounded-full (border-radius: 999px).
- * - iOS-style mic animation: concentric glow rings.
+ * - Model selector with families (Claude, ChatGPT, Gemini)
+ * - Send button is replaced by the selected model's logo.
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, X, FileText, Mic, MicOff, ChevronDown, Check, Lock, Upload, Plus } from 'lucide-react';
+import { Plus, Mic, MicOff, ChevronDown, Check, Lock, Upload, X, FileText, Target, Zap } from 'lucide-react';
 import { getBuildMode, setBuildMode as setGlobalBuildMode } from '@/lib/build-mode-store';
 import { getPlanFeatures } from '@/lib/plans-config';
 import { base44 } from '@/api/base44Client';
@@ -21,53 +17,64 @@ import { toast } from 'sonner';
 
 // ─────────────────────────────────────────────────────────────────
 // LOGOS
-// img2 = Standard (be26ef948), img3 = Max (0e46ff93c), img1 = Google G (3a327ee44)
 // ─────────────────────────────────────────────────────────────────
 
-const SparkleIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+const ClaudeLogo = ({ size = 16 }) => (
+  <img src="https://www.anthropic.com/images/icons/apple-touch-icon.png" alt="Claude"
+    style={{ width: size, height: size, borderRadius: 4, objectFit: 'contain', flexShrink: 0 }} />
+);
+const OpenAILogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+    <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.897zm16.597 3.855l-5.843-3.369 2.02-1.168a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.402-.681zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/>
+  </svg>
+);
+const GeminiLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
     <defs>
-      <linearGradient id="sg1" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#EF4444"/>
-        <stop offset="33%" stopColor="#3B82F6"/>
-        <stop offset="66%" stopColor="#22C55E"/>
-        <stop offset="100%" stopColor="#EAB308"/>
+      <linearGradient id="gem-g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#4285F4"/>
+        <stop offset="50%" stopColor="#9B72CB"/>
+        <stop offset="100%" stopColor="#D96570"/>
       </linearGradient>
     </defs>
-    <path d="M50 2 C50 2 53 38 70 50 C53 62 50 98 50 98 C50 98 47 62 30 50 C47 38 50 2 50 2Z" fill="url(#sg1)"/>
-    <path d="M2 50 C2 50 38 47 50 30 C62 47 98 50 98 50 C98 50 62 53 50 70 C38 53 2 50 2 50Z" fill="url(#sg1)"/>
+    <path d="M12 2C12 2 14 8 20 12C14 16 12 22 12 22C12 22 10 16 4 12C10 8 12 2 12 2Z" fill="url(#gem-g)"/>
+  </svg>
+);
+const AutoLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path d="M12 3L13.5 9H19.5L14.5 13L16.5 19L12 15.5L7.5 19L9.5 13L4.5 9H10.5L12 3Z" fill="none" stroke="#6366F1" strokeWidth="1.8" strokeLinejoin="round"/>
   </svg>
 );
 
-// ── Unified logo size: all AI logos render in a fixed 16×16 container ──
-const LOGO_SIZE = 16;
-
-/** Standard = img2 */
-const StandardLogo = ({ size = LOGO_SIZE }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
-    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/be26ef948_image.png" alt="Standard"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
+const GoogleGLogo = ({ size = 16 }) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: size, height: size, flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
   </span>
 );
 
-/** Max = img3 */
-const MaxLogo = ({ size = LOGO_SIZE }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
-    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/0e46ff93c_image.png" alt="Max"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
-  </span>
-);
+const MODEL_FAMILIES = [
+  { id: 'automatic', name: 'Automatic', desc: 'Combinaison intelligente', logo: 'auto', isAuto: true },
+  { id: 'claude-opus-48', name: 'Claude Opus 4.8', logo: 'claude' },
+  { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
+  { id: 'chatgpt-55', name: 'ChatGPT 5.5', logo: 'openai' },
+  { id: 'chatgpt-50', name: 'ChatGPT 5.0', logo: 'openai' },
+  { id: 'gemini-advanced', name: 'Gemini Advanced', logo: 'gemini' },
+];
 
-/** Google G = img1 */
-const GoogleGLogo = ({ size = LOGO_SIZE }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: LOGO_SIZE, height: LOGO_SIZE, flexShrink: 0 }}>
-    <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/3a327ee44_image.png" alt="Google"
-      style={{ width: LOGO_SIZE, height: LOGO_SIZE, objectFit: 'contain', display: 'block' }} />
-  </span>
-);
+function ModelLogo({ type, size = 16 }) {
+  if (type === 'claude') return <ClaudeLogo size={size} />;
+  if (type === 'openai') return <OpenAILogo size={size} />;
+  if (type === 'gemini') return <GeminiLogo size={size} />;
+  return <AutoLogo size={size} />;
+}
 
 // ─────────────────────────────────────────────────────────────────
-// iOS-STYLE MIC ANIMATION — concentric glow rings reacting to voice
+// IOS-STYLE MIC ANIMATION
 // ─────────────────────────────────────────────────────────────────
 function IOSMicVisualizer({ analyserRef, duration }) {
   const [level, setLevel] = useState(0);
@@ -93,48 +100,17 @@ function IOSMicVisualizer({ analyserRef, duration }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', height: 52 }}>
-      {/* Outer glow ring 2 */}
-      <motion.div
-        animate={{ scale: ring2Scale, opacity: 0.12 + level * 0.15 }}
-        transition={{ duration: 0.08 }}
-        style={{
-          position: 'absolute', width: 52, height: 52, borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(255,255,255,${0.3 + level * 0.5}) 0%, transparent 70%)`,
-        }}
-      />
-      {/* Outer glow ring 1 */}
-      <motion.div
-        animate={{ scale: ringScale, opacity: 0.25 + level * 0.3 }}
-        transition={{ duration: 0.06 }}
-        style={{
-          position: 'absolute', width: 38, height: 38, borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(255,255,255,${0.5 + level * 0.4}) 0%, transparent 70%)`,
-        }}
-      />
-      {/* Center mic icon */}
-      <motion.div
-        animate={{ scale: 1 + level * 0.12 }}
-        transition={{ duration: 0.06 }}
-        style={{
-          position: 'relative', width: 28, height: 28, borderRadius: '50%',
-          background: `rgba(255,255,255,${0.9 + level * 0.1})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `0 0 ${8 + level * 20}px rgba(255,255,255,${0.3 + level * 0.5})`,
-        }}
-      >
-        <motion.div
-          animate={{ opacity: [1, 0.3, 1] }}
-          transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: '#EF4444' }}
-        />
-        <Mic style={{ width: 13, height: 13, color: '#111' }} />
+      <motion.div animate={{ scale: ring2Scale, opacity: 0.12 + level * 0.15 }} transition={{ duration: 0.08 }}
+        style={{ position: 'absolute', width: 52, height: 52, borderRadius: '50%', background: `radial-gradient(circle, rgba(0,0,0,${0.3 + level * 0.5}) 0%, transparent 70%)` }} />
+      <motion.div animate={{ scale: ringScale, opacity: 0.25 + level * 0.3 }} transition={{ duration: 0.06 }}
+        style={{ position: 'absolute', width: 38, height: 38, borderRadius: '50%', background: `radial-gradient(circle, rgba(0,0,0,${0.5 + level * 0.4}) 0%, transparent 70%)` }} />
+      <motion.div animate={{ scale: 1 + level * 0.12 }} transition={{ duration: 0.06 }}
+        style={{ position: 'relative', width: 28, height: 28, borderRadius: '50%', background: `rgba(0,0,0,${0.9 + level * 0.1})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 ${8 + level * 20}px rgba(0,0,0,${0.3 + level * 0.5})` }}>
+        <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: '#EF4444' }} />
+        <Mic style={{ width: 13, height: 13, color: '#fff' }} />
       </motion.div>
-      {/* Duration */}
-      <span style={{
-        position: 'absolute', right: 0,
-        fontSize: 12, fontWeight: 600, color: '#555',
-        fontVariantNumeric: 'tabular-nums', minWidth: 36,
-      }}>
+      <span style={{ position: 'absolute', right: 0, fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', minWidth: 36 }}>
         {`${Math.floor(duration / 60).toString().padStart(2, '0')}:${(duration % 60).toString().padStart(2, '0')}`}
       </span>
     </div>
@@ -142,210 +118,42 @@ function IOSMicVisualizer({ analyserRef, duration }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// MODEL SELECTOR DROPDOWN — opens UPWARD
+// OBJECTIF & COMPÉTENCE BUTTONS
 // ─────────────────────────────────────────────────────────────────
-
-// Uses local hover state to avoid stale closure bug with onMouseLeave
-function BuildMenuItem({ active, isAutomatic, onClick, children }) {
-  const [hovered, setHovered] = useState(false);
-  const bg = hovered
-    ? 'rgba(255,255,255,0.12)'
-    : (active && !isAutomatic)
-      ? 'rgba(255,255,255,0.08)'
-      : 'transparent';
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', padding: '8px 12px', border: 'none',
-        background: bg,
-        borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-        fontFamily: 'Inter, sans-serif', gap: 8, transition: 'background 100ms',
-      }}
-    >
-      {children}
-      {active && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-    </button>
-  );
-}
-
-function BuildMenu({ buildMode, setBuildMode, setDiscussMode, onClose, planFeatures }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  const canUseMax = !!(planFeatures?.max_model);
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
-        background: '#1A1A1A', border: '1px solid #2E2E2E',
-        borderRadius: 14, padding: '4px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
-      }}
-    >
-      <BuildMenuItem active={buildMode === 'Automatic'} isAutomatic={true} onClick={() => { setBuildMode('Automatic'); setDiscussMode?.(false); onClose(); }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <StandardLogo /><MaxLogo />
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Automatic</div>
-            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.3 }}>Best model selected per request.</div>
-          </div>
-        </div>
-      </BuildMenuItem>
-
-      <div style={{ height: 1, background: '#2A2A2A', margin: '2px 0' }} />
-
-      {/* Standard — locked: always requires paid plan to pick manually */}
-      <div style={{ position: 'relative', opacity: 0.45, cursor: 'not-allowed' }} title="Upgrade to choose model manually">
-        <BuildMenuItem active={buildMode === 'Flash'} onClick={() => {}}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <StandardLogo />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Standard</span>
-            <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />
-          </span>
-        </BuildMenuItem>
-      </div>
-
-      {/* Max — locked unless creator/pro */}
-      <div style={{ position: 'relative', opacity: canUseMax ? 1 : 0.45, cursor: canUseMax ? 'pointer' : 'not-allowed' }} title={canUseMax ? undefined : 'Upgrade to Creator or Pro to use Max model'}>
-        <BuildMenuItem active={buildMode === 'Max'} onClick={() => { if (canUseMax) { setBuildMode('Max'); setDiscussMode?.(false); onClose(); } }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MaxLogo />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Max</span>
-            <span style={{ fontSize: 10, fontWeight: 700, background: '#8F41FD', color: '#fff', borderRadius: 999, padding: '1px 7px' }}>NEW</span>
-            {!canUseMax && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
-          </span>
-        </BuildMenuItem>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────
-// AI SETTINGS DROPDOWN — opens UPWARD, anchored LEFT
-// ─────────────────────────────────────────────────────────────────
-function AIMenuItem({ onClick, disabled, active, children }) {
+function ObjectifButton({ active, onToggle }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      onMouseEnter={() => { if (!disabled) setHovered(true); }}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', padding: '8px 12px', border: 'none', borderRadius: 10,
-        background: hovered ? 'rgba(255,255,255,0.10)' : active ? 'rgba(255,255,255,0.06)' : 'transparent',
-        cursor: disabled ? 'wait' : 'pointer', textAlign: 'left',
-        fontFamily: 'Inter, sans-serif', opacity: disabled ? 0.6 : 1,
-        transition: 'background 100ms',
-      }}
-    >
-      {children}
-      {active && <Check style={{ width: 13, height: 13, color: '#fff', flexShrink: 0 }} />}
-    </button>
+    <div style={{ position: 'relative', display: 'inline-flex' }}>
+      <AnimatePresence>
+        {hovered && (
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#1A1A1A', color: '#fff', fontSize: 12, lineHeight: 1.5, padding: '8px 12px', borderRadius: 8, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 100, pointerEvents: 'none', textAlign: 'center' }}>
+            Le mode objectif améliore la qualité,<br />consomme plus de crédits
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <button onClick={onToggle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+        style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+        onMouseEnterCapture={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'} onMouseLeaveCapture={e => e.currentTarget.style.background = 'transparent'}>
+        <Target style={{ width: 14, height: 14, color: active ? '#3B82F6' : 'rgba(0,0,0,0.45)' }} />
+      </button>
+    </div>
   );
 }
 
-function AISettingsMenu({ onClose, onEnhance, onToggleSearch, onImportFile, isEnhancing, searchActive, planFeatures }) {
-  const ref = useRef(null);
-  const importRef = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  const canSearch = !!(planFeatures?.web_search);
-  const canUpload = !!(planFeatures?.file_upload);
-
+function CompetenceButton({ selected, onClick }) {
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
-        background: '#1A1A1A', border: '1px solid #2E2E2E',
-        borderRadius: 14, padding: '4px', minWidth: 240,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 9999,
-      }}
-    >
-      <AIMenuItem onClick={() => { if (!isEnhancing) { onEnhance?.(); onClose(); } }} disabled={isEnhancing}>
-        <span style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flex: 1 }}>
-          <span style={{ flexShrink: 0, marginTop: 2 }}><SparkleIcon size={18} /></span>
-          <span>
-            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#fff' }}>
-              {isEnhancing ? 'Enhancing…' : 'Enhance prompt'}
-            </span>
-            <span style={{ display: 'block', fontSize: 11, color: '#555', marginTop: 3, lineHeight: 1.4 }}>
-              Rewrite your prompt for optimal results.
-            </span>
-          </span>
-        </span>
-      </AIMenuItem>
-
-      <input ref={importRef} type="file" multiple accept="image/*,application/pdf,.txt,.csv,.json,.md"
-        style={{ display: 'none' }} onChange={(e) => { onImportFile?.(e); onClose(); }} />
-      <div title={canUpload ? undefined : 'File upload requires Starter plan or higher'} style={{ opacity: canUpload ? 1 : 0.45, cursor: canUpload ? 'pointer' : 'not-allowed' }}>
-        <AIMenuItem onClick={() => { if (canUpload) importRef.current?.click(); }} disabled={!canUpload}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Upload style={{ width: 15, height: 15, color: '#888', flexShrink: 0 }} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Import from Computer</span>
-            {!canUpload && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
-          </span>
-        </AIMenuItem>
-      </div>
-
-      <div title={canSearch ? undefined : 'Google Search requires Starter plan or higher'} style={{ opacity: canSearch ? 1 : 0.45, cursor: canSearch ? 'pointer' : 'not-allowed' }}>
-        <AIMenuItem active={searchActive} onClick={() => { if (canSearch) { onToggleSearch?.(); onClose(); } }} disabled={!canSearch}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ flexShrink: 0 }}><GoogleGLogo size={15} /></span>
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#ccc' }}>Search Google</span>
-            {!canSearch && <Lock style={{ width: 11, height: 11, color: '#888', marginLeft: 'auto' }} />}
-          </span>
-        </AIMenuItem>
-      </div>
-    </motion.div>
-  );
-}
-
-// Plus button with local hover state to avoid stale closure
-function PlusBtn({ active, onToggle, disabled }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onToggle(); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      title="AI Settings"
-      style={{
-        width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, transition: 'background 100ms',
-        background: (active || hovered) ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)',
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
-      <Plus style={{ width: 14, height: 14, color: '#444' }} />
-    </button>
+    <div style={{ position: 'relative', display: 'inline-flex' }}>
+      <span style={{ position: 'absolute', top: -6, right: -4, zIndex: 2, fontSize: 8, fontWeight: 600, letterSpacing: '0.03em', padding: '1px 4px', borderRadius: 999, background: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.35)', pointerEvents: 'none', lineHeight: 1.5 }}>
+        À venir
+      </span>
+      <button onClick={onClick}
+        style={{ height: 30, paddingLeft: 8, paddingRight: 8, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: selected ? 'rgba(221,255,0,0.12)' : 'transparent', cursor: 'pointer', fontSize: 12, color: 'rgba(0,0,0,0.55)', transition: 'background 120ms' }}
+        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }} onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}>
+        <Zap style={{ width: 12, height: 12, color: selected ? '#0A0A0A' : 'rgba(0,0,0,0.5)' }} />
+        <span style={{ fontWeight: selected ? 600 : 400 }}>Compétence</span>
+      </button>
+    </div>
   );
 }
 
@@ -355,32 +163,26 @@ function PlusBtn({ active, onToggle, disabled }) {
 export default function ChatInputBar({
   input, setInput, onSend, onStop, isLoading,
   files = [], setFiles,
-  discussMode, setDiscussMode, editMode, setEditMode,
-  onUpgrade,
-  locked = false,
   buildMode: externalBuildMode,
   user,
-  _extraTextareaPaddingLeft = 0,   // used by HomeInputWrapper to offset textarea for the attach button
+  _extraTextareaPaddingLeft = 0,
 }) {
   const planFeatures = getPlanFeatures(user);
-  const [buildMode, setBuildModeLocal] = useState(() => externalBuildMode || getBuildMode());
-  useEffect(() => {
-    if (externalBuildMode && externalBuildMode !== buildMode) setBuildModeLocal(externalBuildMode);
-  }, [externalBuildMode]);
-  const setBuildMode = (mode) => { setBuildModeLocal(mode); setGlobalBuildMode(mode); };
-
-  const [showBuildMenu, setShowBuildMenu] = useState(false);
-  const [showAIMenu, setShowAIMenu] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('automatic');
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [objectifActive, setObjectifActive] = useState(false);
+  const [competenceSelected, setCompetenceSelected] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [micDenied, setMicDenied] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const buildMenuRef = useRef(null);
-  const aiMenuRef = useRef(null);
+  const modelMenuRef = useRef(null);
+  const plusMenuRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
@@ -388,7 +190,26 @@ export default function ChatInputBar({
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
 
-  // Auto-resize textarea — max 10 lines (~240px), scroll after
+  // Sync external mode if needed
+  useEffect(() => {
+    if (externalBuildMode) {
+      if (externalBuildMode === 'Max') setSelectedModel('claude-opus-48');
+      else if (externalBuildMode === 'Flash') setSelectedModel('claude-sonnet-46');
+      else setSelectedModel('automatic');
+    }
+  }, [externalBuildMode]);
+
+  // Click outside to close menus
+  useEffect(() => {
+    const h = (e) => {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(e.target)) setShowModelMenu(false);
+      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target)) setShowPlusMenu(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  // Auto-resize textarea
   const MAX_TEXTAREA_H = 240;
   useEffect(() => {
     const el = textareaRef.current;
@@ -399,85 +220,27 @@ export default function ChatInputBar({
     el.style.overflowY = el.scrollHeight > MAX_TEXTAREA_H ? 'auto' : 'hidden';
   }, [input]);
 
-  // Paste handler
-  const handlePaste = useCallback((e) => {
-    const items = Array.from(e.clipboardData?.items || []);
-    const media = items.filter(it => it.kind === 'file' && (it.type.startsWith('image/') || it.type === 'application/pdf'));
-    if (!media.length) return;
-    e.preventDefault();
-    setFiles(p => [...(p || []), ...media.map(it => { const f = it.getAsFile(); return { file: f, name: f.name || 'pasted', url: URL.createObjectURL(f), type: f.type }; })]);
-  }, [setFiles]);
-  useEffect(() => {
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, [handlePaste]);
-
-  // Mic recording
-  const handleMicClick = async () => {
-    if (isRecording) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMicDenied(false);
-      streamRef.current = stream;
-      chunksRef.current = [];
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      audioCtxRef.current = audioCtx;
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
-      const recorder = new MediaRecorder(stream, { mimeType });
-      mediaRecorderRef.current = recorder;
-      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      recorder.start(100);
-      setIsRecording(true);
-      setRecordingDuration(0);
-      timerRef.current = setInterval(() => setRecordingDuration(d => d + 1), 1000);
-    } catch (err) {
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setMicDenied(true);
-        toast.error('Microphone access denied.', { style: { background: '#3F3F46', color: '#fff', borderRadius: '999px' } });
-      }
+  const handleSend = () => {
+    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) {
+      // Map back to internal modes for backend compatibility if necessary
+      const bMode = selectedModel === 'automatic' ? 'Automatic' : (selectedModel.includes('opus') ? 'Max' : 'Flash');
+      onSend(input, { files, buildMode: bMode, searchActive, selectedModel });
     }
   };
 
-  const stopStream = () => {
-    clearInterval(timerRef.current);
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-    audioCtxRef.current?.close();
-    audioCtxRef.current = null;
-    analyserRef.current = null;
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
-  const handleDiscardRecording = () => {
-    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream(); setIsRecording(false); setRecordingDuration(0); chunksRef.current = [];
-  };
-  const handleConfirmRecording = () => {
-    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream(); setIsRecording(false); setRecordingDuration(0);
-    setTimeout(() => textareaRef.current?.focus(), 50);
-  };
-
-  const handleSend = () => {
-    if (!isLoading && (input.trim() || (files?.length || 0) > 0)) onSend(input, { files, buildMode, searchActive });
-  };
-  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
 
   const handleFileChange = (e) => {
     const dropped = Array.from(e.target.files || []);
     if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
-  };
-  const handleImportFile = (e) => {
-    const dropped = Array.from(e.target.files || []);
-    if (dropped.length) setFiles(p => [...(p || []), ...dropped.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f), type: f.type }))]);
+    setShowPlusMenu(false);
   };
 
   const handleEnhancePrompt = async () => {
     if (!input.trim() || isEnhancing) return;
-    setIsEnhancing(true);
+    setIsEnhancing(true); setShowPlusMenu(false);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         model: 'gpt_5_mini',
@@ -491,41 +254,53 @@ export default function ChatInputBar({
     }
   };
 
+  // Mic recording logic
+  const handleMicClick = async () => {
+    if (isRecording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicDenied(false); streamRef.current = stream; chunksRef.current = [];
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtxRef.current = audioCtx;
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+      source.connect(analyser); analyserRef.current = analyser;
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      recorder.start(100); setIsRecording(true); setRecordingDuration(0);
+      timerRef.current = setInterval(() => setRecordingDuration(d => d + 1), 1000);
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setMicDenied(true); toast.error('Microphone access denied.', { style: { background: '#3F3F46', color: '#fff', borderRadius: '999px' } });
+      }
+    }
+  };
+  const stopStream = () => {
+    clearInterval(timerRef.current);
+    streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null;
+    audioCtxRef.current?.close(); audioCtxRef.current = null; analyserRef.current = null;
+  };
+  const handleDiscardRecording = () => {
+    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
+    stopStream(); setIsRecording(false); setRecordingDuration(0); chunksRef.current = [];
+  };
+  const handleConfirmRecording = () => {
+    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
+    stopStream(); setIsRecording(false); setRecordingDuration(0);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  };
+
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
   const hasContent = !!(input.trim() || (files?.length || 0) > 0);
-
-  // Model logos shown in toolbar
-  const ModelLogos = () => {
-    if (buildMode === 'Automatic') return (
-      <span style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <StandardLogo size={14} />
-        <MaxLogo size={14} />
-      </span>
-    );
-    if (buildMode === 'Max') return <MaxLogo size={15} />;
-    return <StandardLogo size={15} />;
-  };
-  const modelLabel = buildMode === 'Automatic' ? 'Automatic' : buildMode === 'Max' ? 'Max' : 'Standard';
-
-  // Rounded-full button helper
-  const RoundBtn = ({ onClick, title, children, active = false, extraStyle = {}, onMouseEnterStyle = {}, onMouseLeaveStyle = {} }) => (
-    <button onClick={onClick} title={title} style={{
-      width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      transition: 'background 120ms',
-      background: active ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)',
-      ...extraStyle,
-    }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.09)'; Object.assign(e.currentTarget.style, onMouseEnterStyle); }}
-      onMouseLeave={e => { e.currentTarget.style.background = active ? 'rgba(0,0,0,0.09)' : 'rgba(0,0,0,0.05)'; Object.assign(e.currentTarget.style, onMouseLeaveStyle); }}
-    >
-      {children}
-    </button>
-  );
+  const activeModel = MODEL_FAMILIES.find(m => m.id === selectedModel) || MODEL_FAMILIES[0];
+  const canUpload = !!(planFeatures?.file_upload);
+  const hasInternet = !!(planFeatures?.web_search);
 
   return (
     <div style={{ padding: '0 8px 8px', fontFamily: 'Inter, system-ui, sans-serif' }}>
-
+      
       {/* ── File previews ── */}
       <AnimatePresence>
         {(files?.length || 0) > 0 && (
@@ -556,7 +331,7 @@ export default function ChatInputBar({
 
       {/* ── Main input card ── */}
       <div style={{ background: '#F7F7F5', border: '1.5px solid #DDDDD9', borderRadius: 22, overflow: 'visible', position: 'relative' }}>
-
+        
         <AnimatePresence mode="wait">
           {isRecording ? (
             <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
@@ -565,32 +340,17 @@ export default function ChatInputBar({
             </motion.div>
           ) : (
             <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-              <AnimatePresence>
-                {editMode && (
-                  <motion.div key="design-chip" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }}
-                    style={{ paddingLeft: 14, paddingRight: 14, paddingTop: 10, overflow: 'hidden' }}>
-                    <div                 style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: '#E8E8E6', fontSize: 12, fontWeight: 500, color: '#333' }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><circle cx="8" cy="14" r="1" fill="#aaa" stroke="none"/>
-                        <circle cx="12" cy="9" r="1" fill="#aaa" stroke="none"/><circle cx="16" cy="14" r="1" fill="#aaa" stroke="none"/>
-                      </svg>
-                      Design
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
               <div style={{ padding: '14px 16px 0', paddingLeft: _extraTextareaPaddingLeft > 0 ? `${_extraTextareaPaddingLeft}px` : '16px' }}>
                 <textarea ref={textareaRef}
-                  value={locked ? '' : input}
-                  onChange={(e) => { if (!locked) setInput(e.target.value); }}
-                  onKeyDown={locked ? undefined : handleKeyDown}
-                  placeholder={locked ? '⛔ Credits exhausted — renewal in a few days' : 'Ask anything...'}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask anything..."
                   style={{
                     width: '100%', background: 'transparent', outline: 'none', border: 'none',
                     resize: 'none', fontSize: 14, color: '#111', lineHeight: '24px', height: '24px',
                     maxHeight: '288px', overflowY: 'hidden',
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
                     WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box', display: 'block',
                   }}
                   className="placeholder:text-[#AAA] textarea-custom-scroll"
@@ -602,121 +362,153 @@ export default function ChatInputBar({
 
         {/* ── Bottom toolbar ── */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '8px 10px', gap: 5 }}>
-
+          
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} multiple accept="image/*,application/pdf" onChange={handleFileChange} />
 
-          {/* ── LEFT: AI Settings action button — same style as mic button ── */}
           {!isRecording && (
-            <div ref={aiMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-              <PlusBtn active={showAIMenu} onToggle={() => setShowAIMenu(v => !v)} disabled={isEnhancing} />
-              <AnimatePresence>
-                {showAIMenu && (
-                  <AISettingsMenu
-                    onClose={() => setShowAIMenu(false)}
-                    onEnhance={handleEnhancePrompt}
-                    onToggleSearch={() => setSearchActive(v => !v)}
-                    onImportFile={handleImportFile}
-                    isEnhancing={isEnhancing}
-                    searchActive={searchActive}
-                    planFeatures={planFeatures}
-                  />
-                )}
-              </AnimatePresence>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              
+              {/* Plus Menu */}
+              <div ref={plusMenuRef} style={{ position: 'relative' }}>
+                <button onClick={() => setShowPlusMenu(!showPlusMenu)}
+                  style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? 'rgba(0,0,0,0.06)' : 'transparent'}>
+                  <Plus style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
+                </button>
+                <AnimatePresence>
+                  {showPlusMenu && (
+                    <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }} transition={{ duration: 0.12 }}
+                      style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 14, minWidth: 240, boxShadow: '0 16px 48px rgba(0,0,0,0.13)', zIndex: 200, overflow: 'hidden' }}>
+                      <button onClick={handleEnhancePrompt} disabled={isEnhancing || !input.trim()}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: 'none', border: 'none', cursor: input.trim() ? 'pointer' : 'default', opacity: input.trim() ? 1 : 0.45 }}
+                        onMouseEnter={e => { if (input.trim()) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }} onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <AutoLogo size={16} />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>{isEnhancing ? 'Amélioration…' : 'Améliorer le prompt'}</span>
+                        </div>
+                      </button>
+                      <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '0 12px' }} />
+                      <button onClick={() => { if (canUpload) { fileInputRef.current?.click(); } }} disabled={!canUpload}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: 'none', border: 'none', cursor: canUpload ? 'pointer' : 'default', opacity: canUpload ? 1 : 0.45 }}
+                        onMouseEnter={e => { if (canUpload) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }} onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <Upload style={{ width: 14, height: 14, color: '#6366F1' }} />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Importer depuis l'ordinateur</span>
+                        </div>
+                        {!canUpload && <Lock style={{ width: 11, height: 11, color: '#888' }} />}
+                      </button>
+                      <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '0 12px' }} />
+                      <button onClick={() => { if (hasInternet) { setSearchActive(v => !v); setShowPlusMenu(false); } }} disabled={!hasInternet}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: 'none', border: 'none', cursor: hasInternet ? 'pointer' : 'default', opacity: hasInternet ? 1 : 0.45 }}
+                        onMouseEnter={e => { if (hasInternet) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }} onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <GoogleGLogo size={14} />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>Rechercher sur Google</span>
+                          {hasInternet && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: searchActive ? '#111' : 'rgba(0,0,0,0.07)', color: searchActive ? '#fff' : '#888' }}>
+                              {searchActive ? 'ON' : 'OFF'}
+                            </span>
+                          )}
+                        </div>
+                        {!hasInternet && <Lock style={{ width: 11, height: 11, color: '#888' }} />}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Objectif & Compétence */}
+              <ObjectifButton active={objectifActive} onToggle={() => setObjectifActive(v => !v)} />
+              <CompetenceButton selected={competenceSelected} onClick={() => setCompetenceSelected(v => !v)} />
+
             </div>
           )}
 
           <div style={{ flex: 1 }} />
 
-          {/* ── Recording controls ── */}
+          {/* ── RIGHT: Model Selector / Send / Mic ── */}
           {isRecording ? (
             <>
-              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                onClick={handleDiscardRecording}
+              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={handleDiscardRecording}
                 style={{ width: 30, height: 30, borderRadius: 999, background: 'transparent', border: '1px solid #444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', flexShrink: 0 }}>
                 <X style={{ width: 13, height: 13 }} />
               </motion.button>
-              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05 }}
-                onClick={handleConfirmRecording}
-                style={{ width: 30, height: 30, borderRadius: 999, background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Check style={{ width: 14, height: 14, color: '#111' }} />
+              <motion.button initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.05 }} onClick={handleConfirmRecording}
+                style={{ width: 30, height: 30, borderRadius: 999, background: '#111', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Check style={{ width: 14, height: 14, color: '#fff' }} />
               </motion.button>
             </>
           ) : (
-            <>
-              {/* ── Model selector ── */}
-              <div ref={buildMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                  onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setShowBuildMenu(v => !v); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    height: 30, padding: '0 10px', borderRadius: 999, border: 'none',
-                    background: 'rgba(0,0,0,0.05)', cursor: 'pointer',
-                    fontSize: 12, fontWeight: 500, color: '#333', transition: 'background 120ms',
-                    }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.09)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-                >
-                  <ModelLogos />
-                  {/* Google search indicator — shown when active */}
-                  {searchActive && (
-                    <motion.span initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', alignItems: 'center' }}>
-                      <GoogleGLogo size={13} />
-                    </motion.span>
-                  )}
-                  <span>{modelLabel}</span>
-                  <ChevronDown style={{ width: 11, height: 11, opacity: 0.6 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {/* Model Selector Dropdown */}
+              <div ref={modelMenuRef} style={{ position: 'relative' }}>
+                <button onClick={() => setShowModelMenu(v => !v)}
+                  style={{ height: 30, padding: '0 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'rgba(0,0,0,0.65)', transition: 'background 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <ModelLogo type={activeModel.logo} size={14} />
+                  <span>{activeModel.name.replace('Claude ', '').replace('ChatGPT ', '')}</span>
+                  <ChevronDown style={{ width: 11, height: 11, opacity: 0.5 }} />
                 </button>
+
                 <AnimatePresence>
-                  {showBuildMenu && (
-                    <BuildMenu buildMode={buildMode} setBuildMode={setBuildMode}
-                      setDiscussMode={setDiscussMode} onClose={() => setShowBuildMenu(false)} planFeatures={planFeatures} />
+                  {showModelMenu && (
+                    <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }} transition={{ duration: 0.12 }}
+                      style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 14, padding: 6, minWidth: 260, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', zIndex: 999 }}>
+                      <div style={{ padding: '6px 12px 10px', borderBottom: '1px solid rgba(0,0,0,0.06)', marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.4)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>Modèles</span>
+                      </div>
+                      {MODEL_FAMILIES.map((m) => {
+                        const isAuto = m.isAuto;
+                        return (
+                          <button key={m.id} onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
+                            style={{ width: '100%', display: 'flex', alignItems: isAuto ? 'flex-start' : 'center', gap: 10, padding: isAuto ? '10px 12px' : '8px 12px', background: isAuto ? 'rgba(99,102,241,0.04)' : 'transparent', border: 'none', borderRadius: 9, cursor: 'pointer', textAlign: 'left', marginBottom: isAuto ? 6 : 0, transition: 'background 100ms' }}
+                            onMouseEnter={e => e.currentTarget.style.background = isAuto ? 'rgba(99,102,241,0.08)' : 'rgba(0,0,0,0.04)'} onMouseLeave={e => e.currentTarget.style.background = isAuto ? 'rgba(99,102,241,0.04)' : 'transparent'}>
+                            <div style={{ flexShrink: 0, marginTop: isAuto ? 2 : 0 }}><ModelLogo type={m.logo} size={isAuto ? 16 : 14} /></div>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: 13, fontWeight: isAuto ? 600 : 500, color: isAuto ? '#6366F1' : '#1A1A1A', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                              {isAuto && m.desc && <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.42)', lineHeight: 1.4, display: 'block', marginTop: 2 }}>{m.desc}</span>}
+                            </div>
+                            {selectedModel === m.id && (
+                              <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check style={{ width: 10, height: 10, color: '#fff' }} /></div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* ── Mic ── */}
-              <button
-                onClick={handleMicClick}
-                title={micDenied ? 'Microphone access denied' : 'Record audio'}
-                style={{
-                  width: 30, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  background: micDenied ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.05)',
-                  transition: 'background 120ms',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.25)' : 'rgba(0,0,0,0.09)'}
-                onMouseLeave={e => e.currentTarget.style.background = micDenied ? 'rgba(239,68,68,0.15)' : 'rgba(0,0,0,0.05)'}
-              >
-                {micDenied
-                  ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} />
-                  : <Mic style={{ width: 14, height: 14, color: '#555' }} />
-                }
+              {/* Mic button */}
+              <button onClick={handleMicClick}
+                style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'transparent', transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                {micDenied ? <MicOff style={{ width: 14, height: 14, color: '#EF4444' }} /> : <Mic style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />}
               </button>
 
-              {/* ── Send / Stop / Locked ── */}
-              {locked ? (
-                <button onClick={() => onUpgrade?.()} title="Credits exhausted"
-                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 999, background: '#EF4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Lock style={{ width: 13, height: 13, color: '#fff', strokeWidth: 2.5 }} />
-                </button>
-              ) : isLoading ? (
-                <button onClick={onStop}
-                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 999, background: 'rgba(0,0,0,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Send Button replaces old arrow with Model Logo */}
+              {isLoading ? (
+                <button onClick={onStop} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: 10, height: 10, background: '#333', borderRadius: 3 }} />
                 </button>
               ) : (
                 <button onClick={handleSend} disabled={!hasContent}
                   style={{
-                    flexShrink: 0, width: 30, height: 30, borderRadius: 999,
-                    background: hasContent ? '#111111' : 'rgba(0,0,0,0.12)',
+                    flexShrink: 0, width: 30, height: 30, borderRadius: 8,
+                    background: hasContent ? (activeModel.isAuto ? '#6366F1' : '#111') : 'rgba(0,0,0,0.04)',
                     border: 'none', cursor: hasContent ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 120ms',
+                    transition: 'background 120ms', color: hasContent ? '#fff' : 'rgba(0,0,0,0.2)'
                   }}>
-                  <ArrowUp style={{ width: 15, height: 15, color: '#fff', strokeWidth: 2 }} />
+                  {hasContent ? (
+                    <ModelLogo type={activeModel.logo} size={14} />
+                  ) : (
+                    <ModelLogo type={activeModel.logo} size={14} />
+                  )}
                 </button>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
