@@ -92,11 +92,11 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  // Frame bg — slightly grayer than white content so the border frame is visible
-  const FRAME_BG = '#ECEBE6';
-  const BORDER_TOP = 8;
-  const BORDER_SIDE = 8;
-  const BORDER_BOTTOM = 40;     // thick bottom border (above feedback button)
+  // Frame bg — EXACTLY matches sidebar so there's no seam / color change
+  const FRAME_BG = '#F7F7F5';
+  const BORDER_TOP = 10;
+  const BORDER_SIDE = 10;
+  const BORDER_BOTTOM = 10;     // equal on all sides
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);
@@ -216,7 +216,7 @@ export default function Layout() {
         transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
         style={{
           flex: 1,
-          height: '100vh',
+          height: isMobile ? '100vh' : 'auto',
           overflow: 'hidden',
           position: 'relative',
           display: 'flex',
@@ -230,8 +230,7 @@ export default function Layout() {
             overflow: 'hidden',
             boxSizing: 'border-box',
             background: '#FFFFFF',
-            border: '1px solid #E2E1DC',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
           }),
         }}
       >
