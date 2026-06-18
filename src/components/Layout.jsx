@@ -92,11 +92,11 @@ export default function Layout() {
   }, []);
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
-  // Frame bg — EXACTLY matches sidebar so there's no seam / color change
-  const FRAME_BG = '#F7F7F5';
+  // Frame bg — EXACTLY matches index.css body background so there's no seam
+  const FRAME_BG = '#F8F7F4';
   const BORDER_TOP = 10;
   const BORDER_SIDE = 10;
-  const BORDER_BOTTOM = 25;     // 2.5x thicker bottom border
+  const BORDER_BOTTOM = 38;     // 1.5x thicker (25 * 1.5)
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);
