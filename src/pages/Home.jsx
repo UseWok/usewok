@@ -194,10 +194,10 @@ function ProjectCard({ conv, onClick, onDelete, onRename }) {
         {/* Bottom: title + meta — detached, no background */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6, position: 'relative' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 400, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
+            <p style={{ fontSize: 13, fontWeight: 400, color: '#1a1a1a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
               {conv.title || 'Untitled build'}
             </p>
-            <p style={{ fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.35)', margin: '3px 0 0', lineHeight: 1 }}>
+            <p style={{ fontSize: 11, fontWeight: 400, color: 'rgba(0,0,0,0.35)', margin: '3px 0 0', lineHeight: 1 }}>
               {timeAgo(conv.updatedAt || conv.updated_date)}
             </p>
           </div>
@@ -289,7 +289,7 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh', width: '100%',
-      background: '#1F1F1F',
+      background: '#F8F7F4',
       position: 'relative',
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
@@ -299,8 +299,8 @@ export default function Home() {
         position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         backgroundSize: '160px 160px',
-        opacity: 0.045,
-        mixBlendMode: 'overlay',
+        opacity: 0.03,
+        mixBlendMode: 'multiply',
       }} />
 
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
@@ -312,13 +312,13 @@ export default function Home() {
           <button
             onClick={() => navigate('/admin')}
             style={{
-              padding: '6px 14px', borderRadius: 7, border: '1px solid #333',
-              background: '#1A1A1A', color: '#ccc', fontSize: 12, fontWeight: 600,
+              padding: '6px 14px', borderRadius: 7, border: '1px solid #D1D1D1',
+              background: '#fff', color: '#444', fontSize: 12, fontWeight: 600,
               cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               transition: 'border-color 120ms, color 120ms',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#ccc'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#999'; e.currentTarget.style.color = '#111'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#D1D1D1'; e.currentTarget.style.color = '#444'; }}
           >
             Admin →
           </button>
@@ -328,18 +328,18 @@ export default function Home() {
       {/* ── Hero section ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 16px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 8px', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <GumroadLogo />
             <div style={{ marginLeft: -6 }}><BeehiivLogo /></div>
             <div style={{ marginLeft: -6 }}><StripeLogo /></div>
           </div>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>Sell via your favorite tools</span>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>→</span>
+          <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
+          <span style={{ fontSize: 13, color: '#888' }}>→</span>
         </div>
 
         {/* Main title */}
-        <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 500, color: '#fff', textAlign: 'center', margin: '0 0 32px', letterSpacing: '-0.02em', lineHeight: 1.18 }}>
+        <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 500, color: '#1a1a1a', textAlign: 'center', margin: '0 0 32px', letterSpacing: '-0.02em', lineHeight: 1.18 }}>
           What should we build, {firstName}?
         </h1>
 
@@ -359,11 +359,11 @@ export default function Home() {
 
 
 
-      {/* ── Glow ambiance — fixed, bottom-anchored, never touches chat bar ── */}
+      {/* ── Glow ambiance — subtle warm tint ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, height: '55vh',
         pointerEvents: 'none', zIndex: 0,
-        background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(210,72,8,0.62) 0%, rgba(175,55,4,0.40) 35%, rgba(140,42,2,0.18) 65%, transparent 100%)',
+        background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(200,190,150,0.18) 0%, transparent 70%)',
       }} />
 
       {/* ── My Builds section ── */}
@@ -376,19 +376,19 @@ export default function Home() {
             {TABS.map(tab => (
               <button key={tab} onClick={() => setProjectTab(tab)} style={{
                 padding: '5px 14px', borderRadius: 999,
-                border: projectTab === tab ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
-                background: projectTab === tab ? 'rgba(255,255,255,0.09)' : 'transparent',
+                border: projectTab === tab ? '1px solid #D1D1D1' : '1px solid transparent',
+                background: projectTab === tab ? 'rgba(0,0,0,0.05)' : 'transparent',
                 fontSize: 13, fontWeight: projectTab === tab ? 500 : 400,
-                color: projectTab === tab ? '#fff' : 'rgba(255,255,255,0.35)', cursor: 'pointer',
+                color: projectTab === tab ? '#1a1a1a' : 'rgba(0,0,0,0.35)', cursor: 'pointer',
               }}>
                 {tab}
               </button>
             ))}
           </div>
           <button onClick={() => navigate('/projects')}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(0,0,0,0.35)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#1a1a1a'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.35)'}
           >
             All projects <ArrowRight size={12} />
           </button>
@@ -399,19 +399,19 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '28px 24px' }}>
             {[0,1,2,3,4,5].map(i => (
               <div key={i}>
-                <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, overflow: 'hidden', marginBottom: 10, background: 'rgba(255,255,255,0.04)' }}>
+                <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, overflow: 'hidden', marginBottom: 10, background: 'rgba(0,0,0,0.06)' }}>
                   <div style={{
                     position: 'absolute', inset: 0,
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)',
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
                     backgroundSize: '200% 100%',
                     animation: 'skshimmer 1.4s ease-in-out infinite',
                   }} />
                 </div>
-                <div style={{ height: 12, width: '60%', borderRadius: 4, background: 'rgba(255,255,255,0.06)', marginBottom: 6, overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+                <div style={{ height: 12, width: '60%', borderRadius: 4, background: 'rgba(0,0,0,0.07)', marginBottom: 6, overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
                 </div>
-                <div style={{ height: 10, width: '35%', borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out 0.1s infinite' }} />
+                <div style={{ height: 10, width: '35%', borderRadius: 4, background: 'rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'skshimmer 1.4s ease-in-out 0.1s infinite' }} />
                 </div>
               </div>
             ))}
@@ -432,17 +432,17 @@ export default function Home() {
             {['Start a new project', 'Build a landing page', 'Create a dashboard'].map((title, i) => (
               <div key={i} onClick={() => navigate(`/chat?q=${encodeURIComponent(title)}`)}
                 style={{ cursor: 'pointer' }}>
-                <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, border: '1px dashed rgba(255,255,255,0.1)', background: 'transparent', marginBottom: 10, transition: 'border-color 140ms' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                <div style={{ width: '100%', paddingBottom: '56.25%', position: 'relative', borderRadius: 6, border: '1px dashed #D1D1D1', background: 'transparent', marginBottom: 10, transition: 'border-color 140ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#999'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#D1D1D1'}
                 >
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Plus size={14} color="#666" />
+                    <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Plus size={14} color="#999" />
                     </div>
                   </div>
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{title}</p>
+                <p style={{ fontSize: 12, fontWeight: 400, color: 'rgba(0,0,0,0.4)', margin: 0 }}>{title}</p>
               </div>
             ))}
           </div>
