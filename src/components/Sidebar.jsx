@@ -389,7 +389,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
           background: '#F7F7F5',
-          borderRight: '1px solid #C8C8C8',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}

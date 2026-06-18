@@ -96,7 +96,7 @@ export default function Layout() {
   const FRAME_BG = '#F7F7F5';
   const BORDER_TOP = 10;
   const BORDER_SIDE = 10;
-  const BORDER_BOTTOM = 10;     // equal on all sides
+  const BORDER_BOTTOM = 25;     // 2.5x thicker bottom border
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);
