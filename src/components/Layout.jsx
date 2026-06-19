@@ -93,10 +93,10 @@ export default function Layout() {
 
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   // Frame bg — EXACTLY matches index.css body background so there's no seam
-  const FRAME_BG = '#F8F7F4';
+  const FRAME_BG = '#F8F7F4'; // same as sidebar bg — index.css --sidebar-background
   const BORDER_TOP = 9;
   const BORDER_SIDE = 9;
-  const BORDER_BOTTOM = 35;
+  const BORDER_BOTTOM = 28;
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);

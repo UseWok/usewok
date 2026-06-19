@@ -28,14 +28,14 @@ const StarIcon = ({ size = 15, color = '#111' }) => (
   </svg>
 );
 
-// Gemini logo — no background, enlarged
+// Gemini logo — no background (black removed via screen blend), enlarged
 const GeminiLogoImg = ({ size = 15 }) => {
-  const s = Math.round(size * 1.5);
+  const s = Math.round(size * 1.8);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
       width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'screen', filter: 'invert(0)' }}
       alt="Gemini"
     />
   );
@@ -58,22 +58,22 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — no background, enlarged
+// Google Drive logo — transparent background, enlarged
 const DriveLogo = ({ size = 15 }) => {
-  const s = Math.round(size * 1.45);
+  const s = Math.round(size * 2.0);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
       width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain' }}
+      style={{ flexShrink: 0, objectFit: 'contain', background: 'transparent', mixBlendMode: 'multiply' }}
       alt="Google Drive"
     />
   );
 };
 
-// Claude logo — rendered larger
+// Claude logo — rendered large, no white bg
 const ClaudeLogo = ({ size = 16 }) => {
-  const s = Math.round(size * 1.55);
+  const s = Math.round(size * 2.0);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
