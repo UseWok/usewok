@@ -91,14 +91,27 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
     setState(STATE.CONNECTING);
     try {
       const url = await base44.connectors.connectAppUser(CONNECTOR_ID);
-      const popup = window.open(url, '_blank', 'width=500,height=600');
+      const w = 520, h = 640;
+      const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
+      const top = Math.round(window.screenY + (window.outerHeight - h) / 2);
+      const popup = window.open(
+        url,
+        'google_drive_auth',
+        `width=${w},height=${h},left=${left},top=${top},toolbar=0,menubar=0,location=0,status=0,scrollbars=1,resizable=1`
+      );
+      if (!popup) {
+        // Popup blocked — open in same tab as fallback
+        window.location.href = url;
+        return;
+      }
       const timer = setInterval(() => {
-        if (!popup || popup.closed) {
+        if (popup.closed) {
           clearInterval(timer);
           fetchFiles();
         }
-      }, 600);
-    } catch {
+      }, 500);
+    } catch (err) {
+      setErrorMsg(err?.message || 'Failed to start authorization');
       setState(STATE.NOT_CONNECTED);
     }
   };
