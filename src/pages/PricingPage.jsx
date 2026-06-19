@@ -88,7 +88,13 @@ export default function PricingPage() {
   const [plans, setPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [userPlanId, setUserPlanId] = useState('free');
-  const [billingYearly, setBillingYearly] = useState({});
+  // Default all paid plans to yearly
+  const [billingYearly, setBillingYearly] = useState(() => {
+    const init = {};
+    const plans = getPlansConfig();
+    plans.forEach(p => { if (p.price_monthly > 0) init[p.id] = true; });
+    return init;
+  });
 
   useEffect(() => {
     loadPlansFromDB()
@@ -153,7 +159,9 @@ export default function PricingPage() {
             {allPlans.map((plan, idx) => {
               const price = plan.price_monthly ?? plan.price ?? 0;
               const yearly = billingYearly[plan.id];
-              const priceDisplay = yearly ? (plan.price_yearly ?? price) : price;
+              // When yearly: show price_yearly / 12 (per month billed annually)
+              const yearlyTotal = plan.price_yearly ?? (price * 12);
+              const priceDisplay = yearly ? Math.round(yearlyTotal / 12) : price;
               const isFree = price === 0;
               const current = isCurrentPlan(plan);
               const features = (plan.features || []).map(f => f.text || f);
@@ -174,15 +182,15 @@ export default function PricingPage() {
                       <span style={{ fontSize: 30, fontWeight: 700, color: T1 }}>$0</span>
                     </div>
                   ) : (
-                    <div style={{ marginBottom: 16 }}>
-                      <span style={{ fontSize: 15, color: T2 }}>{priceDisplay} </span>
-                      <span style={{ fontSize: 14, color: T3 }}>$US per user/month</span>
+                    <div style={{ marginBottom: 4 }}>
+                      <span style={{ fontSize: 28, fontWeight: 700, color: T1 }}>${priceDisplay}</span>
+                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>/mo</span>
                     </div>
                   )}
 
                   {/* Billing note */}
-                  <div style={{ fontSize: 13, color: T2, marginBottom: 16, minHeight: 20 }}>
-                    {isFree ? 'Free for everyone' : plan.features_header || ''}
+                  <div style={{ fontSize: 12, color: T3, marginBottom: 16, minHeight: 18 }}>
+                    {isFree ? 'Free for everyone' : yearly ? `$${yearlyTotal} billed yearly` : 'Billed monthly'}
                   </div>
 
                   {/* Yearly toggle */}

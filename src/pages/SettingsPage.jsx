@@ -190,7 +190,8 @@ function NavGroup({ label }) {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user: authUser, refreshUser: refreshAuthUser } = useAuth();
-  const [activeSection, setActiveSection] = useState('profile');
+  const urlSection = new URLSearchParams(window.location.search).get('section') || 'profile';
+  const [activeSection, setActiveSection] = useState(urlSection);
   const [search, setSearch] = useState('');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);

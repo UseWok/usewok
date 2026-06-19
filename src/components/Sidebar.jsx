@@ -54,12 +54,19 @@ function ReferralBanner({ expanded, onClick }) {
   );
 }
 
-// ─── Top User Dropdown (Img 2 style) ─────────────────────────────
-function TopUserDropdown({ user, expanded, navigate, userPlan }) {
+// ─── User Popover (floating panel, not touching edges) ───────────
+function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const { used, limit, pct, barColor, isLow } = useCredits(user);
+  const { used, limit, pct, barColor } = useCredits(user);
   const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
+
+  // Renewal date
+  const renewalDate = (() => {
+    const base = user?.credits_reset_at || user?.subscription_date || user?.created_date;
+    if (!base) return null;
+    return new Date(base).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  })();
 
   useEffect(() => {
     const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -82,7 +89,6 @@ function TopUserDropdown({ user, expanded, navigate, userPlan }) {
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
         onMouseLeave={e => e.currentTarget.style.background = open ? 'rgba(0,0,0,0.05)' : 'transparent'}
       >
-        {/* Avatar */}
         <div style={{ width: 26, height: 26, borderRadius: 7, background: '#7C6AF4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0, letterSpacing: '-0.02em' }}>
           {initials}
         </div>
@@ -99,45 +105,67 @@ function TopUserDropdown({ user, expanded, navigate, userPlan }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.13 }}
+            initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.14 }}
             onClick={e => e.stopPropagation()}
             style={{
-              position: 'absolute', top: 'calc(100% + 4px)', left: 8,
-              background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 12,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden',
-              minWidth: 220,
+              position: 'absolute', top: 'calc(100% + 6px)', left: 6,
+              background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 14,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.14)', zIndex: 9999,
+              width: 232, overflow: 'hidden',
             }}
           >
-            {/* Credits bar */}
-            <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid #F0F0F0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits</span>
-                <span style={{ fontSize: 11, color: '#888', fontVariantNumeric: 'tabular-nums' }}>{formatK(used)} / {formatK(limit)}</span>
-              </div>
-              <div style={{ height: 5, background: '#EBEBEB', borderRadius: 999, marginBottom: 4 }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
-              </div>
-              {isLow && (
-                <button onClick={() => { navigate('/pricing'); setOpen(false); }} style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: '#3B8BEB', background: 'rgba(59,139,235,0.08)', border: 'none', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', width: '100%', textAlign: 'center' }}>
-                  Upgrade plan →
-                </button>
-              )}
-            </div>
-            {/* Menu items */}
-            <div style={{ padding: '4px 0' }}>
-              <button onClick={() => { navigate('/settings'); setOpen(false); }}
-                style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#333', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <Settings style={{ width: 13, height: 13, color: '#888' }} />
+            {/* Settings — large primary button */}
+            <div style={{ padding: '12px 12px 8px' }}>
+              <button
+                onClick={() => { setOpen(false); onSettingsClick(); }}
+                style={{
+                  width: '100%', padding: '9px 14px', border: 'none',
+                  background: '#F5F5F3', borderRadius: 9,
+                  cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: '#111',
+                  textAlign: 'left', fontFamily: 'inherit', transition: 'background 120ms',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
+                onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
+              >
                 Settings
               </button>
-              <button onClick={async () => { await base44.auth.logout(); window.location.reload(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: '#E8184A', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#FFF5F5'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <LogOut style={{ width: 13, height: 13 }} />
+            </div>
+
+            {/* Credits section */}
+            <div style={{ padding: '8px 12px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Credits</span>
+                  {renewalDate && (
+                    <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.4)', margin: '1px 0 0' }}>Renewal {renewalDate}</p>
+                  )}
+                </div>
+                <span style={{ fontSize: 12, color: '#555', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                  {formatK(used)}/{formatK(limit)}
+                </span>
+              </div>
+              <div style={{ height: 5, background: '#E8E8E4', borderRadius: 999 }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
+              </div>
+            </div>
+
+            {/* Get help + Logout */}
+            <div style={{ padding: '6px 12px 12px', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <button
+                onClick={() => { navigate('/support'); setOpen(false); }}
+                style={{ width: '100%', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#444', textAlign: 'left', fontFamily: 'inherit', transition: 'background 100ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                Get help
+              </button>
+              <button
+                onClick={async () => { setOpen(false); await base44.auth.logout(); window.location.reload(); }}
+                style={{ width: '100%', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#E8184A', textAlign: 'left', fontFamily: 'inherit', transition: 'background 100ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,24,74,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
                 Log out
               </button>
             </div>
@@ -327,6 +355,49 @@ function Divider() {
   return <div style={{ height: 1, background: '#EBEBEA', margin: '6px 0' }} />;
 }
 
+// ─── Settings Sidebar (replaces main nav when Settings clicked) ───
+function SettingsSidebar({ navigate, onBack }) {
+  const location = useLocation();
+  const sections = [
+    { id: 'profile', label: 'Profile', path: '/settings' },
+    { id: 'plan', label: 'Plan & Billing', path: '/settings' },
+    { id: 'usage', label: 'Usage', path: '/settings' },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      {/* Back */}
+      <div style={{ padding: '10px 8px 6px' }}>
+        <button onClick={onBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'Inter, sans-serif', padding: '4px 6px', borderRadius: 5 }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#111'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(0,0,0,0.45)'; }}>
+          <ChevronRight style={{ width: 12, height: 12, transform: 'rotate(180deg)' }} />
+          Back
+        </button>
+      </div>
+      <div style={{ padding: '4px 6px', flex: 1, overflowY: 'auto' }}>
+        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', textTransform: 'none' }}>Personal</p>
+        {sections.map(s => (
+          <button key={s.id}
+            onClick={() => navigate(`/settings?section=${s.id}`)}
+            style={{
+              display: 'flex', alignItems: 'center', width: '100%',
+              padding: '6px 10px', borderRadius: 5, border: 'none',
+              background: location.search?.includes(s.id) ? 'rgba(0,0,0,0.07)' : 'transparent',
+              cursor: 'pointer', fontSize: 13, color: '#444',
+              fontFamily: 'inherit', textAlign: 'left', transition: 'background 100ms',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+            onMouseLeave={e => e.currentTarget.style.background = location.search?.includes(s.id) ? 'rgba(0,0,0,0.07)' : 'transparent'}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Sidebar ─────────────────────────────────────────────────
 export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const navigate = useNavigate();
@@ -336,6 +407,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [recents, setRecents] = useState([]);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
+  const [settingsMode, setSettingsMode] = useState(false);
 
   // Load recents
 
@@ -363,7 +435,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   }, []);
 
   const isActive = path => location.pathname === path;
-  const nav = path => navigate(path);
+  const nav = path => { navigate(path); };
+
+  // Reset settings mode when leaving /settings
+  useEffect(() => {
+    if (!location.pathname.startsWith('/settings')) setSettingsMode(false);
+  }, [location.pathname]);
 
   const isMobile = useIsMobile();
 
@@ -397,7 +474,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         <div style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '4px 8px 4px 0' : '6px 0' }}>
             {expanded
-              ? <TopUserDropdown user={user} expanded={expanded} navigate={nav} userPlan={userPlan} />
+              ? <UserPopover user={user} expanded={expanded} navigate={nav} userPlan={userPlan} onSettingsClick={() => { setSettingsMode(true); nav('/settings'); }} />
               : (
                 <button
                   onClick={() => setExpanded(true)} title="Expand"
@@ -426,7 +503,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         </div>
 
         {/* ── Scrollable body ── */}
-        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px' }}>
+        {/* Settings mode: show settings sidebar */}
+        {expanded && settingsMode && (
+          <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} />
+        )}
+
+        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: expanded && settingsMode ? 'none' : 'flex' }}>
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
