@@ -178,20 +178,18 @@ export default function PricingPage() {
 
                   {/* Price */}
                   {isFree ? (
-                    <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginBottom: 20 }}>
                       <span style={{ fontSize: 30, fontWeight: 700, color: T1 }}>$0</span>
+                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>/mo</span>
                     </div>
                   ) : (
-                    <div style={{ marginBottom: 4 }}>
-                      <span style={{ fontSize: 28, fontWeight: 700, color: T1 }}>${priceDisplay}</span>
-                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>{yearly ? '/yr' : '/mo'}</span>
+                    <div style={{ marginBottom: 20 }}>
+                      <span style={{ fontSize: 28, fontWeight: 700, color: T1 }}>
+                        ${yearly ? plan.price_yearly ?? price : price}
+                      </span>
+                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>/mo</span>
                     </div>
                   )}
-
-                  {/* Billing note */}
-                  <div style={{ fontSize: 12, color: T3, marginBottom: 16, minHeight: 18 }}>
-                    {isFree ? 'Free for everyone' : yearly ? `$${Math.round(yearlyTotal / 12)}/mo billed annually` : 'Billed monthly'}
-                  </div>
 
                   {/* Yearly toggle */}
                   {!isFree && plan.checkout_url_yearly && (

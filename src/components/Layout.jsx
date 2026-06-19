@@ -97,26 +97,27 @@ export default function Layout() {
   const FRAME_BG = '#F8F7F4';
   const BORDER_TOP = 8;
   const BORDER_SIDE = 8;
-  const BORDER_BOTTOM = 24;
+  const BORDER_BOTTOM = 36;
   const CORNER_R = 14;
 
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackEmoji, setFeedbackEmoji] = useState(null);
   const [feedbackNote, setFeedbackNote] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackSending, setFeedbackSending] = useState(false);
 
-  const EMOJIS = [
-    { icon: '😡', label: 'Terrible' },
-    { icon: '😕', label: 'Poor' },
-    { icon: '😐', label: 'Okay' },
-    { icon: '😊', label: 'Good' },
-    { icon: '🤩', label: 'Amazing' },
-  ];
-
-  const handleFeedbackSend = () => {
-    if (!feedbackEmoji) return;
+  const handleFeedbackSend = async () => {
+    if (!feedbackNote.trim()) return;
+    setFeedbackSending(true);
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: 'support@wok.so',
+        subject: 'User Feedback',
+        body: `Feedback from ${user?.email || 'unknown'}:\n\n${feedbackNote}`,
+      });
+    } catch {}
+    setFeedbackSending(false);
     setFeedbackSent(true);
-    setTimeout(() => { setShowFeedback(false); setFeedbackSent(false); setFeedbackEmoji(null); setFeedbackNote(''); }, 1800);
+    setTimeout(() => { setShowFeedback(false); setFeedbackSent(false); setFeedbackNote(''); }, 2000);
   };
 
   return (
@@ -141,22 +142,25 @@ export default function Layout() {
         </button>
       )}
 
-      {/* Feedback button — bottom-right of thick bottom border */}
+      {/* Feedback button — square with heart, bottom-right inside the border frame */}
       {!isMobile && (
         <button
           onClick={() => setShowFeedback(true)}
+          title="Feedback"
           style={{
-            position: 'fixed', bottom: 9, right: 14, zIndex: 60,
-            height: 22, padding: '0 10px',
-            background: '#111', border: 'none', borderRadius: 6,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 11, fontWeight: 500, color: '#fff', letterSpacing: '-0.01em',
-            opacity: 0.75, transition: 'opacity 120ms',
+            position: 'fixed', bottom: 10, right: 16, zIndex: 60,
+            width: 26, height: 26,
+            background: 'transparent', border: 'none',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: 0.55, transition: 'opacity 120ms',
           }}
           onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.75'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
         >
-          <span style={{ fontSize: 12 }}>💬</span> Feedback
+          {/* Heart icon */}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
         </button>
       )}
 
@@ -182,27 +186,17 @@ export default function Layout() {
                   </div>
                 ) : (
                   <>
-                    <p style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>How's your experience?</p>
-                    <p style={{ fontSize: 12.5, color: '#888', margin: '0 0 18px' }}>Tap an emoji to rate, then add a note.</p>
-                    {/* Emoji row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                      {EMOJIS.map(e => (
-                        <button key={e.label} onClick={() => setFeedbackEmoji(e.label)}
-                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', borderRadius: 10, border: feedbackEmoji === e.label ? '1.5px solid #111' : '1.5px solid transparent', background: feedbackEmoji === e.label ? 'rgba(0,0,0,0.05)' : 'transparent', cursor: 'pointer', transition: 'all 120ms' }}>
-                          <span style={{ fontSize: 24 }}>{e.icon}</span>
-                          <span style={{ fontSize: 10, color: '#888', fontWeight: feedbackEmoji === e.label ? 600 : 400 }}>{e.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                    {/* Note */}
+                    <p style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>Share your feedback</p>
+                    <p style={{ fontSize: 12.5, color: '#888', margin: '0 0 14px' }}>We read every message.</p>
                     <textarea
                       value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)}
-                      placeholder="Anything else you'd like to share? (optional)"
-                      style={{ width: '100%', height: 72, padding: '9px 11px', fontSize: 12.5, border: '1px solid #E0E0E0', borderRadius: 8, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#333', background: '#FAFAFA', boxSizing: 'border-box', marginBottom: 12 }}
+                      placeholder="What's on your mind?"
+                      autoFocus
+                      style={{ width: '100%', height: 90, padding: '9px 11px', fontSize: 13, border: '1px solid #E0E0E0', borderRadius: 8, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#333', background: '#FAFAFA', boxSizing: 'border-box', marginBottom: 12 }}
                     />
-                    <button onClick={handleFeedbackSend} disabled={!feedbackEmoji}
-                      style={{ width: '100%', padding: '10px 0', background: feedbackEmoji ? '#111' : '#F0F0EE', border: 'none', borderRadius: 9, cursor: feedbackEmoji ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 600, color: feedbackEmoji ? '#fff' : '#aaa', transition: 'all 120ms' }}>
-                      Send Feedback
+                    <button onClick={handleFeedbackSend} disabled={!feedbackNote.trim() || feedbackSending}
+                      style={{ width: '100%', padding: '10px 0', background: feedbackNote.trim() ? '#111' : '#F0F0EE', border: 'none', borderRadius: 9, cursor: feedbackNote.trim() ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 600, color: feedbackNote.trim() ? '#fff' : '#aaa', transition: 'all 120ms' }}>
+                      {feedbackSending ? 'Sending…' : 'Send Feedback'}
                     </button>
                   </>
                 )}

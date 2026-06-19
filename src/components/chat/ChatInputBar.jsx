@@ -21,10 +21,10 @@ import GoogleDrivePickerModal from '@/components/chat/GoogleDrivePickerModal';
 // LOGOS
 // ─────────────────────────────────────────────────────────────────
 
-// ✦ 4-pointed star for Automatic model
-const StarIcon = ({ size = 15, color = '#6366F1' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} style={{ flexShrink: 0 }}>
-    <path d="M12 1 L13.5 10.5 L23 12 L13.5 13.5 L12 23 L10.5 13.5 L1 12 L10.5 10.5 Z"/>
+// ✦ 5-pointed hollow star for Automatic model
+const StarIcon = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
 
@@ -58,14 +58,16 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — transparent PNG (no bg)
+// Google Drive logo — custom SVG
 const DriveLogo = ({ size = 15 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/d26663a83_image.png"
-    width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain' }}
-    alt="Google Drive"
-  />
+  <svg width={size} height={size} viewBox="0 0 87.3 78" style={{ flexShrink: 0 }}>
+    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0a15.92 15.92 0 001.55 7.27z" fill="#0066da"/>
+    <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.55 48.75A15.96 15.96 0 000 56h27.5z" fill="#00ac47"/>
+    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c1-1.7 1.55-3.65 1.55-7.5H60.1l5.85 11.65z" fill="#ea4335"/>
+    <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.85 0H34.45c-1.65 0-3.2.45-4.55 1.2z" fill="#00832d"/>
+    <path d="M59.8 56H27.5L13.75 79.8c1.35.8 2.9 1.2 4.55 1.2h50.7c1.65 0 3.2-.45 4.55-1.2z" fill="#2684fc"/>
+    <path d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 60.1 56h27.45a16.1 16.1 0 00-1.55-7.27z" fill="#ffba00"/>
+  </svg>
 );
 
 // Claude logo — rendered 1.6× larger, no white bg
@@ -81,7 +83,7 @@ const ClaudeLogo = ({ size = 16 }) => {
   );
 };
 
-const AutoLogo = () => null; // Automatic has no logo
+const AutoLogo = ({ size = 16 }) => <StarIcon size={size} />;
 const GeminiLogo = ({ size = 16 }) => <GeminiLogoImg size={size} />;
 
 // Crosshair / Focus SVG for "Objectif"
@@ -100,7 +102,7 @@ function ModelLogo({ type, size = 16 }) {
   if (type === 'claude') return <ClaudeLogo size={size} />;
   if (type === 'openai') return <OpenAILogo size={size} />;
   if (type === 'gemini') return <GeminiLogo size={size} />;
-  return <AutoLogo />; // 'auto' — no logo
+  return <AutoLogo size={size} />;
 }
 
 // Model name color: auto=black bold, claude=black, gemini=black, openai=black

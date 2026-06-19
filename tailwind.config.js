@@ -5,9 +5,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        inter: ['var(--font-inter)'],
-        be:    ['var(--font-inter)'],
-        open:  ['var(--font-inter)'],
+        inter: ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        be:    ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        open:  ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
       },
 
       /* ── Border radius ── */

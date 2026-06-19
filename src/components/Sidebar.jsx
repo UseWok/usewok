@@ -600,6 +600,26 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
 
           <div style={{ flex: 1 }} />
+
+          {/* ── Support button — circle with ? ── */}
+          <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', paddingLeft: expanded ? 0 : 0 }}>
+            <button
+              onClick={() => navigate('/support')}
+              title="Support"
+              style={{
+                width: 26, height: 26, borderRadius: '50%',
+                border: '1.5px solid rgba(0,0,0,0.18)',
+                background: 'transparent',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, transition: 'all 120ms',
+                marginLeft: expanded ? 10 : 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#111', lineHeight: 1 }}>?</span>
+            </button>
+          </div>
         </div>
       </motion.aside>
 

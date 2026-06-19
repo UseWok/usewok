@@ -9,14 +9,16 @@ import { base44 } from '@/api/base44Client';
 
 const CONNECTOR_ID = '6a344ff39cf46d20611a4dba';
 
-// Google Drive logo — transparent PNG (no bg)
+// Google Drive logo — custom SVG
 const DriveLogo = ({ size = 22 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/d26663a83_image.png"
-    width={size} height={size}
-    style={{ objectFit: 'contain', flexShrink: 0 }}
-    alt="Google Drive"
-  />
+  <svg width={size} height={size} viewBox="0 0 87.3 78" style={{ flexShrink: 0 }}>
+    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0a15.92 15.92 0 001.55 7.27z" fill="#0066da"/>
+    <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.55 48.75A15.96 15.96 0 000 56h27.5z" fill="#00ac47"/>
+    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c1-1.7 1.55-3.65 1.55-7.5H60.1l5.85 11.65z" fill="#ea4335"/>
+    <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.85 0H34.45c-1.65 0-3.2.45-4.55 1.2z" fill="#00832d"/>
+    <path d="M59.8 56H27.5L13.75 79.8c1.35.8 2.9 1.2 4.55 1.2h50.7c1.65 0 3.2-.45 4.55-1.2z" fill="#2684fc"/>
+    <path d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 60.1 56h27.45a16.1 16.1 0 00-1.55-7.27z" fill="#ffba00"/>
+  </svg>
 );
 
 function FileIcon({ mimeType }) {
