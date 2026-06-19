@@ -504,7 +504,7 @@ export default function ChatInputBar({
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <DriveLogo size={18} />
+                        <DriveLogo size={22} />
                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
                       </button>
                     </motion.div>

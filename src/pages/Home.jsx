@@ -14,9 +14,9 @@ import { isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credi
 const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
-// Three pill logos — Gumroad center/biggest
+// Three pill logos — img1 center (Gumroad-pink bg cropped to circle)
 const GumroadLogo = () => (
-  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/aa9385498_image.png"
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/b912ad699_image.png"
     width={24} height={24} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, position: 'relative', zIndex: 1, boxShadow: '0 0 0 1.5px #fff' }} alt="Gumroad" />
 );
 const BeehiivLogo = () => (
