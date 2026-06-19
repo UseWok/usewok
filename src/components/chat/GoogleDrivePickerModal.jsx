@@ -322,6 +322,13 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
               {selected.size > 0 ? `${selected.size} file${selected.size > 1 ? 's' : ''} selected` : 'Select files to import'}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={async () => { await base44.connectors.disconnectAppUser(CONNECTOR_ID); setState(STATE.NOT_CONNECTED); setFiles([]); setSelected(new Set()); }}
+                style={{ padding: '0 10px', height: 28, borderRadius: 7, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 11, gap: 5 }}
+                title="Disconnect Google Drive"
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                Disconnect
+              </button>
               <button onClick={() => fetchFiles()}
                 style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}
                 title="Refresh"
