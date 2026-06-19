@@ -142,10 +142,10 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
                 <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.55 }}>Sign in to browse and import files directly from your Drive.</p>
               </div>
               <button onClick={handleConnect}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#111', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#fff', transition: 'opacity 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                <DriveLogo size={15} />
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#fff', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#111', transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F3'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                <DriveLogo size={16} />
                 Connect Google Drive
               </button>
             </div>

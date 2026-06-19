@@ -14,18 +14,18 @@ import { isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credi
 const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
-// GumroadLogo = big center logo (the red/pink G)
+// Three pill logos — Gumroad center/biggest
 const GumroadLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/aa9385498_image.png"
-    width={26} height={26} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1.5px solid rgba(0,0,0,0.08)' }} alt="Gumroad" />
+    width={24} height={24} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, position: 'relative', zIndex: 1, boxShadow: '0 0 0 1.5px #fff' }} alt="Gumroad" />
 );
 const BeehiivLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/0253abed5_image.png"
-    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Beehiiv" />
+    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, boxShadow: '0 0 0 1.5px #fff' }} alt="Beehiiv" />
 );
 const StripeLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/f94eba139_idwY6-bdun_logos.jpeg"
-    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Logo 3" />
+    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, boxShadow: '0 0 0 1.5px #fff' }} alt="Logo 3" />
 );
 
 function timeAgo(dateStr) {

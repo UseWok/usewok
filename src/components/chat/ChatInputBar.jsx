@@ -28,14 +28,14 @@ const StarIcon = ({ size = 15, color = '#111' }) => (
   </svg>
 );
 
-// Gemini logo — no background (black removed via screen blend), enlarged
+// Gemini logo — enlarged, no black bg
 const GeminiLogoImg = ({ size = 15 }) => {
-  const s = Math.round(size * 1.8);
+  const s = Math.round(size * 1.6);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
       width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'screen', filter: 'invert(0)' }}
+      style={{ flexShrink: 0, objectFit: 'contain', filter: 'brightness(0) invert(0) drop-shadow(0 0 0 transparent)', background: 'transparent' }}
       alt="Gemini"
     />
   );
@@ -58,22 +58,19 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — transparent background, enlarged
-const DriveLogo = ({ size = 15 }) => {
-  const s = Math.round(size * 2.0);
-  return (
-    <img
-      src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
-      width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', background: 'transparent', mixBlendMode: 'multiply' }}
-      alt="Google Drive"
-    />
-  );
-};
+// Google Drive logo — correct size in dropdown (no bg)
+const DriveLogo = ({ size = 15 }) => (
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
+    width={size} height={size}
+    style={{ flexShrink: 0, objectFit: 'contain' }}
+    alt="Google Drive"
+  />
+);
 
-// Claude logo — rendered large, no white bg
+// Claude logo — rendered 1.6× larger, no white bg
 const ClaudeLogo = ({ size = 16 }) => {
-  const s = Math.round(size * 2.0);
+  const s = Math.round(size * 1.6);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
@@ -586,8 +583,8 @@ export default function ChatInputBar({
                             onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
                           >
-                            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <ModelLogo type={m.logo} size={15} />
+                            <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <ModelLogo type={m.logo} size={18} />
                             </div>
                             <div style={{ flex: 1 }}>
                               <span style={{ fontSize: 13.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
