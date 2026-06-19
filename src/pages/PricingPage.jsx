@@ -159,9 +159,9 @@ export default function PricingPage() {
             {allPlans.map((plan, idx) => {
               const price = plan.price_monthly ?? plan.price ?? 0;
               const yearly = billingYearly[plan.id];
-              // When yearly: show price_yearly / 12 (per month billed annually)
+              // When yearly: show price_yearly as full yearly price
               const yearlyTotal = plan.price_yearly ?? (price * 12);
-              const priceDisplay = yearly ? Math.round(yearlyTotal / 12) : price;
+              const priceDisplay = yearly ? yearlyTotal : price;
               const isFree = price === 0;
               const current = isCurrentPlan(plan);
               const features = (plan.features || []).map(f => f.text || f);
@@ -184,13 +184,13 @@ export default function PricingPage() {
                   ) : (
                     <div style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 28, fontWeight: 700, color: T1 }}>${priceDisplay}</span>
-                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>/mo</span>
+                      <span style={{ fontSize: 13, color: T3, marginLeft: 4 }}>{yearly ? '/yr' : '/mo'}</span>
                     </div>
                   )}
 
                   {/* Billing note */}
                   <div style={{ fontSize: 12, color: T3, marginBottom: 16, minHeight: 18 }}>
-                    {isFree ? 'Free for everyone' : yearly ? `$${yearlyTotal} billed yearly` : 'Billed monthly'}
+                    {isFree ? 'Free for everyone' : yearly ? `$${Math.round(yearlyTotal / 12)}/mo billed annually` : 'Billed monthly'}
                   </div>
 
                   {/* Yearly toggle */}

@@ -87,7 +87,7 @@ export function useCredits(user) {
   const consumed = credits.used;
   const isLow = pct > 85;
   const isMedium = pct > 60;
-  const barColor = isLow ? '#ef4444' : isMedium ? '#f59e0b' : '#F95738';
+  const barColor = isLow ? '#ef4444' : isMedium ? '#f59e0b' : '#111111';
 
   return { ...credits, pct, remaining, consumed, barColor, isLow };
 }

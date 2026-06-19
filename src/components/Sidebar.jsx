@@ -128,7 +128,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
                 onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
               >
-                Paramètres
+                Settings
               </button>
             </div>
 
@@ -158,7 +158,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Aide
+                Help
               </button>
               <button
                 onClick={async () => { setOpen(false); await base44.auth.logout(); window.location.reload(); }}
@@ -166,7 +166,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,24,74,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Se déconnecter
+                Log out
               </button>
             </div>
           </motion.div>
@@ -325,7 +325,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
   return (
     <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#EFEFED', borderRadius: 8, border: '1px solid #E5E5E3' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Consumption</span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits</span>
         {isLow && (
           <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#F95738', background: 'rgba(249,87,56,0.12)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
         )}
@@ -334,7 +334,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
       <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>
-        {formatK(used)} / {formatK(limit)} used
+        {formatK(used)} / {formatK(limit)}
       </span>
     </div>
   );
@@ -360,9 +360,9 @@ function SettingsSidebar({ navigate, onBack }) {
   const location = useLocation();
   const activeSection = new URLSearchParams(location.search).get('section') || 'profile';
   const sections = [
-    { id: 'profile', label: 'Profil' },
-    { id: 'usage', label: 'Utilisation' },
-    { id: 'plan', label: 'Abonnement' },
+    { id: 'profile', label: 'Profile' },
+    { id: 'usage', label: 'Usage' },
+    { id: 'plan', label: 'Billing' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -373,11 +373,11 @@ function SettingsSidebar({ navigate, onBack }) {
           onMouseEnter={e => e.currentTarget.style.color = '#111'}
           onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.45)'}>
           <ChevronRight style={{ width: 13, height: 13, transform: 'rotate(180deg)' }} />
-          <span style={{ fontSize: 12.5 }}>Retour</span>
+          <span style={{ fontSize: 12.5 }}>Back</span>
         </button>
       </div>
       <div style={{ padding: '4px 6px', flex: 1, overflowY: 'auto' }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Personnel</p>
+        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Personal</p>
         {sections.map(s => {
           const isActive = activeSection === s.id;
           return (
