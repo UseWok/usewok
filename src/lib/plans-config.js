@@ -148,11 +148,13 @@ export async function loadPlansFromDB() {
     const results = await base44.entities.AppSettings.filter({ key: DB_PLANS_KEY });
     if (results.length > 0) {
       const plans = JSON.parse(results[0].value);
+      // Sync local cache with DB truth
       localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
       return plans;
     }
   } catch {}
-  return null;
+  // Fallback: local cache
+  try { return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || null; } catch { return null; }
 }
 
 export function getPlanById(planId) {

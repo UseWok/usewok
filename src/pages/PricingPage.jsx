@@ -88,18 +88,29 @@ export default function PricingPage() {
   const [plans, setPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [userPlanId, setUserPlanId] = useState('free');
-  // Default all paid plans to yearly
-  const [billingYearly, setBillingYearly] = useState(() => {
-    const init = {};
-    const plans = getPlansConfig();
-    plans.forEach(p => { if (p.price_monthly > 0) init[p.id] = true; });
-    return init;
-  });
+  const [billingYearly, setBillingYearly] = useState({});
 
   useEffect(() => {
     loadPlansFromDB()
-      .then(dbPlans => { setPlans(dbPlans || getPlansConfig()); setPlansLoading(false); })
-      .catch(() => { setPlans(getPlansConfig()); setPlansLoading(false); });
+      .then(dbPlans => {
+        const all = dbPlans || getPlansConfig();
+        const visible = all.filter(p => p.visible !== false);
+        setPlans(visible);
+        // Init yearly toggle: all paid plans default to yearly
+        const init = {};
+        visible.forEach(p => { if (p.price_monthly > 0) init[p.id] = true; });
+        setBillingYearly(init);
+        setPlansLoading(false);
+      })
+      .catch(() => {
+        const all = getPlansConfig();
+        const visible = all.filter(p => p.visible !== false);
+        setPlans(visible);
+        const init = {};
+        visible.forEach(p => { if (p.price_monthly > 0) init[p.id] = true; });
+        setBillingYearly(init);
+        setPlansLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -108,8 +119,8 @@ export default function PricingPage() {
     else { base44.auth.me().then(u => setUserPlanId(getUserPlan(u)?.id || 'free')).catch(() => {}); }
   }, [authUser]);
 
-  // All plans including free for the comparison table
-  const allPlans = plans.length > 0 ? plans : DEFAULT_PLANS;
+  // Always use the loaded (and filtered) plans — no fallback to DEFAULT_PLANS so deleted plans disappear
+  const allPlans = plans;
 
   const handleUpgrade = (plan) => {
     const yearly = billingYearly[plan.id];
@@ -143,6 +154,13 @@ export default function PricingPage() {
       </button>
     );
   };
+
+  if (plansLoading) return (
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid #E0E0E0', borderTopColor: '#111', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: F, color: T1, overflowX: 'hidden', colorScheme: 'light' }}>
@@ -224,7 +242,7 @@ export default function PricingPage() {
         <div style={{ height: 1, background: BORDER, margin: '60px 0' }} />
 
         {/* ── Feature comparison table — like image 3 ── */}
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        {allPlans.length === 0 ? null : <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ width: '100%', minWidth: allPlans.length * 160 + 220, borderCollapse: 'collapse', fontFamily: F }}>
             <thead>
               <tr>
@@ -273,7 +291,7 @@ export default function PricingPage() {
               </tr>
             </tbody>
           </table>
-        </div>
+        </div>}
 
         {/* ── Contact sales footer ── */}
         <div style={{ marginTop: 80, padding: '36px 40px', border: `1px solid ${BORDER}`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20, background: '#fff' }}>

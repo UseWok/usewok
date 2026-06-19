@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, Archive, Users, Check, X, Trash2, Home } from 'lucide-react';
-import { getPlansConfig, savePlansConfig } from '@/lib/plans-config';
+import { Plus, Pencil, Trash2, Users, Check, X, Home, Save, RefreshCw } from 'lucide-react';
+import { getPlansConfig, savePlansConfig, loadPlansFromDB } from '@/lib/plans-config';
 import { toast } from 'sonner';
 
 export default function PlansPage() {
@@ -30,12 +30,14 @@ export default function PlansPage() {
 
   const loadData = async () => {
     try {
-      const allUsers = await base44.entities.User.list();
+      const [allUsers, dbPlans] = await Promise.all([
+        base44.entities.User.list(),
+        loadPlansFromDB(),
+      ]);
       setUsers(allUsers || []);
-      // Load from DB first, fallback to local
-      const { loadPlansFromDB } = await import('@/lib/plans-config');
-      const dbPlans = await loadPlansFromDB();
-      setPlans(dbPlans || getPlansConfig());
+      // Always use DB as source of truth, clear localStorage stale cache
+      const freshPlans = dbPlans || getPlansConfig();
+      setPlans(freshPlans);
     } catch (error) {
       toast.error('Error while loading');
       setPlans(getPlansConfig());
@@ -103,12 +105,13 @@ export default function PlansPage() {
     setAddingNew(false);
   };
 
-  const handleArchive = async (planId) => {
-    if (!confirm('Are you sure you want to archive this plan?')) return;
-    const updatedPlans = plans.map(p => p.id === planId ? { ...p, visible: false, archived: true } : p);
-    await savePlansConfig(updatedPlans); // Added await here as well
+  const handleDelete = async (planId) => {
+    const plan = plans.find(p => p.id === planId);
+    if (!confirm(`Supprimer définitivement le plan "${plan?.name}" ? Cette action est irréversible.`)) return;
+    const updatedPlans = plans.filter(p => p.id !== planId);
+    await savePlansConfig(updatedPlans);
     setPlans(updatedPlans);
-    toast.success('Plan archived');
+    toast.success('Plan supprimé définitivement');
   };
 
   const addFeature = () => {
@@ -146,14 +149,23 @@ export default function PlansPage() {
             <span>Back</span>
           </button>
           <h1 className="text-[20px] font-medium text-[#1A1A1A]">Subscription Plans</h1>
+          <span className="text-[12px] text-[#888] bg-[#F5F5F3] px-2 py-0.5 rounded-full">{plans.length} plans</span>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" />
-          Add a plan
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadData}
+            className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleAddNew}
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-[#1A1A1A] text-white rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" />
+            Add a plan
+          </button>
+        </div>
       </div>
 
       {/* Plan Cards Grid */}
@@ -164,7 +176,7 @@ export default function PlansPage() {
             plan={plan}
             subscriberCount={getSubscriberCount(plan.id)}
             onEdit={() => handleEdit(plan)}
-            onArchive={() => handleArchive(plan.id)}
+            onDelete={() => handleDelete(plan.id)}
             isEditing={editingPlanId === plan.id}
           />
         ))}
@@ -192,7 +204,7 @@ export default function PlansPage() {
   );
 }
 
-function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
+function PlanCard({ plan, subscriberCount, onEdit, onDelete, isEditing }) {
   const priceDisplay = plan.price_monthly === 0 ? 'Free' : 
                        plan.price_monthly >= 999 ? 'Custom pricing' : 
                        `${plan.price_monthly} €/month`;
@@ -213,14 +225,16 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
           <button
             onClick={onEdit}
             className="p-2 text-[#888888] hover:text-[#1A1A1A] hover:bg-[#F7F7F8] rounded-lg transition-colors"
+            title="Modifier"
           >
             <Pencil className="w-4 h-4" />
           </button>
           <button
-            onClick={onArchive}
-            className="p-2 text-[#888888] hover:text-red-600 hover:bg-[#F7F7F8] rounded-lg transition-colors"
+            onClick={onDelete}
+            className="p-2 text-[#888888] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Supprimer définitivement"
           >
-            <Archive className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -248,11 +262,6 @@ function PlanCard({ plan, subscriberCount, onEdit, onArchive, isEditing }) {
           <Users className="w-4 h-4 text-[#888888]" />
           <span className="text-[13px] text-[#1A1A1A] font-medium">{subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}</span>
         </div>
-        {plan.visible === false && (
-          <span className="text-[11px] px-2 py-1 bg-[#F0F0F0] text-[#666666] rounded-full">
-            Not visible
-          </span>
-        )}
       </div>
     </div>
   );
