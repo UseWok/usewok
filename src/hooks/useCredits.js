@@ -81,13 +81,15 @@ export function useCredits(user) {
     return unsub;
   }, [user?.id]);
 
-  // "consumed" = credits.used, bar fills as you consume
-  const pct = credits.limit > 0 ? Math.min((credits.used / credits.limit) * 100, 100) : 0;
+  // Allow over-limit: bar can go beyond 100%, show overuse in red
+  const rawPct = credits.limit > 0 ? (credits.used / credits.limit) * 100 : 0;
+  const pct = Math.min(rawPct, 100); // visual bar capped at 100%
+  const isOverLimit = credits.used > credits.limit;
   const remaining = Math.max(0, credits.limit - credits.used);
   const consumed = credits.used;
-  const isLow = pct > 85;
-  const isMedium = pct > 60;
-  const barColor = isLow ? '#ef4444' : isMedium ? '#f59e0b' : '#111111';
+  const isLow = rawPct > 85;
+  const isMedium = rawPct > 60;
+  const barColor = isOverLimit ? '#ef4444' : isLow ? '#ef4444' : isMedium ? '#f59e0b' : '#111111';
 
-  return { ...credits, pct, remaining, consumed, barColor, isLow };
+  return { ...credits, pct, rawPct, remaining, consumed, barColor, isLow, isOverLimit };
 }

@@ -58,8 +58,8 @@ function ReferralBanner({ expanded, onClick }) {
 function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const { used, limit, pct, barColor } = useCredits(user);
-  const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
+  const { used, limit, pct, barColor, isOverLimit } = useCredits(user);
+  const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
 
   // Renewal date
   const renewalDate = (() => {
@@ -120,10 +120,11 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
               <button
                 onClick={() => { setOpen(false); onSettingsClick(); }}
                 style={{
-                  width: '100%', padding: '9px 14px', border: 'none',
+                  width: '100%', padding: '10px 14px', border: 'none',
                   background: '#F5F5F3', borderRadius: 9,
-                  cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: '#111',
+                  cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#111',
                   textAlign: 'left', fontFamily: 'inherit', transition: 'background 120ms',
+                  letterSpacing: '-0.01em',
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
                 onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
@@ -141,8 +142,8 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                     <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.4)', margin: '1px 0 0' }}>Renewal {renewalDate}</p>
                   )}
                 </div>
-                <span style={{ fontSize: 12, color: '#555', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
-                  {formatK(used)}/{formatK(limit)}
+                <span style={{ fontSize: 12, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 500 }}>
+                  {formatK(used)}/{formatK(limit)}{isOverLimit ? ' ⚠' : ''}
                 </span>
               </div>
               <div style={{ height: 5, background: '#E8E8E4', borderRadius: 999 }}>
@@ -283,24 +284,24 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
     <button onClick={onClick} title={!expanded ? label : undefined}
       style={{
         display: 'flex', alignItems: 'center',
-        width: '100%', height: 32,
-        padding: indent ? '0 10px 0 28px' : '0 10px',
+        width: '100%', height: 34,
+        padding: indent ? '0 10px 0 30px' : '0 10px',
         justifyContent: 'flex-start',
-        borderRadius: 6, border: 'none', cursor: 'pointer',
-        background: active ? 'rgba(0,0,0,0.06)' : 'transparent',
-        color: active ? '#111' : '#444',
+        borderRadius: 7, border: 'none', cursor: 'pointer',
+        background: active ? 'rgba(0,0,0,0.07)' : 'transparent',
+        color: active ? '#111' : '#555',
         transition: 'background 100ms',
         fontFamily: 'inherit',
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: 'inherit' }} />}
+      {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: active ? 2 : 1.7, color: active ? '#111' : '#666' }} />}
       <span style={{
-        fontSize: 12.5, fontWeight: active ? 500 : 400,
+        fontSize: 13, fontWeight: active ? 600 : 450,
         marginLeft: 9, flex: 1, textAlign: 'left',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        letterSpacing: '-0.01em',
+        letterSpacing: '-0.01em', color: active ? '#111' : '#555',
         opacity: expanded ? 1 : 0,
         transition: 'opacity 80ms',
         pointerEvents: expanded ? 'auto' : 'none',
@@ -310,7 +311,7 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
       {expanded && shortcut && (
         <span style={{ display: 'flex', gap: 2 }}>
           {shortcut.map((k, i) => (
-            <kbd key={i} style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#F0F0F0', border: '1px solid #D5D5D5', borderRadius: 4, padding: '1px 4px', color: '#888', fontWeight: 500 }}>{k}</kbd>
+            <kbd key={i} style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#EEEEED', border: '1px solid #D5D5D5', borderRadius: 4, padding: '1px 4px', color: '#777', fontWeight: 600 }}>{k}</kbd>
           ))}
         </span>
       )}
@@ -320,21 +321,21 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
 
 // ─── Sidebar Credits Bar ──────────────────────────────────────────
 function SidebarCreditsBar({ user, onUpgrade }) {
-  const { used, limit, pct, barColor, isLow } = useCredits(user);
-  const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
+  const { used, limit, pct, barColor, isLow, isOverLimit } = useCredits(user);
+  const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
   return (
     <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#EFEFED', borderRadius: 8, border: '1px solid #E5E5E3' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits</span>
-        {isLow && (
-          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#F95738', background: 'rgba(249,87,56,0.12)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
+        {(isLow || isOverLimit) && (
+          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
         )}
       </div>
       <div style={{ height: 5, background: '#DDDDD9', borderRadius: 999, marginBottom: 5 }}>
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
-      <span style={{ fontSize: 10, color: '#555', fontVariantNumeric: 'tabular-nums' }}>
-        {formatK(used)} / {formatK(limit)}
+      <span style={{ fontSize: 10, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 400 }}>
+        {formatK(used)} / {formatK(limit)}{isOverLimit ? ' ⚠' : ''}
       </span>
     </div>
   );
@@ -344,7 +345,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
 function SectionLabel({ label, expanded }) {
   if (!expanded) return <div style={{ height: 16 }} />;
   return (
-    <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '10px 10px 4px', letterSpacing: '0.07em', textTransform: 'uppercase', userSelect: 'none' }}>
+    <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.3)', margin: '12px 10px 3px', letterSpacing: '0.08em', textTransform: 'uppercase', userSelect: 'none' }}>
       {label}
     </p>
   );
@@ -352,7 +353,7 @@ function SectionLabel({ label, expanded }) {
 
 // ─── Divider ──────────────────────────────────────────────────────
 function Divider() {
-  return <div style={{ height: 1, background: '#EBEBEA', margin: '6px 0' }} />;
+  return <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '5px 0' }} />;
 }
 
 // ─── Settings Sidebar (replaces main nav when Settings clicked) ───
@@ -534,12 +535,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               <>
                 <button
                   onClick={() => setStarredOpen(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444', fontFamily: 'inherit' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 34, padding: '0 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555', fontFamily: 'inherit' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <Star style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: '#666' }} />
-                  <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#444' }}>Starred</span>
+                  <span style={{ fontSize: 13, fontWeight: 450, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#555' }}>Starred</span>
                   <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: starredOpen ? 'rotate(90deg)' : 'none' }} />
                 </button>
                 <AnimatePresence initial={false}>
@@ -561,12 +562,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               <>
                 <button
                   onClick={() => setRecentsOpen(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 32, padding: '0 10px', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#444', fontFamily: 'inherit' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', height: 34, padding: '0 10px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555', fontFamily: 'inherit' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <Clock style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.7, color: '#666' }} />
-                  <span style={{ fontSize: 12.5, fontWeight: 400, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#444' }}>Recent</span>
+                  <span style={{ fontSize: 13, fontWeight: 450, flex: 1, textAlign: 'left', letterSpacing: '-0.01em', color: '#555' }}>Recent</span>
                   <ChevronRight style={{ width: 12, height: 12, flexShrink: 0, transition: 'transform 0.15s', transform: recentsOpen ? 'rotate(90deg)' : 'none' }} />
                 </button>
                 <AnimatePresence initial={false}>

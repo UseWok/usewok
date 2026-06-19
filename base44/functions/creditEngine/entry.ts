@@ -104,7 +104,8 @@ Deno.serve(async (req) => {
         credits_limit: creditsLimit,
         credits_reset_at: user.credits_reset_at,
         plan: planId,
-        locked: creditsUsed >= creditsLimit,
+        over_limit: creditsUsed > creditsLimit,
+        locked: false,
       });
     }
 
@@ -127,12 +128,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Locked check
-      if (creditsUsed >= creditsLimit) {
-        return Response.json({ error: 'LOCKED', message: 'Credits exhausted for this period.', credits_used: creditsUsed, credits_limit: creditsLimit }, { status: 402 });
-      }
-
-      // Deduct — credits_used goes UP (0 → limit direction)
+      // No hard lock — allow overage (displayed as e.g. 160/150), renewal resets
+      // Deduct — credits_used goes UP, can exceed limit
       const newUsed = creditsUsed + cost;
 
       // Build idempotency store update

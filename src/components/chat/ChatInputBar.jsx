@@ -28,18 +28,19 @@ const StarIcon = ({ size = 15 }) => (
   </svg>
 );
 
-// Gemini logo — mix-blend-mode multiply removes white bg, no wrapper
-const GeminiLogoImg = ({ size = 15 }) => {
-  const s = Math.round(size * 1.6);
-  return (
-    <img
-      src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
-      width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
-      alt="Gemini"
-    />
-  );
-};
+// Gemini logo — authentic 4-pointed star / diamond sparkle
+const GeminiLogoImg = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 28 28" fill="none" style={{ flexShrink: 0 }}>
+    <defs>
+      <linearGradient id="gemini-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#4285F4"/>
+        <stop offset="50%" stopColor="#9B72CB"/>
+        <stop offset="100%" stopColor="#D96570"/>
+      </linearGradient>
+    </defs>
+    <path d="M14 2C14 2 14.8 8.5 17.5 11C20.2 13.5 28 14 28 14C28 14 20.2 14.5 17.5 17C14.8 19.5 14 26 14 26C14 26 13.2 19.5 10.5 17C7.8 14.5 0 14 0 14C0 14 7.8 13.5 10.5 11C13.2 8.5 14 2 14 2Z" fill="url(#gemini-grad)"/>
+  </svg>
+);
 
 // Google logo for Search Google button
 const GoogleSearchLogo = ({ size = 15 }) => (
@@ -123,43 +124,71 @@ const ALL_MODELS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────
-// IOS-STYLE MIC ANIMATION
+// WAVEFORM MIC VISUALIZER — line that spasms with audio level
 // ─────────────────────────────────────────────────────────────────
-function IOSMicVisualizer({ analyserRef, duration }) {
-  const [level, setLevel] = useState(0);
+const NUM_BARS = 32;
+function WaveformMicVisualizer({ analyserRef, duration }) {
+  const canvasRef = useRef(null);
   const rafRef = useRef(null);
 
   useEffect(() => {
-    const tick = () => {
-      rafRef.current = requestAnimationFrame(tick);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const draw = () => {
+      rafRef.current = requestAnimationFrame(draw);
       const analyser = analyserRef.current;
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
       if (analyser) {
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(data);
-        const avg = data.reduce((a, b) => a + b, 0) / data.length;
-        setLevel(Math.min(1, avg / 80));
+        const buf = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(buf);
+
+        // Draw waveform as a center line with spiky bars
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+
+        const barW = W / NUM_BARS;
+        for (let i = 0; i < NUM_BARS; i++) {
+          // Sample from frequency data
+          const idx = Math.floor((i / NUM_BARS) * buf.length);
+          const v = buf[idx] / 255;
+          const barH = v * (H * 0.9);
+          const x = i * barW + barW / 2;
+          const cy = H / 2;
+          ctx.beginPath();
+          ctx.moveTo(x, cy - barH / 2);
+          ctx.lineTo(x, cy + barH / 2);
+          ctx.stroke();
+        }
+      } else {
+        // Flat line when no audio
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
       }
     };
-    tick();
+    draw();
     return () => cancelAnimationFrame(rafRef.current);
   }, [analyserRef]);
 
-  const ringScale = 1 + level * 0.6;
-  const ring2Scale = 1 + level * 1.1;
-
   return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', height: 52 }}>
-      <motion.div animate={{ scale: ring2Scale, opacity: 0.12 + level * 0.15 }} transition={{ duration: 0.08 }}
-        style={{ position: 'absolute', width: 52, height: 52, borderRadius: '50%', background: `radial-gradient(circle, rgba(0,0,0,${0.3 + level * 0.5}) 0%, transparent 70%)` }} />
-      <motion.div animate={{ scale: ringScale, opacity: 0.25 + level * 0.3 }} transition={{ duration: 0.06 }}
-        style={{ position: 'absolute', width: 38, height: 38, borderRadius: '50%', background: `radial-gradient(circle, rgba(0,0,0,${0.5 + level * 0.4}) 0%, transparent 70%)` }} />
-      <motion.div animate={{ scale: 1 + level * 0.12 }} transition={{ duration: 0.06 }}
-        style={{ position: 'relative', width: 28, height: 28, borderRadius: '50%', background: `rgba(0,0,0,${0.9 + level * 0.1})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 ${8 + level * 20}px rgba(0,0,0,${0.3 + level * 0.5})` }}>
-        <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: '50%', background: '#EF4444' }} />
-        <Mic style={{ width: 13, height: 13, color: '#fff' }} />
-      </motion.div>
-      <span style={{ position: 'absolute', right: 0, fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', minWidth: 36 }}>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, height: 40, paddingLeft: 4 }}>
+      {/* Red recording dot */}
+      <motion.div
+        animate={{ opacity: [1, 0.3, 1] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }}
+      />
+      <canvas ref={canvasRef} width={180} height={40} style={{ flex: 1, display: 'block', maxWidth: 200 }} />
+      <span style={{ fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
         {`${Math.floor(duration / 60).toString().padStart(2, '0')}:${(duration % 60).toString().padStart(2, '0')}`}
       </span>
     </div>
@@ -336,9 +365,45 @@ export default function ChatInputBar({
     stopStream(); setIsRecording(false); setRecordingDuration(0); chunksRef.current = [];
   };
   const handleConfirmRecording = () => {
-    if (mediaRecorderRef.current?.state !== 'inactive') mediaRecorderRef.current?.stop();
-    stopStream(); setIsRecording(false); setRecordingDuration(0);
-    setTimeout(() => textareaRef.current?.focus(), 50);
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
+
+    // If still recording, stop it and wait for final ondataavailable
+    const finalize = async () => {
+      stopStream();
+      setIsRecording(false);
+      setRecordingDuration(0);
+
+      const chunks = chunksRef.current;
+      if (!chunks || chunks.length === 0) {
+        setTimeout(() => textareaRef.current?.focus(), 50);
+        return;
+      }
+
+      const mimeType = recorder.mimeType || 'audio/webm';
+      const blob = new Blob(chunks, { type: mimeType });
+      chunksRef.current = [];
+
+      // Show a brief "transcribing..." indicator
+      setInput('⏳ Transcription en cours…');
+
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: blob });
+        const transcript = await base44.integrations.Core.TranscribeAudio({ audio_url: file_url });
+        setInput(transcript || '');
+      } catch {
+        setInput('');
+        toast.error('Transcription failed', { style: { background: '#3F3F46', color: '#fff', borderRadius: '999px' } });
+      }
+      setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+
+    if (recorder.state !== 'inactive') {
+      recorder.onstop = finalize;
+      recorder.stop();
+    } else {
+      finalize();
+    }
   };
 
   const removeFile = (idx) => setFiles(files.filter((_, i) => i !== idx));
@@ -424,7 +489,7 @@ export default function ChatInputBar({
           {isRecording ? (
             <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
               style={{ padding: '10px 16px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <IOSMicVisualizer analyserRef={analyserRef} duration={recordingDuration} />
+              <WaveformMicVisualizer analyserRef={analyserRef} duration={recordingDuration} />
             </motion.div>
           ) : (
             <motion.div key="textarea" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>

@@ -27,12 +27,9 @@ export function computeCreditCost(buildMode = 'Flash', isModification = false) {
   return isModification ? tier.modify : tier.build;
 }
 
-// ── Locked si credits_used >= credits_limit ──────────────────────
+// ── Never hard-locked — users can exceed quota, renewal will reset
 export function isUserLocked(user) {
-  if (!user) return false;
-  const used = user.credits_used ?? 0;
-  const limit = user.credits_limit ?? getPlanCreditLimit(user);
-  return used >= limit;
+  return false;
 }
 
 // ── Initialiser les crédits d'un nouvel utilisateur via backend ──
@@ -87,9 +84,7 @@ export async function deductCredits(user, cost, idempotencyKey, isNewBuild = fal
       };
     }
   } catch (err) {
-    if (err?.response?.data?.error === 'LOCKED') {
-      throw new Error('CREDITS_LOCKED');
-    } else if (err?.response?.data?.error === 'LIMIT_REACHED') {
+    if (err?.response?.data?.error === 'LIMIT_REACHED') {
       throw new Error('LIMIT_REACHED');
     }
   }
