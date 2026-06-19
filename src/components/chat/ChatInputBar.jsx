@@ -28,16 +28,18 @@ const StarIcon = ({ size = 15, color = '#6366F1' }) => (
   </svg>
 );
 
-// Gemini logo — no filter, transparent bg
+// Gemini logo — white circle bg
 const GeminiLogoImg = ({ size = 15 }) => {
   const s = Math.round(size * 1.6);
   return (
-    <img
-      src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
-      width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', background: 'transparent' }}
-      alt="Gemini"
-    />
+    <div style={{ width: s, height: s, borderRadius: '50%', background: '#fff', border: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <img
+        src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
+        width={Math.round(s * 0.72)} height={Math.round(s * 0.72)}
+        style={{ objectFit: 'contain' }}
+        alt="Gemini"
+      />
+    </div>
   );
 };
 
@@ -81,7 +83,7 @@ const ClaudeLogo = ({ size = 16 }) => {
   );
 };
 
-const AutoLogo = ({ size = 16 }) => <StarIcon size={size} color="#6366F1" />;
+const AutoLogo = () => null; // Automatic has no logo
 const GeminiLogo = ({ size = 16 }) => <GeminiLogoImg size={size} />;
 
 // Crosshair / Focus SVG for "Objectif"
@@ -100,7 +102,7 @@ function ModelLogo({ type, size = 16 }) {
   if (type === 'claude') return <ClaudeLogo size={size} />;
   if (type === 'openai') return <OpenAILogo size={size} />;
   if (type === 'gemini') return <GeminiLogo size={size} />;
-  return <AutoLogo size={size} />; // 'auto' or fallback
+  return <AutoLogo />; // 'auto' — no logo
 }
 
 // Model name color: auto=black bold, claude=black, gemini=black, openai=black
@@ -583,8 +585,8 @@ export default function ChatInputBar({
                             onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                           >
-                            <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <ModelLogo type={m.logo} size={18} />
+                            <div style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <ModelLogo type={m.logo} size={22} />
                             </div>
                             <div style={{ flex: 1 }}>
                               <span style={{ fontSize: 13.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
