@@ -44,10 +44,16 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
   const [importProgress, setImportProgress] = useState(0);
 
   const fetchFiles = async () => {
+    setLoading(true);
     try {
       const res = await base44.functions.invoke('googleDriveFiles', { action: 'list' });
-      setFiles(res.data?.files || []);
-      setConnected(true);
+      // Check for not_connected error in data (axios doesn't throw on 4xx by default)
+      if (res.data?.error === 'not_connected') {
+        setConnected(false);
+      } else {
+        setFiles(res.data?.files || []);
+        setConnected(true);
+      }
     } catch {
       setConnected(false);
     } finally {
@@ -58,15 +64,18 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
   useEffect(() => { fetchFiles(); }, []);
 
   const handleConnect = async () => {
-    setLoading(true);
-    const url = await base44.connectors.connectAppUser(CONNECTOR_ID);
-    const popup = window.open(url, '_blank');
-    const timer = setInterval(() => {
-      if (!popup || popup.closed) {
-        clearInterval(timer);
-        fetchFiles();
-      }
-    }, 500);
+    try {
+      const url = await base44.connectors.connectAppUser(CONNECTOR_ID);
+      const popup = window.open(url, '_blank');
+      const timer = setInterval(() => {
+        if (!popup || popup.closed) {
+          clearInterval(timer);
+          fetchFiles();
+        }
+      }, 500);
+    } catch (e) {
+      setLoading(false);
+    }
   };
 
   const toggleSelect = (id) => {
