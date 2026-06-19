@@ -27,6 +27,7 @@ import WokHeaderMenu from '@/components/chat/WokHeaderMenu';
 import ChatHeader from '@/components/chat/ChatHeader';
 import IframeModal from '@/components/chat/IframeModal';
 import ProModal from '@/components/chat/ProModal';
+import QuickInserts from '@/components/chat/QuickInserts';
 import FullscreenIframeModal from '@/components/chat/FullscreenIframeModal';
 import PreviewSkeleton from '@/components/chat/PreviewSkeleton';
 import HistoryPanel from '@/components/chat/HistoryPanel';
@@ -872,6 +873,7 @@ export default function ChatPage() {
                   />
                   <div className="flex-shrink-0">
                     <ErrorNotification error={pendingError} onFix={handleFixError} onDismiss={() => setPendingError(null)} />
+                    <QuickInserts onInsert={(text) => setInput(prev => prev ? prev + '\n' + text : text)} />
                     <ChatInputBar
                       input={input} setInput={setInput}
                       onSend={(text, opts) => sendMessage(text, { ...opts })}
