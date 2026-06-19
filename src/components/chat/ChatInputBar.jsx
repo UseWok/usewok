@@ -33,13 +33,17 @@ const GeminiLogoImg = ({ size = 15 }) => {
   const s = Math.round(size * 1.6);
   return (
     <img
-      src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
-      width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
-      alt="Gemini"
-    />
-  );
-};
+  src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
+  width={s}
+  height={s}
+  style={{ 
+    flexShrink: 0, 
+    objectFit: 'contain', 
+    backgroundColor: 'transparent', // Assure que le conteneur de l'image n'a pas de fond
+    mixBlendMode: 'multiply'        // Fusionne le blanc avec l'arrière-plan (le rendant transparent)
+  }}
+  alt="Gemini"
+/>
 
 // Google logo for Search Google button
 const GoogleSearchLogo = ({ size = 15 }) => (
