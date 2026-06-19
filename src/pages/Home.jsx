@@ -14,18 +14,19 @@ import { isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credi
 const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
-// Three pill logos — img1 center (Gumroad-pink bg cropped to circle)
+// Pill logos — all 24px circle, 2px white ring, no gap
+const PILL_RING = { borderRadius: '50%', objectFit: 'cover', flexShrink: 0, outline: '2px solid #fff', display: 'block' };
 const GumroadLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/b912ad699_image.png"
-    width={24} height={24} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, position: 'relative', zIndex: 1, boxShadow: '0 0 0 1.5px #fff' }} alt="Gumroad" />
+    width={24} height={24} style={{ ...PILL_RING, position: 'relative', zIndex: 2 }} alt="Gumroad" />
 );
 const BeehiivLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/0253abed5_image.png"
-    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, boxShadow: '0 0 0 1.5px #fff' }} alt="Beehiiv" />
+    width={24} height={24} style={{ ...PILL_RING, position: 'relative', zIndex: 1 }} alt="Beehiiv" />
 );
 const StripeLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/f94eba139_idwY6-bdun_logos.jpeg"
-    width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, boxShadow: '0 0 0 1.5px #fff' }} alt="Logo 3" />
+    width={24} height={24} style={{ ...PILL_RING, position: 'relative', zIndex: 3 }} alt="Stripe" />
 );
 
 function timeAgo(dateStr) {
@@ -326,16 +327,8 @@ export default function Home() {
   {/* Three logos stacked at left — Gumroad (big center) flanked by the two others */}
   <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
     <BeehiivLogo />
-    
-    {/* Center logo: round, transparent background, and placed behind the right logo */}
-    <div style={{ marginLeft: -6, position: 'relative', zIndex: 1, borderRadius: '50%', overflow: 'hidden', backgroundColor: 'transparent' }}>
-      <GumroadLogo />
-    </div>
-    
-    {/* Right logo: higher z-index to stay on top of the center logo */}
-    <div style={{ marginLeft: -6, position: 'relative', zIndex: 2 }}>
-      <StripeLogo />
-    </div>
+    <div style={{ marginLeft: -8 }}><GumroadLogo /></div>
+    <div style={{ marginLeft: -8 }}><StripeLogo /></div>
   </div>
   
   <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>

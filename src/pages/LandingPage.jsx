@@ -108,13 +108,17 @@ function Navbar({ onSignup }) {
 function Hero({ onSignup }) {
   return (
     <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden' }}>
-      {/* Subtle glow */}
-      <div style={{
-        position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-        width: 900, height: 500,
-        background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(90,90,240,0.18) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Hero glow — multi-layer atmospheric */}
+      <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none' }}>
+        {/* Primary wide violet halo */}
+        <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.22) 0%, transparent 65%)', filter: 'blur(40px)' }} />
+        {/* Left accent — indigo */}
+        <div style={{ position: 'absolute', top: 80, left: '15%', width: 400, height: 300, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(120,80,255,0.14) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        {/* Right accent — blue */}
+        <div style={{ position: 'absolute', top: 60, right: '10%', width: 380, height: 280, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(60,140,255,0.10) 0%, transparent 70%)', filter: 'blur(55px)' }} />
+        {/* Bottom soft fade */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, background: 'linear-gradient(to bottom, transparent, #0A0A0B)' }} />
+      </div>
 
       <div style={{ position: 'relative' }}>
         <div style={{ padding: '80px 120px 0', position: 'relative', zIndex: 1 }}>
