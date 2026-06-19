@@ -284,7 +284,7 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh', width: '100%',
-      background: '#FFFFFF',
+      background: '#F9F9F8',
       position: 'relative',
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
