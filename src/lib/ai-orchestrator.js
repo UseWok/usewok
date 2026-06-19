@@ -307,7 +307,13 @@ export async function orchestrateGeneration(userMessage, options = {}) {
     searchActive = false,   // ← Google Search toggle from ChatInputBar
     systemPrompt = '',
     buildMode = 'Flash',
+    objectifActive = false, // ← Focus mode: adds deep-thinking delay
   } = options;
+
+  // Focus mode: artificial deep-thinking delay (+4s) before generation
+  if (objectifActive) {
+    await new Promise(resolve => setTimeout(resolve, 4000));
+  }
 
   // ── AUTOMATIC MODE: 80% Flash / 20% Max probability routing ──
   let resolvedBuildMode = buildMode;

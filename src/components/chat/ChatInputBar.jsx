@@ -28,17 +28,13 @@ const StarIcon = ({ size = 15 }) => (
   </svg>
 );
 
-// Gemini logo — authentic 4-pointed star / diamond sparkle
+// Gemini logo — official Google 'G' logo
 const GeminiLogoImg = ({ size = 15 }) => (
-  <svg width={size} height={size} viewBox="0 0 28 28" fill="none" style={{ flexShrink: 0 }}>
-    <defs>
-      <linearGradient id="gemini-grad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#4285F4"/>
-        <stop offset="50%" stopColor="#9B72CB"/>
-        <stop offset="100%" stopColor="#D96570"/>
-      </linearGradient>
-    </defs>
-    <path d="M14 2C14 2 14.8 8.5 17.5 11C20.2 13.5 28 14 28 14C28 14 20.2 14.5 17.5 17C14.8 19.5 14 26 14 26C14 26 13.2 19.5 10.5 17C7.8 14.5 0 14 0 14C0 14 7.8 13.5 10.5 11C13.2 8.5 14 2 14 2Z" fill="url(#gemini-grad)"/>
+  <svg width={size} height={size} viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
+    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+    <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+    <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/>
+    <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
   </svg>
 );
 
@@ -124,70 +120,73 @@ const ALL_MODELS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────
-// WAVEFORM MIC VISUALIZER — line that spasms with audio level
+// WAVEFORM MIC VISUALIZER — realistic horizontal CSS bars
 // ─────────────────────────────────────────────────────────────────
-const NUM_BARS = 32;
+const NUM_BARS = 28;
+
+// CSS for bar animations injected once
+const MIC_STYLE = `
+@keyframes micBar {
+  0%, 100% { transform: scaleY(0.15); }
+  50%       { transform: scaleY(1); }
+}
+`;
+
 function WaveformMicVisualizer({ analyserRef, duration }) {
-  const canvasRef = useRef(null);
+  const barsRef = useRef([]);
   const rafRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const draw = () => {
-      rafRef.current = requestAnimationFrame(draw);
+    const animate = () => {
+      rafRef.current = requestAnimationFrame(animate);
       const analyser = analyserRef.current;
-      const W = canvas.width;
-      const H = canvas.height;
-      ctx.clearRect(0, 0, W, H);
-
-      if (analyser) {
-        const buf = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(buf);
-
-        // Draw waveform as a center line with spiky bars
-        ctx.strokeStyle = '#111';
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
-
-        const barW = W / NUM_BARS;
-        for (let i = 0; i < NUM_BARS; i++) {
-          // Sample from frequency data
-          const idx = Math.floor((i / NUM_BARS) * buf.length);
-          const v = buf[idx] / 255;
-          const barH = v * (H * 0.9);
-          const x = i * barW + barW / 2;
-          const cy = H / 2;
-          ctx.beginPath();
-          ctx.moveTo(x, cy - barH / 2);
-          ctx.lineTo(x, cy + barH / 2);
-          ctx.stroke();
-        }
-      } else {
-        // Flat line when no audio
-        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height / 2);
-        ctx.lineTo(canvas.width, canvas.height / 2);
-        ctx.stroke();
-      }
+      if (!analyser) return;
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(buf);
+      barsRef.current.forEach((bar, i) => {
+        if (!bar) return;
+        const idx = Math.floor((i / NUM_BARS) * buf.length * 0.6);
+        const v = Math.max(0.08, buf[idx] / 255);
+        bar.style.transform = `scaleY(${v})`;
+      });
     };
-    draw();
+    animate();
     return () => cancelAnimationFrame(rafRef.current);
   }, [analyserRef]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, height: 40, paddingLeft: 4 }}>
-      {/* Red recording dot */}
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, height: 40, paddingLeft: 4 }}>
+      <style>{MIC_STYLE}</style>
+      {/* Red dot */}
       <motion.div
-        animate={{ opacity: [1, 0.3, 1] }}
-        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ opacity: [1, 0.25, 1] }}
+        transition={{ duration: 1.0, repeat: Infinity, ease: 'easeInOut' }}
         style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }}
       />
-      <canvas ref={canvasRef} width={180} height={40} style={{ flex: 1, display: 'block', maxWidth: 200 }} />
+      {/* Horizontal bar waveform */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, height: 32 }}>
+        {Array.from({ length: NUM_BARS }).map((_, i) => {
+          // stagger delay creates a natural wave propagation effect
+          const delay = `${((i / NUM_BARS) * 0.8).toFixed(2)}s`;
+          const dur = `${(0.4 + (i % 5) * 0.07).toFixed(2)}s`;
+          return (
+            <div
+              key={i}
+              ref={el => barsRef.current[i] = el}
+              style={{
+                width: 2.5,
+                height: '100%',
+                background: '#111',
+                borderRadius: 2,
+                transform: 'scaleY(0.12)',
+                transformOrigin: 'center',
+                animation: `micBar ${dur} ${delay} ease-in-out infinite`,
+                transition: 'transform 50ms',
+              }}
+            />
+          );
+        })}
+      </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: '#555', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
         {`${Math.floor(duration / 60).toString().padStart(2, '0')}:${(duration % 60).toString().padStart(2, '0')}`}
       </span>
@@ -315,7 +314,7 @@ export default function ChatInputBar({
   const handleSend = () => {
     if (!isLoading && (input.trim() || (files?.length || 0) > 0)) {
       const bMode = selectedModel === 'automatic' ? 'Automatic' : (selectedModel.includes('opus') ? 'Max' : 'Flash');
-      onSend(input, { files, buildMode: bMode, searchActive, selectedModel });
+      onSend(input, { files, buildMode: bMode, searchActive, selectedModel, objectifActive });
     }
   };
 
@@ -650,8 +649,8 @@ export default function ChatInputBar({
                             onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                           >
-                            <div style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <ModelLogo type={m.logo} size={22} />
+                            <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <ModelLogo type={m.logo} size={18} />
                             </div>
                             <div style={{ flex: 1 }}>
                               <span style={{ fontSize: 13.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
