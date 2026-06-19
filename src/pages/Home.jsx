@@ -15,8 +15,8 @@ const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
 const GumroadLogo = () => (
-  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/aa9385498_image.png"
-    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Gumroad" />
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/0253abed5_image.png"
+    width={22} height={22} style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} alt="Beehiiv" />
 );
 const BeehiivLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/bb4adc4a7_idSxo1jKFH_1781853956429.png"
@@ -321,13 +321,13 @@ export default function Home() {
       {/* ── Hero section ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 16px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <GumroadLogo />
-            <div style={{ marginLeft: -6 }}><BeehiivLogo /></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
+          <GumroadLogo />
+          <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
+          <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: -6 }}>
+            <BeehiivLogo />
             <div style={{ marginLeft: -6 }}><StripeLogo /></div>
           </div>
-          <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
           <span style={{ fontSize: 13, color: '#888' }}>→</span>
         </div>
 

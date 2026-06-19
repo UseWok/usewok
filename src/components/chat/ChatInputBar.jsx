@@ -28,15 +28,18 @@ const StarIcon = ({ size = 15, color = '#111' }) => (
   </svg>
 );
 
-// Gemini logo — custom uploaded
-const GeminiLogoImg = ({ size = 15 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
-    width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain' }}
-    alt="Gemini"
-  />
-);
+// Gemini logo — no background, enlarged
+const GeminiLogoImg = ({ size = 15 }) => {
+  const s = Math.round(size * 1.5);
+  return (
+    <img
+      src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
+      width={s} height={s}
+      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+      alt="Gemini"
+    />
+  );
+};
 
 // Google logo for Search Google button
 const GoogleSearchLogo = ({ size = 15 }) => (
@@ -55,15 +58,18 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — custom uploaded
-const DriveLogo = ({ size = 15 }) => (
-  <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
-    width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain' }}
-    alt="Google Drive"
-  />
-);
+// Google Drive logo — no background, enlarged
+const DriveLogo = ({ size = 15 }) => {
+  const s = Math.round(size * 1.45);
+  return (
+    <img
+      src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
+      width={s} height={s}
+      style={{ flexShrink: 0, objectFit: 'contain' }}
+      alt="Google Drive"
+    />
+  );
+};
 
 // Claude logo — rendered larger
 const ClaudeLogo = ({ size = 16 }) => {
@@ -199,13 +205,13 @@ function ObjectifButton({ active, onToggle, dropDirection = 'up' }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           width: 28, height: 28, borderRadius: 6,
-          border: active ? '1px solid rgba(59,130,246,0.35)' : 'none',
-          background: active ? 'rgba(59,130,246,0.12)' : '#E5E5E3',
+          border: active ? '1px solid rgba(59,130,246,0.5)' : '1px solid rgba(0,0,0,0.18)',
+          background: active ? 'rgba(59,130,246,0.08)' : 'transparent',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 120ms',
         }}
-        onMouseEnter={e => { setHovered(true); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.18)' : '#D0D0CE'; }}
-        onMouseLeave={e => { setHovered(false); e.currentTarget.style.background = active ? 'rgba(59,130,246,0.12)' : '#E5E5E3'; }}
+        onMouseEnter={e => { setHovered(true); if (!active) e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'; }}
+        onMouseLeave={e => { setHovered(false); if (!active) e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}
       >
         <CrosshairIcon size={13} color={active ? '#3B82F6' : '#111'} />
       </button>
@@ -359,13 +365,13 @@ export default function ChatInputBar({
     zIndex: 999,
   };
 
-  // Square gray button — gray bg, black icon
+  // Square button — transparent bg, gray border, black icon
   const lightBtn = {
     width: 28, height: 28, borderRadius: 6,
-    border: 'none',
-    background: '#E5E5E3',
+    border: '1px solid rgba(0,0,0,0.18)',
+    background: 'transparent',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'background 120ms',
+    transition: 'border-color 120ms',
   };
 
   const handleDriveImport = (importedFiles) => {
@@ -456,9 +462,9 @@ export default function ChatInputBar({
               <div ref={plusMenuRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowPlusMenu(!showPlusMenu)}
-                  style={{ ...lightBtn, background: showPlusMenu ? '#D0D0CE' : '#E5E5E3' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#D0D0CE'}
-                  onMouseLeave={e => e.currentTarget.style.background = showPlusMenu ? '#D0D0CE' : '#E5E5E3'}
+                  style={{ ...lightBtn, borderColor: showPlusMenu ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.18)' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = showPlusMenu ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.18)'}
                 >
                   <Plus style={{ width: 14, height: 14, color: '#111' }} />
                 </button>
@@ -604,8 +610,8 @@ export default function ChatInputBar({
               <button
                 onClick={handleMicClick}
                 style={{ ...lightBtn }}
-                onMouseEnter={e => e.currentTarget.style.background = '#D0D0CE'}
-                onMouseLeave={e => e.currentTarget.style.background = '#E5E5E3'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'}
               >
                 {micDenied
                   ? <MicOff style={{ width: 13, height: 13, color: '#EF4444' }} />
