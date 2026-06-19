@@ -78,8 +78,8 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
       setNextPageToken(data.nextPageToken || null);
       setState(STATE.READY);
     } catch (err) {
-      setErrorMsg(err?.message || 'Connection failed');
-      setState(STATE.ERROR);
+      // Treat any error as "not connected" rather than showing an error screen
+      setState(STATE.NOT_CONNECTED);
     } finally {
       setLoadingMore(false);
     }
