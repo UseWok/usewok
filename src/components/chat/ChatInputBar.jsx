@@ -21,21 +21,21 @@ import GoogleDrivePickerModal from '@/components/chat/GoogleDrivePickerModal';
 // LOGOS
 // ─────────────────────────────────────────────────────────────────
 
-// ✦ Star icon used for Auto + Claude models (like img2)
-const StarIcon = ({ size = 15, color = '#111' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-    <path d="M12 2C12 2 12.8 7.2 15.5 9.5C18.2 11.8 23 12 23 12C23 12 18.2 12.2 15.5 14.5C12.8 16.8 12 22 12 22C12 22 11.2 16.8 8.5 14.5C5.8 12.2 1 12 1 12C1 12 5.8 11.8 8.5 9.5C11.2 7.2 12 2 12 2Z" fill={color}/>
+// ✦ 4-pointed star for Automatic model
+const StarIcon = ({ size = 15, color = '#6366F1' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} style={{ flexShrink: 0 }}>
+    <path d="M12 1 L13.5 10.5 L23 12 L13.5 13.5 L12 23 L10.5 13.5 L1 12 L10.5 10.5 Z"/>
   </svg>
 );
 
-// Gemini logo — enlarged, no black bg
+// Gemini logo — no filter, transparent bg
 const GeminiLogoImg = ({ size = 15 }) => {
   const s = Math.round(size * 1.6);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
       width={s} height={s}
-      style={{ flexShrink: 0, objectFit: 'contain', filter: 'brightness(0) invert(0) drop-shadow(0 0 0 transparent)', background: 'transparent' }}
+      style={{ flexShrink: 0, objectFit: 'contain', background: 'transparent' }}
       alt="Gemini"
     />
   );
@@ -112,7 +112,7 @@ function modelNameStyle(m) {
 // MODEL LIST — exact hierarchy, immutable order
 // ─────────────────────────────────────────────────────────────────
 const ALL_MODELS = [
-  { id: 'automatic',        name: 'Automatic',         subtitle: 'Best model selected for each request', logo: 'auto',   isAuto: true },
+  { id: 'automatic',        name: 'Automatique',        subtitle: 'Le meilleur modèle IA est sélectionné pour chaque requête', logo: 'auto',   isAuto: true },
   { id: 'gemini-31-pro',    name: 'Gemini 3.1 Pro',    logo: 'gemini' },
   { id: 'claude-sonnet-46', name: 'Claude Sonnet 4.6', logo: 'claude' },
   { id: 'claude-opus-46',   name: 'Claude Opus 4.6',   logo: 'claude' },
@@ -504,8 +504,8 @@ export default function ChatInputBar({
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                        <DriveLogo size={13} />
-                        <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
+                        <DriveLogo size={18} />
+                         <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
                       </button>
                     </motion.div>
                   )}
@@ -576,12 +576,12 @@ export default function ChatInputBar({
                             style={{
                               width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                               padding: '10px 13px',
-                              background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                              background: 'transparent',
                               border: 'none', borderRadius: 5, cursor: 'pointer', textAlign: 'left',
                               transition: 'background 100ms',
                             }}
                             onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                           >
                             <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                               <ModelLogo type={m.logo} size={18} />

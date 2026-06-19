@@ -9,8 +9,8 @@ import { base44 } from '@/api/base44Client';
 
 const CONNECTOR_ID = '6a344ff39cf46d20611a4dba';
 
-// Google Drive logo — custom uploaded
-const DriveLogo = ({ size = 16 }) => (
+// Google Drive logo — custom uploaded, always rendered at 22px minimum
+const DriveLogo = ({ size = 22 }) => (
   <img
     src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
     width={size} height={size}
@@ -114,7 +114,7 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <DriveLogo size={20} />
+            <DriveLogo size={24} />
             <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Import from Google Drive</span>
           </div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}
@@ -145,7 +145,7 @@ export default function GoogleDrivePickerModal({ onClose, onImport }) {
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#fff', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#111', transition: 'background 120ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#F5F5F3'}
                 onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                <DriveLogo size={16} />
+                <DriveLogo size={22} />
                 Connect Google Drive
               </button>
             </div>
