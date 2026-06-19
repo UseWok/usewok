@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { User, CreditCard, Zap, ArrowLeft, Save, Gift, Clock, Trash2, X, Download, ChevronRight, Check } from 'lucide-react';
+import { Save, Gift, Clock, X, Download, ChevronRight, Check, ChevronLeft, Search, User, CreditCard, Zap } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -10,29 +10,61 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
 
-// ── Dark theme tokens matching Linear/img2 ──
-const S = {
-  bg: '#0A0A0B',
-  surface: '#111113',
-  surface2: '#16161A',
-  border: 'rgba(255,255,255,0.08)',
-  text: '#F0F0EE',
-  muted: 'rgba(255,255,255,0.4)',
-  muted2: 'rgba(255,255,255,0.22)',
-};
-
 const inputStyle = {
   width: '100%',
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: 8,
-  padding: '10px 13px',
+  background: '#F5F5F3',
+  border: '1px solid rgba(0,0,0,0.10)',
+  borderRadius: 6,
+  padding: '7px 10px',
   fontSize: 13,
-  color: S.text,
+  color: '#111',
   outline: 'none',
   fontFamily: 'Inter, sans-serif',
   boxSizing: 'border-box',
 };
+
+// ── Row: label + description on left, control on right ──
+function SettingRow({ label, description, children, noBorder = false }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '12px 0', gap: 24,
+      borderBottom: noBorder ? 'none' : '1px solid rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 13.5, fontWeight: 400, color: '#111', margin: 0, lineHeight: 1.4 }}>{label}</p>
+        {description && <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>}
+      </div>
+      <div style={{ flexShrink: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+// ── Section title ──
+function SectionTitle({ children }) {
+  return (
+    <h2 style={{ fontSize: 17, fontWeight: 600, color: '#111', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
+      {children}
+    </h2>
+  );
+}
+
+// ── Pill badge ──
+function Badge({ color = 'green', children }) {
+  const colors = {
+    green: { bg: 'rgba(34,197,94,0.1)', text: '#16a34a' },
+    yellow: { bg: 'rgba(245,158,11,0.1)', text: '#d97706' },
+    red: { bg: 'rgba(239,68,68,0.1)', text: '#dc2626' },
+    blue: { bg: 'rgba(59,130,246,0.1)', text: '#2563eb' },
+    coral: { bg: 'rgba(249,87,56,0.1)', text: '#F95738' },
+  };
+  const c = colors[color] || colors.green;
+  return (
+    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: c.bg, color: c.text, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+      {children}
+    </span>
+  );
+}
 
 function CodeRedeemer({ user, setUser }) {
   const [code, setCode] = useState('');
@@ -59,14 +91,11 @@ function CodeRedeemer({ user, setUser }) {
         const billing = rec.billing || 'monthly';
         if (newPlan) {
           await base44.auth.updateMe({
-            subscription_plan: newPlan.id,
-            credits_limit: newPlan.credits_limit || 150_000,
-            credits_used: 0,
-            billing_cycle: billing,
-            subscription_date: new Date().toISOString(),
+            subscription_plan: newPlan.id, credits_limit: newPlan.credits_limit || 150_000,
+            credits_used: 0, billing_cycle: billing, subscription_date: new Date().toISOString(),
             credits_reset_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
           });
-          setSuccess(`Plan ${newPlan.name} (${billing === 'yearly' ? 'yearly' : 'monthly'}) activated!`);
+          setSuccess(`Plan ${newPlan.name} activated!`);
           toast.success(`Plan ${newPlan.name} activated`);
         }
       } else if (rec.credits > 0) {
@@ -74,23 +103,18 @@ function CodeRedeemer({ user, setUser }) {
         setSuccess(`+${rec.credits} credits added!`);
         toast.success(`+${rec.credits} credits`);
       }
-
       const historyEntry = { email: user?.email, userId: user?.id, at: new Date().toISOString() };
       const existingHistory = (() => { try { return JSON.parse(rec.used_by_history || '[]'); } catch { return []; } })();
       existingHistory.push(historyEntry);
-
       if (rec.unlimited) {
         await base44.entities.AccessCode.update(rec.id, { use_count: (rec.use_count || 0) + 1, used_by: user?.email, used_by_history: JSON.stringify(existingHistory) });
       } else {
         await base44.entities.AccessCode.update(rec.id, { used: true, used_by: user?.email, use_count: (rec.use_count || 0) + 1, used_by_history: JSON.stringify(existingHistory) });
       }
-
       writeAuditLog(user?.id, { action: 'save', resource_type: 'AccessCode', resource_id: rec.id, status: 'success', metadata: { code: rec.code, plan_id: rec.plan_id, credits: rec.credits, email: user?.email } }).catch(() => {});
-
       if (!rec.unlimited && (!rec.max_uses || (rec.use_count || 0) + 1 >= rec.max_uses)) {
         base44.entities.AccessCode.delete(rec.id).catch(() => {});
       }
-
       const updated = await base44.auth.me();
       if (setUser) setUser(updated);
       setCode('');
@@ -102,28 +126,19 @@ function CodeRedeemer({ user, setUser }) {
   };
 
   return (
-    <div style={{ background: S.surface2, border: `1px solid ${S.border}`, borderRadius: 10, padding: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-        <Gift style={{ width: 14, height: 14, color: '#F95738' }} />
-        <p style={{ fontSize: 13, fontWeight: 600, color: S.text, margin: 0 }}>Activate a code</p>
-      </div>
-      <p style={{ fontSize: 12, color: S.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Enter an access code to activate a subscription.</p>
+    <div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <input
-          value={code}
-          onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); setSuccess(''); }}
-          placeholder="XXXX-XXXX-XXXX"
-          maxLength={24}
+        <input value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); setSuccess(''); }}
+          placeholder="XXXX-XXXX-XXXX" maxLength={24}
           onKeyDown={e => { if (e.key === 'Enter') handleRedeem(); }}
-          style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : 'rgba(255,255,255,0.1)'}` }}
-        />
+          style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
-          style={{ padding: '10px 16px', background: code.trim() ? S.text : 'rgba(255,255,255,0.08)', color: code.trim() ? '#0A0A0B' : S.muted, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'all 150ms' }}>
+          style={{ padding: '7px 14px', background: code.trim() ? '#111' : '#F0F0EE', color: code.trim() ? '#fff' : '#aaa', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
           {loading ? '...' : 'Activate'}
         </button>
       </div>
-      {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>{error}</p>}
-      {success && <p style={{ fontSize: 11, color: '#22c55e', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><Check style={{ width: 10, height: 10 }} />{success}</p>}
+      {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 5 }}>{error}</p>}
+      {success && <p style={{ fontSize: 11, color: '#16a34a', marginTop: 5, display: 'flex', alignItems: 'center', gap: 3 }}><Check style={{ width: 10, height: 10 }} />{success}</p>}
     </div>
   );
 }
@@ -141,10 +156,42 @@ function getRenewalDate(user) {
 
 const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
+// ── Sidebar nav item ──
+function NavItem({ label, icon: Icon, active, onClick }) {
+  return (
+    <button onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+        padding: '5px 10px', borderRadius: 5, border: 'none',
+        background: active ? 'rgba(0,0,0,0.07)' : 'transparent',
+        cursor: 'pointer', fontSize: 13, fontWeight: active ? 500 : 400,
+        color: active ? '#111' : 'rgba(0,0,0,0.55)',
+        fontFamily: 'Inter, sans-serif', textAlign: 'left',
+        transition: 'background 100ms',
+      }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = active ? 'rgba(0,0,0,0.07)' : 'transparent'; }}
+    >
+      {Icon && <Icon style={{ width: 13, height: 13, flexShrink: 0, opacity: 0.7 }} />}
+      {label}
+    </button>
+  );
+}
+
+// ── Sidebar group label ──
+function NavGroup({ label }) {
+  return (
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '14px 0 3px 10px', textTransform: 'none', letterSpacing: '0em' }}>
+      {label}
+    </p>
+  );
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user: authUser, refreshUser: refreshAuthUser } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
+  const [search, setSearch] = useState('');
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [fullName, setFullName] = useState('');
@@ -160,9 +207,7 @@ export default function SettingsPage() {
 
   const loadUser = (u) => {
     if (!u) return;
-    setUser(u);
-    setFullName(u?.full_name || '');
-    setInvoiceEmail(u?.email || '');
+    setUser(u); setFullName(u?.full_name || ''); setInvoiceEmail(u?.email || '');
     setUserPlan(getUserPlan(u));
     if (u?.email) {
       base44.entities.SupportTicket.filter({ category: 'cancellation', user_email: u.email }).then(ts => {
@@ -173,18 +218,12 @@ export default function SettingsPage() {
 
   const handleSetUser = async (u) => {
     if (u) loadUser(u);
-    if (refreshAuthUser) {
-      const freshUser = await refreshAuthUser();
-      if (freshUser) loadUser(freshUser);
-    }
+    if (refreshAuthUser) { const freshUser = await refreshAuthUser(); if (freshUser) loadUser(freshUser); }
   };
 
   useEffect(() => {
-    if (authUser?.id) {
-      loadUser(authUser);
-    } else {
-      base44.auth.me().then(loadUser).catch(() => {});
-    }
+    if (authUser?.id) loadUser(authUser);
+    else base44.auth.me().then(loadUser).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -217,13 +256,11 @@ export default function SettingsPage() {
     await base44.entities.SupportTicket.create({
       title: `Invoice request — ${user.full_name || user.email}`,
       description: `Invoice request for plan ${userPlan?.name}. Email: ${invoiceEmail.trim()}`,
-      category: 'invoice', status: 'open',
-      user_email: user.email, user_name: user.full_name || user.email,
-      user_plan: userPlan?.name, invoice_email: invoiceEmail.trim(),
-      messages_json: JSON.stringify([]),
+      category: 'invoice', status: 'open', user_email: user.email,
+      user_name: user.full_name || user.email, user_plan: userPlan?.name,
+      invoice_email: invoiceEmail.trim(), messages_json: JSON.stringify([]),
     });
-    setInvoiceLoading(false);
-    setShowInvoiceModal(false);
+    setInvoiceLoading(false); setShowInvoiceModal(false);
     setInvoiceRequested(p => ({ ...p, [userPlan?.name]: true }));
     toast.success('Invoice request sent');
   };
@@ -234,216 +271,209 @@ export default function SettingsPage() {
     base44.auth.logout();
   };
 
-  const navItems = [
+  if (!user) return (
+    <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 20, height: 20, border: '2px solid #E5E5E0', borderTopColor: '#999', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  const sections = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
     { id: 'usage', label: 'Usage', icon: Zap },
   ];
 
-  if (!user) return (
-    <div style={{ minHeight: '100vh', background: S.bg, fontFamily: 'Inter, system-ui, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 24, height: 24, border: '2px solid rgba(255,255,255,0.08)', borderTopColor: 'rgba(255,255,255,0.4)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
+  const sectionTitles = { profile: 'Profile', plan: 'Plan & Billing', usage: 'Usage' };
 
   return (
-    <div style={{ minHeight: '100vh', background: S.bg, fontFamily: 'Inter, system-ui, sans-serif', color: S.text }}>
-      <div style={{ maxWidth: 840, margin: '0 auto', padding: '40px 24px 100px' }}>
+    <div style={{ display: 'flex', height: '100vh', background: '#fff', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'hidden' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40 }}>
-          <button onClick={() => navigate('/app')} style={{ width: 30, height: 30, borderRadius: 7, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: S.muted, transition: 'background 120ms' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}>
-            <ArrowLeft style={{ width: 13, height: 13 }} />
+      {/* ── LEFT SIDEBAR ── */}
+      <div style={{
+        width: 200, flexShrink: 0, background: '#F9F9F8',
+        borderRight: '1px solid rgba(0,0,0,0.08)',
+        display: 'flex', flexDirection: 'column',
+        height: '100%', overflowY: 'auto',
+      }}>
+        {/* Back to app */}
+        <div style={{ padding: '14px 10px 10px' }}>
+          <button onClick={() => navigate('/app')}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'Inter, sans-serif', padding: '4px 2px' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#111'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.45)'}>
+            <ChevronLeft style={{ width: 13, height: 13 }} />
+            Back to app
           </button>
-          <h1 style={{ fontSize: 16, fontWeight: 600, color: S.text, margin: 0, letterSpacing: '-0.01em' }}>Settings</h1>
         </div>
 
-        <div style={{ display: 'flex', gap: 36 }}>
-          {/* Sidebar nav */}
-          <nav style={{ width: 168, flexShrink: 0 }}>
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const active = activeSection === item.id;
-              return (
-                <button key={item.id} onClick={() => setActiveSection(item.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-                    padding: '8px 12px', borderRadius: 7, border: 'none',
-                    background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    cursor: 'pointer', fontSize: 13,
-                    fontWeight: active ? 500 : 400,
-                    color: active ? S.text : S.muted,
-                    fontFamily: 'Inter, sans-serif', textAlign: 'left',
-                    marginBottom: 2, transition: 'all 120ms',
-                  }}
-                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
-                  <Icon style={{ width: 14, height: 14, flexShrink: 0 }} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
+        {/* Search */}
+        <div style={{ padding: '0 10px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '6px 10px' }}>
+            <Search style={{ width: 12, height: 12, color: 'rgba(0,0,0,0.35)', flexShrink: 0 }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..."
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12.5, color: '#111', fontFamily: 'Inter, sans-serif' }} />
+          </div>
+        </div>
 
-          {/* Content */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Nav groups */}
+        <div style={{ padding: '0 6px', flex: 1 }}>
+          <NavGroup label="Personal" />
+          {sections.map(s => (
+            <NavItem key={s.id} label={s.label} icon={s.icon} active={activeSection === s.id} onClick={() => setActiveSection(s.id)} />
+          ))}
+        </div>
+      </div>
 
-            {/* ── PROFILE ── */}
-            {activeSection === 'profile' && (
-              <div style={{ maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                <div style={{ background: S.surface, border: `1px solid ${S.border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
-                  <div style={{ padding: '14px 18px', borderBottom: `1px solid ${S.border}` }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: S.text, margin: 0 }}>Account</p>
-                  </div>
-                  <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: S.muted, marginBottom: 6, letterSpacing: '0.01em' }}>Email</label>
-                      <input value={user?.email || ''} disabled style={{ ...inputStyle, opacity: 0.4, cursor: 'not-allowed' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: S.muted, marginBottom: 6 }}>Full name</label>
-                      <input value={fullName} onChange={e => setFullName(e.target.value)} style={{ ...inputStyle, border: `1px solid ${profileError ? '#ef4444' : 'rgba(255,255,255,0.1)'}` }}
-                        onFocus={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'}
-                        onBlur={e => e.currentTarget.style.borderColor = profileError ? '#ef4444' : 'rgba(255,255,255,0.1)'} />
-                      {profileError && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{profileError}</p>}
-                    </div>
-                    <div>
-                      <button onClick={saveProfile} disabled={savingProfile}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: S.text, color: S.bg, border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: savingProfile ? 0.6 : 1, transition: 'opacity 150ms' }}>
-                        <Save style={{ width: 12, height: 12 }} />
-                        {savingProfile ? 'Saving...' : 'Save changes'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+      {/* ── MAIN CONTENT ── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px' }}>
+        <div style={{ maxWidth: 620 }}>
 
-                <div style={{ background: S.surface, border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#ef4444', margin: 0 }}>Danger zone</p>
-                  </div>
-                  <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: S.text, margin: '0 0 3px' }}>Delete account</p>
-                      <p style={{ fontSize: 12, color: S.muted, margin: 0 }}>Permanently delete your account and all data.</p>
-                    </div>
-                    <button onClick={() => setShowDeleteModal(true)}
-                      style={{ padding: '7px 14px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 120ms' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      Delete account
+          {/* Page title */}
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: '#111', margin: '0 0 28px', letterSpacing: '-0.02em' }}>
+            {sectionTitles[activeSection]}
+          </h1>
+
+          {/* ── PROFILE ── */}
+          {activeSection === 'profile' && (
+            <div>
+              <SectionTitle>General</SectionTitle>
+              <div style={{ marginTop: 8 }}>
+                <SettingRow label="Email" description="Your login email address — cannot be changed.">
+                  <input value={user?.email || ''} disabled style={{ ...inputStyle, width: 220, opacity: 0.5, cursor: 'not-allowed', background: '#F0F0EE' }} />
+                </SettingRow>
+                <SettingRow label="Full name" description="Your display name across the app.">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input value={fullName} onChange={e => setFullName(e.target.value)}
+                      style={{ ...inputStyle, width: 200, border: `1px solid ${profileError ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
+                    <button onClick={saveProfile} disabled={savingProfile}
+                      style={{ padding: '7px 13px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: savingProfile ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+                      {savingProfile ? 'Saving…' : 'Save'}
                     </button>
                   </div>
-                </div>
+                </SettingRow>
               </div>
-            )}
 
-            {/* ── PLAN ── */}
-            {activeSection === 'plan' && (
-              <div style={{ maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Current plan card */}
-                <div style={{ background: S.surface, border: `1px solid ${S.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ padding: '14px 18px', borderBottom: `1px solid ${S.border}` }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: S.muted2, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Current plan</p>
+              <div style={{ height: 28 }} />
+              <SectionTitle>Danger zone</SectionTitle>
+              <div style={{ marginTop: 8 }}>
+                <SettingRow label="Delete account" description="Permanently delete your account and all associated data. This cannot be undone." noBorder>
+                  <button onClick={() => setShowDeleteModal(true)}
+                    style={{ padding: '7px 14px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    Delete account
+                  </button>
+                </SettingRow>
+              </div>
+            </div>
+          )}
+
+          {/* ── PLAN & BILLING ── */}
+          {activeSection === 'plan' && (
+            <div>
+              <SectionTitle>Subscription</SectionTitle>
+              <div style={{ marginTop: 8 }}>
+                <SettingRow label="Current plan" description={isYearly ? `Billed annually` : userPlan?.price_monthly > 0 ? 'Billed monthly' : 'Free forever'}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{userPlan?.name || 'Free'}</span>
+                    {isYearly && <Badge color="coral">Yearly</Badge>}
+                    {!isYearly && userPlan?.price_monthly > 0 && <Badge color="blue">Monthly</Badge>}
                   </div>
-                  <div style={{ padding: '18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <p style={{ fontSize: 17, fontWeight: 700, color: S.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
-                          {isYearly && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738', letterSpacing: '0.04em' }}>YEARLY</span>}
-                          {!isYearly && userPlan?.price_monthly > 0 && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(59,139,235,0.15)', color: '#3B8BEB', letterSpacing: '0.04em' }}>MONTHLY</span>}
-                        </div>
-                        <p style={{ fontSize: 12, color: S.muted, margin: 0 }}>
-                          {isYearly ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/mo (billed annually)` : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free forever'}
-                        </p>
-                        {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
-                          <p style={{ fontSize: 11, color: S.muted2, margin: '5px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Clock style={{ width: 10, height: 10 }} />
-                            Renews {formatDate(getRenewalDate(user))}
-                          </p>
-                        )}
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 500, padding: '5px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: S.muted, border: `1px solid ${S.border}` }}>
-                        {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('en-US')} credits/mo` : 'Free'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => navigate('/manage-plan')}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: 'rgba(255,255,255,0.06)', border: `1px solid ${S.border}`, borderRadius: 7, fontSize: 12, color: S.muted, cursor: 'pointer', transition: 'background 120ms' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}>
-                        Manage <ChevronRight style={{ width: 11, height: 11 }} />
-                      </button>
-                      <button onClick={() => navigate('/pricing')}
-                        style={{ padding: '7px 16px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', transition: 'opacity 150ms' }}
-                        onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                        Upgrade plan
-                      </button>
-                    </div>
+                </SettingRow>
+                <SettingRow label="Credits" description="Credits available per billing cycle.">
+                  <span style={{ fontSize: 13, color: '#444' }}>
+                    {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('en-US')} / mo` : 'Free tier'}
+                  </span>
+                </SettingRow>
+                {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
+                  <SettingRow label="Next renewal" description="Your plan auto-renews on this date.">
+                    <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Clock style={{ width: 12, height: 12, color: '#999' }} />
+                      {formatDate(getRenewalDate(user))}
+                    </span>
+                  </SettingRow>
+                )}
+                <SettingRow label="Manage plan" description="Upgrade, downgrade, or cancel your subscription." noBorder>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => navigate('/manage-plan')}
+                      style={{ padding: '7px 13px', background: '#F5F5F3', color: '#555', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                      Manage
+                    </button>
+                    <button onClick={() => navigate('/pricing')}
+                      style={{ padding: '7px 14px', background: '#F95738', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      Upgrade
+                    </button>
                   </div>
-                </div>
+                </SettingRow>
+              </div>
 
-                <CodeRedeemer user={user} setUser={handleSetUser} />
+              <div style={{ height: 28 }} />
+              <SectionTitle>Access code</SectionTitle>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 12px', lineHeight: 1.5 }}>Redeem a code to activate a plan or add credits.</p>
+              <CodeRedeemer user={user} setUser={handleSetUser} />
 
-                {userPlan?.price_monthly > 0 && (
-                  <div style={{ background: S.surface, border: `1px solid ${S.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                    <div style={{ padding: '12px 18px', borderBottom: `1px solid ${S.border}` }}>
-                      <p style={{ fontSize: 11, fontWeight: 600, color: S.muted2, textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Billing history</p>
-                    </div>
-                    <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: S.text, margin: '0 0 3px' }}>{userPlan.name}</p>
-                        <p style={{ fontSize: 11, color: S.muted, margin: 0 }}>Since {formatDate(user?.subscription_date || user?.created_date)}</p>
-                      </div>
+              {userPlan?.price_monthly > 0 && (
+                <>
+                  <div style={{ height: 28 }} />
+                  <SectionTitle>Billing history</SectionTitle>
+                  <div style={{ marginTop: 8 }}>
+                    <SettingRow
+                      label={userPlan.name}
+                      description={`Since ${formatDate(user?.subscription_date || user?.created_date)}`}
+                      noBorder
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {cancelTicket?.cancel_status === 'pending' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>PENDING</span>}
-                        {cancelTicket?.cancel_status === 'approved' && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>CANCELLED</span>}
-                        {!cancelTicket && <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>ACTIVE</span>}
+                        {cancelTicket?.cancel_status === 'pending' && <Badge color="yellow">Cancellation pending</Badge>}
+                        {cancelTicket?.cancel_status === 'approved' && <Badge color="red">Cancelled</Badge>}
+                        {!cancelTicket && <Badge color="green">Active</Badge>}
                         <button onClick={() => setShowInvoiceModal(true)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', border: `1px solid ${S.border}`, borderRadius: 5, fontSize: 11, fontWeight: 500, color: invoiceRequested[userPlan.name] ? '#22c55e' : S.muted, cursor: 'pointer' }}>
-                          <Download style={{ width: 10, height: 10 }} />
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 5, fontSize: 12, fontWeight: 500, color: invoiceRequested[userPlan.name] ? '#16a34a' : '#555', cursor: 'pointer' }}>
+                          <Download style={{ width: 11, height: 11 }} />
                           {invoiceRequested[userPlan.name] ? 'Sent' : 'Invoice'}
                         </button>
                       </div>
-                    </div>
+                    </SettingRow>
                   </div>
-                )}
-              </div>
-            )}
+                </>
+              )}
+            </div>
+          )}
 
-            {/* ── USAGE ── */}
-            {activeSection === 'usage' && (
-              <div style={{ maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: S.surface, border: `1px solid ${S.border}`, borderRadius: 12 }}>
-                  <div>
-                    <p style={{ fontSize: 11, color: S.muted2, margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Current plan</p>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: S.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
-                  </div>
+          {/* ── USAGE ── */}
+          {activeSection === 'usage' && (
+            <div>
+              <SectionTitle>Overview</SectionTitle>
+              <div style={{ marginTop: 8 }}>
+                <SettingRow label="Plan" description="Your current subscription tier.">
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{userPlan?.name || 'Free'}</span>
+                </SettingRow>
+                <SettingRow label="Credits used" description="Credits consumed this billing cycle.">
                   <button onClick={() => navigate('/pricing')}
-                    style={{ padding: '7px 14px', background: '#F95738', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
+                    style={{ padding: '6px 12px', background: '#F95738', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
                     Upgrade
                   </button>
-                </div>
-
-                <CreditsBar user={user} variant="settings" />
-
-                <div style={{ background: S.surface, border: `1px solid ${S.border}`, borderRadius: 12, padding: '16px 18px' }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: S.muted, margin: '0 0 16px' }}>Activity — last 7 days</p>
-                  <ResponsiveContainer width="100%" height={90}>
-                    <BarChart data={getDailyUsage()} barSize={14}>
-                      <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ fontSize: 11, background: '#1A1A1C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: '#fff' }} />
-                      <Bar dataKey="tensors" fill="#F95738" radius={[3, 3, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                </SettingRow>
               </div>
-            )}
-          </div>
+
+              <div style={{ marginTop: 6, marginBottom: 28 }}>
+                <CreditsBar user={user} variant="settings" />
+              </div>
+
+              <SectionTitle>Activity</SectionTitle>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 14px' }}>Credits used over the last 7 days.</p>
+              <div style={{ background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 8, padding: '16px 16px 10px' }}>
+                <ResponsiveContainer width="100%" height={90}>
+                  <BarChart data={getDailyUsage()} barSize={14}>
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#999' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 11, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6, color: '#111' }} />
+                    <Bar dataKey="tensors" fill="#F95738" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -451,18 +481,18 @@ export default function SettingsPage() {
 
       {/* Invoice modal */}
       {showInvoiceModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
-          <div style={{ width: '100%', maxWidth: 380, background: S.surface, border: `1px solid ${S.border}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${S.border}` }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: S.text, margin: 0 }}>Request an invoice</p>
-              <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: S.muted }}><X style={{ width: 14, height: 14 }} /></button>
+          <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>Request an invoice</p>
+              <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X style={{ width: 14, height: 14 }} /></button>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 12, color: S.muted, margin: '0 0 12px', lineHeight: 1.5 }}>Enter the email used for your payment.</p>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>Enter the email used for your payment.</p>
               <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)} placeholder="email@example.com" style={{ ...inputStyle, marginBottom: 12 }} />
               <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
-                style={{ width: '100%', padding: '10px 0', background: S.text, color: S.bg, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
+                style={{ width: '100%', padding: '9px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
                 {invoiceLoading ? 'Sending...' : 'Send request'}
               </button>
             </div>
@@ -472,21 +502,21 @@ export default function SettingsPage() {
 
       {/* Delete modal */}
       {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <div style={{ width: '100%', maxWidth: 380, background: S.surface, border: '1px solid rgba(239,68,68,0.2)', borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.06)', borderBottom: '1px solid rgba(239,68,68,0.15)' }}>
+          <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', margin: 0 }}>Delete account</p>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 12, color: S.muted, margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be permanently deleted.</p>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 7, padding: '8px 12px', marginBottom: 14 }}>
-                <p style={{ fontSize: 12, color: S.muted, margin: 0 }}>Account: <strong style={{ color: S.text }}>{user?.email}</strong></p>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be permanently deleted.</p>
+              <div style={{ background: '#F9F9F8', borderRadius: 6, padding: '8px 11px', marginBottom: 14 }}>
+                <p style={{ fontSize: 12, color: '#666', margin: 0 }}>Account: <strong style={{ color: '#111' }}>{user?.email}</strong></p>
               </div>
-              <button onClick={deleteAccount} style={{ width: '100%', padding: '10px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 8 }}>
+              <button onClick={deleteAccount} style={{ width: '100%', padding: '9px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 8 }}>
                 Confirm deletion
               </button>
-              <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: S.muted, border: `1px solid ${S.border}`, borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '9px 0', background: 'transparent', color: '#666', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 7, fontSize: 13, cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
