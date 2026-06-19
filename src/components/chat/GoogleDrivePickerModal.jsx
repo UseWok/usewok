@@ -9,12 +9,12 @@ import { base44 } from '@/api/base44Client';
 
 const CONNECTOR_ID = '6a344ff39cf46d20611a4dba';
 
-// Google Drive logo — official image asset
+// Google Drive logo — custom uploaded
 const DriveLogo = ({ size = 16 }) => (
   <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/882b6af1a_image.png"
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
     width={size} height={size}
-    style={{ objectFit: 'contain', mixBlendMode: 'multiply', flexShrink: 0 }}
+    style={{ objectFit: 'contain', flexShrink: 0 }}
     alt="Google Drive"
   />
 );

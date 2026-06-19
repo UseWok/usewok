@@ -15,8 +15,8 @@ const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
 const GumroadLogo = () => (
-  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/c7d2fc1ee_idsKay6D5Q_logos.jpeg"
-    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Logo 1" />
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/aa9385498_image.png"
+    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Gumroad" />
 );
 const BeehiivLogo = () => (
   <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/bb4adc4a7_idSxo1jKFH_1781853956429.png"

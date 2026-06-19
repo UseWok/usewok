@@ -28,13 +28,23 @@ const StarIcon = ({ size = 15, color = '#111' }) => (
   </svg>
 );
 
-// Gemini logo — official image asset (Img 1)
+// Gemini logo — custom uploaded
 const GeminiLogoImg = ({ size = 15 }) => (
   <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/eedccfc9a_image.png"
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
     width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'screen' }}
+    style={{ flexShrink: 0, objectFit: 'contain' }}
     alt="Gemini"
+  />
+);
+
+// Google logo for Search Google button
+const GoogleSearchLogo = ({ size = 15 }) => (
+  <img
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/c7b1866aa_image.png"
+    width={size} height={size}
+    style={{ flexShrink: 0, objectFit: 'contain' }}
+    alt="Google"
   />
 );
 
@@ -45,19 +55,19 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — official image asset
+// Google Drive logo — custom uploaded
 const DriveLogo = ({ size = 15 }) => (
   <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/882b6af1a_image.png"
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
     width={size} height={size}
-    style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+    style={{ flexShrink: 0, objectFit: 'contain' }}
     alt="Google Drive"
   />
 );
 
-// Claude logo — official burst image asset (rendered ~15% larger than peers)
+// Claude logo — rendered larger
 const ClaudeLogo = ({ size = 16 }) => {
-  const s = Math.round(size * 1.18);
+  const s = Math.round(size * 1.55);
   return (
     <img
       src="https://media.base44.com/images/public/6a2edc91082e534601118582/e6e91cbc5_image.png"
@@ -475,7 +485,7 @@ export default function ChatInputBar({
                         onMouseEnter={e => { if (hasInternet) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                          <GeminiLogo size={13} />
+                          <GoogleSearchLogo size={13} />
                           <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Search Google</span>
                           {hasInternet && (
                             <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 999, background: searchActive ? '#111' : 'rgba(0,0,0,0.06)', color: searchActive ? '#fff' : '#888', letterSpacing: '0.04em' }}>
@@ -552,7 +562,7 @@ export default function ChatInputBar({
                 <AnimatePresence>
                   {showModelMenu && (
                     <motion.div {...menuAnim} transition={{ duration: 0.13 }}
-                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '4px', minWidth: 230 }}>
+                      style={{ position: 'absolute', ...menuPos, right: 0, ...dropdownBase, padding: '4px', minWidth: 260 }}>
 
                       {ALL_MODELS.map((m) => {
                         const isSelected = selectedModel === m.id;
@@ -562,7 +572,7 @@ export default function ChatInputBar({
                             onClick={() => { setSelectedModel(m.id); setShowModelMenu(false); }}
                             style={{
                               width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                              padding: '7px 10px',
+                              padding: '10px 13px',
                               background: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
                               border: 'none', borderRadius: 5, cursor: 'pointer', textAlign: 'left',
                               transition: 'background 100ms',
@@ -574,9 +584,9 @@ export default function ChatInputBar({
                               <ModelLogo type={m.logo} size={15} />
                             </div>
                             <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: 12.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
+                              <span style={{ fontSize: 13.5, fontWeight: isSelected ? 600 : (m.isAuto ? 600 : 400), color: '#111', display: 'block', lineHeight: 1.3 }}>{m.name}</span>
                               {m.subtitle && (
-                                <span style={{ fontSize: 11, color: '#888', display: 'block', lineHeight: 1.4, marginTop: 1 }}>{m.subtitle}</span>
+                                <span style={{ fontSize: 12, color: '#888', display: 'block', lineHeight: 1.4, marginTop: 2 }}>{m.subtitle}</span>
                               )}
                             </div>
                             {isSelected && (
