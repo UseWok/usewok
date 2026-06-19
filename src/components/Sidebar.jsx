@@ -115,7 +115,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
               width: 232, overflow: 'hidden',
             }}
           >
-            {/* Settings — large primary button */}
+            {/* Paramètres — large primary button */}
             <div style={{ padding: '12px 12px 8px' }}>
               <button
                 onClick={() => { setOpen(false); onSettingsClick(); }}
@@ -128,7 +128,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
                 onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
               >
-                Settings
+                Paramètres
               </button>
             </div>
 
@@ -158,7 +158,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Get help
+                Aide
               </button>
               <button
                 onClick={async () => { setOpen(false); await base44.auth.logout(); window.location.reload(); }}
@@ -166,7 +166,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,24,74,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Log out
+                Se déconnecter
               </button>
             </div>
           </motion.div>
@@ -358,41 +358,46 @@ function Divider() {
 // ─── Settings Sidebar (replaces main nav when Settings clicked) ───
 function SettingsSidebar({ navigate, onBack }) {
   const location = useLocation();
+  const activeSection = new URLSearchParams(location.search).get('section') || 'profile';
   const sections = [
-    { id: 'profile', label: 'Profile', path: '/settings' },
-    { id: 'plan', label: 'Plan & Billing', path: '/settings' },
-    { id: 'usage', label: 'Usage', path: '/settings' },
+    { id: 'profile', label: 'Profil' },
+    { id: 'usage', label: 'Utilisation' },
+    { id: 'plan', label: 'Abonnement' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      {/* Back */}
+      {/* Back — arrow only, no bg */}
       <div style={{ padding: '10px 8px 6px' }}>
         <button onClick={onBack}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'Inter, sans-serif', padding: '4px 6px', borderRadius: 5 }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#111'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(0,0,0,0.45)'; }}>
-          <ChevronRight style={{ width: 12, height: 12, transform: 'rotate(180deg)' }} />
-          Back
+          style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'Inter, sans-serif', padding: '4px 4px' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#111'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.45)'}>
+          <ChevronRight style={{ width: 13, height: 13, transform: 'rotate(180deg)' }} />
+          <span style={{ fontSize: 12.5 }}>Retour</span>
         </button>
       </div>
       <div style={{ padding: '4px 6px', flex: 1, overflowY: 'auto' }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', textTransform: 'none' }}>Personal</p>
-        {sections.map(s => (
-          <button key={s.id}
-            onClick={() => navigate(`/settings?section=${s.id}`)}
-            style={{
-              display: 'flex', alignItems: 'center', width: '100%',
-              padding: '6px 10px', borderRadius: 5, border: 'none',
-              background: location.search?.includes(s.id) ? 'rgba(0,0,0,0.07)' : 'transparent',
-              cursor: 'pointer', fontSize: 13, color: '#444',
-              fontFamily: 'inherit', textAlign: 'left', transition: 'background 100ms',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-            onMouseLeave={e => e.currentTarget.style.background = location.search?.includes(s.id) ? 'rgba(0,0,0,0.07)' : 'transparent'}
-          >
-            {s.label}
-          </button>
-        ))}
+        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Personnel</p>
+        {sections.map(s => {
+          const isActive = activeSection === s.id;
+          return (
+            <button key={s.id}
+              onClick={() => navigate(`/settings?section=${s.id}`)}
+              style={{
+                display: 'flex', alignItems: 'center', width: '100%',
+                padding: '6px 10px', borderRadius: 5, border: 'none',
+                background: isActive ? 'rgba(0,0,0,0.07)' : 'transparent',
+                cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 500 : 400,
+                color: isActive ? '#111' : '#555',
+                fontFamily: 'inherit', textAlign: 'left', transition: 'background 100ms',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = isActive ? 'rgba(0,0,0,0.07)' : 'transparent'; }}
+            >
+              {s.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -437,9 +442,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const isActive = path => location.pathname === path;
   const nav = path => { navigate(path); };
 
-  // Reset settings mode when leaving /settings
+  // Sync settingsMode with URL
   useEffect(() => {
-    if (!location.pathname.startsWith('/settings')) setSettingsMode(false);
+    if (location.pathname.startsWith('/settings')) setSettingsMode(true);
+    else setSettingsMode(false);
   }, [location.pathname]);
 
   const isMobile = useIsMobile();
