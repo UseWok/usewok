@@ -15,23 +15,16 @@ const PENDING_KEY = 'stensor_pending_query';
 
 // ── Logos for pill ──
 const GumroadLogo = () => (
-  <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#FF90E8', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0 }}>
-    <span style={{ fontSize: 11, fontWeight: 900, color: '#000', lineHeight: 1 }}>G</span>
-  </div>
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/c7d2fc1ee_idsKay6D5Q_logos.jpeg"
+    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Logo 1" />
 );
 const BeehiivLogo = () => (
-  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#C77DFF,#48CAE4)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0, overflow: 'hidden' }}>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <ellipse cx="12" cy="8" rx="7" ry="4" fill="rgba(255,255,255,0.9)"/>
-      <ellipse cx="12" cy="13" rx="7" ry="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="9" y="17" width="6" height="4" rx="2" fill="rgba(255,255,255,0.85)"/>
-    </svg>
-  </div>
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/bb4adc4a7_idSxo1jKFH_1781853956429.png"
+    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Logo 2" />
 );
 const StripeLogo = () => (
-  <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#635BFF', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #111', flexShrink: 0 }}>
-    <span style={{ fontSize: 12, fontWeight: 900, color: '#fff', lineHeight: 1 }}>S</span>
-  </div>
+  <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/f94eba139_idwY6-bdun_logos.jpeg"
+    width={22} height={22} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Logo 3" />
 );
 
 function timeAgo(dateStr) {
