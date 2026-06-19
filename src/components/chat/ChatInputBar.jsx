@@ -567,13 +567,12 @@ export default function ChatInputBar({
                       </button>
 
                       {/* Import from Google Drive */}
-                      <button disabled
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: 'default', opacity: 0.4, fontFamily: 'Inter, sans-serif' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                          <DriveLogo size={22} />
-                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
-                        </div>
-                        <Lock style={{ width: 10, height: 10, color: '#BBB' }} />
+                      <button onClick={() => { setShowPlusMenu(false); setShowDrivePicker(true); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', background: 'none', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <DriveLogo size={22} />
+                        <span style={{ fontSize: 12.5, fontWeight: 500, color: '#1A1A1A' }}>Import from Google Drive</span>
                       </button>
                     </motion.div>
                   )}
