@@ -322,16 +322,25 @@ export default function Home() {
       {/* ── Hero section ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 16px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
         {/* Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
-          {/* Three logos stacked at left — Gumroad (big center) flanked by the two others */}
-          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <BeehiivLogo />
-            <div style={{ marginLeft: -6, zIndex: 1 }}><GumroadLogo /></div>
-            <div style={{ marginLeft: -6 }}><StripeLogo /></div>
-          </div>
-          <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
-          <span style={{ fontSize: 13, color: '#888' }}>→</span>
-        </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
+  {/* Three logos stacked at left — Gumroad (big center) flanked by the two others */}
+  <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+    <BeehiivLogo />
+    
+    {/* Center logo: round, transparent background, and placed behind the right logo */}
+    <div style={{ marginLeft: -6, position: 'relative', zIndex: 1, borderRadius: '50%', overflow: 'hidden', backgroundColor: 'transparent' }}>
+      <GumroadLogo />
+    </div>
+    
+    {/* Right logo: higher z-index to stay on top of the center logo */}
+    <div style={{ marginLeft: -6, position: 'relative', zIndex: 2 }}>
+      <StripeLogo />
+    </div>
+  </div>
+  
+  <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
+  <span style={{ fontSize: 13, color: '#888' }}>→</span>
+</div>
 
         {/* Main title */}
         <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 500, color: '#1a1a1a', textAlign: 'center', margin: '0 0 32px', letterSpacing: '-0.02em', lineHeight: 1.18 }}>
