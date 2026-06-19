@@ -28,18 +28,16 @@ const StarIcon = ({ size = 15, color = '#6366F1' }) => (
   </svg>
 );
 
-// Gemini logo — white circle bg
+// Gemini logo — mix-blend-mode multiply removes white bg, no wrapper
 const GeminiLogoImg = ({ size = 15 }) => {
   const s = Math.round(size * 1.6);
   return (
-    <div style={{ width: s, height: s, borderRadius: '50%', background: '#fff', border: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <img
-        src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
-        width={Math.round(s * 0.72)} height={Math.round(s * 0.72)}
-        style={{ objectFit: 'contain' }}
-        alt="Gemini"
-      />
-    </div>
+    <img
+      src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfe8868d6_image.png"
+      width={s} height={s}
+      style={{ flexShrink: 0, objectFit: 'contain', mixBlendMode: 'multiply' }}
+      alt="Gemini"
+    />
   );
 };
 
@@ -60,10 +58,10 @@ const OpenAILogo = ({ size = 16 }) => (
   </svg>
 );
 
-// Google Drive logo — correct size in dropdown (no bg)
+// Google Drive logo — transparent PNG (no bg)
 const DriveLogo = ({ size = 15 }) => (
   <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/d26663a83_image.png"
     width={size} height={size}
     style={{ flexShrink: 0, objectFit: 'contain' }}
     alt="Google Drive"

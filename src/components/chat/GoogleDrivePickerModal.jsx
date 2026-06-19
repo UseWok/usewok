@@ -9,10 +9,10 @@ import { base44 } from '@/api/base44Client';
 
 const CONNECTOR_ID = '6a344ff39cf46d20611a4dba';
 
-// Google Drive logo — custom uploaded, always rendered at 22px minimum
+// Google Drive logo — transparent PNG (no bg)
 const DriveLogo = ({ size = 22 }) => (
   <img
-    src="https://media.base44.com/images/public/6a2edc91082e534601118582/02df20558_image.png"
+    src="https://media.base44.com/images/public/6a2edc91082e534601118582/d26663a83_image.png"
     width={size} height={size}
     style={{ objectFit: 'contain', flexShrink: 0 }}
     alt="Google Drive"
