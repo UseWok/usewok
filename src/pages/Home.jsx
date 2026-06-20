@@ -13,6 +13,7 @@ import { getBuildMode, setBuildMode as setGlobalBuildMode, subscribeBuildMode, h
 import { isUserLocked, initUserCredits, checkAndRenewCredits } from '@/lib/credits';
 
 const PENDING_KEY = 'stensor_pending_query';
+const PENDING_SCAN_KEY = 'wok_pending_scan_url';
 
 // ── Logos for pill ──
 // Pill logos — all 24px circle, 2px white ring, no gap
@@ -227,6 +228,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [user, setUser] = useState(null);
+  const [pendingScanUrl, setPendingScanUrl] = useState(null);
   const [projectTab, setProjectTab] = useState('My builds');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
@@ -248,6 +250,10 @@ export default function Home() {
     }
     const pending = localStorage.getItem(PENDING_KEY);
     if (pending) { localStorage.removeItem(PENDING_KEY); navigate(`/chat?q=${encodeURIComponent(pending)}`); return; }
+
+    // URL scannée sur la landing avant connexion — on la récupère et lance direct le scan
+    const pendingScan = localStorage.getItem(PENDING_SCAN_KEY);
+    if (pendingScan) { localStorage.removeItem(PENDING_SCAN_KEY); setPendingScanUrl(pendingScan); }
 
     base44.auth.me().then(async u => {
       if (u) { await initUserCredits(u); const updated = await checkAndRenewCredits(u); setUser(updated); }
@@ -322,8 +328,8 @@ export default function Home() {
       )}
 
       {/* ── Hero section — Website Scanner ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '72px 24px 60px', minHeight: '65vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 820, margin: '0 auto' }}>
-        <WebsiteScanner firstName={firstName} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px 60px', minHeight: '60vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 900, margin: '0 auto' }}>
+        <WebsiteScanner firstName={firstName} autoUrl={pendingScanUrl} />
       </div>
 
 

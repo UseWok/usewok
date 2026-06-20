@@ -544,6 +544,8 @@ export default function ScanHero({ onStartQuiz }) {
   const [errMsg, setErrMsg] = useState('');
 
   const handleAnalyze = async (inputUrl) => {
+    // Save URL so Home can auto-launch the scan after login
+    localStorage.setItem('wok_pending_scan_url', inputUrl);
     setUrl(inputUrl);
     setPhase('scanning');
 
