@@ -58,6 +58,7 @@ import BlogPostPage from './pages/BlogPostPage';
 
 import AdminBlog from './pages/admin/AdminBlog';
 import CockpitPage from './pages/CockpitPage';
+import AIVisibilityReport from './pages/AIVisibilityReport';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import WorkspaceSettings from './pages/WorkspaceSettings';
@@ -205,6 +206,7 @@ const AuthenticatedApp = () => {
 
           <Route path="/discussions" element={<DiscussionsPage />} />
           <Route path="/cockpit" element={<CockpitPage />} />
+          <Route path="/ai-report" element={<AIVisibilityReport />} />
           <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
 

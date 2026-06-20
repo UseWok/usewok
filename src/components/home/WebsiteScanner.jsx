@@ -223,11 +223,19 @@ export default function WebsiteScanner({ firstName, autoUrl }) {
 
   const handleSubmit = (inputUrl) => {
     setUrl(inputUrl);
+    localStorage.setItem('wok_pending_scan_url', inputUrl);
+    localStorage.removeItem('wok_report_data'); // force re-scan on report page
     setPhase('loading');
     bgResultRef.current = null;
     loaderDoneRef.current = false;
     base44.functions.invoke('analyzeWebsite', { url: inputUrl })
-      .then(res => { bgResultRef.current = res?.data || null; tryResolve(); })
+      .then(res => {
+        bgResultRef.current = res?.data || null;
+        if (res?.data?.overall_score !== undefined) {
+          localStorage.setItem('wok_report_data', JSON.stringify(res.data));
+        }
+        tryResolve();
+      })
       .catch(() => { bgResultRef.current = { error: true }; tryResolve(); });
   };
 
