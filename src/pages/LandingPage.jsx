@@ -740,14 +740,11 @@ export default function LandingPage() {
 
   const onSignup = () => base44.auth.redirectToLogin('/app');
 
-  // ── Quiz modal overlay ──
+  // ── Quiz overlay — shown after scan results (or directly from onStartQuiz)
   if (showQuiz) return (
-    <div style={{ background: BG, minHeight: '100vh', fontFamily: F }}>
+    <div style={{ background: '#FAFAFA', minHeight: '100vh', fontFamily: F }}>
       <FontLoader />
-      <Navbar onSignup={onSignup} />
-      <div style={{ paddingTop: 80 }}>
-        <OnboardingQuiz onComplete={() => base44.auth.redirectToLogin('/app')} />
-      </div>
+      <OnboardingQuiz onComplete={() => base44.auth.redirectToLogin('/app')} />
     </div>
   );
 

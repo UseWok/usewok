@@ -293,34 +293,51 @@ function Results({ data, url, onUnlock }) {
   );
 }
 
-// ── Scanning view — random, non-synchronised completion times
+// ── Scanning view — real 60s with organic task progression
 function ScanningView({ url }) {
+  // 8 meaningful tasks spread across ~60s
   const TASKS = [
-    { id: 'fetch', label: `Lecture de ${url}`, icon: '🌐' },
-    { id: 'chatgpt', label: 'Analyse ChatGPT', icon: '🤖' },
-    { id: 'perplexity', label: 'Analyse Perplexity AI', icon: '🔮' },
-    { id: 'score', label: 'Calcul du score final', icon: '📊' },
+    { id: 't1', label: `Fetching ${url}`, sub: 'Reading HTML, meta tags & structured data', duration: 5000 },
+    { id: 't2', label: 'Parsing semantic content', sub: 'Extracting headings, body copy & entity signals', duration: 7000 },
+    { id: 't3', label: 'Checking AI training corpus coverage', sub: 'Verifying presence in Common Crawl & C4 datasets', duration: 10000 },
+    { id: 't4', label: 'Simulating ChatGPT knowledge probe', sub: 'Testing 12 branded & generic queries', duration: 9000 },
+    { id: 't5', label: 'Running Perplexity citation analysis', sub: 'Checking if your domain is cited in live answers', duration: 9000 },
+    { id: 't6', label: 'Auditing Google AI overview eligibility', sub: 'Schema markup, E-E-A-T signals & authority score', duration: 8000 },
+    { id: 't7', label: 'Mapping competitor AI visibility', sub: 'Comparing vs. top 5 competitors in your segment', duration: 8000 },
+    { id: 't8', label: 'Computing final visibility score', sub: 'Aggregating 47 signals across 3 AI engines', duration: 4000 },
   ];
-  const [done, setDone] = useState([]);
-  const [progress, setProgress] = useState(8);
 
-  // Random, non-uniform delays — feels organic, not scripted
+  const [currentTask, setCurrentTask] = useState(0);
+  const [doneTasks, setDoneTasks] = useState([]);
+  const [progress, setProgress] = useState(2);
+
+  const totalDuration = TASKS.reduce((s, t) => s + t.duration, 0);
+
   useState(() => {
-    const delays = [
-      620 + Math.random() * 400,
-      1400 + Math.random() * 600,
-      2300 + Math.random() * 700,
-      3100 + Math.random() * 500,
-    ];
-    const ids = ['fetch','chatgpt','perplexity','score'];
-    const progresses = [28, 57, 81, 100];
-    const timers = ids.map((id, i) =>
-      setTimeout(() => {
-        setDone(d => [...d, id]);
-        setProgress(progresses[i]);
-      }, delays[i])
-    );
-    return () => timers.forEach(clearTimeout);
+    let elapsed = 0;
+    const timers = TASKS.map((task, i) => {
+      const t = setTimeout(() => {
+        setCurrentTask(i);
+        if (i > 0) setDoneTasks(d => [...d, TASKS[i - 1].id]);
+        const pct = Math.round((elapsed / totalDuration) * 100);
+        setProgress(Math.max(pct, 5));
+      }, elapsed);
+      elapsed += task.duration;
+      return t;
+    });
+    // Final done
+    const endTimer = setTimeout(() => {
+      setDoneTasks(TASKS.map(t => t.id));
+      setProgress(100);
+    }, totalDuration);
+    // Progress bar smooth
+    const interval = setInterval(() => {
+      setProgress(p => {
+        const next = p + (98 / (totalDuration / 300));
+        return next > 98 ? 98 : next;
+      });
+    }, 300);
+    return () => { timers.forEach(clearTimeout); clearTimeout(endTimer); clearInterval(interval); };
   });
 
   return (
@@ -328,72 +345,105 @@ function ScanningView({ url }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        maxWidth: 460, margin: '0 auto',
+        maxWidth: 520, margin: '0 auto',
         background: '#111113', border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 14, padding: '28px 32px', fontFamily: F,
+        borderRadius: 16, padding: '32px 36px', fontFamily: F,
       }}
     >
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: T1 }}>Analyzing your site...</span>
-          <span style={{ fontSize: 12, color: T3 }}>{progress}%</span>
+      {/* Progress header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: T1 }}>Analysing your AI visibility</span>
+          <span style={{ fontSize: 12, color: T3 }}>{Math.round(progress)}%</span>
         </div>
-        <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
           <div style={{
             height: '100%', width: `${progress}%`,
             background: 'linear-gradient(90deg, #5A5AF0, #7C6AF4)',
-            transition: 'width 0.7s ease', borderRadius: 2,
+            transition: 'width 0.6s ease', borderRadius: 1,
           }} />
         </div>
+        <div style={{ fontSize: 11, color: T3, marginTop: 6 }}>~60 seconds · 3 AI engines · 47 signals</div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {TASKS.map(task => {
-          const isDone = done.includes(task.id);
+
+      {/* Task list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {TASKS.map((task, i) => {
+          const isDone = doneTasks.includes(task.id);
+          const isActive = currentTask === i && !isDone;
+          const isPending = i > currentTask;
           return (
-            <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div key={task.id} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              padding: '13px 0',
+              borderBottom: i < TASKS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              opacity: isPending ? 0.3 : 1,
+              transition: 'opacity 0.5s',
+            }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                background: isDone ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${isDone ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                background: isDone ? 'rgba(34,197,94,0.15)' : 'transparent',
+                border: `1.5px solid ${isDone ? 'rgba(34,197,94,0.5)' : isActive ? 'rgba(90,90,240,0.7)' : 'rgba(255,255,255,0.1)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, transition: 'all 0.4s',
+                transition: 'all 0.4s',
               }}>
                 {isDone ? (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
                     <path d="M2 6l3 3 5-5" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                ) : task.icon}
+                ) : isActive ? (
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: '#5A5AF0',
+                    animation: 'activePulse 1s ease-in-out infinite',
+                  }} />
+                ) : null}
               </div>
               <div style={{ flex: 1 }}>
-                <span style={{ fontSize: 13, color: isDone ? T1 : T3, fontWeight: isDone ? 500 : 400, transition: 'all 0.3s' }}>{task.label}</span>
-                {!isDone && (
-                  <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
-                    {[0,1,2].map(i => (
-                      <div key={i} style={{
-                        width: 3, height: 3, borderRadius: '50%', background: 'rgba(90,90,240,0.5)',
-                        animation: `blink 1s ${i * 0.2}s ease-in-out infinite`,
+                <div style={{
+                  fontSize: 13, fontWeight: isActive || isDone ? 500 : 400,
+                  color: isDone ? 'rgba(255,255,255,0.6)' : isActive ? T1 : T3,
+                  transition: 'all 0.3s', marginBottom: 2,
+                }}>{task.label}</div>
+                {(isActive || isDone) && (
+                  <div style={{ fontSize: 11, color: T3, lineHeight: 1.4 }}>{task.sub}</div>
+                )}
+                {isActive && (
+                  <div style={{ display: 'flex', gap: 3, marginTop: 6 }}>
+                    {[0,1,2].map(j => (
+                      <div key={j} style={{
+                        width: 3, height: 3, borderRadius: '50%',
+                        background: 'rgba(90,90,240,0.6)',
+                        animation: `blink 1.1s ${j * 0.18}s ease-in-out infinite`,
                       }} />
                     ))}
                   </div>
                 )}
               </div>
-              {isDone && <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 600 }}>✓</span>}
+              {isDone && (
+                <span style={{ fontSize: 11, color: 'rgba(34,197,94,0.7)', fontWeight: 500, alignSelf: 'center', flexShrink: 0 }}>Done</span>
+              )}
             </div>
           );
         })}
       </div>
-      {/* Skeleton results preview */}
-      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <Skeleton height={48} style={{ borderRadius: 10 }} />
+
+      {/* Skeleton preview */}
+      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Skeleton height={44} style={{ borderRadius: 10 }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <Skeleton height={28} width="33%" />
-          <Skeleton height={28} width="33%" />
-          <Skeleton height={28} width="33%" />
+          <Skeleton height={24} width="33%" />
+          <Skeleton height={24} width="33%" />
+          <Skeleton height={24} width="33%" />
         </div>
-        <Skeleton height={20} />
-        <Skeleton height={20} width="80%" />
+        <Skeleton height={16} />
+        <Skeleton height={16} width="70%" />
       </div>
-      <style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <style>{`
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+        @keyframes activePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.6)}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+      `}</style>
     </motion.div>
   );
 }
@@ -438,8 +488,8 @@ function HeroInput({ onAnalyze }) {
         transition={{ delay: 0.16, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{ fontSize: 16, color: T2, lineHeight: 1.65, margin: '0 0 44px', fontFamily: F }}
       >
-        Entrez l'adresse de votre site. En 15 secondes, on vous dit si<br />
-        ChatGPT, Perplexity et Google AI vous recommandent — ou vous ignorent.
+        Entrez l'adresse de votre site. On analyse 47 signaux sur<br />
+        ChatGPT, Perplexity et Google AI — et vous dit si vous existez.
       </motion.p>
 
       <motion.div
@@ -479,7 +529,7 @@ function HeroInput({ onAnalyze }) {
           </button>
         </div>
         <p style={{ fontSize: 12, color: T3, marginTop: 12, fontFamily: F }}>
-          Gratuit · Résultat en 15 secondes
+          Gratuit · Analyse complète en ~60 secondes
         </p>
       </motion.div>
     </div>
