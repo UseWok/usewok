@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Globe } from 'lucide-react';
+import { Globe, ArrowRight, Search, BarChart2, Users, TrendingUp, Eye, Radar, MessageCircle, HelpCircle, Lightbulb, ClipboardCheck, Printer, Activity, Target, Zap } from 'lucide-react';
 import ScoreHeader from './dashboard/ScoreHeader';
 import AIEnginesWidget from './dashboard/AIEnginesWidget';
 import IssuesWidget from './dashboard/IssuesWidget';
@@ -15,6 +15,47 @@ const T2 = '#6B7280';
 const T3 = '#9CA3AF';
 const BD = '#E5E7EB';
 const VIOLET = '#7C3AED';
+
+// ── Real AI logos (official SVG inline) ──────────────────────────────────────
+const ChatGPTLogo = () => (
+  <svg width="16" height="16" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.99-3.136 10.079 10.079 0 0 0-9.618 6.977 9.967 9.967 0 0 0-6.69 4.839 10.081 10.081 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.99 3.135 10.078 10.078 0 0 0 9.617-6.976 9.967 9.967 0 0 0 6.691-4.839 10.079 10.079 0 0 0-1.24-11.818zm-15.019 21.069c-1.955 0-3.862-.662-5.409-1.873l.267-.151 8.979-5.184a1.505 1.505 0 0 0 .754-1.302V19.633l3.793 2.191a.139.139 0 0 1 .076.106v10.48c-.003 3.273-2.659 5.927-5.46 5.529zm-11.77-5.148a10.03 10.03 0 0 1-1.2-6.731l.267.161 8.979 5.184a1.505 1.505 0 0 0 1.508 0l10.963-6.333v4.381a.145.145 0 0 1-.057.112L21.4 35.501a9.956 9.956 0 0 1-10.657-2.71zm-1.545-14.91a9.943 9.943 0 0 1 5.201-4.382l-.004.31v10.368a1.503 1.503 0 0 0 .753 1.302l10.963 6.333-3.793 2.192a.139.139 0 0 1-.131.013L11.02 27.939a9.975 9.975 0 0 1-1.822-9.058zm31.1 8.575-10.963-6.333 3.793-2.192a.138.138 0 0 1 .131-.013l10.169 5.872a9.956 9.956 0 0 1-1.542 17.947v-.312l-.004-10.368a1.503 1.503 0 0 0-.752-1.301l-.832-.5zm3.776-6.73-.267-.161-8.978-5.184a1.506 1.506 0 0 0-1.508 0L21.856 20.7v-4.381a.144.144 0 0 1 .057-.112l10.165-5.868a9.955 9.955 0 0 1 14.82 10.316zm-23.763 7.811-3.792-2.192a.14.14 0 0 1-.077-.107v-10.48c.002-3.276 2.661-5.93 5.462-5.527 1.954 0 3.861.661 5.408 1.872l-.267.151-8.979 5.184a1.505 1.505 0 0 0-.754 1.302l-.001 9.797zm2.06-4.43 4.879-2.818 4.879 2.817v5.635l-4.879 2.818-4.879-2.818V23.107z" fill="currentColor"/>
+  </svg>
+);
+const ClaudeLogo = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4.5 16.5L12 3l7.5 13.5H4.5z" fill="currentColor" opacity="0.9"/>
+    <path d="M7.5 16.5L12 8l4.5 8.5H7.5z" fill="currentColor" opacity="0.5"/>
+  </svg>
+);
+const GeminiLogo = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C12 2 8.5 8.5 2 12C8.5 15.5 12 22 12 22C12 22 15.5 15.5 22 12C15.5 8.5 12 2 12 2Z" fill="currentColor"/>
+  </svg>
+);
+const PerplexityLogo = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+// ── Scene bar action items ─────────────────────────────────────────────────────
+const SCENE_ACTIONS = [
+  { id: 'visibility',   label: 'Visibility',           icon: Eye,            color: '#6366F1', desc: 'AI search presence score' },
+  { id: 'overview',     label: 'Overview',             icon: BarChart2,      color: '#8B5CF6', desc: 'Full brand health snapshot' },
+  { id: 'competitor',   label: 'Competitor',           icon: Radar,          color: '#EC4899', desc: 'Benchmark vs competitors' },
+  { id: 'crowd',        label: 'Crowd Research',       icon: Users,          color: '#F59E0B', desc: 'Public perception signals' },
+  { id: 'performance',  label: 'Performance',          icon: TrendingUp,     color: '#10B981', desc: 'Traffic & ranking trends' },
+  { id: 'perception',   label: 'Perception',           icon: MessageCircle,  color: '#3B82F6', desc: 'How AI describes you' },
+  { id: 'sentiment',    label: 'Sentiment',            icon: Activity,       color: '#EF4444', desc: 'Positive / negative signals' },
+  { id: 'drivers',      label: 'Drivers',              icon: Zap,            color: '#F97316', desc: 'Key ranking factors' },
+  { id: 'questions',    label: 'Questions',            icon: HelpCircle,     color: '#06B6D4', desc: 'What users ask about you' },
+  { id: 'seek',         label: 'Seek',                 icon: Search,         color: '#A855F7', desc: 'Deep AI query mining' },
+  { id: 'audit',        label: 'Audit',                icon: ClipboardCheck, color: '#0EA5E9', desc: 'Full technical audit' },
+  { id: 'print',        label: 'Print',                icon: Printer,        color: '#64748B', desc: 'Export PDF report' },
+  { id: 'tracking',     label: 'Tracking',             icon: Target,         color: '#DC2626', desc: 'Monitor over time' },
+  { id: 'goals',        label: 'Goals',                icon: Lightbulb,      color: '#84CC16', desc: 'Set & track objectives' },
+];
 
 // ─── LOADER 6s FACTICE (uniquement après connexion, light theme) ──────────────
 const SCAN_STEPS = [
@@ -118,37 +159,162 @@ function ScanLoader({ url, onDone }) {
   );
 }
 
-// ─── URL INPUT (fallback si pas d'autoUrl) ────────────────────────────────────
+// ─── URL INPUT — Dark scene bar redesign ─────────────────────────────────────
 function URLInput({ onSubmit }) {
   const [url, setUrl] = useState('');
+  const [activeAction, setActiveAction] = useState('visibility');
   const ref = useRef(null);
   const submit = () => { if (!url.trim()) { ref.current?.focus(); return; } onSubmit(url.trim()); };
+
+  const active = SCENE_ACTIONS.find(a => a.id === activeAction) || SCENE_ACTIONS[0];
+
   return (
-    <div style={{ width: '100%', maxWidth: 580, margin: '0 auto', textAlign: 'center' }}>
-      <h1 style={{ fontSize: 'clamp(22px, 2.8vw, 32px)', fontWeight: 700, color: T1, margin: '0 0 8px', letterSpacing: '-0.025em' }}>
-        Analysez votre visibilité IA
-      </h1>
-      <p style={{ fontSize: 14, color: T2, margin: '0 0 24px' }}>Entrez votre URL et obtenez votre score en quelques secondes.</p>
-      <div style={{
-        display: 'flex', background: '#fff', border: `1.5px solid ${BD}`,
-        borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        transition: 'border-color 200ms',
-      }}
-        onFocusCapture={e => { e.currentTarget.style.borderColor = VIOLET; }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = BD; }}>
-        <Globe size={15} color={T3} style={{ marginLeft: 16, alignSelf: 'center', flexShrink: 0 }} />
-        <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
-          placeholder="https://votre-site.fr"
-          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '16px 14px', fontSize: 14, color: T1, fontFamily: F }} />
-        <button onClick={submit} style={{
-          margin: 6, padding: '10px 22px', background: VIOLET, color: '#fff', border: 'none',
-          borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms',
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-          Analyser →
-        </button>
-      </div>
+    <div style={{ width: '100%', maxWidth: 780, margin: '0 auto', fontFamily: F }}>
+
+      {/* ── Eyebrow: AI engine logos ── */}
+      <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 28 }}>
+        {[
+          { Logo: ChatGPTLogo, label: 'ChatGPT',    bg: '#10A37F', color: '#fff' },
+          { Logo: ClaudeLogo,  label: 'Claude',     bg: '#D4A27F', color: '#fff' },
+          { Logo: GeminiLogo,  label: 'Gemini',     bg: 'linear-gradient(135deg,#4285F4,#34A853)', color: '#fff' },
+          { Logo: PerplexityLogo, label: 'Perplexity', bg: '#20808D', color: '#fff' },
+        ].map(({ Logo, label, bg, color }, i) => (
+          <motion.div key={label} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '5px 12px 5px 8px',
+              background: '#F8F7F4', border: '1px solid #E5E4E0',
+              borderRadius: 20, fontSize: 12, fontWeight: 500, color: '#555',
+            }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+              <Logo />
+            </div>
+            {label}
+          </motion.div>
+        ))}
+        <span style={{ fontSize: 11, color: T3, marginLeft: 4 }}>+ more</span>
+      </motion.div>
+
+      {/* ── Hero title ── */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        style={{ textAlign: 'center', marginBottom: 32 }}>
+        <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#0F0F10', margin: '0 0 10px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+          How visible are you<br />to AI search?
+        </h1>
+        <p style={{ fontSize: 15, color: T2, margin: 0 }}>
+          Enter your URL — get your full AI visibility report in 60 seconds.
+        </p>
+      </motion.div>
+
+      {/* ── MAIN DARK SCENE CARD ── */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        style={{
+          background: '#0F0F12',
+          borderRadius: 20,
+          overflow: 'hidden',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06)',
+        }}>
+
+        {/* Top: scene action bar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 2,
+          padding: '12px 14px 0',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+        }}>
+          {SCENE_ACTIONS.map((action) => {
+            const Icon = action.icon;
+            const isActive = activeAction === action.id;
+            return (
+              <button key={action.id} onClick={() => setActiveAction(action.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 12px 10px',
+                  border: 'none', borderRadius: '8px 8px 0 0',
+                  background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
+                  cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap', flexShrink: 0,
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.35)',
+                  fontSize: 12, fontWeight: isActive ? 600 : 400,
+                  transition: 'all 140ms',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}}
+                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.background = 'transparent'; }}}
+              >
+                <Icon size={13} style={{ color: isActive ? action.color : 'inherit' }} />
+                {action.label}
+                {isActive && (
+                  <motion.div layoutId="activeTab"
+                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: action.color, borderRadius: '2px 2px 0 0' }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Middle: active action context */}
+        <AnimatePresence mode="wait">
+          <motion.div key={activeAction}
+            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: `${active.color}22`, border: `1px solid ${active.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <active.icon size={15} color={active.color} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{active.label}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{active.desc}</div>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+              {[ChatGPTLogo, ClaudeLogo, GeminiLogo, PerplexityLogo].map((Logo, i) => (
+                <div key={i} style={{ width: 20, height: 20, borderRadius: 5, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
+                  <Logo />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Bottom: URL input */}
+        <div style={{ padding: '8px 14px 14px', display: 'flex', gap: 8 }}>
+          <div style={{
+            flex: 1, display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 12, padding: '0 14px',
+            transition: 'border-color 200ms',
+          }}
+            onFocusCapture={e => { e.currentTarget.style.borderColor = `${active.color}80`; }}
+            onBlurCapture={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
+            <Globe size={14} color="rgba(255,255,255,0.25)" />
+            <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
+              placeholder="https://your-website.com"
+              style={{
+                flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                padding: '14px 0', fontSize: 14, color: '#fff', fontFamily: F,
+                caretColor: active.color,
+              }} />
+          </div>
+          <button onClick={submit} style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '0 22px', background: active.color, color: '#fff', border: 'none',
+            borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F,
+            transition: 'opacity 150ms, transform 100ms', whiteSpace: 'nowrap',
+            boxShadow: `0 4px 20px ${active.color}60`,
+          }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            Analyze <ArrowRight size={13} />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* ── Bottom hint ── */}
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+        style={{ textAlign: 'center', fontSize: 11, color: T3, marginTop: 14, margin: '14px 0 0' }}>
+        Free · Full analysis in ~60 seconds · No account required
+      </motion.p>
     </div>
   );
 }
