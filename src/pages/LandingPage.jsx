@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import ScanHero from '@/components/landing/ScanHero';
+import OnboardingQuiz from '@/components/landing/OnboardingQuiz';
 
 // ── Dark theme tokens ──
 const F = "'Inter', -apple-system, system-ui, sans-serif";
@@ -701,6 +703,7 @@ function Footer() {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated()
@@ -717,11 +720,34 @@ export default function LandingPage() {
 
   const onSignup = () => base44.auth.redirectToLogin('/app');
 
+  // ── Quiz modal overlay ──
+  if (showQuiz) return (
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: F }}>
+      <FontLoader />
+      <Navbar onSignup={onSignup} />
+      <div style={{ paddingTop: 80 }}>
+        <OnboardingQuiz onComplete={() => base44.auth.redirectToLogin('/app')} />
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ background: BG, fontFamily: F }}>
       <FontLoader />
       <Navbar onSignup={onSignup} />
-      <Hero onSignup={onSignup} />
+
+      {/* ── SCAN HERO — replaces original Hero ── */}
+      <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
+        {/* Background glow */}
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.18) 0%, transparent 65%)', filter: 'blur(40px)' }} />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <ScanHero onStartQuiz={() => setShowQuiz(true)} />
+        </div>
+      </section>
+
+      {/* ── Separator + Legacy sections below ── */}
       <LogoStrip />
       <NewSpecies />
       <ThreePillars />
