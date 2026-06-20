@@ -293,26 +293,33 @@ function Results({ data, url, onUnlock }) {
   );
 }
 
-// ── Scanning view — all tasks fire in parallel, UI shows them as they complete
-function ScanningView({ url, onDone }) {
+// ── Scanning view — random, non-synchronised completion times
+function ScanningView({ url }) {
   const TASKS = [
-    { id: 'fetch', label: `Reading ${url}` },
-    { id: 'chatgpt', label: 'Querying ChatGPT visibility' },
-    { id: 'perplexity', label: 'Querying Perplexity AI' },
-    { id: 'score', label: 'Calculating your AI score' },
+    { id: 'fetch', label: `Lecture de ${url}`, icon: '🌐' },
+    { id: 'chatgpt', label: 'Analyse ChatGPT', icon: '🤖' },
+    { id: 'perplexity', label: 'Analyse Perplexity AI', icon: '🔮' },
+    { id: 'score', label: 'Calcul du score final', icon: '📊' },
   ];
-  // All start at the same time visually — staggered green checkmarks
   const [done, setDone] = useState([]);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(8);
 
+  // Random, non-uniform delays — feels organic, not scripted
   useState(() => {
-    // Stagger the visual completion — but all actually happen in parallel on the backend
-    const timers = [
-      setTimeout(() => { setDone(d => [...d, 'fetch']); setProgress(25); }, 800),
-      setTimeout(() => { setDone(d => [...d, 'chatgpt']); setProgress(55); }, 1600),
-      setTimeout(() => { setDone(d => [...d, 'perplexity']); setProgress(80); }, 2400),
-      setTimeout(() => { setDone(d => [...d, 'score']); setProgress(100); }, 3200),
+    const delays = [
+      620 + Math.random() * 400,
+      1400 + Math.random() * 600,
+      2300 + Math.random() * 700,
+      3100 + Math.random() * 500,
     ];
+    const ids = ['fetch','chatgpt','perplexity','score'];
+    const progresses = [28, 57, 81, 100];
+    const timers = ids.map((id, i) =>
+      setTimeout(() => {
+        setDone(d => [...d, id]);
+        setProgress(progresses[i]);
+      }, delays[i])
+    );
     return () => timers.forEach(clearTimeout);
   });
 
@@ -339,28 +346,38 @@ function ScanningView({ url, onDone }) {
           }} />
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {TASKS.map(task => {
           const isDone = done.includes(task.id);
-          const isActive = !isDone;
           return (
             <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
-                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                background: isDone ? '#22c55e' : 'rgba(255,255,255,0.06)',
-                border: isActive ? '1px solid rgba(90,90,240,0.4)' : 'none',
+                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                background: isDone ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isDone ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.08)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.3s',
+                fontSize: 14, transition: 'all 0.4s',
               }}>
                 {isDone ? (
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                ) : (
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(90,90,240,0.6)', animation: 'blink 1.2s ease-in-out infinite' }} />
+                ) : task.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 13, color: isDone ? T1 : T3, fontWeight: isDone ? 500 : 400, transition: 'all 0.3s' }}>{task.label}</span>
+                {!isDone && (
+                  <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
+                    {[0,1,2].map(i => (
+                      <div key={i} style={{
+                        width: 3, height: 3, borderRadius: '50%', background: 'rgba(90,90,240,0.5)',
+                        animation: `blink 1s ${i * 0.2}s ease-in-out infinite`,
+                      }} />
+                    ))}
+                  </div>
                 )}
               </div>
-              <span style={{ fontSize: 13, color: isDone ? T1 : T3, transition: 'color 0.3s' }}>{task.label}</span>
+              {isDone && <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 600 }}>✓</span>}
             </div>
           );
         })}
@@ -402,7 +419,7 @@ function HeroInput({ onAnalyze }) {
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-        <span style={{ fontSize: 12, color: T2, fontWeight: 500, fontFamily: F }}>Free · 3,847 sites analyzed this week</span>
+        <span style={{ fontSize: 12, color: T2, fontWeight: 500, fontFamily: F }}>3 847 analyses cette semaine</span>
       </motion.div>
 
       <motion.h1
@@ -413,7 +430,7 @@ function HeroInput({ onAnalyze }) {
           letterSpacing: '-0.04em', lineHeight: 1.06, margin: '0 0 18px', fontFamily: F,
         }}
       >
-        Do AI models<br />know you exist?
+        ChatGPT vous recommande‑t‑il<br />à vos clients ?
       </motion.h1>
 
       <motion.p
@@ -421,8 +438,8 @@ function HeroInput({ onAnalyze }) {
         transition={{ delay: 0.16, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{ fontSize: 16, color: T2, lineHeight: 1.65, margin: '0 0 44px', fontFamily: F }}
       >
-        Enter your website. In seconds, we tell you exactly where<br />
-        ChatGPT, Perplexity and Google AI rank you — or ignore you.
+        Entrez l'adresse de votre site. En 15 secondes, on vous dit si<br />
+        ChatGPT, Perplexity et Google AI vous recommandent — ou vous ignorent.
       </motion.p>
 
       <motion.div
@@ -443,7 +460,7 @@ function HeroInput({ onAnalyze }) {
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && submit()}
-            placeholder="https://your-website.com"
+            placeholder="https://votre-site.fr"
             style={{
               flex: 1, background: 'transparent', border: 'none', outline: 'none',
               padding: '17px 20px', fontSize: 15, color: T1, fontFamily: F, caretColor: '#5A5AF0',
@@ -458,11 +475,11 @@ function HeroInput({ onAnalyze }) {
             onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            Analyze free →
+            Analyser →
           </button>
         </div>
         <p style={{ fontSize: 12, color: T3, marginTop: 12, fontFamily: F }}>
-          No sign-up · No credit card · Real AI analysis
+          Gratuit · Résultat en 15 secondes
         </p>
       </motion.div>
     </div>
@@ -511,7 +528,7 @@ export default function ScanHero({ onStartQuiz }) {
           <motion.div key="scan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{ padding: '80px 24px 0' }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <p style={{ fontSize: 13, color: T3, fontFamily: F, marginBottom: 6 }}>Running 3 AI queries in parallel on</p>
+              <p style={{ fontSize: 13, color: T3, fontFamily: F, marginBottom: 6 }}>Analyse en cours — 3 moteurs IA en parallèle</p>
               <p style={{ fontSize: 16, fontWeight: 700, color: T1, fontFamily: F, letterSpacing: '-0.02em' }}>{url}</p>
             </div>
             <ScanningView url={url} onDone={() => {}} />
