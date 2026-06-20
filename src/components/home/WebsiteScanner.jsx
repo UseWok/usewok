@@ -2,12 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Globe, ArrowRight, Search, BarChart2, Users, TrendingUp, Eye, Radar, MessageCircle, HelpCircle, Lightbulb, ClipboardCheck, Printer, Activity, Target, Zap } from 'lucide-react';
-import ScoreHeader from './dashboard/ScoreHeader';
-import AIEnginesWidget from './dashboard/AIEnginesWidget';
-import IssuesWidget from './dashboard/IssuesWidget';
-import TechnicalWidget from './dashboard/TechnicalWidget';
-import ScoreBreakdown from './dashboard/ScoreBreakdown';
-import UpgradeBanner from './dashboard/UpgradeBanner';
+import SemrushDashboard from './SemrushDashboard';
 
 const F = 'Inter, system-ui, sans-serif';
 const T1 = '#111827';
@@ -262,22 +257,9 @@ function generateFallback(url) {
   };
 }
 
-// ─── DASHBOARD COMPLET ────────────────────────────────────────────────────────
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function Dashboard({ data, url, onRescan }) {
-  return (
-    <div style={{ fontFamily: F }}>
-      <ScoreHeader data={data} url={url} onRescan={onRescan} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-        <AIEnginesWidget data={data} />
-        <IssuesWidget issues={data.issues || []} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-        <ScoreBreakdown data={data} />
-        <TechnicalWidget data={data} />
-      </div>
-      <UpgradeBanner />
-    </div>
-  );
+  return <SemrushDashboard data={data} url={url} onRescan={onRescan} />;
 }
 
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
