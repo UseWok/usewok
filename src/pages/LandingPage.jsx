@@ -4,6 +4,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import ScanHero from '@/components/landing/ScanHero';
 import OnboardingQuiz from '@/components/landing/OnboardingQuiz';
+import ParticleField from '@/components/landing/ParticleField';
 
 // ── Dark theme tokens ──
 const F = "'Inter', -apple-system, system-ui, sans-serif";
@@ -757,11 +758,15 @@ export default function LandingPage() {
 
       {/* ── SCAN HERO — replaces original Hero ── */}
       <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
-        {/* Background glow */}
-        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.18) 0%, transparent 65%)', filter: 'blur(40px)' }} />
+        {/* Particle scintillation layer */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <ParticleField count={90} />
         </div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Background glow */}
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none', zIndex: 1 }}>
+          <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.16) 0%, transparent 65%)', filter: 'blur(40px)' }} />
+        </div>
+        <div style={{ position: 'relative', zIndex: 2 }}>
           <ScanHero onStartQuiz={() => setShowQuiz(true)} />
         </div>
       </section>
