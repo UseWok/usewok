@@ -1,0 +1,125 @@
+{
+  "name": "BusinessProfile",
+  "type": "object",
+  "properties": {
+    "identity_name": {
+      "type": "string",
+      "title": "Business Name"
+    },
+    "identity_industry": {
+      "type": "string",
+      "title": "Industry"
+    },
+    "identity_city": {
+      "type": "string",
+      "title": "City"
+    },
+    "identity_target": {
+      "type": "string",
+      "title": "Target Audience"
+    },
+    "brand_tone": {
+      "type": "string",
+      "title": "Brand Tone"
+    },
+    "brand_colors": {
+      "type": "string",
+      "title": "Brand Colors (JSON)"
+    },
+    "brand_keywords": {
+      "type": "string",
+      "title": "Brand Keywords (JSON)"
+    },
+    "products": {
+      "type": "string",
+      "title": "Products (JSON array of {name, description, price})",
+      "format": "textarea"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "stripe_connected": {
+      "type": "boolean",
+      "title": "Stripe Connected",
+      "default": false
+    },
+    "score_ai_visibility": {
+      "type": "number",
+      "title": "AI Visibility Score",
+      "default": 0
+    },
+    "score_message_clarity": {
+      "type": "number",
+      "title": "Message Clarity Score",
+      "default": 0
+    },
+    "score_commercial_signal": {
+      "type": "number",
+      "title": "Commercial Signal Score",
+      "default": 0
+    },
+    "score_overall": {
+      "type": "number",
+      "title": "Overall Score",
+      "default": 0
+    },
+    "score_previous": {
+      "type": "number",
+      "title": "Previous Overall Score",
+      "default": 0
+    },
+    "last_scan": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Last Scan Date"
+    },
+    "active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "site_url"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

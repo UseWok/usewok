@@ -338,10 +338,12 @@ function ActionItem({ priority, title, desc, impact, isWokSite, creditCost = 15,
               </button>
             )}
             {!isWokSite && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: T3 }}>
-                <Lock size={9} />
-                <span>Disponible sur les sites WOK</span>
-              </div>
+              <a href="/app"
+                style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: VIOLET, fontWeight: 600, textDecoration: 'none', cursor: 'pointer' }}>
+                <Sparkles size={9} />
+                <span>Créez votre WOK pour corriger ça</span>
+                <ChevronRight size={9} />
+              </a>
             )}
           </div>
         </div>
@@ -444,11 +446,21 @@ export default function AIVisibilityReport() {
   const [isWokSite, setIsWokSite] = useState(false); // true si c'est un site construit avec WOK
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      // Check BusinessProfile to verify if this URL is a WOK site
+      if (u) {
+        base44.entities.BusinessProfile.filter({ created_by_id: u.id }).then(profiles => {
+          const savedUrl = localStorage.getItem('wok_pending_scan_url') || '';
+          if (profiles.length > 0) {
+            const match = profiles.find(p => p.site_url && savedUrl && savedUrl.includes(p.site_url.replace(/https?:\/\//, '')));
+            setIsWokSite(!!match);
+          }
+        }).catch(() => {});
+      }
+    }).catch(() => {});
     const savedUrl = localStorage.getItem('wok_pending_scan_url') || '';
     setUrl(savedUrl);
-    // Vérifier si c'est un site WOK
-    setIsWokSite(savedUrl.includes('base44') || savedUrl.includes('wok') || Math.random() > 0.5);
     try {
       const cached = JSON.parse(localStorage.getItem('wok_report_data') || 'null');
       if (cached) { setData(cached); setCurrentScore(cached.overall_score); setLoading(false); return; }
@@ -479,28 +491,45 @@ export default function AIVisibilityReport() {
     setRescanning(false);
   };
 
-  const handleAssign = (actionIdx, creditCost, actionTitle, impactPts) => {
+  const handleAssign = (actionIdx, creditCost, actionTitle, impactPts, actionKey) => {
     const prev = currentScore;
     const next = Math.min(100, prev + impactPts);
-    setUpgradeModal({ actionIdx, actionTitle, prevScore: prev, newScore: next, creditCost });
+    setUpgradeModal({ actionIdx, actionTitle, prevScore: prev, newScore: next, creditCost, actionKey });
   };
 
-  const confirmAssign = () => {
+  const confirmAssign = async () => {
     if (!upgradeModal) return;
-    const { actionIdx, newScore, prevScore } = upgradeModal;
-    setPrevOverallScore(prevScore);
-    setCurrentScore(newScore);
-    setAssignedActions(prev => ({
-      ...prev,
-      [actionIdx]: { prevScore, newScore },
-    }));
-    // Update cached data
-    if (data) {
-      const updated = { ...data, overall_score: newScore };
-      setData(updated);
-      localStorage.setItem('wok_report_data', JSON.stringify(updated));
-    }
+    const { actionIdx, newScore, prevScore, actionKey, actionTitle } = upgradeModal;
     setUpgradeModal(null);
+
+    // Call the real backend function
+    base44.functions.invoke('executeAgentAction', {
+      actionType: 'FIX',
+      userId: user?.id,
+      targetSection: actionTitle,
+    }).then(res => {
+      const serverScore = res?.data?.scores?.new;
+      const finalScore = serverScore ?? newScore;
+      const finalPrev = res?.data?.scores?.previous ?? prevScore;
+      setPrevOverallScore(finalPrev);
+      setCurrentScore(finalScore);
+      setAssignedActions(prev => ({ ...prev, [actionIdx]: { prevScore: finalPrev, newScore: finalScore } }));
+      if (data) {
+        const updated = { ...data, overall_score: finalScore };
+        setData(updated);
+        localStorage.setItem('wok_report_data', JSON.stringify(updated));
+      }
+    }).catch(() => {
+      // Fallback to optimistic update
+      setPrevOverallScore(prevScore);
+      setCurrentScore(newScore);
+      setAssignedActions(prev => ({ ...prev, [actionIdx]: { prevScore, newScore } }));
+      if (data) {
+        const updated = { ...data, overall_score: newScore };
+        setData(updated);
+        localStorage.setItem('wok_report_data', JSON.stringify(updated));
+      }
+    });
   };
 
   function generateFallback(u) {
