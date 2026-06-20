@@ -701,6 +701,25 @@ function Footer() {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  // Force dark background on body — override the global light theme
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    const prevHtml = document.documentElement.style.backgroundColor;
+    document.body.style.backgroundColor = '#0A0A0B';
+    document.body.style.color = '#F0F0EE';
+    document.documentElement.style.backgroundColor = '#0A0A0B';
+    // Hide the grain pseudo-element
+    const style = document.createElement('style');
+    style.id = 'lp-dark-override';
+    style.textContent = `#root::before { display: none !important; } body { background-color: #0A0A0B !important; }`;
+    document.head.appendChild(style);
+    return () => {
+      document.body.style.backgroundColor = prev;
+      document.body.style.color = '';
+      document.documentElement.style.backgroundColor = prevHtml;
+      document.getElementById('lp-dark-override')?.remove();
+    };
+  }, []);
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
