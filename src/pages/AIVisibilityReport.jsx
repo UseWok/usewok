@@ -703,64 +703,125 @@ export default function AIVisibilityReport() {
         </motion.div>
       )}
 
-      {/* ── HERO KPI + DONUT ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, marginBottom: 16 }}>
-        {/* Donut central */}
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
-          style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-          <Donut score={overall} prevScore={prevOverallScore} size={140} sw={12} />
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T2 }}>Score IA Global</div>
-            {prevOverallScore !== null && (
-              <div style={{ fontSize: 10, color: GREEN, marginTop: 2 }}>↑ +{overall - prevOverallScore}pts après correction</div>
-            )}
+      {/* ── HERO: DONUT + AI ENGINES SIDE BY SIDE ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: 200 }}>
+
+          {/* Left: global score */}
+          <div style={{ padding: '28px 24px', borderRight: `1px solid ${BD}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, background: `linear-gradient(160deg, ${overallBg}80, #fff)` }}>
+            <Donut score={overall} prevScore={prevOverallScore} size={144} sw={12} />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T2 }}>Score IA Global</div>
+              <div style={{ fontSize: 11, color: T3, marginTop: 2 }}>{domain}</div>
+              {prevOverallScore !== null && prevOverallScore !== overall && (
+                <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 20, padding: '3px 10px' }}>
+                  <TrendingUp size={10} color="#16A34A" />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#16A34A' }}>+{overall - prevOverallScore}pts</span>
+                </motion.div>
+              )}
+            </div>
           </div>
-        </motion.div>
 
-        {/* KPIs grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-          {[
-            { label: 'Mentions totales', value: Math.round(overall * 0.4), suffix: '', delta: overall > 30 ? 2 : -1, icon: Search, color: '#3B82F6' },
-            { label: 'Signaux détectés', value: Math.round(overall * 0.47) + 3, suffix: '/47', icon: Shield, color: VIOLET },
-            { label: 'Moteurs indexés', value: engineScores.filter(e => e.indexed).length, suffix: '/5', icon: Cpu, color: '#10B981' },
-            { label: 'Part de voix IA', value: Math.round(overall * 0.6), suffix: '%', delta: overall > 40 ? 3 : -2, icon: Zap, color: '#F59E0B' },
-          ].map((kpi, i) => {
-            const KPIIcon = kpi.icon;
-            const up = (kpi.delta || 0) > 0;
-            return (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 + i * 0.05 }}
-                style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 12, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: 6, background: `${kpi.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <KPIIcon size={11} color={kpi.color} />
-                  </div>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: T3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{kpi.label}</span>
-                </div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: T1, letterSpacing: '-0.04em', lineHeight: 1 }}>
-                  <AnimNum target={kpi.value} />{kpi.suffix}
-                </div>
-                {kpi.delta !== undefined && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 6 }}>
-                    {up ? <TrendingUp size={10} color="#16A34A" /> : <TrendingDown size={10} color="#DC2626" />}
-                    <span style={{ fontSize: 10, fontWeight: 600, color: up ? '#16A34A' : '#DC2626' }}>
-                      {up ? '+' : ''}{kpi.delta} vs mois dernier
-                    </span>
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+          {/* Right: 5 engine scores in modern grid */}
+          <div style={{ padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T1 }}>Performance par moteur IA</div>
+                <div style={{ fontSize: 11, color: T3 }}>5 LLMs analysés en temps réel</div>
+              </div>
+              <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, background: '#F0FDF4', color: '#16A34A', fontWeight: 800, border: '1px solid #BBF7D0' }}>LIVE 2026</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+              {engineScores.map((e, i) => {
+                const sc = e.score;
+                const c = sc < 35 ? RED : sc < 65 ? ORANGE : GREEN;
+                const Logo = EngineLogos[e.engine.name];
+                return (
+                  <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06 }}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                      padding: '14px 10px', borderRadius: 14,
+                      background: e.indexed ? `${c}08` : '#F9F9FB',
+                      border: `1.5px solid ${e.indexed ? c + '30' : BD}`,
+                      cursor: 'default', position: 'relative', overflow: 'hidden',
+                    }}>
+                    {/* Engine logo */}
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: e.engine.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 14px ${e.engine.color}35`, flexShrink: 0 }}>
+                      {Logo ? <Logo /> : <span style={{ fontSize: 14, color: '#fff', fontWeight: 800 }}>{e.engine.name[0]}</span>}
+                    </div>
+                    {/* Score */}
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: c, letterSpacing: '-0.04em', lineHeight: 1 }}>
+                        <AnimNum target={sc} />
+                      </div>
+                      <div style={{ fontSize: 9, color: T3, lineHeight: 1.2 }}>/100</div>
+                    </div>
+                    {/* Name */}
+                    <div style={{ fontSize: 10, fontWeight: 700, color: T2, textAlign: 'center', lineHeight: 1.2 }}>{e.engine.name}</div>
+                    {/* Mini bar */}
+                    <div style={{ width: '100%', height: 3, background: '#F0F0F4', borderRadius: 2, overflow: 'hidden' }}>
+                      <BarTrack value={sc} color={c} height={3} />
+                    </div>
+                    {/* Indexed badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: e.indexed ? '#22C55E' : '#E5E7EB' }} />
+                      <span style={{ fontSize: 8, color: e.indexed ? '#16A34A' : T3, fontWeight: 600 }}>
+                        {e.indexed ? 'Indexé' : 'Non indexé'}
+                      </span>
+                    </div>
+                    {/* Delta */}
+                    {e.delta !== 0 && (
+                      <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {e.delta > 0 ? <TrendingUp size={8} color="#16A34A" /> : <TrendingDown size={8} color="#DC2626" />}
+                        <span style={{ fontSize: 8, fontWeight: 700, color: e.delta > 0 ? '#16A34A' : '#DC2626' }}>{e.delta > 0 ? '+' : ''}{e.delta}</span>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
         </div>
+      </motion.div>
+
+      {/* ── KPI ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+        {[
+          { label: 'Mentions IA', value: Math.round(overall * 0.4), suffix: '', delta: overall > 30 ? 2 : -1, icon: Search, color: '#3B82F6', bg: '#EFF6FF' },
+          { label: 'Signaux détectés', value: Math.round(overall * 0.47) + 3, suffix: '/47', icon: Shield, color: VIOLET, bg: VIOLET_L },
+          { label: 'Moteurs indexés', value: engineScores.filter(e => e.indexed).length, suffix: '/5', icon: Cpu, color: '#10B981', bg: '#F0FDF4' },
+          { label: 'Part de voix IA', value: Math.round(overall * 0.6), suffix: '%', delta: overall > 40 ? 3 : -2, icon: Zap, color: '#F59E0B', bg: '#FFFBEB' },
+        ].map((kpi, i) => {
+          const KPIIcon = kpi.icon;
+          const up = (kpi.delta || 0) > 0;
+          return (
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.05 }}
+              style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 6px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden' }}>
+              {/* Color accent strip */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: kpi.color, borderRadius: '14px 14px 0 0', opacity: 0.7 }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: T3 }}>{kpi.label}</span>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: kpi.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <KPIIcon size={13} color={kpi.color} />
+                </div>
+              </div>
+              <div style={{ fontSize: 32, fontWeight: 900, color: T1, letterSpacing: '-0.05em', lineHeight: 1 }}>
+                <AnimNum target={kpi.value} /><span style={{ fontSize: 14, fontWeight: 600, color: T3 }}>{kpi.suffix}</span>
+              </div>
+              {kpi.delta !== undefined && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 8 }}>
+                  {up ? <TrendingUp size={10} color="#16A34A" /> : <TrendingDown size={10} color="#DC2626" />}
+                  <span style={{ fontSize: 10, fontWeight: 600, color: up ? '#16A34A' : '#DC2626' }}>
+                    {up ? '+' : ''}{kpi.delta} ce mois
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
-
-      {/* ── MOTEURS IA ── */}
-      <Section title="Moteurs IA" subtitle="Performance par moteur — 5 LLMs analysés" delay={0.15} badge="LIVE 2025">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 12 }}>
-          {engineScores.map((e, i) => (
-            <EngineCard key={i} engine={e.engine} score={e.score} mentions={e.mentions} delta={e.delta} indexed={e.indexed} />
-          ))}
-        </div>
-      </Section>
 
       {/* ── RADAR + TREND ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 16, marginBottom: 16 }}>
@@ -797,30 +858,70 @@ export default function AIVisibilityReport() {
         </Section>
       </div>
 
-      {/* ── SCORE BREAKDOWN ── */}
-      <Section title="Analyse détaillée" subtitle="Score par dimension" delay={0.25}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+      {/* ── SCORE BREAKDOWN (with engine logos) ── */}
+      <Section title="Analyse détaillée" subtitle="Score par dimension et par moteur" delay={0.25}>
+        {/* 3 main dimensions */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
-            { label: 'Visibilité IA', value: data.ai_visibility_score || 0, desc: 'Présence dans les réponses IA', color: VIOLET },
-            { label: 'Clarté message', value: data.message_clarity_score || 0, desc: 'Compréhension par les LLMs', color: '#3B82F6' },
-            { label: 'Signal commercial', value: data.commercial_presence_score || 0, desc: 'Signaux d\'intention d\'achat', color: '#10B981' },
+            { label: 'Visibilité IA', value: data.ai_visibility_score || 0, desc: 'Présence dans les réponses IA', color: VIOLET, icon: Sparkles },
+            { label: 'Clarté message', value: data.message_clarity_score || 0, desc: 'Compréhension par les LLMs', color: '#3B82F6', icon: Search },
+            { label: 'Signal commercial', value: data.commercial_presence_score || 0, desc: 'Signaux d\'intention d\'achat', color: '#10B981', icon: Zap },
           ].map((item) => {
             const c = item.value < 35 ? RED : item.value < 65 ? ORANGE : item.color;
+            const Icon = item.icon;
+            const grade = item.value < 35 ? 'Critique' : item.value < 65 ? 'À améliorer' : 'Bon';
             return (
-              <div key={item.label}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div key={item.label} style={{ background: `${c}06`, border: `1.5px solid ${c}20`, borderRadius: 14, padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: `${c}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={14} color={c} />
+                  </div>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: T1 }}>{item.label}</div>
                     <div style={{ fontSize: 10, color: T3 }}>{item.desc}</div>
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: c, letterSpacing: '-0.04em' }}>
-                    {item.value}<span style={{ fontSize: 10, color: T3, fontWeight: 400 }}>/100</span>
-                  </div>
                 </div>
-                <BarTrack value={item.value} color={c} />
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: c, letterSpacing: '-0.05em', lineHeight: 1 }}>
+                    {item.value}
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: `${c}15`, color: c, marginBottom: 4 }}>{grade}</span>
+                </div>
+                <BarTrack value={item.value} color={c} height={6} />
               </div>
             );
           })}
+        </div>
+        {/* Per-engine breakdown row */}
+        <div style={{ borderTop: `1px solid ${BD}`, paddingTop: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: T3, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Détail par moteur</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {engineScores.map((e, i) => {
+              const sc = e.score;
+              const c = sc < 35 ? RED : sc < 65 ? ORANGE : GREEN;
+              const Logo = EngineLogos[e.engine.name];
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: e.engine.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {Logo ? <Logo /> : <span style={{ fontSize: 11, color: '#fff', fontWeight: 800 }}>{e.engine.name[0]}</span>}
+                  </div>
+                  <div style={{ width: 72, fontSize: 11, fontWeight: 600, color: T2, flexShrink: 0 }}>{e.engine.name}</div>
+                  <div style={{ flex: 1 }}>
+                    <BarTrack value={sc} color={c} height={5} />
+                  </div>
+                  <div style={{ width: 40, textAlign: 'right', fontSize: 13, fontWeight: 800, color: c, letterSpacing: '-0.03em', flexShrink: 0 }}>{sc}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, width: 40, flexShrink: 0, justifyContent: 'flex-end' }}>
+                    {e.delta !== 0 && (
+                      <>
+                        {e.delta > 0 ? <TrendingUp size={9} color="#16A34A" /> : <TrendingDown size={9} color="#DC2626" />}
+                        <span style={{ fontSize: 9, fontWeight: 700, color: e.delta > 0 ? '#16A34A' : '#DC2626' }}>{e.delta > 0 ? '+' : ''}{e.delta}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Section>
 
