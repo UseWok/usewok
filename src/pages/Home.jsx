@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { Plus, ArrowRight, Star, MoreHorizontal, Pencil, Trash2, X, Check } from 'lucide-react';
 import HomeInputWrapper from '../components/home/HomeInputWrapper';
+import WebsiteScanner from '../components/home/WebsiteScanner';
 import TensorsOnboarding, { shouldShowTensorsOnboarding } from '../components/onboarding/TensorsOnboarding';
 import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboarding/UserOnboarding';
 import { loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -320,38 +321,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Hero section ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 16px 60px', minHeight: '65vh', position: 'relative', zIndex: 1 }}>
-        {/* Pill */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px 6px 8px', background: 'rgba(255,255,255,0.7)', border: '1px solid #D1D1D1', borderRadius: 999, marginBottom: 28, cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
-  {/* Three logos stacked at left — Gumroad (big center) flanked by the two others */}
-  <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-    <BeehiivLogo />
-    <div style={{ marginLeft: -8 }}><GumroadLogo /></div>
-    <div style={{ marginLeft: -8 }}><StripeLogo /></div>
-  </div>
-  
-  <span style={{ fontSize: 13, color: '#1a1a1a', fontWeight: 500 }}>Sell via your favorite tools</span>
-  <span style={{ fontSize: 13, color: '#888' }}>→</span>
-</div>
-
-        {/* Main title */}
-        <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 500, color: '#1a1a1a', textAlign: 'center', margin: '0 0 32px', letterSpacing: '-0.02em', lineHeight: 1.18 }}>
-          What should we build, {firstName}?
-        </h1>
-
-        {/* Chat input bar — HomeInputWrapper adds file attach at top-left of textarea */}
-        <div style={{ width: '100%', maxWidth: 640, position: 'relative' }}>
-          <HomeInputWrapper
-            input={input}
-            setInput={setInput}
-            onSend={(q) => handleSend(q)}
-            buildMode={buildMode}
-            files={homeFiles}
-            setFiles={setHomeFiles}
-            user={user}
-          />
-        </div>
+      {/* ── Hero section — Website Scanner ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '72px 24px 60px', minHeight: '65vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 820, margin: '0 auto' }}>
+        <WebsiteScanner firstName={firstName} />
       </div>
 
 

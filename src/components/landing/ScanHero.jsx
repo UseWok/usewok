@@ -547,22 +547,18 @@ export default function ScanHero({ onStartQuiz }) {
     setUrl(inputUrl);
     setPhase('scanning');
 
-    // Minimum 3.5s display so animations feel satisfying
-    const [result] = await Promise.all([
-      base44.functions.invoke('analyzeWebsite', { url: inputUrl }),
-      new Promise(r => setTimeout(r, 3500)),
-    ]);
+    // Launch scan in background immediately — don't await
+    base44.functions.invoke('analyzeWebsite', { url: inputUrl })
+      .then(result => {
+        if (result?.data?.overall_score !== undefined) {
+          setData(result.data);
+        }
+      })
+      .catch(() => {});
 
-    if (result?.data?.error) {
-      setErrMsg(result.data.error);
-      setPhase('error');
-    } else if (result?.data?.overall_score !== undefined) {
-      setData(result.data);
-      setPhase('results');
-    } else {
-      setErrMsg('Unable to analyze this site. Please check the URL and try again.');
-      setPhase('error');
-    }
+    // After 2.5s of scan animation, go to quiz
+    await new Promise(r => setTimeout(r, 2500));
+    onStartQuiz();
   };
 
   return (
