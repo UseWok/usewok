@@ -536,74 +536,20 @@ function HeroInput({ onAnalyze }) {
   );
 }
 
-// ── MAIN
+// ── MAIN — scan lancé en arrière-plan silencieusement, quiz immédiat
 export default function ScanHero({ onStartQuiz }) {
-  const [phase, setPhase] = useState('hero'); // hero | scanning | results | error
-  const [url, setUrl] = useState('');
-  const [data, setData] = useState(null);
-  const [errMsg, setErrMsg] = useState('');
-
-  const handleAnalyze = async (inputUrl) => {
-    // Save URL so Home can auto-launch the scan after login
+  const handleAnalyze = (inputUrl) => {
+    // Sauvegarder l'URL pour Home
     localStorage.setItem('wok_pending_scan_url', inputUrl);
-    setUrl(inputUrl);
-    setPhase('scanning');
-
-    // Launch scan in background immediately — don't await
-    base44.functions.invoke('analyzeWebsite', { url: inputUrl })
-      .then(result => {
-        if (result?.data?.overall_score !== undefined) {
-          setData(result.data);
-        }
-      })
-      .catch(() => {});
-
-    // After 2.5s of scan animation, go to quiz
-    await new Promise(r => setTimeout(r, 2500));
+    // Lancer le scan en arrière-plan — personne ne le voit
+    base44.functions.invoke('analyzeWebsite', { url: inputUrl }).catch(() => {});
+    // Aller directement au quiz sans aucune transition de scan
     onStartQuiz();
   };
 
   return (
     <div style={{ fontFamily: F, background: BG, minHeight: '80vh' }}>
-      <AnimatePresence mode="wait">
-        {phase === 'hero' && (
-          <motion.div key="hero" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -10 }}>
-            <HeroInput onAnalyze={handleAnalyze} />
-          </motion.div>
-        )}
-
-        {phase === 'scanning' && (
-          <motion.div key="scan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            style={{ padding: '80px 24px 0' }}>
-            <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <p style={{ fontSize: 13, color: T3, fontFamily: F, marginBottom: 6 }}>Analyse en cours — 3 moteurs IA en parallèle</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: T1, fontFamily: F, letterSpacing: '-0.02em' }}>{url}</p>
-            </div>
-            <ScanningView url={url} onDone={() => {}} />
-          </motion.div>
-        )}
-
-        {phase === 'results' && data && (
-          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ padding: '60px 24px 80px', maxWidth: 580, margin: '0 auto' }}>
-            <Results data={data} url={url} onUnlock={onStartQuiz} />
-          </motion.div>
-        )}
-
-        {phase === 'error' && (
-          <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ padding: '100px 24px', textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-            <div style={{ fontSize: 32, marginBottom: 16 }}>⚠️</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: T1, marginBottom: 8, fontFamily: F }}>Analysis failed</div>
-            <div style={{ fontSize: 13, color: T2, marginBottom: 24, fontFamily: F }}>{errMsg}</div>
-            <button onClick={() => setPhase('hero')} style={{
-              fontFamily: F, fontSize: 14, fontWeight: 600, color: T1,
-              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8, padding: '10px 24px', cursor: 'pointer',
-            }}>Try another URL</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <HeroInput onAnalyze={handleAnalyze} />
     </div>
   );
 }

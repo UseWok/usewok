@@ -440,10 +440,11 @@ export default function OnboardingQuiz({ onComplete }) {
       status: 'new',
       message: `maturity:${answers.maturity} obj:${answers.objectives.join(',')}`,
     }).catch(() => {});
-    setPhase('loading');
+    // Pas de loader — aller directement aux plans
+    setPhase('plans');
   };
 
-  if (phase === 'loading') return <AnalysisLoader answers={answers} onDone={() => setPhase('plans')} />;
+  // AnalysisLoader supprimé — le scan se fait en arrière-plan silencieusement
   if (phase === 'plans') return <PlanScreen answers={answers} onFree={() => base44.auth.redirectToLogin('/app')} />;
 
   const TOTAL = 3;
