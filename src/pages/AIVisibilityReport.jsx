@@ -24,23 +24,50 @@ const GREEN = '#10B981';
 const RED = '#EF4444';
 const ORANGE = '#F59E0B';
 
+// ── Vrais logos SVG des moteurs IA ────────────────────────────────
+const EngineLogos = {
+  ChatGPT: () => (
+    <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+      <path d="M37.532 16.87a9.963 9.963 0 00-.856-8.184 10.078 10.078 0 00-10.855-4.835 9.964 9.964 0 00-7.505-3.360 10.079 10.079 0 00-9.612 6.977 9.967 9.967 0 00-6.664 4.834 10.08 10.08 0 001.24 11.817 9.965 9.965 0 00.856 8.185 10.079 10.079 0 0010.855 4.835 9.965 9.965 0 007.504 3.359 10.078 10.078 0 009.617-6.981 9.967 9.967 0 006.663-4.834 10.079 10.079 0 00-1.243-11.813zM22.498 37.886a7.474 7.474 0 01-4.799-1.735c.061-.033.168-.091.237-.134l7.964-4.6a1.294 1.294 0 00.655-1.134V19.054l3.366 1.944a.12.12 0 01.066.092v9.299a7.505 7.505 0 01-7.49 7.496zM6.392 31.006a7.471 7.471 0 01-.894-5.023c.06.036.162.099.237.141l7.964 4.6a1.297 1.297 0 001.308 0l9.724-5.614v3.888a.12.12 0 01-.048.103l-8.051 4.649a7.504 7.504 0 01-10.24-2.744zM4.297 13.62A7.469 7.469 0 018.2 10.333c0 .068-.004.19-.004.274v9.201a1.294 1.294 0 00.654 1.132l9.723 5.614-3.366 1.944a.12.12 0 01-.114.012L6.044 23.54a7.504 7.504 0 01-1.747-9.92zm27.658 6.437l-9.724-5.615 3.367-1.943a.121.121 0 01.114-.012l9.048 5.222a7.498 7.498 0 01-1.158 13.528v-9.476a1.293 1.293 0 00-.647-1.704zm3.35-5.043c-.059-.037-.162-.099-.236-.141l-7.965-4.6a1.298 1.298 0 00-1.308 0l-9.723 5.614v-3.888a.12.12 0 01.048-.103l8.05-4.645a7.497 7.497 0 0111.135 7.763zm-21.063 6.929l-3.367-1.944a.12.12 0 01-.065-.092v-9.299a7.497 7.497 0 0112.293-5.756 6.94 6.94 0 00-.236.134l-7.965 4.6a1.294 1.294 0 00-.654 1.132l-.006 11.225zm1.829-3.943l4.33-2.501 4.332 2.5v4.999l-4.331 2.5-4.331-2.5V18z" fill="white"/>
+    </svg>
+  ),
+  Claude: () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+      <path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128-2.5-.24-.786-.07-1.434-2.87 4.135-2.38.14-.08.06-.13-.07-.19-2.86-.27-.58-.05L3.94 4.719l5.975-1.66.18-.05.09-.16-.04-.19-1.48-1.48 4.44-1.12 5.655 9.784-1.74 1.006-.23.133-.046.26.12.206 2.08.448.434.094 1.247 2.156-7.22 2.508-.223.077-.09.21.05.22 1.62 2.124-5.08 1.39-4.97-8.6zm14.44 5.51l-4.65 1.27-.16.045-.09.14.04.18 1.42 1.27-5.04 1.38-1.88-3.26 1.74-1.007.23-.133.046-.26-.12-.206-2.08-.447-.434-.094-1.247-2.157 7.22-2.507.223-.078.09-.21-.05-.22-1.62-2.123 5.08-1.39.69 1.19 2.55 4.416-3.456 3.41z" fill="white"/>
+    </svg>
+  ),
+  Gemini: () => (
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+      <path d="M14 28C14 26.0633 13.6267 24.2433 12.88 22.54C12.1567 20.8367 11.165 19.355 9.905 18.095C8.645 16.835 7.16333 15.8433 5.46 15.12C3.75667 14.3733 1.93667 14 0 14C1.93667 14 3.75667 13.6383 5.46 12.915C7.16333 12.1683 8.645 11.165 9.905 9.905C11.165 8.645 12.1567 7.16333 12.88 5.46C13.6267 3.75667 14 1.93667 14 0C14 1.93667 14.3617 3.75667 15.085 5.46C15.8317 7.16333 16.835 8.645 18.095 9.905C19.355 11.165 20.8367 12.1683 22.54 12.915C24.2433 13.6383 26.0633 14 28 14C26.0633 14 24.2433 14.3733 22.54 15.12C20.8367 15.8433 19.355 16.835 18.095 18.095C16.835 19.355 15.8317 20.8367 15.085 22.54C14.3617 24.2433 14 26.0633 14 28Z" fill="white"/>
+    </svg>
+  ),
+  Perplexity: () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+      <path d="M22.3588 7.11366H14.4599L20.0436 1.77491L19.2845 1L12.0002 7.79491L4.71585 1L3.95678 1.77491L9.54046 7.11366H1.64154V22.7778H5.02367V16.1727L9.7352 21.2697L10.4913 20.4919L5.02367 14.593V11.6212L10.5366 17.566L11.2927 16.7882L5.02367 10.2019V8.35416H9.52422L5.12546 12.5008L5.88453 13.2757L11.7501 7.67004V23H12.2502V7.66976L18.1157 13.2757L18.8748 12.5008L14.476 8.35416H18.9766V10.2019L12.7075 16.7882L13.4636 17.566L18.9766 11.6212V14.593L13.5089 20.4919L14.265 21.2697L18.9766 16.1727V22.7778H22.3588V7.11366Z" fill="white"/>
+    </svg>
+  ),
+  Grok: () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="white"/>
+    </svg>
+  ),
+};
+
 // ── AI Engines réels avec modèles actuels ──────────────────────────
 const AI_ENGINES = [
   {
     name: 'ChatGPT',
     model: 'GPT-4o / o3',
     color: '#10A37F',
-    gradient: 'linear-gradient(135deg, #10A37F, #0D8B6C)',
-    icon: '⬡',
+    gradient: 'linear-gradient(135deg, #10A37F, #0a7a63)',
     marketShare: '62%',
     description: 'Dominant en volume de requêtes conversationnelles',
   },
   {
     name: 'Claude',
     model: 'Claude 3.5 / 3.7 Sonnet',
-    color: '#D4A853',
-    gradient: 'linear-gradient(135deg, #D4A853, #B8882E)',
-    icon: '◈',
+    color: '#CC8B3C',
+    gradient: 'linear-gradient(135deg, #CC8B3C, #a86e28)',
     marketShare: '18%',
     description: 'Forte croissance en usage professionnel',
   },
@@ -48,26 +75,23 @@ const AI_ENGINES = [
     name: 'Gemini',
     model: 'Gemini 2.0 / 2.5 Pro',
     color: '#4285F4',
-    gradient: 'linear-gradient(135deg, #4285F4, #1565C0)',
-    icon: '✦',
+    gradient: 'linear-gradient(135deg, #4285F4, #1a56c4)',
     marketShare: '12%',
     description: 'Intégration native Google Search & Workspace',
   },
   {
     name: 'Perplexity',
     model: 'Perplexity Pro Search',
-    color: '#20B2AA',
-    gradient: 'linear-gradient(135deg, #20B2AA, #1A9090)',
-    icon: '◎',
+    color: '#1F8B8B',
+    gradient: 'linear-gradient(135deg, #1F8B8B, #156060)',
     marketShare: '5%',
     description: 'Moteur IA de référence avec citations sources',
   },
   {
     name: 'Grok',
     model: 'Grok 3 / 3 mini',
-    color: '#E7E7E7',
-    gradient: 'linear-gradient(135deg, #555, #222)',
-    icon: '𝕏',
+    color: '#333333',
+    gradient: 'linear-gradient(135deg, #444, #111)',
     marketShare: '3%',
     description: 'Intégration X (Twitter) & données temps réel',
   },
@@ -188,8 +212,8 @@ function EngineCard({ engine, score, mentions, delta, indexed, prevScore }) {
       }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 9, background: engine.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 800, flexShrink: 0, boxShadow: `0 4px 12px ${engine.color}40` }}>
-          {engine.icon}
+        <div style={{ width: 36, height: 36, borderRadius: 9, background: engine.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 4px 12px ${engine.color}40` }}>
+          {(() => { const Logo = EngineLogos[engine.name]; return Logo ? <Logo /> : <span style={{ fontSize: 14, color: '#fff', fontWeight: 800 }}>{engine.name[0]}</span>; })()}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
