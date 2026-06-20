@@ -159,161 +159,80 @@ function ScanLoader({ url, onDone }) {
   );
 }
 
-// ─── URL INPUT — Dark scene bar redesign ─────────────────────────────────────
+// ─── URL INPUT — Clean centered input ────────────────────────────────────────
 function URLInput({ onSubmit }) {
   const [url, setUrl] = useState('');
-  const [activeAction, setActiveAction] = useState('visibility');
   const ref = useRef(null);
   const submit = () => { if (!url.trim()) { ref.current?.focus(); return; } onSubmit(url.trim()); };
 
-  const active = SCENE_ACTIONS.find(a => a.id === activeAction) || SCENE_ACTIONS[0];
-
   return (
-    <div style={{ width: '100%', maxWidth: 780, margin: '0 auto', fontFamily: F }}>
+    <div style={{ width: '100%', maxWidth: 620, margin: '0 auto', fontFamily: F }}>
 
-      {/* ── Eyebrow: AI engine logos ── */}
+      {/* ── AI engine pills ── */}
       <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 28 }}>
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 24 }}>
         {[
-          { Logo: ChatGPTLogo, label: 'ChatGPT',    bg: '#10A37F', color: '#fff' },
-          { Logo: ClaudeLogo,  label: 'Claude',     bg: '#D4A27F', color: '#fff' },
-          { Logo: GeminiLogo,  label: 'Gemini',     bg: 'linear-gradient(135deg,#4285F4,#34A853)', color: '#fff' },
-          { Logo: PerplexityLogo, label: 'Perplexity', bg: '#20808D', color: '#fff' },
-        ].map(({ Logo, label, bg, color }, i) => (
-          <motion.div key={label} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+          { Logo: ChatGPTLogo, label: 'ChatGPT',    bg: '#10A37F' },
+          { Logo: ClaudeLogo,  label: 'Claude',     bg: '#C96442' },
+          { Logo: GeminiLogo,  label: 'Gemini',     bg: '#4285F4' },
+          { Logo: PerplexityLogo, label: 'Perplexity', bg: '#20808D' },
+        ].map(({ Logo, label, bg }, i) => (
+          <motion.div key={label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
             style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              padding: '5px 12px 5px 8px',
-              background: '#F8F7F4', border: '1px solid #E5E4E0',
-              borderRadius: 20, fontSize: 12, fontWeight: 500, color: '#555',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '4px 10px 4px 6px',
+              background: '#fff', border: '1px solid #E8E6E1',
+              borderRadius: 20, fontSize: 11.5, fontWeight: 500, color: '#444',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+            <div style={{ width: 20, height: 20, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
               <Logo />
             </div>
             {label}
           </motion.div>
         ))}
-        <span style={{ fontSize: 11, color: T3, marginLeft: 4 }}>+ more</span>
       </motion.div>
 
-      {/* ── Hero title ── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        style={{ textAlign: 'center', marginBottom: 32 }}>
-        <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#0F0F10', margin: '0 0 10px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+      {/* ── Title ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        style={{ textAlign: 'center', marginBottom: 28 }}>
+        <h1 style={{ fontSize: 'clamp(26px, 3.2vw, 40px)', fontWeight: 800, color: '#0F0F10', margin: '0 0 10px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
           How visible are you<br />to AI search?
         </h1>
-        <p style={{ fontSize: 15, color: T2, margin: 0 }}>
+        <p style={{ fontSize: 14, color: T2, margin: 0 }}>
           Enter your URL — get your full AI visibility report in 60 seconds.
         </p>
       </motion.div>
 
-      {/* ── MAIN DARK SCENE CARD ── */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+      {/* ── Input ── */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         style={{
-          background: '#0F0F12',
-          borderRadius: 20,
-          overflow: 'hidden',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06)',
-        }}>
-
-        {/* Top: scene action bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 2,
-          padding: '12px 14px 0',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          {SCENE_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            const isActive = activeAction === action.id;
-            return (
-              <button key={action.id} onClick={() => setActiveAction(action.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 12px 10px',
-                  border: 'none', borderRadius: '8px 8px 0 0',
-                  background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
-                  cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap', flexShrink: 0,
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.35)',
-                  fontSize: 12, fontWeight: isActive ? 600 : 400,
-                  transition: 'all 140ms',
-                  position: 'relative',
-                }}
-                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}}
-                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.background = 'transparent'; }}}
-              >
-                <Icon size={13} style={{ color: isActive ? action.color : 'inherit' }} />
-                {action.label}
-                {isActive && (
-                  <motion.div layoutId="activeTab"
-                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: action.color, borderRadius: '2px 2px 0 0' }} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Middle: active action context */}
-        <AnimatePresence mode="wait">
-          <motion.div key={activeAction}
-            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: `${active.color}22`, border: `1px solid ${active.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <active.icon size={15} color={active.color} />
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{active.label}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{active.desc}</div>
-            </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-              {[ChatGPTLogo, ClaudeLogo, GeminiLogo, PerplexityLogo].map((Logo, i) => (
-                <div key={i} style={{ width: 20, height: 20, borderRadius: 5, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
-                  <Logo />
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Bottom: URL input */}
-        <div style={{ padding: '8px 14px 14px', display: 'flex', gap: 8 }}>
-          <div style={{
-            flex: 1, display: 'flex', alignItems: 'center', gap: 10,
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 12, padding: '0 14px',
-            transition: 'border-color 200ms',
-          }}
-            onFocusCapture={e => { e.currentTarget.style.borderColor = `${active.color}80`; }}
-            onBlurCapture={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}>
-            <Globe size={14} color="rgba(255,255,255,0.25)" />
-            <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
-              placeholder="https://your-website.com"
-              style={{
-                flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                padding: '14px 0', fontSize: 14, color: '#fff', fontFamily: F,
-                caretColor: active.color,
-              }} />
-          </div>
-          <button onClick={submit} style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '0 22px', background: active.color, color: '#fff', border: 'none',
-            borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F,
-            transition: 'opacity 150ms, transform 100ms', whiteSpace: 'nowrap',
-            boxShadow: `0 4px 20px ${active.color}60`,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-            Analyze <ArrowRight size={13} />
-          </button>
-        </div>
+          display: 'flex', background: '#fff', border: `1.5px solid #E5E4E0`,
+          borderRadius: 14, overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          transition: 'border-color 200ms, box-shadow 200ms',
+        }}
+        onFocusCapture={e => { e.currentTarget.style.borderColor = VIOLET; e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.08), 0 0 0 3px ${VIOLET}18`; }}
+        onBlurCapture={e => { e.currentTarget.style.borderColor = '#E5E4E0'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; }}>
+        <Globe size={15} color={T3} style={{ marginLeft: 18, alignSelf: 'center', flexShrink: 0 }} />
+        <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
+          placeholder="https://your-website.com"
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '16px 14px', fontSize: 14, color: T1, fontFamily: F }} />
+        <button onClick={submit} style={{
+          margin: 6, padding: '11px 24px', background: VIOLET, color: '#fff', border: 'none',
+          borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F,
+          transition: 'opacity 150ms', display: 'flex', alignItems: 'center', gap: 6,
+          boxShadow: `0 2px 12px ${VIOLET}40`,
+        }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          Analyze <ArrowRight size={13} />
+        </button>
       </motion.div>
 
-      {/* ── Bottom hint ── */}
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-        style={{ textAlign: 'center', fontSize: 11, color: T3, marginTop: 14, margin: '14px 0 0' }}>
-        Free · Full analysis in ~60 seconds · No account required
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
+        style={{ textAlign: 'center', fontSize: 11, color: T3, marginTop: 12 }}>
+        Free · No account required · 4 AI engines
       </motion.p>
     </div>
   );

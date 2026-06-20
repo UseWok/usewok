@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2 } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, Eye, Users, TrendingUp, MessageCircle, Activity, Zap, HelpCircle as HelpIcon, Lightbulb, ClipboardCheck, Printer, Target, Radar } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -601,7 +601,54 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
 
 
-          <div style={{ flex: 1 }} />
+          <Divider />
+
+          {/* ── AI Tools ── */}
+          {expanded && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
+              <SectionLabel label="AI Tools" expanded={expanded} />
+              {[
+                { id: 'visibility',  label: 'Visibility',       icon: Eye,            color: '#6366F1' },
+                { id: 'overview',    label: 'Overview',         icon: BarChart2,      color: '#8B5CF6' },
+                { id: 'competitor',  label: 'Competitor',       icon: Radar,          color: '#EC4899' },
+                { id: 'crowd',       label: 'Crowd Research',   icon: Users,          color: '#F59E0B' },
+                { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981' },
+                { id: 'perception',  label: 'Perception',       icon: MessageCircle,  color: '#3B82F6' },
+                { id: 'sentiment',   label: 'Sentiment',        icon: Activity,       color: '#EF4444' },
+                { id: 'drivers',     label: 'Drivers',          icon: Zap,            color: '#F97316' },
+                { id: 'questions',   label: 'Questions',        icon: HelpIcon,       color: '#06B6D4' },
+                { id: 'seek',        label: 'Seek',             icon: Search,         color: '#A855F7' },
+                { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9' },
+                { id: 'print',       label: 'Print',            icon: Printer,        color: '#64748B' },
+                { id: 'tracking',    label: 'Tracking',         icon: Target,         color: '#DC2626' },
+                { id: 'goals',       label: 'Goals',            icon: Lightbulb,      color: '#84CC16' },
+              ].map(tool => {
+                const Icon = tool.icon;
+                const isToolActive = location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id;
+                return (
+                  <button key={tool.id}
+                    onClick={() => nav(`/ai-report?tool=${tool.id}`)}
+                    style={{
+                      display: 'flex', alignItems: 'center', width: '100%', height: 30,
+                      padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                      background: isToolActive ? `${tool.color}12` : 'transparent',
+                      fontFamily: 'inherit', transition: 'background 100ms', gap: 8,
+                    }}
+                    onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                    onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? `${tool.color}12` : 'transparent'; }}
+                  >
+                    <Icon style={{ width: 13, height: 13, flexShrink: 0, color: isToolActive ? tool.color : '#888', strokeWidth: 1.8 }} />
+                    <span style={{ fontSize: 12.5, fontWeight: isToolActive ? 600 : 400, color: isToolActive ? tool.color : '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {tool.label}
+                    </span>
+                    {isToolActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: tool.color, marginLeft: 'auto', flexShrink: 0 }} />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {!expanded && <div style={{ flex: 1 }} />}
 
           {/* ── Support button — circle with ? ── */}
           <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', paddingLeft: expanded ? 0 : 0 }}>
