@@ -8,27 +8,18 @@ import UserOnboarding, { shouldShowUserOnboarding } from '../components/onboardi
 import { initUserCredits, checkAndRenewCredits } from '@/lib/credits';
 
 const PENDING_KEY = 'stensor_pending_query';
-const PENDING_SCAN_KEY = 'wok_pending_scan_url';
 
 export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [pendingScanUrl, setPendingScanUrl] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUserOnboarding, setShowUserOnboarding] = useState(false);
-  // savedUrl = URL déjà enregistrée pour ce compte (depuis BusinessProfile)
+  // Cloud-only: savedUrl + cachedData from BusinessProfile
   const [savedUrl, setSavedUrl] = useState(null);
+  const [cachedData, setCachedData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
-    // Récupère quiz results
-    const quizResults = JSON.parse(localStorage.getItem('stensor_quiz_results') || 'null');
-    if (quizResults) {
-      base44.auth.me().then((u) => {
-        if (u && !u.quiz_answers) base44.auth.updateMe({ quiz_answers: quizResults });
-        localStorage.removeItem('stensor_quiz_results');
-      }).catch(() => localStorage.removeItem('stensor_quiz_results'));
-    }
     const pending = localStorage.getItem(PENDING_KEY);
     if (pending) { localStorage.removeItem(PENDING_KEY); navigate(`/chat?q=${encodeURIComponent(pending)}`); return; }
 
@@ -38,11 +29,10 @@ export default function Home() {
       const updated = await checkAndRenewCredits(u).catch(() => u);
       setUser(updated);
 
-      // Vérifie si ce compte a déjà un BusinessProfile enregistré
+      // Cloud-only: load from BusinessProfile
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       if (profiles.length > 0 && profiles[0].site_url) {
         const p = profiles[0];
-        // Reconstruire l'objet data complet depuis les champs sauvegardés
         let extra = {};
         try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
         const fullData = {
@@ -56,15 +46,7 @@ export default function Home() {
           ...extra,
         };
         setSavedUrl(p.site_url);
-        localStorage.setItem('wok_report_data', JSON.stringify(fullData));
-        localStorage.setItem('wok_pending_scan_url', p.site_url);
-      } else {
-        // Vérifie localStorage (URL scannée avant connexion)
-        const pendingScan = localStorage.getItem(PENDING_SCAN_KEY);
-        if (pendingScan) {
-          localStorage.removeItem(PENDING_SCAN_KEY);
-          setPendingScanUrl(pendingScan);
-        }
+        setCachedData(fullData);
       }
       setLoadingProfile(false);
     }).catch(() => setLoadingProfile(false));
@@ -74,13 +56,7 @@ export default function Home() {
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || 'there';
-  const effectiveAutoUrl = savedUrl || pendingScanUrl || null;
-
-  // Lire les données cachées du localStorage pour les passer directement (pas de re-scan)
-  const cachedData = (() => {
-    if (!savedUrl) return null;
-    try { return JSON.parse(localStorage.getItem('wok_report_data') || 'null'); } catch { return null; }
-  })();
+  const effectiveAutoUrl = savedUrl || null;
 
   if (loadingProfile) {
     return (

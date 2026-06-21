@@ -262,7 +262,7 @@ function Dashboard({ data, url, onRescan }) {
   return <SemrushDashboard data={data} url={url} onRescan={onRescan} />;
 }
 
-// ─── Save to BusinessProfile ───────────────────────────────────────────────────
+// ─── Save to BusinessProfile (cloud only) ─────────────────────────────────────
 async function saveToProfile(inputUrl, resData) {
   try {
     const u = await base44.auth.me();
@@ -311,42 +311,34 @@ async function saveToProfile(inputUrl, resData) {
     } else {
       await base44.entities.BusinessProfile.create(profileData);
     }
-    localStorage.setItem('wok_report_data', JSON.stringify(resData));
-    localStorage.setItem('wok_pending_scan_url', inputUrl);
   } catch {}
 }
 
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export default function WebsiteScanner({ firstName, autoUrl, cachedData }) {
-  // Si on a des données en cache (profil existant) → dashboard direct, jamais de loader
+  // cachedData = données cloud déjà chargées → pas de loader, jamais
   const [phase, setPhase] = useState(() => {
     if (cachedData && autoUrl) return 'dashboard';
-    if (autoUrl) return 'loading';
-    return 'input';
+    return 'input'; // autoUrl sans cachedData = ne rien faire (Home gère le loading)
   });
   const [url, setUrl] = useState(autoUrl || '');
   const [data, setData] = useState(cachedData || null);
   const bgResultRef = useRef(null);
   const loaderDoneRef = useRef(false);
 
-  // Seulement si autoUrl sans cachedData (premier scan non connecté, rare)
+  // Update si les props changent (ex: données cloud arrivent après montage)
   useEffect(() => {
-    if (!autoUrl || cachedData) return;
-    base44.functions.invoke('analyzeWebsite', { url: autoUrl })
-      .then(res => {
-        bgResultRef.current = res?.data || null;
-        if (res?.data?.overall_score !== undefined) {
-          saveToProfile(autoUrl, res.data);
-        }
-        tryResolve();
-      })
-      .catch(() => { bgResultRef.current = { error: true }; tryResolve(); });
-  }, [autoUrl, cachedData]);
+    if (cachedData && autoUrl && phase !== 'dashboard') {
+      setData(cachedData);
+      setUrl(autoUrl);
+      setPhase('dashboard');
+    }
+  }, [cachedData, autoUrl]);
 
   const tryResolve = () => {
     if (!loaderDoneRef.current) return;
     const res = bgResultRef.current;
-    const d = (res && !res.error && res.overall_score !== undefined) ? res : generateFallback(url || autoUrl);
+    const d = (res && !res.error && res.overall_score !== undefined) ? res : generateFallback(url);
     setData(d);
     setPhase('dashboard');
   };
