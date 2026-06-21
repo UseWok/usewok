@@ -262,23 +262,86 @@ function Dashboard({ data, url, onRescan }) {
   return <SemrushDashboard data={data} url={url} onRescan={onRescan} />;
 }
 
+// ─── Save to BusinessProfile ───────────────────────────────────────────────────
+async function saveToProfile(inputUrl, resData) {
+  try {
+    const u = await base44.auth.me();
+    if (!u) return;
+    const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
+    const profileData = {
+      site_url: inputUrl,
+      identity_name: resData.business_name || '',
+      identity_industry: resData.business_type || '',
+      identity_city: resData.city || '',
+      score_ai_visibility: resData.ai_visibility_score || 0,
+      score_message_clarity: resData.message_clarity_score || 0,
+      score_commercial_signal: resData.commercial_presence_score || 0,
+      score_overall: resData.overall_score || 0,
+      last_scan: new Date().toISOString(),
+      brand_keywords: JSON.stringify({
+        organic_traffic: resData.organic_traffic,
+        organic_traffic_delta_pct: resData.organic_traffic_delta_pct,
+        organic_keywords: resData.organic_keywords,
+        organic_keywords_delta_pct: resData.organic_keywords_delta_pct,
+        backlinks: resData.backlinks,
+        backlinks_delta_pct: resData.backlinks_delta_pct,
+        referring_domains: resData.referring_domains,
+        authority_score: resData.authority_score,
+        site_health: resData.site_health,
+        site_health_issues: resData.site_health_issues,
+        visibility_pct: resData.visibility_pct,
+        visibility_delta: resData.visibility_delta,
+        chatgpt_score: resData.chatgpt_score,
+        perplexity_score: resData.perplexity_score,
+        google_ai_score: resData.google_ai_score,
+        ai_mentions_count: resData.ai_mentions_count,
+        has_schema_markup: resData.has_schema_markup,
+        has_google_business: resData.has_google_business,
+        has_ssl: resData.has_ssl,
+        has_mobile_friendly: resData.has_mobile_friendly,
+        top_keywords: resData.top_keywords,
+        competitors: resData.competitors,
+        shock_insight: resData.shock_insight,
+        issues: resData.issues,
+        country: resData.country,
+      }),
+    };
+    if (profiles.length > 0) {
+      await base44.entities.BusinessProfile.update(profiles[0].id, profileData);
+    } else {
+      await base44.entities.BusinessProfile.create(profileData);
+    }
+    localStorage.setItem('wok_report_data', JSON.stringify(resData));
+    localStorage.setItem('wok_pending_scan_url', inputUrl);
+  } catch {}
+}
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
-export default function WebsiteScanner({ firstName, autoUrl }) {
-  const [phase, setPhase] = useState(autoUrl ? 'loading' : 'input');
+export default function WebsiteScanner({ firstName, autoUrl, cachedData }) {
+  // Si on a des données en cache (profil existant) → dashboard direct, jamais de loader
+  const [phase, setPhase] = useState(() => {
+    if (cachedData && autoUrl) return 'dashboard';
+    if (autoUrl) return 'loading';
+    return 'input';
+  });
   const [url, setUrl] = useState(autoUrl || '');
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(cachedData || null);
   const bgResultRef = useRef(null);
   const loaderDoneRef = useRef(false);
 
-  // Si autoUrl : le scan a déjà été lancé avant connexion — on essaie de récupérer
-  // Si pas encore dispo, on utilise le fallback après le loader
+  // Seulement si autoUrl sans cachedData (premier scan non connecté, rare)
   useEffect(() => {
-    if (!autoUrl) return;
-    // Tentative de relance pour récupérer le résultat (peut déjà être en cache serveur)
+    if (!autoUrl || cachedData) return;
     base44.functions.invoke('analyzeWebsite', { url: autoUrl })
-      .then(res => { bgResultRef.current = res?.data || null; tryResolve(); })
+      .then(res => {
+        bgResultRef.current = res?.data || null;
+        if (res?.data?.overall_score !== undefined) {
+          saveToProfile(autoUrl, res.data);
+        }
+        tryResolve();
+      })
       .catch(() => { bgResultRef.current = { error: true }; tryResolve(); });
-  }, [autoUrl]);
+  }, [autoUrl, cachedData]);
 
   const tryResolve = () => {
     if (!loaderDoneRef.current) return;
@@ -290,8 +353,6 @@ export default function WebsiteScanner({ firstName, autoUrl }) {
 
   const handleSubmit = (inputUrl) => {
     setUrl(inputUrl);
-    localStorage.setItem('wok_pending_scan_url', inputUrl);
-    localStorage.removeItem('wok_report_data');
     setPhase('loading');
     bgResultRef.current = null;
     loaderDoneRef.current = false;
@@ -299,57 +360,7 @@ export default function WebsiteScanner({ firstName, autoUrl }) {
       .then(res => {
         bgResultRef.current = res?.data || null;
         if (res?.data?.overall_score !== undefined) {
-          localStorage.setItem('wok_report_data', JSON.stringify(res.data));
-          // Sauvegarder dans BusinessProfile pour persistance compte
-          base44.auth.me().then(u => {
-            if (!u) return;
-            base44.entities.BusinessProfile.filter({ created_by_id: u.id }).then(profiles => {
-              const profileData = {
-                site_url: inputUrl,
-                identity_name: res.data.business_name || '',
-                identity_industry: res.data.business_type || '',
-                identity_city: res.data.city || '',
-                score_ai_visibility: res.data.ai_visibility_score || 0,
-                score_message_clarity: res.data.message_clarity_score || 0,
-                score_commercial_signal: res.data.commercial_presence_score || 0,
-                score_overall: res.data.overall_score || 0,
-                last_scan: new Date().toISOString(),
-                // Stocker toutes les métriques enrichies en JSON
-                brand_keywords: JSON.stringify({
-                  organic_traffic: res.data.organic_traffic,
-                  organic_traffic_delta_pct: res.data.organic_traffic_delta_pct,
-                  organic_keywords: res.data.organic_keywords,
-                  organic_keywords_delta_pct: res.data.organic_keywords_delta_pct,
-                  backlinks: res.data.backlinks,
-                  backlinks_delta_pct: res.data.backlinks_delta_pct,
-                  referring_domains: res.data.referring_domains,
-                  authority_score: res.data.authority_score,
-                  site_health: res.data.site_health,
-                  site_health_issues: res.data.site_health_issues,
-                  visibility_pct: res.data.visibility_pct,
-                  visibility_delta: res.data.visibility_delta,
-                  chatgpt_score: res.data.chatgpt_score,
-                  perplexity_score: res.data.perplexity_score,
-                  google_ai_score: res.data.google_ai_score,
-                  ai_mentions_count: res.data.ai_mentions_count,
-                  has_schema_markup: res.data.has_schema_markup,
-                  has_google_business: res.data.has_google_business,
-                  has_ssl: res.data.has_ssl,
-                  has_mobile_friendly: res.data.has_mobile_friendly,
-                  top_keywords: res.data.top_keywords,
-                  competitors: res.data.competitors,
-                  shock_insight: res.data.shock_insight,
-                  issues: res.data.issues,
-                  country: res.data.country,
-                }),
-              };
-              if (profiles.length > 0) {
-                base44.entities.BusinessProfile.update(profiles[0].id, profileData).catch(() => {});
-              } else {
-                base44.entities.BusinessProfile.create(profileData).catch(() => {});
-              }
-            }).catch(() => {});
-          }).catch(() => {});
+          saveToProfile(inputUrl, res.data);
         }
         tryResolve();
       })

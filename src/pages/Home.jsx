@@ -74,8 +74,13 @@ export default function Home() {
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || 'there';
-  // L'URL effective à passer au scanner : savedUrl > pendingScanUrl > null
   const effectiveAutoUrl = savedUrl || pendingScanUrl || null;
+
+  // Lire les données cachées du localStorage pour les passer directement (pas de re-scan)
+  const cachedData = (() => {
+    if (!savedUrl) return null;
+    try { return JSON.parse(localStorage.getItem('wok_report_data') || 'null'); } catch { return null; }
+  })();
 
   if (loadingProfile) {
     return (
@@ -107,7 +112,7 @@ export default function Home() {
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px 60px', minHeight: '60vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 900, margin: '0 auto' }}>
-        <WebsiteScanner firstName={firstName} autoUrl={effectiveAutoUrl} />
+        <WebsiteScanner firstName={firstName} autoUrl={effectiveAutoUrl} cachedData={cachedData} />
       </div>
     </div>
   );

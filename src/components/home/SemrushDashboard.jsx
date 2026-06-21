@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Globe, RotateCcw, ExternalLink, TrendingUp, TrendingDown, AlertCircle,
   AlertTriangle, CheckCircle2, ArrowRight, Plus, BarChart2, Search,
-  ShieldCheck, Link2, Star
+  ShieldCheck, Link2, Star, Share2, FolderPlus, X
 } from 'lucide-react';
 
 const F = 'Inter, system-ui, sans-serif';
@@ -246,65 +246,117 @@ function ProjectRow({ data, url, isFirst }) {
   );
 }
 
+// ── Add Domain Modal ─────────────────────────────────────────────────
+function AddDomainModal({ open, onClose }) {
+  const [domain, setDomain] = useState('');
+  if (!open) return null;
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.5)' }}
+            onClick={onClose} />
+          <motion.div initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+            }}>
+            <div style={{ background: '#fff', borderRadius: 12, padding: '32px 36px', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', position: 'relative' }}>
+              <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: 'none', background: '#F3F4F6', cursor: 'pointer', fontSize: 16, color: T2 }}>×</button>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: T1, margin: '0 0 24px' }}>Ajouter un domaine</h2>
+              <label style={{ fontSize: 12, color: T2, display: 'block', marginBottom: 6 }}>Domaine, sous-domaine ou sous-dossier</label>
+              <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="Entrez un domaine"
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, color: T1, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: F }} />
+              <label style={{ fontSize: 12, color: T2, display: 'block', marginBottom: 6 }}>Localisation</label>
+              <select style={{ width: '100%', padding: '10px 14px', border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, color: T1, background: '#fff', marginBottom: 24, fontFamily: F }}>
+                <option>🇺🇸 États-Unis</option>
+                <option>🇫🇷 France</option>
+                <option>🇬🇧 Royaume-Uni</option>
+              </select>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => { onClose(); window.location.href = '/pricing'; }}
+                  style={{ flex: 1, padding: '10px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+                  Ajouter le domaine
+                </button>
+                <button onClick={onClose}
+                  style={{ padding: '10px 20px', background: '#fff', color: T2, border: '1px solid #D1D5DB', borderRadius: 8, fontSize: 14, cursor: 'pointer', fontFamily: F }}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // ── Domain monitoring table (competitors) ───────────────────────────
 function DomainsTable({ data }) {
   const competitors = data.competitors || [];
-  if (competitors.length === 0) return null;
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', marginTop: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${BD}` }}>
         <h2 style={{ fontSize: 15, fontWeight: 700, color: T1, margin: 0 }}>Domaines à surveiller</h2>
-        <button
-          onClick={() => window.location.href = '/pricing'}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#fff', background: BLUE, border: 'none', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', fontFamily: F, fontWeight: 600 }}>
-          <Plus size={12} /> Ajouter le domaine
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '1px solid #D1D5DB', background: '#fff', color: T2, cursor: 'pointer', fontFamily: F }}>Mois</button>
+          <button style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '1px solid #D1D5DB', background: '#fff', color: T2, cursor: 'pointer', fontFamily: F }}>Année</button>
+          <button onClick={() => setShowModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#fff', background: '#111', border: 'none', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', fontFamily: F, fontWeight: 600 }}>
+            <Plus size={12} /> Ajouter domaine
+          </button>
+        </div>
       </div>
-      {/* Header */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 100px',
-        gap: 0, padding: '8px 20px', borderBottom: `1px solid #F3F4F6`,
-      }}>
-        {['Domaine', 'Mots clés org.', 'Trafic org.', 'Mots clés payants', 'Trafic payant', 'Domaines réf.', 'Authority Score'].map((h, i) => (
-          <span key={h} style={{ fontSize: 10, fontWeight: 600, color: T3, textTransform: 'none', textAlign: i > 0 ? 'right' : 'left', paddingRight: i > 0 ? 16 : 0 }}>{h}</span>
-        ))}
-      </div>
-      {/* Rows */}
-      {competitors.map((c, i) => (
-        <div key={i} style={{
-          display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 100px',
-          gap: 0, padding: '12px 20px', borderBottom: i < competitors.length - 1 ? `1px solid #F9FAFB` : 'none',
-          alignItems: 'center',
-        }}>
-          <a href={`https://${c.domain}`} target="_blank" rel="noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: BLUE, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
-            {c.domain} <ExternalLink size={10} />
-          </a>
-          <div style={{ textAlign: 'right', paddingRight: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(c.organic_traffic ? Math.round(c.organic_traffic * 0.45) : 0)}</div>
+
+      {competitors.length === 0 ? (
+        <div style={{ padding: '32px 20px', textAlign: 'center', color: T3, fontSize: 13 }}>
+          Aucun concurrent détecté. <button onClick={() => setShowModal(true)} style={{ color: BLUE, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Ajouter un domaine</button>
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 100px', gap: 0, padding: '8px 20px', borderBottom: `1px solid #F3F4F6` }}>
+            {['Domaine', 'Mots clés org.', 'Trafic org.', 'Mots clés payants', 'Trafic payant', 'Domaines réf.', 'Authority Score'].map((h, i) => (
+              <span key={h} style={{ fontSize: 10, fontWeight: 600, color: T3, textAlign: i > 0 ? 'right' : 'left', paddingRight: i > 0 ? 16 : 0 }}>{h}</span>
+            ))}
           </div>
-          <div style={{ textAlign: 'right', paddingRight: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(c.organic_traffic)}</div>
-          </div>
-          <div style={{ textAlign: 'right', paddingRight: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.05))}</div>
-          </div>
-          <div style={{ textAlign: 'right', paddingRight: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.08))}</div>
-          </div>
-          <div style={{ textAlign: 'right', paddingRight: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.3))}</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F0F0F0', border: '2px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: T1 }}>{c.authority_score || '?'}</span>
+          {/* Rows */}
+          {competitors.map((c, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 100px', gap: 0, padding: '12px 20px', borderBottom: i < competitors.length - 1 ? `1px solid #F9FAFB` : 'none', alignItems: 'center' }}>
+              <a href={`https://${c.domain}`} target="_blank" rel="noreferrer"
+                style={{ fontSize: 13, fontWeight: 600, color: BLUE, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+                {c.domain} <ExternalLink size={10} />
+              </a>
+              <div style={{ textAlign: 'right', paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(c.organic_traffic ? Math.round(c.organic_traffic * 0.45) : 0)}</div>
+              </div>
+              <div style={{ textAlign: 'right', paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(c.organic_traffic)}</div>
+              </div>
+              <div style={{ textAlign: 'right', paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.05))}</div>
+              </div>
+              <div style={{ textAlign: 'right', paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.08))}</div>
+              </div>
+              <div style={{ textAlign: 'right', paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T1 }}>{fmt(Math.round((c.organic_traffic || 0) * 0.3))}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F0F0F0', border: '2px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: T1 }}>{c.authority_score || '?'}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      ))}
+          ))}
+        </>
+      )}
+      <AddDomainModal open={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 }
@@ -358,12 +410,12 @@ export default function SemrushDashboard({ data, url, onRescan }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => window.location.href = '/ai-report'}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#fff', border: `1px solid ${BD}`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: T2, cursor: 'pointer', fontFamily: F }}>
-            <BarChart2 size={13} /> Rapport complet
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#fff', border: `1px solid ${BD}`, borderRadius: 7, fontSize: 12, fontWeight: 600, color: T2, cursor: 'pointer', fontFamily: F }}>
+            <Share2 size={12} /> Partager
           </button>
           <button onClick={onRescan}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#fff', border: `1px solid ${BD}`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: T2, cursor: 'pointer', fontFamily: F }}>
-            <RotateCcw size={13} /> Nouveau site
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#fff', border: `1px solid ${BD}`, borderRadius: 7, fontSize: 12, fontWeight: 600, color: T2, cursor: 'pointer', fontFamily: F }}>
+            <FolderPlus size={12} /> Nouveau site
           </button>
         </div>
       </div>
