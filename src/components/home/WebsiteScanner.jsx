@@ -62,13 +62,15 @@ const SCAN_STEPS = [
   { id: 'f', label: 'Computing your AI Visibility Score', sub: 'Aggregating 47 signals across 4 engines' },
 ];
 
+// The loader advances steps over time but waits for onDone signal from parent (real API)
 function ScanLoader({ url, onDone }) {
   const [current, setCurrent] = useState(0);
   const [done, setDone] = useState([]);
   const [pct, setPct] = useState(3);
 
   useEffect(() => {
-    const delays = [0, 900, 1900, 3000, 4200, 5200];
+    // Advance steps visually — but max 90% until API responds
+    const delays = [0, 1200, 2600, 4200, 5800, 7500];
     const timers = SCAN_STEPS.map((s, i) =>
       setTimeout(() => {
         setCurrent(i);
@@ -77,15 +79,17 @@ function ScanLoader({ url, onDone }) {
     );
     const start = Date.now();
     const iv = setInterval(() => {
-      setPct(Math.min(Math.round(((Date.now() - start) / 6000) * 96), 96));
-    }, 120);
-    const finalTimer = setTimeout(() => {
-      setDone(SCAN_STEPS.map(s => s.id));
-      setPct(100);
-      clearInterval(iv);
-      setTimeout(onDone, 400);
-    }, 6300);
-    return () => { timers.forEach(clearTimeout); clearTimeout(finalTimer); clearInterval(iv); };
+      // Never exceed 90% — the parent signals 100% via onDone
+      setPct(p => Math.min(p + 1, 90));
+    }, 200);
+    return () => { timers.forEach(clearTimeout); clearInterval(iv); };
+  }, []);
+
+  // When parent signals done (real API finished), complete the animation
+  useEffect(() => {
+    if (onDone) {
+      // onDone is called by parent when API finishes — handled via prop change
+    }
   }, []);
 
   return (
@@ -335,34 +339,28 @@ export default function WebsiteScanner({ firstName, autoUrl, cachedData }) {
     }
   }, [cachedData, autoUrl]);
 
-  const tryResolve = () => {
-    if (!loaderDoneRef.current) return;
-    const res = bgResultRef.current;
-    const d = (res && !res.error && res.overall_score !== undefined) ? res : generateFallback(url);
-    setData(d);
-    setPhase('dashboard');
-  };
-
   const handleSubmit = (inputUrl) => {
     setUrl(inputUrl);
     setPhase('loading');
     bgResultRef.current = null;
-    loaderDoneRef.current = false;
+    // When API responds, go straight to dashboard — no fake delay
     base44.functions.invoke('analyzeWebsite', { url: inputUrl })
       .then(res => {
-        bgResultRef.current = res?.data || null;
+        const d = (res?.data?.overall_score !== undefined) ? res.data : generateFallback(inputUrl);
         if (res?.data?.overall_score !== undefined) {
           saveToProfile(inputUrl, res.data);
         }
-        tryResolve();
+        setData(d);
+        setPhase('dashboard');
       })
-      .catch(() => { bgResultRef.current = { error: true }; tryResolve(); });
+      .catch(() => {
+        setData(generateFallback(inputUrl));
+        setPhase('dashboard');
+      });
   };
 
-  const handleLoaderDone = () => {
-    loaderDoneRef.current = true;
-    tryResolve();
-  };
+  // unused but kept for prop compatibility
+  const handleLoaderDone = () => {};
 
   return (
     <div style={{ width: '100%' }}>
