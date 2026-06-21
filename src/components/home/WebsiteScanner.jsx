@@ -291,7 +291,7 @@ export default function WebsiteScanner({ firstName, autoUrl }) {
   const handleSubmit = (inputUrl) => {
     setUrl(inputUrl);
     localStorage.setItem('wok_pending_scan_url', inputUrl);
-    localStorage.removeItem('wok_report_data'); // force re-scan on report page
+    localStorage.removeItem('wok_report_data');
     setPhase('loading');
     bgResultRef.current = null;
     loaderDoneRef.current = false;
@@ -300,6 +300,56 @@ export default function WebsiteScanner({ firstName, autoUrl }) {
         bgResultRef.current = res?.data || null;
         if (res?.data?.overall_score !== undefined) {
           localStorage.setItem('wok_report_data', JSON.stringify(res.data));
+          // Sauvegarder dans BusinessProfile pour persistance compte
+          base44.auth.me().then(u => {
+            if (!u) return;
+            base44.entities.BusinessProfile.filter({ created_by_id: u.id }).then(profiles => {
+              const profileData = {
+                site_url: inputUrl,
+                identity_name: res.data.business_name || '',
+                identity_industry: res.data.business_type || '',
+                identity_city: res.data.city || '',
+                score_ai_visibility: res.data.ai_visibility_score || 0,
+                score_message_clarity: res.data.message_clarity_score || 0,
+                score_commercial_signal: res.data.commercial_presence_score || 0,
+                score_overall: res.data.overall_score || 0,
+                last_scan: new Date().toISOString(),
+                // Stocker toutes les métriques enrichies en JSON
+                brand_keywords: JSON.stringify({
+                  organic_traffic: res.data.organic_traffic,
+                  organic_traffic_delta_pct: res.data.organic_traffic_delta_pct,
+                  organic_keywords: res.data.organic_keywords,
+                  organic_keywords_delta_pct: res.data.organic_keywords_delta_pct,
+                  backlinks: res.data.backlinks,
+                  backlinks_delta_pct: res.data.backlinks_delta_pct,
+                  referring_domains: res.data.referring_domains,
+                  authority_score: res.data.authority_score,
+                  site_health: res.data.site_health,
+                  site_health_issues: res.data.site_health_issues,
+                  visibility_pct: res.data.visibility_pct,
+                  visibility_delta: res.data.visibility_delta,
+                  chatgpt_score: res.data.chatgpt_score,
+                  perplexity_score: res.data.perplexity_score,
+                  google_ai_score: res.data.google_ai_score,
+                  ai_mentions_count: res.data.ai_mentions_count,
+                  has_schema_markup: res.data.has_schema_markup,
+                  has_google_business: res.data.has_google_business,
+                  has_ssl: res.data.has_ssl,
+                  has_mobile_friendly: res.data.has_mobile_friendly,
+                  top_keywords: res.data.top_keywords,
+                  competitors: res.data.competitors,
+                  shock_insight: res.data.shock_insight,
+                  issues: res.data.issues,
+                  country: res.data.country,
+                }),
+              };
+              if (profiles.length > 0) {
+                base44.entities.BusinessProfile.update(profiles[0].id, profileData).catch(() => {});
+              } else {
+                base44.entities.BusinessProfile.create(profileData).catch(() => {});
+              }
+            }).catch(() => {});
+          }).catch(() => {});
         }
         tryResolve();
       })

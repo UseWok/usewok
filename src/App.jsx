@@ -40,11 +40,7 @@ import LandingPage from './pages/LandingPage';
 
 import LandingPricingPage from './pages/LandingPricingPage';
 
-import LandingFeaturesPage from './pages/LandingFeaturesPage';
 
-import DiscussionsPage from './pages/DiscussionsPage';
-
-import AIControlTower from './pages/AIControlTower';
 
 import TermsOfServicePage from './pages/TermsOfServicePage';
 
@@ -57,7 +53,7 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 
 import AdminBlog from './pages/admin/AdminBlog';
-import CockpitPage from './pages/CockpitPage';
+
 import AIVisibilityReport from './pages/AIVisibilityReport';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -123,7 +119,7 @@ const AuthenticatedApp = () => {
 
           <Route path="/tarifs" element={<LandingPricingPage />} />
 
-          <Route path="/fonctionnalites" element={<LandingFeaturesPage />} />
+
 
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
@@ -204,13 +200,12 @@ const AuthenticatedApp = () => {
 
           <Route path="/manage-plan" element={<ManagePlanPage />} />
 
-          <Route path="/discussions" element={<DiscussionsPage />} />
-          <Route path="/cockpit" element={<CockpitPage />} />
+
           <Route path="/ai-report" element={<AIVisibilityReport />} />
           <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
 
-          <Route path="/ai-dna" element={<AIControlTower />} />
+
 
           <Route path="/admin/blog" element={<AdminBlog />} />
 
