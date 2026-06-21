@@ -54,7 +54,7 @@ import BlogPostPage from './pages/BlogPostPage';
 
 import AdminBlog from './pages/admin/AdminBlog';
 
-import AIVisibilityReport from './pages/AIVisibilityReport';
+import AIVisibilityReport from './pages/AIVisibilityReport.jsx';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import WorkspaceSettings from './pages/WorkspaceSettings';
