@@ -60,9 +60,26 @@ export default function Home() {
 
   if (loadingProfile) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 28, height: 28, border: '3px solid #E5E7EB', borderTopColor: '#7C3AED', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{
+        minHeight: '100vh', background: '#FFFFFF', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', padding: '48px 24px',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }}>
+        {/* AI engine pills skeleton */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+          {[80, 70, 75, 90].map((w, i) => (
+            <div key={i} style={{ width: w, height: 28, borderRadius: 20, background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%)', backgroundSize: '400% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+          ))}
+        </div>
+        {/* Title skeleton */}
+        <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 340, height: 36, borderRadius: 8, background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%)', backgroundSize: '400% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+          <div style={{ width: 220, height: 36, borderRadius: 8, background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%)', backgroundSize: '400% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+          <div style={{ width: 260, height: 16, borderRadius: 6, marginTop: 4, background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%)', backgroundSize: '400% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+        </div>
+        {/* Input skeleton */}
+        <div style={{ width: '100%', maxWidth: 620, height: 54, borderRadius: 14, background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEC 50%,#F3F4F6 75%)', backgroundSize: '400% 100%', animation: 'skshimmer 1.4s ease-in-out infinite' }} />
+        <style>{`@keyframes skshimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}`}</style>
       </div>
     );
   }
