@@ -1,0 +1,186 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Copy, Check, Wrench, FileText } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+
+// Thinking animation
+function ThinkingAnimation() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 gap-6">
+      {/* Halo orb */}
+      <div className="relative flex items-center justify-center">
+        <div style={{
+          width: 72, height: 72, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, rgba(124,58,237,0.04) 60%, transparent 100%)',
+          animation: 'haloPulse 2s ease-in-out infinite',
+          position: 'absolute',
+        }} />
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,58,237,0.35) 0%, rgba(124,58,237,0.12) 100%)',
+          animation: 'haloInner 2s ease-in-out infinite 0.3s',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 10, height: 10, borderRadius: '50%',
+            background: '#7C3AED',
+            animation: 'dotPulse 1.5s ease-in-out infinite',
+          }} />
+        </div>
+      </div>
+
+      {/* Thinking label */}
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>
+          Thinking<span style={{ animation: 'ellipsis 1.5s steps(4, end) infinite' }}>...</span>
+        </p>
+        <p style={{ fontSize: 12, color: '#888' }}>Analyse du problème en cours</p>
+      </div>
+
+      {/* Shimmer bars */}
+      <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[90, 70, 80, 55].map((w, i) => (
+          <div key={i} style={{
+            height: 10, borderRadius: 6, width: `${w}%`,
+            background: 'linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%)',
+            backgroundSize: '400% 100%',
+            animation: `skshimmer 1.4s ease-in-out infinite ${i * 0.15}s`,
+          }} />
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes haloPulse { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.3);opacity:1} }
+        @keyframes haloInner { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+        @keyframes dotPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.6);opacity:0.4} }
+        @keyframes ellipsis { 0%{content:'.'} 33%{content:'..'} 66%,100%{content:'...'} }
+        @keyframes skshimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+      `}</style>
+    </div>
+  );
+}
+
+export default function FixInstructionModal({ issue, issueId, profile, cachedFix, onClose, onFixSaved }) {
+  const [fix, setFix] = useState(cachedFix || null);
+  const [loading, setLoading] = useState(!cachedFix);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (cachedFix) { setFix(cachedFix); setLoading(false); return; }
+    // Call backend
+    base44.functions.invoke('generateFixInstruction', {
+      issueId,
+      issueProblem: issue,
+      businessProfile: {
+        identity_name: profile?.identity_name,
+        identity_industry: profile?.identity_industry,
+        identity_city: profile?.identity_city,
+        site_url: profile?.site_url,
+        identity_target: profile?.identity_target,
+      },
+    }).then(res => {
+      const data = res?.data;
+      setFix(data);
+      setLoading(false);
+      if (data && onFixSaved) onFixSaved(issueId, data);
+    }).catch(() => {
+      setFix({ type: 'TEXTE', content: 'Impossible de générer les instructions.', instruction: '' });
+      setLoading(false);
+    });
+  }, []);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fix?.content || '');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isText = fix?.type === 'TEXTE';
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        <motion.div
+          initial={{ scale: 0.93, y: 16, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.93, y: 16, opacity: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: '#fff', borderRadius: 20, width: '100%', maxWidth: 480,
+            boxShadow: '0 24px 60px rgba(0,0,0,0.15)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Header */}
+          <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F1F0EE', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Instructions de correction</p>
+              <p style={{ fontSize: 13, color: '#555', lineHeight: 1.4 }}>{issue}</p>
+            </div>
+            <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: '#F5F5F3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <X size={14} color="#888" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: '20px 24px' }}>
+            {loading ? (
+              <ThinkingAnimation />
+            ) : fix ? (
+              <div>
+                {/* Type badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px',
+                    borderRadius: 20, fontSize: 11, fontWeight: 700,
+                    background: isText ? '#ECFDF5' : '#EFF6FF',
+                    color: isText ? '#059669' : '#2563EB',
+                  }}>
+                    {isText ? <FileText size={12} /> : <Wrench size={12} />}
+                    {isText ? 'Modification de texte' : 'Action technique'}
+                  </div>
+                </div>
+
+                {/* Instruction */}
+                <p style={{ fontSize: 13, color: '#444', marginBottom: 14, lineHeight: 1.5 }}>
+                  <strong>{fix.instruction}</strong>
+                </p>
+
+                {/* Content box */}
+                <div style={{
+                  background: '#F8F7F4', border: '1px solid #E8E6E1',
+                  borderRadius: 12, padding: '14px 16px',
+                  fontSize: 13, color: '#1a1a1a', lineHeight: 1.65,
+                  whiteSpace: 'pre-wrap', fontFamily: isText ? 'inherit' : 'monospace',
+                  maxHeight: 220, overflowY: 'auto',
+                }}>
+                  {fix.content}
+                </div>
+
+                {/* Copy button */}
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    marginTop: 14, width: '100%', padding: '12px',
+                    background: copied ? '#059669' : '#7C3AED',
+                    color: '#fff', border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le contenu</>}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
