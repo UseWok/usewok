@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { ArrowLeft, RefreshCw, Printer, AlertTriangle, CheckCircle, XCircle, Zap, TrendingUp, TrendingDown, Star } from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
 import AIEnginesChart from '@/components/report/AIEnginesChart';
-import PerformanceTool from '@/components/report/PerformanceTool';
 
 function fmt(n) {
   if (n == null || n === 0) return '–';
@@ -60,7 +59,6 @@ function SectionTitle({ children }) {
 
 export default function AIVisibilityReport() {
   const navigate = useNavigate();
-  const activeTool = new URLSearchParams(window.location.search).get('tool');
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState(null);
@@ -104,10 +102,10 @@ export default function AIVisibilityReport() {
     return (
       <div style={{ minHeight: '100vh', background: '#FAFAF8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ fontSize: 48 }}>🔍</div>
-        <p style={{ fontSize: 18, fontWeight: 800, color: '#1a1a1a', margin: 0 }}>No report available</p>
-        <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Scan your website first from the home page.</p>
+        <p style={{ fontSize: 18, fontWeight: 800, color: '#1a1a1a', margin: 0 }}>Aucun rapport disponible</p>
+        <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Scannez votre site d'abord depuis l'accueil.</p>
         <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-          ← Back
+          ← Retour
         </button>
       </div>
     );
@@ -123,77 +121,44 @@ export default function AIVisibilityReport() {
   const strengths = profile.strengths || [];
 
   const scoreColor = score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#EF4444';
-  const scoreLabel = score >= 70 ? '✨ Great visibility' : score >= 40 ? '⚡ Average visibility' : '🚨 Low visibility';
+  const scoreLabel = score >= 70 ? '✨ Bonne visibilité' : score >= 40 ? '⚡ Visibilité moyenne' : '🚨 Faible visibilité';
 
   const technicals = [
-    { label: 'AI-readable structure', value: profile.has_schema_markup, tip: 'AI engines understand your content' },
-    { label: 'Google Business', value: profile.has_google_business, tip: 'You appear on Google Maps' },
-    { label: 'Secure site 🔒', value: profile.has_ssl, tip: 'Your site has HTTPS' },
-    { label: 'Mobile-friendly', value: profile.has_mobile_friendly, tip: 'Works well on phones' },
+    { label: 'Structure IA lisible', value: profile.has_schema_markup, tip: 'Les IA comprennent bien votre contenu' },
+    { label: 'Fiche Google', value: profile.has_google_business, tip: 'Vous apparaissez sur Google Maps' },
+    { label: 'Site sécurisé 🔒', value: profile.has_ssl, tip: 'Votre site a le cadenas HTTPS' },
+    { label: 'Compatible mobile', value: profile.has_mobile_friendly, tip: 'Fonctionne bien sur téléphone' },
   ];
 
   const metrics = [
-    { label: 'Monthly visits', value: fmt(profile.organic_traffic), delta: profile.organic_traffic_delta_pct },
-    { label: 'Keywords', value: fmt(profile.organic_keywords), delta: profile.organic_keywords_delta_pct },
+    { label: 'Visiteurs/mois', value: fmt(profile.organic_traffic), delta: profile.organic_traffic_delta_pct },
+    { label: 'Mots-clés', value: fmt(profile.organic_keywords), delta: profile.organic_keywords_delta_pct },
     { label: 'Backlinks', value: fmt(profile.backlinks), delta: profile.backlinks_delta_pct },
-    { label: 'Authority', value: profile.authority_score ? `${profile.authority_score}/100` : '–', delta: null },
+    { label: 'Autorité', value: profile.authority_score ? `${profile.authority_score}/100` : '–', delta: null },
   ];
 
-  // Sticky header is always shown
-  const header = (
-    <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-        <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ArrowLeft size={14} color="#555" />
-        </button>
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: 15, fontWeight: 800, color: '#0F0F10', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {activeTool ? activeTool.charAt(0).toUpperCase() + activeTool.slice(1) : 'AI Report'}
-          </h1>
-          <p style={{ fontSize: 11, color: '#aaa', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.site_url}</p>
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-        <button onClick={() => navigate('/app')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid #E5E4E0', borderRadius: 8, background: '#fff', fontSize: 11, fontWeight: 600, color: '#555', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-          <RefreshCw size={11} /> New
-        </button>
-        <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: 'none', borderRadius: 8, background: '#7C3AED', fontSize: 11, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
-          <Printer size={11} />
-        </button>
-      </div>
-    </div>
-  );
-
-  // Performance tool view
-  if (activeTool === 'performance') {
-    return (
-      <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        {header}
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px 40px' }}>
-          <PerformanceTool profile={profile} />
-        </div>
-      </div>
-    );
-  }
-
-  // Other tool placeholder
-  if (activeTool) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        {header}
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>🚧</div>
-          <p style={{ fontSize: 16, fontWeight: 700, color: '#333', margin: '0 0 8px' }}>Coming soon</p>
-          <p style={{ fontSize: 13, color: '#888', margin: 0 }}>The <strong>{activeTool}</strong> tool is being built.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Default full report
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {header}
+      {/* Sticky header */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ArrowLeft size={14} color="#555" />
+          </button>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: 15, fontWeight: 800, color: '#0F0F10', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Rapport IA</h1>
+            <p style={{ fontSize: 11, color: '#aaa', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.site_url}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <button onClick={() => navigate('/app')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid #E5E4E0', borderRadius: 8, background: '#fff', fontSize: 11, fontWeight: 600, color: '#555', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <RefreshCw size={11} /> Nouveau
+          </button>
+          <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: 'none', borderRadius: 8, background: '#7C3AED', fontSize: 11, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
+            <Printer size={11} />
+          </button>
+        </div>
+      </div>
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px 40px' }}>
 
@@ -215,9 +180,9 @@ export default function AIVisibilityReport() {
           {/* Sub-scores */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 20, paddingTop: 20, borderTop: '1px solid #EDECE9' }}>
             {[
-              { label: 'AI Visibility', value: aiScore, color: '#7C3AED' },
-              { label: 'Message Clarity', value: clarityScore, color: '#3B82F6' },
-              { label: 'Commercial Signal', value: commercialScore, color: '#F59E0B' },
+              { label: 'Visibilité IA', value: aiScore, color: '#7C3AED' },
+              { label: 'Clarté message', value: clarityScore, color: '#3B82F6' },
+              { label: 'Signal commercial', value: commercialScore, color: '#F59E0B' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 22, fontWeight: 900, color: s.color }}>{s.value}</div>
@@ -232,7 +197,7 @@ export default function AIVisibilityReport() {
 
         {/* Traffic metrics */}
         <Card>
-          <SectionTitle>Site Performance</SectionTitle>
+          <SectionTitle>Performances du site</SectionTitle>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {metrics.map((m, i) => (
               <div key={i} style={{ background: '#FAFAF8', borderRadius: 10, padding: '12px 14px' }}>
@@ -249,7 +214,7 @@ export default function AIVisibilityReport() {
 
         {/* Technical signals */}
         <Card style={{ marginTop: 16 }}>
-          <SectionTitle>Technical Signals</SectionTitle>
+          <SectionTitle>Signaux techniques</SectionTitle>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {technicals.map((t, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', background: t.value ? '#F0FDF4' : '#FEF2F2', borderRadius: 10, border: `1px solid ${t.value ? '#D1FAE5' : '#FECACA'}` }}>
@@ -273,8 +238,8 @@ export default function AIVisibilityReport() {
                 <Zap size={14} color="#F97316" />
               </div>
               <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#0F0F10', margin: 0 }}>Action Plan</p>
-                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>{issues.length} issue{issues.length > 1 ? 's' : ''} to fix</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#0F0F10', margin: 0 }}>Plan d'action</p>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>{issues.length} problème{issues.length > 1 ? 's' : ''} à corriger</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -300,7 +265,7 @@ export default function AIVisibilityReport() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {hasCached ? '✓ View' : 'Fix →'}
+                      {hasCached ? '✓ Voir' : 'Corriger →'}
                     </button>
                   </div>
                 );
@@ -312,7 +277,7 @@ export default function AIVisibilityReport() {
         {/* Strengths */}
         {strengths.length > 0 && (
           <Card>
-            <SectionTitle>Strengths 💪</SectionTitle>
+            <SectionTitle>Points forts 💪</SectionTitle>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {strengths.map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#F0FDF4', borderRadius: 10 }}>
@@ -327,7 +292,7 @@ export default function AIVisibilityReport() {
         {/* Top keywords */}
         {topKeywords.length > 0 && (
           <Card>
-            <SectionTitle>Top Keywords</SectionTitle>
+            <SectionTitle>Mots-clés principaux</SectionTitle>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {topKeywords.map((kw, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: i < topKeywords.length - 1 ? '1px solid #F5F4F1' : 'none' }}>
@@ -345,13 +310,13 @@ export default function AIVisibilityReport() {
         {/* Competitors */}
         {competitors.length > 0 && (
           <Card>
-            <SectionTitle>Competitors</SectionTitle>
+            <SectionTitle>Concurrents</SectionTitle>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {competitors.map((c, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#F8F7F4', borderRadius: 10 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{typeof c === 'string' ? c : c.domain}</div>
-                    {c.organic_traffic > 0 && <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{fmt(c.organic_traffic)} visits/mo</div>}
+                    {c.organic_traffic > 0 && <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{fmt(c.organic_traffic)} visites/mois</div>}
                   </div>
                   {c.authority_score != null && (
                     <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
