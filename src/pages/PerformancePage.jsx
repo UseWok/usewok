@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, ChevronDown, Zap, Trophy, Target, BarChart2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, ChevronDown, Zap, BarChart2 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, RadarChart, Radar,
   PolarGrid, PolarAngleAxis, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
+import OverviewTab from '@/components/performance/OverviewTab';
+import CrawlabilityTab from '@/components/performance/CrawlabilityTab';
+import IssuesTab from '@/components/performance/IssuesTab';
+import CrawledPagesTab from '@/components/performance/CrawledPagesTab';
+import PerformanceDetailTab from '@/components/performance/PerformanceDetailTab';
 
 const VIOLET = '#7C3AED';
 const F = 'Inter, system-ui, sans-serif';
@@ -478,12 +483,23 @@ function LoadingState() {
 }
 
 // ─── Main Page ──────────────────────────────────────────────────────
+const SEO_TABS = [
+  { id: 'overview', label: 'Vue d\'ensemble' },
+  { id: 'crawlability', label: 'Explorabilité' },
+  { id: 'issues', label: 'Problèmes' },
+  { id: 'crawled-pages', label: 'Pages explorées' },
+  { id: 'performance', label: 'Performances' },
+  { id: 'ai', label: 'Performance IA' },
+];
+
 export default function PerformancePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [perfData, setPerfData] = useState(null);
   const [phase, setPhase] = useState('loading');
   const [selectedGrowthBrand, setSelectedGrowthBrand] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [seoSubView, setSeoSubView] = useState(null); // 'crawlability' | 'perf-detail' | null
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -546,26 +562,90 @@ export default function PerformancePage() {
   const yourBrandName = perfData?.brand_name || profile?.identity_name || profile?.site_url || 'Votre marque';
   const analyzedAt = perfData?.analyzed_at ? new Date(perfData.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
 
+  const renderSeoContent = () => {
+    if (seoSubView === 'crawlability') return <CrawlabilityTab onBack={() => setSeoSubView(null)} />;
+    if (seoSubView === 'perf-detail') return <PerformanceDetailTab onBack={() => setSeoSubView(null)} />;
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewTab onCrawlabilityClick={() => setSeoSubView('crawlability')} onPerformanceClick={() => setSeoSubView('perf-detail')} />;
+      case 'crawlability':
+        return <CrawlabilityTab onBack={() => setActiveTab('overview')} />;
+      case 'issues':
+        return <IssuesTab />;
+      case 'crawled-pages':
+        return <CrawledPagesTab />;
+      case 'performance':
+        return <PerformanceDetailTab onBack={() => setActiveTab('overview')} />;
+      case 'ai':
+        return perfData ? (
+          <>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
+              {[
+                { label: 'Voice Share', value: `${perfData.share_of_voice?.your_brand?.voice_share_pct || 0}%`, delta: perfData.share_of_voice?.your_brand?.voice_share_delta, color: VIOLET, icon: '📢' },
+                { label: 'Perception', value: `${perfData.share_of_voice?.your_brand?.favorable_pct || 0}%`, delta: perfData.share_of_voice?.your_brand?.favorable_delta, color: '#10B981', icon: '❤️' },
+                { label: 'Concurrents', value: `${(perfData.share_of_voice?.competitors || []).length}`, delta: null, color: '#F59E0B', icon: '⚔️' },
+              ].map((m, i) => (
+                <div key={i} style={{ flex: '1 1 auto', minWidth: 100, background: '#fff', border: '1px solid #EDECE9', borderRadius: 14, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icon}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: m.color, lineHeight: 1 }}>{m.value}</div>
+                  {m.delta != null && <div style={{ marginTop: 3 }}><Delta val={m.delta} /></div>}
+                  <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, marginTop: 2 }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+            <ShareOfVoiceSection data={perfData.share_of_voice} yourBrandName={yourBrandName} />
+            <FavorabilitySection sov={perfData.share_of_voice} />
+            <GrowthFactorsSection data={perfData.growth_factors} selectedBrand={selectedGrowthBrand} onBrandChange={setSelectedGrowthBrand} />
+            <CompetitorDeepDive strategy={perfData.strategy} yourBrandName={yourBrandName} />
+            <StrategicLeversSection levers={perfData.strategy?.strategic_levers} />
+            <p style={{ fontSize: 10, color: '#ccc', textAlign: 'center', marginTop: 16 }}>Données analysées par IA · {analyzedAt}</p>
+          </>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 40 }}>📊</div>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#888' }}>Analyse IA non disponible</p>
+            <button onClick={handleRefresh} style={{ padding: '10px 20px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Lancer l'analyse</button>
+          </div>
+        );
+      default: return null;
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
       {/* Header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '11px 16px', paddingTop: 'max(11px, calc(env(safe-area-inset-top) + 8px))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => navigate('/app')} style={{ width: 30, height: 30, borderRadius: 7, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ArrowLeft size={13} color="#555" />
-          </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <BarChart2 size={14} color={VIOLET} />
-              <h1 style={{ fontSize: 14, fontWeight: 800, color: '#0F0F10', margin: 0 }}>Performance IA</h1>
+      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '11px 16px', paddingTop: 'max(11px, calc(env(safe-area-inset-top) + 8px))', position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 7, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ArrowLeft size={13} color="#555" />
+            </button>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BarChart2 size={14} color={VIOLET} />
+                <h1 style={{ fontSize: 14, fontWeight: 800, color: '#0F0F10', margin: 0 }}>Audit du site</h1>
+              </div>
+              {profile?.site_url && <p style={{ fontSize: 10, color: '#bbb', margin: 0 }}>{profile.site_url}</p>}
             </div>
-            {analyzedAt && <p style={{ fontSize: 10, color: '#bbb', margin: 0 }}>Analysé le {analyzedAt}</p>}
           </div>
-        </div>
-        {phase === 'done' && (
           <button onClick={handleRefresh} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: '1px solid #E5E4E0', borderRadius: 8, background: '#fff', fontSize: 11, fontWeight: 600, color: '#555', cursor: 'pointer' }}>
             <RefreshCw size={11} /> Actualiser
           </button>
+        </div>
+        {/* Tab bar */}
+        {!seoSubView && (
+          <div style={{ display: 'flex', gap: 0, overflowX: 'auto', marginBottom: -1 }}>
+            {SEO_TABS.map(tab => (
+              <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSeoSubView(null); }} style={{
+                padding: '8px 14px', border: 'none', borderBottom: `2px solid ${activeTab === tab.id ? VIOLET : 'transparent'}`,
+                background: 'transparent', fontSize: 12, fontWeight: activeTab === tab.id ? 700 : 500,
+                color: activeTab === tab.id ? VIOLET : '#888', cursor: 'pointer', whiteSpace: 'nowrap',
+                transition: 'all 0.15s', flexShrink: 0,
+              }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
@@ -576,10 +656,8 @@ export default function PerformancePage() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '65vh', padding: 32, textAlign: 'center' }}>
           <div style={{ fontSize: 52, marginBottom: 16 }}>📊</div>
           <p style={{ fontSize: 17, fontWeight: 800, color: '#1a1a1a', margin: '0 0 8px' }}>Aucun site scanné</p>
-          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>Scannez votre site depuis l'accueil pour débloquer l'analyse Performance.</p>
-          <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            ← Aller scanner
-          </button>
+          <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>Scannez votre site depuis l'accueil pour débloquer l'analyse.</p>
+          <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>← Aller scanner</button>
         </div>
       )}
 
@@ -588,42 +666,16 @@ export default function PerformancePage() {
           <div style={{ fontSize: 52, marginBottom: 16 }}>⚠️</div>
           <p style={{ fontSize: 17, fontWeight: 800, color: '#1a1a1a', margin: '0 0 8px' }}>Analyse échouée</p>
           <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px' }}>Une erreur s'est produite. Veuillez réessayer.</p>
-          <button onClick={handleRefresh} style={{ padding: '12px 24px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            Réessayer
-          </button>
+          <button onClick={handleRefresh} style={{ padding: '12px 24px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Réessayer</button>
         </div>
       )}
 
-      {phase === 'done' && perfData && (
-        <div style={{ maxWidth: 740, margin: '0 auto', padding: '16px 12px 80px' }}>
-
-          {/* Hero bar */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
-            {[
-              { label: 'Voice Share', value: `${perfData.share_of_voice?.your_brand?.voice_share_pct || 0}%`, delta: perfData.share_of_voice?.your_brand?.voice_share_delta, color: VIOLET, icon: '📢' },
-              { label: 'Perception', value: `${perfData.share_of_voice?.your_brand?.favorable_pct || 0}%`, delta: perfData.share_of_voice?.your_brand?.favorable_delta, color: '#10B981', icon: '❤️' },
-              { label: 'Concurrents', value: `${(perfData.share_of_voice?.competitors || []).length}`, delta: null, color: '#F59E0B', icon: '⚔️' },
-            ].map((m, i) => (
-              <div key={i} style={{ flex: '1 1 auto', minWidth: 100, background: '#fff', border: '1px solid #EDECE9', borderRadius: 14, padding: '12px 14px' }}>
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icon}</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: m.color, lineHeight: 1 }}>{m.value}</div>
-                {m.delta != null && <div style={{ marginTop: 3 }}><Delta val={m.delta} /></div>}
-                <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, marginTop: 2 }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <ShareOfVoiceSection data={perfData.share_of_voice} yourBrandName={yourBrandName} />
-          <FavorabilitySection sov={perfData.share_of_voice} />
-          <GrowthFactorsSection data={perfData.growth_factors} selectedBrand={selectedGrowthBrand} onBrandChange={setSelectedGrowthBrand} />
-          <CompetitorDeepDive strategy={perfData.strategy} yourBrandName={yourBrandName} />
-          <StrategicLeversSection levers={perfData.strategy?.strategic_levers} />
-
-          <p style={{ fontSize: 10, color: '#ccc', textAlign: 'center', marginTop: 16 }}>
-            Données analysées par IA · {analyzedAt}
-          </p>
+      {(phase === 'done' || phase === 'loading') && phase !== 'loading' && (
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '16px 12px 80px' }}>
+          {renderSeoContent()}
         </div>
       )}
+
       <style>{`@keyframes skshimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}`}</style>
     </div>
   );
