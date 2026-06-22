@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import BottomTabs from './BottomTabs';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { base44 } from '@/api/base44Client';
@@ -216,6 +217,7 @@ export default function Layout() {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
+          paddingTop: isMobile ? 'env(safe-area-inset-top)' : 0,
           ...(isMobile ? {} : {
             marginTop: BORDER_TOP,
             marginRight: BORDER_SIDE,
@@ -230,9 +232,14 @@ export default function Layout() {
         }}
       >
         {/* Inner scroll container so bottom border is always visible */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{
+          flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column',
+          paddingBottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom))' : 0,
+        }}>
           <Outlet />
         </div>
+        {/* Mobile bottom tabs */}
+        {isMobile && <BottomTabs />}
       </motion.main>
     </div>
   );

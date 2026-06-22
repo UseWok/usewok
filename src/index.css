@@ -7,6 +7,16 @@
 /* ── Global artistic background ── */
 body {
   background-color: #F8F7F4 !important;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area support */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 /* Grain overlay — applied via pseudo on #root */
@@ -142,6 +152,13 @@ body {
   }
   a:not([class]):hover {
     text-decoration: underline;
+  }
+
+  /* ── Mobile: disable tap highlight + user-select on interactive elements ── */
+  button, a, nav, [role="button"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* ── Scrollbars: hidden everywhere ── */

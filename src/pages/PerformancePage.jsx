@@ -464,7 +464,7 @@ export default function PerformancePage() {
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
       {/* Sticky header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '11px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '11px 16px', paddingTop: 'max(11px, calc(env(safe-area-inset-top) + 8px))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate('/app')} style={{ width: 30, height: 30, borderRadius: 7, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ArrowLeft size={13} color="#555" />

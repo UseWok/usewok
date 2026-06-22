@@ -140,7 +140,7 @@ export default function AIVisibilityReport() {
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* Sticky header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #EDECE9', padding: '12px 16px', paddingTop: 'max(12px, calc(env(safe-area-inset-top) + 8px))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E4E0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <ArrowLeft size={14} color="#555" />

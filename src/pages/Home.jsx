@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -18,6 +18,10 @@ export default function Home() {
   const [savedUrl, setSavedUrl] = useState(null);
   const [cachedData, setCachedData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const pullStartY = useRef(null);
+  const pullDelta = useRef(0);
+  const [pullIndicator, setPullIndicator] = useState(0); // 0–1 progress
 
   useEffect(() => {
     const pending = localStorage.getItem(PENDING_KEY);
@@ -58,6 +62,50 @@ export default function Home() {
   const firstName = user?.full_name?.split(' ')[0] || 'there';
   const effectiveAutoUrl = savedUrl || null;
 
+  // Pull-to-refresh handlers
+  const handleTouchStart = useCallback((e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop === 0) pullStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (pullStartY.current == null) return;
+    const delta = e.touches[0].clientY - pullStartY.current;
+    if (delta > 0) {
+      pullDelta.current = delta;
+      setPullIndicator(Math.min(delta / 80, 1));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (pullDelta.current > 80 && !refreshing) {
+      setRefreshing(true);
+      setPullIndicator(0);
+      pullStartY.current = null;
+      pullDelta.current = 0;
+      // Re-fetch profile
+      try {
+        const u = await base44.auth.me();
+        if (u) {
+          const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+          if (profiles.length > 0 && profiles[0].site_url) {
+            const p = profiles[0];
+            let extra = {};
+            try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
+            const fullData = { business_name: p.identity_name, business_type: p.identity_industry, city: p.identity_city, ai_visibility_score: p.score_ai_visibility, message_clarity_score: p.score_message_clarity, commercial_presence_score: p.score_commercial_signal, overall_score: p.score_overall, ...extra };
+            setSavedUrl(p.site_url);
+            setCachedData(fullData);
+          }
+        }
+      } catch {}
+      setTimeout(() => setRefreshing(false), 600);
+    } else {
+      setPullIndicator(0);
+      pullStartY.current = null;
+      pullDelta.current = 0;
+    }
+  }, [refreshing]);
+
   if (loadingProfile) {
     return (
       <div style={{
@@ -85,15 +133,38 @@ export default function Home() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', width: '100%',
-      background: '#FFFFFF',
-      position: 'relative',
-      display: 'flex', flexDirection: 'column',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      overflowX: 'hidden', overflowY: 'auto',
-      boxSizing: 'border-box',
-    }}>
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        minHeight: '100vh', width: '100%',
+        background: '#FFFFFF',
+        position: 'relative',
+        display: 'flex', flexDirection: 'column',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        overflowX: 'hidden', overflowY: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullIndicator > 0 || refreshing) && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: 48, pointerEvents: 'none',
+          opacity: refreshing ? 1 : pullIndicator,
+          transition: refreshing ? 'none' : 'opacity 0.1s',
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%',
+            border: '3px solid #F1F0EE', borderTopColor: '#7C3AED',
+            animation: refreshing ? 'spin 0.8s linear infinite' : 'none',
+            transform: refreshing ? 'none' : `rotate(${pullIndicator * 270}deg)`,
+          }} />
+        </div>
+      )}
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
 
@@ -111,4 +182,5 @@ export default function Home() {
       </div>
     </div>
   );
+
 }
