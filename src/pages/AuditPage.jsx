@@ -110,11 +110,14 @@ export default function AuditPage() {
       setAuditData(res.data);
       setPhase('done');
 
-      // Cache in BusinessProfile
-      let extra = {};
-      try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
-      const newExtra = { ...extra, audit_data: res.data, audit_analyzed_at: new Date().toISOString() };
-      base44.entities.BusinessProfile.update(p.id, { brand_keywords: JSON.stringify(newExtra) }).catch(() => {});
+      // Re-read freshest brand_keywords before merging to avoid overwriting concurrent writes
+      base44.entities.BusinessProfile.filter({ created_by_id: (await base44.auth.me().catch(() => null))?.id }).then(ps => {
+        if (!ps?.length) return;
+        let fresh = {};
+        try { fresh = JSON.parse(ps[0].brand_keywords || '{}'); } catch {}
+        const merged = { ...fresh, audit_data: res.data, audit_analyzed_at: new Date().toISOString() };
+        base44.entities.BusinessProfile.update(ps[0].id, { brand_keywords: JSON.stringify(merged) }).catch(() => {});
+      }).catch(() => {});
     } catch {
       setPhase('error');
     }

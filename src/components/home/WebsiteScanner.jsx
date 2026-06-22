@@ -263,6 +263,21 @@ function Dashboard({ data, url, onRescan }) {
   return <SemrushDashboard data={data} url={url} onRescan={onRescan} />;
 }
 
+// ─── Merge extra fields into existing brand_keywords cache ────────────────────
+async function mergeCacheFields(inputUrl, fields) {
+  try {
+    const u = await base44.auth.me();
+    if (!u) return;
+    const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
+    if (!profiles.length) return;
+    const p = profiles[0];
+    let existing = {};
+    try { existing = JSON.parse(p.brand_keywords || '{}'); } catch {}
+    const merged = { ...existing, ...fields };
+    await base44.entities.BusinessProfile.update(p.id, { brand_keywords: JSON.stringify(merged) });
+  } catch {}
+}
+
 // ─── Save to BusinessProfile (cloud only) ─────────────────────────────────────
 async function saveToProfile(inputUrl, resData) {
   try {
@@ -348,15 +363,36 @@ export default function WebsiteScanner({ firstName, autoUrl, cachedData }) {
     setUrl(inputUrl);
     setPhase('loading');
     bgResultRef.current = null;
-    // When API responds, go straight to dashboard — no fake delay
-    base44.functions.invoke('analyzeWebsite', { url: inputUrl })
-      .then(res => {
+
+    // Main scan + background scans all fired in parallel
+    const mainScan = base44.functions.invoke('analyzeWebsite', { url: inputUrl });
+    const auditScan = base44.functions.invoke('analyzeAudit', { url: inputUrl });
+    const perfScan = base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: '' });
+
+    mainScan
+      .then(async res => {
         const d = (res?.data?.overall_score !== undefined) ? res.data : generateFallback(inputUrl);
-        if (res?.data?.overall_score !== undefined) {
-          saveToProfile(inputUrl, res.data);
-        }
         setData(d);
         setPhase('dashboard');
+
+        if (res?.data?.overall_score !== undefined) {
+          // Save main data first, then merge audit + perf results as they arrive
+          await saveToProfile(inputUrl, res.data);
+
+          // Merge audit result when it arrives
+          auditScan.then(auditRes => {
+            if (auditRes?.data && !auditRes.data.error) {
+              mergeCacheFields(inputUrl, { audit_data: auditRes.data, audit_analyzed_at: new Date().toISOString() });
+            }
+          }).catch(() => {});
+
+          // Merge perf result when it arrives
+          perfScan.then(perfRes => {
+            if (perfRes?.data && !perfRes.data.error) {
+              mergeCacheFields(inputUrl, { perf_data: perfRes.data, perf_analyzed_at: new Date().toISOString() });
+            }
+          }).catch(() => {});
+        }
       })
       .catch(() => {
         setData(generateFallback(inputUrl));
