@@ -543,7 +543,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 { id: 'drivers',     label: 'Drivers',          icon: Zap,            color: '#F97316' },
                 { id: 'questions',   label: 'Questions',        icon: HelpIcon,       color: '#06B6D4' },
                 { id: 'seek',        label: 'Seek',             icon: Search,         color: '#A855F7' },
-                { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9' },
+                { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
                 { id: 'print',       label: 'Print',            icon: Printer,        color: '#64748B' },
                 { id: 'tracking',    label: 'Tracking',         icon: Target,         color: '#DC2626' },
                 { id: 'goals',       label: 'Goals',            icon: Lightbulb,      color: '#84CC16' },
