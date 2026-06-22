@@ -537,7 +537,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 { id: 'overview',    label: 'Overview',         icon: BarChart2,      color: '#8B5CF6' },
                 { id: 'competitor',  label: 'Competitor',       icon: Radar,          color: '#EC4899' },
                 { id: 'crowd',       label: 'Crowd Research',   icon: Users,          color: '#F59E0B' },
-                { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981' },
+                { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'perception',  label: 'Perception',       icon: MessageCircle,  color: '#3B82F6' },
                 { id: 'sentiment',   label: 'Sentiment',        icon: Activity,       color: '#EF4444' },
                 { id: 'drivers',     label: 'Drivers',          icon: Zap,            color: '#F97316' },
@@ -549,10 +549,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 { id: 'goals',       label: 'Goals',            icon: Lightbulb,      color: '#84CC16' },
               ].map(tool => {
                 const Icon = tool.icon;
-                const isToolActive = location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id;
+                const isToolActive = tool.route ? location.pathname === tool.route : (location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id);
                 return (
                   <button key={tool.id}
-                    onClick={() => nav(`/ai-report?tool=${tool.id}`)}
+                    onClick={() => tool.route ? nav(tool.route) : nav(`/ai-report?tool=${tool.id}`)}
                     style={{
                       display: 'flex', alignItems: 'center', width: '100%', height: 30,
                       padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',

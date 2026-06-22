@@ -55,6 +55,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import AdminBlog from './pages/admin/AdminBlog';
 
 import AIVisibilityReport from './pages/AIVisibilityReport.jsx';
+import PerformancePage from './pages/PerformancePage.jsx';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import WorkspaceSettings from './pages/WorkspaceSettings';
@@ -202,6 +203,7 @@ const AuthenticatedApp = () => {
 
 
           <Route path="/ai-report" element={<AIVisibilityReport />} />
+          <Route path="/performance" element={<PerformancePage />} />
           <Route path="/workspace-settings" element={<WorkspaceSettings />} />
 
 
