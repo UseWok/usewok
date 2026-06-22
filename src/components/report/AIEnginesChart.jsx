@@ -12,7 +12,7 @@ const AI_LOGOS = {
     </svg>
   ),
   Gemini:     L('https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png', 'screen'),
-  Claude:     L('https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png', 'multiply'),
+  Claude:     L('https://freepnglogo.com/images/all_img/claude-ai-icon-65aa.png', 'multiply'),
   Mistral:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', 'multiply'),
   Llama:      L('https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', 'multiply'),
   Perplexity: L('https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png', 'multiply'),
