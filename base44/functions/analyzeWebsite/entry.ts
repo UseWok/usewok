@@ -12,20 +12,12 @@ Deno.serve(async (req) => {
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    // Fire all queries IN PARALLEL
-    const [seoResult, chatgptResult, technicalResult] = await Promise.all([
-      // 1. Full SEO + AI visibility analysis with real data
+    const [seoResult, aiEnginesResult, technicalResult] = await Promise.all([
+      // 1. SEO + geo traffic
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are a senior SEO and AI visibility expert. Deeply analyze this website: ${cleanUrl}
+        prompt: `You are a senior SEO and AI visibility expert. Deeply analyze this website using real web data: ${cleanUrl}
 
-        Use web search to find REAL data about this website. Look for:
-        - The actual business/website content
-        - Its real organic traffic estimates (Similarweb, Ahrefs, SEMrush-style estimates)
-        - Its real keyword rankings
-        - Its backlink profile
-        - Its domain authority
-
-        Return a JSON with ALL of these fields (use real estimates where possible, otherwise realistic estimates based on site type):
+        Return a JSON with ALL these fields (use real estimates based on what you know or can find):
         - ai_visibility_score: number 0-100
         - message_clarity_score: number 0-100
         - commercial_presence_score: number 0-100
@@ -33,31 +25,28 @@ Deno.serve(async (req) => {
         - business_name: string
         - business_type: string
         - city: string
-        - country: string
+        - country: string (ISO 2-letter code, e.g. "FR")
         - language: string (e.g. "fr", "en")
-        - organic_traffic: number (estimated monthly visits, e.g. 12400)
-        - organic_traffic_delta_pct: number (% change last 30d, e.g. +50.17 or -10.5)
-        - organic_keywords: number (estimated number of ranking keywords, e.g. 57400)
-        - organic_keywords_delta_pct: number (% change)
-        - paid_traffic: number (estimated paid monthly visits, 0 if none)
-        - paid_keywords: number
-        - backlinks: number (estimated total backlinks, e.g. 5200000)
-        - backlinks_delta_pct: number (% change)
-        - referring_domains: number (estimated referring domains)
-        - referring_domains_delta_pct: number
-        - authority_score: number 0-100 (domain authority)
-        - site_health: number 0-100 (technical SEO health %)
-        - site_health_issues: number (count of technical issues)
-        - visibility_pct: number 0-100 (search visibility %)
-        - visibility_delta: number (change in pts, e.g. -10)
-        - issues: array of 4 objects { problem: string, category: string, severity: "error"|"warning" }
+        - organic_traffic: number (estimated monthly visits)
+        - organic_traffic_delta_pct: number (% change last 30d)
+        - organic_keywords: number
+        - organic_keywords_delta_pct: number
+        - backlinks: number
+        - backlinks_delta_pct: number
+        - referring_domains: number
+        - authority_score: number 0-100
+        - site_health: number 0-100
+        - site_health_issues: number
+        - visibility_pct: number 0-100
+        - visibility_delta: number
+        - issues: array of 4 objects { problem: string (in simple non-technical French, explain what it means for the business owner — no jargon), category: string, severity: "error"|"warning" }
         - strengths: array of 3 strings
-        - shock_insight: string (one powerful sentence about what they're losing)
+        - shock_insight: string (one powerful simple sentence in French about what they're losing)
         - top_keywords: array of 5 objects { keyword: string, position: number, volume: number }
         - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number }
-
-        Be realistic. Large well-known sites have millions of backlinks and high traffic.
-        Small local businesses may have very low traffic. Base numbers on what you actually know about this domain.`,
+        - geo_traffic: array of max 4 objects sorted by traffic desc: first 3 top countries each { country: string (ISO 2-letter), country_name: string, pct: number (% of total traffic, integer) }, then one entry { country: "OTHER", country_name: "Autres pays", pct: number } if there are more. All pct must sum to 100.
+        
+        IMPORTANT for issues: Write in simple French a business owner can understand. Never use words like "Schema Markup", "balise meta", "JSON-LD", "robots.txt", "SSL certificate". Instead say things like "Votre site n'est pas bien compris par les IA", "Votre fiche Google n'existe pas", "Votre site n'est pas sécurisé (pas de cadenas)".`,
         add_context_from_internet: true,
         model: 'gemini_3_flash',
         response_json_schema: {
@@ -76,12 +65,9 @@ Deno.serve(async (req) => {
             organic_traffic_delta_pct: { type: 'number' },
             organic_keywords: { type: 'number' },
             organic_keywords_delta_pct: { type: 'number' },
-            paid_traffic: { type: 'number' },
-            paid_keywords: { type: 'number' },
             backlinks: { type: 'number' },
             backlinks_delta_pct: { type: 'number' },
             referring_domains: { type: 'number' },
-            referring_domains_delta_pct: { type: 'number' },
             authority_score: { type: 'number' },
             site_health: { type: 'number' },
             site_health_issues: { type: 'number' },
@@ -92,32 +78,44 @@ Deno.serve(async (req) => {
             shock_insight: { type: 'string' },
             top_keywords: { type: 'array', items: { type: 'object', properties: { keyword: { type: 'string' }, position: { type: 'number' }, volume: { type: 'number' } } } },
             competitors: { type: 'array', items: { type: 'object', properties: { domain: { type: 'string' }, authority_score: { type: 'number' }, organic_traffic: { type: 'number' } } } },
+            geo_traffic: { type: 'array', items: { type: 'object', properties: { country: { type: 'string' }, country_name: { type: 'string' }, pct: { type: 'number' } } } },
           }
         }
       }),
 
-      // 2. AI engine visibility
+      // 2. Extended AI engines scores (8 engines)
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Check AI search engine visibility for: ${cleanUrl}
-        Search the web to understand this business, then estimate:
-        - chatgpt_mentions: boolean
-        - chatgpt_score: number 0-100
-        - chatgpt_reason: string
-        - perplexity_score: number 0-100
-        - google_ai_score: number 0-100
-        - ai_mentions_count: number (estimated total AI mentions per month)
-        - perplexity_reason: string`,
+        prompt: `Analyze AI search engine visibility for this website: ${cleanUrl}
+        Search the web to understand this business, then estimate realistic scores for each AI engine based on the site's content quality, authority, and online presence.
+        
+        Return scores 0-100 for each engine. A well-known brand scores 60-90. A small local business with no online presence scores 5-20.
+        
+        - chatgpt_score: number 0-100 (OpenAI ChatGPT / GPT-4)
+        - gemini_score: number 0-100 (Google Gemini)
+        - claude_score: number 0-100 (Anthropic Claude)
+        - mistral_score: number 0-100 (Mistral AI)
+        - llama_score: number 0-100 (Meta Llama)
+        - perplexity_score: number 0-100 (Perplexity AI)
+        - grok_score: number 0-100 (xAI Grok)
+        - copilot_score: number 0-100 (Microsoft Copilot / Bing)
+        - ai_mentions_count: number (estimated total AI mentions/month)
+        - chatgpt_reason: string (one sentence why in French)
+        - perplexity_reason: string (one sentence why in French)`,
         add_context_from_internet: true,
         model: 'gemini_3_flash',
         response_json_schema: {
           type: 'object',
           properties: {
-            chatgpt_mentions: { type: 'boolean' },
             chatgpt_score: { type: 'number' },
-            chatgpt_reason: { type: 'string' },
+            gemini_score: { type: 'number' },
+            claude_score: { type: 'number' },
+            mistral_score: { type: 'number' },
+            llama_score: { type: 'number' },
             perplexity_score: { type: 'number' },
-            google_ai_score: { type: 'number' },
+            grok_score: { type: 'number' },
+            copilot_score: { type: 'number' },
             ai_mentions_count: { type: 'number' },
+            chatgpt_reason: { type: 'string' },
             perplexity_reason: { type: 'string' },
           }
         }
@@ -152,13 +150,14 @@ Deno.serve(async (req) => {
 
     const result = {
       ...seoResult,
-      ...chatgptResult,
+      ...aiEnginesResult,
       ...technicalResult,
+      // backward compat
+      google_ai_score: aiEnginesResult.gemini_score || 0,
       url: cleanUrl,
       analyzed_at: new Date().toISOString(),
     };
 
-    // Save lead in background
     base44.asServiceRole.entities.ContactLead.create({
       website: cleanUrl,
       first_name: result.business_name || '',

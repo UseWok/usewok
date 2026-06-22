@@ -90,7 +90,9 @@ export default function Home() {
       background: '#FFFFFF',
       position: 'relative',
       display: 'flex', flexDirection: 'column',
-      fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      overflowX: 'hidden', overflowY: 'auto',
+      boxSizing: 'border-box',
     }}>
       {showUserOnboarding && <UserOnboarding onClose={() => setShowUserOnboarding(false)} />}
       {showOnboarding && <TensorsOnboarding onClose={() => setShowOnboarding(false)} />}
@@ -104,7 +106,7 @@ export default function Home() {
         </div>
       )}
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px 60px', minHeight: '60vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px 60px', minHeight: '60vh', position: 'relative', zIndex: 1, width: '100%', maxWidth: 660, margin: '0 auto', boxSizing: 'border-box' }}>
         <WebsiteScanner firstName={firstName} autoUrl={effectiveAutoUrl} cachedData={cachedData} />
       </div>
     </div>

@@ -158,33 +158,33 @@ function ScanLoader({ url, onDone }) {
   );
 }
 
-// ─── URL INPUT — Clean centered input ────────────────────────────────────────
+// ─── URL INPUT — Mobile-first clean input ────────────────────────────────────
 function URLInput({ onSubmit }) {
   const [url, setUrl] = useState('');
   const ref = useRef(null);
   const submit = () => { if (!url.trim()) { ref.current?.focus(); return; } onSubmit(url.trim()); };
 
   return (
-    <div style={{ width: '100%', maxWidth: 620, margin: '0 auto', fontFamily: F }}>
+    <div style={{ width: '100%', maxWidth: 580, margin: '0 auto', fontFamily: F, padding: '0 4px' }}>
 
-      {/* ── AI engine pills ── */}
+      {/* ── AI engine pills — scrollable on mobile ── */}
       <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 24 }}>
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 24, flexWrap: 'wrap' }}>
         {[
-          { Logo: ChatGPTLogo, label: 'ChatGPT',    bg: '#10A37F' },
-          { Logo: ClaudeLogo,  label: 'Claude',     bg: '#C96442' },
-          { Logo: GeminiLogo,  label: 'Gemini',     bg: '#4285F4' },
+          { Logo: ChatGPTLogo, label: 'ChatGPT', bg: '#10A37F' },
+          { Logo: ClaudeLogo,  label: 'Claude',  bg: '#C96442' },
+          { Logo: GeminiLogo,  label: 'Gemini',  bg: '#4285F4' },
           { Logo: PerplexityLogo, label: 'Perplexity', bg: '#20808D' },
         ].map(({ Logo, label, bg }, i) => (
           <motion.div key={label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '4px 10px 4px 6px',
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '4px 9px 4px 5px',
               background: '#fff', border: '1px solid #E8E6E1',
-              borderRadius: 20, fontSize: 11.5, fontWeight: 500, color: '#444',
+              borderRadius: 20, fontSize: 11, fontWeight: 500, color: '#444',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}>
-            <div style={{ width: 20, height: 20, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 18, height: 18, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
               <Logo />
             </div>
             {label}
@@ -194,44 +194,41 @@ function URLInput({ onSubmit }) {
 
       {/* ── Title ── */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        style={{ textAlign: 'center', marginBottom: 28 }}>
-        <h1 style={{ fontSize: 'clamp(26px, 3.2vw, 40px)', fontWeight: 800, color: '#0F0F10', margin: '0 0 10px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-          How visible are you<br />to AI search?
+        style={{ textAlign: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 'clamp(22px, 5vw, 38px)', fontWeight: 800, color: '#0F0F10', margin: '0 0 8px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+          Êtes-vous visible<br />sur les IA ?
         </h1>
-        <p style={{ fontSize: 14, color: T2, margin: 0 }}>
-          Enter your URL — get your full AI visibility report in 60 seconds.
+        <p style={{ fontSize: 13, color: T2, margin: 0, lineHeight: 1.5 }}>
+          Entrez votre URL — rapport complet en 60 secondes.
         </p>
       </motion.div>
 
-      {/* ── Input ── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        style={{
-          display: 'flex', background: '#fff', border: `1.5px solid #E5E4E0`,
+      {/* ── Input + button stacked on mobile ── */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <div style={{
+          display: 'flex', flexDirection: 'column', background: '#fff', border: `1.5px solid #E5E4E0`,
           borderRadius: 14, overflow: 'hidden',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          transition: 'border-color 200ms, box-shadow 200ms',
-        }}
-        onFocusCapture={e => { e.currentTarget.style.borderColor = VIOLET; e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.08), 0 0 0 3px ${VIOLET}18`; }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = '#E5E4E0'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; }}>
-        <Globe size={15} color={T3} style={{ marginLeft: 18, alignSelf: 'center', flexShrink: 0 }} />
-        <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
-          placeholder="https://your-website.com"
-          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '16px 14px', fontSize: 14, color: T1, fontFamily: F }} />
-        <button onClick={submit} style={{
-          margin: 6, padding: '11px 24px', background: VIOLET, color: '#fff', border: 'none',
-          borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F,
-          transition: 'opacity 150ms', display: 'flex', alignItems: 'center', gap: 6,
-          boxShadow: `0 2px 12px ${VIOLET}40`,
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-          Analyze <ArrowRight size={13} />
-        </button>
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Globe size={14} color={T3} style={{ marginLeft: 14, flexShrink: 0 }} />
+            <input ref={ref} value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
+              placeholder="https://votre-site.com"
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '15px 12px', fontSize: 14, color: T1, fontFamily: F, minWidth: 0 }} />
+          </div>
+          <button onClick={submit} style={{
+            margin: '0 8px 8px', padding: '13px', background: VIOLET, color: '#fff', border: 'none',
+            borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}>
+            Analyser mon site <ArrowRight size={14} />
+          </button>
+        </div>
       </motion.div>
 
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
-        style={{ textAlign: 'center', fontSize: 11, color: T3, marginTop: 12 }}>
-        Free · No account required · 4 AI engines
+        style={{ textAlign: 'center', fontSize: 11, color: T3, marginTop: 10 }}>
+        Gratuit · 8 moteurs IA analysés
       </motion.p>
     </div>
   );
@@ -296,7 +293,13 @@ async function saveToProfile(inputUrl, resData) {
         visibility_pct: resData.visibility_pct,
         visibility_delta: resData.visibility_delta,
         chatgpt_score: resData.chatgpt_score,
+        gemini_score: resData.gemini_score,
+        claude_score: resData.claude_score,
+        mistral_score: resData.mistral_score,
+        llama_score: resData.llama_score,
         perplexity_score: resData.perplexity_score,
+        grok_score: resData.grok_score,
+        copilot_score: resData.copilot_score,
         google_ai_score: resData.google_ai_score,
         ai_mentions_count: resData.ai_mentions_count,
         has_schema_markup: resData.has_schema_markup,
@@ -307,7 +310,9 @@ async function saveToProfile(inputUrl, resData) {
         competitors: resData.competitors,
         shock_insight: resData.shock_insight,
         issues: resData.issues,
+        strengths: resData.strengths,
         country: resData.country,
+        geo_traffic: resData.geo_traffic,
       }),
     };
     if (profiles.length > 0) {
