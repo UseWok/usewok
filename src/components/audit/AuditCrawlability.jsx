@@ -1,40 +1,47 @@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import { X } from 'lucide-react';
+import { useState } from 'react';
 
-const F = 'Inter, system-ui, sans-serif';
-const VIOLET = '#7C3AED';
+const F       = 'Inter, system-ui, sans-serif';
+const INK     = '#111111';
+const INK2    = '#555555';
+const INK3    = '#999999';
+const BORDER  = '#E8E7E4';
+const SURFACE = '#F7F6F3';
+const WHITE   = '#FFFFFF';
 
 function Card({ children, style = {} }) {
-  return <div style={{ background: '#fff', border: '1px solid #EDECE9', borderRadius: 14, padding: 18, ...style }}>{children}</div>;
+  return <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '18px 20px', fontFamily: F, ...style }}>{children}</div>;
 }
 
-function CardTitle({ children }) {
-  return <p style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>{children}</p>;
+function Label({ children }) {
+  return <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 14px' }}>{children}</p>;
 }
 
-// ── Donut big ──────────────────────────────────────────────────────
+// ── Big donut — monochrome ──────────────────────────────────────────
 function BigDonut() {
   const data = [{ value: 18, name: 'Non indexables' }, { value: 32, name: 'Indexables' }];
-  const COLORS = ['#F59E0B', '#10B981'];
+  const SHADES = ['#999', '#1a1a1a'];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-      <div style={{ position: 'relative', width: 160, height: 160 }}>
+      <div style={{ position: 'relative', width: 150, height: 150 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="50%" innerRadius={52} outerRadius={72} startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}>
-              {data.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+            <Pie data={data} cx="50%" cy="50%" innerRadius={48} outerRadius={66} startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}>
+              {data.map((_, i) => <Cell key={i} fill={SHADES[i]} />)}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 22, fontWeight: 900, color: '#1a1a1a' }}>50</span>
-          <span style={{ fontSize: 10, color: '#888' }}>pages au total</span>
+          <span style={{ fontSize: 26, fontWeight: 900, color: INK, lineHeight: 1 }}>50</span>
+          <span style={{ fontSize: 10, color: INK3 }}>pages</span>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 16 }}>
-        {[{ label: 'Non indexables', count: 18, color: '#F59E0B' }, { label: 'Indexables', count: 32, color: '#10B981' }].map(d => (
-          <div key={d.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 10, height: 10, borderRadius: 3, background: d.color }} />
-            <span style={{ fontSize: 11, color: '#555' }}>{d.count} {d.label}</span>
+      <div style={{ display: 'flex', gap: 20 }}>
+        {[['Non indexables', 18, '#999'], ['Indexables', 32, INK]].map(([l, c, col]) => (
+          <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: col }} />
+            <span style={{ fontSize: 11, color: INK2 }}><strong>{c}</strong> {l}</span>
           </div>
         ))}
       </div>
@@ -52,147 +59,140 @@ const CRAWL_BUDGET_ITEMS = [
   { label: 'Grande taille de page', value: 0 },
   { label: 'Erreurs 4xx', value: 1 },
   { label: 'Erreurs 5xx', value: 0 },
-  { label: 'Chaînes et boucles de redirection (2)', value: 0 },
+  { label: 'Chaînes/boucles de redirection (2)', value: 0 },
 ];
 
 export default function AuditCrawlability() {
-  const crawledBarData = [{ date: 'ven. 20 juin 2026 18:31', pages: 50 }];
+  const [sitemapDrawer, setSitemapDrawer] = useState(false);
 
+  const crawledBarData = [{ date: '20 juin 2026', pages: 50 }];
   const inboundLinkData = [
-    { range: '0', count: 5 },
-    { range: '1', count: 4 },
-    { range: '2-5', count: 12 },
-    { range: '6-10', count: 18 },
-    { range: '11-50', count: 7 },
-    { range: '51-100', count: 2 },
-    { range: '101-500', count: 1 },
-    { range: '500+', count: 1 },
+    { range: '0', count: 5 }, { range: '1', count: 4 }, { range: '2-5', count: 12 },
+    { range: '6-10', count: 18 }, { range: '11-50', count: 7 }, { range: '51-100', count: 2 },
+    { range: '101-500', count: 1 }, { range: '500+', count: 1 },
   ];
-
   const depthData = [
-    { label: '1 clic', pages: 50 },
-    { label: '2 clics', pages: 0 },
-    { label: '3 clics', pages: 0 },
-    { label: '4+ clics', pages: 0 },
+    { label: '1 clic', pages: 50 }, { label: '2 clics', pages: 0 },
+    { label: '3 clics', pages: 0 }, { label: '4+ clics', pages: 0 },
   ];
-
-  const httpPieData = [
-    { name: '2xx', value: 49, color: '#10B981' },
-    { name: '3xx', value: 0, color: '#F59E0B' },
-    { name: '4xx', value: 1, color: '#EF4444' },
-    { name: '5xx', value: 0, color: '#7C3AED' },
+  const httpData = [
+    { name: '2xx', value: 49 }, { name: '3xx', value: 0 },
+    { name: '4xx', value: 1 }, { name: '5xx', value: 0 },
   ];
+  const HTTP_SHADES = [INK, '#aaa', '#666', '#ccc'];
 
   return (
     <div style={{ fontFamily: F }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#0F0F10', margin: 0 }}>Audit de site : wok-co.base44.app</p>
-          <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Explorabilité / Score : <strong style={{ color: VIOLET }}>92%</strong></p>
-        </div>
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Explorabilité</p>
+        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Score global : <strong style={{ color: INK }}>92 / 100</strong></p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
 
         {/* Indexabilité */}
         <Card>
-          <CardTitle>Indexabilité du site</CardTitle>
+          <Label>Indexabilité du site</Label>
           <BigDonut />
         </Card>
 
         {/* Crawl budget */}
         <Card>
-          <CardTitle>Gaspillage de budget d'exploration : 0 / 10</CardTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <Label>Gaspillage de budget d'exploration — 0 / 10</Label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {CRAWL_BUDGET_ITEMS.map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 11, color: '#555', flex: 1, minWidth: 0 }}>{item.label}</span>
-                <div style={{ width: 80, height: 4, background: '#F1F0EE', borderRadius: 2, flexShrink: 0 }}>
-                  <div style={{ height: '100%', width: item.value > 0 ? '15%' : '0%', background: item.value > 0 ? '#EF4444' : '#10B981', borderRadius: 2 }} />
+                <span style={{ fontSize: 11, color: item.value > 0 ? INK : INK3, flex: 1 }}>{item.label}</span>
+                <div style={{ width: 60, height: 4, background: SURFACE, borderRadius: 2, flexShrink: 0 }}>
+                  <div style={{ height: '100%', width: item.value > 0 ? '30%' : '0%', background: INK, borderRadius: 2 }} />
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: item.value > 0 ? '#EF4444' : '#888', width: 16, textAlign: 'right' }}>{item.value}</span>
+                <span style={{ fontSize: 11, fontWeight: item.value > 0 ? 700 : 400, color: item.value > 0 ? INK : INK3, width: 14, textAlign: 'right' }}>{item.value}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Pages crawled chart */}
+        {/* Pages crawled */}
         <Card>
-          <CardTitle>Pages explorées</CardTitle>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={crawledBarData} margin={{ top: 5, bottom: 5 }}>
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#aaa' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 9, fill: '#aaa' }} tickLine={false} axisLine={false} domain={[0, 60]} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #E5E4E0' }} />
-              <Bar dataKey="pages" fill={VIOLET} radius={[4, 4, 0, 0]} />
+          <Label>Pages explorées dans le temps</Label>
+          <ResponsiveContainer width="100%" height={130}>
+            <BarChart data={crawledBarData} margin={{ top: 4, bottom: 0 }}>
+              <XAxis dataKey="date" tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} domain={[0, 60]} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE }} cursor={{ fill: SURFACE }} />
+              <Bar dataKey="pages" fill={INK} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        {/* Inbound internal links */}
+        {/* Inbound links histogram */}
         <Card>
-          <CardTitle>Liens internes entrants</CardTitle>
-          <ResponsiveContainer width="100%" height={130}>
-            <BarChart data={inboundLinkData} margin={{ top: 5, bottom: 5 }}>
-              <XAxis dataKey="range" tick={{ fontSize: 9, fill: '#aaa' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 9, fill: '#aaa' }} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #E5E4E0' }} />
-              <Bar dataKey="count" fill="#3B82F6" radius={[3, 3, 0, 0]} />
+          <Label>Liens internes entrants</Label>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={inboundLinkData} margin={{ top: 4, bottom: 0 }}>
+              <XAxis dataKey="range" tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE }} cursor={{ fill: SURFACE }} />
+              <Bar dataKey="count" fill={INK} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
         {/* Crawl depth */}
         <Card>
-          <CardTitle>Profondeur d'exploration des pages</CardTitle>
+          <Label>Profondeur d'exploration</Label>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
               {depthData.map((d, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 11, color: '#555', width: 60, flexShrink: 0 }}>{d.label}</span>
-                  <div style={{ flex: 1, height: 8, background: '#F1F0EE', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: d.pages > 0 ? '100%' : '0%', background: d.pages > 0 ? VIOLET : '#F1F0EE', borderRadius: 2, transition: 'width 0.6s ease' }} />
+                  <span style={{ fontSize: 11, color: INK2, width: 60, flexShrink: 0 }}>{d.label}</span>
+                  <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: d.pages > 0 ? '100%' : '0%', background: INK, borderRadius: 2, transition: 'width 0.7s ease' }} />
                   </div>
-                  <span style={{ fontSize: 11, color: '#888', width: 30, textAlign: 'right' }}>{d.pages}</span>
+                  <span style={{ fontSize: 11, color: INK3, width: 24, textAlign: 'right' }}>{d.pages}</span>
                 </div>
               ))}
             </div>
-            {/* Depth widget */}
-            <div style={{ width: 56, height: 56, borderRadius: '50%', border: '3px solid #7C3AED', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a', lineHeight: 1 }}>1</span>
-              <span style={{ fontSize: 8, color: '#888', textAlign: 'center', lineHeight: 1.2 }}>profondeur</span>
+            <div style={{ width: 54, height: 54, borderRadius: '50%', border: `2px solid ${INK}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>1</span>
+              <span style={{ fontSize: 8, color: INK3, textAlign: 'center' }}>niveau</span>
             </div>
           </div>
         </Card>
 
         {/* Sitemap */}
-        <Card style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 12, minHeight: 140 }}>
-          <CardTitle>Sitemap vs. Pages explorées</CardTitle>
-          <div style={{ textAlign: 'center', padding: 14, background: '#FEF2F2', borderRadius: 10, border: '1px solid #FECACA', width: '100%' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#B91C1C', margin: '0 0 8px' }}>Sitemap introuvable</p>
-            <button style={{ fontSize: 11, fontWeight: 600, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}>Voir les détails →</button>
+        <Card style={{ display: 'flex', flexDirection: 'column' }}>
+          <Label>Sitemap vs. Pages explorées</Label>
+          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Sitemap introuvable</p>
+            <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}>Aucun fichier sitemap.xml détecté. Cela peut limiter l'indexation par les moteurs de recherche et les IA.</p>
+            <button onClick={() => setSitemapDrawer(true)}
+              style={{ fontSize: 12, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '8px 14px', cursor: 'pointer', fontFamily: F }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              Comment créer un sitemap →
+            </button>
           </div>
         </Card>
 
-        {/* HTTP status codes */}
+        {/* HTTP status */}
         <Card>
-          <CardTitle>Code de statut HTTP</CardTitle>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 100, height: 100, position: 'relative', flexShrink: 0 }}>
+          <Label>Codes de statut HTTP</Label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ width: 100, height: 100, flexShrink: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={httpPieData.filter(d => d.value > 0)} cx="50%" cy="50%" outerRadius={45} dataKey="value" strokeWidth={0}>
-                    {httpPieData.filter(d => d.value > 0).map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  <Pie data={httpData.filter(d => d.value > 0)} cx="50%" cy="50%" outerRadius={42} dataKey="value" strokeWidth={0}>
+                    {httpData.filter(d => d.value > 0).map((_, i) => <Cell key={i} fill={HTTP_SHADES[i]} />)}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {httpPieData.map((d, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color }} />
-                  <span style={{ fontSize: 11, color: '#555' }}>{d.name} — <strong>{d.value} page{d.value !== 1 ? 's' : ''}</strong></span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {httpData.map((d, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: HTTP_SHADES[i] }} />
+                  <span style={{ fontSize: 11, color: INK2 }}>{d.name} — <strong style={{ color: INK }}>{d.value}</strong></span>
                 </div>
               ))}
             </div>
@@ -200,6 +200,40 @@ export default function AuditCrawlability() {
         </Card>
 
       </div>
+
+      {/* Sitemap drawer */}
+      {sitemapDrawer && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }} onClick={() => setSitemapDrawer(false)}>
+          <div style={{ flex: 1 }} />
+          <div onClick={e => e.stopPropagation()} style={{ width: 360, background: WHITE, borderLeft: `1px solid ${BORDER}`, height: '100%', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Guide</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Créer un sitemap.xml</p>
+              </div>
+              <button onClick={() => setSitemapDrawer(false)} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={13} color={INK2} />
+              </button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+              <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  'Générez un sitemap XML depuis votre CMS (WordPress : Yoast SEO, Shopify : intégré)',
+                  'Si SPA/React : utilisez le package "sitemap" sur Node.js pour le générer au build',
+                  'Placez le fichier à la racine : https://votre-domaine.com/sitemap.xml',
+                  'Déclarez-le dans robots.txt via la directive : Sitemap: https://…/sitemap.xml',
+                  'Soumettez l\'URL du sitemap dans Google Search Console',
+                ].map((step, i) => (
+                  <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: INK, color: WHITE, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
+                    <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.55 }}>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

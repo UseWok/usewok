@@ -1,303 +1,311 @@
 import { useState } from 'react';
-import { Check, AlertTriangle, Info, ExternalLink, TrendingUp, ChevronRight } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Check, ChevronRight, X, AlertCircle, Info } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const F = 'Inter, system-ui, sans-serif';
-const VIOLET = '#7C3AED';
 
-// ── Small donut gauge ──────────────────────────────────────────────
-function DonutGauge({ pct, color = VIOLET, size = 56 }) {
-  const data = [{ value: pct }, { value: 100 - pct }];
-  const COLORS = [color, '#F1F0EE'];
+// ── Design tokens — monochrome + single accent ──────────────────────
+const INK    = '#111111';
+const INK2   = '#555555';
+const INK3   = '#999999';
+const BORDER = '#E8E7E4';
+const SURFACE= '#F7F6F3';
+const WHITE  = '#FFFFFF';
+const ACCENT = '#1a1a1a'; // buttons
+const OK     = '#22C55E'; // only for "ok" states — muted usage
+
+// ── Primitives ──────────────────────────────────────────────────────
+function Card({ children, style = {} }) {
   return (
-    <div style={{ width: size, height: size, position: 'relative', flexShrink: 0 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie data={data} cx="50%" cy="50%" innerRadius="62%" outerRadius="85%" startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}>
-            {data.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#1a1a1a' }}>{pct}%</div>
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '18px 20px', fontFamily: F, ...style }}>
+      {children}
     </div>
   );
 }
 
-// ── Card wrapper ────────────────────────────────────────────────────
-function Card({ children, style = {} }) {
-  return <div style={{ background: '#fff', border: '1px solid #EDECE9', borderRadius: 14, padding: 18, ...style }}>{children}</div>;
+function Label({ children }) {
+  return <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>{children}</p>;
 }
 
-// ── Stacked progress bar ────────────────────────────────────────────
-function StackedBar({ segments }) {
-  const total = segments.reduce((s, x) => s + x.value, 0);
+function Btn({ children, onClick, variant = 'ghost' }) {
+  const styles = {
+    ghost:   { background: 'none', border: 'none', color: INK2, fontSize: 12, fontWeight: 600, padding: 0 },
+    outline: { background: 'none', border: `1px solid ${BORDER}`, color: INK, fontSize: 12, fontWeight: 600, borderRadius: 7, padding: '7px 14px' },
+    solid:   { background: INK, border: 'none', color: WHITE, fontSize: 12, fontWeight: 700, borderRadius: 8, padding: '9px 18px' },
+  };
   return (
-    <div style={{ height: 8, borderRadius: 4, overflow: 'hidden', display: 'flex', background: '#F1F0EE' }}>
-      {segments.filter(s => s.value > 0).map((seg, i) => (
-        <div key={i} style={{ width: `${(seg.value / total) * 100}%`, background: seg.color, transition: 'width 0.6s ease' }} />
+    <button onClick={onClick} style={{ cursor: 'pointer', fontFamily: F, display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'opacity 120ms', ...styles[variant] }}
+      onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+      onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+      {children}
+    </button>
+  );
+}
+
+// ── Mini donut (SVG, no recharts overhead for small sizes) ──────────
+function MiniDonut({ pct, size = 52 }) {
+  const r = (size - 8) / 2;
+  const circ = 2 * Math.PI * r;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={SURFACE} strokeWidth={6} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={INK} strokeWidth={6}
+          strokeDasharray={circ} strokeDashoffset={circ * (1 - Math.min(pct, 100) / 100)}
+          strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.9s ease' }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: INK }}>{pct}%</div>
+    </div>
+  );
+}
+
+// ── Stacked bar — monochrome segments ──────────────────────────────
+function StackedBar({ segments }) {
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+  const SHADES = ['#1a1a1a', '#666', '#aaa', '#ddd'];
+  return (
+    <div style={{ height: 6, borderRadius: 3, overflow: 'hidden', display: 'flex', background: SURFACE }}>
+      {segments.map((seg, i) => seg.value > 0 && (
+        <div key={i} style={{ width: `${(seg.value / total) * 100}%`, background: SHADES[i], transition: 'width 0.6s ease' }} />
       ))}
     </div>
   );
 }
 
-// ── Issues table row ────────────────────────────────────────────────
-function IssueRow({ label, count, unit = 'pages' }) {
+// ── Issue row ───────────────────────────────────────────────────────
+function IssueRow({ label, count, unit = 'pages', onFix }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F5F4F1' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <AlertTriangle size={13} color="#F59E0B" />
-        <span style={{ fontSize: 13, color: '#1a1a1a' }}>{label}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 12, color: '#888' }}>{count} {unit}</span>
-        <button style={{ fontSize: 11, fontWeight: 600, color: VIOLET, background: '#F3F0FF', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Résolution du problème</button>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: `1px solid ${BORDER}` }}>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: INK, flexShrink: 0 }} />
+      <span style={{ fontSize: 13, color: INK, flex: 1 }}>{label}</span>
+      <span style={{ fontSize: 12, color: INK3, flexShrink: 0 }}>{count} {unit}</span>
+      <Btn variant="outline" onClick={onFix}>Corriger</Btn>
     </div>
   );
 }
 
-// ── Thematic widget ────────────────────────────────────────────────
-function ThematicWidget({ title, gauge, gaugeColor, text, badge, action, onAction, locked }) {
+// ── Thematic widget ─────────────────────────────────────────────────
+function ThematicWidget({ title, gauge, text, locked, action, onAction }) {
   return (
-    <Card style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 100 }}>
+    <Card style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 110 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#555', letterSpacing: '-0.01em' }}>{title}</span>
-        {badge && <span style={{ fontSize: 10, fontWeight: 700, background: '#FEF3C7', color: '#D97706', padding: '2px 7px', borderRadius: 99, border: '1px solid #FDE68A' }}>{badge}</span>}
+        <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>{title}</span>
+        {locked && <span style={{ fontSize: 9, fontWeight: 700, color: INK3, background: SURFACE, border: `1px solid ${BORDER}`, padding: '2px 7px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>}
       </div>
-      {gauge != null ? <DonutGauge pct={gauge} color={gaugeColor || VIOLET} size={52} /> : null}
-      {text && <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>{text}</p>}
-      {locked && <p style={{ fontSize: 11, color: '#F59E0B', fontWeight: 600, margin: 0 }}>⚠ Disponible avec un forfait supérieur</p>}
-      {action && (
-        <button onClick={onAction} style={{ fontSize: 11, color: VIOLET, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', fontWeight: 600 }}>
-          {action} →
-        </button>
-      )}
+      {gauge != null && <MiniDonut pct={gauge} size={50} />}
+      {text && <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.55 }}>{text}</p>}
+      {locked && <p style={{ fontSize: 11, color: INK3, margin: 0 }}>Disponible avec un forfait supérieur</p>}
+      {action && <Btn variant="ghost" onClick={onAction}>{action} <ChevronRight size={12} /></Btn>}
     </Card>
+  );
+}
+
+// ── Fix drawer (replaces fake modal) ───────────────────────────────
+function FixDrawer({ issue, onClose }) {
+  if (!issue) return null;
+  const steps = {
+    'Contenu en double': ['Identifiez les pages dupliquées via Google Search Console', 'Ajoutez une balise canonical sur chaque doublon pointant vers la page source', 'Ou utilisez une redirection 301 si les pages doivent être fusionnées'],
+    'Balises de titre en double': ['Auditez toutes les balises <title> de vos pages', 'Rédigez un titre unique par page (50-60 caractères)', 'Utilisez les variables de template CMS pour automatiser'],
+    'Descriptions Meta en double': ['Chaque page doit avoir une meta description unique (150-160 car.)', 'Évitez les descriptions génériques ou vides', 'Concentrez le mot-clé principal dans les 50 premiers caractères'],
+    'Erreurs 4xx': ['Vérifiez l\'URL retournant 404 dans les logs serveur', 'Redirigez vers la page la plus pertinente avec un 301', 'Ou restaurez le contenu si la page doit exister'],
+    'Taille totale des fichiers JavaScript et CSS trop grande': ['Activez la minification JS/CSS dans votre bundler', 'Activez la compression gzip/brotli côté serveur', 'Lazy-loadez les scripts non critiques au chargement initial'],
+  };
+  const list = steps[issue] || ['Analysez la cause racine', 'Appliquez les correctifs recommandés', 'Relancez l\'audit pour vérifier'];
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }} onClick={onClose}>
+      <div style={{ flex: 1 }} />
+      <div onClick={e => e.stopPropagation()} style={{ width: 360, background: WHITE, borderLeft: `1px solid ${BORDER}`, height: '100%', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)' }}>
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Comment corriger</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0, lineHeight: 1.4 }}>{issue}</p>
+          </div>
+          <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <X size={13} color={INK2} />
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+          <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {list.map((step, i) => (
+              <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: INK, color: WHITE, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
+                <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.55 }}>{step}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
   );
 }
 
 export default function AuditOverview({ onNavigate }) {
   const [issueTab, setIssueTab] = useState('errors');
   const [robotsOpen, setRobotsOpen] = useState(false);
+  const [fixIssue, setFixIssue] = useState(null);
+  const [aiInfoOpen, setAiInfoOpen] = useState(false);
 
-  const ROBOTS_TXT = `User-agent: *
-Disallow: /admin/
-Disallow: /api/
-Allow: /
+  const ROBOTS_TXT = `User-agent: *\nDisallow: /admin/\nDisallow: /api/\nAllow: /\n\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: Google-Extended\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nSitemap: https://wok-co.base44.app/sitemap.xml`;
 
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-Sitemap: https://wok-co.base44.app/sitemap.xml`;
+  const ISSUES = [
+    { label: 'Contenu en double', count: 17 },
+    { label: 'Balises de titre en double', count: 17 },
+    { label: 'Descriptions Meta en double', count: 46 },
+    { label: 'Erreurs 4xx', count: 1, unit: 'page' },
+    { label: 'Taille totale des fichiers JavaScript et CSS trop grande', count: 47 },
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: F }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, fontFamily: F }}>
 
-      {/* ── Section 3.1 : Top Grid ─────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+      {/* ── 4 KPI cards ─────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
 
-        {/* Card 1 : Santé du site */}
+        {/* Santé du site */}
         <Card>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Santé du site</p>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 36, fontWeight: 900, color: '#10B981', lineHeight: 1 }}>83%</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#10B981', marginBottom: 4 }}>Bon</span>
+          <Label>Santé du site</Label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+            <span style={{ fontSize: 40, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1 }}>83%</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: INK3, paddingBottom: 2 }}>Bon</span>
           </div>
-          <div style={{ height: 4, background: '#F1F0EE', borderRadius: 2, marginBottom: 8 }}>
-            <div style={{ width: '83%', height: '100%', background: '#10B981', borderRadius: 2 }} />
+          <div style={{ height: 3, background: SURFACE, borderRadius: 2, marginBottom: 10, overflow: 'hidden' }}>
+            <div style={{ width: '83%', height: '100%', background: INK, borderRadius: 2 }} />
           </div>
-          <p style={{ fontSize: 11, color: '#aaa', margin: 0 }}>Top 10% des sites : <strong style={{ color: '#555' }}>92%</strong></p>
+          <p style={{ fontSize: 11, color: INK3, margin: 0 }}>Top 10% des sites : <span style={{ color: INK2, fontWeight: 600 }}>92%</span></p>
         </Card>
 
-        {/* Card 2 : Pages explorées */}
+        {/* Pages explorées */}
         <Card>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Pages explorées</p>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 10 }}>
-            <span style={{ fontSize: 36, fontWeight: 900, color: '#1a1a1a', lineHeight: 1 }}>50</span>
-            <span style={{ fontSize: 11, color: '#888' }}>pages de l'exploration</span>
+          <Label>Pages explorées</Label>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
+            <span style={{ fontSize: 40, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1 }}>50</span>
+            <span style={{ fontSize: 11, color: INK3 }}>pages</span>
           </div>
-          <StackedBar segments={[
-            { value: 2, color: '#10B981' },
-            { value: 0, color: '#EF4444' },
-            { value: 47, color: '#F59E0B' },
-            { value: 1, color: '#6B7280' },
-          ]} />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', marginTop: 8 }}>
-            {[
-              { label: 'Saines', count: 2, color: '#10B981' },
-              { label: 'Rompues', count: 0, color: '#EF4444' },
-              { label: 'Redirects', count: 47, color: '#F59E0B' },
-              { label: 'Bloquées', count: 1, color: '#6B7280' },
-            ].map(s => (
-              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
-                <span style={{ fontSize: 11, color: '#555' }}>{s.label} : <strong>{s.count}</strong></span>
-              </div>
+          <StackedBar segments={[{ value: 2 }, { value: 47 }, { value: 1 }, { value: 0 }]} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 16px', marginTop: 10 }}>
+            {[['Saines', 2], ['Redirects', 47], ['Bloquées', 1], ['Rompues', 0]].map(([l, c]) => (
+              <span key={l} style={{ fontSize: 11, color: INK3 }}>{l} <strong style={{ color: INK }}>{c}</strong></span>
             ))}
           </div>
         </Card>
 
-        {/* Card 3 : Santé de la recherche IA */}
+        {/* Santé IA */}
         <Card>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Santé de la recherche IA</p>
-          <span style={{ fontSize: 36, fontWeight: 900, color: '#10B981', lineHeight: 1, display: 'block', marginBottom: 8 }}>100%</span>
-          <p style={{ fontSize: 12, color: '#555', margin: '0 0 8px', lineHeight: 1.5 }}>Prêt pour l'IA. Le site Web est optimisé pour les moteurs de recherche d'IA.</p>
-          <button style={{ fontSize: 11, color: VIOLET, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Comment ça marche →</button>
+          <Label>Santé de la recherche IA</Label>
+          <span style={{ fontSize: 40, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1, display: 'block', marginBottom: 10 }}>100%</span>
+          <p style={{ fontSize: 12, color: INK2, margin: '0 0 12px', lineHeight: 1.55 }}>Prêt pour l'IA. Optimisé pour les moteurs de recherche d'IA.</p>
+          <Btn variant="ghost" onClick={() => setAiInfoOpen(true)}>Comment ça marche <ChevronRight size={12} /></Btn>
         </Card>
 
-        {/* Card 4 : Robots d'IA bloqués */}
+        {/* Robots IA */}
         <Card>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>Robots d'IA bloqués : <span style={{ color: '#10B981' }}>–</span></p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-            {[
-              'ChatGPT-User',
-              'OAI-SearchBot',
-              'Google-Extended',
-              'Claude-bot',
-            ].map(bot => (
+          <Label>Robots d'IA bloqués</Label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+            {['ChatGPT-User', 'OAI-SearchBot', 'Google-Extended', 'Claude-bot'].map(bot => (
               <div key={bot} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Check size={10} color="#10B981" />
-                  </div>
-                  <span style={{ fontSize: 12, color: '#1a1a1a' }}>{bot}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Check size={12} color={INK} />
+                  <span style={{ fontSize: 12, color: INK }}>{bot}</span>
                 </div>
-                <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>En ordre</span>
+                <span style={{ fontSize: 11, color: INK3 }}>En ordre</span>
               </div>
             ))}
           </div>
-          <button style={{ fontSize: 11, fontWeight: 600, color: VIOLET, background: '#F3F0FF', border: 'none', borderRadius: 7, padding: '7px 12px', cursor: 'pointer', width: '100%' }}>
-            Comment débloquer les pages
-          </button>
+          <Btn variant="outline" onClick={() => setRobotsOpen(true)}>Voir robots.txt</Btn>
         </Card>
       </div>
 
-      {/* ── Section 3.2 : Issues ───────────────────────────────────── */}
+      {/* ── Issues panel ─────────────────────────────────────────────── */}
       <Card>
-        <p style={{ fontSize: 13, fontWeight: 700, color: '#0F0F10', margin: '0 0 14px' }}>Problèmes détectés</p>
-
-        {/* Sub-tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '1px solid #F1F0EE', paddingBottom: 10 }}>
-          {[
-            { id: 'errors', label: 'Erreurs', count: 81, color: '#EF4444' },
-            { id: 'warnings', label: 'Avertissements', count: 95, color: '#F59E0B' },
-            { id: 'notices', label: 'Avis', count: 1, color: '#3B82F6' },
-          ].map(t => (
-            <button key={t.id} onClick={() => setIssueTab(t.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-                borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: F,
-                background: issueTab === t.id ? '#1a1a1a' : '#F5F4F1',
-                color: issueTab === t.id ? '#fff' : '#555',
-                fontSize: 12, fontWeight: 600, transition: 'all 150ms',
-              }}>
-              {t.label}
-              <span style={{
-                fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 99,
-                background: issueTab === t.id ? t.color : `${t.color}20`,
-                color: issueTab === t.id ? '#fff' : t.color,
-              }}>{t.count}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Problèmes détectés</p>
+          <div style={{ display: 'flex', gap: 2, background: SURFACE, borderRadius: 8, padding: 3 }}>
+            {[{ id: 'errors', label: 'Erreurs', count: 81 }, { id: 'warnings', label: 'Avertissements', count: 95 }, { id: 'notices', label: 'Avis', count: 1 }].map(t => (
+              <button key={t.id} onClick={() => setIssueTab(t.id)}
+                style={{ padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: F, fontSize: 12, fontWeight: issueTab === t.id ? 600 : 400, background: issueTab === t.id ? WHITE : 'transparent', color: issueTab === t.id ? INK : INK3, boxShadow: issueTab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', transition: 'all 150ms', whiteSpace: 'nowrap' }}>
+                {t.label} <span style={{ opacity: 0.5 }}>{t.count}</span>
+              </button>
+            ))}
+          </div>
         </div>
-
         {issueTab === 'errors' && (
           <div>
-            <IssueRow label="Contenu en double" count={17} />
-            <IssueRow label="Balises de titre en double" count={17} />
-            <IssueRow label="Descriptions Meta en double" count={46} />
-            <IssueRow label="Erreurs 4xx" count={1} unit="page" />
-            <IssueRow label="Taille totale des fichiers JavaScript et CSS trop grande" count={47} />
-            <div style={{ paddingTop: 14, textAlign: 'right' }}>
-              <button style={{ fontSize: 12, fontWeight: 600, color: VIOLET, background: 'none', border: 'none', cursor: 'pointer' }}>Afficher tous les problèmes →</button>
+            {ISSUES.map(issue => (
+              <IssueRow key={issue.label} label={issue.label} count={issue.count} unit={issue.unit} onFix={() => setFixIssue(issue.label)} />
+            ))}
+            <div style={{ paddingTop: 14 }}>
+              <Btn variant="ghost" onClick={() => onNavigate('issues')}>Afficher tous les problèmes <ChevronRight size={12} /></Btn>
             </div>
           </div>
         )}
         {issueTab === 'warnings' && (
-          <p style={{ fontSize: 13, color: '#888', margin: 0 }}>95 avertissements détectés. Utilisez l'onglet "Problèmes" pour les consulter en détail.</p>
+          <div style={{ padding: '20px 0', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: INK2, margin: '0 0 12px' }}>95 avertissements détectés.</p>
+            <Btn variant="outline" onClick={() => onNavigate('issues')}>Voir tous les avertissements</Btn>
+          </div>
         )}
         {issueTab === 'notices' && (
-          <p style={{ fontSize: 13, color: '#888', margin: 0 }}>1 avis informatif détecté.</p>
+          <div style={{ padding: '20px 0', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: INK2, margin: '0 0 12px' }}>1 avis informatif détecté.</p>
+            <Btn variant="outline" onClick={() => onNavigate('issues')}>Voir l'avis</Btn>
+          </div>
         )}
       </Card>
 
-      {/* ── Section 3.3 : Thematic Grid ───────────────────────────── */}
+      {/* ── Thematic reports ─────────────────────────────────────────── */}
       <div>
-        <p style={{ fontSize: 13, fontWeight: 700, color: '#0F0F10', margin: '0 0 12px' }}>Rapports thématiques</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-
+        <p style={{ fontSize: 12, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Rapports thématiques</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 10 }}>
           {/* Robots.txt */}
-          <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>Robots.txt</span>
-            <span style={{ fontSize: 11, background: '#F1F0EE', color: '#555', padding: '2px 8px', borderRadius: 99, width: 'fit-content', fontWeight: 600 }}>Inchangé</span>
-            <button onClick={() => setRobotsOpen(true)} style={{ fontSize: 11, fontWeight: 600, color: VIOLET, background: '#F3F0FF', border: 'none', borderRadius: 7, padding: '6px 10px', cursor: 'pointer' }}>
-              Ouvrir le fichier
-            </button>
+          <Card style={{ gap: 10, display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>Robots.txt</span>
+            <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>Inchangé</span>
+            <Btn variant="outline" onClick={() => setRobotsOpen(true)}>Ouvrir le fichier</Btn>
           </Card>
-
-          <ThematicWidget title="Explorabilité" gauge={92} gaugeColor="#7C3AED" action="Voir les détails" onAction={() => onNavigate('crawlability')} />
-          <ThematicWidget title="HTTPS" gauge={100} gaugeColor="#10B981" action="Voir les détails" />
-          <ThematicWidget title="SEO international" text="Le site Web n'est pas international ou ne présente pas d'erreurs hreflang" action="Voir les détails" />
-          <ThematicWidget title="Core Web Vitals" locked badge="Pro" action="Afficher plus" />
-          <ThematicWidget title="Liens internes" gauge={100} gaugeColor="#3B82F6" action="Voir les détails" />
-          <ThematicWidget title="Balisage" gauge={100} gaugeColor="#8B5CF6" action="Voir les détails" />
-          <ThematicWidget title="Performances" gauge={94} gaugeColor="#F59E0B" action="Voir les détails" onAction={() => onNavigate('performance')} />
+          <ThematicWidget title="Explorabilité" gauge={92} action="Voir les détails" onAction={() => onNavigate('crawlability')} />
+          <ThematicWidget title="HTTPS" gauge={100} action="Voir les détails" />
+          <ThematicWidget title="SEO international" text="Site non international — aucune erreur hreflang" action="Voir les détails" />
+          <ThematicWidget title="Core Web Vitals" locked action="Débloquer" onAction={() => onNavigate && window.location.assign('/pricing')} />
+          <ThematicWidget title="Liens internes" gauge={100} action="Voir les détails" />
+          <ThematicWidget title="Balisage" gauge={100} action="Voir les détails" />
+          <ThematicWidget title="Performances" gauge={94} action="Voir les détails" onAction={() => onNavigate('performance')} />
         </div>
       </div>
 
-      {/* ── Section 3.4 : Upsell + Market Trends ─────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-
-        {/* Upsell */}
-        <Card style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', border: 'none', display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>You're only seeing part of the picture</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', margin: '0 0 14px', lineHeight: 1.55 }}>
-              Audit more pages and fix how your site appears to both Google and AI tools like ChatGPT... Upgrade to Starter and access all features.
-            </p>
-            <button style={{ padding: '9px 18px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-              Get free trial
-            </button>
-          </div>
-          {/* Placeholder illustration */}
-          <div style={{ width: 80, height: 80, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
-            <svg viewBox="0 0 80 80" fill="none" width="80" height="80">
-              <circle cx="40" cy="40" r="30" stroke="#7C3AED" strokeWidth="2" strokeDasharray="4 3" />
-              <circle cx="40" cy="40" r="18" fill="#7C3AED" opacity="0.2" />
-              <path d="M25 55 Q40 20 55 55" stroke="#A78BFA" strokeWidth="2" fill="none" />
-              <circle cx="25" cy="55" r="4" fill="#A78BFA" />
-              <circle cx="55" cy="55" r="4" fill="#A78BFA" />
-              <circle cx="40" cy="32" r="4" fill="#C4B5FD" />
-            </svg>
-          </div>
+      {/* ── Bottom: upsell + trends ──────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Upsell — dark, minimal */}
+        <Card style={{ background: INK, border: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <p style={{ fontSize: 14, fontWeight: 800, color: WHITE, margin: 0, lineHeight: 1.3 }}>Vous ne voyez qu'une partie du tableau.</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
+            Auditez plus de pages et corrigez comment votre site apparaît sur Google et les outils IA comme ChatGPT.
+          </p>
+          <button
+            onClick={() => window.location.assign('/pricing')}
+            style={{ padding: '10px 18px', background: WHITE, color: INK, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: F, alignSelf: 'flex-start', transition: 'opacity 120ms' }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            Essai gratuit →
+          </button>
         </Card>
 
         {/* Market trends */}
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#0F0F10', margin: '0 0 4px' }}>Tendances du marché et de la concurrence</p>
-          <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 14px', fontWeight: 600 }}>Activité Moteur de recherche</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: INK, margin: '0 0 4px' }}>Tendances du marché</p>
+          <p style={{ fontSize: 11, color: INK3, margin: '0 0 16px' }}>Activité moteur de recherche</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {[
-              { label: 'Trafic direct', value: '120', sub: null },
-              { label: 'Recherche organique', value: '502', sub: '81%' },
-              { label: 'Recherche payante', value: '0.00', sub: null },
-              { label: 'Autre trafic', value: '31', sub: '5%' },
-              { label: 'Réseaux sociaux', value: '4.8k', sub: '14%' },
-            ].map((m, i) => (
-              <div key={i} style={{ background: '#F8F7F4', borderRadius: 8, padding: '9px 11px' }}>
-                <p style={{ fontSize: 10, color: '#aaa', fontWeight: 600, margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{m.label}</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: '#1a1a1a' }}>{m.value}</span>
-                  {m.sub && <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>{m.sub}</span>}
+              ['Trafic direct', '120', null],
+              ['Recherche organique', '502', '81%'],
+              ['Recherche payante', '0', null],
+              ['Autre trafic', '31', '5%'],
+              ['Réseaux sociaux', '4.8k', '14%'],
+            ].map(([label, value, pct], i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? `1px solid ${BORDER}` : 'none' }}>
+                <span style={{ fontSize: 12, color: INK2 }}>{label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>{value}</span>
+                  {pct && <span style={{ fontSize: 11, color: INK3 }}>{pct}</span>}
                 </div>
               </div>
             ))}
@@ -305,19 +313,36 @@ Sitemap: https://wok-co.base44.app/sitemap.xml`;
         </Card>
       </div>
 
-      {/* Robots.txt modal */}
+      {/* ── Robots.txt modal ─────────────────────────────────────────── */}
       {robotsOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={() => setRobotsOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#1a1a2e', borderRadius: 14, width: '100%', maxWidth: 560, maxHeight: '70vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'monospace' }}>robots.txt</span>
-              <button onClick={() => setRobotsOpen(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18 }}>×</button>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#0F0F0F', borderRadius: 14, width: '100%', maxWidth: 520, maxHeight: '60vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '1px solid #333' }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#aaa', fontFamily: 'monospace' }}>robots.txt — wok-co.base44.app</span>
+              <button onClick={() => setRobotsOpen(false)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
             </div>
-            <pre style={{ margin: 0, padding: '18px', fontSize: 12, color: '#A78BFA', fontFamily: 'monospace', lineHeight: 1.7, overflowY: 'auto' }}>{ROBOTS_TXT}</pre>
+            <pre style={{ margin: 0, padding: '20px 18px', fontSize: 12, color: '#e2e8f0', fontFamily: 'monospace', lineHeight: 1.8, overflowY: 'auto' }}>{ROBOTS_TXT}</pre>
           </div>
         </div>
       )}
+
+      {/* ── AI info modal ─────────────────────────────────────────────── */}
+      {aiInfoOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setAiInfoOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: WHITE, borderRadius: 14, width: '100%', maxWidth: 400, padding: '28px 28px', border: `1px solid ${BORDER}` }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 12px' }}>Santé de la recherche IA</p>
+            <p style={{ fontSize: 13, color: INK2, lineHeight: 1.65, margin: '0 0 16px' }}>
+              Ce score évalue si les robots d'exploration IA (ChatGPT, Perplexity, Google AI…) peuvent accéder et indexer librement votre contenu. Un score de 100% signifie qu'aucun robot IA n'est bloqué dans votre robots.txt.
+            </p>
+            <Btn variant="solid" onClick={() => setAiInfoOpen(false)}>Compris</Btn>
+          </div>
+        </div>
+      )}
+
+      {/* ── Fix drawer ───────────────────────────────────────────────── */}
+      <FixDrawer issue={fixIssue} onClose={() => setFixIssue(null)} />
     </div>
   );
 }

@@ -42,7 +42,7 @@ export default function AuditPage() {
                 padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: F,
                 fontSize: 12, fontWeight: activeTab === tab.id ? 600 : 400,
                 background: activeTab === tab.id ? '#fff' : 'transparent',
-                color: activeTab === tab.id ? '#0F0F10' : '#888',
+                color: activeTab === tab.id ? '#111' : '#888',
                 boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 transition: 'all 150ms', whiteSpace: 'nowrap',
               }}>
