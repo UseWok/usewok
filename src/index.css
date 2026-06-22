@@ -100,30 +100,30 @@ body {
     --support-foreground: 0 0% 100%;
   }
 
-  /* Dark mode = same palette */
+  /* Dark mode — deep slate palette */
   .dark {
-    --background: 50 20% 97%;
-    --foreground: 0 0% 10%;
-    --card: 50 20% 98%;
-    --card-foreground: 0 0% 10%;
-    --popover: 50 20% 98%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 50 20% 97%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 262 71% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 50 15% 92%;
-    --muted-foreground: 0 0% 53%;
-    --accent: 50 20% 94%;
-    --accent-foreground: 0 0% 10%;
+    --background: 224 14% 10%;          /* #17191F */
+    --foreground: 220 14% 93%;          /* #E8EAF0 */
+    --card: 224 14% 13%;                /* #1D2029 */
+    --card-foreground: 220 14% 93%;
+    --popover: 224 14% 13%;
+    --popover-foreground: 220 14% 93%;
+    --primary: 262 71% 60%;             /* #7B4FE0 violet as primary in dark */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 224 14% 18%;           /* surface raised */
+    --secondary-foreground: 220 14% 93%;
+    --muted: 224 14% 16%;
+    --muted-foreground: 220 9% 55%;
+    --accent: 224 14% 18%;
+    --accent-foreground: 220 14% 93%;
     --destructive: 345 82% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 82%;
-    --input: 0 0% 82%;
-    --ring: 0 0% 60%;
-    --sidebar-background: 50 20% 97%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-border: 0 0% 82%;
+    --border: 224 14% 20%;              /* subtle dark border */
+    --input: 224 14% 20%;
+    --ring: 262 71% 60%;
+    --sidebar-background: 224 14% 10%;
+    --sidebar-foreground: 220 14% 93%;
+    --sidebar-border: 224 14% 18%;
   }
 }
 
@@ -152,6 +152,13 @@ body {
   }
   a:not([class]):hover {
     text-decoration: underline;
+  }
+
+  /* ── Mobile: minimum readable font size ── */
+  @media (max-width: 768px) {
+    :root { font-size: 16px; }
+    /* Prevent iOS auto-zoom on inputs */
+    input, select, textarea { font-size: max(16px, 1em); }
   }
 
   /* ── Mobile: disable tap highlight + user-select on interactive elements ── */

@@ -131,7 +131,7 @@ export default function Layout() {
           onClick={() => handleSetExpanded(true)}
           style={{
             position: 'fixed', top: 12, left: 12, zIndex: 50,
-            width: 36, height: 36, borderRadius: 9, border: 'none',
+            width: 44, height: 44, borderRadius: 10, border: 'none',
             background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
@@ -231,12 +231,23 @@ export default function Layout() {
           }),
         }}
       >
-        {/* Inner scroll container so bottom border is always visible */}
+        {/* Inner scroll container with slide page transitions */}
         <div style={{
           flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column',
-          paddingBottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom))' : 0,
+          paddingBottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0,
         }}>
-          <Outlet />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              initial={isMobile ? { x: 30, opacity: 0 } : { opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={isMobile ? { x: -20, opacity: 0 } : { opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
         {/* Mobile bottom tabs */}
         {isMobile && <BottomTabs />}

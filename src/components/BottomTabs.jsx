@@ -21,19 +21,19 @@ export default function BottomTabs() {
       borderTop: '1px solid rgba(0,0,0,0.08)',
       display: 'flex', alignItems: 'stretch',
       paddingBottom: 'env(safe-area-inset-bottom)',
-      height: 'calc(56px + env(safe-area-inset-bottom))',
+      height: 'calc(60px + env(safe-area-inset-bottom))',
     }}>
       {TABS.map(({ label, icon: Icon, path }) => {
         const active = location.pathname === path || (path !== '/app' && location.pathname.startsWith(path));
         return (
           <button
             key={path}
-            onClick={() => navigate(path)}
+            onClick={() => navigate(path, { replace: false })}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: 3,
               border: 'none', background: 'transparent', cursor: 'pointer',
-              padding: '8px 4px 0', fontFamily: 'Inter, sans-serif',
+              minHeight: 44, padding: '6px 4px 0', fontFamily: 'Inter, sans-serif',
               userSelect: 'none', WebkitTapHighlightColor: 'transparent',
               transition: 'opacity 120ms',
             }}
@@ -44,7 +44,7 @@ export default function BottomTabs() {
               color={active ? '#7C3AED' : '#9CA3AF'}
             />
             <span style={{
-              fontSize: 10, fontWeight: active ? 700 : 400,
+              fontSize: 12, fontWeight: active ? 700 : 400,
               color: active ? '#7C3AED' : '#9CA3AF',
               letterSpacing: '-0.01em',
             }}>
