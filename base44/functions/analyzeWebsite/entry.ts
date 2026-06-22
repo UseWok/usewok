@@ -12,7 +12,8 @@ Deno.serve(async (req) => {
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    const [seoResult, aiEnginesResult, technicalResult] = await Promise.all([
+    const [seoResult, aiEnginesResult, technicalResult, lrsResult] = await Promise.all([
+
       // 1. SEO + geo traffic
       base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are a senior SEO and AI visibility expert. Deeply analyze this website using real web data: ${cleanUrl}
@@ -40,7 +41,7 @@ Deno.serve(async (req) => {
         - visibility_pct: number 0-100
         - visibility_delta: number
         - issues: array of 4 objects { problem: string (in simple non-technical French, explain what it means for the business owner — no jargon), category: string, severity: "error"|"warning" }
-        - strengths: array of 3 strings
+        - strengths: array of 3 strings (in French)
         - shock_insight: string (one powerful simple sentence in French about what they're losing)
         - top_keywords: array of 5 objects { keyword: string, position: number, volume: number }
         - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number }
@@ -90,14 +91,44 @@ Deno.serve(async (req) => {
         
         Return scores 0-100 for each engine. A well-known brand scores 60-90. A small local business with no online presence scores 5-20.
         
-        - chatgpt_score: number 0-100 (OpenAI ChatGPT / GPT-4)
-        - gemini_score: number 0-100 (Google Gemini)
-        - claude_score: number 0-100 (Anthropic Claude)
-        - mistral_score: number 0-100 (Mistral AI)
-        - llama_score: number 0-100 (Meta Llama)
-        - perplexity_score: number 0-100 (Perplexity AI)
-        - grok_score: number 0-100 (xAI Grok)
-        - copilot_score: number 0-100 (Microsoft Copilot / Bing)
+        For each engine, also estimate:
+        - citation_frequency: how often this brand is cited per 1000 relevant queries (0-100 scale)
+        - sentiment: "positive" | "neutral" | "negative" (how the AI tends to present this brand)
+        - accuracy: number 0-100 (how accurately the AI describes this brand's offer)
+        
+        Return:
+        - chatgpt_score: number 0-100
+        - chatgpt_citation_freq: number 0-100
+        - chatgpt_sentiment: string
+        - chatgpt_accuracy: number 0-100
+        - gemini_score: number 0-100
+        - gemini_citation_freq: number 0-100
+        - gemini_sentiment: string
+        - gemini_accuracy: number 0-100
+        - claude_score: number 0-100
+        - claude_citation_freq: number 0-100
+        - claude_sentiment: string
+        - claude_accuracy: number 0-100
+        - mistral_score: number 0-100
+        - mistral_citation_freq: number 0-100
+        - mistral_sentiment: string
+        - mistral_accuracy: number 0-100
+        - llama_score: number 0-100
+        - llama_citation_freq: number 0-100
+        - llama_sentiment: string
+        - llama_accuracy: number 0-100
+        - perplexity_score: number 0-100
+        - perplexity_citation_freq: number 0-100
+        - perplexity_sentiment: string
+        - perplexity_accuracy: number 0-100
+        - grok_score: number 0-100
+        - grok_citation_freq: number 0-100
+        - grok_sentiment: string
+        - grok_accuracy: number 0-100
+        - copilot_score: number 0-100
+        - copilot_citation_freq: number 0-100
+        - copilot_sentiment: string
+        - copilot_accuracy: number 0-100
         - ai_mentions_count: number (estimated total AI mentions/month)
         - chatgpt_reason: string (one sentence why in French)
         - perplexity_reason: string (one sentence why in French)`,
@@ -106,14 +137,14 @@ Deno.serve(async (req) => {
         response_json_schema: {
           type: 'object',
           properties: {
-            chatgpt_score: { type: 'number' },
-            gemini_score: { type: 'number' },
-            claude_score: { type: 'number' },
-            mistral_score: { type: 'number' },
-            llama_score: { type: 'number' },
-            perplexity_score: { type: 'number' },
-            grok_score: { type: 'number' },
-            copilot_score: { type: 'number' },
+            chatgpt_score: { type: 'number' }, chatgpt_citation_freq: { type: 'number' }, chatgpt_sentiment: { type: 'string' }, chatgpt_accuracy: { type: 'number' },
+            gemini_score: { type: 'number' }, gemini_citation_freq: { type: 'number' }, gemini_sentiment: { type: 'string' }, gemini_accuracy: { type: 'number' },
+            claude_score: { type: 'number' }, claude_citation_freq: { type: 'number' }, claude_sentiment: { type: 'string' }, claude_accuracy: { type: 'number' },
+            mistral_score: { type: 'number' }, mistral_citation_freq: { type: 'number' }, mistral_sentiment: { type: 'string' }, mistral_accuracy: { type: 'number' },
+            llama_score: { type: 'number' }, llama_citation_freq: { type: 'number' }, llama_sentiment: { type: 'string' }, llama_accuracy: { type: 'number' },
+            perplexity_score: { type: 'number' }, perplexity_citation_freq: { type: 'number' }, perplexity_sentiment: { type: 'string' }, perplexity_accuracy: { type: 'number' },
+            grok_score: { type: 'number' }, grok_citation_freq: { type: 'number' }, grok_sentiment: { type: 'string' }, grok_accuracy: { type: 'number' },
+            copilot_score: { type: 'number' }, copilot_citation_freq: { type: 'number' }, copilot_sentiment: { type: 'string' }, copilot_accuracy: { type: 'number' },
             ai_mentions_count: { type: 'number' },
             chatgpt_reason: { type: 'string' },
             perplexity_reason: { type: 'string' },
@@ -146,13 +177,86 @@ Deno.serve(async (req) => {
           }
         }
       }),
+
+      // 4. LLM Resonance Score + Entity Injection Plan
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are an expert in AI search engine optimization (AEO — Answer Engine Optimization). Analyze this website: ${cleanUrl}
+
+        Your mission: compute the LLM Resonance Score (LRS) and generate a concrete entity injection action plan.
+
+        THE LLM RESONANCE SCORE (LRS):
+        This is the new standard metric for the AI era — like Domain Authority for SEO, but for LLM visibility.
+        It aggregates 3 signals across 8 AI engines (ChatGPT, Gemini, Claude, Mistral, Llama, Perplexity, Grok, Copilot):
+        - Citation frequency (40% weight): how often the brand appears in AI answers on relevant queries
+        - Sentiment quality (30% weight): % of positive/neutral citations vs negative ones
+        - Information accuracy (30% weight): how accurately AI engines describe this brand's offer, pricing, USP
+
+        Compute lrs_score (0-100) based on these signals.
+        Also provide:
+        - lrs_citation_score: number 0-100 (citation frequency component)
+        - lrs_sentiment_score: number 0-100 (sentiment quality component)
+        - lrs_accuracy_score: number 0-100 (information accuracy component)
+        - lrs_trend: "rising" | "stable" | "declining" (estimated trend)
+        - lrs_vs_industry: number (how many points above/below industry average, e.g. +12 or -8)
+
+        ENTITY INJECTION ACTION PLAN:
+        Generate 3 specific, highly actionable injection recommendations. Each must be a concrete "ordonnance" — not generic advice.
+        
+        For each action:
+        - engine: which AI engine is missing this brand (e.g. "Perplexity")
+        - gap: what specific query or topic where competitors appear but this brand doesn't (be specific, name the exact query)
+        - competitor_advantage: why competitors are cited there (e.g. "ils sont cités car présents dans le rapport Gartner 2024 sur les CRM")
+        - action_title: short action title in French (e.g. "Publier une page de données primaires")
+        - action_detail: specific step-by-step instruction in French (2-3 sentences, name specific platforms, formats, or sources)
+        - platform: specific platform or channel to target (e.g. "Reddit", "Wikipedia", "LinkedIn Pulse", "HubSpot Blog guest post")
+        - impact: "high" | "medium"
+        - effort: "low" | "medium" | "high"
+
+        Return:
+        - lrs_score: number 0-100
+        - lrs_citation_score: number 0-100
+        - lrs_sentiment_score: number 0-100
+        - lrs_accuracy_score: number 0-100
+        - lrs_trend: string
+        - lrs_vs_industry: number
+        - injection_plan: array of 3 objects with fields: engine, gap, competitor_advantage, action_title, action_detail, platform, impact, effort`,
+        add_context_from_internet: true,
+        model: 'gemini_3_1_pro',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            lrs_score: { type: 'number' },
+            lrs_citation_score: { type: 'number' },
+            lrs_sentiment_score: { type: 'number' },
+            lrs_accuracy_score: { type: 'number' },
+            lrs_trend: { type: 'string' },
+            lrs_vs_industry: { type: 'number' },
+            injection_plan: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  engine: { type: 'string' },
+                  gap: { type: 'string' },
+                  competitor_advantage: { type: 'string' },
+                  action_title: { type: 'string' },
+                  action_detail: { type: 'string' },
+                  platform: { type: 'string' },
+                  impact: { type: 'string' },
+                  effort: { type: 'string' },
+                }
+              }
+            }
+          }
+        }
+      }),
     ]);
 
     const result = {
       ...seoResult,
       ...aiEnginesResult,
       ...technicalResult,
-      // backward compat
+      ...lrsResult,
       google_ai_score: aiEnginesResult.gemini_score || 0,
       url: cleanUrl,
       analyzed_at: new Date().toISOString(),
@@ -162,7 +266,7 @@ Deno.serve(async (req) => {
       website: cleanUrl,
       first_name: result.business_name || '',
       role: result.business_type || '',
-      message: `AI scan: score ${result.overall_score}/100 | traffic: ${result.organic_traffic}`,
+      message: `AI scan: LRS ${result.lrs_score}/100 | score ${result.overall_score}/100 | traffic: ${result.organic_traffic}`,
       status: 'new',
     }).catch(() => {});
 
