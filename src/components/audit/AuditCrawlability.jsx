@@ -1,27 +1,22 @@
+import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import { X } from 'lucide-react';
-import { useState } from 'react';
 
-const F       = 'Inter, system-ui, sans-serif';
-const INK     = '#111111';
-const INK2    = '#555555';
-const INK3    = '#999999';
-const BORDER  = '#E8E7E4';
-const SURFACE = '#F7F6F3';
-const WHITE   = '#FFFFFF';
+const F = 'Inter, system-ui, sans-serif';
+const INK = '#111111'; const INK2 = '#555555'; const INK3 = '#999999';
+const BORDER = '#E8E7E4'; const SURFACE = '#F7F6F3'; const WHITE = '#FFFFFF';
+const SHADES = [INK, '#777', '#aaa', '#ccc'];
 
 function Card({ children, style = {} }) {
   return <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '18px 20px', fontFamily: F, ...style }}>{children}</div>;
 }
-
 function Label({ children }) {
   return <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 14px' }}>{children}</p>;
 }
 
-// ── Big donut — monochrome ──────────────────────────────────────────
-function BigDonut() {
-  const data = [{ value: 18, name: 'Non indexables' }, { value: 32, name: 'Indexables' }];
-  const SHADES = ['#999', '#1a1a1a'];
+function BigDonut({ indexable, nonIndexable }) {
+  const total = (indexable || 0) + (nonIndexable || 0) || 1;
+  const data = [{ value: nonIndexable || 0, name: 'Non indexables' }, { value: indexable || 0, name: 'Indexables' }];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
       <div style={{ position: 'relative', width: 150, height: 150 }}>
@@ -33,12 +28,12 @@ function BigDonut() {
           </PieChart>
         </ResponsiveContainer>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 26, fontWeight: 900, color: INK, lineHeight: 1 }}>50</span>
+          <span style={{ fontSize: 26, fontWeight: 900, color: INK, lineHeight: 1 }}>{total}</span>
           <span style={{ fontSize: 10, color: INK3 }}>pages</span>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 20 }}>
-        {[['Non indexables', 18, '#999'], ['Indexables', 32, INK]].map(([l, c, col]) => (
+        {[['Non indexables', nonIndexable || 0, '#777'], ['Indexables', indexable || 0, INK]].map(([l, c, col]) => (
           <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: col }} />
             <span style={{ fontSize: 11, color: INK2 }}><strong>{c}</strong> {l}</span>
@@ -49,62 +44,64 @@ function BigDonut() {
   );
 }
 
-const CRAWL_BUDGET_ITEMS = [
-  { label: 'Redirections temporaires', value: 0 },
-  { label: 'Redirections permanentes', value: 0 },
-  { label: 'Chaînes et boucles de redirection', value: 0 },
-  { label: 'Canoniques vers une autre page', value: 0 },
-  { label: 'Pages avec du texte dupliqué', value: 0 },
-  { label: 'Exploration bloquée', value: 0 },
-  { label: 'Grande taille de page', value: 0 },
-  { label: 'Erreurs 4xx', value: 1 },
-  { label: 'Erreurs 5xx', value: 0 },
-  { label: 'Chaînes/boucles de redirection (2)', value: 0 },
-];
-
-export default function AuditCrawlability() {
+export default function AuditCrawlability({ data = {} }) {
   const [sitemapDrawer, setSitemapDrawer] = useState(false);
 
-  const crawledBarData = [{ date: '20 juin 2026', pages: 50 }];
-  const inboundLinkData = [
-    { range: '0', count: 5 }, { range: '1', count: 4 }, { range: '2-5', count: 12 },
-    { range: '6-10', count: 18 }, { range: '11-50', count: 7 }, { range: '51-100', count: 2 },
-    { range: '101-500', count: 1 }, { range: '500+', count: 1 },
+  const crawlBudgetItems = data.crawl_budget_items || [
+    { label: 'Redirections temporaires', value: 0 },
+    { label: 'Redirections permanentes', value: data.pages_redirects || 0 },
+    { label: 'Chaînes et boucles de redirection', value: 0 },
+    { label: 'Canoniques vers une autre page', value: 0 },
+    { label: 'Pages avec du texte dupliqué', value: 0 },
+    { label: 'Exploration bloquée', value: data.pages_blocked || 0 },
+    { label: 'Grande taille de page', value: 0 },
+    { label: 'Erreurs 4xx', value: data.http_4xx_count || 0 },
+    { label: 'Erreurs 5xx', value: data.http_5xx_count || 0 },
   ];
+
+  const inboundLinks = data.inbound_links_distribution || [
+    { range: '0', count: 0 }, { range: '1', count: 0 }, { range: '2-5', count: 0 },
+    { range: '6-10', count: 0 }, { range: '11-50', count: 0 }, { range: '51+', count: 0 },
+  ];
+
   const depthData = [
-    { label: '1 clic', pages: 50 }, { label: '2 clics', pages: 0 },
-    { label: '3 clics', pages: 0 }, { label: '4+ clics', pages: 0 },
+    { label: '1 clic', pages: data.pages_crawled || 0 },
+    { label: '2 clics', pages: 0 },
+    { label: '3 clics', pages: 0 },
+    { label: '4+ clics', pages: 0 },
   ];
+
   const httpData = [
-    { name: '2xx', value: 49 }, { name: '3xx', value: 0 },
-    { name: '4xx', value: 1 }, { name: '5xx', value: 0 },
+    { name: '2xx', value: data.http_2xx_count || 0 },
+    { name: '3xx', value: data.http_3xx_count || 0 },
+    { name: '4xx', value: data.http_4xx_count || 0 },
+    { name: '5xx', value: data.http_5xx_count || 0 },
   ];
-  const HTTP_SHADES = [INK, '#aaa', '#666', '#ccc'];
+
+  const crawledBarData = [{ date: data.analyzed_at ? new Date(data.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : 'Aujourd\'hui', pages: data.pages_crawled || 0 }];
 
   return (
     <div style={{ fontFamily: F }}>
       <div style={{ marginBottom: 24 }}>
         <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Explorabilité</p>
-        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Score global : <strong style={{ color: INK }}>92 / 100</strong></p>
+        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Score global : <strong style={{ color: INK }}>{data.crawlability_score ?? '–'} / 100</strong></p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
 
-        {/* Indexabilité */}
         <Card>
           <Label>Indexabilité du site</Label>
-          <BigDonut />
+          <BigDonut indexable={data.indexable_pages} nonIndexable={data.non_indexable_pages} />
         </Card>
 
-        {/* Crawl budget */}
         <Card>
-          <Label>Gaspillage de budget d'exploration — 0 / 10</Label>
+          <Label>Gaspillage de budget d'exploration — {data.crawl_budget_waste ?? '?'} / 10</Label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {CRAWL_BUDGET_ITEMS.map((item, i) => (
+            {crawlBudgetItems.map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 11, color: item.value > 0 ? INK : INK3, flex: 1 }}>{item.label}</span>
                 <div style={{ width: 60, height: 4, background: SURFACE, borderRadius: 2, flexShrink: 0 }}>
-                  <div style={{ height: '100%', width: item.value > 0 ? '30%' : '0%', background: INK, borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: item.value > 0 ? `${Math.min(item.value * 15, 100)}%` : '0%', background: INK, borderRadius: 2 }} />
                 </div>
                 <span style={{ fontSize: 11, fontWeight: item.value > 0 ? 700 : 400, color: item.value > 0 ? INK : INK3, width: 14, textAlign: 'right' }}>{item.value}</span>
               </div>
@@ -112,24 +109,22 @@ export default function AuditCrawlability() {
           </div>
         </Card>
 
-        {/* Pages crawled */}
         <Card>
-          <Label>Pages explorées dans le temps</Label>
+          <Label>Pages explorées</Label>
           <ResponsiveContainer width="100%" height={130}>
             <BarChart data={crawledBarData} margin={{ top: 4, bottom: 0 }}>
               <XAxis dataKey="date" tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} domain={[0, 60]} />
+              <YAxis tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE }} cursor={{ fill: SURFACE }} />
               <Bar dataKey="pages" fill={INK} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        {/* Inbound links histogram */}
         <Card>
           <Label>Liens internes entrants</Label>
           <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={inboundLinkData} margin={{ top: 4, bottom: 0 }}>
+            <BarChart data={inboundLinks} margin={{ top: 4, bottom: 0 }}>
               <XAxis dataKey="range" tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE }} cursor={{ fill: SURFACE }} />
@@ -138,7 +133,6 @@ export default function AuditCrawlability() {
           </ResponsiveContainer>
         </Card>
 
-        {/* Crawl depth */}
         <Card>
           <Label>Profondeur d'exploration</Label>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -147,35 +141,35 @@ export default function AuditCrawlability() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 11, color: INK2, width: 60, flexShrink: 0 }}>{d.label}</span>
                   <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: d.pages > 0 ? '100%' : '0%', background: INK, borderRadius: 2, transition: 'width 0.7s ease' }} />
+                    <div style={{ height: '100%', width: d.pages > 0 ? '100%' : '0%', background: INK, borderRadius: 2 }} />
                   </div>
                   <span style={{ fontSize: 11, color: INK3, width: 24, textAlign: 'right' }}>{d.pages}</span>
                 </div>
               ))}
             </div>
             <div style={{ width: 54, height: 54, borderRadius: '50%', border: `2px solid ${INK}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>1</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>{data.crawl_depth_avg ?? 1}</span>
               <span style={{ fontSize: 8, color: INK3, textAlign: 'center' }}>niveau</span>
             </div>
           </div>
         </Card>
 
-        {/* Sitemap */}
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
           <Label>Sitemap vs. Pages explorées</Label>
-          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Sitemap introuvable</p>
-            <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}>Aucun fichier sitemap.xml détecté. Cela peut limiter l'indexation par les moteurs de recherche et les IA.</p>
-            <button onClick={() => setSitemapDrawer(true)}
-              style={{ fontSize: 12, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '8px 14px', cursor: 'pointer', fontFamily: F }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              Comment créer un sitemap →
-            </button>
-          </div>
+          {data.sitemap_status === 'found' ? (
+            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: '0 0 4px' }}>Sitemap trouvé ✓</p>
+              <p style={{ fontSize: 12, color: INK2, margin: 0 }}>{data.sitemap_url_count || 0} URLs déclarées</p>
+            </div>
+          ) : (
+            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Sitemap introuvable</p>
+              <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}>Aucun fichier sitemap.xml détecté. Cela peut limiter l'indexation par les IA et Google.</p>
+              <button onClick={() => setSitemapDrawer(true)} style={{ fontSize: 12, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '8px 14px', cursor: 'pointer', fontFamily: F, alignSelf: 'flex-start' }}>Comment créer un sitemap →</button>
+            </div>
+          )}
         </Card>
 
-        {/* HTTP status */}
         <Card>
           <Label>Codes de statut HTTP</Label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -183,7 +177,7 @@ export default function AuditCrawlability() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={httpData.filter(d => d.value > 0)} cx="50%" cy="50%" outerRadius={42} dataKey="value" strokeWidth={0}>
-                    {httpData.filter(d => d.value > 0).map((_, i) => <Cell key={i} fill={HTTP_SHADES[i]} />)}
+                    {httpData.filter(d => d.value > 0).map((_, i) => <Cell key={i} fill={SHADES[i]} />)}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
@@ -191,7 +185,7 @@ export default function AuditCrawlability() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {httpData.map((d, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: HTTP_SHADES[i] }} />
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: SHADES[i] }} />
                   <span style={{ fontSize: 11, color: INK2 }}>{d.name} — <strong style={{ color: INK }}>{d.value}</strong></span>
                 </div>
               ))}
@@ -201,7 +195,6 @@ export default function AuditCrawlability() {
 
       </div>
 
-      {/* Sitemap drawer */}
       {sitemapDrawer && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }} onClick={() => setSitemapDrawer(false)}>
           <div style={{ flex: 1 }} />
@@ -217,13 +210,7 @@ export default function AuditCrawlability() {
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
               <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {[
-                  'Générez un sitemap XML depuis votre CMS (WordPress : Yoast SEO, Shopify : intégré)',
-                  'Si SPA/React : utilisez le package "sitemap" sur Node.js pour le générer au build',
-                  'Placez le fichier à la racine : https://votre-domaine.com/sitemap.xml',
-                  'Déclarez-le dans robots.txt via la directive : Sitemap: https://…/sitemap.xml',
-                  'Soumettez l\'URL du sitemap dans Google Search Console',
-                ].map((step, i) => (
+                {['Générez un sitemap XML depuis votre CMS (WordPress : Yoast SEO, Shopify : intégré)', 'Si SPA/React : utilisez le package "sitemap" sur Node.js pour le générer au build', 'Placez le fichier à la racine : https://votre-domaine.com/sitemap.xml', 'Déclarez-le dans robots.txt via la directive : Sitemap: https://…/sitemap.xml', 'Soumettez l\'URL du sitemap dans Google Search Console'].map((step, i) => (
                   <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ width: 22, height: 22, borderRadius: '50%', background: INK, color: WHITE, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
                     <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.55 }}>{step}</p>
