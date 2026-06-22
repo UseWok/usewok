@@ -11,28 +11,20 @@ const T3 = '#9CA3AF';
 const BD = '#E5E7EB';
 const VIOLET = '#7C3AED';
 
-// ── Real AI logos (official SVG inline) ──────────────────────────────────────
+// ── AI logos using uploaded assets ───────────────────────────────────────────
+const MX = { mixBlendMode: 'multiply' };
 const ChatGPTLogo = () => (
-  <svg width="16" height="16" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.99-3.136 10.079 10.079 0 0 0-9.618 6.977 9.967 9.967 0 0 0-6.69 4.839 10.081 10.081 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.99 3.135 10.078 10.078 0 0 0 9.617-6.976 9.967 9.967 0 0 0 6.691-4.839 10.079 10.079 0 0 0-1.24-11.818zm-15.019 21.069c-1.955 0-3.862-.662-5.409-1.873l.267-.151 8.979-5.184a1.505 1.505 0 0 0 .754-1.302V19.633l3.793 2.191a.139.139 0 0 1 .076.106v10.48c-.003 3.273-2.659 5.927-5.46 5.529zm-11.77-5.148a10.03 10.03 0 0 1-1.2-6.731l.267.161 8.979 5.184a1.505 1.505 0 0 0 1.508 0l10.963-6.333v4.381a.145.145 0 0 1-.057.112L21.4 35.501a9.956 9.956 0 0 1-10.657-2.71zm-1.545-14.91a9.943 9.943 0 0 1 5.201-4.382l-.004.31v10.368a1.503 1.503 0 0 0 .753 1.302l10.963 6.333-3.793 2.192a.139.139 0 0 1-.131.013L11.02 27.939a9.975 9.975 0 0 1-1.822-9.058zm31.1 8.575-10.963-6.333 3.793-2.192a.138.138 0 0 1 .131-.013l10.169 5.872a9.956 9.956 0 0 1-1.542 17.947v-.312l-.004-10.368a1.503 1.503 0 0 0-.752-1.301l-.832-.5zm3.776-6.73-.267-.161-8.978-5.184a1.506 1.506 0 0 0-1.508 0L21.856 20.7v-4.381a.144.144 0 0 1 .057-.112l10.165-5.868a9.955 9.955 0 0 1 14.82 10.316zm-23.763 7.811-3.792-2.192a.14.14 0 0 1-.077-.107v-10.48c.002-3.276 2.661-5.93 5.462-5.527 1.954 0 3.861.661 5.408 1.872l-.267.151-8.979 5.184a1.505 1.505 0 0 0-.754 1.302l-.001 9.797zm2.06-4.43 4.879-2.818 4.879 2.817v5.635l-4.879 2.818-4.879-2.818V23.107z" fill="currentColor"/>
+  <svg width="16" height="16" viewBox="0 0 41 41" fill="none">
+    <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.99-3.136 10.079 10.079 0 0 0-9.618 6.977 9.967 9.967 0 0 0-6.69 4.839 10.081 10.081 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.99 3.135 10.078 10.078 0 0 0 9.617-6.976 9.967 9.967 0 0 0 6.691-4.839 10.079 10.079 0 0 0-1.24-11.818zm-15.019 21.069c-1.955 0-3.862-.662-5.409-1.873l.267-.151 8.979-5.184a1.505 1.505 0 0 0 .754-1.302V19.633l3.793 2.191a.139.139 0 0 1 .076.106v10.48c-.003 3.273-2.659 5.927-5.46 5.529zm-11.77-5.148a10.03 10.03 0 0 1-1.2-6.731l.267.161 8.979 5.184a1.505 1.505 0 0 0 1.508 0l10.963-6.333v4.381a.145.145 0 0 1-.057.112L21.4 35.501a9.956 9.956 0 0 1-10.657-2.71zm-1.545-14.91a9.943 9.943 0 0 1 5.201-4.382l-.004.31v10.368a1.503 1.503 0 0 0 .753 1.302l10.963 6.333-3.793 2.192a.139.139 0 0 1-.131.013L11.02 27.939a9.975 9.975 0 0 1-1.822-9.058zm31.1 8.575-10.963-6.333 3.793-2.192a.138.138 0 0 1 .131-.013l10.169 5.872a9.956 9.956 0 0 1-1.542 17.947v-.312l-.004-10.368a1.503 1.503 0 0 0-.752-1.301zm3.776-6.73-.267-.161-8.978-5.184a1.506 1.506 0 0 0-1.508 0L21.856 20.7v-4.381a.144.144 0 0 1 .057-.112l10.165-5.868a9.955 9.955 0 0 1 14.82 10.316zm-23.763 7.811-3.792-2.192a.14.14 0 0 1-.077-.107v-10.48c.002-3.276 2.661-5.93 5.462-5.527 1.954 0 3.861.661 5.408 1.872l-.267.151-8.979 5.184a1.505 1.505 0 0 0-.754 1.302l-.001 9.797zm2.06-4.43 4.879-2.818 4.879 2.817v5.635l-4.879 2.818-4.879-2.818V23.107z" fill="#10A37F"/>
   </svg>
 );
-const ClaudeLogo = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4.5 16.5L12 3l7.5 13.5H4.5z" fill="currentColor" opacity="0.9"/>
-    <path d="M7.5 16.5L12 8l4.5 8.5H7.5z" fill="currentColor" opacity="0.5"/>
-  </svg>
-);
-const GeminiLogo = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C12 2 8.5 8.5 2 12C8.5 15.5 12 22 12 22C12 22 15.5 15.5 22 12C15.5 8.5 12 2 12 2Z" fill="currentColor"/>
-  </svg>
-);
-const PerplexityLogo = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
+const ClaudeLogo    = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png" width="16" height="16" style={{ objectFit: 'contain', ...MX }} alt="Claude" />;
+const GeminiLogo    = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png" width="16" height="16" style={{ objectFit: 'contain' }} alt="Gemini" />;
+const PerplexityLogo= () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png" width="16" height="16" style={{ objectFit: 'contain', ...MX }} alt="Perplexity" />;
+const MistralLogo   = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png" width="16" height="16" style={{ objectFit: 'contain', ...MX }} alt="Mistral" />;
+const LlamaLogo     = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png" width="16" height="16" style={{ objectFit: 'contain', ...MX }} alt="Llama" />;
+const GrokLogo      = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png" width="16" height="16" style={{ objectFit: 'contain', ...MX }} alt="Grok" />;
+const CopilotLogo   = () => <img src="https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png" width="16" height="16" style={{ objectFit: 'contain' }} alt="Copilot" />;
 
 // ── Scene bar action items ─────────────────────────────────────────────────────
 const SCENE_ACTIONS = [
@@ -52,108 +44,83 @@ const SCENE_ACTIONS = [
   { id: 'goals',        label: 'Goals',                icon: Lightbulb,      color: '#84CC16', desc: 'Set & track objectives' },
 ];
 
-// ─── LOADER 6s FACTICE (uniquement après connexion, light theme) ──────────────
-const SCAN_STEPS = [
-  { id: 'a', label: 'Fetching your website content', sub: 'HTML, meta tags & structured data' },
-  { id: 'b', label: 'Checking AI training datasets', sub: 'Common Crawl, C4 & web corpus' },
-  { id: 'c', label: 'Simulating ChatGPT knowledge probe', sub: '12 branded & generic queries tested' },
-  { id: 'd', label: 'Analysing Perplexity citations', sub: 'Live AI answer indexing' },
-  { id: 'e', label: 'Auditing Google AI Overview eligibility', sub: 'Schema, E-E-A-T & authority signals' },
-  { id: 'f', label: 'Computing your AI Visibility Score', sub: 'Aggregating 47 signals across 4 engines' },
+// ─── PARALLEL SCAN LOADER ─────────────────────────────────────────────────────
+const MODULES = [
+  {
+    id: 'report',
+    label: 'Rapport IA',
+    sub: 'LLM Resonance Score · 8 moteurs analysés',
+    steps: ['Récupération du contenu…', 'Simulation des 8 moteurs IA…', 'Calcul du LRS…'],
+    color: VIOLET,
+  },
+  {
+    id: 'audit',
+    label: 'Audit technique',
+    sub: 'Explorabilité · Robots.txt · Sitemap',
+    steps: ['Lecture des entêtes HTTP…', 'Analyse du robots.txt…', 'Détection des problèmes…'],
+    color: '#0EA5E9',
+  },
+  {
+    id: 'performance',
+    label: 'Performance & marché',
+    sub: 'Part de voix · Concurrents · Tendances',
+    steps: ['Données de trafic organique…', 'Benchmarking concurrents…', 'Analyse des tendances…'],
+    color: '#10B981',
+  },
 ];
 
-// The loader advances steps over time but waits for onDone signal from parent (real API)
-function ScanLoader({ url, onDone }) {
-  const [current, setCurrent] = useState(0);
-  const [done, setDone] = useState([]);
-  const [pct, setPct] = useState(3);
+function ModuleLoader({ mod, offset }) {
+  const [step, setStep] = useState(0);
+  const [pct, setPct] = useState(4);
 
   useEffect(() => {
-    // Advance steps visually — but max 90% until API responds
-    const delays = [0, 1200, 2600, 4200, 5800, 7500];
-    const timers = SCAN_STEPS.map((s, i) =>
-      setTimeout(() => {
-        setCurrent(i);
-        if (i > 0) setDone(d => [...d, SCAN_STEPS[i - 1].id]);
-      }, delays[i])
-    );
-    const start = Date.now();
-    const iv = setInterval(() => {
-      // Never exceed 90% — the parent signals 100% via onDone
-      setPct(p => Math.min(p + 1, 90));
-    }, 200);
-    return () => { timers.forEach(clearTimeout); clearInterval(iv); };
-  }, []);
-
-  // When parent signals done (real API finished), complete the animation
-  useEffect(() => {
-    if (onDone) {
-      // onDone is called by parent when API finishes — handled via prop change
-    }
+    const t1 = setTimeout(() => setStep(1), offset + 2200);
+    const t2 = setTimeout(() => setStep(2), offset + 5000);
+    const iv = setInterval(() => setPct(p => Math.min(p + 1, 88)), 250);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearInterval(iv); };
   }, []);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      style={{
-        background: '#fff', border: `1px solid ${BD}`, borderRadius: 16,
-        padding: '28px 32px', maxWidth: 520, margin: '0 auto', fontFamily: F,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-      }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T1, marginBottom: 2 }}>Finalising your AI visibility report</div>
-            <div style={{ fontSize: 12, color: T3 }}>{url}</div>
-          </div>
-          <span style={{ fontSize: 20, fontWeight: 800, color: VIOLET }}>{pct}%</span>
+    <div style={{ background: '#fff', border: `1px solid ${BD}`, borderRadius: 14, padding: '16px 18px', fontFamily: F }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T1 }}>{mod.label}</div>
+          <div style={{ fontSize: 11, color: T3, marginTop: 1 }}>{mod.sub}</div>
         </div>
-        <div style={{ height: 4, background: '#F3F0FF', borderRadius: 2, overflow: 'hidden' }}>
-          <motion.div style={{ height: '100%', background: `linear-gradient(90deg, ${VIOLET}, #A78BFA)`, borderRadius: 2 }}
-            animate={{ width: `${pct}%` }} transition={{ duration: 0.3, ease: 'easeOut' }} />
-        </div>
-        <div style={{ fontSize: 11, color: T3, marginTop: 6 }}>4 AI engines · 47 signals</div>
+        <span style={{ fontSize: 14, fontWeight: 800, color: mod.color }}>{pct}%</span>
       </div>
-      {SCAN_STEPS.map((step, i) => {
-        const isDone = done.includes(step.id);
-        const isActive = current === i && !isDone;
-        const isPending = i > current;
-        return (
-          <div key={step.id} style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0',
-            borderBottom: i < SCAN_STEPS.length - 1 ? `1px solid #F5F5F5` : 'none',
-            opacity: isPending ? 0.3 : 1, transition: 'opacity 0.4s',
-          }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-              background: isDone ? VIOLET : 'transparent',
-              border: `2px solid ${isDone ? VIOLET : isActive ? VIOLET : BD}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s',
-            }}>
-              {isDone ? (
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : isActive ? (
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: VIOLET, animation: 'wpulse 1s ease-in-out infinite' }} />
-              ) : null}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, color: isDone ? T2 : T1 }}>{step.label}</div>
-              {(isActive || isDone) && <div style={{ fontSize: 11, color: T3, marginTop: 1 }}>{step.sub}</div>}
-            </div>
-            {isDone && <span style={{ fontSize: 12, color: '#22C55E', fontWeight: 600 }}>✓</span>}
-            {isActive && (
-              <div style={{ display: 'flex', gap: 3 }}>
-                {[0,1,2].map(j => <div key={j} style={{ width: 3, height: 3, borderRadius: '50%', background: VIOLET, opacity: 0.6, animation: `wblink 1s ${j*0.18}s ease-in-out infinite` }} />)}
-              </div>
-            )}
+      <div style={{ height: 3, background: '#F3F4F6', borderRadius: 2, overflow: 'hidden', marginBottom: 12 }}>
+        <motion.div style={{ height: '100%', background: mod.color, borderRadius: 2 }}
+          animate={{ width: `${pct}%` }} transition={{ duration: 0.4, ease: 'easeOut' }} />
+      </div>
+      {mod.steps.map((s, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', opacity: i <= step ? 1 : 0.3, transition: 'opacity 0.4s' }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, background: i < step ? mod.color : 'transparent', border: `2px solid ${i <= step ? mod.color : BD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+            {i < step ? (
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            ) : i === step ? (
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: mod.color, animation: 'wpulse 1s ease-in-out infinite' }} />
+            ) : null}
           </div>
-        );
-      })}
-      <style>{`
-        @keyframes wpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.5)}}
-        @keyframes wblink{0%,100%{opacity:0.6}50%{opacity:0.1}}
-      `}</style>
+          <span style={{ fontSize: 11, color: i <= step ? T2 : T3 }}>{s}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ScanLoader({ url }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      style={{ maxWidth: 520, margin: '0 auto', fontFamily: F }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T1, marginBottom: 4 }}>Analyse en cours…</div>
+        <div style={{ fontSize: 12, color: T3 }}>{url}</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {MODULES.map((mod, i) => <ModuleLoader key={mod.id} mod={mod} offset={i * 300} />)}
+      </div>
+      <style>{`@keyframes wpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.5)}}`}</style>
     </motion.div>
   );
 }
@@ -171,12 +138,16 @@ function URLInput({ onSubmit }) {
       <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 24, flexWrap: 'wrap' }}>
         {[
-          { Logo: ChatGPTLogo, label: 'ChatGPT', bg: '#10A37F' },
-          { Logo: ClaudeLogo,  label: 'Claude',  bg: '#C96442' },
-          { Logo: GeminiLogo,  label: 'Gemini',  bg: '#4285F4' },
-          { Logo: PerplexityLogo, label: 'Perplexity', bg: '#20808D' },
-        ].map(({ Logo, label, bg }, i) => (
-          <motion.div key={label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
+          { Logo: ChatGPTLogo,  label: 'ChatGPT',    bg: '#10A37F', plain: true },
+          { Logo: ClaudeLogo,   label: 'Claude',     bg: 'transparent', plain: false },
+          { Logo: GeminiLogo,   label: 'Gemini',     bg: 'transparent', plain: false },
+          { Logo: PerplexityLogo,label:'Perplexity', bg: 'transparent', plain: false },
+          { Logo: MistralLogo,  label: 'Mistral',    bg: 'transparent', plain: false },
+          { Logo: LlamaLogo,    label: 'Llama',      bg: 'transparent', plain: false },
+          { Logo: GrokLogo,     label: 'Grok',       bg: 'transparent', plain: false },
+          { Logo: CopilotLogo,  label: 'Copilot',    bg: 'transparent', plain: false },
+        ].map(({ Logo, label, bg, plain }, i) => (
+          <motion.div key={label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '4px 9px 4px 5px',
@@ -184,7 +155,7 @@ function URLInput({ onSubmit }) {
               borderRadius: 20, fontSize: 11, fontWeight: 500, color: '#444',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}>
-            <div style={{ width: 18, height: 18, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 18, height: 18, borderRadius: plain ? 5 : 0, background: plain ? bg : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
               <Logo />
             </div>
             {label}
