@@ -7,7 +7,7 @@ const L = (src, blend = 'multiply') => (
 );
 const AI_LOGOS = {
   ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/2x/chatgpt-symbol.png', 'multiply'),
-  Gemini:     L('https://files.svgcdn.io/logos/gemini-icon.png', 'screen'),
+  Gemini:     L('https://logos-world.net/wp-content/uploads/2025/08/Gemini-Symbol.png', 'multiply'),
   Claude:     L('https://files.svgcdn.io/logos/claude-icon.png', 'multiply'),
   Mistral:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', 'multiply'),
   Llama:      L('https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', 'multiply'),
