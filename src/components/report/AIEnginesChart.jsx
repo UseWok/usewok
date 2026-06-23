@@ -6,7 +6,7 @@ const L = (src, blend = 'multiply') => (
   <img src={src} alt="" style={{ width: 24, height: 24, objectFit: 'contain', mixBlendMode: blend, display: 'block' }} />
 );
 const AI_LOGOS = {
-  ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/4x/chatgpt-symbol.png'),
+  ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/3x/chatgpt-symbol.png'),
   Gemini:     L('https://files.svgcdn.io/logos/gemini-icon.png', 'screen'),
   Claude:     L('https://files.svgcdn.io/logos/claude-icon.png', 'multiply'),
   Mistral:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', 'multiply'),
