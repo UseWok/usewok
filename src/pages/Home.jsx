@@ -63,69 +63,89 @@ function ScanModuleCard({ mod, index }) {
   }, []);
 
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '16px 18px' }}>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.12, duration: 0.4 }}
+      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: '16px 18px', backdropFilter: 'blur(12px)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{mod.label}</div>
-          <div style={{ fontSize: 11, color: INK3, marginTop: 1 }}>{mod.sub}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>{mod.label}</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>{mod.sub}</div>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: mod.color }}>{pct}%</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: mod.color, textShadow: `0 0 10px ${mod.color}60` }}>{pct}%</span>
       </div>
-      <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden', marginBottom: 12 }}>
-        <motion.div style={{ height: '100%', background: mod.color, borderRadius: 2 }}
+      <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden', marginBottom: 12 }}>
+        <motion.div style={{ height: '100%', background: mod.color, borderRadius: 2, boxShadow: `0 0 8px ${mod.color}` }}
           animate={{ width: `${pct}%` }} transition={{ duration: 0.35, ease: 'easeOut' }} />
       </div>
       {mod.steps.map((s, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', opacity: i <= step ? 1 : 0.28, transition: 'opacity 0.4s' }}>
-          <div style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, background: i < step ? mod.color : 'transparent', border: `2px solid ${i <= step ? mod.color : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', opacity: i <= step ? 1 : 0.2, transition: 'opacity 0.4s' }}>
+          <div style={{ width: 15, height: 15, borderRadius: '50%', flexShrink: 0, background: i < step ? mod.color : 'transparent', border: `2px solid ${i <= step ? mod.color : 'rgba(255,255,255,0.15)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
             {i < step ? (
               <svg width="7" height="7" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             ) : i === step ? (
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: mod.color, animation: 'spulse 1s ease-in-out infinite' }} />
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: mod.color, animation: 'spulse 1s ease-in-out infinite', boxShadow: `0 0 6px ${mod.color}` }} />
             ) : null}
           </div>
-          <span style={{ fontSize: 11, color: INK2 }}>{s}</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>{s}</span>
         </div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
 function ScanLoader({ url }) {
+  const domain = url.replace(/https?:\/\//, '').split('/')[0];
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', fontFamily: F, background: WHITE }}>
-      <div style={{ width: '100%', maxWidth: 480 }}>
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '32px 20px', fontFamily: F,
+        background: 'radial-gradient(ellipse at 30% 20%, #1a0533 0%, #0A0A0B 55%, #001a0f 100%)',
+        overflow: 'hidden',
+      }}>
+
+      {/* Ambient orbs */}
+      <div style={{ position: 'absolute', top: '10%', left: '15%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)', pointerEvents: 'none', animation: 'orbFloat 6s ease-in-out infinite' }} />
+      <div style={{ position: 'absolute', bottom: '15%', right: '10%', width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none', animation: 'orbFloat 8s ease-in-out infinite reverse' }} />
+      <div style={{ position: 'absolute', top: '50%', right: '20%', width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.10) 0%, transparent 70%)', pointerEvents: 'none', animation: 'orbFloat 5s ease-in-out infinite 2s' }} />
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 14px', background: '#7C3AED12', borderRadius: 20, border: '1px solid #7C3AED20', marginBottom: 16 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7C3AED', animation: 'spulse 1s ease-in-out infinite' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', letterSpacing: '0.06em' }}>ANALYSE EN COURS</span>
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px', background: 'rgba(124,58,237,0.15)', borderRadius: 24, border: '1px solid rgba(124,58,237,0.3)', marginBottom: 20 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#A78BFA', animation: 'spulse 1s ease-in-out infinite', boxShadow: '0 0 8px #A78BFA' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#A78BFA', letterSpacing: '0.1em' }}>ANALYSE IA EN COURS</span>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: INK, marginBottom: 4 }}>3 modules analysés simultanément</div>
-          <div style={{ fontSize: 12, color: INK3 }}>{url}</div>
-        </div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#FFFFFF', marginBottom: 8, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+            Analyse de <span style={{ color: '#A78BFA' }}>{domain}</span>
+          </div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>8 moteurs IA interrogés simultanément</div>
+        </motion.div>
 
         {/* 3 module cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {SCAN_MODULES.map((mod, i) => <ScanModuleCard key={mod.label} mod={mod} index={i} />)}
         </div>
 
-        {/* Skeleton preview */}
-        <div style={{ marginTop: 20, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '18px', opacity: 0.6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <Skeleton width={40} height={40} borderRadius={10} />
-            <div style={{ flex: 1 }}>
-              <Skeleton width="60%" height={12} />
-              <div style={{ marginTop: 6 }}><Skeleton width="40%" height={10} /></div>
-            </div>
-            <Skeleton width={48} height={48} borderRadius={12} />
+        {/* Bottom hint */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
+          style={{ textAlign: 'center', marginTop: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: 0.35 }}>
+            <div style={{ height: 1, width: 32, background: 'rgba(255,255,255,0.3)' }} />
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Résultats prêts en ~60 secondes</span>
+            <div style={{ height: 1, width: 32, background: 'rgba(255,255,255,0.3)' }} />
           </div>
-          <Skeleton height={6} borderRadius={3} />
-          <div style={{ marginTop: 8 }}><Skeleton width="75%" height={6} borderRadius={3} /></div>
-        </div>
+        </motion.div>
       </div>
-      <style>{`@keyframes spulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.35;transform:scale(0.5)}} @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
+
+      <style>{`
+        @keyframes spulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.35;transform:scale(0.5)}}
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes orbFloat{0%,100%{transform:translateY(0px) scale(1)}50%{transform:translateY(-20px) scale(1.05)}}
+      `}</style>
     </motion.div>
   );
 }
@@ -282,6 +302,14 @@ async function runFullScanForDomain(inputUrl, userId) {
   return cachePayload;
 }
 
+// ── Detect pending URL from landing page (read once, before any render) ───────
+function consumePendingUrl() {
+  const url = localStorage.getItem('wok_pending_scan_url');
+  if (!url) return null;
+  localStorage.removeItem('wok_pending_scan_url');
+  return url.startsWith('http') ? url : `https://${url}`;
+}
+
 // ── MAIN ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
@@ -290,9 +318,11 @@ export default function Home() {
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const [domainProfiles, setDomainProfiles] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const [scanning, setScanning] = useState(null); // url being scanned
-  const [scanUrl, setScanUrl] = useState(''); // url shown in loader
-  const [onboardingData, setOnboardingData] = useState(null); // post-scan results modal
+  // Read pending URL ONCE at mount — drives both scanning state and url display
+  const [pendingScanUrl] = useState(consumePendingUrl);
+  const [scanning, setScanning] = useState(() => null);
+  const [scanUrl, setScanUrl] = useState(() => pendingScanUrl || '');
+  const [onboardingData, setOnboardingData] = useState(null);
 
   useEffect(() => {
     const unsub = onActiveDomainChange(d => setActiveDomainState(d));
@@ -303,13 +333,11 @@ export default function Home() {
     base44.auth.me().then(u => { if (u) setUser(u); }).catch(() => {});
   }, []);
 
-  // ── Auto-scan si URL en attente depuis la landing page
+  // ── Auto-scan déclenché UNIQUEMENT si URL en attente depuis landing page
   useEffect(() => {
-    const pendingUrl = localStorage.getItem('wok_pending_scan_url');
-    if (!pendingUrl) return;
-    localStorage.removeItem('wok_pending_scan_url');
+    if (!pendingScanUrl) return;
 
-    const cleanUrl = pendingUrl.startsWith('http') ? pendingUrl : `https://${pendingUrl}`;
+    const cleanUrl = pendingScanUrl;
     const label = cleanUrl.replace(/https?:\/\//, '').split('/')[0];
     const newDomain = { url: cleanUrl, name: label };
 
@@ -339,7 +367,7 @@ export default function Home() {
       }
     };
     run();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadProfiles = async (domainList) => {
     try {
@@ -406,8 +434,8 @@ export default function Home() {
     if (activeDomain?.url === domain.url) setActiveDomain(newList[0] || null);
   };
 
-  // Show scan loader
-  if (scanning) return <ScanLoader url={scanUrl} />;
+  // Show scan loader — triggered either by pending URL from landing or manual scan
+  if (scanning || (pendingScanUrl && !onboardingData)) return <ScanLoader url={scanUrl || pendingScanUrl} />;
 
   // Empty state
   if (domains.length === 0) {
