@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus,
-  ArrowRight, CheckCircle, XCircle, Star, Zap, Globe, ExternalLink
+  ArrowRight, CheckCircle, XCircle, Star, Zap, Globe, ExternalLink, Link2
 } from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
@@ -187,8 +187,15 @@ function SubScoresRow({ d }) {
 }
 
 // ── AI Engines comparison ──────────────────────────────────────────────────────
+// ChatGPT SVG inline to avoid broken external URLs
+const ChatGPTLogo = () => (
+  <svg width="18" height="18" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.99-3.136 10.079 10.079 0 0 0-9.618 6.977 9.967 9.967 0 0 0-6.69 4.839 10.081 10.081 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.99 3.135 10.078 10.078 0 0 0 9.617-6.976 9.967 9.967 0 0 0 6.691-4.839 10.079 10.079 0 0 0-1.24-11.818zm-15.019 21.069c-1.955 0-3.862-.662-5.409-1.873l.267-.151 8.979-5.184a1.505 1.505 0 0 0 .754-1.302V19.633l3.793 2.191a.139.139 0 0 1 .076.106v10.48c-.003 3.273-2.659 5.927-5.46 5.529zm-11.77-5.148a10.03 10.03 0 0 1-1.2-6.731l.267.161 8.979 5.184a1.505 1.505 0 0 0 1.508 0l10.963-6.333v4.381a.145.145 0 0 1-.057.112L21.4 35.501a9.956 9.956 0 0 1-10.657-2.71zm-1.545-14.91a9.943 9.943 0 0 1 5.201-4.382l-.004.31v10.368a1.503 1.503 0 0 0 .753 1.302l10.963 6.333-3.793 2.192a.139.139 0 0 1-.131.013L11.02 27.939a9.975 9.975 0 0 1-1.822-9.058zm31.1 8.575-10.963-6.333 3.793-2.192a.138.138 0 0 1 .131-.013l10.169 5.872a9.956 9.956 0 0 1-1.542 17.947v-.312l-.004-10.368a1.503 1.503 0 0 0-.752-1.301zm3.776-6.73-.267-.161-8.978-5.184a1.506 1.506 0 0 0-1.508 0L21.856 20.7v-4.381a.144.144 0 0 1 .057-.112l10.165-5.868a9.955 9.955 0 0 1 14.82 10.316zm-23.763 7.811-3.792-2.192a.14.14 0 0 1-.077-.107v-10.48c.002-3.276 2.661-5.93 5.462-5.527 1.954 0 3.861.661 5.408 1.872l-.267.151-8.979 5.184a1.505 1.505 0 0 0-.754 1.302l-.001 9.797zm2.06-4.43 4.879-2.818 4.879 2.817v5.635l-4.879 2.818-4.879-2.818V23.107z" fill="#10A37F"/>
+  </svg>
+);
+
 const AI_ENGINES_CFG = [
-  { key: 'chatgpt', label: 'ChatGPT',    color: '#10A37F', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png' },
+  { key: 'chatgpt', label: 'ChatGPT',    color: '#10A37F', logoEl: <ChatGPTLogo /> },
   { key: 'gemini',  label: 'Gemini',     color: '#4285F4', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
   { key: 'claude',  label: 'Claude',     color: '#C96442', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
   { key: 'perplexity', label: 'Perplexity', color: '#20808D', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
@@ -205,9 +212,17 @@ function AIEnginesSection({ d }) {
     score: d[`${e.key}_score`] || 0,
     sentiment: d[`${e.key}_sentiment`] || 'neutral',
     accuracy: d[`${e.key}_accuracy`] || 0,
+    citFreq: d[`${e.key}_citation_freq`] || 0,
+    reason: d[`${e.key}_reason`] || '',
   })).sort((a, b) => b.score - a.score);
 
   const sentimentColor = (s) => s === 'positive' ? '#059669' : s === 'negative' ? '#DC2626' : INK3;
+  const sentimentLabel = (s) => s === 'positive' ? 'Positif' : s === 'negative' ? 'Négatif' : 'Neutre';
+
+  const LogoEl = ({ e }) => {
+    if (e.logoEl) return <div style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{e.logoEl}</div>;
+    return <img src={e.logo} alt={e.label} width={20} height={20} style={{ objectFit: 'contain', borderRadius: 4, flexShrink: 0 }} onError={ev => { ev.target.style.opacity = '0.3'; }} />;
+  };
 
   return (
     <Card style={{ marginBottom: 12 }}>
@@ -225,15 +240,15 @@ function AIEnginesSection({ d }) {
       </div>
 
       {view === 'bars' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {engines.map(e => (
             <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src={e.logo} alt={e.label} width={18} height={18} style={{ objectFit: 'contain', borderRadius: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 76, flexShrink: 0 }}>{e.label}</span>
+              <LogoEl e={e} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 78, flexShrink: 0 }}>{e.label}</span>
               <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${e.score}%`, background: e.color, borderRadius: 3, transition: 'width 1s ease' }} />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 800, color: INK, width: 28, textAlign: 'right', flexShrink: 0 }}>{e.score}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: e.score >= 65 ? '#059669' : e.score >= 35 ? '#D97706' : '#DC2626', width: 28, textAlign: 'right', flexShrink: 0 }}>{e.score}</span>
             </div>
           ))}
         </div>
@@ -242,26 +257,55 @@ function AIEnginesSection({ d }) {
       {view === 'detail' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {engines.map(e => (
-            <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: SURFACE, borderRadius: 10 }}>
-              <img src={e.logo} alt={e.label} width={20} height={20} style={{ objectFit: 'contain', borderRadius: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: INK, width: 76, flexShrink: 0 }}>{e.label}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: 10 }}>
+            <div key={e.key} style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: SURFACE }}>
+                <LogoEl e={e} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: INK, flex: 1 }}>{e.label}</span>
+                <div style={{ display: 'flex', gap: 14 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: INK }}>{e.score}</div>
-                    <div style={{ fontSize: 9, color: INK3 }}>Score</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>{e.score}</div>
+                    <div style={{ fontSize: 9, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: INK }}>{e.accuracy}</div>
-                    <div style={{ fontSize: 9, color: INK3 }}>Exactitude</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>{e.accuracy}</div>
+                    <div style={{ fontSize: 9, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Exactitude</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: sentimentColor(e.sentiment), marginTop: 2 }}>
-                      {e.sentiment === 'positive' ? '✓ Positif' : e.sentiment === 'negative' ? '✗ Négatif' : '~ Neutre'}
+                    <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>{e.citFreq}</div>
+                    <div style={{ fontSize: 9, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Citations</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: sentimentColor(e.sentiment), padding: '3px 7px', background: sentimentColor(e.sentiment) + '15', borderRadius: 20 }}>
+                      {sentimentLabel(e.sentiment)}
                     </div>
-                    <div style={{ fontSize: 9, color: INK3 }}>Sentiment</div>
+                    <div style={{ fontSize: 9, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>Sentiment</div>
                   </div>
                 </div>
+              </div>
+              {/* Reason */}
+              {e.reason && (
+                <div style={{ padding: '8px 14px 10px', borderTop: `1px solid ${BORDER}` }}>
+                  <p style={{ fontSize: 11, color: INK2, margin: 0, lineHeight: 1.55 }}>{e.reason}</p>
+                </div>
+              )}
+              {/* Progress bars */}
+              <div style={{ padding: '0 14px 12px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {[
+                  { label: 'Score global', value: e.score, color: e.color },
+                  { label: 'Exactitude des infos', value: e.accuracy, color: '#059669' },
+                  { label: 'Fréquence citation', value: e.citFreq, color: '#7C3AED' },
+                ].map(bar => (
+                  <div key={bar.label}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <span style={{ fontSize: 9, color: INK3, fontWeight: 600 }}>{bar.label}</span>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: INK }}>{bar.value}</span>
+                    </div>
+                    <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${bar.value}%`, background: bar.color, borderRadius: 2, transition: 'width 1s ease' }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -339,19 +383,40 @@ function InjectionPlan({ plan, onOpenFix }) {
 }
 
 // ── Traffic metrics ──────────────────────────────────────────────────────────
-function TrafficCard({ d }) {
-  const metrics = [
+function TrafficCard({ d, gscData, navigate }) {
+  const hasGsc = gscData?.connected && gscData?.data;
+
+  // Prefer real GSC data when available
+  const metrics = hasGsc ? [
+    { label: 'Clics (GSC)', value: gscData.data.totalClicks?.toLocaleString('fr') || '–', source: 'gsc' },
+    { label: 'Impressions (GSC)', value: gscData.data.totalImpressions?.toLocaleString('fr') || '–', source: 'gsc' },
+    { label: 'CTR moyen', value: `${gscData.data.avgCtr}%`, source: 'gsc' },
+    { label: 'Position moyenne', value: gscData.data.avgPosition, source: 'gsc' },
+  ] : [
     { label: 'Visiteurs / mois', value: fmt(d.organic_traffic), delta: d.organic_traffic_delta_pct },
     { label: 'Mots-clés', value: fmt(d.organic_keywords), delta: d.organic_keywords_delta_pct },
     { label: 'Backlinks', value: fmt(d.backlinks), delta: d.backlinks_delta_pct },
     { label: 'Autorité', value: d.authority_score ? `${d.authority_score}` : '–', delta: null },
   ];
+
   return (
     <Card style={{ marginBottom: 12 }}>
-      <Label>Performances du site</Label>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <Label>Performances du site</Label>
+        {hasGsc ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#059669' }} />
+            Données GSC réelles
+          </div>
+        ) : (
+          <button onClick={() => navigate('/connections')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: VIOLET, background: '#F5F3FF', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+            <Link2 size={10} /> Connecter GSC
+          </button>
+        )}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
         {metrics.map((m, i) => (
-          <div key={i} style={{ background: SURFACE, borderRadius: 10, padding: '13px 14px' }}>
+          <div key={i} style={{ background: m.source === 'gsc' ? '#F0FDF4' : SURFACE, borderRadius: 10, padding: '13px 14px', border: m.source === 'gsc' ? '1px solid #D1FAE5' : 'none' }}>
             <div style={{ fontSize: 11, color: INK3, fontWeight: 600, marginBottom: 5 }}>{m.label}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1 }}>{m.value}</div>
             {m.delta != null && <div style={{ marginTop: 5 }}><Delta val={m.delta} /></div>}
@@ -490,6 +555,7 @@ export default function AIVisibilityReport() {
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [selectedIssueId, setSelectedIssueId] = useState(null);
   const [fixCache, setFixCache] = useState({});
+  const [gscData, setGscData] = useState(null);
 
   useEffect(() => {
     const unsub = onActiveDomainChange(() => loadData());
@@ -550,6 +616,13 @@ export default function AIVisibilityReport() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Try to load real GSC data
+  useEffect(() => {
+    base44.functions.invoke('getSearchConsoleData', {}).then(res => {
+      if (res?.data?.connected) setGscData(res.data);
+    }).catch(() => {});
+  }, []);
+
   if (loading) return (
     <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}>
       <div style={{ textAlign: 'center' }}>
@@ -605,7 +678,7 @@ export default function AIVisibilityReport() {
         {data.injection_plan?.length > 0 && (
           <InjectionPlan plan={data.injection_plan} onOpenFix={(txt, idx) => { setSelectedIssue(txt); setSelectedIssueId(`injection_${idx}`); }} />
         )}
-        <TrafficCard d={data} />
+        <TrafficCard d={data} gscData={gscData} navigate={navigate} />
         <TechnicalCard d={data} />
         <GeoCard geoTraffic={data.geo_traffic} />
         <StrengthsCard strengths={data.strengths} />

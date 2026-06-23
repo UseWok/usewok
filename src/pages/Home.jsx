@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, X, Trash2, Globe, ChevronRight, BarChart2, ClipboardCheck,
-  TrendingUp, ExternalLink, ArrowRight, Folder, Search, Zap
+  TrendingUp, ExternalLink, ArrowRight, Search, Zap, Link2
 } from 'lucide-react';
 import { getActiveDomain, setActiveDomain, getDomainsList, saveDomainsList, onActiveDomainChange } from '@/lib/active-domain';
 
@@ -19,14 +19,14 @@ const VIOLET = '#7C3AED';
 
 // ── AI Engine pills ─────────────────────────────────────────────────────────
 const AI_ENGINES = [
-  { label: 'ChatGPT', color: '#10A37F' },
-  { label: 'Gemini',  color: '#4285F4' },
-  { label: 'Claude',  color: '#C96442' },
-  { label: 'Perplexity', color: '#20808D' },
-  { label: 'Mistral', color: '#F97316' },
-  { label: 'Llama',   color: '#0064E0' },
-  { label: 'Grok',    color: '#1DA1F2' },
-  { label: 'Copilot', color: '#7B5EA7' },
+  { label: 'ChatGPT',    color: '#10A37F', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/chatgpt_logo.png', fallbackColor: '#10A37F' },
+  { label: 'Gemini',     color: '#4285F4', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
+  { label: 'Claude',     color: '#C96442', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
+  { label: 'Perplexity', color: '#20808D', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
+  { label: 'Mistral',    color: '#F97316', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png' },
+  { label: 'Llama',      color: '#0064E0', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png' },
+  { label: 'Grok',       color: '#1DA1F2', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png' },
+  { label: 'Copilot',    color: '#7B5EA7', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png' },
 ];
 
 // ── URL Scan hero (first-time empty state) ──────────────────────────────────
@@ -39,9 +39,14 @@ function ScanHero({ onScan }) {
 
       {/* AI engine pills */}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 5, marginBottom: 32, maxWidth: 420 }}>
-        {AI_ENGINES.map(({ label, color }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20, fontSize: 11, fontWeight: 500, color: INK2, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
+        {AI_ENGINES.map(({ label, color, logo }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 9px 3px 5px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20, fontSize: 11, fontWeight: 500, color: INK2, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            {logo ? (
+              <img src={logo} alt={label} width={16} height={16} style={{ objectFit: 'contain', borderRadius: 3, flexShrink: 0 }}
+                onError={e => { e.target.style.display = 'none'; }} />
+            ) : (
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+            )}
             {label}
           </div>
         ))}
@@ -288,7 +293,7 @@ export default function Home() {
     { label: 'Performance', icon: TrendingUp, color: '#10B981', route: '/performance', desc: 'Share of voice' },
     { label: 'Concurrents', icon: Search, color: '#EC4899', route: null, comingSoon: true, desc: 'Benchmark' },
     { label: 'Tracking LRS', icon: Zap, color: '#F59E0B', route: null, comingSoon: true, desc: 'Suivi dans le temps' },
-    { label: 'Contenu IA', icon: Globe, color: '#6366F1', route: null, comingSoon: true, desc: 'Injection d\'entités' },
+    { label: 'Connexions', icon: Link2, color: '#6366F1', route: '/connections', desc: 'GSC · Analytics' },
   ];
 
   // Show scan hero if no domains
