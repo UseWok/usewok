@@ -3,7 +3,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarC
 
 // Real AI logos — uploaded assets, mix-blend-mode:multiply removes white/black bg
 const L = (src, blend = 'multiply') => (
-  <img src={src} alt="" style={{ width: 24, height: 24, objectFit: 'contain', mixBlendMode: blend, display: 'block' }} />
+  <img src={src} alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: blend, display: 'block', imageRendering: 'auto' }} />
 );
 const AI_LOGOS = {
   ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/2x/chatgpt-symbol.png', 'multiply'),
@@ -95,7 +95,7 @@ export default function AIEnginesChart({ data }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {engines.map(e => (
               <div key={e.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {AI_LOGOS[e.name] || <span style={{ fontSize: 10, fontWeight: 700 }}>{e.name[0]}</span>}
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#444', width: 72, flexShrink: 0 }}>{e.name}</span>
