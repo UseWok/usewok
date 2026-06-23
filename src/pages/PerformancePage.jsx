@@ -1,64 +1,86 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, RefreshCw, Zap, TrendingUp, TrendingDown } from 'lucide-react';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
+
+import LRSHero from '@/components/performance/LRSHero';
+import EngineScoreGrid from '@/components/performance/EngineScoreGrid';
+import LRSRadarChart from '@/components/performance/LRSRadarChart';
+import GeoScoreChart from '@/components/performance/GeoScoreChart';
+import SOVChart from '@/components/performance/SOVChart';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111110';
-const INK2 = '#555554';
-const INK3 = '#999997';
+const INK2 = '#4B4B52';
+const INK3 = '#9B9BA8';
 const BORDER = '#E8E8E6';
 const SURFACE = '#F7F6F4';
 const WHITE = '#FFFFFF';
+const VIOLET = '#7C3AED';
 
-function fmt(n) {
-  if (n == null) return '–';
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return String(n);
-}
-
-function Delta({ val }) {
-  if (!val) return null;
-  const up = val > 0;
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 10, fontWeight: 700, color: up ? '#059669' : '#DC2626' }}>
-      {up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}{up ? '+' : ''}{val}%
-    </span>
-  );
-}
-
-function StatCard({ label, value, delta, sub }) {
+function StatCard({ label, value, delta, sub, accent }) {
+  const up = delta > 0;
   return (
     <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 18px' }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em', marginBottom: delta ? 4 : 0 }}>{value}</div>
-      {delta != null && <Delta val={delta} />}
-      {sub && <div style={{ fontSize: 11, color: INK3, marginTop: 4 }}>{sub}</div>}
+      <div style={{ fontSize: 26, fontWeight: 900, color: accent || INK, lineHeight: 1, letterSpacing: '-0.03em', marginBottom: delta != null ? 5 : 0 }}>{value}</div>
+      {delta != null && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: up ? '#059669' : '#DC2626' }}>
+          {up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}{up ? '+' : ''}{delta}%
+        </span>
+      )}
+      {sub && <div style={{ fontSize: 11, color: INK3, marginTop: 3 }}>{sub}</div>}
     </div>
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, sub, children }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>{title}</p>
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ marginBottom: 10 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>{title}</p>
+        {sub && <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>{sub}</p>}
+      </div>
       {children}
     </div>
   );
 }
 
-function BarRow({ label, value, max = 100, accent }) {
-  const pct = Math.min((value / max) * 100, 100);
+function StrategicLevers({ levers }) {
+  if (!levers?.length) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: `1px solid ${BORDER}` }}>
-      <span style={{ fontSize: 12, color: INK2, flex: 1 }}>{label}</span>
-      <div style={{ width: 80, height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden', flexShrink: 0 }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: accent || INK, borderRadius: 2, transition: 'width 1s ease' }} />
+    <Section title="Actions recommandées" sub="Classées par impact sur votre LRS">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+        {levers.slice(0, 5).map((lever, i) => {
+          const urgent = lever.priority === 'urgent';
+          const PRIORITY_COLORS = { urgent: { bg: '#FEF2F2', border: '#FECACA', color: '#DC2626', label: '🔴 Urgent' }, short_term: { bg: '#FFFBEB', border: '#FDE68A', color: '#D97706', label: '🟡 Court terme' } };
+          const pc = PRIORITY_COLORS[lever.priority] || { bg: SURFACE, border: BORDER, color: INK3, label: '🔵 Moyen terme' };
+          return (
+            <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+              style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: `${VIOLET}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: VIOLET }}>{i + 1}</span>
+                  </div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, flex: 1, lineHeight: 1.4 }}>{lever.title}</p>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: pc.bg, color: pc.color, border: `1px solid ${pc.border}`, flexShrink: 0 }}>{pc.label}</span>
+              </div>
+              {lever.body && <p style={{ fontSize: 12, color: INK2, margin: '0 0 0 34px', lineHeight: 1.65 }}>{lever.body}</p>}
+              {lever.impact_pct && (
+                <div style={{ margin: '8px 0 0 34px', display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 20, background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+                  <TrendingUp size={10} color="#059669" />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#059669' }}>+{lever.impact_pct}% LRS estimé</span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
-      <span style={{ fontSize: 12, fontWeight: 800, color: INK, width: 32, textAlign: 'right', flexShrink: 0 }}>{value}%</span>
-    </div>
+    </Section>
   );
 }
 
@@ -103,10 +125,11 @@ export default function PerformancePage() {
   }, []);
 
   const sov = perfData?.share_of_voice;
-  const yourBrand = sov?.your_brand;
-  const competitors = sov?.competitors || [];
   const levers = perfData?.strategy?.strategic_levers || [];
   const domain = (profile?.site_url || '').replace(/https?:\/\//, '').split('/')[0];
+
+  // Merge profile + perfData for rich engine data
+  const richData = { ...profile, ...(perfData || {}) };
 
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F }}>
@@ -117,40 +140,46 @@ export default function PerformancePage() {
             <ArrowLeft size={14} color={INK2} />
           </button>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Performance</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Performance & LRS</p>
             {domain && <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{domain}</p>}
           </div>
         </div>
-        {phase === 'done' && (
-          <button onClick={() => loadPerf(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-            <RefreshCw size={11} /> Actualiser
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {phase === 'done' && (
+            <button onClick={() => loadPerf(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
+              <RefreshCw size={11} /> Actualiser
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* States */}
+      {/* Loading shimmer */}
       {phase === 'loading' && (
-        <div style={{ padding: '20px 16px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[1,2,3].map(i => (
-            <div key={i} style={{ height: 80, borderRadius: 14, background: `linear-gradient(90deg,#F0F0EE 25%,#E6E6E4 50%,#F0F0EE 75%)`, backgroundSize: '400px 100%', animation: 'shimmer 1.5s infinite' }} />
+        <div style={{ padding: '16px', maxWidth: 660, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ height: i === 1 ? 160 : 80, borderRadius: 16, background: 'linear-gradient(90deg,#F0F0EE 25%,#E6E6E4 50%,#F0F0EE 75%)', backgroundSize: '400px 100%', animation: 'shimmer 1.5s infinite' }} />
           ))}
           <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}`}</style>
         </div>
       )}
 
+      {/* Thinking */}
       {phase === 'thinking' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #E8E8E6', borderTopColor: INK, animation: 'spin 0.8s linear infinite', marginBottom: 16 }} />
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Analyse en cours…</p>
-          <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Comparaison avec vos concurrents IA</p>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', border: `3px solid ${BORDER}`, borderTopColor: VIOLET, animation: 'spin 0.8s linear infinite', marginBottom: 16 }} />
+          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Calcul du LRS en cours…</p>
+          <p style={{ fontSize: 12, color: INK3, margin: 0, maxWidth: 280 }}>Analyse de votre fréquence de citation, sentiment et précision sur 8 assistants IA</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
 
       {phase === 'no_profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: `${VIOLET}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <Zap size={24} color={VIOLET} />
+          </div>
           <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Aucun site analysé</p>
-          <p style={{ fontSize: 12, color: INK3, margin: '0 0 16px' }}>Analysez votre site depuis l'accueil en premier.</p>
+          <p style={{ fontSize: 12, color: INK3, margin: '0 0 16px' }}>Analysez votre site depuis l'accueil pour obtenir votre LRS.</p>
           <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Retour</button>
         </div>
       )}
@@ -162,62 +191,34 @@ export default function PerformancePage() {
         </div>
       )}
 
-      {phase === 'done' && perfData && (
-        <div style={{ maxWidth: 600, margin: '0 auto', padding: '20px 16px 100px' }}>
+      {phase === 'done' && (
+        <div style={{ maxWidth: 660, margin: '0 auto', padding: '16px 16px 100px' }}>
 
-          {/* KPIs principaux */}
-          <Section title="Votre position sur les IA">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-              <StatCard label="Part de voix" value={`${yourBrand?.voice_share_pct || 0}%`} delta={yourBrand?.voice_share_delta} sub="vs concurrents" />
-              <StatCard label="Perception positive" value={`${yourBrand?.favorable_pct || 0}%`} delta={yourBrand?.favorable_delta} sub="des réponses IA" />
-            </div>
-          </Section>
+          {/* 1. LRS Hero — THE signature metric */}
+          <LRSHero d={richData} />
 
-          {/* Concurrents */}
-          {competitors.length > 0 && (
-            <Section title="Part de voix — comparaison">
-              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '14px 16px' }}>
-                <BarRow label={yourBrand?.name || 'Vous'} value={yourBrand?.voice_share_pct || 0} />
-                {competitors.map((c, i) => (
-                  <BarRow key={i} label={c.name || c.domain || `Concurrent ${i+1}`} value={c.voice_share_pct || 0} />
-                ))}
-              </div>
-            </Section>
-          )}
+          {/* 2. KPIs rapides */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 14 }}>
+            <StatCard label="Part de voix IA" value={`${sov?.your_brand?.voice_share_pct || 0}%`} delta={sov?.your_brand?.voice_share_delta} sub="vs concurrents" />
+            <StatCard label="Perception positive" value={`${sov?.your_brand?.favorable_pct || 0}%`} delta={sov?.your_brand?.favorable_delta} sub="des réponses IA" />
+            <StatCard label="Mentions IA / mois" value={richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–'} sub="estimation" accent={VIOLET} />
+            <StatCard label="Tendance LRS" value={richData.lrs_trend === 'rising' ? '↗ En hausse' : richData.lrs_trend === 'declining' ? '↘ En baisse' : '→ Stable'} sub={`${richData.lrs_vs_industry > 0 ? '+' : ''}${richData.lrs_vs_industry || 0}pts vs secteur`} />
+          </div>
 
-          {/* Perception favorable */}
-          {(yourBrand?.favorable_pct > 0 || competitors.some(c => c.favorable_pct > 0)) && (
-            <Section title="Perception favorable — comparaison">
-              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '14px 16px' }}>
-                <BarRow label={yourBrand?.name || 'Vous'} value={yourBrand?.favorable_pct || 0} accent="#059669" />
-                {competitors.map((c, i) => (
-                  <BarRow key={i} label={c.name || `Concurrent ${i+1}`} value={c.favorable_pct || 0} />
-                ))}
-              </div>
-            </Section>
-          )}
+          {/* 3. Radar chart */}
+          <LRSRadarChart d={richData} />
 
-          {/* Leviers */}
-          {levers.length > 0 && (
-            <Section title="Actions recommandées">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {levers.slice(0, 5).map((lever, i) => {
-                  const urgent = lever.priority === 'urgent';
-                  return (
-                    <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, flex: 1, lineHeight: 1.4 }}>{lever.title}</p>
-                        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: urgent ? '#FEF2F2' : SURFACE, color: urgent ? '#DC2626' : INK3, flexShrink: 0 }}>
-                          {urgent ? 'Urgent' : lever.priority === 'short_term' ? 'Court terme' : 'Moyen terme'}
-                        </span>
-                      </div>
-                      {lever.body && <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.65 }}>{lever.body}</p>}
-                    </div>
-                  );
-                })}
-              </div>
-            </Section>
-          )}
+          {/* 4. Engine grid with prompts + simulated responses */}
+          <EngineScoreGrid d={richData} />
+
+          {/* 5. Geo distribution */}
+          <GeoScoreChart d={richData} />
+
+          {/* 6. Share of voice vs competitors */}
+          {sov && <SOVChart sov={sov} />}
+
+          {/* 7. Strategic levers */}
+          <StrategicLevers levers={levers} />
 
         </div>
       )}
