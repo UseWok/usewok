@@ -299,6 +299,13 @@ async function saveToProfile(inputUrl, resData) {
         strengths: resData.strengths,
         country: resData.country,
         geo_traffic: resData.geo_traffic,
+        lrs_score: resData.lrs_score,
+        lrs_citation_score: resData.lrs_citation_score,
+        lrs_sentiment_score: resData.lrs_sentiment_score,
+        lrs_accuracy_score: resData.lrs_accuracy_score,
+        lrs_trend: resData.lrs_trend,
+        lrs_vs_industry: resData.lrs_vs_industry,
+        injection_plan: resData.injection_plan,
       }),
     };
     if (profiles.length > 0) {
