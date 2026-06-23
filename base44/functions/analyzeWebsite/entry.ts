@@ -180,24 +180,48 @@ Deno.serve(async (req) => {
 
       // 4. LLM Resonance Score + Entity Injection Plan
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an expert in AI search engine optimization. Analyze this website: ${cleanUrl}
+        prompt: `You are an expert in AI search engine optimization (AEO — Answer Engine Optimization). Analyze this website: ${cleanUrl}
 
-        Compute LRS (LLM Resonance Score, 0-100) based on citation frequency, sentiment, and information accuracy across AI engines.
+        Your mission: compute the LLM Resonance Score (LRS) and generate a concrete entity injection action plan.
+
+        THE LLM RESONANCE SCORE (LRS):
+        This is the new standard metric for the AI era — like Domain Authority for SEO, but for LLM visibility.
+        It aggregates 3 signals across 8 AI engines (ChatGPT, Gemini, Claude, Mistral, Llama, Perplexity, Grok, Copilot):
+        - Citation frequency (40% weight): how often the brand appears in AI answers on relevant queries
+        - Sentiment quality (30% weight): % of positive/neutral citations vs negative ones
+        - Information accuracy (30% weight): how accurately AI engines describe this brand's offer, pricing, USP
+
+        Compute lrs_score (0-100) based on these signals.
+        Also provide:
+        - lrs_citation_score: number 0-100 (citation frequency component)
+        - lrs_sentiment_score: number 0-100 (sentiment quality component)
+        - lrs_accuracy_score: number 0-100 (information accuracy component)
+        - lrs_trend: "rising" | "stable" | "declining" (estimated trend)
+        - lrs_vs_industry: number (how many points above/below industry average, e.g. +12 or -8)
+
+        ENTITY INJECTION ACTION PLAN:
+        Generate 3 specific, highly actionable injection recommendations. Each must be a concrete "ordonnance" — not generic advice.
         
-        Also generate 3 specific action recommendations to improve AI visibility.
-        
-        For each action: engine (e.g., "Perplexity"), gap (specific query), action_title (French), action_detail (French 2-3 sentences), platform, impact ("high"|"medium"), effort ("low"|"medium"|"high").
+        For each action:
+        - engine: which AI engine is missing this brand (e.g. "Perplexity")
+        - gap: what specific query or topic where competitors appear but this brand doesn't (be specific, name the exact query)
+        - competitor_advantage: why competitors are cited there (e.g. "ils sont cités car présents dans le rapport Gartner 2024 sur les CRM")
+        - action_title: short action title in French (e.g. "Publier une page de données primaires")
+        - action_detail: specific step-by-step instruction in French (2-3 sentences, name specific platforms, formats, or sources)
+        - platform: specific platform or channel to target (e.g. "Reddit", "Wikipedia", "LinkedIn Pulse", "HubSpot Blog guest post")
+        - impact: "high" | "medium"
+        - effort: "low" | "medium" | "high"
 
         Return:
         - lrs_score: number 0-100
         - lrs_citation_score: number 0-100
         - lrs_sentiment_score: number 0-100
         - lrs_accuracy_score: number 0-100
-        - lrs_trend: string ("rising"|"stable"|"declining")
+        - lrs_trend: string
         - lrs_vs_industry: number
-        - injection_plan: array of 3 objects with fields: engine, gap, action_title, action_detail, platform, impact, effort`,
+        - injection_plan: array of 3 objects with fields: engine, gap, competitor_advantage, action_title, action_detail, platform, impact, effort`,
         add_context_from_internet: true,
-        model: 'gemini_3_flash',
+        model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -214,6 +238,7 @@ Deno.serve(async (req) => {
                 properties: {
                   engine: { type: 'string' },
                   gap: { type: 'string' },
+                  competitor_advantage: { type: 'string' },
                   action_title: { type: 'string' },
                   action_detail: { type: 'string' },
                   platform: { type: 'string' },
@@ -274,6 +299,9 @@ Deno.serve(async (req) => {
 
     return Response.json(result);
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('analyzeWebsite error:', error);
+    const status = error?.response?.status === 429 || error?.message?.includes('quota') ? 429 : 500;
+    const message = status === 429 ? 'Insufficient credits or rate limited' : error?.message || 'Analysis failed';
+    return Response.json({ error: message }, { status });
   }
 });
