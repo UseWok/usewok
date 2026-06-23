@@ -1,7 +1,4 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
-import { Loader, ChevronDown, ChevronRight } from 'lucide-react';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111110';
@@ -18,14 +15,14 @@ const ChatGPTLogo = () => (
 );
 
 const ENGINE_CFG = [
-  { key: 'chatgpt',    label: 'ChatGPT',    logoEl: <ChatGPTLogo />,  color: '#10A37F', accent: '#F0FDF9' },
-  { key: 'gemini',     label: 'Gemini',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png', color: '#4285F4', accent: '#EFF6FF' },
-  { key: 'claude',     label: 'Claude',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png', color: '#D97706', accent: '#FFFBEB' },
-  { key: 'perplexity', label: 'Perplexity', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png', color: '#20B2AA', accent: '#F0FDFD' },
-  { key: 'mistral',    label: 'Mistral',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', color: '#FF6B35', accent: '#FFF7F4' },
-  { key: 'llama',      label: 'Llama',      logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', color: '#0064E0', accent: '#EFF6FF' },
-  { key: 'grok',       label: 'Grok',       logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png', color: '#1DA1F2', accent: '#F0F9FF' },
-  { key: 'copilot',    label: 'Copilot',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png', color: '#0078D4', accent: '#EFF6FF' },
+  { key: 'chatgpt',    label: 'ChatGPT',    logoEl: <ChatGPTLogo /> },
+  { key: 'gemini',     label: 'Gemini',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
+  { key: 'claude',     label: 'Claude',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
+  { key: 'perplexity', label: 'Perplexity', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
+  { key: 'mistral',    label: 'Mistral',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png' },
+  { key: 'llama',      label: 'Llama',      logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png' },
+  { key: 'grok',       label: 'Grok',       logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png' },
+  { key: 'copilot',    label: 'Copilot',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png' },
 ];
 
 function EngLogo({ e, size = 18 }) {
@@ -33,143 +30,101 @@ function EngLogo({ e, size = 18 }) {
   return <img src={e.logo} alt={e.label} width={size} height={size} style={{ objectFit: 'contain', flexShrink: 0 }} onError={ev => { ev.target.style.opacity = '0.2'; }} />;
 }
 
-function sentimentBadge(s) {
-  if (s === 'positive') return { label: '👍 Positif', color: '#059669', bg: '#F0FDF4' };
-  if (s === 'negative') return { label: '👎 Négatif', color: '#DC2626', bg: '#FEF2F2' };
-  return { label: '→ Neutre', color: '#6B7280', bg: SURFACE };
+function scoreColor(s) {
+  if (s >= 65) return '#059669';
+  if (s >= 35) return '#D97706';
+  return '#DC2626';
 }
 
-function EngineCard({ e, d, businessName, siteUrl }) {
-  const [open, setOpen] = useState(false);
-  const [simResponse, setSimResponse] = useState(null);
-  const [loadingSim, setLoadingSim] = useState(false);
-
-  const score = d[`${e.key}_score`] || 0;
-  const accuracy = d[`${e.key}_accuracy`] || 0;
-  const sentiment = d[`${e.key}_sentiment`] || 'neutral';
-  const citFreq = d[`${e.key}_citation_freq`] || 0;
-  const reason = d[`${e.key}_reason`] || '';
-  const domain = (siteUrl || '').replace(/https?:\/\//, '').split('/')[0];
-  const sentBadge = sentimentBadge(sentiment);
-
-  const prompt = `Quels sont les meilleurs services ou produits proposés par "${businessName || domain}" (${domain}) ? Peux-tu me recommander leur offre ?`;
-
-  const loadSim = async () => {
-    if (simResponse || loadingSim) return;
-    setLoadingSim(true);
-    try {
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `Simule exactement comment l'IA "${e.label}" répondrait à cette question :
-"${prompt}"
-
-Réponds comme ${e.label} le ferait réellement, en français, de manière naturelle (3-4 phrases). 
-Si la marque est connue, sois précis. Sinon, réponds honnêtement que tu n'as pas d'infos spécifiques.
-Ne dis pas que tu simules.`,
-        model: 'gpt_5_mini',
-      });
-      setSimResponse(typeof res === 'string' ? res : res?.response || JSON.stringify(res));
-    } catch { setSimResponse('Simulation indisponible pour le moment.'); }
-    setLoadingSim(false);
-  };
-
-  const toggle = () => { const next = !open; setOpen(next); if (next) loadSim(); };
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 8 }}>
-      {/* Row */}
-      <button onClick={toggle} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: e.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <EngLogo e={e} size={20} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{e.label}</span>
-            <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 20, background: sentBadge.bg, color: sentBadge.color, fontWeight: 700 }}>{sentBadge.label}</span>
-          </div>
-          <div style={{ height: 4, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
-            <motion.div initial={{ width: 0 }} animate={{ width: `${score}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-              style={{ height: '100%', background: e.color, borderRadius: 2, opacity: 0.85 }} />
-          </div>
-        </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em' }}>{score}</div>
-          <div style={{ fontSize: 9, color: INK3, fontWeight: 600 }}>/100</div>
-        </div>
-        {open ? <ChevronDown size={14} color={INK3} /> : <ChevronRight size={14} color={INK3} />}
-      </button>
-
-      {/* Expanded detail */}
-      {open && (
-        <div style={{ borderTop: `1px solid ${BORDER}`, padding: '16px' }}>
-          {/* Stats row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 16 }}>
-            {[
-              { l: 'Score LRS', v: `${score}/100`, color: e.color },
-              { l: 'Précision', v: `${accuracy}/100`, color: '#3B82F6' },
-              { l: 'Fréquence', v: `${citFreq}/100`, color: '#7C3AED' },
-            ].map(({ l, v, color }) => (
-              <div key={l} style={{ background: SURFACE, borderRadius: 10, padding: '10px 12px', textAlign: 'center', border: `1px solid ${BORDER}` }}>
-                <div style={{ fontSize: 14, fontWeight: 900, color, lineHeight: 1 }}>{v}</div>
-                <div style={{ fontSize: 9, color: INK3, fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Prompt */}
-          <div style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Prompt testé</p>
-            <div style={{ background: SURFACE, borderRadius: 10, padding: '10px 12px', display: 'flex', gap: 8, border: `1px solid ${BORDER}` }}>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#E0E0DE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: INK3, flexShrink: 0, marginTop: 1 }}>U</div>
-              <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.65 }}>{prompt}</p>
-            </div>
-          </div>
-
-          {/* Simulated response */}
-          <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Réponse simulée de {e.label}</p>
-            <div style={{ background: e.accent, borderRadius: 10, padding: '12px', display: 'flex', gap: 10, border: `1px solid ${BORDER}` }}>
-              <div style={{ flexShrink: 0, marginTop: 2 }}><EngLogo e={e} size={16} /></div>
-              {loadingSim ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Loader size={12} color={INK3} style={{ animation: 'spin 1s linear infinite' }} />
-                  <span style={{ fontSize: 12, color: INK3 }}>Simulation en cours…</span>
-                </div>
-              ) : (
-                <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.7 }}>{simResponse}</p>
-              )}
-            </div>
-          </div>
-
-          {reason && (
-            <div style={{ marginTop: 10, padding: '8px 12px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A' }}>
-              <p style={{ fontSize: 11, color: '#92400E', margin: 0, lineHeight: 1.5 }}>💡 {reason}</p>
-            </div>
-          )}
-        </div>
-      )}
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </motion.div>
-  );
+function sentimentLabel(s) {
+  if (s === 'positive') return { text: 'Positif', color: '#059669' };
+  if (s === 'negative') return { text: 'Négatif', color: '#DC2626' };
+  return { text: 'Neutre', color: INK3 };
 }
 
 export default function EngineScoreGrid({ d }) {
-  const engines = ENGINE_CFG.map(e => ({ ...e, score: d[`${e.key}_score`] || 0 })).sort((a, b) => b.score - a.score);
+  const engines = ENGINE_CFG.map(e => ({
+    ...e,
+    score: d[`${e.key}_score`] || 0,
+    accuracy: d[`${e.key}_accuracy`] || 0,
+    sentiment: d[`${e.key}_sentiment`] || 'neutral',
+    citFreq: d[`${e.key}_citation_freq`] || 0,
+  })).sort((a, b) => b.score - a.score);
+
   const avg = Math.round(engines.reduce((s, e) => s + e.score, 0) / engines.length);
 
   return (
-    <div style={{ fontFamily: F, marginBottom: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 14, fontFamily: F }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
         <div>
-          <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Score par assistant IA</p>
-          <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>Cliquez pour voir le prompt testé et la réponse simulée</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Scores par assistant IA</p>
+          <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>8 modèles analysés — citation, sentiment, précision</p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em' }}>{avg}<span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>/100</span></div>
-          <div style={{ fontSize: 9, color: INK3, fontWeight: 600 }}>Moyenne 8 IA</div>
+          <span style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.03em' }}>{avg}</span>
+          <span style={{ fontSize: 11, color: INK3 }}>/100</span>
+          <div style={{ fontSize: 9, color: INK3, fontWeight: 600 }}>MOYENNE</div>
         </div>
       </div>
-      {engines.map(e => <EngineCard key={e.key} e={e} d={d} businessName={d.identity_name || d.business_name} siteUrl={d.site_url} />)}
+
+      {/* Column headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 52px 52px 52px 72px', gap: 0, padding: '8px 18px', background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Assistant</span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Score</span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Précision</span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Citation</span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'right' }}>Sentiment</span>
+      </div>
+
+      {/* Rows */}
+      {engines.map((e, i) => {
+        const sent = sentimentLabel(e.sentiment);
+        const sc = scoreColor(e.score);
+        return (
+          <div key={e.key} style={{
+            display: 'grid', gridTemplateColumns: '1fr 52px 52px 52px 72px',
+            alignItems: 'center', gap: 0,
+            padding: '13px 18px',
+            borderBottom: i < engines.length - 1 ? `1px solid ${BORDER}` : 'none',
+            background: WHITE,
+          }}>
+            {/* Name + bar */}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
+                <EngLogo e={e} size={16} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: INK }}>{e.label}</span>
+              </div>
+              <div style={{ height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }} animate={{ width: `${e.score}%` }}
+                  transition={{ duration: 0.9, delay: i * 0.05, ease: 'easeOut' }}
+                  style={{ height: '100%', background: sc, borderRadius: 3 }} />
+              </div>
+            </div>
+
+            {/* Score */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: 16, fontWeight: 900, color: sc, letterSpacing: '-0.02em' }}>{e.score}</span>
+            </div>
+
+            {/* Accuracy */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: INK2 }}>{e.accuracy}</span>
+            </div>
+
+            {/* Citation */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: INK2 }}>{e.citFreq}</span>
+            </div>
+
+            {/* Sentiment */}
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: sent.color }}>{sent.text}</span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
