@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, CheckCircle, XCircle, Star, Zap } from 'lucide-react';
+import {
+  ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus,
+  ArrowRight, CheckCircle, XCircle, Star, Zap, Globe, ExternalLink
+} from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#111111';
-const INK2 = '#555555';
-const INK3 = '#999999';
-const BORDER = '#EBEBEB';
-const SURFACE = '#F8F7F5';
+const INK = '#0A0A0B';
+const INK2 = '#4B4B52';
+const INK3 = '#9B9BA8';
+const BORDER = '#EFEFEF';
+const SURFACE = '#F9F8F6';
 const WHITE = '#FFFFFF';
+const VIOLET = '#7C3AED';
 
 function fmt(n) {
   if (n == null || n === 0) return '–';
@@ -20,9 +24,9 @@ function fmt(n) {
   return String(n);
 }
 
-function SectionLabel({ children }) {
+function Label({ children }) {
   return (
-    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.09em', margin: '0 0 16px', fontFamily: F }}>
+    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px', fontFamily: F }}>
       {children}
     </p>
   );
@@ -30,21 +34,21 @@ function SectionLabel({ children }) {
 
 function Card({ children, style = {} }) {
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 22px', ...style }}>
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '20px', marginBottom: 12, ...style }}>
       {children}
     </div>
   );
 }
 
-function DeltaBadge({ val }) {
+function Delta({ val }) {
   if (val == null) return null;
   const up = val > 0;
   const neutral = val === 0;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700,
-      color: neutral ? INK3 : up ? '#27AE60' : '#E74C3C',
-      background: neutral ? SURFACE : up ? '#EAFAF1' : '#FDEDEC',
+      color: neutral ? INK3 : up ? '#059669' : '#DC2626',
+      background: neutral ? SURFACE : up ? '#ECFDF5' : '#FEF2F2',
       padding: '2px 7px', borderRadius: 20,
     }}>
       {neutral ? <Minus size={9} /> : up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
@@ -53,76 +57,102 @@ function DeltaBadge({ val }) {
   );
 }
 
-// ── LRS Hero Card ─────────────────────────────────────────────────────────────
-function LRSCard({ profile }) {
-  const lrs = Math.round(profile.lrs_score || 0);
-  const trend = profile.lrs_trend || 'stable';
-  const vsIndustry = profile.lrs_vs_industry;
-  const citation = Math.round(profile.lrs_citation_score || 0);
-  const sentiment = Math.round(profile.lrs_sentiment_score || 0);
-  const accuracy = Math.round(profile.lrs_accuracy_score || 0);
+// ── LRS Hero — the flagship metric ────────────────────────────────────────────
+function LRSHero({ d }) {
+  const lrs = Math.round(d.lrs_score || 0);
+  const citation = Math.round(d.lrs_citation_score || 0);
+  const sentiment = Math.round(d.lrs_sentiment_score || 0);
+  const accuracy = Math.round(d.lrs_accuracy_score || 0);
+  const trend = d.lrs_trend || 'stable';
+  const vsIndustry = d.lrs_vs_industry;
 
-  const lrsColor = lrs >= 65 ? '#27AE60' : lrs >= 35 ? '#E67E22' : '#E74C3C';
-  const trendIcon = trend === 'rising' ? <TrendingUp size={13} color="#27AE60" /> : trend === 'declining' ? <TrendingDown size={13} color="#E74C3C" /> : <Minus size={13} color={INK3} />;
-  const trendLabel = trend === 'rising' ? 'En hausse' : trend === 'declining' ? 'En baisse' : 'Stable';
-  const trendColor = trend === 'rising' ? '#27AE60' : trend === 'declining' ? '#E74C3C' : INK3;
+  const scoreColor = lrs >= 65 ? '#34D399' : lrs >= 35 ? '#FBBF24' : '#F87171';
+  const trendColor = trend === 'rising' ? '#34D399' : trend === 'declining' ? '#F87171' : 'rgba(255,255,255,0.4)';
+
+  // Arc SVG
+  const R = 52, cx = 64, cy = 64;
+  const circ = 2 * Math.PI * R;
+  const pct = lrs / 100;
 
   return (
     <div style={{
-      background: INK, borderRadius: 18, padding: '28px 28px 24px', marginBottom: 14,
-      fontFamily: F, position: 'relative', overflow: 'hidden',
+      background: INK, borderRadius: 20, padding: '28px 24px 24px',
+      marginBottom: 12, fontFamily: F, position: 'relative', overflow: 'hidden',
     }}>
-      {/* Subtle texture */}
-      <div style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundImage: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)', pointerEvents: 'none' }} />
+      {/* background radial glow */}
+      <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: `radial-gradient(circle, ${scoreColor}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
 
       <div style={{ position: 'relative' }}>
-        {/* Badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, background: 'rgba(255,255,255,0.08)', marginBottom: 20 }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: lrsColor }} />
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.09em' }}>LLM Resonance Score™</span>
+        {/* Top badge */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, background: 'rgba(255,255,255,0.07)' }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: scoreColor, boxShadow: `0 0 6px ${scoreColor}` }} />
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>LLM Resonance Score™</span>
+          </div>
+          <a href={d.site_url || '#'} target="_blank" rel="noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+            <Globe size={10} />
+            {(d.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
+            <ExternalLink size={9} />
+          </a>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, flexWrap: 'wrap', marginBottom: 24 }}>
-          <div>
-            <div style={{ fontSize: 80, fontWeight: 900, color: WHITE, lineHeight: 0.9, letterSpacing: '-0.05em' }}>{lrs}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8, fontWeight: 500 }}>sur 100</div>
+        {/* Score + arc + sub-components */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          {/* Arc gauge */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <svg width={128} height={128} style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={10} />
+              <circle cx={cx} cy={cy} r={R} fill="none" stroke={scoreColor} strokeWidth={10}
+                strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
+                strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1)' }} />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: 38, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.04em' }}>{lrs}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>/100</div>
+            </div>
           </div>
-          <div style={{ paddingBottom: 10 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: WHITE, marginBottom: 4 }}>{profile.identity_name || profile.site_url}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: WHITE, marginBottom: 6, letterSpacing: '-0.02em' }}>
+              {d.identity_name || (d.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: trendColor }}>
-                {trendIcon} {trendLabel}
+                {trend === 'rising' ? <TrendingUp size={12} /> : trend === 'declining' ? <TrendingDown size={12} /> : <Minus size={12} />}
+                {trend === 'rising' ? 'En hausse' : trend === 'declining' ? 'En baisse' : 'Stable'}
               </span>
               {vsIndustry != null && (
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: 500 }}>
-                  {vsIndustry >= 0 ? `+${vsIndustry}` : vsIndustry} pts vs moyenne secteur
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                  {vsIndustry >= 0 ? `+${vsIndustry}` : vsIndustry} pts vs secteur
                 </span>
               )}
             </div>
+
+            {/* 3 sub-components */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { label: 'Citation', value: citation, pct: '40%' },
+                { label: 'Sentiment', value: sentiment, pct: '30%' },
+                { label: 'Exactitude', value: accuracy, pct: '30%' },
+              ].map(s => (
+                <div key={s.label}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{s.label} <span style={{ opacity: 0.5 }}>({s.pct})</span></span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: WHITE }}>{s.value}</span>
+                  </div>
+                  <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${s.value}%`, background: scoreColor, borderRadius: 2, transition: 'width 1.4s ease', opacity: 0.9 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* 3 components */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {[
-            { label: 'Fréquence de citation', value: citation, desc: '40% du score' },
-            { label: 'Qualité du sentiment', value: sentiment, desc: '30% du score' },
-            { label: 'Exactitude des infos', value: accuracy, desc: '30% du score' },
-          ].map(s => (
-            <div key={s.label} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '12px 14px' }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: WHITE, lineHeight: 1 }}>{s.value}</div>
-              <div style={{ height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2, margin: '8px 0 6px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${s.value}%`, background: 'rgba(255,255,255,0.55)', borderRadius: 2, transition: 'width 1.2s ease' }} />
-              </div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{s.label}</div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>{s.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        {profile.shock_insight && (
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '18px 0 0', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 14 }}>
-            {profile.shock_insight}
+        {d.shock_insight && (
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '18px 0 0', lineHeight: 1.65, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
+            {d.shock_insight}
           </p>
         )}
       </div>
@@ -130,118 +160,172 @@ function LRSCard({ profile }) {
   );
 }
 
-// ── Sub-scores row ─────────────────────────────────────────────────────────────
-function SubScoresRow({ profile }) {
+// ── Sub-scores row ──────────────────────────────────────────────────────────────
+function SubScoresRow({ d }) {
   const items = [
-    { label: 'Visibilité IA', value: Math.round(profile.score_ai_visibility || profile.ai_visibility_score || 0) },
-    { label: 'Clarté du message', value: Math.round(profile.score_message_clarity || profile.message_clarity_score || 0) },
-    { label: 'Signal commercial', value: Math.round(profile.score_commercial_signal || profile.commercial_presence_score || 0) },
-    { label: 'Score global', value: Math.round(profile.score_overall || profile.overall_score || 0) },
+    { label: 'Visibilité IA', value: Math.round(d.ai_visibility_score || d.score_ai_visibility || 0) },
+    { label: 'Clarté', value: Math.round(d.message_clarity_score || d.score_message_clarity || 0) },
+    { label: 'Commercial', value: Math.round(d.commercial_presence_score || d.score_commercial_signal || 0) },
+    { label: 'Global', value: Math.round(d.overall_score || d.score_overall || 0) },
   ];
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
-      {items.map(s => (
-        <Card key={s.label} style={{ padding: '14px 16px', textAlign: 'center' }}>
-          <div style={{ fontSize: 24, fontWeight: 900, color: INK, lineHeight: 1 }}>{s.value}</div>
-          <div style={{ height: 3, background: SURFACE, borderRadius: 2, margin: '8px 0 5px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${s.value}%`, background: INK, borderRadius: 2, transition: 'width 1s ease' }} />
-          </div>
-          <div style={{ fontSize: 10, color: INK3, fontWeight: 600 }}>{s.label}</div>
-        </Card>
-      ))}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 }}>
+      {items.map(s => {
+        const c = s.value >= 65 ? '#059669' : s.value >= 35 ? '#D97706' : '#DC2626';
+        return (
+          <Card key={s.label} style={{ padding: '14px 12px', textAlign: 'center', margin: 0 }}>
+            <div style={{ fontSize: 26, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em' }}>{s.value}</div>
+            <div style={{ height: 2, background: SURFACE, borderRadius: 1, margin: '8px 0 5px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${s.value}%`, background: c, borderRadius: 1, transition: 'width 1s ease' }} />
+            </div>
+            <div style={{ fontSize: 10, color: INK3, fontWeight: 600 }}>{s.label}</div>
+          </Card>
+        );
+      })}
     </div>
   );
 }
 
-// ── Injection Plan ─────────────────────────────────────────────────────────────
+// ── AI Engines comparison ──────────────────────────────────────────────────────
+const AI_ENGINES_CFG = [
+  { key: 'chatgpt', label: 'ChatGPT',    color: '#10A37F', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png' },
+  { key: 'gemini',  label: 'Gemini',     color: '#4285F4', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
+  { key: 'claude',  label: 'Claude',     color: '#C96442', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
+  { key: 'perplexity', label: 'Perplexity', color: '#20808D', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
+  { key: 'mistral', label: 'Mistral',    color: '#F97316', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png' },
+  { key: 'llama',   label: 'Llama',      color: '#0064E0', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png' },
+  { key: 'grok',    label: 'Grok',       color: '#1DA1F2', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png' },
+  { key: 'copilot', label: 'Copilot',    color: '#7B5EA7', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png' },
+];
+
+function AIEnginesSection({ d }) {
+  const [view, setView] = useState('bars');
+  const engines = AI_ENGINES_CFG.map(e => ({
+    ...e,
+    score: d[`${e.key}_score`] || 0,
+    sentiment: d[`${e.key}_sentiment`] || 'neutral',
+    accuracy: d[`${e.key}_accuracy`] || 0,
+  })).sort((a, b) => b.score - a.score);
+
+  const sentimentColor = (s) => s === 'positive' ? '#059669' : s === 'negative' ? '#DC2626' : INK3;
+
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Label>Présence par moteur IA</Label>
+        <div style={{ display: 'flex', background: SURFACE, borderRadius: 8, padding: 3, gap: 2 }}>
+          {['bars', 'detail'].map(v => (
+            <button key={v} onClick={() => setView(v)} style={{
+              padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 700,
+              background: view === v ? WHITE : 'transparent', color: view === v ? INK : INK3,
+              boxShadow: view === v ? '0 1px 4px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s',
+            }}>{v === 'bars' ? 'Scores' : 'Détail'}</button>
+          ))}
+        </div>
+      </div>
+
+      {view === 'bars' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          {engines.map(e => (
+            <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <img src={e.logo} alt={e.label} width={18} height={18} style={{ objectFit: 'contain', borderRadius: 4, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 76, flexShrink: 0 }}>{e.label}</span>
+              <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${e.score}%`, background: e.color, borderRadius: 3, transition: 'width 1s ease' }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 800, color: INK, width: 28, textAlign: 'right', flexShrink: 0 }}>{e.score}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view === 'detail' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {engines.map(e => (
+            <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: SURFACE, borderRadius: 10 }}>
+              <img src={e.logo} alt={e.label} width={20} height={20} style={{ objectFit: 'contain', borderRadius: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: INK, width: 76, flexShrink: 0 }}>{e.label}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: INK }}>{e.score}</div>
+                    <div style={{ fontSize: 9, color: INK3 }}>Score</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: INK }}>{e.accuracy}</div>
+                    <div style={{ fontSize: 9, color: INK3 }}>Exactitude</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: sentimentColor(e.sentiment), marginTop: 2 }}>
+                      {e.sentiment === 'positive' ? '✓ Positif' : e.sentiment === 'negative' ? '✗ Négatif' : '~ Neutre'}
+                    </div>
+                    <div style={{ fontSize: 9, color: INK3 }}>Sentiment</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ── Injection Plan ──────────────────────────────────────────────────────────────
 function InjectionPlan({ plan, onOpenFix }) {
   const [expanded, setExpanded] = useState(null);
   if (!plan?.length) return null;
 
-  const impactColor = (impact) => impact === 'high' ? '#27AE60' : '#E67E22';
-  const effortLabel = { low: 'Effort faible', medium: 'Effort moyen', high: 'Effort élevé' };
-
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Ordonnance d'injection d'entité</Label>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div>
-          <SectionLabel>Ordonnance d'injection d'entité</SectionLabel>
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: 0, lineHeight: 1.3 }}>
-            Plan d'action personnalisé
-          </p>
-          <p style={{ fontSize: 12, color: INK3, margin: '4px 0 0' }}>
-            {plan.length} leviers identifiés pour améliorer votre LRS ce mois
-          </p>
+          <p style={{ fontSize: 15, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Plan d'action personnalisé</p>
+          <p style={{ fontSize: 12, color: INK3, margin: '3px 0 0' }}>{plan.length} leviers pour améliorer votre LRS ce mois</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {plan.map((item, i) => (
-          <div key={i} style={{
-            border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden',
-            background: expanded === i ? SURFACE : WHITE,
-            transition: 'background 0.15s',
-          }}>
-            {/* Header row */}
-            <button
-              onClick={() => setExpanded(expanded === i ? null : i)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
-                background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F,
-              }}
-            >
-              {/* Step number */}
-              <div style={{
-                width: 28, height: 28, borderRadius: 8, background: INK, color: WHITE,
-                fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>{i + 1}</div>
-
+          <div key={i} style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: expanded === i ? SURFACE : WHITE, transition: 'background 0.15s' }}>
+            <button onClick={() => setExpanded(expanded === i ? null : i)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
+              <div style={{ width: 26, height: 26, borderRadius: 8, background: INK, color: WHITE, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>{item.action_title}</span>
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
-                    color: impactColor(item.impact), background: impactColor(item.impact) + '18',
-                    padding: '2px 7px', borderRadius: 20, flexShrink: 0,
-                  }}>Impact {item.impact === 'high' ? 'élevé' : 'moyen'}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: item.impact === 'high' ? '#059669' : '#D97706', background: item.impact === 'high' ? '#ECFDF5' : '#FFFBEB', padding: '2px 6px', borderRadius: 4 }}>
+                    {item.impact === 'high' ? 'Impact élevé' : 'Impact moyen'}
+                  </span>
                 </div>
                 <div style={{ fontSize: 11, color: INK3 }}>
-                  <span style={{ background: '#F0F4FF', color: '#3B5BDB', padding: '1px 7px', borderRadius: 4, fontWeight: 600, marginRight: 6 }}>{item.engine}</span>
+                  <span style={{ background: '#EEF2FF', color: '#4338CA', padding: '1px 6px', borderRadius: 4, fontWeight: 600, marginRight: 5 }}>{item.engine}</span>
                   {item.gap}
                 </div>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <span style={{ fontSize: 10, color: INK3 }}>{effortLabel[item.effort] || item.effort}</span>
-                <ArrowRight size={13} color={INK3} style={{ transform: expanded === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
-              </div>
+              <ArrowRight size={12} color={INK3} style={{ transform: expanded === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
             </button>
 
-            {/* Expanded detail */}
             {expanded === i && (
-              <div style={{ padding: '0 16px 16px', borderTop: `1px solid ${BORDER}` }}>
-                <div style={{ paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ padding: '0 14px 14px', borderTop: `1px solid ${BORDER}` }}>
+                <div style={{ paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>Pourquoi vos concurrents sont cités à votre place</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 5px' }}>Pourquoi vos concurrents sont cités à votre place</p>
                     <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.65 }}>{item.competitor_advantage}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>Action concrète</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 5px' }}>Action concrète</p>
                     <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.65 }}>{item.action_detail}</p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: SURFACE, borderRadius: 9, padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <Zap size={12} color={INK} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>Plateforme cible : {item.platform}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: SURFACE, borderRadius: 9, padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Zap size={12} color={VIOLET} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>Plateforme : {item.platform}</span>
                     </div>
-                    <button
-                      onClick={() => onOpenFix(item.action_title + ' — ' + item.action_detail, i)}
-                      style={{
-                        padding: '7px 14px', background: INK, color: WHITE, border: 'none',
-                        borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: F,
-                      }}
-                    >
-                      Générer le contenu →
+                    <button onClick={() => onOpenFix(item.action_title + ' — ' + item.action_detail, i)}
+                      style={{ padding: '7px 14px', background: INK, color: WHITE, border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+                      Générer →
                     </button>
                   </div>
                 </div>
@@ -254,23 +338,23 @@ function InjectionPlan({ plan, onOpenFix }) {
   );
 }
 
-// ── Traffic metrics ────────────────────────────────────────────────────────────
-function TrafficCard({ profile }) {
+// ── Traffic metrics ──────────────────────────────────────────────────────────
+function TrafficCard({ d }) {
   const metrics = [
-    { label: 'Visiteurs / mois', value: fmt(profile.organic_traffic), delta: profile.organic_traffic_delta_pct },
-    { label: 'Mots-clés organiques', value: fmt(profile.organic_keywords), delta: profile.organic_keywords_delta_pct },
-    { label: 'Backlinks', value: fmt(profile.backlinks), delta: profile.backlinks_delta_pct },
-    { label: 'Autorité de domaine', value: profile.authority_score ? `${profile.authority_score}` : '–', delta: null },
+    { label: 'Visiteurs / mois', value: fmt(d.organic_traffic), delta: d.organic_traffic_delta_pct },
+    { label: 'Mots-clés', value: fmt(d.organic_keywords), delta: d.organic_keywords_delta_pct },
+    { label: 'Backlinks', value: fmt(d.backlinks), delta: d.backlinks_delta_pct },
+    { label: 'Autorité', value: d.authority_score ? `${d.authority_score}` : '–', delta: null },
   ];
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <SectionLabel>Performances du site</SectionLabel>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Performances du site</Label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
         {metrics.map((m, i) => (
-          <div key={i} style={{ background: SURFACE, borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: INK3, fontWeight: 600, marginBottom: 6 }}>{m.label}</div>
+          <div key={i} style={{ background: SURFACE, borderRadius: 10, padding: '13px 14px' }}>
+            <div style={{ fontSize: 11, color: INK3, fontWeight: 600, marginBottom: 5 }}>{m.label}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1 }}>{m.value}</div>
-            {m.delta != null && <div style={{ marginTop: 6 }}><DeltaBadge val={m.delta} /></div>}
+            {m.delta != null && <div style={{ marginTop: 5 }}><Delta val={m.delta} /></div>}
           </div>
         ))}
       </div>
@@ -278,29 +362,27 @@ function TrafficCard({ profile }) {
   );
 }
 
-// ── Technical signals ──────────────────────────────────────────────────────────
-function TechnicalCard({ profile }) {
+// ── Technical signals ─────────────────────────────────────────────────────────
+function TechnicalCard({ d }) {
   const items = [
-    { label: 'Structure lisible par les IA', value: profile.has_schema_markup, tip: 'Les IA comprennent bien votre contenu' },
-    { label: 'Fiche Google My Business', value: profile.has_google_business, tip: 'Vous apparaissez sur Google Maps' },
-    { label: 'Site sécurisé (HTTPS)', value: profile.has_ssl, tip: 'Cadenas actif, site de confiance' },
-    { label: 'Compatible mobile', value: profile.has_mobile_friendly, tip: 'Fonctionne bien sur téléphone' },
+    { label: 'Structure lisible par les IA', value: d.has_schema_markup, tip: 'Les IA comprennent votre contenu' },
+    { label: 'Fiche Google My Business', value: d.has_google_business, tip: 'Présent sur Google Maps' },
+    { label: 'Site sécurisé HTTPS', value: d.has_ssl, tip: 'Cadenas actif, site de confiance' },
+    { label: 'Compatible mobile', value: d.has_mobile_friendly, tip: 'Optimisé pour les téléphones' },
   ];
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <SectionLabel>Signaux techniques</SectionLabel>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Signaux techniques</Label>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
         {items.map((t, i) => (
           <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px',
-            background: t.value ? '#F0FAF4' : SURFACE,
-            borderRadius: 10, border: `1px solid ${t.value ? '#C3E9D3' : BORDER}`,
+            display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px',
+            background: t.value ? '#F0FDF4' : SURFACE, borderRadius: 10,
+            border: `1px solid ${t.value ? '#BBF7D0' : BORDER}`,
           }}>
-            {t.value
-              ? <CheckCircle size={15} color="#27AE60" style={{ flexShrink: 0 }} />
-              : <XCircle size={15} color="#CCC" style={{ flexShrink: 0 }} />}
+            {t.value ? <CheckCircle size={15} color="#059669" style={{ flexShrink: 0 }} /> : <XCircle size={15} color="#D1D1D1" style={{ flexShrink: 0 }} />}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: INK }}>{t.label}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: INK }}>{t.label}</div>
               <div style={{ fontSize: 10, color: INK3, marginTop: 1 }}>{t.tip}</div>
             </div>
           </div>
@@ -310,17 +392,17 @@ function TechnicalCard({ profile }) {
   );
 }
 
-// ── Strengths ──────────────────────────────────────────────────────────────────
+// ── Strengths ────────────────────────────────────────────────────────────────
 function StrengthsCard({ strengths }) {
   if (!strengths?.length) return null;
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <SectionLabel>Points forts</SectionLabel>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Points forts</Label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {strengths.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 13px', background: SURFACE, borderRadius: 10 }}>
-            <Star size={12} color={INK} fill={INK} style={{ flexShrink: 0 }} />
-            <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.5 }}>{s}</p>
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: SURFACE, borderRadius: 10 }}>
+            <Star size={12} color={VIOLET} fill={VIOLET} style={{ flexShrink: 0, marginTop: 2 }} />
+            <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.55 }}>{s}</p>
           </div>
         ))}
       </div>
@@ -328,24 +410,18 @@ function StrengthsCard({ strengths }) {
   );
 }
 
-// ── Keywords ───────────────────────────────────────────────────────────────────
+// ── Keywords ──────────────────────────────────────────────────────────────────
 function KeywordsCard({ keywords }) {
   if (!keywords?.length) return null;
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <SectionLabel>Mots-clés organiques principaux</SectionLabel>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Mots-clés organiques principaux</Label>
       <div>
         {keywords.map((kw, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 0', borderBottom: i < keywords.length - 1 ? `1px solid ${BORDER}` : 'none',
-          }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: i < keywords.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
             <span style={{ fontSize: 13, color: INK, fontWeight: 500 }}>{kw.keyword}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: kw.position <= 3 ? '#27AE60' : kw.position <= 10 ? '#E67E22' : INK3,
-              }}>#{kw.position}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: kw.position <= 3 ? '#059669' : kw.position <= 10 ? '#D97706' : INK3 }}>#{kw.position}</span>
               <span style={{ fontSize: 11, color: INK3 }}>{fmt(kw.volume)}/mois</span>
             </div>
           </div>
@@ -355,23 +431,23 @@ function KeywordsCard({ keywords }) {
   );
 }
 
-// ── Competitors ────────────────────────────────────────────────────────────────
+// ── Competitors ──────────────────────────────────────────────────────────────
 function CompetitorsCard({ competitors }) {
   if (!competitors?.length) return null;
   return (
-    <Card style={{ marginBottom: 14 }}>
-      <SectionLabel>Concurrents identifiés</SectionLabel>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Concurrents identifiés</Label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {competitors.map((c, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: SURFACE, borderRadius: 10 }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: SURFACE, borderRadius: 10 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: INK }}>{typeof c === 'string' ? c : c.domain}</div>
               {c.organic_traffic > 0 && <div style={{ fontSize: 11, color: INK3, marginTop: 2 }}>{fmt(c.organic_traffic)} visites/mois</div>}
             </div>
             {c.authority_score != null && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>{c.authority_score}</div>
-                <div style={{ fontSize: 9, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Autorité</div>
+              <div style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${BORDER}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: INK }}>{c.authority_score}</div>
+                <div style={{ fontSize: 7, color: INK3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>DA</div>
               </div>
             )}
           </div>
@@ -381,75 +457,119 @@ function CompetitorsCard({ competitors }) {
   );
 }
 
-// ── MAIN PAGE ──────────────────────────────────────────────────────────────────
+// ── Geo traffic ──────────────────────────────────────────────────────────────
+function GeoCard({ geoTraffic }) {
+  if (!geoTraffic?.length) return null;
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <Label>Trafic par pays</Label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {geoTraffic.map((g, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {g.country !== 'OTHER'
+              ? <img src={`https://flagcdn.com/24x18/${g.country.toLowerCase()}.png`} alt={g.country} width={22} height={16} style={{ borderRadius: 2, flexShrink: 0, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
+              : <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0 }}>🌐</span>}
+            <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 100, flexShrink: 0 }}>{g.country_name || g.country}</span>
+            <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${g.pct}%`, background: VIOLET, borderRadius: 3, opacity: 0.7 + i * 0.05 * -1 }} />
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 800, color: INK, width: 32, textAlign: 'right', flexShrink: 0 }}>{g.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+// ── MAIN PAGE ─────────────────────────────────────────────────────────────────
 export default function AIVisibilityReport() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [selectedIssueId, setSelectedIssueId] = useState(null);
   const [fixCache, setFixCache] = useState({});
-  const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
 
   useEffect(() => {
-    const unsub = onActiveDomainChange(d => setActiveDomainState(d));
+    const unsub = onActiveDomainChange(() => loadData());
     return unsub;
   }, []);
 
-  const loadProfile = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
       const u = await base44.auth.me();
       if (!u) { navigate('/'); return; }
       const active = getActiveDomain();
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      // Match active domain if set, otherwise first profile
       const matched = active
         ? profiles.find(p => p.site_url === active.url) || profiles[0]
         : profiles[0];
+
       if (matched) {
+        // Parse all stored data — keep flat structure for all fields
         let extra = {};
         try { extra = JSON.parse(matched.brand_keywords || '{}'); } catch {}
         setFixCache(extra.fix_cache || {});
-        setProfile({ ...matched, ...extra });
+        // Merge: entity fields + extra (extra has lrs_*, chatgpt_*, etc.)
+        setData({ ...matched, ...extra });
       }
     } catch {}
     setLoading(false);
   };
 
-  useEffect(() => { loadProfile(); }, []);
-
-  const handleFixSaved = (issueId, fixData) => {
-    setFixCache(prev => ({ ...prev, [issueId]: fixData }));
+  const handleRescan = async () => {
+    if (!data?.site_url) return;
+    setScanning(true);
+    try {
+      const res = await base44.functions.invoke('analyzeWebsite', { url: data.site_url });
+      if (res?.data && !res.data.error) {
+        // Save to profile
+        const u = await base44.auth.me();
+        if (u) {
+          const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
+          const matched = profiles.find(p => p.site_url === data.site_url) || profiles[0];
+          if (matched) {
+            const newExtra = { ...res.data };
+            await base44.entities.BusinessProfile.update(matched.id, {
+              brand_keywords: JSON.stringify(newExtra),
+              score_overall: res.data.overall_score || 0,
+              score_ai_visibility: res.data.ai_visibility_score || 0,
+              score_message_clarity: res.data.message_clarity_score || 0,
+              score_commercial_signal: res.data.commercial_presence_score || 0,
+              last_scan: new Date().toISOString(),
+            });
+            setData({ ...matched, ...res.data });
+          }
+        }
+      }
+    } catch {}
+    setScanning(false);
   };
 
-  const openFix = (issueText, idx) => {
-    setSelectedIssue(issueText);
-    setSelectedIssueId(`injection_${idx}`);
-  };
+  useEffect(() => { loadData(); }, []);
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E0E0E0', borderTopColor: INK, animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E0E0E0', borderTopColor: VIOLET, animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+        <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Chargement…</p>
       </div>
-    );
-  }
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
-  if (!profile) {
-    return (
-      <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center', fontFamily: F }}>
-        <p style={{ fontSize: 17, fontWeight: 700, color: INK, margin: 0 }}>Aucun rapport disponible</p>
-        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Scannez votre site depuis l'accueil pour générer votre rapport.</p>
-        <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-          ← Retour à l'accueil
-        </button>
-      </div>
-    );
-  }
-
-  const injectionPlan = profile.injection_plan || [];
+  if (!data) return (
+    <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', fontFamily: F }}>
+      <div style={{ fontSize: 48, marginBottom: 4 }}>📡</div>
+      <p style={{ fontSize: 17, fontWeight: 800, color: INK, margin: 0 }}>Aucun rapport disponible</p>
+      <p style={{ fontSize: 13, color: INK3, margin: 0, maxWidth: 280 }}>Scannez votre site depuis l'accueil pour générer votre rapport IA.</p>
+      <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+        ← Retour à l'accueil
+      </button>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F }}>
@@ -461,60 +581,48 @@ export default function AIVisibilityReport() {
         position: 'sticky', top: 0, zIndex: 20,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <button
-            onClick={() => navigate('/app')}
-            style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
+          <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <ArrowLeft size={14} color={INK2} />
           </button>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Tableau de bord</h1>
-            <p style={{ fontSize: 11, color: INK3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.site_url}</p>
+            <p style={{ fontSize: 11, color: INK3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {(data.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
+            </p>
           </div>
         </div>
-        <button
-          onClick={() => loadProfile()}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
-        >
-          <RefreshCw size={11} /> Actualiser
+        <button onClick={handleRescan} disabled={scanning}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.6 : 1 }}>
+          <RefreshCw size={11} style={{ animation: scanning ? 'spin 0.8s linear infinite' : 'none' }} />
+          {scanning ? 'Analyse…' : 'Re-scanner'}
         </button>
       </div>
 
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: '20px 16px 48px' }}>
-
-        {/* 1. LRS Hero */}
-        <LRSCard profile={profile} />
-
-        {/* 2. Injection action plan */}
-        {injectionPlan.length > 0 && (
-          <InjectionPlan plan={injectionPlan} onOpenFix={openFix} />
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px 14px 80px' }}>
+        <LRSHero d={data} />
+        <SubScoresRow d={data} />
+        <AIEnginesSection d={data} />
+        {data.injection_plan?.length > 0 && (
+          <InjectionPlan plan={data.injection_plan} onOpenFix={(txt, idx) => { setSelectedIssue(txt); setSelectedIssueId(`injection_${idx}`); }} />
         )}
-
-        {/* 5. Traffic */}
-        <TrafficCard profile={profile} />
-
-        {/* 6. Technical */}
-        <TechnicalCard profile={profile} />
-
-        {/* 7. Strengths */}
-        <StrengthsCard strengths={profile.strengths} />
-
-        {/* 8. Keywords */}
-        <KeywordsCard keywords={profile.top_keywords} />
-
-        {/* 9. Competitors */}
-        <CompetitorsCard competitors={profile.competitors} />
-
+        <TrafficCard d={data} />
+        <TechnicalCard d={data} />
+        <GeoCard geoTraffic={data.geo_traffic} />
+        <StrengthsCard strengths={data.strengths} />
+        <KeywordsCard keywords={data.top_keywords} />
+        <CompetitorsCard competitors={data.competitors} />
       </div>
+
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {selectedIssue && (
         <FixInstructionModal
           issue={selectedIssue}
           issueId={selectedIssueId}
-          profile={profile}
+          profile={data}
           cachedFix={fixCache[selectedIssueId] || null}
           onClose={() => { setSelectedIssue(null); setSelectedIssueId(null); }}
-          onFixSaved={handleFixSaved}
+          onFixSaved={(id, fix) => setFixCache(prev => ({ ...prev, [id]: fix }))}
         />
       )}
     </div>
