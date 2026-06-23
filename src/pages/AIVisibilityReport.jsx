@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, RefreshCw, CheckCircle, XCircle, Link2, ExternalLink, ChevronRight, ChevronDown, X, ArrowRight, Zap, Clock, Circle, AlertTriangle, Globe } from 'lucide-react';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
+import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111110';
@@ -246,8 +247,7 @@ export default function AIVisibilityReport() {
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const matched = active ? (profiles.find(p => p.site_url === active.url) || null) : profiles[0] || null;
       if (matched) {
-        let extra = {};
-        try { extra = JSON.parse(matched.brand_keywords || '{}'); } catch {}
+        const extra = await getProfileData(matched);
         setData({ ...matched, ...extra });
         // Load action tasks
         const existing = await base44.entities.ActionTask.filter({ user_id: u.id, site_url: matched.site_url }).catch(() => []);
@@ -270,8 +270,9 @@ export default function AIVisibilityReport() {
           const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
           const matched = profiles.find(p => p.site_url === data.site_url);
           if (matched) {
+            const brand_keywords = await uploadProfileData(res.data);
             await base44.entities.BusinessProfile.update(matched.id, {
-              brand_keywords: JSON.stringify(res.data),
+              brand_keywords,
               score_overall: res.data.overall_score || 0,
               score_ai_visibility: res.data.ai_visibility_score || 0,
               score_message_clarity: res.data.message_clarity_score || 0,

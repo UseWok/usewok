@@ -11,6 +11,7 @@ import LRSRadarChart from '@/components/performance/LRSRadarChart';
 import GeoScoreChart from '@/components/performance/GeoScoreChart';
 import SOVChart from '@/components/performance/SOVChart';
 import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
+import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111110';
@@ -73,8 +74,7 @@ export default function PerformancePage() {
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
       if (!p?.site_url) { setPhase('no_profile'); return; }
-      let extra = {};
-      try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
+      const extra = await getProfileData(p);
       setProfile({ ...p, ...extra });
 
       if (!forceRefresh && extra.perf_data && extra.perf_analyzed_at) {
@@ -88,7 +88,8 @@ export default function PerformancePage() {
       setPerfData(res.data);
       setPhase('done');
       const newExtra = { ...extra, perf_data: res.data, perf_analyzed_at: new Date().toISOString() };
-      base44.entities.BusinessProfile.update(p.id, { brand_keywords: JSON.stringify(newExtra) }).catch(() => {});
+      const brand_keywords = await uploadProfileData(newExtra);
+      base44.entities.BusinessProfile.update(p.id, { brand_keywords }).catch(() => {});
     } catch { setPhase('error'); }
   };
 

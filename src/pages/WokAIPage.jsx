@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import { getProfileData } from '@/lib/profile-storage';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111110';
@@ -382,11 +383,10 @@ export default function WokAIPage({ user: userProp }) {
     const domain = getActiveDomain();
     setActiveDomainState(domain);
     if (!domain?.url || !user?.id) return;
-    base44.entities.BusinessProfile.filter({ site_url: domain.url }).then(results => {
+    base44.entities.BusinessProfile.filter({ site_url: domain.url }).then(async results => {
       const mine = results.find(r => r.created_by_id === user?.id) || results[0];
       if (mine) {
-        let extra = {};
-        try { extra = JSON.parse(mine.brand_keywords || '{}'); } catch {}
+        const extra = await getProfileData(mine);
         setProfile({ ...mine, ...extra });
       }
     }).catch(() => {});

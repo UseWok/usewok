@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Trash2, Globe, ExternalLink, ArrowRight, Link2, BarChart2, ClipboardCheck, TrendingUp, ChevronRight, AlertCircle, RefreshCw, Zap } from 'lucide-react';
 import { getActiveDomain, setActiveDomain, getDomainsList, saveDomainsList, onActiveDomainChange } from '@/lib/active-domain';
+import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
@@ -256,6 +257,8 @@ async function runFullScanForDomain(inputUrl, userId) {
     perf_analyzed_at: new Date().toISOString(),
   };
 
+  const brand_keywords = await uploadProfileData(cachePayload);
+
   const profileFields = {
     site_url: inputUrl,
     identity_name: mainData.business_name || '',
@@ -266,7 +269,7 @@ async function runFullScanForDomain(inputUrl, userId) {
     score_commercial_signal: mainData.commercial_presence_score || 0,
     score_overall: mainData.overall_score || 0,
     last_scan: new Date().toISOString(),
-    brand_keywords: JSON.stringify(cachePayload),
+    brand_keywords,
   };
 
   if (existing) {
@@ -308,8 +311,7 @@ export default function Home() {
         // Match profile by site_url exactly (each domain is isolated)
         const match = profiles.find(p => p.site_url === d.url);
         if (match) {
-          let extra = {};
-          try { extra = JSON.parse(match.brand_keywords || '{}'); } catch {}
+          const extra = await getProfileData(match);
           map[d.url] = { ...match, ...extra };
         }
       }

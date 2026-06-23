@@ -8,6 +8,7 @@ import AuditCrawlability from '../components/audit/AuditCrawlability';
 import AuditIssues from '../components/audit/AuditIssues';
 import AuditPages from '../components/audit/AuditPages';
 import AuditPerformance from '../components/audit/AuditPerformance';
+import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 const TABS = [
   { id: 'overview',      label: 'Vue d\'ensemble' },
@@ -93,8 +94,7 @@ export default function AuditPage() {
 
       // Try cache first (24h TTL)
       if (!forceRefresh) {
-        let extra = {};
-        try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
+        const extra = await getProfileData(p);
         if (extra.audit_data && extra.audit_analyzed_at) {
           const age = Date.now() - new Date(extra.audit_analyzed_at).getTime();
           if (age < 24 * 60 * 60 * 1000) {
@@ -113,12 +113,12 @@ export default function AuditPage() {
       setPhase('done');
 
       // Re-read freshest brand_keywords before merging to avoid overwriting concurrent writes
-      base44.entities.BusinessProfile.filter({ created_by_id: (await base44.auth.me().catch(() => null))?.id }).then(ps => {
+      base44.entities.BusinessProfile.filter({ created_by_id: (await base44.auth.me().catch(() => null))?.id }).then(async ps => {
         if (!ps?.length) return;
-        let fresh = {};
-        try { fresh = JSON.parse(ps[0].brand_keywords || '{}'); } catch {}
+        const fresh = await getProfileData(ps[0]);
         const merged = { ...fresh, audit_data: res.data, audit_analyzed_at: new Date().toISOString() };
-        base44.entities.BusinessProfile.update(ps[0].id, { brand_keywords: JSON.stringify(merged) }).catch(() => {});
+        const brand_keywords = await uploadProfileData(merged);
+        base44.entities.BusinessProfile.update(ps[0].id, { brand_keywords }).catch(() => {});
       }).catch(() => {});
     } catch {
       setPhase('error');

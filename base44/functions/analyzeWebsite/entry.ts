@@ -277,6 +277,15 @@ Deno.serve(async (req) => {
       if (user) {
         const profiles = await base44.asServiceRole.entities.BusinessProfile.filter({ created_by_id: user.id });
         const existing = profiles.find(p => p.site_url === cleanUrl);
+        let brand_keywords = JSON.stringify(result);
+        try {
+          const fileObj = new File([brand_keywords], "data.json", { type: "application/json" });
+          const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({ file: fileObj });
+          if (uploadRes && uploadRes.file_url) brand_keywords = uploadRes.file_url;
+        } catch (e) {
+          console.error("Upload failed, fallback to string", e);
+        }
+
         const profileFields = {
           site_url: cleanUrl,
           identity_name: result.business_name || '',
@@ -287,7 +296,7 @@ Deno.serve(async (req) => {
           score_commercial_signal: result.commercial_presence_score || 0,
           score_overall: result.overall_score || 0,
           last_scan: new Date().toISOString(),
-          brand_keywords: JSON.stringify(result),
+          brand_keywords,
         };
         if (existing) {
           await base44.asServiceRole.entities.BusinessProfile.update(existing.id, profileFields);
