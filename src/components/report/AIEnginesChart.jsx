@@ -7,7 +7,7 @@ const L = (src, blend = 'multiply') => (
 );
 const AI_LOGOS = {
   ChatGPT:    L('https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/chatgpt-color.png', 'normal'),
-  Gemini:     L('https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/gemini-color.png', 'screen'),
+  Gemini:     L('https://files.svgcdn.io/logos/gemini-icon.png', 'screen'),
   Claude:     L('https://files.svgcdn.io/logos/claude-icon.png', 'multiply'),
   Mistral:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', 'multiply'),
   Llama:      L('https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', 'multiply'),
