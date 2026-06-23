@@ -129,7 +129,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
                 onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
               >
-                Settings
+                Paramètres
               </button>
             </div>
 
@@ -137,9 +137,9 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
             <div style={{ padding: '8px 12px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Credits</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Crédits</span>
                   {renewalDate && (
-                    <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.4)', margin: '1px 0 0' }}>Renewal {renewalDate}</p>
+                    <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.4)', margin: '1px 0 0' }}>Renouvellement {renewalDate}</p>
                   )}
                 </div>
                 <span style={{ fontSize: 12, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 500 }}>
@@ -159,7 +159,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Help
+                Aide
               </button>
               <button
                 onClick={async () => { setOpen(false); await base44.auth.logout(); window.location.reload(); }}
@@ -167,7 +167,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,24,74,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Log out
+                Se déconnecter
               </button>
             </div>
           </motion.div>
@@ -201,15 +201,15 @@ function CreateWorkspaceModal({ open, onClose, onCreate }) {
               <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#555' }}>
                 <X style={{ width: 14, height: 14 }} />
               </button>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>New workspace</h2>
-              <p style={{ fontSize: 12, color: '#888', margin: '0 0 20px' }}>Isolated environment — zero credits, zero builds.</p>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111', margin: '0 0 4px' }}>Nouvel espace de travail</h2>
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 20px' }}>Environnement isolé — zéro crédit, zéro build.</p>
               <label style={{ fontSize: 11, fontWeight: 600, color: '#888', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Name</label>
               <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} autoFocus
                 placeholder="e.g. Acme Corp"
                 style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid #D1D1D1', background: '#F8F7F4', color: '#111', borderRadius: 8, outline: 'none', boxSizing: 'border-box', marginBottom: 16, fontFamily: 'Inter, sans-serif' }} />
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={onClose} style={{ flex: 1, padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#555', background: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={submit} style={{ flex: 2, padding: '9px 0', fontSize: 13, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Create</button>
+                <button onClick={onClose} style={{ flex: 1, padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#555', background: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: 8, cursor: 'pointer' }}>Annuler</button>
+                <button onClick={submit} style={{ flex: 2, padding: '9px 0', fontSize: 13, fontWeight: 600, color: '#fff', background: '#F95738', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Créer</button>
               </div>
             </motion.div>
           </div>
@@ -252,7 +252,7 @@ function CodeModal({ open, onClose, user }) {
         <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#999' }}>
           <X style={{ width: 14, height: 14 }} />
         </button>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 16px' }}>Activate a code</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111', margin: '0 0 16px' }}>Activer un code</h2>
         {success ? (
           <div style={{ textAlign: 'center', padding: '12px 0' }}>
             <div style={{ width: 44, height: 44, borderRadius: 10, background: '#1A2A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
@@ -269,7 +269,7 @@ function CodeModal({ open, onClose, user }) {
             {error && <p style={{ color: '#E8184A', fontSize: 12, marginBottom: 8 }}>{error}</p>}
             <button onClick={activate} disabled={loading || !code.trim()}
               style={{ width: '100%', padding: '9px 0', background: '#F95738', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13, opacity: loading || !code.trim() ? 0.45 : 1 }}>
-              {loading ? 'Activating…' : 'Activate'}
+              {loading ? 'Activation…' : 'Activer'}
             </button>
           </>
         )}
@@ -326,9 +326,9 @@ function SidebarCreditsBar({ user, onUpgrade }) {
   return (
     <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#EFEFED', borderRadius: 8, border: '1px solid #E5E5E3' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits</span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Crédits</span>
         {(isLow || isOverLimit) && (
-          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Upgrade</button>
+          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Passer Pro</button>
         )}
       </div>
       <div style={{ height: 5, background: '#DDDDD9', borderRadius: 999, marginBottom: 5 }}>
@@ -361,9 +361,9 @@ function SettingsSidebar({ navigate, onBack }) {
   const location = useLocation();
   const activeSection = new URLSearchParams(location.search).get('section') || 'profile';
   const sections = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'usage', label: 'Usage' },
-    { id: 'plan', label: 'Billing' },
+    { id: 'profile', label: 'Profil' },
+    { id: 'usage', label: 'Utilisation' },
+    { id: 'plan', label: 'Facturation' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -374,11 +374,11 @@ function SettingsSidebar({ navigate, onBack }) {
           onMouseEnter={e => e.currentTarget.style.color = '#111'}
           onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.45)'}>
           <ChevronRight style={{ width: 13, height: 13, transform: 'rotate(180deg)' }} />
-          <span style={{ fontSize: 12.5 }}>Back</span>
+          <span style={{ fontSize: 12.5 }}>Retour</span>
         </button>
       </div>
       <div style={{ padding: '4px 6px', flex: 1, overflowY: 'auto' }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Personal</p>
+        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.35)', margin: '8px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Personnel</p>
         {sections.map(s => {
           const isActive = activeSection === s.id;
           return (
@@ -519,9 +519,9 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
+            <NavItem icon={Home} label="Accueil" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={BarChart2} label="Tableau de bord" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
-            <NavItem icon={Search} label="Search" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
+            <NavItem icon={Search} label="Rechercher" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
           </div>
 
           <Divider />
@@ -531,7 +531,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {/* ── AI Tools ── */}
           {expanded && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
-              <SectionLabel label="AI Tools" expanded={expanded} />
+              <SectionLabel label="Outils IA" expanded={expanded} />
               {[
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },

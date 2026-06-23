@@ -78,7 +78,7 @@ function Navbar({ onSignup }) {
       <div style={{ flex: 1 }} />
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-        {[['Product','#'],['Resources','#'],['Customers','#'],['Now','#'],['Contact','#']].map(([l,h]) => (
+        {[['Produit','#'],['Ressources','#'],['Clients','#'],['Nouveautés','#'],['Contact','#']].map(([l,h]) => (
           <a key={l} href={h} style={{ fontSize: 13, fontWeight: 400, color: T2, textDecoration: 'none', transition: 'color 150ms', whiteSpace: 'nowrap' }}
             onMouseEnter={e => e.currentTarget.style.color = T1}
             onMouseLeave={e => e.currentTarget.style.color = T2}>{l}</a>
@@ -91,6 +91,7 @@ function Navbar({ onSignup }) {
         <a href="#" style={{ fontSize: 13, fontWeight: 400, color: T2, textDecoration: 'none', whiteSpace: 'nowrap' }}
           onMouseEnter={e => e.currentTarget.style.color = T1}
           onMouseLeave={e => e.currentTarget.style.color = T2}>Docs</a>
+
         <button onClick={onSignup} style={{
           fontFamily: F, fontSize: 13, fontWeight: 500,
           color: '#0A0A0B', background: T1,
@@ -100,7 +101,7 @@ function Navbar({ onSignup }) {
         }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-          Open app
+          Ouvrir l'app
         </button>
       </div>
     </header>
@@ -128,7 +129,7 @@ function Hero({ onSignup }) {
           <FadeIn delay={0.05}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '4px 12px', marginBottom: 28 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-              <span style={{ fontSize: 12, color: T2, fontWeight: 500 }}>New · Coding Sessions →</span>
+              <span style={{ fontSize: 12, color: T2, fontWeight: 500 }}>Nouveau · Sessions de code →</span>
             </div>
           </FadeIn>
           <FadeIn delay={0.12}>
@@ -137,13 +138,13 @@ function Hero({ onSignup }) {
               letterSpacing: '-0.04em', lineHeight: 1.06,
               margin: '0 0 20px', maxWidth: 620,
             }}>
-              The product development<br />system for teams<br />and agents
+              Le système de développement<br />produit pour les équipes<br />et les agents IA
             </h1>
           </FadeIn>
           <FadeIn delay={0.2}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 640 }}>
               <p style={{ fontSize: 15, color: T2, margin: 0, fontWeight: 400, lineHeight: 1.6 }}>
-                Purpose-built for planning and building products.<br />Designed for the AI era.
+                Conçu pour planifier et construire des produits.<br />Pensé pour l'ère de l'IA.
               </p>
               <button onClick={onSignup} style={{
                 fontFamily: F, fontSize: 14, fontWeight: 500, color: '#0A0A0B', background: T1,
@@ -153,7 +154,7 @@ function Hero({ onSignup }) {
               }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                Get started free
+                Commencer gratuitement
               </button>
             </div>
           </FadeIn>
@@ -262,8 +263,8 @@ function NewSpecies() {
     <section style={{ background: BG, padding: '100px 120px', fontFamily: F, borderTop: `1px solid ${BORDER}` }}>
       <FadeIn>
         <h2 style={{ fontSize: 'clamp(28px,3.5vw,42px)', fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.04em', margin: 0, maxWidth: 720 }}>
-          <span style={{ color: T1 }}>A new species of product tool.</span>{' '}
-          <span style={{ color: 'rgba(255,255,255,0.22)' }}>Purpose-built for modern teams with AI workflows at its core, Linear sets a new standard for planning and building products.</span>
+          <span style={{ color: T1 }}>Une nouvelle génération d'outil produit.</span>{' '}
+          <span style={{ color: 'rgba(255,255,255,0.22)' }}>Conçu pour les équipes modernes avec les workflows IA au cœur, Linear fixe un nouveau standard pour planifier et construire des produits.</span>
         </h2>
       </FadeIn>
     </section>
@@ -273,9 +274,9 @@ function NewSpecies() {
 // ─── THREE PILLARS ────────────────────────────────────────────────────────────
 function ThreePillars() {
   const items = [
-    { fig: 'FIG 0.2', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7b144b7-4ef0-4991-9bcb-617c6a37d200/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Built for purpose', desc: 'Linear is shaped by the practices and principles of world-class product teams.' },
-    { fig: 'FIG 0.3', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/6600ca96-e49b-4fd9-c03a-7979faddad00/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Powered by AI agents', desc: 'Designed for workflows shared by humans and agents. From drafting PRDs to pushing PRs.' },
-    { fig: 'FIG 0.4', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7fa8f5f-d439-4329-6a65-de549b51e300/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Designed for speed', desc: 'Reduces noise and restores momentum to help teams ship with high velocity and focus.' },
+    { fig: 'FIG 0.2', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7b144b7-4ef0-4991-9bcb-617c6a37d200/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Fait pour l\'essentiel', desc: 'Linear est façonné par les pratiques et principes des meilleures équipes produit au monde.' },
+    { fig: 'FIG 0.3', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/6600ca96-e49b-4fd9-c03a-7979faddad00/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Propulsé par les agents IA', desc: 'Conçu pour les workflows partagés entre humains et agents. Du PRD au PR.' },
+    { fig: 'FIG 0.4', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7fa8f5f-d439-4329-6a65-de549b51e300/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Conçu pour la vitesse', desc: 'Réduit le bruit et restaure l\'élan pour aider les équipes à livrer rapidement avec focus.' },
   ];
   return (
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, fontFamily: F }}>
@@ -571,10 +572,10 @@ function MonitorMock() {
 // ─── CHANGELOG ────────────────────────────────────────────────────────────────
 function Changelog() {
   const posts = [
-    { dot: '#ef4444', title: 'Coding sessions in Linear', desc: 'Earlier this year, we launched Linear Agent, giving teams a new way to pla...', date: 'Jun 10, 2026' },
-    { dot: 'rgba(255,255,255,0.25)', title: 'Team documents', desc: "Important team context doesn't always belong in a specific issue, project, o...", date: 'Jun 3, 2026' },
-    { dot: 'rgba(255,255,255,0.25)', title: 'Linear Diffs', desc: 'Agents generate large volumes of code, but individuals are still...', date: 'May 27, 2026' },
-    { dot: 'rgba(255,255,255,0.25)', title: 'Project Slack channels', desc: 'Project teams often use a Slack channel to discuss and share feedba...', date: 'May 21, 2026' },
+    { dot: '#ef4444', title: 'Sessions de code dans Linear', desc: 'Plus tôt cette année, nous avons lancé Linear Agent, offrant aux équipes une nouvelle façon de...', date: '10 juin 2026' },
+    { dot: 'rgba(255,255,255,0.25)', title: 'Documents d\'équipe', desc: "Le contexte important d'une équipe n'appartient pas toujours à un ticket ou projet spécifique...", date: '3 juin 2026' },
+    { dot: 'rgba(255,255,255,0.25)', title: 'Linear Diffs', desc: 'Les agents génèrent de gros volumes de code, mais les individus ont encore besoin de...', date: '27 mai 2026' },
+    { dot: 'rgba(255,255,255,0.25)', title: 'Canaux Slack de projet', desc: 'Les équipes projet utilisent souvent un canal Slack pour discuter et partager...', date: '21 mai 2026' },
   ];
   return (
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '100px 120px', fontFamily: F }}>
@@ -628,8 +629,8 @@ function Testimonials() {
         </div>
       </FadeIn>
       <FadeIn delay={0.1} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28 }}>
-        <p style={{ fontSize: 13, color: T2, margin: 0 }}>Linear powers over <strong style={{ color: T1 }}>33,000</strong> product teams. From ambitious startups to major enterprises.</p>
-        <a href="#" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}>Customer stories →</a>
+        <p style={{ fontSize: 13, color: T2, margin: 0 }}>Linear propulse plus de <strong style={{ color: T1 }}>33 000</strong> équipes produit. Des startups ambitieuses aux grandes entreprises.</p>
+        <a href="#" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}>Témoignages clients →</a>
       </FadeIn>
     </section>
   );
@@ -642,16 +643,16 @@ function FinalCta({ onSignup }) {
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(90,90,240,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <FadeIn>
         <h2 style={{ fontSize: 'clamp(3rem,6.5vw,6rem)', fontWeight: 700, color: T1, letterSpacing: '-0.05em', lineHeight: 1.0, margin: '0 0 36px' }}>
-          Built for the future.<br />Available today.
+          Conçu pour l'avenir.<br />Disponible aujourd'hui.
         </h2>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button onClick={onSignup} style={{ fontFamily: F, fontSize: 14, fontWeight: 600, color: '#0A0A0B', background: T1, border: 'none', borderRadius: 8, padding: '12px 28px', cursor: 'pointer', transition: 'opacity 150ms' }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Get started free</button>
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Commencer gratuitement</button>
           <button style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: T2, background: 'transparent', border: `1px solid rgba(255,255,255,0.15)`, borderRadius: 8, padding: '12px 28px', cursor: 'pointer', transition: 'color 150ms, border-color 150ms' }}
             onMouseEnter={e => { e.currentTarget.style.color = T1; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = T2; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}>
-            Contact sales
+            Contacter l'équipe commerciale
           </button>
         </div>
       </FadeIn>
@@ -662,11 +663,11 @@ function FinalCta({ onSignup }) {
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 function Footer() {
   const cols = [
-    { title: 'Product', links: ['Intake','Plan','Build','Diffs','Monitor','Security'] },
-    { title: 'Features', links: ['Asks','Agents','Coding Sessions','Customer Requests','Insights','Mobile'] },
-    { title: 'Company', links: ['About','Customers','Careers','Blog','Method','Brand'] },
-    { title: 'Resources', links: ['Switch','Download','Documentation','Developers','Status','Enterprise'] },
-    { title: 'Connect', links: ['Contact us','Community','X (Twitter)','GitHub','YouTube'] },
+    { title: 'Produit', links: ['Intake','Plan','Build','Diffs','Monitor','Sécurité'] },
+    { title: 'Fonctionnalités', links: ['Asks','Agents','Sessions de code','Demandes clients','Insights','Mobile'] },
+    { title: 'Entreprise', links: ['À propos','Clients','Carrières','Blog','Méthode','Marque'] },
+    { title: 'Ressources', links: ['Migrer','Télécharger','Documentation','Développeurs','Statut','Entreprise'] },
+    { title: 'Contact', links: ['Nous contacter','Communauté','X (Twitter)','GitHub','YouTube'] },
   ];
   return (
     <footer style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '56px 120px 36px', fontFamily: F }}>
@@ -692,7 +693,7 @@ function Footer() {
         ))}
       </div>
       <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 22, display: 'flex', gap: 20 }}>
-        {['Privacy','Terms','DPA','AUP'].map(l => (
+        {['Confidentialité','CGU','DPA','AUP'].map(l => (
           <a key={l} href="#" style={{ fontSize: 11, color: T3, textDecoration: 'none' }}>{l}</a>
         ))}
       </div>
@@ -773,23 +774,23 @@ export default function LandingPage() {
       <NewSpecies />
       <ThreePillars />
 
-      <FeatureSection title={<>Make product operations<br/>self-driving</>} desc="Turn conversations and customer feedback into actionable issues that are routed, labeled, and prioritized for the right team." num="1.0" linkLabel="Intake" subLinks={[{ num: '1.1', label: 'Linear Agent' }, { num: '1.2', label: 'Triage' }, { num: '1.3', label: 'Customer Requests' }, { num: '1.4', label: 'Linear Asks' }]}>
+      <FeatureSection title={<>Automatisez les opérations<br/>produit</>} desc="Transformez les conversations et retours clients en tickets actionnables, routés, étiquetés et priorisés pour la bonne équipe." num="1.0" linkLabel="Intake" subLinks={[{ num: '1.1', label: 'Linear Agent' }, { num: '1.2', label: 'Triage' }, { num: '1.3', label: 'Demandes clients' }, { num: '1.4', label: 'Linear Asks' }]}>
         <IntakeMock />
       </FeatureSection>
 
-      <FeatureSection title={<>Define the product<br/>direction</>} desc="Plan and navigate from idea to launch. Align your team with product initiatives, strategic roadmaps, and clear, up-to-date PRDs." num="2.0" linkLabel="Plan" subLinks={[{ num: '2.1', label: 'Projects' }, { num: '2.2', label: 'Documents' }, { num: '2.3', label: 'Initiatives' }, { num: '2.4', label: 'Visual planning' }]}>
+      <FeatureSection title={<>Définissez la direction<br/>produit</>} desc="Planifiez et naviguez de l'idée au lancement. Alignez votre équipe avec des initiatives, des roadmaps stratégiques et des PRDs à jour." num="2.0" linkLabel="Plan" subLinks={[{ num: '2.1', label: 'Projets' }, { num: '2.2', label: 'Documents' }, { num: '2.3', label: 'Initiatives' }, { num: '2.4', label: 'Planification visuelle' }]}>
         <PlanMock />
       </FeatureSection>
 
-      <FeatureSection title={<>Move work forward across<br/>teams and agents</>} desc="Build and deploy AI agents that work alongside your team. Work on complex tasks together or delegate entire issues end-to-end." num="3.0" linkLabel="Build" subLinks={[{ num: '3.1', label: 'Issues' }, { num: '3.2', label: 'Agents' }, { num: '3.3', label: 'Linear MCP' }, { num: '3.4', label: 'Git automations' }]}>
+      <FeatureSection title={<>Avancez ensemble,<br/>équipes et agents</>} desc="Déployez des agents IA qui travaillent aux côtés de votre équipe. Collaborez sur des tâches complexes ou déléguez des tickets entiers." num="3.0" linkLabel="Build" subLinks={[{ num: '3.1', label: 'Tickets' }, { num: '3.2', label: 'Agents' }, { num: '3.3', label: 'Linear MCP' }, { num: '3.4', label: 'Automations Git' }]}>
         <BuildMock />
       </FeatureSection>
 
-      <FeatureSection title={<>Review PRs and agent<br/>output</>} desc="Understand code changes at a glance with structural diffs for human and agent output. Review, discuss, and merge — all within Linear." num="4.0" linkLabel="Diffs">
+      <FeatureSection title={<>Revoyez les PRs et<br/>les sorties d'agents</>} desc="Comprenez les changements de code d'un coup d'œil avec des diffs structurés pour les sorties humaines et agents. Revoyez, discutez et mergez — tout dans Linear." num="4.0" linkLabel="Diffs">
         <DiffMock />
       </FeatureSection>
 
-      <FeatureSection title={<>Understand progress<br/>at scale</>} desc="Take the guesswork out of product development with project updates, analytics, and dashboards that surface what needs your attention." num="5.0" linkLabel="Monitor" subLinks={[{ num: '5.1', label: 'Pulse' }, { num: '5.2', label: 'Insights' }, { num: '5.3', label: 'Dashboards' }]}>
+      <FeatureSection title={<>Comprenez la progression<br/>à grande échelle</>} desc="Éliminez les suppositions avec des mises à jour de projets, des analytics et des tableaux de bord qui font remonter ce qui nécessite votre attention." num="5.0" linkLabel="Monitor" subLinks={[{ num: '5.1', label: 'Pulse' }, { num: '5.2', label: 'Insights' }, { num: '5.3', label: 'Tableaux de bord' }]}>
         <MonitorMock />
       </FeatureSection>
 

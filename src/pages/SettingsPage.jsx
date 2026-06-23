@@ -70,14 +70,14 @@ function CodeRedeemer({ user, setUser }) {
 
   const handleRedeem = async () => {
     setError(''); setSuccess('');
-    if (!code.trim()) { setError('Enter a code.'); return; }
+    if (!code.trim()) { setError('Entrez un code.'); return; }
     setLoading(true);
     try {
       const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), visible: true });
       const usable = results.filter(r => !r.used || r.unlimited || (r.max_uses && (r.use_count || 0) < r.max_uses));
       if (usable.length === 0) {
         const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
-        setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.');
+        setError(any.length > 0 ? 'Ce code a déjà été utilisé.' : 'Code invalide.');
         setLoading(false); return;
       }
       const rec = usable[0];
@@ -116,7 +116,7 @@ function CodeRedeemer({ user, setUser }) {
       setCode('');
     } catch (e) {
       writeAuditLog(user?.id || 'anonymous', { action: 'save', resource_type: 'AccessCode', resource_id: 'failed_redemption', status: 'failed', error_message: e?.message || 'Validation error', metadata: { attempted_code: code.trim(), email: user?.email } }).catch(() => {});
-      setError('Validation error.');
+      setError('Erreur de validation.');
     }
     setLoading(false);
   };
@@ -130,7 +130,7 @@ function CodeRedeemer({ user, setUser }) {
           style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
           style={{ padding: '7px 14px', background: code.trim() ? '#111' : '#F0F0EE', color: code.trim() ? '#fff' : '#aaa', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-          {loading ? '...' : 'Activate'}
+          {loading ? '…' : 'Activer'}
         </button>
       </div>
       {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 5 }}>{error}</p>}
@@ -150,7 +150,7 @@ function getRenewalDate(user) {
   return d;
 }
 
-const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}k` : String(n ?? 0);
 
 function CreditsGauge({ used, limit }) {
@@ -159,15 +159,15 @@ function CreditsGauge({ used, limit }) {
   return (
     <div style={{ marginTop: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 13, color: '#555' }}>{formatK(used)} used</span>
+        <span style={{ fontSize: 13, color: '#555' }}>{formatK(used)} utilisés</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{formatK(limit)} total</span>
       </div>
       <div style={{ height: 10, background: '#EBEBEA', borderRadius: 999, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{pct}% consumed</span>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{formatK(Math.max(0, limit - used))} remaining</span>
+        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{pct}% consommés</span>
+        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{formatK(Math.max(0, limit - used))} restants</span>
       </div>
     </div>
   );
@@ -285,7 +285,7 @@ export default function SettingsPage() {
     </div>
   );
 
-  const sectionTitles = { profile: 'Profile', usage: 'Usage', plan: 'Billing' };
+  const sectionTitles = { profile: 'Profil', usage: 'Utilisation', plan: 'Facturation' };
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -298,19 +298,19 @@ export default function SettingsPage() {
         {/* ── PROFILE ── */}
         {activeSection === 'profile' && (
           <div>
-            <SectionTitle>General</SectionTitle>
+            <SectionTitle>Général</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Email" description="Your login email address — cannot be changed.">
+              <SettingRow label="Email" description="Votre adresse email de connexion — non modifiable.">
                 <input value={user?.email || ''} disabled style={{ ...inputStyle, width: 220, opacity: 0.5, cursor: 'not-allowed', background: '#F0F0EE' }} />
               </SettingRow>
-              <SettingRow label="Full name" description="Your display name across the app." noBorder>
+              <SettingRow label="Nom complet" description="Votre nom d'affichage dans l'application." noBorder>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input value={fullName} onChange={e => setFullName(e.target.value)}
                       style={{ ...inputStyle, width: 200, border: `1px solid ${profileError ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
                     <button onClick={saveProfile} disabled={savingProfile}
                       style={{ padding: '7px 13px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: savingProfile ? 0.6 : 1, whiteSpace: 'nowrap' }}>
-                      {savingProfile ? 'Saving…' : 'Save'}
+                      {savingProfile ? 'Enregistrement…' : 'Sauvegarder'}
                     </button>
                   </div>
                   {profileError && <p style={{ fontSize: 11, color: '#ef4444', margin: 0 }}>{profileError}</p>}
@@ -319,14 +319,14 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Danger zone</SectionTitle>
+            <SectionTitle>Zone dangereuse</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Delete account" description="Permanently delete your account and all associated data. This cannot be undone." noBorder>
+              <SettingRow label="Supprimer le compte" description="Supprime définitivement votre compte et toutes les données associées. Irréversible." noBorder>
                 <button onClick={() => setShowDeleteModal(true)}
                   style={{ padding: '7px 14px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  Delete account
+                  Supprimer le compte
                 </button>
               </SettingRow>
             </div>
@@ -337,17 +337,17 @@ export default function SettingsPage() {
         {activeSection === 'usage' && (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
-              <StatCard label="Credits used" value={formatK(creditsUsed)} sub={`of ${formatK(creditsLimit)}`} accent />
-              <StatCard label="Generations" value={genCount === null ? '—' : genCount} sub="this cycle" />
-              <StatCard label="Current plan" value={userPlan?.name || 'Free'} sub={isYearly ? 'Yearly' : 'Monthly'} />
+              <StatCard label="Crédits utilisés" value={formatK(creditsUsed)} sub={`sur ${formatK(creditsLimit)}`} accent />
+              <StatCard label="Générations" value={genCount === null ? '—' : genCount} sub="ce cycle" />
+              <StatCard label="Plan actuel" value={userPlan?.name || 'Free'} sub={isYearly ? 'Annuel' : 'Mensuel'} />
             </div>
 
-            <SectionTitle>Consumption</SectionTitle>
+            <SectionTitle>Consommation</SectionTitle>
             <CreditsGauge used={creditsUsed} limit={creditsLimit} />
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Activity — last 7 days</SectionTitle>
-            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 14px' }}>Credits consumed per day.</p>
+            <SectionTitle>Activité — 7 derniers jours</SectionTitle>
+            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 14px' }}>Crédits consommés par jour.</p>
             <div style={{ background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 16px 10px' }}>
               <ResponsiveContainer width="100%" height={100}>
                 <BarChart data={getDailyUsage()} barSize={14}>
@@ -359,17 +359,17 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Billing cycle</SectionTitle>
+            <SectionTitle>Cycle de facturation</SectionTitle>
             <div style={{ marginTop: 8 }}>
               {getRenewalDate(user) && (
-                <SettingRow label="Next renewal" description="Your credits reset on this date.">
+                <SettingRow label="Prochain renouvellement" description="Vos crédits se réinitialisent à cette date.">
                   <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Calendar style={{ width: 12, height: 12, color: '#999' }} />
                     {formatDate(getRenewalDate(user))}
                   </span>
                 </SettingRow>
               )}
-              <SettingRow label="Cycle start" description="Start date of your current subscription." noBorder>
+              <SettingRow label="Début du cycle" description="Date de début de votre abonnement actuel." noBorder>
                 <span style={{ fontSize: 13, color: '#444' }}>{formatDate(user?.subscription_date || user?.created_date)}</span>
               </SettingRow>
             </div>
@@ -379,51 +379,51 @@ export default function SettingsPage() {
         {/* ── BILLING ── */}
         {activeSection === 'plan' && (
           <div>
-            <SectionTitle>Subscription</SectionTitle>
+            <SectionTitle>Abonnement</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Current plan" description={isYearly ? 'Billed annually' : userPlan?.price_monthly > 0 ? 'Billed monthly' : 'Free forever'}>
+              <SettingRow label="Plan actuel" description={isYearly ? 'Facturé annuellement' : userPlan?.price_monthly > 0 ? 'Facturé mensuellement' : 'Gratuit pour toujours'}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{userPlan?.name || 'Free'}</span>
                   {isYearly && <Badge color="coral">Yearly</Badge>}
                   {!isYearly && userPlan?.price_monthly > 0 && <Badge color="blue">Monthly</Badge>}
                 </div>
               </SettingRow>
-              <SettingRow label="Credits" description="Credits available per billing cycle.">
+              <SettingRow label="Crédits" description="Crédits disponibles par cycle de facturation.">
                 <span style={{ fontSize: 13, color: '#444' }}>
-                  {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('en-US')} / mo` : 'Free tier'}
+                  {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('fr-FR')} / mois` : 'Gratuit'}
                 </span>
               </SettingRow>
               {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
-                <SettingRow label="Next renewal" description="Your plan auto-renews on this date.">
+                <SettingRow label="Prochain renouvellement" description="Votre plan se renouvelle automatiquement à cette date.">
                   <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Clock style={{ width: 12, height: 12, color: '#999' }} />
                     {formatDate(getRenewalDate(user))}
                   </span>
                 </SettingRow>
               )}
-              <SettingRow label="Manage plan" description="Upgrade, downgrade, or cancel your subscription." noBorder>
+              <SettingRow label="Gérer le plan" description="Passer à un plan supérieur, inférieur ou annuler votre abonnement." noBorder>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => navigate('/manage-plan')}
                     style={{ padding: '7px 13px', background: '#F5F5F3', color: '#555', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-                    Manage
+                    Gérer
                   </button>
                   <button onClick={() => navigate('/pricing')}
                     style={{ padding: '7px 14px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    Upgrade
+                    Passer Pro
                   </button>
                 </div>
               </SettingRow>
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Access code</SectionTitle>
-            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 12px', lineHeight: 1.5 }}>Redeem a code to activate a plan or add credits.</p>
+            <SectionTitle>Code d'accès</SectionTitle>
+            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 12px', lineHeight: 1.5 }}>Activez un code pour débloquer un plan ou ajouter des crédits.</p>
             <CodeRedeemer user={user} setUser={handleSetUser} />
 
             {userPlan?.price_monthly > 0 && (
               <>
                 <div style={{ height: 28 }} />
-                <SectionTitle>Billing history</SectionTitle>
+                <SectionTitle>Historique de facturation</SectionTitle>
                 <div style={{ marginTop: 8 }}>
                   <SettingRow
                     label={userPlan.name}
@@ -431,13 +431,13 @@ export default function SettingsPage() {
                     noBorder
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {cancelTicket?.cancel_status === 'pending' && <Badge color="yellow">Cancellation pending</Badge>}
-                      {cancelTicket?.cancel_status === 'approved' && <Badge color="red">Cancelled</Badge>}
-                      {!cancelTicket && <Badge color="green">Active</Badge>}
+                      {cancelTicket?.cancel_status === 'pending' && <Badge color="yellow">Annulation en cours</Badge>}
+                      {cancelTicket?.cancel_status === 'approved' && <Badge color="red">Annulé</Badge>}
+                      {!cancelTicket && <Badge color="green">Actif</Badge>}
                       <button onClick={() => setShowInvoiceModal(true)}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 5, fontSize: 12, fontWeight: 500, color: invoiceRequested[userPlan.name] ? '#16a34a' : '#555', cursor: 'pointer' }}>
                         <Download style={{ width: 11, height: 11 }} />
-                        {invoiceRequested[userPlan.name] ? 'Sent' : 'Invoice'}
+                        {invoiceRequested[userPlan.name] ? 'Envoyé' : 'Facture'}
                       </button>
                     </div>
                   </SettingRow>
@@ -456,15 +456,15 @@ export default function SettingsPage() {
           onClick={e => { if (e.target === e.currentTarget) setShowInvoiceModal(false); }}>
           <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>Request an invoice</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>Demander une facture</p>
               <button onClick={() => setShowInvoiceModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X style={{ width: 14, height: 14 }} /></button>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>Enter the email used for your payment.</p>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>Entrez l'email utilisé pour votre paiement.</p>
               <input value={invoiceEmail} onChange={e => setInvoiceEmail(e.target.value)} placeholder="email@example.com" style={{ ...inputStyle, marginBottom: 12 }} />
               <button onClick={requestInvoice} disabled={invoiceLoading || !invoiceEmail.trim()}
                 style={{ width: '100%', padding: '9px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: invoiceLoading || !invoiceEmail.trim() ? 0.5 : 1 }}>
-                {invoiceLoading ? 'Sending...' : 'Send request'}
+                {invoiceLoading ? 'Envoi…' : 'Envoyer la demande'}
               </button>
             </div>
           </div>
@@ -476,18 +476,18 @@ export default function SettingsPage() {
           onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
           <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', margin: 0 }}>Delete account</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', margin: 0 }}>Supprimer le compte</p>
             </div>
             <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be permanently deleted.</p>
+              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
               <div style={{ background: '#F9F9F8', borderRadius: 6, padding: '8px 11px', marginBottom: 14 }}>
                 <p style={{ fontSize: 12, color: '#666', margin: 0 }}>Account: <strong style={{ color: '#111' }}>{user?.email}</strong></p>
               </div>
               <button onClick={deleteAccount} style={{ width: '100%', padding: '9px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 8 }}>
-                Confirm deletion
+                Confirmer la suppression
               </button>
               <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '9px 0', background: 'transparent', color: '#666', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 7, fontSize: 13, cursor: 'pointer' }}>
-                Cancel
+                Annuler
               </button>
             </div>
           </div>
