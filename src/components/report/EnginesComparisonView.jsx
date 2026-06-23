@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from 'recharts';
+import { base44 } from '@/api/base44Client';
+import { ChevronDown, ChevronRight, Loader } from 'lucide-react';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#0A0A0B';
-const INK2 = '#4B4B52';
-const INK3 = '#9B9BA8';
-const BORDER = '#EFEFEF';
-const SURFACE = '#F9F8F6';
+const INK = '#111110';
+const INK2 = '#555554';
+const INK3 = '#999997';
+const BORDER = '#E8E8E6';
+const SURFACE = '#F7F6F4';
 const WHITE = '#FFFFFF';
 
 const ChatGPTLogo = () => (
@@ -16,41 +17,148 @@ const ChatGPTLogo = () => (
 );
 
 const ENGINE_CFG = [
-  { key: 'chatgpt',    label: 'ChatGPT',    logoEl: <ChatGPTLogo /> },
-  { key: 'gemini',     label: 'Gemini',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
-  { key: 'claude',     label: 'Claude',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
-  { key: 'perplexity', label: 'Perplexity', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
-  { key: 'mistral',    label: 'Mistral',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png' },
-  { key: 'llama',      label: 'Llama',      logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png' },
-  { key: 'grok',       label: 'Grok',       logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png' },
-  { key: 'copilot',    label: 'Copilot',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png' },
+  { key: 'chatgpt',    label: 'ChatGPT',    logoEl: <ChatGPTLogo />, color: '#10A37F' },
+  { key: 'gemini',     label: 'Gemini',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png', color: '#4285F4' },
+  { key: 'claude',     label: 'Claude',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png', color: '#D97706' },
+  { key: 'perplexity', label: 'Perplexity', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png', color: '#20B2AA' },
+  { key: 'mistral',    label: 'Mistral',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', color: '#FF6B35' },
+  { key: 'llama',      label: 'Llama',      logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', color: '#0064E0' },
+  { key: 'grok',       label: 'Grok',       logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png', color: '#1DA1F2' },
+  { key: 'copilot',    label: 'Copilot',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png', color: '#0078D4' },
 ];
 
 function EngLogo({ e, size = 18 }) {
   if (e.logoEl) return (
-    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      {e.logoEl}
-    </div>
+    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{e.logoEl}</div>
   );
   return (
     <img src={e.logo} alt={e.label} width={size} height={size}
-      style={{ objectFit: 'contain', borderRadius: 3, flexShrink: 0 }}
+      style={{ objectFit: 'contain', flexShrink: 0 }}
       onError={ev => { ev.target.style.opacity = '0.2'; }} />
   );
 }
 
-function scoreLevel(s) {
-  if (s >= 65) return { label: 'Bon', color: '#059669', bg: '#ECFDF5' };
-  if (s >= 35) return { label: 'Moyen', color: '#B45309', bg: '#FFFBEB' };
-  return { label: 'Faible', color: '#DC2626', bg: '#FEF2F2' };
+// Simule le prompt envoyé à chaque IA selon le domaine
+function buildPrompt(domain, businessName) {
+  const name = businessName || domain;
+  return `Quels sont les meilleurs services proposés par "${name}" (${domain}) ? Peux-tu me donner une recommandation détaillée avec leurs points forts et leurs tarifs ?`;
 }
 
-const SENTINEL_LABEL = (s) => s === 'positive' ? '👍 Positif' : s === 'negative' ? '👎 Négatif' : '→ Neutre';
+// ── Card détail d'un moteur ───────────────────────────────────────────────────
+function EngineDetailCard({ e, siteUrl, businessName }) {
+  const [open, setOpen] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const prompt = buildPrompt(
+    (siteUrl || '').replace(/https?:\/\//, '').split('/')[0],
+    businessName
+  );
+
+  const score = e.score;
+  const barColor = e.color;
+
+  const loadResponse = async () => {
+    if (aiResponse || loading) return;
+    setLoading(true);
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `Tu simules le comportement de l'IA "${e.label}". 
+        
+        Question posée : "${prompt}"
+        
+        Réponds comme le ferait réellement ${e.label} à cette question, en français. 
+        - Si la marque est bien connue et présente en ligne, mentionne-la avec des détails.
+        - Si elle est peu connue, dis-le honnêtement et suggère des alternatives génériques.
+        - Sois concis (3-5 phrases max).
+        - Ne mentionne pas que tu simules ${e.label}.`,
+        model: 'gpt_5_mini',
+      });
+      setAiResponse(typeof res === 'string' ? res : res?.response || res?.content || JSON.stringify(res));
+    } catch {
+      setAiResponse('Impossible de charger la réponse simulée pour ce moteur.');
+    }
+    setLoading(false);
+  };
+
+  const handleToggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next) loadResponse();
+  };
+
+  return (
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
+      {/* Row */}
+      <button onClick={handleToggle}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
+        <EngLogo e={e} size={20} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{e.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: score >= 60 ? '#059669' : score >= 35 ? INK3 : '#DC2626' }}>
+              {score >= 60 ? 'Vous cite' : score >= 35 ? 'Parfois' : 'Vous ignore'}
+            </span>
+          </div>
+          <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${score}%`, background: barColor, borderRadius: 2, transition: 'width 1s ease', opacity: 0.7 }} />
+          </div>
+        </div>
+        <span style={{ fontSize: 18, fontWeight: 900, color: INK, letterSpacing: '-0.03em', flexShrink: 0 }}>{score}</span>
+        {open ? <ChevronDown size={14} color={INK3} /> : <ChevronRight size={14} color={INK3} />}
+      </button>
+
+      {/* Expanded */}
+      {open && (
+        <div style={{ borderTop: `1px solid ${BORDER}`, padding: '16px' }}>
+          {/* Prompt simulé */}
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>Question testée</p>
+            <div style={{ background: SURFACE, borderRadius: 10, padding: '10px 12px', display: 'flex', gap: 8 }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#E0E0DE', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: INK3, marginTop: 1 }}>U</div>
+              <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.6 }}>{prompt}</p>
+            </div>
+          </div>
+
+          {/* Réponse IA */}
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>Réponse de {e.label}</p>
+            <div style={{ background: SURFACE, borderRadius: 10, padding: '12px', display: 'flex', gap: 10 }}>
+              <div style={{ flexShrink: 0, marginTop: 2 }}>
+                <EngLogo e={e} size={16} />
+              </div>
+              {loading ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Loader size={13} color={INK3} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: 12, color: INK3 }}>Simulation en cours…</span>
+                </div>
+              ) : (
+                <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.7 }}>{aiResponse}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 12 }}>
+            {[
+              { l: 'Score', v: `${e.score}/100` },
+              { l: 'Exactitude', v: `${e.accuracy}/100` },
+              { l: 'Sentiment', v: e.sentiment === 'positive' ? '👍 Positif' : e.sentiment === 'negative' ? '👎 Négatif' : '→ Neutre' },
+            ].map(({ l, v }) => (
+              <div key={l} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: INK }}>{v}</div>
+                <div style={{ fontSize: 9, color: INK3, fontWeight: 600, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+}
 
 export default function EnginesComparisonView({ d }) {
-  const [view, setView] = useState('bars'); // 'bars' | 'radar' | 'detail'
-  const [selected, setSelected] = useState(null);
-
   const engines = ENGINE_CFG.map(e => ({
     ...e,
     score: d[`${e.key}_score`] || 0,
@@ -60,187 +168,38 @@ export default function EnginesComparisonView({ d }) {
     reason: d[`${e.key}_reason`] || '',
   })).sort((a, b) => b.score - a.score);
 
-  const radarData = engines.map(e => ({ subject: e.label, score: e.score }));
   const avg = Math.round(engines.reduce((s, e) => s + e.score, 0) / engines.length);
-
-  const sel = selected != null ? engines.find(e => e.key === selected) : null;
+  const domain = (d.site_url || '').replace(/https?:\/\//, '').split('/')[0];
 
   return (
     <div style={{ fontFamily: F }}>
-      {/* Section header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: INK, margin: '0 0 2px', letterSpacing: '-0.02em' }}>Comparaison des moteurs IA</h2>
-          <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Score moyen : <strong style={{ color: INK }}>{avg}/100</strong></p>
+      {/* Header */}
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 18px', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Analyse par assistant IA</p>
+            <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>Score moyen sur 8 assistants</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 32, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.04em' }}>{avg}</div>
+            <div style={{ fontSize: 10, color: INK3, fontWeight: 600 }}>/100</div>
+          </div>
         </div>
-        <div style={{ display: 'flex', background: SURFACE, borderRadius: 9, padding: 3, gap: 2, border: `1px solid ${BORDER}` }}>
-          {[{ k: 'bars', l: 'Barres' }, { k: 'radar', l: 'Radar' }, { k: 'detail', l: 'Détail' }].map(({ k, l }) => (
-            <button key={k} onClick={() => setView(k)} style={{
-              padding: '5px 11px', borderRadius: 7, border: 'none', cursor: 'pointer',
-              fontSize: 11, fontWeight: 700, fontFamily: F,
-              background: view === k ? WHITE : 'transparent',
-              color: view === k ? INK : INK3,
-              boxShadow: view === k ? '0 1px 4px rgba(0,0,0,0.07)' : 'none',
-              transition: 'all 0.15s',
-            }}>{l}</button>
-          ))}
+        {/* Global bar */}
+        <div style={{ height: 4, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${avg}%`, background: INK, borderRadius: 2, transition: 'width 1.2s ease' }} />
         </div>
       </div>
 
-      {/* ── BARS VIEW ── */}
-      {view === 'bars' && (
-        <div>
-          {/* Global score bar */}
-          <div style={{ background: INK, borderRadius: 14, padding: '16px 18px', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Score moyen toutes IAs</span>
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{avg}<span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>/100</span></span>
-            </div>
-            <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${avg}%`, background: avg >= 65 ? '#34D399' : avg >= 35 ? '#FBBF24' : '#F87171', borderRadius: 2, transition: 'width 1.2s ease' }} />
-            </div>
-          </div>
-
-          {/* Per-engine bars */}
-          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-            {engines.map((e, i) => {
-              const lvl = scoreLevel(e.score);
-              return (
-                <div key={e.key}
-                  onClick={() => setSelected(selected === e.key ? null : e.key)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '13px 16px', cursor: 'pointer',
-                    borderBottom: i < engines.length - 1 ? `1px solid ${BORDER}` : 'none',
-                    background: selected === e.key ? SURFACE : WHITE,
-                    transition: 'background 0.12s',
-                  }}>
-                  <EngLogo e={e} size={20} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: INK, width: 80, flexShrink: 0 }}>{e.label}</span>
-                  <div style={{ flex: 1, height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${e.score}%`, background: INK, borderRadius: 3, transition: 'width 1s ease', opacity: 0.12 + (e.score / 100) * 0.78 }} />
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: INK, width: 26, textAlign: 'right', flexShrink: 0 }}>{e.score}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: lvl.color, background: lvl.bg, padding: '3px 7px', borderRadius: 20, flexShrink: 0 }}>{lvl.label}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Engine detail panel */}
-          {sel && (
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px', marginTop: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <EngLogo e={sel} size={24} />
-                <span style={{ fontSize: 15, fontWeight: 800, color: INK }}>{sel.label}</span>
-                <span style={{ fontSize: 22, fontWeight: 900, color: INK, marginLeft: 'auto' }}>{sel.score}<span style={{ fontSize: 11, fontWeight: 500, color: INK3 }}>/100</span></span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
-                {[
-                  { l: 'Score', v: sel.score },
-                  { l: 'Exactitude', v: sel.accuracy },
-                  { l: 'Citations/100', v: sel.citFreq },
-                ].map(({ l, v }) => (
-                  <div key={l} style={{ background: SURFACE, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: INK }}>{v}</div>
-                    <div style={{ fontSize: 9, color: INK3, marginTop: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: SURFACE, borderRadius: 10, marginBottom: sel.reason ? 10 : 0 }}>
-                <span style={{ fontSize: 11, color: INK3, fontWeight: 600 }}>Sentiment :</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>{SENTINEL_LABEL(sel.sentiment)}</span>
-              </div>
-              {sel.reason && (
-                <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.6, padding: '10px 12px', background: '#FAFAFA', borderRadius: 10, border: `1px solid ${BORDER}` }}>{sel.reason}</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── RADAR VIEW ── */}
-      {view === 'radar' && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 12px' }}>
-          <p style={{ fontSize: 11, color: INK3, textAlign: 'center', margin: '0 0 8px', fontWeight: 600 }}>Vue radar — comparaison globale</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-              <PolarGrid stroke={BORDER} />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: INK3, fontWeight: 600, fontFamily: F }} />
-              <Radar dataKey="score" stroke={INK} fill={INK} fillOpacity={0.07} strokeWidth={2} />
-            </RadarChart>
-          </ResponsiveContainer>
-          {/* Legend */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 12 }}>
-            {engines.map(e => (
-              <div key={e.key} style={{ textAlign: 'center', padding: '8px 4px', background: SURFACE, borderRadius: 9 }}>
-                <EngLogo e={e} size={16} />
-                <div style={{ fontSize: 14, fontWeight: 900, color: INK, marginTop: 4 }}>{e.score}</div>
-                <div style={{ fontSize: 9, color: INK3, fontWeight: 600 }}>{e.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── DETAIL VIEW ── */}
-      {view === 'detail' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {engines.map(e => {
-            const lvl = scoreLevel(e.score);
-            return (
-              <div key={e.key} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: `1px solid ${BORDER}` }}>
-                  <EngLogo e={e} size={22} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: INK, flex: 1 }}>{e.label}</span>
-                  <span style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.03em' }}>{e.score}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: lvl.color, background: lvl.bg, padding: '3px 8px', borderRadius: 20 }}>{lvl.label}</span>
-                </div>
-                {/* Metrics */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }}>
-                  {[
-                    { l: 'Exactitude', v: e.accuracy },
-                    { l: 'Citations', v: e.citFreq },
-                    { l: 'Sentiment', v: SENTINEL_LABEL(e.sentiment), isText: true },
-                  ].map(({ l, v, isText }, idx) => (
-                    <div key={l} style={{
-                      padding: '12px 14px', textAlign: 'center',
-                      borderRight: idx < 2 ? `1px solid ${BORDER}` : 'none',
-                    }}>
-                      <div style={{ fontSize: isText ? 11 : 16, fontWeight: isText ? 600 : 900, color: INK }}>{v}</div>
-                      <div style={{ fontSize: 9, color: INK3, fontWeight: 600, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{l}</div>
-                    </div>
-                  ))}
-                </div>
-                {/* Progress bars */}
-                <div style={{ padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {[
-                    { l: 'Score global', v: e.score },
-                    { l: 'Exactitude des infos', v: e.accuracy },
-                    { l: 'Fréquence de citation', v: e.citFreq },
-                  ].map(({ l, v }) => (
-                    <div key={l}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                        <span style={{ fontSize: 10, color: INK3, fontWeight: 600 }}>{l}</span>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: INK }}>{v}/100</span>
-                      </div>
-                      <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${v}%`, background: INK, borderRadius: 2, opacity: 0.15 + (v / 100) * 0.75, transition: 'width 1s ease' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {e.reason && (
-                  <div style={{ padding: '10px 16px 14px', borderTop: `1px solid ${BORDER}` }}>
-                    <p style={{ fontSize: 11, color: INK2, margin: 0, lineHeight: 1.6 }}>{e.reason}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* Engine cards */}
+      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>
+        Cliquez sur un assistant pour voir la vraie réponse simulée
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {engines.map(e => (
+          <EngineDetailCard key={e.key} e={e} siteUrl={d.site_url} businessName={d.identity_name || d.business_name} />
+        ))}
+      </div>
     </div>
   );
 }
