@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ClipboardCheck, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import AuditOverview from '../components/audit/AuditOverview';
 import AuditCrawlability from '../components/audit/AuditCrawlability';
 import AuditIssues from '../components/audit/AuditIssues';
@@ -83,10 +84,11 @@ export default function AuditPage() {
       const u = await base44.auth.me();
       if (!u) { setPhase('no_profile'); return; }
 
+      const active = getActiveDomain();
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      if (!profiles.length || !profiles[0].site_url) { setPhase('no_profile'); return; }
-
-      const p = profiles[0];
+      // Match active domain first, fallback to first profile
+      const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
+      if (!p || !p.site_url) { setPhase('no_profile'); return; }
       setProfile(p);
 
       // Try cache first (24h TTL)
@@ -123,7 +125,11 @@ export default function AuditPage() {
     }
   };
 
-  useEffect(() => { loadAudit(); }, []);
+  useEffect(() => {
+    loadAudit();
+    const unsub = onActiveDomainChange(() => loadAudit());
+    return unsub;
+  }, []);
 
   const siteUrl = profile?.site_url || '';
   const domain = siteUrl.replace(/https?:\/\//, '').split('/')[0];

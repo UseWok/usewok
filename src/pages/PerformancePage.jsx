@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, ChevronDown, Zap } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, RadarChart, Radar,
@@ -399,18 +400,21 @@ export default function PerformancePage() {
   const [phase, setPhase] = useState('loading');
   const [selectedGrowthBrand, setSelectedGrowthBrand] = useState('');
 
-  useEffect(() => {
-    base44.auth.me().then(async u => {
+  const loadPerf = async (forceRefresh = false) => {
+    try {
+      const u = await base44.auth.me();
       if (!u) { navigate('/'); return; }
+      const active = getActiveDomain();
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      if (!profiles.length || !profiles[0].site_url) { setPhase('no_profile'); return; }
-      const p = profiles[0];
+      // Match active domain first, fallback to first profile
+      const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
+      if (!p || !p.site_url) { setPhase('no_profile'); return; }
       let extra = {};
       try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
       const full = { ...p, ...extra };
       setProfile(full);
 
-      if (extra.perf_data && extra.perf_analyzed_at) {
+      if (!forceRefresh && extra.perf_data && extra.perf_analyzed_at) {
         const age = Date.now() - new Date(extra.perf_analyzed_at).getTime();
         if (age < 24 * 60 * 60 * 1000) {
           setPerfData(extra.perf_data);
@@ -421,7 +425,13 @@ export default function PerformancePage() {
       }
       setPhase('thinking');
       doFetch(p.site_url, full.identity_name, p.id, extra);
-    }).catch(() => setPhase('error'));
+    } catch { setPhase('error'); }
+  };
+
+  useEffect(() => {
+    loadPerf();
+    const unsub = onActiveDomainChange(() => loadPerf());
+    return unsub;
   }, []);
 
   const initBrandSel = (data) => {
@@ -442,13 +452,7 @@ export default function PerformancePage() {
     } catch { setPhase('error'); }
   };
 
-  const handleRefresh = () => {
-    if (!profile) return;
-    setPhase('thinking');
-    let extra = {};
-    try { extra = JSON.parse(profile.brand_keywords || '{}'); } catch {}
-    doFetch(profile.site_url, profile.identity_name, profile.id, extra);
-  };
+  const handleRefresh = () => loadPerf(true);
 
   const yourBrandName = perfData?.brand_name || profile?.identity_name || profile?.site_url || 'Votre marque';
   const analyzedAt = perfData?.analyzed_at
