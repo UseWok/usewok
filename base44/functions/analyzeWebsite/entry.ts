@@ -47,9 +47,11 @@ Deno.serve(async (req) => {
         - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number }
         - geo_traffic: array of max 4 objects sorted by traffic desc: first 3 top countries each { country: string (ISO 2-letter), country_name: string, pct: number (% of total traffic, integer) }, then one entry { country: "OTHER", country_name: "Autres pays", pct: number } if there are more. All pct must sum to 100.
         
-        IMPORTANT for issues: Write in simple French a business owner can understand. Never use words like "Schema Markup", "balise meta", "JSON-LD", "robots.txt", "SSL certificate". Instead say things like "Votre site n'est pas bien compris par les IA", "Votre fiche Google n'existe pas", "Votre site n'est pas sécurisé (pas de cadenas)".`,
+        IMPORTANT for issues: Write in simple French a business owner can understand. Never use words like "Schema Markup", "balise meta", "JSON-LD", "robots.txt", "SSL certificate". Instead say things like "Votre site n'est pas bien compris par les IA", "Votre fiche Google n'existe pas", "Votre site n'est pas sécurisé (pas de cadenas)".
+        
+        CRITICAL: Read the actual content of the website to determine its business_type and context. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", check the actual text—it might be a software agency or an app, not a recipe site or an Asian restaurant).`,
         add_context_from_internet: true,
-        model: 'gemini_3_flash',
+        model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -131,9 +133,11 @@ Deno.serve(async (req) => {
         - copilot_accuracy: number 0-100
         - ai_mentions_count: number (estimated total AI mentions/month)
         - chatgpt_reason: string (one sentence why in French)
-        - perplexity_reason: string (one sentence why in French)`,
+        - perplexity_reason: string (one sentence why in French)
+        
+        CRITICAL: Read the actual content of the website. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", do NOT assume it is an Asian restaurant or recipe site unless the content confirms it).`,
         add_context_from_internet: true,
-        model: 'gemini_3_flash',
+        model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -163,7 +167,7 @@ Deno.serve(async (req) => {
         - has_robots_txt: boolean
         - page_speed_score: number 0-100`,
         add_context_from_internet: true,
-        model: 'gemini_3_flash',
+        model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -212,6 +216,8 @@ Deno.serve(async (req) => {
         - impact: "high" | "medium"
         - effort: "low" | "medium" | "high"
 
+        CRITICAL: Read the actual content of the website. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", do NOT assume it is an Asian restaurant or recipe site unless the content confirms it).
+        
         Return:
         - lrs_score: number 0-100
         - lrs_citation_score: number 0-100

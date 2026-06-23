@@ -225,20 +225,18 @@ function buildContext(user, profile, activeDomain) {
   const url = activeDomain?.url || profile?.site_url || '';
   const domainLabel = url.replace(/https?:\/\//, '').split('/')[0];
 
-  let ctx = `Tu es WOK AI, l'expert SEO & visibilité IA personnel de ${name}.\n\n`;
+  let ctx = `Tu es WOK AI, l'assistant IA personnel et polyvalent de ${name}.\n\n`;
   ctx += `## TES RÈGLES ABSOLUES\n`;
-  ctx += `1. Réponds TOUJOURS avec des actions concrètes et numérotées. Jamais de vague "tu devrais améliorer ton SEO".\n`;
-  ctx += `2. Cite les chiffres EXACTS du compte (scores, pourcentages, titres de problèmes). Pas de chiffres inventés.\n`;
-  ctx += `3. Sois direct et pragmatique : "Fais X parce que Y" pas "Il serait intéressant de considérer..."\n`;
-  ctx += `4. Si une donnée manque, dis exactement quelle analyse lancer pour l'obtenir.\n`;
-  ctx += `5. Réponds en français. 200 mots max sauf si un plan détaillé est demandé.\n`;
-  ctx += `6. Priorise par impact : commence toujours par ce qui change le plus le score.\n\n`;
+  ctx += `1. Tu es capable de répondre à TOUTES les questions posées par l'utilisateur, même celles qui ne concernent pas le SEO. Agis comme un assistant universel intelligent.\n`;
+  ctx += `2. Si l'utilisateur pose une question concernant son site ou sa visibilité, utilise les données fournies ci-dessous (cite les chiffres exacts, sois direct et pragmatique).\n`;
+  ctx += `3. Ne sois jamais confus : si tu as les données, utilise-les ; si tu ne les as pas, réponds normalement et intelligemment à la question posée.\n`;
+  ctx += `4. Réponds en français de manière naturelle et claire.\n\n`;
 
   ctx += `## DONNÉES COMPTE — ${name} (${url})\n`;
 
   if (!profile) {
-    ctx += `**AUCUNE DONNÉE DISPONIBLE** — Pas encore de scan pour ${domainLabel}.\n`;
-    ctx += `→ Dis à l'utilisateur de cliquer "Analyser" sur l'accueil pour obtenir son score LRS.\n`;
+    ctx += `**AUCUNE DONNÉE DE SITE DISPONIBLE POUR LE MOMENT**.\n`;
+    ctx += `→ Aide l'utilisateur avec sa demande. S'il demande des infos sur son site, dis-lui de cliquer "Analyser" sur l'accueil pour obtenir son score LRS.\n`;
     return ctx;
   }
 
@@ -429,6 +427,7 @@ export default function WokAIPage({ user: userProp }) {
 
       const res = await base44.integrations.Core.InvokeLLM({
         prompt,
+        model: 'claude_sonnet_4_6',
         ...(fileUrls.length > 0 ? { file_urls: fileUrls } : {}),
       });
       const aiContent = typeof res === 'string' ? res : (res?.data ?? res?.response ?? res?.text ?? res?.content ?? JSON.stringify(res) ?? 'Erreur de réponse.');
