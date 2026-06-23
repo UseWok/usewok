@@ -3,7 +3,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles } from 'lucide-react';
-import WokAIPage from '@/pages/WokAIPage';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -415,7 +414,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
   const [settingsMode, setSettingsMode] = useState(false);
-  const [wokAIMode, setWokAIMode] = useState(false);
 
   // Load recents
 
@@ -516,18 +514,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           </div>
         </div>
 
-        {/* ── WOK AI mode ── */}
-        {expanded && wokAIMode && (
-          <WokAIPage user={user} onBack={() => setWokAIMode(false)} />
-        )}
-
-        {/* ── Scrollable body ── */}
-        {/* Settings mode: show settings sidebar */}
-        {expanded && settingsMode && !wokAIMode && (
+        {/* ── Settings mode ── */}
+        {expanded && settingsMode && (
           <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} />
         )}
 
-        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && (settingsMode || wokAIMode)) ? 'none' : 'flex' }}>
+        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && settingsMode) ? 'none' : 'flex' }}>
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
@@ -545,23 +537,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               <SectionLabel label="Outils IA" expanded={expanded} />
 
-              {/* Ask AI de WOK — même style que les autres nav items */}
-              <button
-                onClick={() => { setExpanded(true); setWokAIMode(true); setSettingsMode(false); }}
-                style={{
-                  display: 'flex', alignItems: 'center', width: '100%', height: 30,
-                  padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                  background: wokAIMode ? 'rgba(0,0,0,0.07)' : 'transparent',
-                  fontFamily: 'inherit', transition: 'background 100ms', gap: 8, marginBottom: 2,
-                }}
-                onMouseEnter={e => { if (!wokAIMode) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                onMouseLeave={e => { if (!wokAIMode) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <Sparkles style={{ width: 13, height: 13, flexShrink: 0, color: wokAIMode ? '#111' : '#888', strokeWidth: 1.8 }} />
-                <span style={{ fontSize: 12.5, fontWeight: wokAIMode ? 600 : 400, color: wokAIMode ? '#111' : '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  Ask AI de WOK
-                </span>
-              </button>
+              {/* Ask AI de WOK — nav item standard */}
+              <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
               {[
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
@@ -594,16 +571,9 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           {!expanded && <div style={{ flex: 1 }} />}
 
-            {/* collapsed: show AI button as icon only */}
+            {/* collapsed: WOK AI icon */}
           {!expanded && (
-            <button
-              onClick={() => { setExpanded(true); setWokAIMode(true); }}
-              title="Ask AI de WOK"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', margin: '2px auto', flexShrink: 0 }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <Sparkles size={13} color="#666" />
-            </button>
+            <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
           {/* ── Support button — circle with ? ── */}

@@ -55,6 +55,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import AdminBlog from './pages/admin/AdminBlog';
 
 import AIVisibilityReport from './pages/AIVisibilityReport.jsx';
+import WokAIPage from './pages/WokAIPage.jsx';
 import PerformancePage from './pages/PerformancePage.jsx';
 import AuditPage from './pages/AuditPage.jsx';
 import ConnectionsPage from './pages/ConnectionsPage';
@@ -205,6 +206,7 @@ const AuthenticatedApp = () => {
 
 
           <Route path="/ai-report" element={<AIVisibilityReport />} />
+          <Route path="/wok-ai" element={<WokAIPage />} />
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/audit" element={<AuditPage />} />
           <Route path="/workspace-settings" element={<WorkspaceSettings />} />
