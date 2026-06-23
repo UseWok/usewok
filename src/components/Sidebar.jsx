@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles } from 'lucide-react';
+import WokAIPage from '@/pages/WokAIPage';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -414,6 +415,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
   const [settingsMode, setSettingsMode] = useState(false);
+  const [wokAIMode, setWokAIMode] = useState(false);
 
   // Load recents
 
@@ -447,6 +449,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   useEffect(() => {
     if (location.pathname.startsWith('/settings')) setSettingsMode(true);
     else setSettingsMode(false);
+  }, [location.pathname]);
+
+  // Close wokAIMode when navigating away
+  useEffect(() => {
+    if (!location.pathname.startsWith('/settings')) setSettingsMode(false);
   }, [location.pathname]);
 
   const isMobile = useIsMobile();
@@ -509,13 +516,18 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           </div>
         </div>
 
+        {/* ── WOK AI mode ── */}
+        {expanded && wokAIMode && (
+          <WokAIPage user={user} onBack={() => setWokAIMode(false)} />
+        )}
+
         {/* ── Scrollable body ── */}
         {/* Settings mode: show settings sidebar */}
-        {expanded && settingsMode && (
+        {expanded && settingsMode && !wokAIMode && (
           <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} />
         )}
 
-        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: expanded && settingsMode ? 'none' : 'flex' }}>
+        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && (settingsMode || wokAIMode)) ? 'none' : 'flex' }}>
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
@@ -532,6 +544,31 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {expanded && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               <SectionLabel label="Outils IA" expanded={expanded} />
+
+              {/* Ask AI de WOK — bouton principal */}
+              <button
+                onClick={() => { setExpanded(true); setWokAIMode(true); setSettingsMode(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '0 10px', height: 36, borderRadius: 8, border: 'none',
+                  background: 'linear-gradient(135deg, #111110 0%, #2A2A28 100%)',
+                  cursor: 'pointer', fontFamily: 'inherit', marginBottom: 4,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                  transition: 'all 150ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              >
+                <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Sparkles size={10} color="#fff" />
+                </div>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em', flex: 1, textAlign: 'left' }}>
+                  Ask AI de WOK
+                </span>
+                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.08)', borderRadius: 4, padding: '1px 5px', fontWeight: 600 }}>
+                  GPT-4o
+                </div>
+              </button>
               {[
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
@@ -563,6 +600,16 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           )}
 
           {!expanded && <div style={{ flex: 1 }} />}
+
+            {/* collapsed: show AI button as icon only */}
+          {!expanded && (
+            <button
+              onClick={() => { setExpanded(true); setWokAIMode(true); }}
+              title="Ask AI de WOK"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: '#111110', cursor: 'pointer', margin: '4px auto', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }}>
+              <Sparkles size={13} color="#fff" />
+            </button>
+          )}
 
           {/* ── Support button — circle with ? ── */}
           <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', paddingLeft: expanded ? 0 : 0 }}>
