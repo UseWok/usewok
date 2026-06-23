@@ -341,9 +341,12 @@ export default function Home() {
       const u = await base44.auth.me();
       if (u) await runFullScanForDomain(cleanUrl, u.id);
       await loadProfiles(newList);
-    } catch {}
-    setScanning(null);
-    navigate('/ai-report');
+      setScanning(null);
+      navigate('/ai-report');
+    } catch (e) {
+      setScanning(null);
+      console.error('Scan failed:', e);
+    }
   };
 
   const handleAddDomain = (domain) => {
