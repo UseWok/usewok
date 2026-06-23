@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus, CheckCircle, XCircle, Link2, Globe, ExternalLink, Zap, ChevronDown, ArrowRight } from 'lucide-react';
+import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus, CheckCircle, XCircle, Link2, Globe, ExternalLink, Zap, ArrowRight } from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
 import EnginesComparisonView from '@/components/report/EnginesComparisonView';
+import ActionPlanView from '@/components/report/ActionPlanView';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 
 const F = 'Inter, system-ui, sans-serif';
@@ -134,12 +135,70 @@ function LRSHero({ d, onScan, scanning }) {
 }
 
 // ── Overview tab ──────────────────────────────────────────────────────────────
+const SCORE_META = {
+  'Visibilité IA': {
+    desc: 'Présence dans les réponses IA',
+    why: 'Mesure à quelle fréquence les IA vous citent quand quelqu\'un cherche votre catégorie de produit/service. En dessous de 40 = vous êtes invisible pour 80% des requêtes pertinentes.',
+    benchmark: 40,
+  },
+  'Clarté': {
+    desc: 'Message compris par les IA',
+    why: 'Les IA ne peuvent vous recommander que si elles comprennent précisément ce que vous faites. Un score faible signifie que votre site est ambigu — les IA vont préférer un concurrent plus clair.',
+    benchmark: 50,
+  },
+  'Commercial': {
+    desc: 'Signal d\'achat détecté',
+    why: 'Les IA captent des signaux commerciaux (prix, disponibilité, témoignages) pour décider si elles vous recommandent dans des contextes d\'achat. Un score bas = vous n\'êtes jamais recommandé quand un utilisateur veut acheter.',
+    benchmark: 45,
+  },
+  'Global': {
+    desc: 'Score consolidé LRS',
+    why: 'Score agrégé de vos 3 composantes. Un score Global élevé signifie que vous capturez une partie significative des requêtes IA dans votre secteur — chaque point gagné = plus de clics organiques via les IA.',
+    benchmark: 45,
+  },
+};
+
+function KPICard({ label, value, desc, why, benchmark }) {
+  const [showWhy, setShowWhy] = useState(false);
+  const c = value >= 65 ? '#10B981' : value >= 35 ? '#F59E0B' : '#EF4444';
+  const status = value >= benchmark ? 'above' : 'below';
+
+  return (
+    <div style={{ background: WHITE, border: `1px solid ${value > 0 && value < benchmark ? '#FEF3C7' : BORDER}`, borderRadius: 14, padding: '16px', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div style={{ fontSize: 36, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1 }}>{value}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          {value > 0 && (
+            <span style={{ fontSize: 9, fontWeight: 700, color: status === 'above' ? '#059669' : '#D97706', background: status === 'above' ? '#ECFDF5' : '#FFFBEB', padding: '2px 6px', borderRadius: 20 }}>
+              {status === 'above' ? `↑ Au-dessus` : `↓ Sous moy.`}
+            </span>
+          )}
+          <button onClick={() => setShowWhy(!showWhy)}
+            style={{ fontSize: 9, fontWeight: 600, color: INK3, background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 6, padding: '2px 6px', cursor: 'pointer', fontFamily: F }}>
+            Pourquoi ?
+          </button>
+        </div>
+      </div>
+      <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+        <div style={{ height: '100%', width: `${value}%`, background: c, borderRadius: 2, transition: 'width 1s ease' }} />
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, color: INK3 }}>{desc}</div>
+      {showWhy && (
+        <div style={{ marginTop: 10, padding: '10px 12px', background: '#F8F8F6', border: `1px solid ${BORDER}`, borderRadius: 9 }}>
+          <p style={{ fontSize: 11, color: INK2, margin: 0, lineHeight: 1.65 }}>{why}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function OverviewTab({ d, onTabChange }) {
   const scores = [
-    { label: 'Visibilité IA', value: Math.round(d.ai_visibility_score || d.score_ai_visibility || 0), desc: 'Présence dans les réponses IA' },
-    { label: 'Clarté', value: Math.round(d.message_clarity_score || d.score_message_clarity || 0), desc: 'Message compris par les IA' },
-    { label: 'Commercial', value: Math.round(d.commercial_presence_score || d.score_commercial_signal || 0), desc: 'Signal d\'achat détecté' },
-    { label: 'Global', value: Math.round(d.overall_score || d.score_overall || 0), desc: 'Score consolidé' },
+    { label: 'Visibilité IA', value: Math.round(d.ai_visibility_score || d.score_ai_visibility || 0) },
+    { label: 'Clarté', value: Math.round(d.message_clarity_score || d.score_message_clarity || 0) },
+    { label: 'Commercial', value: Math.round(d.commercial_presence_score || d.score_commercial_signal || 0) },
+    { label: 'Global', value: Math.round(d.overall_score || d.score_overall || 0) },
   ];
 
   const hasNoData = scores.every(s => s.value === 0);
@@ -158,20 +217,11 @@ function OverviewTab({ d, onTabChange }) {
 
   return (
     <div>
-      {/* 4 key scores */}
+      {/* 4 KPI cards with WHY */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 16 }}>
         {scores.map(s => {
-          const c = s.value >= 65 ? '#10B981' : s.value >= 35 ? '#F59E0B' : '#EF4444';
-          return (
-            <div key={s.label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px' }}>
-              <div style={{ fontSize: 32, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 8 }}>{s.value}</div>
-              <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
-                <div style={{ height: '100%', width: `${s.value}%`, background: c, borderRadius: 2, transition: 'width 1s ease' }} />
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 10, color: INK3 }}>{s.desc}</div>
-            </div>
-          );
+          const meta = SCORE_META[s.label] || {};
+          return <KPICard key={s.label} label={s.label} value={s.value} desc={meta.desc} why={meta.why} benchmark={meta.benchmark || 50} />;
         })}
       </div>
 
@@ -203,94 +253,7 @@ function OverviewTab({ d, onTabChange }) {
   );
 }
 
-// ── Action Plan tab ───────────────────────────────────────────────────────────
-function ActionsTab({ plan, onGenerate }) {
-  const [expanded, setExpanded] = useState(0);
-  const [done, setDone] = useState({});
 
-  if (!plan?.length) return (
-    <div style={{ textAlign: 'center', padding: '48px 20px', fontFamily: F }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
-      <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Plan d'action non disponible</p>
-      <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Lancez un scan pour obtenir votre plan personnalisé.</p>
-    </div>
-  );
-
-  const remaining = plan.filter((_, i) => !done[i]).length;
-
-  return (
-    <div>
-      {/* Progress */}
-      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 18px', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Votre plan d'injection d'entité</p>
-          <span style={{ fontSize: 12, fontWeight: 800, color: INK }}>{plan.length - remaining}/{plan.length}</span>
-        </div>
-        <div style={{ height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${((plan.length - remaining) / plan.length) * 100}%`, background: INK, borderRadius: 3, transition: 'width 0.5s ease' }} />
-        </div>
-        <p style={{ fontSize: 11, color: INK3, margin: '8px 0 0' }}>{remaining} action{remaining > 1 ? 's' : ''} restante{remaining > 1 ? 's' : ''} · Chaque action augmente votre LRS</p>
-      </div>
-
-      {plan.map((item, i) => {
-        const isOpen = expanded === i;
-        const isDone = done[i];
-        const isHigh = item.impact === 'high';
-
-        return (
-          <div key={i} style={{ background: WHITE, border: `1px solid ${isDone ? '#D1FAE5' : BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 8, opacity: isDone ? 0.65 : 1 }}>
-            <button onClick={() => setExpanded(isOpen ? null : i)}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
-              {/* Check circle */}
-              <div onClick={e => { e.stopPropagation(); setDone(prev => ({ ...prev, [i]: !prev[i] })); }}
-                style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isDone ? '#10B981' : BORDER}`, background: isDone ? '#ECFDF5' : WHITE, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                {isDone && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                {!isDone && <span style={{ fontSize: 10, fontWeight: 800, color: INK3 }}>{i + 1}</span>}
-              </div>
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{item.action_title}</span>
-                  {isHigh && <span style={{ fontSize: 9, fontWeight: 700, color: '#059669', background: '#ECFDF5', padding: '2px 6px', borderRadius: 20, flexShrink: 0 }}>Impact élevé</span>}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#4338CA', background: '#EEF2FF', padding: '1px 6px', borderRadius: 4 }}>{item.engine}</span>
-                  {item.platform && <span style={{ fontSize: 10, color: INK3 }}>→ {item.platform}</span>}
-                </div>
-              </div>
-              <ChevronDown size={14} color={INK3} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
-            </button>
-
-            {isOpen && (
-              <div style={{ borderTop: `1px solid ${BORDER}`, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Lacune identifiée</p>
-                  <div style={{ background: '#FFFBEB', borderRadius: 10, padding: '10px 12px', border: '1px solid #FEF3C7' }}>
-                    <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.gap}</p>
-                  </div>
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Pourquoi vos concurrents vous dépassent</p>
-                  <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.competitor_advantage}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Action à faire maintenant</p>
-                  <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.action_detail}</p>
-                </div>
-                <button onClick={() => onGenerate(item.action_title + ' — ' + item.action_detail, i)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '13px', background: INK, color: WHITE, border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-                  <Zap size={13} fill={WHITE} stroke={WHITE} />
-                  Générer le contenu d'injection
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // ── Data tab ──────────────────────────────────────────────────────────────────
 function DataTab({ d, gscData, navigate }) {
@@ -544,8 +507,9 @@ export default function AIVisibilityReport() {
         {tab === 'overview' && <OverviewTab d={data} onTabChange={setTab} />}
         {tab === 'engines' && <EnginesComparisonView d={data} />}
         {tab === 'actions' && (
-          <ActionsTab
+          <ActionPlanView
             plan={data.injection_plan}
+            siteUrl={data.site_url}
             onGenerate={(txt, idx) => { setSelectedIssue(txt); setSelectedIssueId(`injection_${idx}`); }}
           />
         )}

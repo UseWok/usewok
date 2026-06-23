@@ -57,7 +57,7 @@ export default function ConnectionsPage() {
         </div>
 
         {/* Integration cards */}
-        <ConnectIntegrations onDataLoaded={handleDataLoaded} compact={true} />
+        <ConnectIntegrations onDataLoaded={handleDataLoaded} compact={true} showMetrics={true} />
 
         {/* Live data preview — GSC */}
         {gscData?.data && (
