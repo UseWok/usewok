@@ -536,15 +536,14 @@ function HeroInput({ onAnalyze }) {
   );
 }
 
-// ── MAIN — scan lancé en arrière-plan silencieusement, quiz immédiat
+// ── MAIN — stocke l'URL + redirige vers login
 export default function ScanHero({ onStartQuiz }) {
   const handleAnalyze = (inputUrl) => {
-    // Sauvegarder l'URL pour Home
-    localStorage.setItem('wok_pending_scan_url', inputUrl);
-    // Lancer le scan en arrière-plan — personne ne le voit
-    base44.functions.invoke('analyzeWebsite', { url: inputUrl }).catch(() => {});
-    // Aller directement au quiz sans aucune transition de scan
-    onStartQuiz();
+    const cleanUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
+    // Sauvegarder l'URL en attente — Home la récupèrera après connexion
+    localStorage.setItem('wok_pending_scan_url', cleanUrl);
+    // Rediriger vers login; après connexion → /app qui déclenchera le scan auto
+    base44.auth.redirectToLogin('/app');
   };
 
   return (

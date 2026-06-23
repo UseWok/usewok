@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Trash2, Globe, ExternalLink, ArrowRight, Link2, BarChart2, ClipboardCheck, TrendingUp, ChevronRight, AlertCircle, RefreshCw, Zap } from 'lucide-react';
 import { getActiveDomain, setActiveDomain, getDomainsList, saveDomainsList, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
@@ -291,6 +292,7 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [scanning, setScanning] = useState(null); // url being scanned
   const [scanUrl, setScanUrl] = useState(''); // url shown in loader
+  const [onboardingData, setOnboardingData] = useState(null); // post-scan results modal
 
   useEffect(() => {
     const unsub = onActiveDomainChange(d => setActiveDomainState(d));
@@ -299,6 +301,44 @@ export default function Home() {
 
   useEffect(() => {
     base44.auth.me().then(u => { if (u) setUser(u); }).catch(() => {});
+  }, []);
+
+  // ── Auto-scan si URL en attente depuis la landing page
+  useEffect(() => {
+    const pendingUrl = localStorage.getItem('wok_pending_scan_url');
+    if (!pendingUrl) return;
+    localStorage.removeItem('wok_pending_scan_url');
+
+    const cleanUrl = pendingUrl.startsWith('http') ? pendingUrl : `https://${pendingUrl}`;
+    const label = cleanUrl.replace(/https?:\/\//, '').split('/')[0];
+    const newDomain = { url: cleanUrl, name: label };
+
+    setScanUrl(cleanUrl);
+    setScanning(cleanUrl);
+
+    const run = async () => {
+      const existingList = getDomainsList();
+      let newList = existingList;
+      if (!existingList.find(d => d.url === cleanUrl)) {
+        newList = [...existingList, newDomain];
+        setDomains(newList);
+        saveDomainsList(newList);
+      }
+      setActiveDomain(newDomain);
+
+      try {
+        const u = await base44.auth.me();
+        const result = u ? await runFullScanForDomain(cleanUrl, u.id) : null;
+        await loadProfiles(newList);
+        setScanning(null);
+        if (result) setOnboardingData(result);
+        else navigate('/ai-report');
+      } catch (e) {
+        setScanning(null);
+        navigate('/ai-report');
+      }
+    };
+    run();
   }, []);
 
   const loadProfiles = async (domainList) => {
@@ -341,13 +381,14 @@ export default function Home() {
 
     try {
       const u = await base44.auth.me();
-      if (u) await runFullScanForDomain(cleanUrl, u.id);
+      const result = u ? await runFullScanForDomain(cleanUrl, u.id) : null;
       await loadProfiles(newList);
       setScanning(null);
-      navigate('/ai-report');
+      if (result) setOnboardingData(result);
+      else navigate('/ai-report');
     } catch (e) {
       setScanning(null);
-      console.error('Scan failed:', e);
+      navigate('/ai-report');
     }
   };
 
@@ -374,6 +415,9 @@ export default function Home() {
       <>
         <ScanHero onScan={handleFirstScan} />
         <AddDomainModal open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddDomain} />
+        {onboardingData && (
+          <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
+        )}
       </>
     );
   }
@@ -556,6 +600,9 @@ export default function Home() {
       </div>
 
       <AddDomainModal open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddDomain} />
+      {onboardingData && (
+        <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
+      )}
       <style>{`@keyframes spulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.35;transform:scale(0.5)}} @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
     </div>
   );
