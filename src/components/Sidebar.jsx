@@ -545,29 +545,22 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               <SectionLabel label="Outils IA" expanded={expanded} />
 
-              {/* Ask AI de WOK — bouton principal */}
+              {/* Ask AI de WOK — même style que les autres nav items */}
               <button
                 onClick={() => { setExpanded(true); setWokAIMode(true); setSettingsMode(false); }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '0 10px', height: 36, borderRadius: 8, border: 'none',
-                  background: 'linear-gradient(135deg, #111110 0%, #2A2A28 100%)',
-                  cursor: 'pointer', fontFamily: 'inherit', marginBottom: 4,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                  transition: 'all 150ms',
+                  display: 'flex', alignItems: 'center', width: '100%', height: 30,
+                  padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                  background: wokAIMode ? 'rgba(0,0,0,0.07)' : 'transparent',
+                  fontFamily: 'inherit', transition: 'background 100ms', gap: 8, marginBottom: 2,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                onMouseEnter={e => { if (!wokAIMode) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                onMouseLeave={e => { if (!wokAIMode) e.currentTarget.style.background = 'transparent'; }}
               >
-                <div style={{ width: 18, height: 18, borderRadius: 5, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Sparkles size={10} color="#fff" />
-                </div>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em', flex: 1, textAlign: 'left' }}>
+                <Sparkles style={{ width: 13, height: 13, flexShrink: 0, color: wokAIMode ? '#111' : '#888', strokeWidth: 1.8 }} />
+                <span style={{ fontSize: 12.5, fontWeight: wokAIMode ? 600 : 400, color: wokAIMode ? '#111' : '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   Ask AI de WOK
                 </span>
-                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.08)', borderRadius: 4, padding: '1px 5px', fontWeight: 600 }}>
-                  GPT-4o
-                </div>
               </button>
               {[
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
@@ -606,8 +599,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <button
               onClick={() => { setExpanded(true); setWokAIMode(true); }}
               title="Ask AI de WOK"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: '#111110', cursor: 'pointer', margin: '4px auto', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }}>
-              <Sparkles size={13} color="#fff" />
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', margin: '2px auto', flexShrink: 0 }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <Sparkles size={13} color="#666" />
             </button>
           )}
 
