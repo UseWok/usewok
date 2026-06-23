@@ -399,7 +399,10 @@ export default function AIVisibilityReport() {
       if (!u) { navigate('/'); return; }
       const active = getActiveDomain();
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      const matched = active ? profiles.find(p => p.site_url === active.url) || profiles[0] : profiles[0];
+      // Always match by site_url for domain isolation; fallback to first only if no active domain
+      const matched = active
+        ? (profiles.find(p => p.site_url === active.url) || null)
+        : profiles[0] || null;
       if (matched) {
         let extra = {};
         try { extra = JSON.parse(matched.brand_keywords || '{}'); } catch {}
@@ -419,7 +422,8 @@ export default function AIVisibilityReport() {
         const u = await base44.auth.me();
         if (u) {
           const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
-          const matched = profiles.find(p => p.site_url === data.site_url) || profiles[0];
+          // Find exact match by site_url (domain isolation)
+          const matched = profiles.find(p => p.site_url === data.site_url);
           if (matched) {
             await base44.entities.BusinessProfile.update(matched.id, {
               brand_keywords: JSON.stringify(res.data),
@@ -429,8 +433,8 @@ export default function AIVisibilityReport() {
               score_commercial_signal: res.data.commercial_presence_score || 0,
               last_scan: new Date().toISOString(),
             });
-            setData({ ...matched, ...res.data });
           }
+          setData({ ...(matched || {}), ...res.data });
         }
       }
     } catch {}

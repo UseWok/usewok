@@ -262,6 +262,7 @@ Deno.serve(async (req) => {
       analyzed_at: new Date().toISOString(),
     };
 
+    // Create lead (async, non-blocking)
     base44.asServiceRole.entities.ContactLead.create({
       website: cleanUrl,
       first_name: result.business_name || '',
@@ -269,6 +270,32 @@ Deno.serve(async (req) => {
       message: `AI scan: LRS ${result.lrs_score}/100 | score ${result.overall_score}/100 | traffic: ${result.organic_traffic}`,
       status: 'new',
     }).catch(() => {});
+
+    // Save to BusinessProfile — find by site_url so each domain is isolated
+    try {
+      const user = await base44.auth.me().catch(() => null);
+      if (user) {
+        const profiles = await base44.asServiceRole.entities.BusinessProfile.filter({ created_by_id: user.id });
+        const existing = profiles.find(p => p.site_url === cleanUrl);
+        const profileFields = {
+          site_url: cleanUrl,
+          identity_name: result.business_name || '',
+          identity_industry: result.business_type || '',
+          identity_city: result.city || '',
+          score_ai_visibility: result.ai_visibility_score || 0,
+          score_message_clarity: result.message_clarity_score || 0,
+          score_commercial_signal: result.commercial_presence_score || 0,
+          score_overall: result.overall_score || 0,
+          last_scan: new Date().toISOString(),
+          brand_keywords: JSON.stringify(result),
+        };
+        if (existing) {
+          await base44.asServiceRole.entities.BusinessProfile.update(existing.id, profileFields);
+        } else {
+          await base44.asServiceRole.entities.BusinessProfile.create({ ...profileFields, created_by_id: user.id });
+        }
+      }
+    } catch {}
 
     return Response.json(result);
   } catch (error) {
