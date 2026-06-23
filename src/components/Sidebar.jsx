@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -356,6 +356,72 @@ function Divider() {
   return <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '5px 0' }} />;
 }
 
+// ─── WOK AI History Sidebar ───────────────────────────────────────
+const SK_AI = 'wok_ai_v3';
+function loadAIConvs() { try { return JSON.parse(localStorage.getItem(SK_AI) || '[]'); } catch { return []; } }
+function deleteAIConv(id) { try { const c = loadAIConvs().filter(x => x.id !== id); localStorage.setItem(SK_AI, JSON.stringify(c)); } catch {} }
+
+function WokAISidebar({ navigate, onBack }) {
+  const location = useLocation();
+  const [convs, setConvs] = useState(() => loadAIConvs());
+  const activeId = new URLSearchParams(location.search).get('conv');
+
+  const handleSelect = (id) => { navigate(`/wok-ai?conv=${id}`); };
+  const handleNew = () => { navigate('/wok-ai'); };
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    deleteAIConv(id);
+    setConvs(loadAIConvs());
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      <div style={{ padding: '10px 8px 6px' }}>
+        <button onClick={onBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'Inter, sans-serif', padding: '4px 4px' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#111'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(0,0,0,0.45)'}>
+          <ChevronRight style={{ width: 13, height: 13, transform: 'rotate(180deg)' }} />
+          <span style={{ fontSize: 12.5 }}>Retour</span>
+        </button>
+      </div>
+      <div style={{ padding: '0 8px 6px' }}>
+        <button onClick={handleNew}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 10px', border: '1px dashed rgba(0,0,0,0.15)', borderRadius: 7, background: 'transparent', cursor: 'pointer', fontSize: 12, fontWeight: 500, color: '#555', fontFamily: 'inherit' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <Plus style={{ width: 11, height: 11 }} /> Nouvelle conversation
+        </button>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 6px 8px' }}>
+        {convs.length === 0 && (
+          <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.35)', padding: '8px 10px' }}>Aucune conversation</p>
+        )}
+        {convs.map(c => {
+          const isAct = c.id === activeId;
+          return (
+            <div key={c.id} onClick={() => handleSelect(c.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', background: isAct ? 'rgba(0,0,0,0.07)' : 'transparent', marginBottom: 1, transition: 'background 80ms' }}
+              onMouseEnter={e => { if (!isAct) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+              onMouseLeave={e => { if (!isAct) e.currentTarget.style.background = isAct ? 'rgba(0,0,0,0.07)' : 'transparent'; }}>
+              <MessageSquare style={{ width: 11, height: 11, color: isAct ? '#111' : '#999', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 12, fontWeight: isAct ? 600 : 400, color: isAct ? '#111' : '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {c.title || 'Discussion'}
+              </span>
+              <button onClick={e => handleDelete(e, c.id)}
+                style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0, flexShrink: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.stopPropagation(); }}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0'}>
+                <Trash2 style={{ width: 9, height: 9, color: '#EF4444' }} />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Settings Sidebar (replaces main nav when Settings clicked) ───
 function SettingsSidebar({ navigate, onBack }) {
   const location = useLocation();
@@ -414,6 +480,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
   const [settingsMode, setSettingsMode] = useState(false);
+  const [wokAIMode, setWokAIMode] = useState(false);
 
   // Load recents
 
@@ -443,15 +510,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const isActive = path => location.pathname === path;
   const nav = path => { navigate(path); };
 
-  // Sync settingsMode with URL
+  // Sync modes with URL
   useEffect(() => {
-    if (location.pathname.startsWith('/settings')) setSettingsMode(true);
-    else setSettingsMode(false);
-  }, [location.pathname]);
-
-  // Close wokAIMode when navigating away
-  useEffect(() => {
-    if (!location.pathname.startsWith('/settings')) setSettingsMode(false);
+    if (location.pathname.startsWith('/settings')) { setSettingsMode(true); setWokAIMode(false); }
+    else if (location.pathname.startsWith('/wok-ai')) { setWokAIMode(true); setSettingsMode(false); }
+    else { setSettingsMode(false); setWokAIMode(false); }
   }, [location.pathname]);
 
   const isMobile = useIsMobile();
@@ -519,7 +582,12 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} />
         )}
 
-        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && settingsMode) ? 'none' : 'flex' }}>
+        {/* ── WOK AI history mode ── */}
+        {expanded && wokAIMode && (
+          <WokAISidebar navigate={nav} onBack={() => { setWokAIMode(false); nav('/app'); }} />
+        )}
+
+        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && (settingsMode || wokAIMode)) ? 'none' : 'flex' }}>
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
@@ -537,8 +605,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               <SectionLabel label="Outils IA" expanded={expanded} />
 
-              {/* Ask AI de WOK — nav item standard */}
-              <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
+              {/* Ask AI de WOK — ouvre le mode historique dans la sidebar */}
+              <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => { setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
               {[
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
@@ -573,7 +641,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
             {/* collapsed: WOK AI icon */}
           {!expanded && (
-            <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
+            <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => { setExpanded(true); setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
           {/* ── Support button — circle with ? ── */}
