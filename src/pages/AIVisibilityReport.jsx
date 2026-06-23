@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import {
-  ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus,
-  CheckCircle, XCircle, Star, Link2, Globe, ExternalLink
-} from 'lucide-react';
+import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus, CheckCircle, XCircle, Link2, Globe, ExternalLink, Zap, ChevronDown, ArrowRight } from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
 import EnginesComparisonView from '@/components/report/EnginesComparisonView';
-import ActionPlanView from '@/components/report/ActionPlanView';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#EFEFEF';
-const SURFACE = '#F9F8F6';
+const BORDER = '#E8E8E8';
+const SURFACE = '#F7F7F5';
 const WHITE = '#FFFFFF';
 
 function fmt(n) {
@@ -25,55 +21,44 @@ function fmt(n) {
   return String(n);
 }
 
-function Delta({ val }) {
-  if (val == null) return null;
-  const up = val > 0, neutral = val === 0;
+const TABS = [
+  { key: 'overview', label: 'Vue globale' },
+  { key: 'engines',  label: 'Moteurs IA' },
+  { key: 'actions',  label: 'Plan d\'action' },
+  { key: 'data',     label: 'Données' },
+];
+
+// ── Reusable section header ───────────────────────────────────────────────────
+function SectionHeader({ title, sub }) {
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700,
-      color: neutral ? INK3 : up ? '#059669' : '#DC2626',
-      background: neutral ? SURFACE : up ? '#ECFDF5' : '#FEF2F2',
-      padding: '2px 7px', borderRadius: 20, fontFamily: F,
-    }}>
-      {neutral ? <Minus size={9} /> : up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-      {!neutral && (up ? '+' : '')}{typeof val === 'number' ? val.toFixed(1) : val}%
-    </span>
+    <div style={{ marginBottom: 14 }}>
+      <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '0 0 2px', letterSpacing: '-0.02em' }}>{title}</h2>
+      {sub && <p style={{ fontSize: 12, color: INK3, margin: 0 }}>{sub}</p>}
+    </div>
   );
 }
 
-// ── TABS ─────────────────────────────────────────────────────────────────────
-const TABS = [
-  { key: 'overview',  label: 'Vue globale' },
-  { key: 'engines',   label: 'Moteurs IA' },
-  { key: 'actions',   label: 'Plan d\'action' },
-  { key: 'data',      label: 'Données' },
-];
-
-// ── LRS Hero ──────────────────────────────────────────────────────────────────
-function LRSHero({ d }) {
+// ── LRS Hero ─────────────────────────────────────────────────────────────────
+function LRSHero({ d, onScan, scanning }) {
   const lrs = Math.round(d.lrs_score || 0);
   const citation = Math.round(d.lrs_citation_score || 0);
   const sentiment = Math.round(d.lrs_sentiment_score || 0);
   const accuracy = Math.round(d.lrs_accuracy_score || 0);
   const trend = d.lrs_trend || 'stable';
   const vsIndustry = d.lrs_vs_industry;
-  const scoreColor = lrs >= 65 ? '#34D399' : lrs >= 35 ? '#FBBF24' : '#F87171';
-  const R = 52, cx = 64, cy = 64;
-  const circ = 2 * Math.PI * R;
+  const c = lrs >= 65 ? '#10B981' : lrs >= 35 ? '#F59E0B' : '#EF4444';
+  const R = 54, cx = 68, cy = 68, circ = 2 * Math.PI * R;
+
+  const hasData = lrs > 0;
 
   return (
-    <div style={{
-      background: INK, borderRadius: 18, padding: '24px',
-      marginBottom: 12, fontFamily: F, position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: `radial-gradient(circle, ${scoreColor}1A 0%, transparent 70%)`, pointerEvents: 'none' }} />
+    <div style={{ background: INK, borderRadius: 20, padding: '24px', marginBottom: 16, position: 'relative', overflow: 'hidden', fontFamily: F }}>
+      <div style={{ position: 'absolute', top: -50, right: -50, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${c}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
       <div style={{ position: 'relative' }}>
-        {/* Badge + domain */}
+
+        {/* Top row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, background: 'rgba(255,255,255,0.07)' }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: scoreColor, boxShadow: `0 0 6px ${scoreColor}` }} />
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>LLM Resonance Score™</span>
-          </div>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>LLM Resonance Score™</span>
           <a href={d.site_url || '#'} target="_blank" rel="noreferrer"
             style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>
             <Globe size={10} />
@@ -82,53 +67,64 @@ function LRSHero({ d }) {
           </a>
         </div>
 
-        {/* Score + sub-bars */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
-          {/* Gauge */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <svg width={120} height={120} style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={9} />
-              <circle cx={cx} cy={cy} r={R} fill="none" stroke={scoreColor} strokeWidth={9}
-                strokeDasharray={circ} strokeDashoffset={circ * (1 - lrs / 100)}
-                strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1)' }} />
-            </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.04em' }}>{lrs}</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>/100</div>
-            </div>
+        {!hasData ? (
+          /* Empty state — score is 0, prompt to scan */
+          <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
+            <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(255,255,255,0.15)', letterSpacing: '-0.06em', lineHeight: 1, marginBottom: 12 }}>–</div>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 18px', lineHeight: 1.6 }}>
+              Votre score LRS n'a pas encore été calculé.<br />Lancez l'analyse pour voir votre visibilité IA.
+            </p>
+            <button onClick={onScan} disabled={scanning}
+              style={{ padding: '12px 24px', background: WHITE, color: INK, border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: scanning ? 'wait' : 'pointer', fontFamily: F, opacity: scanning ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              {scanning ? <><RefreshCw size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> Analyse en cours…</> : <>Analyser maintenant <ArrowRight size={13} /></>}
+            </button>
           </div>
+        ) : (
+          /* Score display */
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            {/* Gauge */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <svg width={136} height={136} style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={9} />
+                <circle cx={cx} cy={cy} r={R} fill="none" stroke={c} strokeWidth={9}
+                  strokeDasharray={circ} strokeDashoffset={circ * (1 - lrs / 100)}
+                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)' }} />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: 40, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.05em' }}>{lrs}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>/100</div>
+              </div>
+            </div>
 
-          <div style={{ flex: 1, minWidth: 140 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: WHITE, marginBottom: 4, letterSpacing: '-0.02em' }}>
-              {d.identity_name || (d.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: trend === 'rising' ? '#34D399' : trend === 'declining' ? '#F87171' : 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {trend === 'rising' ? <TrendingUp size={11} /> : trend === 'declining' ? <TrendingDown size={11} /> : <Minus size={11} />}
-                {trend === 'rising' ? 'En hausse' : trend === 'declining' ? 'En baisse' : 'Stable'}
-              </span>
-              {vsIndustry != null && (
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{vsIndustry >= 0 ? `+${vsIndustry}` : vsIndustry} pts vs secteur</span>
-              )}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-              {[{ label: 'Citation', v: citation, w: '40%' }, { label: 'Sentiment', v: sentiment, w: '30%' }, { label: 'Exactitude', v: accuracy, w: '30%' }].map(s => (
-                <div key={s.label}>
+            <div style={{ flex: 1, minWidth: 150 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: WHITE, marginBottom: 4, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {d.identity_name || (d.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: trend === 'rising' ? '#10B981' : trend === 'declining' ? '#EF4444' : 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {trend === 'rising' ? <TrendingUp size={11} /> : trend === 'declining' ? <TrendingDown size={11} /> : <Minus size={11} />}
+                  {trend === 'rising' ? 'En hausse' : trend === 'declining' ? 'En baisse' : 'Stable'}
+                </span>
+                {vsIndustry != null && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{vsIndustry >= 0 ? `+${vsIndustry}` : vsIndustry} pts vs secteur</span>}
+              </div>
+              {/* 3 pillars */}
+              {[{ l: 'Citation', v: citation, w: '40%' }, { l: 'Sentiment', v: sentiment, w: '30%' }, { l: 'Exactitude', v: accuracy, w: '30%' }].map(s => (
+                <div key={s.l} style={{ marginBottom: 7 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{s.label} <span style={{ opacity: 0.5 }}>({s.w})</span></span>
+                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>{s.l} ({s.w})</span>
                     <span style={{ fontSize: 10, fontWeight: 800, color: WHITE }}>{s.v}</span>
                   </div>
-                  <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${s.v}%`, background: scoreColor, borderRadius: 2, transition: 'width 1.4s ease' }} />
+                  <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${s.v}%`, background: c, borderRadius: 2, transition: 'width 1.5s ease' }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {d.shock_insight && (
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '16px 0 0', lineHeight: 1.65, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
+        {hasData && d.shock_insight && (
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.32)', margin: '16px 0 0', lineHeight: 1.65, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
             {d.shock_insight}
           </p>
         )}
@@ -140,25 +136,40 @@ function LRSHero({ d }) {
 // ── Overview tab ──────────────────────────────────────────────────────────────
 function OverviewTab({ d, onTabChange }) {
   const scores = [
-    { label: 'Visibilité IA', value: Math.round(d.ai_visibility_score || d.score_ai_visibility || 0) },
-    { label: 'Clarté', value: Math.round(d.message_clarity_score || d.score_message_clarity || 0) },
-    { label: 'Commercial', value: Math.round(d.commercial_presence_score || d.score_commercial_signal || 0) },
-    { label: 'Global', value: Math.round(d.overall_score || d.score_overall || 0) },
+    { label: 'Visibilité IA', value: Math.round(d.ai_visibility_score || d.score_ai_visibility || 0), desc: 'Présence dans les réponses IA' },
+    { label: 'Clarté', value: Math.round(d.message_clarity_score || d.score_message_clarity || 0), desc: 'Message compris par les IA' },
+    { label: 'Commercial', value: Math.round(d.commercial_presence_score || d.score_commercial_signal || 0), desc: 'Signal d\'achat détecté' },
+    { label: 'Global', value: Math.round(d.overall_score || d.score_overall || 0), desc: 'Score consolidé' },
   ];
+
+  const hasNoData = scores.every(s => s.value === 0);
+
+  if (hasNoData) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>📡</div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Pas encore de données</p>
+        <p style={{ fontSize: 13, color: INK3, margin: '0 0 20px', maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+          Lancez un scan depuis l'en-tête pour obtenir votre rapport complet sur les 8 moteurs IA.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
-      {/* Sub-scores */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 }}>
+      {/* 4 key scores */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 16 }}>
         {scores.map(s => {
-          const c = s.value >= 65 ? '#059669' : s.value >= 35 ? '#D97706' : '#DC2626';
+          const c = s.value >= 65 ? '#10B981' : s.value >= 35 ? '#F59E0B' : '#EF4444';
           return (
-            <div key={s.label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 13, padding: '14px 10px', textAlign: 'center' }}>
-              <div style={{ fontSize: 26, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em' }}>{s.value}</div>
-              <div style={{ height: 2, background: SURFACE, borderRadius: 1, margin: '8px 0 5px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${s.value}%`, background: c, borderRadius: 1, transition: 'width 1s ease' }} />
+            <div key={s.label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px' }}>
+              <div style={{ fontSize: 32, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 8 }}>{s.value}</div>
+              <div style={{ height: 3, background: SURFACE, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+                <div style={{ height: '100%', width: `${s.value}%`, background: c, borderRadius: 2, transition: 'width 1s ease' }} />
               </div>
-              <div style={{ fontSize: 9, color: INK3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{s.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 10, color: INK3 }}>{s.desc}</div>
             </div>
           );
         })}
@@ -166,32 +177,117 @@ function OverviewTab({ d, onTabChange }) {
 
       {/* Issues */}
       {d.issues?.length > 0 && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${BORDER}` }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Problèmes détectés</p>
-            <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{d.issues.length} points à corriger pour améliorer votre LRS</p>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 1px' }}>Points bloquants détectés</p>
+              <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{d.issues.length} problèmes à résoudre pour booster votre LRS</p>
+            </div>
+            <span style={{ fontSize: 18, fontWeight: 900, color: '#EF4444' }}>{d.issues.length}</span>
           </div>
           {d.issues.map((issue, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 16px',
-              borderBottom: i < d.issues.length - 1 ? `1px solid ${BORDER}` : 'none',
-            }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: issue.severity === 'error' ? '#DC2626' : '#D97706', marginTop: 5, flexShrink: 0 }} />
-              <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{issue.problem}</p>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 18px', borderBottom: i < d.issues.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: issue.severity === 'error' ? '#EF4444' : '#F59E0B', marginTop: 6, flexShrink: 0 }} />
+              <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.65 }}>{issue.problem}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Quick CTA */}
+      {/* CTA */}
       <button onClick={() => onTabChange('actions')}
-        style={{
-          width: '100%', padding: '14px', background: INK, color: WHITE, border: 'none',
-          borderRadius: 13, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, letterSpacing: '-0.01em',
-        }}>
-        Voir mon plan d'action →
+        style={{ width: '100%', padding: '15px', background: INK, color: WHITE, border: 'none', borderRadius: 13, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, letterSpacing: '-0.01em' }}>
+        <Zap size={14} fill={WHITE} stroke={WHITE} /> Voir mon plan d'action
       </button>
+    </div>
+  );
+}
+
+// ── Action Plan tab ───────────────────────────────────────────────────────────
+function ActionsTab({ plan, onGenerate }) {
+  const [expanded, setExpanded] = useState(0);
+  const [done, setDone] = useState({});
+
+  if (!plan?.length) return (
+    <div style={{ textAlign: 'center', padding: '48px 20px', fontFamily: F }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
+      <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Plan d'action non disponible</p>
+      <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Lancez un scan pour obtenir votre plan personnalisé.</p>
+    </div>
+  );
+
+  const remaining = plan.filter((_, i) => !done[i]).length;
+
+  return (
+    <div>
+      {/* Progress */}
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 18px', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Votre plan d'injection d'entité</p>
+          <span style={{ fontSize: 12, fontWeight: 800, color: INK }}>{plan.length - remaining}/{plan.length}</span>
+        </div>
+        <div style={{ height: 5, background: SURFACE, borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${((plan.length - remaining) / plan.length) * 100}%`, background: INK, borderRadius: 3, transition: 'width 0.5s ease' }} />
+        </div>
+        <p style={{ fontSize: 11, color: INK3, margin: '8px 0 0' }}>{remaining} action{remaining > 1 ? 's' : ''} restante{remaining > 1 ? 's' : ''} · Chaque action augmente votre LRS</p>
+      </div>
+
+      {plan.map((item, i) => {
+        const isOpen = expanded === i;
+        const isDone = done[i];
+        const isHigh = item.impact === 'high';
+
+        return (
+          <div key={i} style={{ background: WHITE, border: `1px solid ${isDone ? '#D1FAE5' : BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 8, opacity: isDone ? 0.65 : 1 }}>
+            <button onClick={() => setExpanded(isOpen ? null : i)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
+              {/* Check circle */}
+              <div onClick={e => { e.stopPropagation(); setDone(prev => ({ ...prev, [i]: !prev[i] })); }}
+                style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isDone ? '#10B981' : BORDER}`, background: isDone ? '#ECFDF5' : WHITE, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                {isDone && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                {!isDone && <span style={{ fontSize: 10, fontWeight: 800, color: INK3 }}>{i + 1}</span>}
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{item.action_title}</span>
+                  {isHigh && <span style={{ fontSize: 9, fontWeight: 700, color: '#059669', background: '#ECFDF5', padding: '2px 6px', borderRadius: 20, flexShrink: 0 }}>Impact élevé</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: '#4338CA', background: '#EEF2FF', padding: '1px 6px', borderRadius: 4 }}>{item.engine}</span>
+                  {item.platform && <span style={{ fontSize: 10, color: INK3 }}>→ {item.platform}</span>}
+                </div>
+              </div>
+              <ChevronDown size={14} color={INK3} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+            </button>
+
+            {isOpen && (
+              <div style={{ borderTop: `1px solid ${BORDER}`, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Lacune identifiée</p>
+                  <div style={{ background: '#FFFBEB', borderRadius: 10, padding: '10px 12px', border: '1px solid #FEF3C7' }}>
+                    <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.gap}</p>
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Pourquoi vos concurrents vous dépassent</p>
+                  <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.competitor_advantage}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>Action à faire maintenant</p>
+                  <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.6 }}>{item.action_detail}</p>
+                </div>
+                <button onClick={() => onGenerate(item.action_title + ' — ' + item.action_detail, i)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '13px', background: INK, color: WHITE, border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+                  <Zap size={13} fill={WHITE} stroke={WHITE} />
+                  Générer le contenu d'injection
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -201,104 +297,73 @@ function DataTab({ d, gscData, navigate }) {
   const hasGsc = gscData?.connected && gscData?.data;
 
   const traffic = hasGsc ? [
-    { label: 'Clics (GSC)', value: gscData.data.totalClicks?.toLocaleString('fr') || '–', real: true },
+    { label: 'Clics GSC', value: gscData.data.totalClicks?.toLocaleString('fr') || '–', real: true },
     { label: 'Impressions', value: gscData.data.totalImpressions?.toLocaleString('fr') || '–', real: true },
     { label: 'CTR moyen', value: `${gscData.data.avgCtr}%`, real: true },
-    { label: 'Position moy.', value: gscData.data.avgPosition, real: true },
+    { label: 'Position moy.', value: String(gscData.data.avgPosition), real: true },
   ] : [
-    { label: 'Visiteurs / mois', value: fmt(d.organic_traffic), delta: d.organic_traffic_delta_pct },
-    { label: 'Mots-clés', value: fmt(d.organic_keywords), delta: d.organic_keywords_delta_pct },
-    { label: 'Backlinks', value: fmt(d.backlinks), delta: d.backlinks_delta_pct },
-    { label: 'Autorité', value: d.authority_score ? `${d.authority_score}` : '–' },
+    { label: 'Visiteurs / mois', value: fmt(d.organic_traffic) },
+    { label: 'Mots-clés indexés', value: fmt(d.organic_keywords) },
+    { label: 'Backlinks', value: fmt(d.backlinks) },
+    { label: 'Autorité du domaine', value: d.authority_score ? `${d.authority_score}` : '–' },
   ];
 
   const technical = [
-    { label: 'Structure lisible par les IA', value: d.has_schema_markup, tip: 'Les IA comprennent votre contenu' },
-    { label: 'Fiche Google My Business', value: d.has_google_business, tip: 'Présent sur Google Maps' },
-    { label: 'Site sécurisé HTTPS', value: d.has_ssl, tip: 'Connexion chiffrée, site de confiance' },
-    { label: 'Compatible mobile', value: d.has_mobile_friendly, tip: 'Optimisé pour les smartphones' },
+    { label: 'Structure IA-lisible (Schema)', ok: d.has_schema_markup, fix: 'Les IA ne comprennent pas votre contenu' },
+    { label: 'Fiche Google My Business', ok: d.has_google_business, fix: 'Introuvable sur Google Maps' },
+    { label: 'HTTPS / Sécurité', ok: d.has_ssl, fix: 'Site non sécurisé — pénalité IA' },
+    { label: 'Compatible mobile', ok: d.has_mobile_friendly, fix: 'Non optimisé smartphone' },
   ];
 
   return (
     <div>
-      {/* Traffic section */}
-      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${BORDER}` }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Trafic & performance</p>
-          {hasGsc ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#059669' }} /> Données GSC réelles
-            </span>
-          ) : (
-            <button onClick={() => navigate('/connections')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#4338CA', background: '#EEF2FF', border: 'none', borderRadius: 6, padding: '4px 9px', cursor: 'pointer', fontFamily: F }}>
-              <Link2 size={10} /> Connecter GSC
-            </button>
-          )}
+      {/* Traffic */}
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Trafic organique</p>
+          {hasGsc
+            ? <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} /> Données GSC réelles</span>
+            : <button onClick={() => navigate('/connections')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#4338CA', background: '#EEF2FF', border: 'none', borderRadius: 7, padding: '5px 10px', cursor: 'pointer', fontFamily: F }}><Link2 size={10} /> Connecter GSC</button>
+          }
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
           {traffic.map((m, i) => (
-            <div key={i} style={{
-              padding: '14px 16px',
-              borderBottom: i < 2 ? `1px solid ${BORDER}` : 'none',
-              borderRight: i % 2 === 0 ? `1px solid ${BORDER}` : 'none',
-              background: m.real ? '#FAFFF9' : WHITE,
-            }}>
+            <div key={i} style={{ padding: '14px 18px', borderBottom: i < 2 ? `1px solid ${BORDER}` : 'none', borderRight: i % 2 === 0 ? `1px solid ${BORDER}` : 'none', background: m.real ? '#F0FDF4' : WHITE }}>
               <div style={{ fontSize: 10, color: INK3, fontWeight: 600, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{m.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1 }}>{m.value}</div>
-              {m.delta != null && <div style={{ marginTop: 5 }}><Delta val={m.delta} /></div>}
+              <div style={{ fontSize: 24, fontWeight: 900, color: INK, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Technical */}
-      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Signaux techniques</p>
+      {/* Technical signals */}
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 12 }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>Signaux techniques IA</p>
         {technical.map((t, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
-            borderBottom: i < technical.length - 1 ? `1px solid ${BORDER}` : 'none',
-          }}>
-            {t.value
-              ? <CheckCircle size={16} color="#059669" style={{ flexShrink: 0 }} />
-              : <XCircle size={16} color="#D1D1D1" style={{ flexShrink: 0 }} />}
-            <div>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px', borderBottom: i < technical.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+            {t.ok ? <CheckCircle size={17} color="#10B981" style={{ flexShrink: 0 }} /> : <XCircle size={17} color="#EF4444" style={{ flexShrink: 0 }} />}
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: INK }}>{t.label}</div>
-              <div style={{ fontSize: 11, color: INK3, marginTop: 1 }}>{t.tip}</div>
+              {!t.ok && <div style={{ fontSize: 11, color: '#EF4444', marginTop: 1 }}>{t.fix}</div>}
             </div>
-            <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: t.value ? '#059669' : INK3 }}>
-              {t.value ? 'OK' : 'À corriger'}
-            </span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: t.ok ? '#10B981' : '#EF4444' }}>{t.ok ? '✓ OK' : '✗ Manquant'}</span>
           </div>
         ))}
       </div>
 
-      {/* Strengths */}
-      {d.strengths?.length > 0 && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Points forts</p>
-          {d.strengths.map((s, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderBottom: i < d.strengths.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
-              <Star size={12} color={INK} fill={INK} style={{ flexShrink: 0, marginTop: 3 }} />
-              <p style={{ fontSize: 13, color: INK2, margin: 0, lineHeight: 1.55 }}>{s}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Geo */}
       {d.geo_traffic?.length > 0 && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Trafic par pays</p>
-          <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 12 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>Trafic par pays</p>
+          <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {d.geo_traffic.map((g, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {g.country !== 'OTHER'
-                  ? <img src={`https://flagcdn.com/24x18/${g.country.toLowerCase()}.png`} alt="" width={22} height={16} style={{ borderRadius: 2, flexShrink: 0, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
-                  : <span style={{ fontSize: 13, width: 22, textAlign: 'center', flexShrink: 0 }}>🌐</span>}
+                  ? <img src={`https://flagcdn.com/24x18/${g.country.toLowerCase()}.png`} alt="" width={22} height={16} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />
+                  : <span style={{ width: 22, textAlign: 'center', flexShrink: 0 }}>🌐</span>}
                 <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 100, flexShrink: 0 }}>{g.country_name || g.country}</span>
                 <div style={{ flex: 1, height: 4, background: SURFACE, borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${g.pct}%`, background: INK, borderRadius: 2, opacity: 0.15 + (g.pct / 100) * 0.7 }} />
+                  <div style={{ height: '100%', width: `${g.pct}%`, background: INK, opacity: 0.2 + (g.pct / 100) * 0.7, borderRadius: 2 }} />
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: INK, width: 32, textAlign: 'right', flexShrink: 0 }}>{g.pct}%</span>
               </div>
@@ -309,13 +374,13 @@ function DataTab({ d, gscData, navigate }) {
 
       {/* Keywords */}
       {d.top_keywords?.length > 0 && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Mots-clés principaux</p>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 12 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>Mots-clés organiques</p>
           {d.top_keywords.map((kw, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: i < d.top_keywords.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
-              <span style={{ fontSize: 13, color: INK, fontWeight: 500 }}>{kw.keyword}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: kw.position <= 3 ? '#059669' : kw.position <= 10 ? '#D97706' : INK3 }}>#{kw.position}</span>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 18px', borderBottom: i < d.top_keywords.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+              <span style={{ fontSize: 13, color: INK }}>{kw.keyword}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: kw.position <= 3 ? '#10B981' : kw.position <= 10 ? '#F59E0B' : INK3 }}>#{kw.position}</span>
                 <span style={{ fontSize: 11, color: INK3 }}>{fmt(kw.volume)}/mois</span>
               </div>
             </div>
@@ -325,18 +390,18 @@ function DataTab({ d, gscData, navigate }) {
 
       {/* Competitors */}
       {d.competitors?.length > 0 && (
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: INK, margin: 0, padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Concurrents identifiés</p>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>Concurrents détectés</p>
           {d.competitors.map((c, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: i < d.competitors.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: i < d.competitors.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: INK }}>{typeof c === 'string' ? c : c.domain}</div>
                 {c.organic_traffic > 0 && <div style={{ fontSize: 11, color: INK3, marginTop: 2 }}>{fmt(c.organic_traffic)} visites/mois</div>}
               </div>
               {c.authority_score != null && (
-                <div style={{ padding: '4px 10px', background: SURFACE, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: INK }}>{c.authority_score}</div>
-                  <div style={{ fontSize: 8, color: INK3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>DA</div>
+                <div style={{ padding: '5px 10px', background: SURFACE, borderRadius: 8, textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: INK }}>{c.authority_score}</div>
+                  <div style={{ fontSize: 8, color: INK3, textTransform: 'uppercase' }}>DA</div>
                 </div>
               )}
             </div>
@@ -410,7 +475,6 @@ export default function AIVisibilityReport() {
   };
 
   useEffect(() => { loadData(); }, []);
-
   useEffect(() => {
     base44.functions.invoke('getSearchConsoleData', {}).then(res => {
       if (res?.data?.connected) setGscData(res.data);
@@ -420,19 +484,19 @@ export default function AIVisibilityReport() {
   if (loading) return (
     <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E0E0E0', borderTopColor: INK, animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-        <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Chargement du rapport…</p>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #E8E8E8', borderTopColor: INK, animation: 'spin 0.8s linear infinite', margin: '0 auto 14px' }} />
+        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Chargement…</p>
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   if (!data) return (
-    <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', fontFamily: F }}>
-      <div style={{ fontSize: 48, marginBottom: 4 }}>📡</div>
-      <p style={{ fontSize: 17, fontWeight: 800, color: INK, margin: 0 }}>Aucun rapport disponible</p>
-      <p style={{ fontSize: 13, color: INK3, margin: 0, maxWidth: 280 }}>Scannez votre site depuis l'accueil pour générer votre rapport IA.</p>
-      <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+    <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center', fontFamily: F }}>
+      <div style={{ fontSize: 52 }}>📡</div>
+      <p style={{ fontSize: 18, fontWeight: 800, color: INK, margin: 0 }}>Aucun rapport disponible</p>
+      <p style={{ fontSize: 13, color: INK3, margin: 0, maxWidth: 280 }}>Scannez votre site depuis l'accueil pour obtenir votre rapport IA.</p>
+      <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: INK, color: WHITE, border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
         ← Retour à l'accueil
       </button>
     </div>
@@ -440,54 +504,47 @@ export default function AIVisibilityReport() {
 
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F }}>
-      {/* ── Header ── */}
-      <div style={{
-        background: WHITE, borderBottom: `1px solid ${BORDER}`,
-        padding: '12px 20px',
-        paddingTop: 'max(12px, calc(env(safe-area-inset-top) + 10px))',
-        position: 'sticky', top: 0, zIndex: 20,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      {/* ── Sticky header ── */}
+      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, position: 'sticky', top: 0, zIndex: 20, paddingTop: 'max(0px, env(safe-area-inset-top))' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => navigate('/app')} style={{ width: 34, height: 34, borderRadius: 9, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <ArrowLeft size={14} color={INK2} />
             </button>
             <div>
-              <h1 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Rapport IA</h1>
-              <p style={{ fontSize: 11, color: INK3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Rapport IA</p>
+              <p style={{ fontSize: 11, color: INK3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
                 {(data.site_url || '').replace(/https?:\/\//, '').split('/')[0]}
               </p>
             </div>
           </div>
           <button onClick={handleRescan} disabled={scanning}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.6 : 1, fontFamily: F }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', border: `1px solid ${BORDER}`, borderRadius: 9, background: scanning ? INK : WHITE, fontSize: 11, fontWeight: 600, color: scanning ? WHITE : INK2, cursor: scanning ? 'wait' : 'pointer', opacity: scanning ? 0.8 : 1, fontFamily: F, transition: 'all 0.2s' }}>
             <RefreshCw size={11} style={{ animation: scanning ? 'spin 0.8s linear infinite' : 'none' }} />
             {scanning ? 'Analyse…' : 'Re-scanner'}
           </button>
         </div>
-
-        {/* ── Tab bar ── */}
-        <div style={{ display: 'flex', gap: 2, overflowX: 'auto', paddingBottom: 1 }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', padding: '10px 18px 0', gap: 0, overflowX: 'auto' }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
-              padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: F,
-              fontSize: 12, fontWeight: tab === t.key ? 700 : 500, whiteSpace: 'nowrap',
-              background: tab === t.key ? INK : 'transparent',
-              color: tab === t.key ? WHITE : INK3,
-              transition: 'all 0.15s',
+              padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: F,
+              fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', color: tab === t.key ? INK : INK3,
+              borderBottom: `2px solid ${tab === t.key ? INK : 'transparent'}`,
+              transition: 'all 0.15s', marginBottom: -1,
             }}>{t.label}</button>
           ))}
         </div>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px 14px 80px' }}>
-        <LRSHero d={data} />
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px 16px 80px' }}>
+        <LRSHero d={data} onScan={handleRescan} scanning={scanning} />
 
         {tab === 'overview' && <OverviewTab d={data} onTabChange={setTab} />}
         {tab === 'engines' && <EnginesComparisonView d={data} />}
         {tab === 'actions' && (
-          <ActionPlanView
+          <ActionsTab
             plan={data.injection_plan}
             onGenerate={(txt, idx) => { setSelectedIssue(txt); setSelectedIssueId(`injection_${idx}`); }}
           />
