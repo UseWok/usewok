@@ -520,7 +520,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
-            <NavItem icon={BarChart2} label="AI Report" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
+            <NavItem icon={BarChart2} label="Tableau de bord" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
             <NavItem icon={Search} label="Search" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
           </div>
 

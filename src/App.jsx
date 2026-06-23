@@ -18,7 +18,7 @@ import { LanguageProvider } from '@/lib/i18n';
 
 import Layout from './components/Layout';
 
-import Home from './pages/Home';
+import Home from './pages/Home.jsx';
 
 import AllProjects from './pages/AllProjects';
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, CheckCircle, XCircle, Star, Zap } from 'lucide-react';
 import FixInstructionModal from '@/components/report/FixInstructionModal';
-import AIEnginesChart from '@/components/report/AIEnginesChart';
+import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#111111';
@@ -389,21 +389,35 @@ export default function AIVisibilityReport() {
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [selectedIssueId, setSelectedIssueId] = useState(null);
   const [fixCache, setFixCache] = useState({});
+  const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
 
   useEffect(() => {
-    base44.auth.me().then(async u => {
-      if (!u) { navigate('/'); return; }
-      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      if (profiles.length > 0) {
-        const p = profiles[0];
-        let extra = {};
-        try { extra = JSON.parse(p.brand_keywords || '{}'); } catch {}
-        setFixCache(extra.fix_cache || {});
-        setProfile({ ...p, ...extra });
-      }
-      setLoading(false);
-    }).catch(() => navigate('/'));
+    const unsub = onActiveDomainChange(d => setActiveDomainState(d));
+    return unsub;
   }, []);
+
+  const loadProfile = async () => {
+    setLoading(true);
+    try {
+      const u = await base44.auth.me();
+      if (!u) { navigate('/'); return; }
+      const active = getActiveDomain();
+      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      // Match active domain if set, otherwise first profile
+      const matched = active
+        ? profiles.find(p => p.site_url === active.url) || profiles[0]
+        : profiles[0];
+      if (matched) {
+        let extra = {};
+        try { extra = JSON.parse(matched.brand_keywords || '{}'); } catch {}
+        setFixCache(extra.fix_cache || {});
+        setProfile({ ...matched, ...extra });
+      }
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { loadProfile(); }, []);
 
   const handleFixSaved = (issueId, fixData) => {
     setFixCache(prev => ({ ...prev, [issueId]: fixData }));
@@ -454,15 +468,15 @@ export default function AIVisibilityReport() {
             <ArrowLeft size={14} color={INK2} />
           </button>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Rapport IA</h1>
+            <h1 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Tableau de bord</h1>
             <p style={{ fontSize: 11, color: INK3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.site_url}</p>
           </div>
         </div>
         <button
-          onClick={() => navigate('/app')}
+          onClick={() => loadProfile()}
           style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
         >
-          <RefreshCw size={11} /> Nouvelle analyse
+          <RefreshCw size={11} /> Actualiser
         </button>
       </div>
 
@@ -471,16 +485,7 @@ export default function AIVisibilityReport() {
         {/* 1. LRS Hero */}
         <LRSCard profile={profile} />
 
-        {/* 2. Sub-scores */}
-        <SubScoresRow profile={profile} />
-
-        {/* 3. AI Engines breakdown */}
-        <Card style={{ marginBottom: 14 }}>
-          <SectionLabel>Présence par moteur IA</SectionLabel>
-          <AIEnginesChart data={profile} />
-        </Card>
-
-        {/* 4. Injection action plan */}
+        {/* 2. Injection action plan */}
         {injectionPlan.length > 0 && (
           <InjectionPlan plan={injectionPlan} onOpenFix={openFix} />
         )}

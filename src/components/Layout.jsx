@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import BottomTabs from './BottomTabs';
+import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { base44 } from '@/api/base44Client';
@@ -101,6 +102,12 @@ export default function Layout() {
   const BORDER_BOTTOM = 36;
   const CORNER_R = 14;
 
+  const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
+  useEffect(() => {
+    const unsub = onActiveDomainChange(d => setActiveDomainState(d));
+    return unsub;
+  }, []);
+
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackNote, setFeedbackNote] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -143,26 +150,34 @@ export default function Layout() {
         </button>
       )}
 
-      {/* Feedback button — square with heart, bottom-right inside the border frame */}
+      {/* Bottom bar: heart + active domain */}
       {!isMobile && (
-        <button
-          onClick={() => setShowFeedback(true)}
-          title="Feedback"
-          style={{
-            position: 'fixed', bottom: 10, right: 16, zIndex: 60,
-            width: 26, height: 26,
-            background: 'transparent', border: 'none',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.55, transition: 'opacity 120ms',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
-        >
-          {/* Heart icon */}
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </button>
+        <div style={{ position: 'fixed', bottom: 10, right: 16, zIndex: 60, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {activeDomain && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, background: 'rgba(0,0,0,0.06)', maxWidth: 180 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {activeDomain.url.replace(/https?:\/\//, '').split('/')[0]}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setShowFeedback(true)}
+            title="Feedback"
+            style={{
+              width: 26, height: 26,
+              background: 'transparent', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: 0.55, transition: 'opacity 120ms',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
       )}
 
       {/* Feedback Modal */}
