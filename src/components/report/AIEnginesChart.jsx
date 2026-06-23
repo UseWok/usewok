@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 // Real AI logos — uploaded assets, mix-blend-mode:multiply removes white/black bg
-const L = (src, blend = 'multiply') => (
-  <img src={src} alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: blend, display: 'block', imageRendering: 'auto' }} />
+const L = (src, blend = 'multiply', size = 20) => (
+  <img src={src} alt="" style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: blend, display: 'block', imageRendering: 'auto' }} />
 );
 const AI_LOGOS = {
-  ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/2x/chatgpt-symbol.png', 'multiply'),
-  Gemini:     L('https://logos-world.net/wp-content/uploads/2025/08/Gemini-Symbol.png', 'multiply'),
+  ChatGPT:    L('https://cdn.freebiesupply.com/logos/large/2x/chatgpt-symbol.png', 'multiply', 28),
+  Gemini:     L('https://logos-world.net/wp-content/uploads/2025/08/Gemini-Symbol.png', 'multiply', 28),
   Claude:     L('https://files.svgcdn.io/logos/claude-icon.png', 'multiply'),
   Mistral:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png', 'multiply'),
   Llama:      L('https://media.base44.com/images/public/6a2edc91082e534601118582/bfd4ab8b1_image.png', 'multiply'),
   Perplexity: L('https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png', 'multiply'),
   Grok:       L('https://media.base44.com/images/public/6a2edc91082e534601118582/1df5231e6_image.png', 'multiply'),
-  Copilot:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png', 'normal'),
+  Copilot:    L('https://media.base44.com/images/public/6a2edc91082e534601118582/518c7e73f_image.png', 'normal', 28),
 };
 
 const AI_COLORS = {
