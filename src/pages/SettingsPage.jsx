@@ -285,7 +285,7 @@ export default function SettingsPage() {
     </div>
   );
 
-  const sectionTitles = { profile: 'Profil', usage: 'Utilisation', plan: 'Facturation' };
+  const sectionTitles = { profile: 'Profil', usage: 'Utilisation', plan: 'Facturation', integrations: 'Intégrations' };
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -315,6 +315,17 @@ export default function SettingsPage() {
                   </div>
                   {profileError && <p style={{ fontSize: 11, color: '#ef4444', margin: 0 }}>{profileError}</p>}
                 </div>
+              </SettingRow>
+            </div>
+
+            <div style={{ height: 28 }} />
+            <SectionTitle>Intégrations</SectionTitle>
+            <div style={{ marginTop: 8 }}>
+              <SettingRow label="Google Drive" description="Importez vos documents depuis Drive pour enrichir le contexte de WOK AI." noBorder>
+                <button onClick={() => { window.location.href = '/wok-ai'; }}
+                  style={{ padding: '7px 13px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                  Ouvrir WOK AI
+                </button>
               </SettingRow>
             </div>
 
@@ -372,6 +383,33 @@ export default function SettingsPage() {
               <SettingRow label="Début du cycle" description="Date de début de votre abonnement actuel." noBorder>
                 <span style={{ fontSize: 13, color: '#444' }}>{formatDate(user?.subscription_date || user?.created_date)}</span>
               </SettingRow>
+            </div>
+          </div>
+        )}
+
+        {/* ── INTEGRATIONS ── */}
+        {activeSection === 'integrations' && (
+          <div>
+            <SectionTitle>Google Drive</SectionTitle>
+            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 16px', lineHeight: 1.5 }}>
+              Importez vos documents Google Drive directement dans WOK AI pour enrichir l'analyse et le contexte de l'IA.
+            </p>
+            <div style={{ background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: '0 0 3px' }}>Connecter Google Drive</p>
+                <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', margin: 0 }}>
+                  Sélectionnez vos fichiers depuis WOK AI via le bouton "+" dans la barre de saisie.
+                </p>
+              </div>
+              <button onClick={() => { window.location.href = '/wok-ai'; }}
+                style={{ padding: '8px 16px', background: '#111', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Ouvrir WOK AI →
+              </button>
+            </div>
+            <div style={{ marginTop: 12, padding: '12px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8 }}>
+              <p style={{ fontSize: 12, color: '#16a34a', margin: 0 }}>
+                ✓ Pour importer : ouvrez WOK AI, cliquez sur <strong>"+"</strong> dans la barre de saisie, puis choisissez <strong>"Google Drive"</strong>.
+              </p>
             </div>
           </div>
         )}

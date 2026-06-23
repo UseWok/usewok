@@ -430,6 +430,7 @@ function SettingsSidebar({ navigate, onBack }) {
     { id: 'profile', label: 'Profil' },
     { id: 'usage', label: 'Utilisation' },
     { id: 'plan', label: 'Facturation' },
+    { id: 'integrations', label: 'Intégrations' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
