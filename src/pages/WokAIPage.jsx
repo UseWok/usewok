@@ -431,7 +431,8 @@ export default function WokAIPage({ user: userProp }) {
         prompt,
         ...(fileUrls.length > 0 ? { file_urls: fileUrls } : {}),
       });
-      const aiContent = typeof res === 'string' ? res : (res?.response || res?.text || 'Erreur de réponse.');
+      const aiContent = typeof res === 'string' ? res : (res?.data ?? res?.response ?? res?.text ?? res?.content ?? JSON.stringify(res) ?? 'Erreur de réponse.');
+      if (!aiContent || aiContent === 'null' || aiContent === '{}') throw new Error('empty_response');
       const aiMsg = { role: 'assistant', content: aiContent, ts: Date.now() };
       const final = [...nextMessages, aiMsg];
       setMessages(final);
@@ -441,8 +442,9 @@ export default function WokAIPage({ user: userProp }) {
         const updated = currentConvs.map(c => c.id === activeConvId ? { ...c, messages: final, updatedAt: Date.now() } : c);
         persist(updated);
       } else {
-        const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Titre court 3-5 mots français sans ponctuation pour cette question: "${content.slice(0,100)}". Retourne UNIQUEMENT le titre.` }).catch(() => content.slice(0, 40));
-        const title = (typeof titleRes === 'string' ? titleRes : content).replace(/["']/g, '').trim().slice(0, 48);
+        const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Titre court 3-5 mots français sans ponctuation pour cette question: "${content.slice(0,100)}". Retourne UNIQUEMENT le titre.` }).catch(() => null);
+        const titleRaw = typeof titleRes === 'string' ? titleRes : (titleRes?.data || titleRes?.response || content);
+        const title = String(titleRaw).replace(/["']/g, '').trim().slice(0, 48) || content.slice(0, 40);
         const nc = { id: `c_${Date.now()}`, title, messages: final, createdAt: Date.now(), updatedAt: Date.now() };
         setActiveConvId(nc.id);
         persist([nc, ...currentConvs]);
