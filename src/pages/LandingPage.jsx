@@ -31,7 +31,7 @@ function FadeIn({ children, delay = 0, y = 24, style = {} }) {
     </motion.div>
   );
 }
-
+<meta name="google-site-verification" content="gVp31H8GlXYd8ErMzqQA6iZxvS07iN_h-vWUETI_PJ4" />
 function FontLoader() {
   useEffect(() => {
     if (document.getElementById('lp-gfont')) return;
