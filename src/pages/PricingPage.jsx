@@ -79,7 +79,8 @@ export default function PricingPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userPlanId, setUserPlanId] = useState('free');
-  const [yearly, setYearly] = useState(false);
+  // Per-plan yearly toggle — independent per plan
+  const [yearlyPerPlan, setYearlyPerPlan] = useState({});
 
   useEffect(() => {
     loadPlansFromDB()
@@ -100,21 +101,33 @@ export default function PricingPage() {
     else base44.auth.me().then(u => setUserPlanId(getUserPlan(u)?.id || 'free')).catch(() => {});
   }, [authUser]);
 
+  const isYearly = (planId) => !!yearlyPerPlan[planId];
+  const toggleYearly = (planId) => setYearlyPerPlan(prev => ({ ...prev, [planId]: !prev[planId] }));
+
   const handleUpgrade = (plan) => {
-    const url = yearly ? plan.checkout_url_yearly : plan.checkout_url_monthly;
+    const y = isYearly(plan.id);
+    const url = y ? plan.checkout_url_yearly : plan.checkout_url_monthly;
     if (url?.startsWith('http')) { window.location.href = url; return; }
-    navigate(`/checkout?plan=${plan.id}&billing=${yearly ? 'yearly' : 'monthly'}`);
+    navigate(`/checkout?plan=${plan.id}&billing=${y ? 'yearly' : 'monthly'}`);
   };
 
   const isCurrent = (plan) => plan.id === userPlanId;
   const isFree = (plan) => !plan.price_monthly || plan.price_monthly === 0;
   const price = (plan) => {
     if (isFree(plan)) return '0';
-    const p = yearly && plan.price_yearly ? plan.price_yearly : plan.price_monthly;
+    const y = isYearly(plan.id);
+    const p = y && plan.price_yearly ? plan.price_yearly : plan.price_monthly;
     return String(p ?? 0);
   };
 
-  const highlightId = plans[Math.min(1, plans.length - 1)]?.id;
+  // Sort plans: highest price first, free last
+  const sortedPlans = [...plans].sort((a, b) => {
+    const pa = a.price_monthly || 0;
+    const pb = b.price_monthly || 0;
+    return pb - pa;
+  });
+
+  const highlightId = sortedPlans.find(p => !isFree(p) && p.id !== sortedPlans[0]?.id)?.id || sortedPlans[Math.min(1, sortedPlans.length - 1)]?.id;
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -146,7 +159,7 @@ export default function PricingPage() {
 
         {/* ── Comparison table ─────────────────────────────────────── */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: F, minWidth: LABEL_W + plans.length * COL_W }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: F, minWidth: LABEL_W + sortedPlans.length * COL_W }}>
 
             {/* ── THEAD : plan names + prices + CTAs ── */}
             <thead>
@@ -154,31 +167,41 @@ export default function PricingPage() {
                 {/* Empty label col */}
                 <th style={{ width: LABEL_W, padding: '0 0 20px', textAlign: 'left', verticalAlign: 'bottom' }} />
 
-                {plans.map((plan) => {
+                {sortedPlans.map((plan) => {
                   const isHL = plan.id === highlightId;
                   const curr = isCurrent(plan);
                   const free = isFree(plan);
+                  const y = isYearly(plan.id);
+                  const monthlyPrice = y && plan.price_yearly ? Math.round(plan.price_yearly / 12) : plan.price_monthly;
                   return (
                     <th key={plan.id} style={{ width: COL_W, padding: '0 12px 20px', textAlign: 'left', verticalAlign: 'bottom', fontWeight: 400 }}>
                       {/* Plan name */}
                       <div style={{ fontSize: 13, fontWeight: 700, color: T1, marginBottom: 2 }}>{plan.name}</div>
-                      {/* Price — hidden until checkout step */}
-                      <div style={{ fontSize: 12, color: T2, marginBottom: 10 }}>
-                        {free ? 'Gratuit' : 'Voir le tarif →'}
+                      {/* Price — always visible */}
+                      <div style={{ marginBottom: 10 }}>
+                        {free ? (
+                          <span style={{ fontSize: 18, fontWeight: 900, color: T1, letterSpacing: '-0.03em' }}>Gratuit</span>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                            <span style={{ fontSize: 20, fontWeight: 900, color: T1, letterSpacing: '-0.04em' }}>{monthlyPrice}€</span>
+                            <span style={{ fontSize: 11, color: T2 }}>/mois</span>
+                            {y && <span style={{ fontSize: 10, fontWeight: 700, color: '#059669', marginLeft: 4, background: '#ECFDF5', padding: '1px 6px', borderRadius: 4 }}>annuel</span>}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Yearly toggle — only for paid plans */}
+                      {/* Yearly toggle — independent per plan */}
                       {!free && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
-                          <button onClick={() => setYearly(v => !v)} style={{
+                          <button onClick={() => toggleYearly(plan.id)} style={{
                             width: 30, height: 17, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 2,
-                            background: yearly ? '#4B48D6' : '#DDD',
-                            display: 'flex', alignItems: 'center', justifyContent: yearly ? 'flex-end' : 'flex-start',
+                            background: y ? '#111' : '#DDD',
+                            display: 'flex', alignItems: 'center', justifyContent: y ? 'flex-end' : 'flex-start',
                             transition: 'background 180ms', flexShrink: 0,
                           }}>
                             <div style={{ width: 13, height: 13, borderRadius: '50%', background: '#fff' }} />
                           </button>
-                          <span style={{ fontSize: 11, color: T2 }}>Annuel</span>
+                          <span style={{ fontSize: 11, color: T2 }}>Annuel{plan.price_yearly ? ` (−${Math.round((1 - (plan.price_yearly / (plan.price_monthly * 12))) * 100)}%)` : ''}</span>
                         </div>
                       )}
 
@@ -219,7 +242,7 @@ export default function PricingPage() {
                 <React.Fragment key={group.category}>
                   {/* Category header */}
                   <tr>
-                    <td colSpan={plans.length + 1} style={{
+                    <td colSpan={sortedPlans.length + 1} style={{
                       padding: gi === 0 ? '20px 0 8px' : '28px 0 8px',
                       fontSize: 11, fontWeight: 700, color: T1,
                       borderTop: `1px solid ${BORDER}`,
@@ -238,7 +261,7 @@ export default function PricingPage() {
                       <td style={{ padding: '8px 0', fontSize: 13, color: T2, borderTop: `1px solid rgba(0,0,0,0.04)`, paddingRight: 16 }}>
                         {item.name}
                       </td>
-                      {plans.map(plan => (
+                      {sortedPlans.map(plan => (
                         <td key={plan.id} style={{ padding: '8px 12px', borderTop: `1px solid rgba(0,0,0,0.04)` }}>
                           <Cell value={item[plan.id]} />
                         </td>
@@ -251,7 +274,7 @@ export default function PricingPage() {
               {/* Bottom CTA row */}
               <tr style={{ borderTop: `1px solid ${BORDER}` }}>
                 <td style={{ padding: '24px 0 0' }} />
-                {plans.map(plan => {
+                {sortedPlans.map(plan => {
                   const curr = isCurrent(plan);
                   const free = isFree(plan);
                   return (

@@ -6,6 +6,7 @@ import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { motion } from 'framer-motion';
 
 import LRSHero from '@/components/performance/LRSHero';
+import LRSLineChart from '@/components/performance/LRSLineChart';
 import EngineScoreGrid from '@/components/performance/EngineScoreGrid';
 import LRSRadarChart from '@/components/performance/LRSRadarChart';
 import GeoScoreChart from '@/components/performance/GeoScoreChart';
@@ -168,6 +169,9 @@ export default function PerformancePage() {
 
           {/* LRS Hero */}
           <LRSHero d={richData} />
+
+          {/* LRS Line Chart */}
+          <LRSLineChart score={richData.lrs_score || richData.score_overall || 0} domain={domain} />
 
           {/* KPIs en lignes épaisses */}
           <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 14 }}>
