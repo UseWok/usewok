@@ -105,9 +105,9 @@ export default function PerformancePage() {
   const richData = { ...profile, ...(perfData || {}) };
 
   return (
-    <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F }}>
+    <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, overscrollBehavior: 'none' }}>
       {/* Header */}
-      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, padding: '12px 18px', paddingTop: 'max(12px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ArrowLeft size={14} color={INK2} />
@@ -127,19 +127,21 @@ export default function PerformancePage() {
       {phase === 'loading' && (
         <div style={{ padding: '16px', maxWidth: 660, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[160, 80, 80, 120].map((h, i) => (
-            <div key={i} style={{ height: h, borderRadius: 16, background: 'linear-gradient(90deg,#F0F0EE 25%,#E6E6E4 50%,#F0F0EE 75%)', backgroundSize: '400px 100%', animation: 'shimmer 1.5s infinite' }} />
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+              style={{ height: h, borderRadius: 16, background: 'linear-gradient(90deg,#F0F0EE 25%,#E6E6E4 50%,#F0F0EE 75%)', backgroundSize: '600px 100%', animation: 'shimmer 1.5s ease-in-out infinite' }} />
           ))}
-          <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}`}</style>
+          <style>{`@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
         </div>
       )}
 
       {phase === 'thinking' && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', border: `3px solid ${BORDER}`, borderTopColor: INK, animation: 'spin 0.8s linear infinite', marginBottom: 16 }} />
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Calcul en cours…</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
+            style={{ width: 38, height: 38, borderRadius: '50%', border: `3px solid ${BORDER}`, borderTopColor: INK, marginBottom: 18 }} />
+          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Calcul en cours…</p>
           <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Analyse de votre LRS sur 8 assistants IA</p>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
+        </motion.div>
       )}
 
       {phase === 'no_profile' && (
@@ -161,7 +163,8 @@ export default function PerformancePage() {
       )}
 
       {phase === 'done' && (
-        <div style={{ maxWidth: 660, margin: '0 auto', padding: '16px 16px 100px' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+          style={{ maxWidth: 660, margin: '0 auto', padding: '16px 16px 100px' }}>
 
           {/* LRS Hero */}
           <LRSHero d={richData} />
@@ -209,7 +212,7 @@ export default function PerformancePage() {
             </div>
           )}
 
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -254,9 +254,8 @@ export default function ManagePlanPage() {
               <p style={{ fontSize: 16, fontWeight: 700, color: DK.text, margin: 0 }}>{userPlan?.name || 'Free'}</p>
               <p style={{ fontSize: 12, color: DK.muted, margin: 0 }}>
                 {isYearly
-                  ? `$${userPlan?.price_yearly || (userPlan?.price_monthly * 12)}/yr`
-                  : userPlan?.price_monthly > 0 ? `$${userPlan.price_monthly}/mo` : 'Free'}
-                {isYearly && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738' }}>YEARLY</span>}
+                  ? <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: 'rgba(249,87,56,0.15)', color: '#F95738' }}>ANNUEL</span>
+                  : userPlan?.price_monthly > 0 ? 'Mensuel' : 'Gratuit'}
               </p>
             </div>
           </div>
@@ -294,12 +293,12 @@ export default function ManagePlanPage() {
         </div>
 
         <button onClick={() => navigate('/pricing')}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', marginBottom: 12, background: '#F95738', border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'opacity 150ms' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', marginBottom: 12, background: '#F95738', border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'opacity 150ms', fontFamily: 'Inter, system-ui, sans-serif' }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <TrendingUp style={{ width: 15, height: 15, color: '#fff' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Upgrade your plan</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Passer à un plan supérieur</span>
           </div>
           <ChevronRight style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.7)' }} />
         </button>

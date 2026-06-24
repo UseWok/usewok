@@ -162,9 +162,9 @@ export default function PricingPage() {
                     <th key={plan.id} style={{ width: COL_W, padding: '0 12px 20px', textAlign: 'left', verticalAlign: 'bottom', fontWeight: 400 }}>
                       {/* Plan name */}
                       <div style={{ fontSize: 13, fontWeight: 700, color: T1, marginBottom: 2 }}>{plan.name}</div>
-                      {/* Price */}
+                      {/* Price — hidden until checkout step */}
                       <div style={{ fontSize: 12, color: T2, marginBottom: 10 }}>
-                        {free ? 'Gratuit' : `${price(plan)}€ / utilisateur / mois`}
+                        {free ? 'Gratuit' : 'Voir le tarif →'}
                       </div>
 
                       {/* Yearly toggle — only for paid plans */}
@@ -199,8 +199,8 @@ export default function PricingPage() {
                           style={{
                             width: '100%', padding: '7px 0', border: 'none', borderRadius: 6,
                             fontSize: 12, fontWeight: 600, color: '#fff',
-                            background: '#4B48D6',
-                            cursor: 'pointer', fontFamily: F,
+                            background: plan.id === highlightId ? '#F95738' : '#111',
+                            cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms',
                           }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
@@ -269,7 +269,7 @@ export default function PricingPage() {
                         </button>
                       ) : (
                         <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '7px 0', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, color: '#fff', background: '#4B48D6', cursor: 'pointer', fontFamily: F }}
+                          style={{ width: '100%', padding: '7px 0', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, color: '#fff', background: plan.id === highlightId ? '#F95738' : '#111', cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                           Passer à {plan.name}

@@ -288,7 +288,7 @@ export default function SettingsPage() {
   const sectionTitles = { profile: 'Profil', usage: 'Utilisation', plan: 'Facturation', integrations: 'Intégrations' };
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F8F7F5', fontFamily: 'Inter, system-ui, sans-serif', scrollbarWidth: 'none' }}>
       <div style={{ maxWidth: 620 }}>
 
         <h1 style={{ fontSize: 22, fontWeight: 600, color: '#111', margin: '0 0 28px', letterSpacing: '-0.02em' }}>

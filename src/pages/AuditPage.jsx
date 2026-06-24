@@ -118,7 +118,7 @@ function AuditLockedPreview({ onUpgrade }) {
           </div>
           <button onClick={onUpgrade}
             style={{ width: '100%', padding: '12px', background: INK, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
-            Débloquer l'audit — Starter 49$/mois
+            Débloquer l'audit complet
           </button>
           <div style={{ fontSize: 11, color: INK3, marginTop: 8 }}>Sans engagement · Annulation en 1 clic</div>
         </div>
@@ -195,9 +195,9 @@ export default function AuditPage() {
     : null;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+    <div style={{ minHeight: '100vh', background: '#F8F7F5', fontFamily: F, overscrollBehavior: 'none' }}>
       {/* Header */}
-      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, padding: '10px 20px', paddingTop: 'max(10px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 20 }}>
         <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 7, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowLeft size={14} color="#555" />
         </button>
