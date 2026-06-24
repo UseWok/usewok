@@ -31,7 +31,7 @@ function FadeIn({ children, delay = 0, y = 24, style = {} }) {
     </motion.div>
   );
 }
-<meta name="google-site-verification" content="gVp31H8GlXYd8ErMzqQA6iZxvS07iN_h-vWUETI_PJ4" />
+
 function FontLoader() {
   useEffect(() => {
     if (document.getElementById('lp-gfont')) return;
@@ -112,15 +112,10 @@ function Navbar({ onSignup }) {
 function Hero({ onSignup }) {
   return (
     <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden' }}>
-      {/* Hero glow — multi-layer atmospheric */}
       <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none' }}>
-        {/* Primary wide violet halo */}
         <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.22) 0%, transparent 65%)', filter: 'blur(40px)' }} />
-        {/* Left accent — indigo */}
         <div style={{ position: 'absolute', top: 80, left: '15%', width: 400, height: 300, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(120,80,255,0.14) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-        {/* Right accent — blue */}
         <div style={{ position: 'absolute', top: 60, right: '10%', width: 380, height: 280, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(60,140,255,0.10) 0%, transparent 70%)', filter: 'blur(55px)' }} />
-        {/* Bottom soft fade */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 160, background: 'linear-gradient(to bottom, transparent, #0A0A0B)' }} />
       </div>
 
@@ -133,11 +128,7 @@ function Hero({ onSignup }) {
             </div>
           </FadeIn>
           <FadeIn delay={0.12}>
-            <h1 style={{
-              fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: T1,
-              letterSpacing: '-0.04em', lineHeight: 1.06,
-              margin: '0 0 20px', maxWidth: 620,
-            }}>
+            <h1 style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, color: T1, letterSpacing: '-0.04em', lineHeight: 1.06, margin: '0 0 20px', maxWidth: 620 }}>
               Le système de développement<br />produit pour les équipes<br />et les agents IA
             </h1>
           </FadeIn>
@@ -149,8 +140,7 @@ function Hero({ onSignup }) {
               <button onClick={onSignup} style={{
                 fontFamily: F, fontSize: 14, fontWeight: 500, color: '#0A0A0B', background: T1,
                 border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer',
-                whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 32,
-                transition: 'opacity 150ms',
+                whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 32, transition: 'opacity 150ms',
               }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
@@ -160,13 +150,8 @@ function Hero({ onSignup }) {
           </FadeIn>
         </div>
 
-        {/* App Screenshot */}
         <FadeIn delay={0.3} y={40} style={{ padding: '52px 80px 0', position: 'relative', zIndex: 1 }}>
-          <div style={{
-            borderRadius: '12px 12px 0 0', overflow: 'hidden',
-            border: `1px solid rgba(255,255,255,0.1)`, borderBottom: 'none',
-            boxShadow: '0 -8px 80px rgba(90,90,240,0.15), 0 -2px 40px rgba(0,0,0,0.8)',
-          }}>
+          <div style={{ borderRadius: '12px 12px 0 0', overflow: 'hidden', border: `1px solid rgba(255,255,255,0.1)`, borderBottom: 'none', boxShadow: '0 -8px 80px rgba(90,90,240,0.15), 0 -2px 40px rgba(0,0,0,0.8)' }}>
             <AppScreenshot />
           </div>
         </FadeIn>
@@ -184,9 +169,7 @@ function AppScreenshot() {
           <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
         ))}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>Linear</span>
-          </div>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>Linear</span>
         </div>
       </div>
       <div style={{ display: 'flex', height: 420 }}>
@@ -214,9 +197,7 @@ function AppScreenshot() {
           </div>
           <div style={{ flex: 1, padding: '20px 22px', overflowY: 'auto' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: T1, margin: '0 0 10px' }}>Faster app launch</h2>
-            <p style={{ fontSize: 12, color: T2, lineHeight: 1.6, margin: '0 0 18px' }}>
-              Render UI before <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>vehicle_state</code> sync when minimum required state is present.
-            </p>
+            <p style={{ fontSize: 12, color: T2, lineHeight: 1.6, margin: '0 0 18px' }}>Render UI before <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>vehicle_state</code> sync when minimum required state is present.</p>
             {[
               { color: '#5A5AF0', msg: 'Linear created the issue via Slack on behalf of karri · 2min ago' },
               { color: '#888', msg: 'Triage Intelligence added the label Performance and iOS · 2min ago' },
@@ -263,7 +244,8 @@ function NewSpecies() {
     <section style={{ background: BG, padding: '100px 120px', fontFamily: F, borderTop: `1px solid ${BORDER}` }}>
       <FadeIn>
         <h2 style={{ fontSize: 'clamp(28px,3.5vw,42px)', fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.04em', margin: 0, maxWidth: 720 }}>
-          <span style={{ color: T1 }}>Une nouvelle génération d'outil produit.</span>{' '}
+          <span style={{ color: T1 }}>Une nouvelle génération d'outil produit.</span>
+          {' '}
           <span style={{ color: 'rgba(255,255,255,0.22)' }}>Conçu pour les équipes modernes avec les workflows IA au cœur, Linear fixe un nouveau standard pour planifier et construire des produits.</span>
         </h2>
       </FadeIn>
@@ -274,9 +256,9 @@ function NewSpecies() {
 // ─── THREE PILLARS ────────────────────────────────────────────────────────────
 function ThreePillars() {
   const items = [
-    { fig: 'FIG 0.2', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7b144b7-4ef0-4991-9bcb-617c6a37d200/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Fait pour l\'essentiel', desc: 'Linear est façonné par les pratiques et principes des meilleures équipes produit au monde.' },
+    { fig: 'FIG 0.2', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7b144b7-4ef0-4991-9bcb-617c6a37d200/f=auto,dpr=2,fit=scale-down,metadata=none', title: "Fait pour l'essentiel", desc: 'Linear est façonné par les pratiques et principes des meilleures équipes produit au monde.' },
     { fig: 'FIG 0.3', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/6600ca96-e49b-4fd9-c03a-7979faddad00/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Propulsé par les agents IA', desc: 'Conçu pour les workflows partagés entre humains et agents. Du PRD au PR.' },
-    { fig: 'FIG 0.4', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7fa8f5f-d439-4329-6a65-de549b51e300/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Conçu pour la vitesse', desc: 'Réduit le bruit et restaure l\'élan pour aider les équipes à livrer rapidement avec focus.' },
+    { fig: 'FIG 0.4', img: 'https://linear.app/cdn-cgi/imagedelivery/fO02fVwohEs9s9UHFwon6A/c7fa8f5f-d439-4329-6a65-de549b51e300/f=auto,dpr=2,fit=scale-down,metadata=none', title: 'Conçu pour la vitesse', desc: "Réduit le bruit et restaure l'élan pour aider les équipes à livrer rapidement avec focus." },
   ];
   return (
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, fontFamily: F }}>
@@ -314,9 +296,7 @@ function FeatureSection({ title, desc, num, linkLabel, subLinks, children }) {
           </a>
         </FadeIn>
       </div>
-      <FadeIn delay={0.15}>
-        {children}
-      </FadeIn>
+      <FadeIn delay={0.15}>{children}</FadeIn>
       {subLinks && (
         <FadeIn delay={0.2}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 48, maxWidth: 540 }}>
@@ -335,7 +315,7 @@ function FeatureSection({ title, desc, num, linkLabel, subLinks, children }) {
   );
 }
 
-// ─── SIMPLE DARK MOCKS (Intake, Plan, Build, Diff, Monitor) ──────────────────
+// ─── SIMPLE DARK MOCKS ────────────────────────────────────────────────────────
 function DarkCard({ children, style = {} }) {
   return (
     <div style={{ background: '#16161A', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 10, overflow: 'hidden', ...style }}>
@@ -358,7 +338,10 @@ function IntakeMock() {
         ].map((m, i) => (
           <div key={i} style={{ padding: '10px 14px', display: 'flex', gap: 9, borderBottom: `1px solid rgba(255,255,255,0.03)` }}>
             <div style={{ width: 26, height: 26, borderRadius: 6, background: m.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>{m.name[0].toUpperCase()}</div>
-            <div><span style={{ fontSize: 12, fontWeight: 600, color: T1 }}>{m.name}</span><p style={{ fontSize: 11, color: T2, lineHeight: 1.55, margin: '2px 0 0' }}>{m.msg}</p></div>
+            <div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: T1 }}>{m.name}</span>
+              <p style={{ fontSize: 11, color: T2, lineHeight: 1.55, margin: '2px 0 0' }}>{m.msg}</p>
+            </div>
           </div>
         ))}
       </DarkCard>
@@ -573,7 +556,7 @@ function MonitorMock() {
 function Changelog() {
   const posts = [
     { dot: '#ef4444', title: 'Sessions de code dans Linear', desc: 'Plus tôt cette année, nous avons lancé Linear Agent, offrant aux équipes une nouvelle façon de...', date: '10 juin 2026' },
-    { dot: 'rgba(255,255,255,0.25)', title: 'Documents d\'équipe', desc: "Le contexte important d'une équipe n'appartient pas toujours à un ticket ou projet spécifique...", date: '3 juin 2026' },
+    { dot: 'rgba(255,255,255,0.25)', title: "Documents d'équipe", desc: "Le contexte important d'une équipe n'appartient pas toujours à un ticket ou projet spécifique...", date: '3 juin 2026' },
     { dot: 'rgba(255,255,255,0.25)', title: 'Linear Diffs', desc: 'Les agents génèrent de gros volumes de code, mais les individus ont encore besoin de...', date: '27 mai 2026' },
     { dot: 'rgba(255,255,255,0.25)', title: 'Canaux Slack de projet', desc: 'Les équipes projet utilisent souvent un canal Slack pour discuter et partager...', date: '21 mai 2026' },
   ];
@@ -603,9 +586,7 @@ function Testimonials() {
       <FadeIn>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
           <div style={{ background: '#1A1A2E', padding: '44px', borderRadius: '10px 0 0 10px', minHeight: 260 }}>
-            <p style={{ fontSize: 20, fontWeight: 700, color: '#E2E2F4', lineHeight: 1.3, letterSpacing: '-0.03em', margin: '0 0 32px' }}>
-              "You'll probably build a better product, just because of the craft that <span style={{ color: '#7C6AF4' }}>using Linear infuses on your brain.</span>"
-            </p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: '#E2E2F4', lineHeight: 1.3, letterSpacing: '-0.03em', margin: '0 0 32px' }}>"You'll probably build a better product, just because of the craft that <span style={{ color: '#7C6AF4' }}>using Linear infuses on your brain.</span>"</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#5A5AF0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#fff', fontWeight: 700 }}>G</div>
               <div>
@@ -615,9 +596,7 @@ function Testimonials() {
             </div>
           </div>
           <div style={{ background: '#1A1A0A', padding: '44px', borderRadius: '0 10px 10px 0', minHeight: 260 }}>
-            <p style={{ fontSize: 20, fontWeight: 700, color: '#E2F060', lineHeight: 1.3, letterSpacing: '-0.03em', margin: '0 0 32px' }}>
-              "Our speed is intense and Linear helps us be action biased."
-            </p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: '#E2F060', lineHeight: 1.3, letterSpacing: '-0.03em', margin: '0 0 32px' }}>"Our speed is intense and Linear helps us be action biased."</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#E2F060', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#111', fontWeight: 700 }}>N</div>
               <div>
@@ -642,18 +621,14 @@ function FinalCta({ onSignup }) {
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '140px 120px', textAlign: 'center', fontFamily: F, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(90,90,240,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <FadeIn>
-        <h2 style={{ fontSize: 'clamp(3rem,6.5vw,6rem)', fontWeight: 700, color: T1, letterSpacing: '-0.05em', lineHeight: 1.0, margin: '0 0 36px' }}>
-          Conçu pour l'avenir.<br />Disponible aujourd'hui.
-        </h2>
+        <h2 style={{ fontSize: 'clamp(3rem,6.5vw,6rem)', fontWeight: 700, color: T1, letterSpacing: '-0.05em', lineHeight: 1.0, margin: '0 0 36px' }}>Conçu pour l'avenir.<br />Disponible aujourd'hui.</h2>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button onClick={onSignup} style={{ fontFamily: F, fontSize: 14, fontWeight: 600, color: '#0A0A0B', background: T1, border: 'none', borderRadius: 8, padding: '12px 28px', cursor: 'pointer', transition: 'opacity 150ms' }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Commencer gratuitement</button>
           <button style={{ fontFamily: F, fontSize: 14, fontWeight: 500, color: T2, background: 'transparent', border: `1px solid rgba(255,255,255,0.15)`, borderRadius: 8, padding: '12px 28px', cursor: 'pointer', transition: 'color 150ms, border-color 150ms' }}
             onMouseEnter={e => { e.currentTarget.style.color = T1; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = T2; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}>
-            Contacter l'équipe commerciale
-          </button>
+            onMouseLeave={e => { e.currentTarget.style.color = T2; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}>Contacter l'équipe commerciale</button>
         </div>
       </FadeIn>
     </section>
@@ -703,14 +678,12 @@ function Footer() {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  // Force dark background on body — override the global light theme
   useEffect(() => {
     const prev = document.body.style.backgroundColor;
     const prevHtml = document.documentElement.style.backgroundColor;
     document.body.style.backgroundColor = '#0A0A0B';
     document.body.style.color = '#F0F0EE';
     document.documentElement.style.backgroundColor = '#0A0A0B';
-    // Hide the grain pseudo-element
     const style = document.createElement('style');
     style.id = 'lp-dark-override';
     style.textContent = `#root::before { display: none !important; } body { background-color: #0A0A0B !important; }`;
@@ -722,14 +695,13 @@ export default function LandingPage() {
       document.getElementById('lp-dark-override')?.remove();
     };
   }, []);
+
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
-    base44.auth.isAuthenticated()
-      .then(a => { if (a) navigate('/app', { replace: true }); else setReady(true); })
-      .catch(() => setReady(true));
+    base44.auth.isAuthenticated().then(a => { if (a) navigate('/app', { replace: true }); else setReady(true); }).catch(() => setReady(true));
   }, [navigate]);
 
   if (!ready) return (
@@ -741,7 +713,6 @@ export default function LandingPage() {
 
   const onSignup = () => base44.auth.redirectToLogin('/app');
 
-  // ── Quiz overlay — shown after scan results (or directly from onStartQuiz)
   if (showQuiz) return (
     <div style={{ background: '#FAFAFA', minHeight: '100vh', fontFamily: F }}>
       <FontLoader />
@@ -754,13 +725,10 @@ export default function LandingPage() {
       <FontLoader />
       <Navbar onSignup={onSignup} />
 
-      {/* ── SCAN HERO — replaces original Hero ── */}
       <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
-        {/* Particle scintillation layer */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
           <ParticleField count={90} />
         </div>
-        {/* Background glow */}
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 1200, height: 700, pointerEvents: 'none', zIndex: 1 }}>
           <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 600, background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(90,90,240,0.16) 0%, transparent 65%)', filter: 'blur(40px)' }} />
         </div>
@@ -769,7 +737,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Separator + Legacy sections below ── */}
       <LogoStrip />
       <NewSpecies />
       <ThreePillars />
