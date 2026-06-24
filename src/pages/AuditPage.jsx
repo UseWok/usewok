@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ClipboardCheck, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ClipboardCheck, RefreshCw, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import AuditOverview from '../components/audit/AuditOverview';
@@ -9,6 +9,8 @@ import AuditIssues from '../components/audit/AuditIssues';
 import AuditPages from '../components/audit/AuditPages';
 import AuditPerformance from '../components/audit/AuditPerformance';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { usePlanFeatures } from '@/lib/usePlanFeatures';
+import UpgradeModal from '@/components/upsell/UpgradeModal';
 
 const TABS = [
   { id: 'overview',      label: 'Vue d\'ensemble' },
@@ -73,26 +75,82 @@ function ThinkingState({ url }) {
   );
 }
 
+function AuditLockedPreview({ onUpgrade }) {
+  return (
+    <div style={{ padding: '20px', maxWidth: 1100, margin: '0 auto', position: 'relative', minHeight: 500 }}>
+      {/* Blurred fake content */}
+      <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.55 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+          {[
+            { label: 'Score crawl', val: '74/100', color: '#F59E0B' },
+            { label: 'Problèmes', val: '12', color: '#EF4444' },
+            { label: 'Pages indexées', val: '47', color: '#10B981' },
+            { label: 'Performance', val: '61/100', color: '#3B8BEB' },
+          ].map((c, i) => (
+            <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 16px' }}>
+              <div style={{ fontSize: 11, color: INK3, marginBottom: 6 }}>{c.label}</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: c.color }}>{c.val}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px', marginBottom: 16 }}>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 5 ? `1px solid ${BORDER}` : 'none' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: i <= 2 ? '#EF4444' : '#F59E0B', flexShrink: 0 }} />
+              <div style={{ height: 10, background: '#E8E7E4', borderRadius: 4, flex: 1 }} />
+              <div style={{ height: 10, background: '#E8E7E4', borderRadius: 4, width: 60 }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px', height: 120 }} />
+      </div>
+
+      {/* Lock overlay */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(247,246,243,0.65)', backdropFilter: 'blur(2px)' }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '28px 32px', textAlign: 'center', maxWidth: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.09)' }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EEF0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <Lock size={20} color="#7C6AF4" />
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Audit technique</div>
+          <div style={{ fontSize: 12, color: INK3, lineHeight: 1.6, margin: '0 0 20px' }}>
+            Disponible à partir du plan <strong style={{ color: '#7C6AF4' }}>Starter</strong>.<br />
+            Crawl complet, détection de problèmes, pages explorées et performances.
+          </div>
+          <button onClick={onUpgrade}
+            style={{ width: '100%', padding: '12px', background: INK, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
+            Débloquer l'audit — Starter 49$/mois
+          </button>
+          <div style={{ fontSize: 11, color: INK3, marginTop: 8 }}>Sans engagement · Annulation en 1 clic</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AuditPage() {
   const navigate = useNavigate();
+  const { can, isFree } = usePlanFeatures();
   const [activeTab, setActiveTab] = useState('overview');
   const [auditData, setAuditData] = useState(null);
-  const [phase, setPhase] = useState('loading'); // loading | thinking | done | no_profile | error
+  const [phase, setPhase] = useState('loading');
   const [profile, setProfile] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const hasAuditAccess = can('audit_access');
 
   const loadAudit = async (forceRefresh = false) => {
+    if (!hasAuditAccess) { setPhase('locked'); return; }
+
     try {
       const u = await base44.auth.me();
       if (!u) { setPhase('no_profile'); return; }
 
       const active = getActiveDomain();
       const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
-      // Match active domain first, fallback to first profile
       const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
       if (!p || !p.site_url) { setPhase('no_profile'); return; }
       setProfile(p);
 
-      // Try cache first (24h TTL)
       if (!forceRefresh) {
         const extra = await getProfileData(p);
         if (extra.audit_data && extra.audit_analyzed_at) {
@@ -112,7 +170,6 @@ export default function AuditPage() {
       setAuditData(res.data);
       setPhase('done');
 
-      // Re-read freshest brand_keywords before merging to avoid overwriting concurrent writes
       base44.entities.BusinessProfile.filter({ created_by_id: (await base44.auth.me().catch(() => null))?.id }).then(async ps => {
         if (!ps?.length) return;
         const fresh = await getProfileData(ps[0]);
@@ -129,7 +186,7 @@ export default function AuditPage() {
     loadAudit();
     const unsub = onActiveDomainChange(() => loadAudit());
     return unsub;
-  }, []);
+  }, [hasAuditAccess]);
 
   const siteUrl = profile?.site_url || '';
   const domain = siteUrl.replace(/https?:\/\//, '').split('/')[0];
@@ -148,7 +205,11 @@ export default function AuditPage() {
           <ClipboardCheck size={15} color={INK} />
           <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Audit de site</span>
           {domain && <span style={{ fontSize: 12, color: INK3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{domain}</span>}
-          {analyzedAt && <span style={{ fontSize: 10, color: INK3, display: 'none', whiteSpace: 'nowrap' }}>· {analyzedAt}</span>}
+          {isFree && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#7C6AF4', background: '#EEF0FF', padding: '2px 8px', borderRadius: 20, flexShrink: 0 }}>
+              Starter requis
+            </span>
+          )}
         </div>
 
         {phase === 'done' && (
@@ -158,20 +219,22 @@ export default function AuditPage() {
           </button>
         )}
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 2, marginLeft: 'auto', background: SURFACE, borderRadius: 8, padding: 3, flexWrap: 'wrap' }}>
-          {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: F, fontSize: 12, fontWeight: activeTab === tab.id ? 600 : 400, background: activeTab === tab.id ? WHITE : 'transparent', color: activeTab === tab.id ? INK : INK3, boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', transition: 'all 150ms', whiteSpace: 'nowrap' }}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {(phase === 'done' || phase === 'locked') && (
+          <div style={{ display: 'flex', gap: 2, marginLeft: 'auto', background: SURFACE, borderRadius: 8, padding: 3, flexWrap: 'wrap' }}>
+            {TABS.map(tab => (
+              <button key={tab.id}
+                onClick={() => phase === 'locked' ? setShowUpgrade(true) : setActiveTab(tab.id)}
+                style={{ padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: F, fontSize: 12, fontWeight: activeTab === tab.id && phase !== 'locked' ? 600 : 400, background: activeTab === tab.id && phase !== 'locked' ? WHITE : 'transparent', color: phase === 'locked' ? INK3 : (activeTab === tab.id ? INK : INK3), boxShadow: activeTab === tab.id && phase !== 'locked' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', transition: 'all 150ms', whiteSpace: 'nowrap' }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* States */}
       {phase === 'loading' && <LoadingSkeleton />}
       {phase === 'thinking' && <ThinkingState url={siteUrl} />}
+      {phase === 'locked' && <AuditLockedPreview onUpgrade={() => setShowUpgrade(true)} />}
 
       {phase === 'no_profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center', fontFamily: F }}>
@@ -191,7 +254,6 @@ export default function AuditPage() {
         </div>
       )}
 
-      {/* Content — only when done */}
       {phase === 'done' && auditData && (
         <div style={{ padding: '20px', maxWidth: 1100, margin: '0 auto' }}>
           {activeTab === 'overview'     && <AuditOverview     data={auditData} onNavigate={setActiveTab} />}
@@ -201,6 +263,14 @@ export default function AuditPage() {
           {activeTab === 'performance'  && <AuditPerformance  data={auditData} />}
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        feature="l'audit technique complet"
+        requiredPlan="starter"
+        description="L'audit technique analyse le crawl, les problèmes SEO, les performances et les pages explorées par les IA. Disponible dès le plan Starter."
+      />
     </div>
   );
 }

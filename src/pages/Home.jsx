@@ -6,6 +6,7 @@ import { Plus, X, Trash2, Globe, ExternalLink, ArrowRight, Link2, BarChart2, Cli
 import { getActiveDomain, setActiveDomain, getDomainsList, saveDomainsList, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
+import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
@@ -254,7 +255,39 @@ function AddDomainModal({ open, onClose, onAdd }) {
   );
 }
 
-// ── Save + parallel scan for a new domain ────────────────────────────────────
+// ── Scan lite (free) — 1 seul appel LLM léger ────────────────────────────────
+async function runLiteScanForDomain(inputUrl, userId) {
+  const main = await base44.functions.invoke('analyzeWebsiteLite', { url: inputUrl });
+  const mainData = main?.data || {};
+
+  const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: userId }).catch(() => []);
+  const existing = profiles.find(p => p.site_url === inputUrl);
+
+  const cachePayload = { ...mainData, scan_type: 'lite' };
+  const brand_keywords = await uploadProfileData(cachePayload);
+
+  const profileFields = {
+    site_url: inputUrl,
+    identity_name: mainData.business_name || '',
+    identity_industry: mainData.business_type || '',
+    identity_city: mainData.city || '',
+    score_ai_visibility: mainData.ai_visibility_score || 0,
+    score_message_clarity: mainData.message_clarity_score || 0,
+    score_commercial_signal: mainData.commercial_presence_score || 0,
+    score_overall: mainData.overall_score || 0,
+    last_scan: new Date().toISOString(),
+    brand_keywords,
+  };
+
+  if (existing) {
+    await base44.entities.BusinessProfile.update(existing.id, profileFields);
+  } else {
+    await base44.entities.BusinessProfile.create({ ...profileFields, created_by_id: userId });
+  }
+  return cachePayload;
+}
+
+// ── Scan complet (starter/pro) — 3 appels en parallèle ───────────────────────
 async function runFullScanForDomain(inputUrl, userId) {
   const [main, audit, perf] = await Promise.all([
     base44.functions.invoke('analyzeWebsite', { url: inputUrl }),
@@ -266,7 +299,6 @@ async function runFullScanForDomain(inputUrl, userId) {
   const auditData = audit?.data || {};
   const perfData = perf?.data || {};
 
-  // Find or create profile for this specific domain
   const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: userId }).catch(() => []);
   const existing = profiles.find(p => p.site_url === inputUrl);
 
@@ -276,6 +308,7 @@ async function runFullScanForDomain(inputUrl, userId) {
     perf_data: perfData,
     audit_analyzed_at: new Date().toISOString(),
     perf_analyzed_at: new Date().toISOString(),
+    scan_type: 'full',
   };
 
   const brand_keywords = await uploadProfileData(cachePayload);
@@ -318,11 +351,12 @@ export default function Home() {
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const [domainProfiles, setDomainProfiles] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  // Read pending URL ONCE at mount — drives both scanning state and url display
   const [pendingScanUrl] = useState(consumePendingUrl);
   const [scanning, setScanning] = useState(() => null);
   const [scanUrl, setScanUrl] = useState(() => pendingScanUrl || '');
   const [onboardingData, setOnboardingData] = useState(null);
+  // Plan détecté depuis l'user
+  const [planId, setPlanId] = useState('free');
 
   useEffect(() => {
     const unsub = onActiveDomainChange(d => setActiveDomainState(d));
@@ -330,7 +364,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    base44.auth.me().then(u => { if (u) setUser(u); }).catch(() => {});
+    base44.auth.me().then(u => {
+      if (u) {
+        setUser(u);
+        setPlanId(getWokPlanId(u));
+      }
+    }).catch(() => {});
   }, []);
 
   // ── Auto-scan déclenché UNIQUEMENT si URL en attente depuis landing page
@@ -356,11 +395,20 @@ export default function Home() {
 
       try {
         const u = await base44.auth.me();
-        const result = u ? await runFullScanForDomain(cleanUrl, u.id) : null;
-        await loadProfiles(newList);
-        setScanning(null);
-        if (result) setOnboardingData(result);
-        else navigate('/ai-report');
+        if (u) {
+          const pid = getWokPlanId(u);
+          setPlanId(pid);
+          const features = getWokFeatures(u);
+          const result = features.scan_type === 'full'
+            ? await runFullScanForDomain(cleanUrl, u.id)
+            : await runLiteScanForDomain(cleanUrl, u.id);
+          await loadProfiles(newList);
+          setScanning(null);
+          setOnboardingData(result);
+        } else {
+          setScanning(null);
+          navigate('/ai-report');
+        }
       } catch (e) {
         setScanning(null);
         navigate('/ai-report');
@@ -409,11 +457,20 @@ export default function Home() {
 
     try {
       const u = await base44.auth.me();
-      const result = u ? await runFullScanForDomain(cleanUrl, u.id) : null;
-      await loadProfiles(newList);
-      setScanning(null);
-      if (result) setOnboardingData(result);
-      else navigate('/ai-report');
+      if (u) {
+        const pid = getWokPlanId(u);
+        setPlanId(pid);
+        const features = getWokFeatures(u);
+        const result = features.scan_type === 'full'
+          ? await runFullScanForDomain(cleanUrl, u.id)
+          : await runLiteScanForDomain(cleanUrl, u.id);
+        await loadProfiles(newList);
+        setScanning(null);
+        setOnboardingData(result);
+      } else {
+        setScanning(null);
+        navigate('/ai-report');
+      }
     } catch (e) {
       setScanning(null);
       navigate('/ai-report');
@@ -498,7 +555,12 @@ export default function Home() {
                 style={{ background: INK, borderRadius: 20, padding: '22px', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: `radial-gradient(circle, ${lrs >= 65 ? '#10B98120' : lrs >= 35 ? '#F59E0B20' : '#EF444420'} 0%, transparent 70%)`, pointerEvents: 'none' }} />
                 <div style={{ position: 'relative' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 16 }}>LLM Resonance Score™</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>LLM Resonance Score™</div>
+                  {activeProfile?.scan_type === 'lite' && (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#F59E0B', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 20, padding: '1px 7px', letterSpacing: '0.08em' }}>SCAN LITE</span>
+                  )}
+                </div>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 16 }}>
                     <div>
                       <span style={{ fontSize: 64, fontWeight: 900, color: WHITE, letterSpacing: '-0.06em', lineHeight: 1 }}>{lrs}</span>
@@ -524,8 +586,16 @@ export default function Home() {
                       {activeProfile.shock_insight.slice(0, 90)}{activeProfile.shock_insight.length > 90 ? '…' : ''}
                     </p>
                   )}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}>
-                    Voir le rapport complet <ArrowRight size={12} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}>
+                      Voir le rapport complet <ArrowRight size={12} />
+                    </div>
+                    {activeProfile?.scan_type === 'lite' && planId === 'free' && (
+                      <div onClick={e => { e.stopPropagation(); navigate('/pricing'); }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 20, fontSize: 10, fontWeight: 700, color: '#F59E0B', cursor: 'pointer' }}>
+                        <Zap size={9} fill="#F59E0B" stroke="none" /> Scan complet — Starter
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
