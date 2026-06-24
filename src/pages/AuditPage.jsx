@@ -21,11 +21,12 @@ const TABS = [
 ];
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#111111';
-const INK3 = '#999999';
-const BORDER = '#E8E7E4';
+const INK = '#0A0A0B';
+const INK3 = '#9B9BA8';
+const BORDER = '#E8E8E6';
 const WHITE = '#FFFFFF';
-const SURFACE = '#F7F6F3';
+const SURFACE = '#F8F7F5';
+const CORAL = '#F95738';
 
 function LoadingSkeleton() {
   return (
@@ -108,12 +109,12 @@ function AuditLockedPreview({ onUpgrade }) {
       {/* Lock overlay */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(247,246,243,0.65)', backdropFilter: 'blur(2px)' }}>
         <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '28px 32px', textAlign: 'center', maxWidth: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.09)' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EEF0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-            <Lock size={20} color="#7C6AF4" />
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <Lock size={20} color={CORAL} />
           </div>
           <div style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Audit technique</div>
           <div style={{ fontSize: 12, color: INK3, lineHeight: 1.6, margin: '0 0 20px' }}>
-            Disponible à partir du plan <strong style={{ color: '#7C6AF4' }}>Starter</strong>.<br />
+            Disponible à partir du plan <strong style={{ color: CORAL }}>Starter</strong>.<br />
             Crawl complet, détection de problèmes, pages explorées et performances.
           </div>
           <button onClick={onUpgrade}
@@ -206,7 +207,7 @@ export default function AuditPage() {
           <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Audit de site</span>
           {domain && <span style={{ fontSize: 12, color: INK3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{domain}</span>}
           {isFree && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#7C6AF4', background: '#EEF0FF', padding: '2px 8px', borderRadius: 20, flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: CORAL, background: `${CORAL}12`, padding: '2px 8px', borderRadius: 20, flexShrink: 0 }}>
               Starter requis
             </span>
           )}

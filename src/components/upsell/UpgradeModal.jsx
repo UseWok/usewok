@@ -139,7 +139,7 @@ export default function UpgradeModal({ open, onClose, feature = 'cette fonctionn
           {/* CTA */}
           <button
             onClick={() => { navigate('/pricing'); onClose(); }}
-            style={{ width: '100%', padding: '15px', background: '#7C6AF4', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}
+            style={{ width: '100%', padding: '15px', background: INK, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}
           >
             Passer au plan {isStarter ? 'Starter' : 'Pro'} <ArrowRight size={14} />
           </button>

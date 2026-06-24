@@ -15,12 +15,13 @@ import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#111110';
+const INK = '#0A0A0B';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
 const BORDER = '#E8E8E6';
-const SURFACE = '#F7F6F4';
+const SURFACE = '#F8F7F5';
 const WHITE = '#FFFFFF';
+const CORAL = '#F95738';
 
 // ── Big stat row — ligne haute, lisible d'un coup d'oeil ─────────────────────
 function StatRow({ label, value, delta, sub }) {

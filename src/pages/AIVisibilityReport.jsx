@@ -515,8 +515,8 @@ export default function AIVisibilityReport() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isFree && (
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowUpgrade(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#EEF0FF', border: '1px solid #C7D2FE', borderRadius: 8, fontSize: 11, fontWeight: 700, color: '#7C6AF4', cursor: 'pointer', fontFamily: F }}>
-                <Zap size={10} fill="#7C6AF4" stroke="none" /> Passer au Starter
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: `${CORAL}12`, border: `1px solid ${CORAL}30`, borderRadius: 8, fontSize: 11, fontWeight: 700, color: CORAL, cursor: 'pointer', fontFamily: F }}>
+                <Zap size={10} fill={CORAL} stroke="none" /> Passer au Starter
               </motion.button>
             )}
             <button onClick={handleRescan} disabled={scanning}
