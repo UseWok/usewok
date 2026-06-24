@@ -190,26 +190,58 @@ function FixDrawer({ issue, profile, onClose }) {
   );
 }
 
+// ── Intent tracker — fires analytics when user hovers a locked section ────────
+function trackIntent(featureName) {
+  try {
+    base44.analytics.track({ eventName: 'locked_section_hover', properties: { feature: featureName } });
+  } catch {}
+}
+
 // ── Locked section overlay ────────────────────────────────────────────────────
-function LockedSection({ children, label = 'Plan Starter requis', onUpgrade }) {
+function LockedSection({ children, label = 'Plan Starter requis', onUpgrade, intentKey = 'unknown' }) {
+  const [hovered, setHovered] = useState(false);
+  const trackedRef = useState(false);
+
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (!trackedRef[0]) {
+      trackedRef[0] = true;
+      trackIntent(intentKey);
+    }
+  };
+
   return (
-    <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}>
+    <div
+      style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setHovered(false)}
+    >
       <div style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.6 }}>
         {children}
       </div>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(248,247,245,0.7)', backdropFilter: 'blur(2px)' }}>
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '20px 24px', textAlign: 'center', maxWidth: 260, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EEF0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-            <Lock size={16} color="#7C6AF4" />
+      <motion.div
+        style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(248,247,245,0.72)', backdropFilter: 'blur(2px)' }}
+        animate={{ scale: hovered ? 1.01 : 1 }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.div
+          animate={{ y: hovered ? -3 : 0, boxShadow: hovered ? '0 16px 48px rgba(124,106,244,0.18)' : '0 8px 32px rgba(0,0,0,0.08)' }}
+          transition={{ duration: 0.22 }}
+          style={{ background: WHITE, border: `1px solid ${hovered ? '#C7D2FE' : BORDER}`, borderRadius: 16, padding: '20px 24px', textAlign: 'center', maxWidth: 260 }}
+        >
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: hovered ? '#7C6AF4' : '#EEF0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', transition: 'background 0.2s' }}>
+            <Lock size={16} color={hovered ? WHITE : '#7C6AF4'} />
           </div>
           <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 5, letterSpacing: '-0.01em' }}>{label}</div>
-          <div style={{ fontSize: 11, color: INK3, marginBottom: 14, lineHeight: 1.5 }}>Débloquez cette section avec un plan supérieur.</div>
+          <div style={{ fontSize: 11, color: INK3, marginBottom: 14, lineHeight: 1.5 }}>
+            {hovered ? 'Cliquez pour débloquer instantanément →' : 'Débloquez cette section avec un plan supérieur.'}
+          </div>
           <button onClick={onUpgrade}
-            style={{ width: '100%', padding: '9px', background: INK, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            style={{ width: '100%', padding: '9px', background: hovered ? '#7C6AF4' : INK, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'background 0.2s' }}>
             <Zap size={11} fill={WHITE} stroke="none" /> Passer au Starter
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
@@ -333,14 +365,19 @@ export default function AIVisibilityReport() {
     try {
       if (existing?.id) {
         await base44.entities.ActionTask.update(existing.id, { status: newStatus });
-        setTasks(prev => ({ ...prev, [index]: { ...prev[index], status: newStatus } }));
+        const updated = { ...tasks, [index]: { ...tasks[index], status: newStatus } };
+        setTasks(updated);
+        // Sync to localStorage for chatbot context awareness
+        try { localStorage.setItem('wok_action_tasks', JSON.stringify(updated)); } catch {}
       } else {
         const created = await base44.entities.ActionTask.create({
           user_id: user.id, site_url: data?.site_url || '',
           action_index: index, action_title: item.action_title || '',
           engine: item.engine || '', platform: item.platform || '', status: newStatus,
         });
-        setTasks(prev => ({ ...prev, [index]: created }));
+        const updated = { ...tasks, [index]: created };
+        setTasks(updated);
+        try { localStorage.setItem('wok_action_tasks', JSON.stringify(updated)); } catch {}
       }
     } catch {}
     setSavingTask(prev => ({ ...prev, [index]: false }));
@@ -598,6 +635,7 @@ export default function AIVisibilityReport() {
               <LockedSection
                 label="Plan d'actions — Starter requis"
                 onUpgrade={() => setShowUpgrade(true)}
+                intentKey="action_plan"
               >
                 <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
                   <div style={{ padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
@@ -694,7 +732,7 @@ export default function AIVisibilityReport() {
         {/* ── Concurrents (bloqué pour free) ── */}
         {(competitorsToShow.length > 0) && (
           isFree ? (
-            <LockedSection label="Analyse concurrents — Starter requis" onUpgrade={() => setShowUpgrade(true)}>
+            <LockedSection label="Analyse concurrents — Starter requis" onUpgrade={() => setShowUpgrade(true)} intentKey="competitors">
               <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>Sites concurrents détectés</p>
                 {fakeCompetitors.map((c, i) => (

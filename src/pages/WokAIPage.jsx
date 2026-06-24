@@ -80,6 +80,17 @@ function MessageBubble({ msg, userInitials }) {
 
 // ── Smart suggestions based on profile data ──────────────────────
 function getSmartSuggestions(profile, domainLabel) {
+  // Read task memory for contextual suggestions
+  let nextPendingTask = null;
+  let doneCount = 0;
+  try {
+    const tasks = JSON.parse(localStorage.getItem('wok_action_tasks') || '{}');
+    const entries = Object.entries(tasks);
+    doneCount = entries.filter(([, t]) => t.status === 'done').length;
+    const pending = entries.find(([, t]) => !t.status || t.status === 'todo');
+    if (pending) nextPendingTask = pending[1].action_title;
+  } catch {}
+
   if (!profile) return [
     { icon: Zap, text: 'Lance un scan pour analyser mon site', color: '#7C6AF4' },
     { icon: Target, text: 'Comment améliorer ma visibilité sur les IA ?', color: '#10B981' },
@@ -99,7 +110,9 @@ function getSmartSuggestions(profile, domainLabel) {
   const suggestions = [
     {
       icon: Zap,
-      text: score > 0 ? `Mon score est ${score}/100 — comment l'améliorer rapidement ?` : 'Quelles sont mes priorités d\'optimisation ?',
+      text: nextPendingTask
+        ? `J'ai ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''} — que faire maintenant pour maximiser mon LRS ?`
+        : score > 0 ? `Mon score est ${score}/100 — comment l'améliorer rapidement ?` : 'Quelles sont mes priorités d\'optimisation ?',
       color: '#7C6AF4'
     },
     {
@@ -114,7 +127,7 @@ function getSmartSuggestions(profile, domainLabel) {
     },
     {
       icon: Target,
-      text: `Donne-moi un plan d'action concret pour ${domainLabel || 'mon site'} cette semaine`,
+      text: nextPendingTask ? `Explique-moi comment réaliser : "${nextPendingTask.slice(0, 45)}"` : `Donne-moi un plan d'action concret pour ${domainLabel || 'mon site'} cette semaine`,
       color: '#F59E0B'
     },
   ];
@@ -338,6 +351,23 @@ function buildContext(user, profile, activeDomain) {
       ctx += `- ${c.name || c.domain || c}${c.score ? ` (${c.score}/100)` : ''}\n`;
     });
   }
+
+  // ActionTask progress — mémoire contextuelle des tâches
+  try {
+    const tasks = JSON.parse(localStorage.getItem('wok_action_tasks') || '{}');
+    const taskEntries = Object.entries(tasks);
+    if (taskEntries.length > 0) {
+      const done = taskEntries.filter(([, t]) => t.status === 'done');
+      const inProgress = taskEntries.filter(([, t]) => t.status === 'in_progress');
+      const todo = taskEntries.filter(([, t]) => !t.status || t.status === 'todo');
+      ctx += `### Progression du Plan d'Action\n`;
+      ctx += `Tâches terminées: ${done.length} | En cours: ${inProgress.length} | À faire: ${todo.length}\n`;
+      if (inProgress.length > 0) ctx += `⏳ En cours: ${inProgress.map(([, t]) => t.action_title || `Tâche #${t.action_index+1}`).join(', ')}\n`;
+      if (done.length > 0) ctx += `✅ Fait: ${done.map(([, t]) => t.action_title || `Tâche #${t.action_index+1}`).join(', ')}\n`;
+      if (todo.length > 0) ctx += `📌 Priorité suivante: ${todo[0][1].action_title || `Tâche #${Number(todo[0][0])+1}`}\n`;
+      ctx += `→ Si l'utilisateur demande quoi faire ensuite, guide-le vers la prochaine tâche non démarrée et explique l'impact sur son LRS.\n`;
+    }
+  } catch {}
 
   if (profile.last_scan) ctx += `\n*Dernier scan: ${new Date(profile.last_scan).toLocaleDateString('fr-FR')}*\n`;
 
