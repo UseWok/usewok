@@ -122,11 +122,11 @@ export default function Layout() {
   ];
 
   const handleFeedbackSend = async (rating) => {
+    setFeedbackRating(rating);
     setFeedbackSending(true);
-    const isBad = rating === 'mauvais' || rating === 'mediocre' || rating === 'correct';
+    const isBad = ['mauvais', 'mediocre', 'correct'].includes(rating);
     try {
       if (isBad) {
-        // Ouvre un ticket support automatiquement sans texte à écrire
         await base44.entities.SupportTicket.create({
           description: `Feedback automatique — Note : ${rating}`,
           category: 'other',
@@ -135,7 +135,7 @@ export default function Layout() {
           user_name: user?.full_name || '',
         });
       } else {
-        await base44.integrations.Core.SendEmail({
+        await base44.asServiceRole.integrations.Core.SendEmail({
           to: 'support@wok.so',
           subject: `Feedback utilisateur — ${rating}`,
           body: `Note: ${rating}\nUtilisateur: ${user?.email || 'inconnu'}`,
@@ -229,7 +229,7 @@ export default function Layout() {
                     <p style={{ fontSize: 12.5, color: '#888', margin: '0 0 20px', lineHeight: 1.5 }}>Vos retours façonnent ce que nous construisons ensuite.</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 20 }}>
                       {RATINGS.map(r => (
-                        <button key={r.key} onClick={() => { if (!feedbackSending) { setFeedbackRating(r.key); handleFeedbackSend(r.key); } }}
+                       <button key={r.key} onClick={() => { if (!feedbackSending) { handleFeedbackSend(r.key); } }}
                           disabled={feedbackSending}
                           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '10px 4px', borderRadius: 12, border: feedbackRating === r.key ? '2px solid #10B981' : '1px solid #EBEBEB', background: feedbackRating === r.key ? 'rgba(16,185,129,0.06)' : '#FAFAFA', cursor: 'pointer', transition: 'all 150ms' }}>
                           <span style={{ fontSize: 20 }}>{r.emoji}</span>

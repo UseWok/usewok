@@ -47,9 +47,9 @@ Deno.serve(async (req) => {
         - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number } — CRITICAL: list ONLY TRUE direct competitors that operate in the SAME sector/niche as this business. If the site is a SaaS, list SaaS competitors. If it is a bakery, list bakeries. NEVER list unrelated domains. If you cannot identify real competitors from the actual business type, return an empty array rather than guessing.
         - geo_traffic: array of max 4 objects sorted by traffic desc: first 3 top countries each { country: string (ISO 2-letter), country_name: string, pct: number (% of total traffic, integer) }, then one entry { country: "OTHER", country_name: "Autres pays", pct: number } if there are more. All pct must sum to 100.
         
-        IMPORTANT for issues: Write in simple French a business owner can understand. Never use words like "Schema Markup", "balise meta", "JSON-LD", "robots.txt", "SSL certificate". Instead say things like "Votre site n'est pas bien compris par les IA", "Votre fiche Google n'existe pas", "Votre site n'est pas sécurisé (pas de cadenas)".
+        IMPORTANT for issues: Write each issue text in simple French that a non-technical business owner can understand. Avoid all technical jargon like "Schema Markup", "meta tag", "JSON-LD", "robots.txt", "SSL certificate". Use plain language like "Votre site n'est pas reconnu par les IA", "Votre fiche Google est absente", "Votre site n'est pas sécurisé".
         
-        CRITICAL: Read the actual content of the website to determine its business_type and context. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", check the actual text—it might be a software agency or an app, not a recipe site or an Asian restaurant).`,
+        CRITICAL: Read the actual page content of the website to determine business_type. Do NOT infer the business type from the domain name or brand name alone (e.g. brand "Wok" could be a SaaS, not a restaurant). Return ONLY valid JSON.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
         - chatgpt_reason: string (one sentence why in French)
         - perplexity_reason: string (one sentence why in French)
         
-        CRITICAL: Read the actual content of the website. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", do NOT assume it is an Asian restaurant or recipe site unless the content confirms it).`,
+        CRITICAL: Read the actual website content. Do NOT guess the business type from the domain name or brand name alone. Return ONLY valid JSON.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
@@ -206,17 +206,17 @@ Deno.serve(async (req) => {
         ENTITY INJECTION ACTION PLAN:
         Generate 3 specific, highly actionable injection recommendations. Each must be a concrete "ordonnance" — not generic advice.
         
-        For each action (TOUT EN FRANÇAIS):
-        - engine: le moteur IA ciblé (ex : "Perplexity")
-        - gap: la requête ou le sujet précis où les concurrents apparaissent mais pas ce site (ex : "meilleur logiciel de facturation PME 2024")
-        - competitor_advantage: pourquoi les concurrents sont cités là (ex : "ils sont présents dans des comparatifs indépendants")
-        - action_title: titre court de l'action en français (ex : "Publier un comparatif de solutions")
-        - action_detail: instruction concrète étape par étape en français (2-3 phrases, nommer les plateformes ou formats spécifiques)
-        - platform: plateforme ou canal spécifique à cibler (ex : "Reddit", "Wikipedia", "LinkedIn Pulse", "blog invité")
+        For each action, return ALL text fields in French (action_title, action_detail, gap, competitor_advantage):
+        - engine: target AI engine name (e.g. "Perplexity")
+        - gap: exact query or topic where competitors appear but this brand does not — write in French (e.g. "meilleur logiciel de facturation PME")
+        - competitor_advantage: why competitors are cited there — write in French
+        - action_title: short action title in French
+        - action_detail: concrete 2-3 sentence instruction in French, naming specific platforms or formats
+        - platform: specific platform or channel (e.g. "Reddit", "Wikipedia", "LinkedIn Pulse")
         - impact: "high" | "medium"
         - effort: "low" | "medium" | "high"
 
-        CRITICAL: Lis le contenu réel du site. Ne suppose JAMAIS le secteur d'activité basé uniquement sur le nom de domaine ou la marque. Retourne UNIQUEMENT du JSON valide.
+        CRITICAL: Read the actual website content. Do NOT assume the business type from the domain name. Return ONLY valid JSON.
         
         Return:
         - lrs_score: number 0-100
