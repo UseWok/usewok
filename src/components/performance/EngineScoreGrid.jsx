@@ -16,7 +16,7 @@ const ChatGPTLogo = () => (
 
 const ENGINE_CFG = [
   { key: 'chatgpt',    label: 'ChatGPT',    logoEl: <ChatGPTLogo /> },
-  { key: 'gemini',     label: 'Gemini',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/f300509ef_image.png' },
+  { key: 'gemini',     label: 'Gemini',     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Google_Gemini_logo.svg/120px-Google_Gemini_logo.svg.png' },
   { key: 'claude',     label: 'Claude',     logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3221a054f_image.png' },
   { key: 'perplexity', label: 'Perplexity', logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1addf06ad_image.png' },
   { key: 'mistral',    label: 'Mistral',    logo: 'https://media.base44.com/images/public/6a2edc91082e534601118582/251e56634_image.png' },
@@ -26,8 +26,16 @@ const ENGINE_CFG = [
 ];
 
 function EngLogo({ e, size = 18 }) {
-  if (e.logoEl) return <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{e.logoEl}</div>;
-  return <img src={e.logo} alt={e.label} width={size} height={size} style={{ objectFit: 'contain', flexShrink: 0 }} onError={ev => { ev.target.style.opacity = '0.2'; }} />;
+  if (e.logoEl) return (
+    <div style={{ width: size, height: size, borderRadius: 5, background: '#fff', border: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      {e.logoEl}
+    </div>
+  );
+  return (
+    <div style={{ width: size, height: size, borderRadius: 5, background: '#fff', border: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+      <img src={e.logo} alt={e.label} width={size - 4} height={size - 4} style={{ objectFit: 'contain' }} onError={ev => { ev.target.style.opacity = '0.2'; }} />
+    </div>
+  );
 }
 
 function scoreColor(s) {
