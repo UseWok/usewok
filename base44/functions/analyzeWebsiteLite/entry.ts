@@ -46,7 +46,8 @@ Lis le contenu réel du site, puis retourne UNIQUEMENT un objet JSON valide (san
 
 RÈGLES :
 - issues : max 3, en français pour un non-technicien (pas de jargon technique)
-- Ne déduis pas business_type du nom de domaine, lis le contenu
+- Ne déduis jamais business_type du nom de domaine ou de la marque — lis le contenu réel du site
+- shock_insight : 1 phrase percutante en français sur ce que l'entreprise perd concrètement
 - Retourne UNIQUEMENT le JSON, rien d'autre`,
       add_context_from_internet: true,
       model: 'gemini_3_flash',

@@ -252,41 +252,35 @@ function trackIntent(featureName) {
   try { base44.analytics.track({ eventName: 'locked_section_hover', properties: { feature: featureName } }); } catch {}
 }
 
-// ── Locked section overlay ────────────────────────────────────────────────────
-function LockedSection({ children, label = 'Plan Starter requis', onUpgrade, intentKey = 'unknown' }) {
-  const [hovered, setHovered] = useState(false);
+// ── Locked section overlay — sophistiqué ─────────────────────────────────────
+function LockedSection({ children, label = 'Fonctionnalité avancée', onUpgrade, intentKey = 'unknown' }) {
   const tracked = useRef(false);
+  const handleEnter = () => { if (!tracked.current) { tracked.current = true; trackIntent(intentKey); } };
 
   return (
     <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}
-      onMouseEnter={() => { setHovered(true); if (!tracked.current) { tracked.current = true; trackIntent(intentKey); } }}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleEnter}
     >
-      <div style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.55 }}>{children}</div>
-      <motion.div
-        style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(248,247,245,0.75)', backdropFilter: 'blur(2px)' }}
-        animate={{ scale: hovered ? 1.005 : 1 }} transition={{ duration: 0.18 }}
-      >
+      <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.45 }}>{children}</div>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10,10,11,0.52)', backdropFilter: 'blur(3px)' }}>
         <motion.div
-          animate={{ y: hovered ? -4 : 0, boxShadow: hovered ? '0 20px 60px rgba(124,106,244,0.2)' : '0 8px 32px rgba(0,0,0,0.08)' }}
-          transition={{ duration: 0.22 }}
-          style={{ background: WHITE, border: `1.5px solid ${hovered ? '#C7D2FE' : BORDER}`, borderRadius: 18, padding: '22px 26px', textAlign: 'center', maxWidth: 270 }}
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+          style={{ background: 'rgba(20,20,24,0.96)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '24px 28px', textAlign: 'center', maxWidth: 290, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}
         >
-          <motion.div animate={{ background: hovered ? '#7C6AF4' : '#EEF0FF' }} transition={{ duration: 0.2 }}
-            style={{ width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-            <Lock size={16} color={hovered ? WHITE : '#7C6AF4'} />
-          </motion.div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 5 }}>{label}</div>
-          <div style={{ fontSize: 11, color: INK3, marginBottom: 16, lineHeight: 1.55 }}>
-            {hovered ? 'Cliquez pour débloquer instantanément →' : 'Disponible à partir du plan Starter.'}
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <Lock size={16} color="rgba(255,255,255,0.7)" />
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#F0F0EE', marginBottom: 6, letterSpacing: '-0.02em' }}>{label}</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 18, lineHeight: 1.6 }}>
+            Inclus dans le plan Starter et supérieur.
           </div>
           <motion.button onClick={onUpgrade}
-            whileTap={{ scale: 0.97 }}
-            style={{ width: '100%', padding: '10px', background: hovered ? '#7C6AF4' : INK, border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'background 0.2s' }}>
-            <Zap size={11} fill={WHITE} stroke="none" /> Passer au Starter
+            whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.97 }}
+            style={{ width: '100%', padding: '10px', background: WHITE, border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#0A0A0B', cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            Voir les plans <ArrowRight size={11} />
           </motion.button>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }

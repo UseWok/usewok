@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
         - strengths: array of 3 strings (in French)
         - shock_insight: string (one powerful simple sentence in French about what they're losing)
         - top_keywords: array of 5 objects { keyword: string, position: number, volume: number }
-        - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number }
+        - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number } — CRITICAL: list ONLY TRUE direct competitors that operate in the SAME sector/niche as this business. If the site is a SaaS, list SaaS competitors. If it is a bakery, list bakeries. NEVER list unrelated domains. If you cannot identify real competitors from the actual business type, return an empty array rather than guessing.
         - geo_traffic: array of max 4 objects sorted by traffic desc: first 3 top countries each { country: string (ISO 2-letter), country_name: string, pct: number (% of total traffic, integer) }, then one entry { country: "OTHER", country_name: "Autres pays", pct: number } if there are more. All pct must sum to 100.
         
         IMPORTANT for issues: Write in simple French a business owner can understand. Never use words like "Schema Markup", "balise meta", "JSON-LD", "robots.txt", "SSL certificate". Instead say things like "Votre site n'est pas bien compris par les IA", "Votre fiche Google n'existe pas", "Votre site n'est pas sécurisé (pas de cadenas)".
@@ -206,17 +206,17 @@ Deno.serve(async (req) => {
         ENTITY INJECTION ACTION PLAN:
         Generate 3 specific, highly actionable injection recommendations. Each must be a concrete "ordonnance" — not generic advice.
         
-        For each action:
-        - engine: which AI engine is missing this brand (e.g. "Perplexity")
-        - gap: what specific query or topic where competitors appear but this brand doesn't (be specific, name the exact query)
-        - competitor_advantage: why competitors are cited there (e.g. "ils sont cités car présents dans le rapport Gartner 2024 sur les CRM")
-        - action_title: short action title in French (e.g. "Publier une page de données primaires")
-        - action_detail: specific step-by-step instruction in French (2-3 sentences, name specific platforms, formats, or sources)
-        - platform: specific platform or channel to target (e.g. "Reddit", "Wikipedia", "LinkedIn Pulse", "HubSpot Blog guest post")
+        For each action (TOUT EN FRANÇAIS):
+        - engine: le moteur IA ciblé (ex : "Perplexity")
+        - gap: la requête ou le sujet précis où les concurrents apparaissent mais pas ce site (ex : "meilleur logiciel de facturation PME 2024")
+        - competitor_advantage: pourquoi les concurrents sont cités là (ex : "ils sont présents dans des comparatifs indépendants")
+        - action_title: titre court de l'action en français (ex : "Publier un comparatif de solutions")
+        - action_detail: instruction concrète étape par étape en français (2-3 phrases, nommer les plateformes ou formats spécifiques)
+        - platform: plateforme ou canal spécifique à cibler (ex : "Reddit", "Wikipedia", "LinkedIn Pulse", "blog invité")
         - impact: "high" | "medium"
         - effort: "low" | "medium" | "high"
 
-        CRITICAL: Read the actual content of the website. Do NOT guess the business type based purely on the domain name or brand name (e.g. if the brand is "Wok", do NOT assume it is an Asian restaurant or recipe site unless the content confirms it).
+        CRITICAL: Lis le contenu réel du site. Ne suppose JAMAIS le secteur d'activité basé uniquement sur le nom de domaine ou la marque. Retourne UNIQUEMENT du JSON valide.
         
         Return:
         - lrs_score: number 0-100

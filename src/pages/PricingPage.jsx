@@ -218,7 +218,7 @@ export default function PricingPage() {
                         </button>
                       ) : (
                         <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: WHITE, background: isHL ? CORAL : INK, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                          style={{ width: '100%', padding: '8px 0', border: isHL ? 'none' : `1.5px solid ${INK}`, borderRadius: 7, fontSize: 12, fontWeight: 700, color: isHL ? WHITE : INK, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                           {isHL && <Zap size={11} fill={WHITE} stroke="none" />}
@@ -272,7 +272,7 @@ export default function PricingPage() {
                         </button>
                       ) : (
                         <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, color: WHITE, background: isHL ? CORAL : INK, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
+                          style={{ width: '100%', padding: '8px 0', border: isHL ? 'none' : `1.5px solid ${INK}`, borderRadius: 7, fontSize: 12, fontWeight: 700, color: isHL ? WHITE : INK, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                           Passer à {plan.name}

@@ -1,0 +1,66 @@
+{
+  "name": "FixLibrary",
+  "type": "object",
+  "properties": {
+    "issue_key": {
+      "type": "string",
+      "title": "Cl\u00e9 de probl\u00e8me (hash normalis\u00e9)"
+    },
+    "issue_text": {
+      "type": "string",
+      "title": "Texte original du probl\u00e8me"
+    },
+    "industry": {
+      "type": "string",
+      "title": "Secteur d'activit\u00e9"
+    },
+    "summary": {
+      "type": "string",
+      "title": "R\u00e9sum\u00e9 de la correction"
+    },
+    "steps": {
+      "type": "string",
+      "title": "\u00c9tapes JSON",
+      "format": "textarea"
+    },
+    "time_estimate": {
+      "type": "string",
+      "title": "Temps estim\u00e9"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type (autonome/developpeur)"
+    },
+    "use_count": {
+      "type": "number",
+      "title": "Nombre de r\u00e9utilisations",
+      "default": 1
+    }
+  },
+  "required": [
+    "issue_key",
+    "issue_text"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
