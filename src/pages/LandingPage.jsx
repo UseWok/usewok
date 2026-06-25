@@ -621,10 +621,11 @@ export default function LandingPage() {
 
   return (
     <div style={{ background: BG, fontFamily: F }}>
-      {/* ── Liseré tricolore 4px — tout en haut ── */}
+      {/* ── Liseré tricolore — sous la navbar, bien visible, qualité Retina ── */}
       <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, height: 4,
-        background: 'linear-gradient(90deg, #1A3A6B 0%, #1A3A6B 33.3%, #E8E4DC 33.3%, #E8E4DC 66.6%, #A0312A 66.6%, #A0312A 100%)',
+        position: 'fixed', top: 58, left: 0, right: 0, zIndex: 299, height: 3,
+        background: 'linear-gradient(90deg, #1C3D6E 0%, #1C3D6E 33.33%, rgba(240,238,232,0.18) 33.33%, rgba(240,238,232,0.18) 66.66%, #7A2820 66.66%, #7A2820 100%)',
+        opacity: 0.85,
       }} />
 
       <Navbar onSignup={onSignup} />
@@ -642,10 +643,11 @@ export default function LandingPage() {
               <div style={{ maxWidth: 540 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                   {/* Drapeau SVG net Retina */}
-                  <svg width="28" height="20" viewBox="0 0 28 20" fill="none" style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
-                    <rect width="28" height="20" fill="#E8E4DC"/>
-                    <rect width="9.33" height="20" fill="#1A3A6B"/>
-                    <rect x="18.67" width="9.33" height="20" fill="#A0312A"/>
+                  <svg width="28" height="20" viewBox="0 0 28 20" fill="none" style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>
+                    <rect width="28" height="20" fill="#2A2520"/>
+                    <rect width="9.33" height="20" fill="#1C3D6E"/>
+                    <rect x="9.33" width="9.34" height="20" fill="#3A3530" opacity="0.7"/>
+                    <rect x="18.67" width="9.33" height="20" fill="#7A2820"/>
                   </svg>
                   <span style={{ fontSize: 11, fontWeight: 700, color: T3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>French Tech · Solution souveraine</span>
                 </div>
@@ -661,9 +663,9 @@ export default function LandingPage() {
               <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <div style={{ position: 'relative', width: 88, height: 88 }}>
                   <svg width="88" height="88" viewBox="0 0 88 88" style={{ position: 'absolute', inset: 0 }}>
-                    <circle cx="44" cy="44" r="42" fill="none" stroke="#1A3A6B" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="0"/>
-                    <circle cx="44" cy="44" r="42" fill="none" stroke="#E8E4DC" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-88"/>
-                    <circle cx="44" cy="44" r="42" fill="none" stroke="#A0312A" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-176"/>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="#1C3D6E" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="0"/>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="rgba(240,238,232,0.22)" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-88"/>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="#7A2820" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-176"/>
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                     <span style={{ fontSize: 24 }}>🇫🇷</span>
