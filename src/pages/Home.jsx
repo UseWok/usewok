@@ -429,7 +429,10 @@ export default function Home() {
               <div style={{ position: 'absolute', top: -50, right: -50, width: 180, height: 180, borderRadius: '50%', background: `radial-gradient(circle, ${lrsColor}22 0%, transparent 70%)`, pointerEvents: 'none' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>LLM Resonance Score™</div>
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>LRS™ — Entity Authority Score</div>
+                    <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', marginTop: 2, letterSpacing: '0.04em' }}>Citation · Sentiment · Précision · 8 IA</div>
+                  </div>
                   {activeProfile?.scan_type === 'lite' && (
                     <span style={{ fontSize: 9, fontWeight: 700, color: CORAL, background: `${CORAL}20`, border: `1px solid ${CORAL}30`, borderRadius: 20, padding: '1px 7px' }}>LITE</span>
                   )}
@@ -527,8 +530,8 @@ export default function Home() {
             </p>
             {profiles.length < MAX_DOMAINS && (
               <button onClick={() => setShowAddModal(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-                <Plus size={10} /> Ajouter
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', border: 'none', borderRadius: 999, background: INK, fontSize: 12, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
+                <Zap size={11} fill={WHITE} stroke="none" /> Analyser
               </button>
             )}
           </div>
