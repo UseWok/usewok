@@ -22,20 +22,92 @@
   <meta name="twitter:image" content="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png" />
   <!-- Canonical -->
   <link rel="canonical" href="https://usewok.app/" />
-  <!-- Structured Data — Organization + Logo -->
+  <!-- Structured Data — Organization + SoftwareApplication -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "UseWok",
-    "url": "https://usewok.app/",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png",
-      "width": 512,
-      "height": 512
-    },
-    "sameAs": []
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://usewok.app/#organization",
+        "name": "UseWok",
+        "url": "https://usewok.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png",
+          "width": 512,
+          "height": 512
+        },
+        "description": "UseWok est l'outil français de visibilité IA pour les indépendants et PME. Analysez votre présence sur 8 moteurs IA (ChatGPT, Gemini, Claude, Perplexity…) et obtenez un plan d'action concret.",
+        "sameAs": []
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://usewok.app/#app",
+        "name": "UseWok",
+        "url": "https://usewok.app/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "fr-FR",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "description": "Analyse gratuite de visibilité IA — Score LRS sur 8 moteurs IA"
+        },
+        "publisher": {
+          "@id": "https://usewok.app/#organization"
+        },
+        "description": "Analysez votre visibilité sur ChatGPT, Gemini, Claude, Perplexity et 4 autres IA. Obtenez un score, un audit et un plan d'action pour apparaître dans les recommandations des intelligences artificielles.",
+        "featureList": [
+          "Score LRS sur 8 moteurs IA",
+          "Audit technique automatique",
+          "Plan d'action personnalisé étape par étape",
+          "Analyse concurrentielle IA",
+          "Assistant IA contextuel"
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://usewok.app/#webpage",
+        "url": "https://usewok.app/",
+        "name": "Apparaître dans les réponses de ChatGPT, Gemini & co — même sans budget marketing",
+        "description": "Vous n'apparaissez nulle part quand un client demande à une IA de recommander un pro ? UseWok vous montre exactement quoi corriger, étape par étape, sur 8 intelligences artificielles.",
+        "isPartOf": {
+          "@id": "https://usewok.app/#organization"
+        },
+        "inLanguage": "fr-FR"
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Qu'est-ce que la visibilité IA ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La visibilité IA désigne votre capacité à être recommandé par les intelligences artificielles comme ChatGPT, Gemini ou Perplexity lorsqu'un utilisateur pose une question liée à votre activité. Contrairement au SEO Google, elle dépend de la qualité et de la cohérence des informations disponibles sur votre entreprise."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Combien de temps prend l'analyse ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "L'analyse complète prend environ 2 minutes. UseWok interroge simultanément 8 moteurs IA et vous fournit un score, un audit et un plan d'action immédiatement. Aucune carte bancaire requise pour l'analyse gratuite."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "UseWok est-il différent du SEO classique ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Oui, UseWok n'est pas un outil SEO Google. Il est spécifiquement conçu pour optimiser votre présence dans les réponses des intelligences artificielles (AEO - Answer Engine Optimization). Les IA utilisent des signaux différents de Google pour recommander des professionnels."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
   </head>
