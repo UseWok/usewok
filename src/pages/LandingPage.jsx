@@ -621,10 +621,116 @@ export default function LandingPage() {
 
   return (
     <div style={{ background: BG, fontFamily: F }}>
+      {/* ── Liseré tricolore 4px — tout en haut ── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, height: 4,
+        background: 'linear-gradient(90deg, #1A3A6B 0%, #1A3A6B 33.3%, #E8E4DC 33.3%, #E8E4DC 66.6%, #A0312A 66.6%, #A0312A 100%)',
+      }} />
+
       <Navbar onSignup={onSignup} />
       <Hero onSignup={onSignup} />
       <ProblemSection />
       <FeaturesSection onSignup={onSignup} />
+
+      {/* ── Section French Tech ── */}
+      <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: 'clamp(60px,8vw,100px) clamp(20px,5vw,120px)', fontFamily: F }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+          {/* Header */}
+          <FadeIn>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 32, marginBottom: 'clamp(36px,5vw,56px)' }}>
+              <div style={{ maxWidth: 540 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                  {/* Drapeau SVG net Retina */}
+                  <svg width="28" height="20" viewBox="0 0 28 20" fill="none" style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                    <rect width="28" height="20" fill="#E8E4DC"/>
+                    <rect width="9.33" height="20" fill="#1A3A6B"/>
+                    <rect x="18.67" width="9.33" height="20" fill="#A0312A"/>
+                  </svg>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: T3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>French Tech · Solution souveraine</span>
+                </div>
+                <h2 style={{ fontSize: 'clamp(24px,3.5vw,40px)', fontWeight: 800, color: T1, letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 16px' }}>
+                  Conçu en France,<br />pour le marché français.
+                </h2>
+                <p style={{ fontSize: 15, color: T2, lineHeight: 1.7, margin: 0 }}>
+                  Dans un monde où les outils IA viennent majoritairement des États-Unis, UseWok est fier d'être une solution française. Souveraineté des données, compréhension du tissu local, support humain en français — pas des généralités US traduites.
+                </p>
+              </div>
+
+              {/* Sceau circulaire */}
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={{ position: 'relative', width: 88, height: 88 }}>
+                  <svg width="88" height="88" viewBox="0 0 88 88" style={{ position: 'absolute', inset: 0 }}>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="#1A3A6B" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="0"/>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="#E8E4DC" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-88"/>
+                    <circle cx="44" cy="44" r="42" fill="none" stroke="#A0312A" strokeWidth="3" strokeDasharray="88 176" strokeDashoffset="-176"/>
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                    <span style={{ fontSize: 24 }}>🇫🇷</span>
+                    <span style={{ fontSize: 8, fontWeight: 800, color: T3, letterSpacing: '0.07em', textAlign: 'center', lineHeight: 1.4 }}>FAIT EN<br/>FRANCE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* 3 piliers */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px,1fr))', gap: 12 }}>
+            {[
+              {
+                accent: '#1A3A6B',
+                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                label: 'Conformité RGPD native',
+                desc: 'Vos données ne quittent jamais l\'Europe. Traitement transparent, droit à l\'effacement garanti, aucune revente. Pas une case à cocher — une vraie politique.',
+              },
+              {
+                accent: '#4A5568',
+                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+                label: 'Calibré pour la France',
+                desc: 'Nos audits comprennent les spécificités du commerce local, de l\'artisanat et des TPE françaises. Pas un outil californien traduit en français.',
+              },
+              {
+                accent: '#A0312A',
+                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+                label: 'Support humain, en français',
+                desc: 'Une vraie équipe qui connaît les contraintes d\'un indépendant ou d\'un gérant de PME. Réponse sous 24h, en français, par des humains.',
+              },
+            ].map((p, i) => (
+              <FadeIn key={i} delay={i * 0.08}>
+                <div style={{
+                  padding: '28px 24px',
+                  background: 'rgba(255,255,255,0.025)',
+                  border: `1px solid ${BORDER}`,
+                  borderTop: `3px solid ${p.accent}`,
+                  borderRadius: '0 0 14px 14px',
+                  transition: 'background 200ms',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.055)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: `${p.accent}22`, border: `1px solid ${p.accent}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, color: T2 }}>
+                    {p.icon}
+                  </div>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: T1, margin: '0 0 8px' }}>{p.label}</h3>
+                  <p style={{ fontSize: 13, color: T2, lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+
+          {/* Strip réassurance */}
+          <FadeIn delay={0.2}>
+            <div style={{ marginTop: 16, padding: '14px 22px', background: 'rgba(26,58,107,0.10)', border: '1px solid rgba(26,58,107,0.22)', borderRadius: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 22, justifyContent: 'center' }}>
+              {[['🔒','Serveurs hébergés en Europe'],['📋','RGPD natif'],['🇫🇷','Support en français'],['🚫','Aucune revente de données']].map(([icon, text], i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14 }}>{icon}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T2 }}>{text}</span>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       <ForWhoSection onSignup={onSignup} />
       <Testimonials />
       <FinalCta onSignup={onSignup} />
