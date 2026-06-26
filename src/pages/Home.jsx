@@ -11,13 +11,13 @@ import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 // ── Design System ─────────────────────────────────────────────────────────────
 const F       = "'Inter', -apple-system, system-ui, sans-serif";
 const BG      = '#F9F8F5';
-const CARD_BG = '#5A5756';
+const CARD_BG = '#1C1B19';
 const WHITE   = '#FFFFFF';
 const INK     = '#111110';
 const INK2    = '#6B6762';
 const INK3    = '#A8A49F';
 const BORDER  = '#E8E5DF';
-const CORAL   = '#F17B5D';
+const CORAL   = '#F95738';
 const MAX_DOMAINS = 10;
 
 const getDomain    = (url) => (url || '').replace(/https?:\/\//, '').split('/')[0];
@@ -744,47 +744,47 @@ export default function Home() {
           {isScanningActive ? (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite' }} />
-              <p style={{ fontSize: 14, fontWeight: 600, color: WHITE, margin: 0 }}>Analyse de {getDomain(activeProfile?.site_url)}…</p>
-              <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
+              <p style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.82)', margin: 0 }}>Analyse de {getDomain(activeProfile?.site_url)}…</p>
+              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
             </div>
           ) : hasData ? (
             <div onClick={() => navigate('/ai-report')} style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.45)' }}>Score d'autorité</span>
-                <div style={{ padding: '3px 11px', background: 'rgba(241,123,93,0.18)', border: '1px solid rgba(241,123,93,0.35)', borderRadius: 20 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: CORAL }}>{lrsLabel}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.38)' }}>Score d'autorité</span>
+                <div style={{ padding: '3px 11px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20 }}>
+                  <span style={{ fontSize: 12, fontWeight: 400, color: CORAL }}>{lrsLabel}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                 <BigDonut score={lrs} />
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                  <span style={{ fontSize: 44, fontWeight: 800, color: WHITE, letterSpacing: '-0.05em', lineHeight: 1 }}>{lrs}</span>
-                  <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>/100</span>
+                  <span style={{ fontSize: 44, fontWeight: 300, color: WHITE, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}</span>
+                  <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/100</span>
                 </div>
               </div>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: '0 0 16px', lineHeight: 1.65 }}>
+              <p style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.45)', margin: '0 0 16px', lineHeight: 1.7 }}>
                 {activeProfile?.shock_insight
                   ? activeProfile.shock_insight.slice(0, 150) + (activeProfile.shock_insight.length > 150 ? '…' : '')
                   : 'Tant que votre site reste sur une adresse de test, vos concurrents récupèrent vos clients potentiels sur Google et les IA.'}
               </p>
-              <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 16 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 18 }}>
+              <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
                 {ENGINES_BARS.map(e => {
                   const s = activeProfile[`${e.key}_score`] || 0;
                   return (
                     <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 13, color: WHITE, width: 56, flexShrink: 0 }}>{e.label}</span>
-                      <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 999, overflow: 'hidden' }}>
+                      <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.65)', width: 62, flexShrink: 0 }}>{e.label}</span>
+                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${Math.min(s, 100)}%`, background: CORAL, borderRadius: 999 }} />
                       </div>
-                      <span style={{ fontSize: 13, color: WHITE, width: 14, textAlign: 'right', fontWeight: 600 }}>{s}</span>
+                      <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.4)', width: 18, textAlign: 'right' }}>{s}</span>
                     </div>
                   );
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: CORAL }}>Voir le rapport complet</span>
-                <ArrowRight size={13} color={CORAL} strokeWidth={2} />
+                <span style={{ fontSize: 13, fontWeight: 400, color: CORAL }}>Voir le rapport complet</span>
+                <ArrowRight size={13} color={CORAL} strokeWidth={1.8} />
               </div>
             </div>
           ) : (
@@ -814,7 +814,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>Mes domaines · {profiles.length}/{MAX_DOMAINS}</span>
             <button onClick={() => setShowAddModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#2D2B28', fontSize: 12.5, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#272522', fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.82)', cursor: 'pointer', fontFamily: F }}>
               <Zap size={12} color={WHITE} strokeWidth={2} />
               Analyser
             </button>
