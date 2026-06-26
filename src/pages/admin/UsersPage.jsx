@@ -1,321 +1,132 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Search, Filter, ChevronLeft, ChevronRight, Pencil, ToggleLeft, CircleSlash, X, Home } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import UserDetailDrawer from '@/components/admin/UserDetailDrawer';
 import { getUserColor } from '@/lib/user-color';
 import { getPlansConfig } from '@/lib/plans-config';
-import { toast } from 'sonner';
 
-const ITEMS_PER_PAGE = 25;
-
-const STATUS_FILTERS = [
-  { label: 'Tous', value: 'all' },
-  { label: 'Actif', value: 'active' },
-  { label: 'Suspendu', value: 'suspended' },
-  { label: 'Banni', value: 'banned' },
-];
+const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
+const BG = '#F8F7F4';
+const CARD = '#FFFFFF';
+const BORDER = 'rgba(21,19,15,0.09)';
+const INK = '#1A1A1A';
+const INK2 = '#6B6660';
+const INK3 = '#A8A49F';
+const CORAL = '#FF5A1F';
+const ITEMS = 30;
 
 export default function UsersPage() {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      const allUsers = await base44.entities.User.list('-created_date', 1000);
-      setUsers(allUsers || []);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des utilisateurs');
-    } finally {
-      setLoading(false);
-    }
+  const load = async () => {
+    try { setUsers(await base44.entities.User.list('-created_date', 2000) || []); }
+    catch {} finally { setLoading(false); }
   };
+  useEffect(() => { load(); }, []);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = searchQuery === '' ||
-      (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'active' && !user.disabled && !user.banned) ||
-      (statusFilter === 'suspended' && user.disabled && !user.banned) ||
-      (statusFilter === 'banned' && user.banned);
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filtered = users.filter(u =>
+    !search || (u.full_name || '').toLowerCase().includes(search.toLowerCase()) || (u.email || '').toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / ITEMS);
+  const page_users = filtered.slice((page - 1) * ITEMS, page * ITEMS);
+  const plans = getPlansConfig();
 
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    setDrawerOpen(true);
-  };
-
-  const handleUserUpdate = () => {
-    loadUsers();
-    setDrawerOpen(false);
-  };
+  const th = { fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', background: BG, borderBottom: `1px solid ${BORDER}`, textAlign: 'left', whiteSpace: 'nowrap' };
+  const td = { fontSize: 13, color: INK, padding: '10px 16px', borderBottom: `1px solid ${BORDER}` };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-8 py-6 border-b border-[#E5E5E5] flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/admin')}
-            className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#666666] hover:bg-[#F7F7F8] rounded-lg transition-colors"
-          >
-            <Home className="w-4 h-4" />
-            <span>Retour</span>
-          </button>
-          <h1 className="text-[20px] font-medium text-[#1A1A1A]">Utilisateurs</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: BG, fontFamily: F }}>
+      <div style={{ padding: '24px 32px 16px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Utilisateurs</h1>
+          <p style={{ fontSize: 12.5, color: INK3, margin: '3px 0 0' }}>{users.length} inscrits</p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher par nom, email…"
-              className="w-[320px] pl-10 pr-4 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none w-[140px] pl-4 pr-10 py-2 text-[13px] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A1A1A]/20 bg-white cursor-pointer"
-            >
-              {STATUS_FILTERS.map(f => (
-                <option key={f.value} value={f.value}>{f.label}</option>
-              ))}
-            </select>
-            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888] pointer-events-none" />
-          </div>
+        <div style={{ position: 'relative' }}>
+          <Search size={14} color={INK3} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Nom, email…"
+            style={{ paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 9, outline: 'none', background: CARD, color: INK, fontFamily: F, width: 260 }}
+            onFocus={e => e.target.style.borderColor = 'rgba(21,19,15,0.25)'}
+            onBlur={e => e.target.style.borderColor = BORDER} />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full">
-          <thead className="sticky top-0 bg-white">
-            <tr className="border-b border-[#E5E5E5]">
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Nom</th>
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Rôle</th>
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Abonnement</th>
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Date d'inscription</th>
-              <th className="px-6 py-3 text-left text-[11px] font-medium text-[#888888] uppercase tracking-wider">Statut</th>
-              <th className="px-6 py-3 text-right text-[11px] font-medium text-[#888888] uppercase tracking-wider">Actions</th>
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Utilisateur', 'Email', 'Rôle', 'Plan', 'Inscription', 'Statut'].map(h => (
+                <th key={h} style={th}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-[13px] text-[#888888]">
-                  Chargement...
-                </td>
-              </tr>
-            ) : paginatedUsers.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-[13px] text-[#888888]">
-                  Aucun utilisateur trouvé
-                </td>
-              </tr>
-            ) : (
-              paginatedUsers.map((user, index) => (
-                <UserRow
-                  key={user.id}
-                  user={user}
-                  isEven={index % 2 === 1}
-                  onClick={() => handleUserClick(user)}
-                />
-              ))
-            )}
+              <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: INK3, padding: '48px' }}>Chargement…</td></tr>
+            ) : page_users.length === 0 ? (
+              <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: INK3, padding: '48px' }}>Aucun utilisateur trouvé</td></tr>
+            ) : page_users.map(u => {
+              const plan = plans.find(p => p.id === u.subscription_plan) || plans.find(p => p.id === 'free');
+              const isPaid = u.subscription_plan && u.subscription_plan !== 'free';
+              const init = (u.full_name || u.email || '?').slice(0, 1).toUpperCase();
+              return (
+                <tr key={u.id} onClick={() => setSelected(u)} style={{ cursor: 'pointer', background: CARD, transition: 'background 80ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F2EBD9'}
+                  onMouseLeave={e => e.currentTarget.style.background = CARD}>
+                  <td style={td}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: getUserColor(u), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>{init}</div>
+                      <span style={{ fontWeight: 500 }}>{u.full_name || '—'}</span>
+                    </div>
+                  </td>
+                  <td style={{ ...td, color: INK2 }}>{u.email}</td>
+                  <td style={td}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: u.role === 'admin' ? '#3B8BEB15' : 'rgba(21,19,15,0.05)', color: u.role === 'admin' ? '#3B8BEB' : INK3 }}>
+                      {u.role === 'admin' ? 'Admin' : 'User'}
+                    </span>
+                  </td>
+                  <td style={td}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: isPaid ? '#7B4FE015' : 'rgba(21,19,15,0.05)', color: isPaid ? '#7B4FE0' : INK3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {plan?.name || 'Free'}
+                    </span>
+                  </td>
+                  <td style={{ ...td, color: INK3, fontSize: 12 }}>
+                    {new Date(u.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td style={td}>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#22C55E12', color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Actif
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="px-8 py-4 border-t border-[#E5E5E5] flex items-center justify-between">
-        <p className="text-[13px] text-[#888888]">
-          {filteredUsers.length} utilisateur{filteredUsers.length > 1 ? 's' : ''} au total
-        </p>
-        
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="p-2 border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
+      <div style={{ padding: '12px 24px', borderTop: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: BG, flexShrink: 0 }}>
+        <span style={{ fontSize: 12.5, color: INK3 }}>{filtered.length} utilisateur{filtered.length > 1 ? 's' : ''}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ width: 30, height: 30, border: `1px solid ${BORDER}`, borderRadius: 7, background: CARD, cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: page === 1 ? 0.35 : 1 }}>
+            <ChevronLeft size={14} color={INK} />
           </button>
-          
-          <span className="text-[13px] text-[#1A1A1A] px-3">
-            Page {currentPage} sur {totalPages || 1}
-          </span>
-          
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages || totalPages === 0}
-            className="p-2 border border-[#E5E5E5] rounded-lg hover:bg-[#F7F7F8] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
+          <span style={{ fontSize: 12.5, color: INK2 }}>{page} / {totalPages || 1}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+            style={{ width: 30, height: 30, border: `1px solid ${BORDER}`, borderRadius: 7, background: CARD, cursor: page >= totalPages ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: page >= totalPages ? 0.35 : 1 }}>
+            <ChevronRight size={14} color={INK} />
           </button>
         </div>
       </div>
 
-      {/* Detail Drawer */}
-      {selectedUser && (
-        <UserDetailDrawer
-          user={selectedUser}
-          open={drawerOpen}
-          onClose={() => {
-            setDrawerOpen(false);
-            setSelectedUser(null);
-          }}
-          onUserUpdated={handleUserUpdate}
-        />
+      {selected && (
+        <UserDetailDrawer user={selected} open={!!selected} onClose={() => setSelected(null)} onUserUpdated={() => { load(); setSelected(null); }} />
       )}
     </div>
-  );
-}
-
-function UserRow({ user, isEven, onClick }) {
-  const userInitial = user.full_name
-    ? user.full_name.charAt(0).toUpperCase()
-    : user.email.charAt(0).toUpperCase();
-
-  const role = user.role || 'user';
-  const isBanned = user.banned || false;
-  const isSuspended = user.disabled && !isBanned;
-  const isActive = !user.disabled && !isBanned;
-
-  const plans = getPlansConfig();
-  const userPlan = plans.find(p => p.id === user.subscription_plan) || plans.find(p => p.id === 'free');
-
-  const status = isBanned ? 'banned' : isSuspended ? 'suspended' : 'active';
-
-  return (
-    <tr
-      onClick={onClick}
-      className={`cursor-pointer transition-colors hover:bg-[#F0F0F0] ${isEven ? 'bg-[#FAFAFA]' : 'bg-white'}`}
-    >
-      <td className="px-6 py-3">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-semibold flex-shrink-0"
-            style={{ backgroundColor: getUserColor(user) }}
-          >
-            {userInitial}
-          </div>
-          <span className="text-[13px] text-[#1A1A1A] font-medium">
-            {user.full_name || '—'}
-          </span>
-        </div>
-      </td>
-      <td className="px-6 py-3">
-        <span className="text-[13px] text-[#444444]">{user.email}</span>
-      </td>
-      <td className="px-6 py-3">
-        <span className={`text-[13px] ${role === 'admin' ? 'text-blue-600 font-medium' : 'text-[#444444]'}`}>
-          {role === 'admin' ? 'Administrateur' : 'Utilisateur'}
-        </span>
-      </td>
-      <td className="px-6 py-3">
-        <PlanBadge plan={userPlan} />
-      </td>
-      <td className="px-6 py-3">
-        <span className="text-[13px] text-[#888888]">
-          {new Date(user.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </span>
-      </td>
-      <td className="px-6 py-3">
-        <StatusBadge status={status} />
-      </td>
-      <td className="px-6 py-3">
-        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-          <ActionButton icon={Pencil} tooltip="Modifier" />
-          <ActionButton icon={ToggleLeft} tooltip={isSuspended || isBanned ? "Réactiver" : "Suspendre"} />
-          <ActionButton icon={CircleSlash} tooltip="Bannir" />
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function PlanBadge({ plan }) {
-  const colors = {
-    free: { bg: '#F0F0F0', text: '#666666' },
-    starter: { bg: '#E8F4FD', text: '#0066CC' },
-    pro: { bg: '#F0E8FD', text: '#6B21A8' },
-    enterprise: { bg: '#E8FDF0', text: '#006633' },
-  };
-
-  const color = colors[plan?.id] || colors.free;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-[11px] font-medium"
-      style={{ backgroundColor: color.bg, color: color.text }}
-    >
-      {plan?.name || 'Gratuit'}
-    </span>
-  );
-}
-
-function StatusBadge({ status }) {
-  const colors = {
-    active: { bg: '#DCFCE7', text: '#166534' },
-    suspended: { bg: '#FEF3C7', text: '#92400E' },
-    banned: { bg: '#FEE2E2', text: '#991B1B' },
-  };
-
-  const labels = {
-    active: 'Actif',
-    suspended: 'Suspendu',
-    banned: 'Banni',
-  };
-
-  const color = colors[status] || colors.active;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-[11px] font-medium"
-      style={{ backgroundColor: color.bg, color: color.text }}
-    >
-      {labels[status]}
-    </span>
-  );
-}
-
-function ActionButton({ icon: Icon, tooltip }) {
-  return (
-    <button
-      className="p-1.5 text-[#888888] hover:text-[#1A1A1A] hover:bg-[#F0F0F0] rounded transition-colors relative group"
-      title={tooltip}
-    >
-      <Icon className="w-4 h-4" />
-      <span className="absolute top-full right-0 mt-1 px-2 py-1 bg-[#1A1A1A] text-white text-[11px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-        {tooltip}
-      </span>
-    </button>
   );
 }
