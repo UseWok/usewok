@@ -31,23 +31,7 @@ export function getTotalMinutes(userId) {
 
 const SIDEBAR_EXPANDED_PATHS = ['/app', '/cockpit', '/discussions', '/ai-dna'];
 
-// Inject noindex on all internal/app routes
-function useNoIndex() {
-  useEffect(() => {
-    let tag = document.querySelector('meta[name="robots"][data-internal]');
-    if (!tag) {
-      tag = document.createElement('meta');
-      tag.setAttribute('name', 'robots');
-      tag.setAttribute('data-internal', 'true');
-      document.head.appendChild(tag);
-    }
-    tag.setAttribute('content', 'noindex, nofollow');
-    return () => { if (tag) tag.setAttribute('content', 'index, follow'); };
-  }, []);
-}
-
 export default function Layout() {
-  useNoIndex();
   const [expanded, setExpanded] = useState(() => {
     try { return localStorage.getItem('wok_sidebar_expanded') === 'true'; } catch { return false; }
   });
