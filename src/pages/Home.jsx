@@ -35,88 +35,77 @@ function initials(name) {
   return (name || '??').slice(0, 2).toUpperCase();
 }
 
-// ── Moteurs IA disponibles (dropdown) ─────────────────────────────────────────
+// ── AIs disponibles (dropdown horizontal) ─────────────────────────────────────
 const AI_ENGINES = [
   {
-    id: 'auto', label: 'Automatique',
-    sub: 'Le meilleur modèle IA est sélectionné pour chaque requête',
+    id: 'auto', label: 'Automatic',
     logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.8">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.8" strokeLinecap="round">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
       </svg>
     ),
   },
   {
-    id: 'gemini', label: 'Gemini 1.5 Pro',
+    id: 'chatgpt', label: 'ChatGPT',
     logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2C6.9 7.1 6.9 16.9 12 22c5.1-5.1 5.1-14.9 0-20z" fill="#4285F4"/>
-        <path d="M2 12C7.1 6.9 16.9 6.9 22 12c-5.1 5.1-14.9 5.1-20 0z" fill="#EA4335"/>
-        <path d="M12 2c5.1 5.1 5.1 14.9 0 20C6.9 16.9 6.9 7.1 12 2z" fill="#FBBC04" opacity="0.6"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'claude_sonnet', label: 'Claude Sonnet 4.6',
-    logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M12 3L4 8.5v7L12 21l8-5.5v-7L12 3z" fill="#D97757" opacity="0.9"/>
-        <path d="M12 3v18M4 8.5L20 15.5M20 8.5L4 15.5" stroke="#fff" strokeWidth="1" opacity="0.3"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'claude_opus46', label: 'Claude Opus 4.6',
-    logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M12 3L4 8.5v7L12 21l8-5.5v-7L12 3z" fill="#C06040" opacity="0.9"/>
-        <path d="M12 3v18M4 8.5L20 15.5M20 8.5L4 15.5" stroke="#fff" strokeWidth="1" opacity="0.3"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'claude_opus48', label: 'Claude Opus 4.8',
-    logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M12 3L4 8.5v7L12 21l8-5.5v-7L12 3z" fill="#9B3020" opacity="0.9"/>
-        <path d="M12 3v18M4 8.5L20 15.5M20 8.5L4 15.5" stroke="#fff" strokeWidth="1" opacity="0.3"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'gpt55', label: 'GPT-5.5',
-    logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.6">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round">
         <path d="M12 2a5.5 5.5 0 0 1 5.17 7.39A5.5 5.5 0 0 1 12 22a5.5 5.5 0 0 1-5.17-7.39A5.5 5.5 0 0 1 12 2z"/>
         <path d="M2.65 9A5.5 5.5 0 0 1 9 6.83M21.35 15A5.5 5.5 0 0 1 15 17.17M9 17.17A5.5 5.5 0 0 1 2.65 15M15 6.83A5.5 5.5 0 0 1 21.35 9"/>
       </svg>
     ),
   },
   {
+    id: 'gemini', label: 'Gemini',
+    logo: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.9 7.1 6.9 16.9 12 22c5.1-5.1 5.1-14.9 0-20z" fill="#4285F4"/>
+        <path d="M2 12C7.1 6.9 16.9 6.9 22 12c-5.1 5.1-14.9 5.1-20 0z" fill="#EA4335"/>
+        <path d="M12 2c5.1 5.1 5.1 14.9 0 20C6.9 16.9 6.9 7.1 12 2z" fill="#FBBC04" opacity="0.7"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'claude', label: 'Claude',
+    logo: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L4 8.5v7L12 21l8-5.5v-7L12 3z" fill="#D97757"/>
+        <path d="M12 3v18M4 8.5L20 15.5M20 8.5L4 15.5" stroke="#fff" strokeWidth="1" opacity="0.25"/>
+      </svg>
+    ),
+  },
+  {
     id: 'perplexity', label: 'Perplexity',
     logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#20808D" strokeWidth="1.8">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#20808D" strokeWidth="1.7" strokeLinecap="round">
         <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>
       </svg>
     ),
   },
   {
-    id: 'mistral', label: 'Mistral Large',
+    id: 'mistral', label: 'Mistral',
     logo: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="2" width="5" height="5" rx="1" fill="#F97316"/>
-        <rect x="9.5" y="2" width="5" height="5" rx="1" fill="#F97316"/>
-        <rect x="17" y="2" width="5" height="5" rx="1" fill="#F97316"/>
-        <rect x="2" y="9.5" width="5" height="5" rx="1" fill="#F97316" opacity="0.7"/>
-        <rect x="17" y="9.5" width="5" height="5" rx="1" fill="#F97316" opacity="0.7"/>
-        <rect x="2" y="17" width="5" height="5" rx="1" fill="#F97316" opacity="0.5"/>
-        <rect x="17" y="17" width="5" height="5" rx="1" fill="#F97316" opacity="0.5"/>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <rect x="1" y="1" width="4" height="4" rx="1" fill="#F97316"/>
+        <rect x="8" y="1" width="4" height="4" rx="1" fill="#F97316"/>
+        <rect x="15" y="1" width="4" height="4" rx="1" fill="#F97316"/>
+        <rect x="1" y="8" width="4" height="4" rx="1" fill="#F97316" opacity="0.7"/>
+        <rect x="15" y="8" width="4" height="4" rx="1" fill="#F97316" opacity="0.7"/>
+        <rect x="1" y="15" width="4" height="4" rx="1" fill="#F97316" opacity="0.5"/>
+        <rect x="15" y="15" width="4" height="4" rx="1" fill="#F97316" opacity="0.5"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'grok', label: 'Grok',
+    logo: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.8" strokeLinecap="round">
+        <path d="M4 4l16 16M20 4L4 20"/>
       </svg>
     ),
   },
 ];
 
-// ── Dropdown moteurs multi-sélection ──────────────────────────────────────────
+// ── Dropdown AIs — logos horizontaux compacts ─────────────────────────────────
 function EnginesDropdown({ selected, onToggle, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -127,33 +116,29 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
 
   return (
     <div ref={ref} style={{
-      position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12,
-      minWidth: 280, overflow: 'hidden',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+      position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, zIndex: 9000,
+      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
+      padding: '10px 8px', display: 'flex', flexWrap: 'wrap', gap: 5,
     }}>
-      {AI_ENGINES.map((e, i) => {
+      {AI_ENGINES.map((e) => {
         const isSelected = selected.includes(e.id);
         return (
           <div key={e.id}
             onClick={() => onToggle(e.id)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px',
-              cursor: 'pointer',
-              background: isSelected ? '#F4F2EE' : WHITE,
-              borderBottom: i < AI_ENGINES.length - 1 ? `1px solid #F0EDE8` : 'none',
-              transition: 'background 120ms',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 10px', borderRadius: 7, cursor: 'pointer',
+              background: isSelected ? '#EDEBE6' : 'transparent',
+              border: `1px solid ${isSelected ? '#D8D4CC' : 'transparent'}`,
+              transition: 'background 100ms',
             }}
-            onMouseEnter={e2 => { if (!isSelected) e2.currentTarget.style.background = '#FAFAF7'; }}
-            onMouseLeave={e2 => { e2.currentTarget.style.background = isSelected ? '#F4F2EE' : WHITE; }}>
-            <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            onMouseEnter={e2 => { if (!isSelected) e2.currentTarget.style.background = '#F5F2EE'; }}
+            onMouseLeave={e2 => { e2.currentTarget.style.background = isSelected ? '#EDEBE6' : 'transparent'; }}>
+            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {e.logo}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: isSelected ? 600 : 400, color: INK }}>{e.label}</div>
-              {e.sub && <div style={{ fontSize: 11.5, color: INK3, marginTop: 1, lineHeight: 1.4 }}>{e.sub}</div>}
-            </div>
-            {isSelected && <Check size={15} color={INK} strokeWidth={2.2} />}
+            <span style={{ fontSize: 12.5, fontWeight: isSelected ? 600 : 400, color: INK, whiteSpace: 'nowrap' }}>{e.label}</span>
+            {isSelected && <Check size={11} color={INK} strokeWidth={2.5} />}
           </div>
         );
       })}
@@ -198,7 +183,7 @@ async function runScan(inputUrl, userId, features) {
 function BigDonut({ score }) {
   const size = 68, sw = 6, R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
-  const color = score >= 65 ? '#22C55E' : score >= 30 ? CORAL : '#EF4444';
+  const color = CORAL;
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
@@ -215,7 +200,7 @@ function BigDonut({ score }) {
 function SmallDonut({ score }) {
   const size = 46, sw = 3.5, R = (size - sw) / 2 - 1;
   const circ = 2 * Math.PI * R;
-  const color = score >= 65 ? '#22C55E' : score >= 30 ? CORAL : '#EF4444';
+  const color = CORAL;
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
@@ -401,9 +386,9 @@ export default function Home() {
   };
 
   const engineLabel = () => {
-    if (selectedEngines.includes('auto') || selectedEngines.length === 0) return 'Tous les moteurs';
-    if (selectedEngines.length === 1) return AI_ENGINES.find(e => e.id === selectedEngines[0])?.label || 'Moteurs';
-    return `${selectedEngines.length} moteurs`;
+    if (selectedEngines.includes('auto') || selectedEngines.length === 0) return 'Automatic';
+    if (selectedEngines.length === 1) return AI_ENGINES.find(e => e.id === selectedEngines[0])?.label || 'AI';
+    return `${selectedEngines.length} AIs`;
   };
 
   const firstScanUrl = profiles.length === 0 && Object.keys(scanningUrls)[0];
@@ -444,7 +429,7 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: F }}>
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 80px' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 24px 80px' }}>
 
         {/* ── Header ── */}
         <div style={{ marginBottom: 18 }}>
@@ -596,18 +581,16 @@ export default function Home() {
             <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>
               Mes domaines · {profiles.length}/{MAX_DOMAINS}
             </span>
-            {profiles.length < MAX_DOMAINS && (
-              <button
-                onClick={() => setShowAddModal(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#2D2B28', fontSize: 12.5, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
-                <Zap size={12} color={CORAL} fill={CORAL} strokeWidth={0} />
-                Analyser
-              </button>
-            )}
+            <button
+              onClick={() => setShowAddModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#2D2B28', fontSize: 12.5, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
+              <Zap size={12} color={WHITE} strokeWidth={2} />
+              Analyser
+            </button>
           </div>
 
           {/* Liste */}
-          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 13, overflow: 'hidden' }}>
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 13, overflow: 'hidden', backgroundColor: WHITE }}>
             {profiles.map((p, i) => {
               const score = Math.round(p?.lrs_score || p?.score_overall || 0);
               const lbl   = getDomain(p.site_url);
@@ -621,21 +604,21 @@ export default function Home() {
                 <div key={p.site_url || i}
                   onClick={() => switchDomain(p)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                    cursor: 'pointer', background: isActive ? '#F4F2EE' : WHITE,
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                    cursor: 'pointer', background: WHITE,
                     borderBottom: i < profiles.length - 1 ? `1px solid ${BORDER}` : 'none',
                     transition: 'background 120ms',
                   }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#FAFAF7'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isActive ? '#F4F2EE' : WHITE; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background = '#FAFAF7'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = WHITE; }}>
                   {/* Avatar cercle */}
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: av, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: WHITE }}>{init}</span>
                   </div>
                   {/* Textes */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-                    <div style={{ fontSize: 11.5, color: INK3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1 }}>{lbl}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
+                    <div style={{ fontSize: 12, color: INK3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{lbl}</div>
                   </div>
                   {/* Score */}
                   {isScanning ? (
@@ -660,17 +643,7 @@ export default function Home() {
               );
             })}
 
-            {profiles.length < MAX_DOMAINS && (
-              <div onClick={() => setShowAddModal(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer', borderTop: `1px solid ${BORDER}`, transition: 'background 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#FAFAF7'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', border: `1.5px dashed ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Plus size={13} color={INK3} strokeWidth={1.8} />
-                </div>
-                <span style={{ fontSize: 13, color: INK3 }}>Ajouter un domaine à surveiller</span>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
