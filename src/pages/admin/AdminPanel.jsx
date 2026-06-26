@@ -18,6 +18,19 @@ import AdminInboxPage from '@/pages/admin/AdminInboxPage';
 export default function AdminPanel() {
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(null);
+
+  // Block all admin pages from search engine indexing
+  useEffect(() => {
+    let tag = document.querySelector('meta[name="robots"][data-internal]');
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.setAttribute('name', 'robots');
+      tag.setAttribute('data-internal', 'true');
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', 'noindex, nofollow');
+    return () => { if (tag) tag.setAttribute('content', 'index, follow'); };
+  }, []);
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
