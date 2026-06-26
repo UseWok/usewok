@@ -35,7 +35,28 @@ function initials(name) {
   return (name || '??').slice(0, 2).toUpperCase();
 }
 
-// ── Real AI Logos ─────────────────────────────────────────────────────────────
+// ── AI Logo URLs (exact images, no background) ────────────────────────────────
+const AI_LOGO_URLS = {
+  chatgpt:    'https://media.base44.com/images/public/6a2edc91082e534601118582/67cb277ed_image.png',
+  gemini:     'https://media.base44.com/images/public/6a2edc91082e534601118582/f37dc5b5a_image.png',
+  claude:     'https://media.base44.com/images/public/6a2edc91082e534601118582/d67c08a4b_image.png',
+  perplexity: 'https://media.base44.com/images/public/6a2edc91082e534601118582/8e9ccea01_image.png',
+  mistral:    'https://media.base44.com/images/public/6a2edc91082e534601118582/3a3745646_image.png',
+  grok:       'https://media.base44.com/images/public/6a2edc91082e534601118582/ddf7fe28b_image.png',
+  copilot:    'https://media.base44.com/images/public/6a2edc91082e534601118582/9dbcf1c53_image.png',
+};
+
+const AILogoImg = ({ id, size = 18 }) => {
+  const url = AI_LOGO_URLS[id];
+  if (!url) return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke={INK} strokeWidth="1.5"/>
+      <path d="M8 12h8M12 8l4 4-4 4" stroke={INK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  return <img src={url} width={size} height={size} style={{ objectFit: 'contain', display: 'block', flexShrink: 0 }} alt={id} />;
+};
+
 const LogoAuto = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
     <circle cx="12" cy="12" r="10" stroke={INK} strokeWidth="1.5"/>
@@ -43,63 +64,13 @@ const LogoAuto = () => (
   </svg>
 );
 
-const LogoChatGPT = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.597 3.855l-5.833-3.387 2.019-1.168a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.411-.663zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="#10A37F"/>
-  </svg>
-);
-
-const LogoGemini = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M12 24A14.304 14.304 0 0 0 0 12 14.304 14.304 0 0 0 12 0a14.304 14.304 0 0 0 12 12 14.304 14.304 0 0 0-12 12z" fill="url(#gemini-grad)"/>
-    <defs>
-      <linearGradient id="gemini-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#4285F4"/>
-        <stop offset="50%" stopColor="#9B72CB"/>
-        <stop offset="100%" stopColor="#EA4335"/>
-      </linearGradient>
-    </defs>
-  </svg>
-);
-
-const LogoClaude = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M13.827 3.52h3.603L12 13.853 6.57 3.52H2.966l7.456 15.132L13.84 24l1.418-5.348 7.776-15.132z" fill="#D97757"/>
-  </svg>
-);
-
-const LogoPerplexity = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M12 2L2 7v5l10 5 10-5V7z" stroke="#20808D" strokeWidth="1.5" strokeLinejoin="round"/>
-    <path d="M2 12v5l10 5 10-5v-5" stroke="#20808D" strokeWidth="1.5" strokeLinejoin="round"/>
-    <path d="M12 12v10M2 7l10 5 10-5" stroke="#20808D" strokeWidth="1.5" strokeLinejoin="round"/>
-  </svg>
-);
-
-const LogoMistral = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <rect x="1" y="1" width="5" height="5" rx="1" fill="#FF7000"/>
-    <rect x="9" y="1" width="5" height="5" rx="1" fill="#FF7000"/>
-    <rect x="17" y="1" width="5" height="5" rx="1" fill="#FF7000"/>
-    <rect x="1" y="9" width="5" height="5" rx="1" fill="#FF7000" opacity="0.7"/>
-    <rect x="17" y="9" width="5" height="5" rx="1" fill="#FF7000" opacity="0.7"/>
-    <rect x="1" y="17" width="5" height="5" rx="1" fill="#FF7000" opacity="0.45"/>
-    <rect x="17" y="17" width="5" height="5" rx="1" fill="#FF7000" opacity="0.45"/>
-  </svg>
-);
-
-const LogoGrok = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill={INK}/>
-  </svg>
-);
-
-const LogoCopilot = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#0078D4"/>
-    <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2v.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5V10c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1.5c0-.28.22-.5.5-.5s.5.22.5.5V14c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2v-4z" fill="white"/>
-  </svg>
-);
+const LogoChatGPT = () => <AILogoImg id="chatgpt" />;
+const LogoGemini  = () => <AILogoImg id="gemini" />;
+const LogoClaude  = () => <AILogoImg id="claude" />;
+const LogoPerplexity = () => <AILogoImg id="perplexity" />;
+const LogoMistral = () => <AILogoImg id="mistral" />;
+const LogoGrok    = () => <AILogoImg id="grok" />;
+const LogoCopilot = () => <AILogoImg id="copilot" />;
 
 // ── AI Engines config ──────────────────────────────────────────────────────────
 const AI_ENGINES = [
@@ -141,11 +112,28 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
         padding: '6px', minWidth: 200,
         boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
       }}>
-      {/* Header */}
-      <div style={{ padding: '6px 10px 8px', borderBottom: `1px solid ${BORDER}`, marginBottom: 4 }}>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Moteurs IA</span>
+      {/* Header: big Automatic button */}
+      <div style={{ padding: '6px 6px 8px', borderBottom: `1px solid ${BORDER}`, marginBottom: 4 }}>
+        <div
+          onClick={() => onToggle('auto')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 12px', borderRadius: 9, cursor: 'pointer',
+            background: selected.includes('auto') ? INK : '#EEE5D2',
+            transition: 'background 120ms',
+          }}
+          onMouseEnter={ev => { if (!selected.includes('auto')) ev.currentTarget.style.background = '#D9D0C2'; }}
+          onMouseLeave={ev => { ev.currentTarget.style.background = selected.includes('auto') ? INK : '#EEE5D2'; }}>
+          <LogoAuto />
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: selected.includes('auto') ? WHITE : INK, flex: 1 }}>Automatic</span>
+          {selected.includes('auto') && (
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Check size={9} color={WHITE} strokeWidth={3} />
+            </div>
+          )}
+        </div>
       </div>
-      {sortedEngines.map((e) => {
+      {sortedEngines.filter(e => e.id !== 'auto').map((e) => {
         const isSelected = selected.includes(e.id);
         return (
           <div key={e.id}
@@ -158,7 +146,7 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
             }}
             onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#EEE5D2'; }}
             onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#EEE5D2' : 'transparent'; }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: isSelected ? WHITE : '#EEE5D2', border: `1px solid rgba(21,19,15,0.12)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 100ms' }}>
+            <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <e.Logo />
             </div>
             <span style={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: INK, flex: 1 }}>{e.label}</span>
@@ -329,7 +317,7 @@ function EngineSelector({ selected, showEngines, onToggle }) {
       onMouseEnter={e => e.currentTarget.style.background = '#EEE5D2'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
       {displayEngines.map(e => (
-        <div key={e.id} style={{ width: 20, height: 20, borderRadius: 5, background: WHITE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div key={e.id} style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <e.Logo />
         </div>
       ))}
@@ -658,9 +646,9 @@ export default function Home() {
   const hasData = !!(activeProfile?.score_overall > 0 || activeProfile?.lrs_score > 0);
 
   const ENGINES_BARS = [
-    { key: 'chatgpt', label: 'ChatGPT' },
-    { key: 'gemini',  label: 'Gemini' },
-    { key: 'claude',  label: 'Claude' },
+    { key: 'chatgpt', label: 'ChatGPT', logoId: 'chatgpt' },
+    { key: 'gemini',  label: 'Gemini',  logoId: 'gemini' },
+    { key: 'claude',  label: 'Claude',  logoId: 'claude' },
   ];
 
   const MODULES = [
@@ -691,12 +679,25 @@ export default function Home() {
             transition: 'border-color 200ms',
           }}>
             <Plus size={14} color={INK} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-            <input
+            <textarea
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setTrollError(false); }}
-              onKeyDown={e => { if (e.key === 'Enter') handleSubmitSearch(); }}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmitSearch(); } }}
               placeholder="Rechercher un domaine, lancer une analyse…"
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, minWidth: 0 }}
+              rows={1}
+              style={{
+                flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                fontSize: 13.5, color: INK, fontFamily: F, minWidth: 0,
+                resize: 'none', lineHeight: '1.5',
+                minHeight: '20px',
+                maxHeight: `${4 * 1.5 * 13.5}px`,
+                overflowY: 'auto',
+              }}
+              onInput={e => {
+                e.target.style.height = 'auto';
+                const maxH = 4 * 1.5 * 13.5;
+                e.target.style.height = Math.min(e.target.scrollHeight, maxH) + 'px';
+              }}
             />
 
             {/* Engine selector */}
@@ -772,8 +773,11 @@ export default function Home() {
                 {ENGINES_BARS.map(e => {
                   const s = activeProfile[`${e.key}_score`] || 0;
                   return (
-                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: WHITE, width: 70, flexShrink: 0 }}>{e.label}</span>
+                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <AILogoImg id={e.logoId} size={18} />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: WHITE, width: 58, flexShrink: 0 }}>{e.label}</span>
                       <div style={{ flex: 1, height: 7, background: 'rgba(255,255,255,0.10)', borderRadius: 999, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${Math.min(s, 100)}%`, background: CORAL, borderRadius: 999 }} />
                       </div>
