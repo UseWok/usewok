@@ -1,4 +1,5 @@
 @import url('https://rsms.me/inter/inter.css');
+/* Anthropic Sans — loaded from system/Claude.ai context; fallback to Inter */
 
 @tailwind base;
 @tailwind components;

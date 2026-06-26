@@ -8,16 +8,16 @@ import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 
-// ── Design System ─────────────────────────────────────────────────────────────
-const F       = "'Inter', -apple-system, system-ui, sans-serif";
-const BG      = '#F9F8F5';
-const CARD_BG = '#1C1B19';
+// ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
+const F       = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const BG      = '#F7F2E9';
+const CARD_BG = '#15130F';
 const WHITE   = '#FFFFFF';
-const INK     = '#111110';
-const INK2    = '#6B6762';
+const INK     = '#1A1814';
+const INK2    = '#857E6E';
 const INK3    = '#A8A49F';
-const BORDER  = '#E8E5DF';
-const CORAL   = '#F95738';
+const BORDER  = 'rgba(21,19,15,0.12)';
+const CORAL   = '#FF5A1F';
 const MAX_DOMAINS = 10;
 
 const getDomain    = (url) => (url || '').replace(/https?:\/\//, '').split('/')[0];
@@ -156,9 +156,9 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
               background: isSelected ? '#F2EFE9' : 'transparent',
               transition: 'background 100ms',
             }}
-            onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#F7F5F1'; }}
-            onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#F2EFE9' : 'transparent'; }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: isSelected ? WHITE : '#F2F0EB', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 100ms' }}>
+            onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#EEE5D2'; }}
+            onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#EEE5D2' : 'transparent'; }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: isSelected ? WHITE : '#EEE5D2', border: `1px solid rgba(21,19,15,0.12)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 100ms' }}>
               <e.Logo />
             </div>
             <span style={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: INK, flex: 1 }}>{e.label}</span>
@@ -247,7 +247,7 @@ function MicButton({ onTranscript }) {
           borderRadius: 7, transition: 'background 120ms', flexShrink: 0,
           outline: 'none',
         }}
-        onMouseEnter={e => { if (!listening) e.currentTarget.style.background = '#F2F0EB'; }}
+        onMouseEnter={e => { if (!listening) e.currentTarget.style.background = '#EEE5D2'; }}
         onMouseLeave={e => { if (!listening) e.currentTarget.style.background = 'transparent'; }}>
         {listening ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
@@ -316,7 +316,7 @@ function EngineSelector({ selected, showEngines, onToggle }) {
   if (selected.includes('auto') || selected.length === 0) {
     return (
       <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', cursor: 'pointer', flexShrink: 0, userSelect: 'none', borderRadius: 6, transition: 'background 120ms' }}
-        onMouseEnter={e => e.currentTarget.style.background = '#F2F0EB'}
+        onMouseEnter={e => e.currentTarget.style.background = '#EEE5D2'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
         <span style={{ fontSize: 12.5, color: INK2, whiteSpace: 'nowrap' }}>Automatic</span>
         <ChevronDown size={12} color={INK} strokeWidth={1.8} />
@@ -326,7 +326,7 @@ function EngineSelector({ selected, showEngines, onToggle }) {
 
   return (
     <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', cursor: 'pointer', flexShrink: 0, userSelect: 'none', borderRadius: 6, transition: 'background 120ms', border: `1px solid ${BORDER}` }}
-      onMouseEnter={e => e.currentTarget.style.background = '#F2F0EB'}
+      onMouseEnter={e => e.currentTarget.style.background = '#EEE5D2'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
       {displayEngines.map(e => (
         <div key={e.id} style={{ width: 20, height: 20, borderRadius: 5, background: WHITE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -441,7 +441,7 @@ function SmallDonut({ score }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={BORDER} strokeWidth={sw} />
+        <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(21,19,15,0.10)" strokeWidth={sw} />
         <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CORAL} strokeWidth={sw}
           strokeDasharray={circ} strokeDashoffset={circ * (1 - score/100)} strokeLinecap="round" />
       </svg>
@@ -457,8 +457,8 @@ function ModuleCard({ label, sub, Icon, onClick }) {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, padding: '14px 12px', borderRadius: 12, cursor: 'pointer', background: hov ? '#EEECE8' : WHITE, border: `1px solid ${BORDER}`, textAlign: 'left', fontFamily: F, width: '100%', outline: 'none', transition: 'background 140ms' }}>
-      <div style={{ width: 34, height: 34, borderRadius: 8, background: hov ? WHITE : '#F2F0EB', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 140ms' }}>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, padding: '14px 12px', borderRadius: 12, cursor: 'pointer', background: hov ? '#EEE5D2' : WHITE, border: `1px solid rgba(21,19,15,0.12)`, textAlign: 'left', fontFamily: F, width: '100%', outline: 'none', transition: 'background 140ms' }}>
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: hov ? WHITE : '#EEE5D2', border: `1px solid rgba(21,19,15,0.10)`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 140ms' }}>
         <Icon size={16} color={INK} strokeWidth={1.7} />
       </div>
       <div>
@@ -768,16 +768,16 @@ export default function Home() {
                   : 'Tant que votre site reste sur une adresse de test, vos concurrents récupèrent vos clients potentiels sur Google et les IA.'}
               </p>
               <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
                 {ENGINES_BARS.map(e => {
                   const s = activeProfile[`${e.key}_score`] || 0;
                   return (
-                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.65)', width: 62, flexShrink: 0 }}>{e.label}</span>
-                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
+                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: WHITE, width: 70, flexShrink: 0 }}>{e.label}</span>
+                      <div style={{ flex: 1, height: 7, background: 'rgba(255,255,255,0.10)', borderRadius: 999, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${Math.min(s, 100)}%`, background: CORAL, borderRadius: 999 }} />
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.4)', width: 18, textAlign: 'right' }}>{s}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: WHITE, width: 22, textAlign: 'right' }}>{s}</span>
                     </div>
                   );
                 })}
@@ -832,7 +832,7 @@ export default function Home() {
               return (
                 <div key={p.site_url || i} onClick={() => switchDomain(p)}
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer', background: WHITE, borderBottom: i < profiles.length - 1 ? `1px solid ${BORDER}` : 'none', transition: 'background 120ms' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#FAFAF7'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F2EBD9'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = WHITE; }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: av, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: WHITE }}>{init}</span>
@@ -900,7 +900,7 @@ function AddDomainForm({ onSubmit }) {
     <div>
       <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && url.trim() && onSubmit(clean())} autoFocus
         placeholder="https://votre-site.com"
-        style={{ width: '100%', padding: '10px 13px', fontSize: 13.5, border: `1px solid ${BORDER}`, borderRadius: 9, outline: 'none', boxSizing: 'border-box', marginBottom: 12, fontFamily: F, color: INK, background: BG }} />
+        style={{ width: '100%', padding: '10px 13px', fontSize: 13.5, border: `1px solid rgba(21,19,15,0.15)`, borderRadius: 9, outline: 'none', boxSizing: 'border-box', marginBottom: 12, fontFamily: F, color: INK, background: '#EEE5D2' }} />
       <button onClick={() => url.trim() && onSubmit(clean())} disabled={!url.trim()}
         style={{ width: '100%', padding: '11px', fontSize: 13.5, fontWeight: 700, color: WHITE, background: url.trim() ? CORAL : '#ccc', border: 'none', borderRadius: 9, cursor: url.trim() ? 'pointer' : 'not-allowed', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
         <Zap size={13} />
