@@ -806,8 +806,8 @@ export default function Home() {
           )}
         </div>
 
-        {/* ── Modules 4 colonnes ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 22 }}>
+        {/* ── Modules 2x2 ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 7, marginBottom: 22 }}>
           {MODULES.map(m => (
             <ModuleCard key={m.label} label={m.label} sub={m.sub} Icon={m.Icon} onClick={() => navigate(m.route)} />
           ))}
