@@ -37,7 +37,7 @@ function initials(name) {
 
 // ── AI Logo URLs (exact images, no background) ────────────────────────────────
 const AI_LOGO_URLS = {
-  chatgpt:    'https://media.base44.com/images/public/6a2edc91082e534601118582/67cb277ed_image.png',
+  chatgpt:    'https://media.base44.com/images/public/6a2edc91082e534601118582/e6da61_image.png',
   gemini:     'https://media.base44.com/images/public/6a2edc91082e534601118582/f37dc5b5a_image.png',
   claude:     'https://media.base44.com/images/public/6a2edc91082e534601118582/d67c08a4b_image.png',
   perplexity: 'https://media.base44.com/images/public/6a2edc91082e534601118582/8e9ccea01_image.png',
