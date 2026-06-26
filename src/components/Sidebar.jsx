@@ -423,9 +423,10 @@ function WokAISidebar({ navigate, onBack }) {
 }
 
 // ─── Settings Sidebar (replaces main nav when Settings clicked) ───
-function SettingsSidebar({ navigate, onBack }) {
+function SettingsSidebar({ navigate, onBack, user }) {
   const location = useLocation();
   const activeSection = new URLSearchParams(location.search).get('section') || 'profile';
+  const isAdmin = user?.role === 'admin';
   const sections = [
     { id: 'profile', label: 'Profil' },
     { id: 'usage', label: 'Utilisation' },
@@ -466,6 +467,29 @@ function SettingsSidebar({ navigate, onBack }) {
             </button>
           );
         })}
+
+        {/* Admin section — visible pour les admins uniquement */}
+        {isAdmin && (
+          <>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.25)', margin: '16px 4px 4px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Admin</p>
+            <button
+              onClick={() => navigate('/admin/overview')}
+              style={{
+                display: 'flex', alignItems: 'center', width: '100%',
+                padding: '7px 10px', borderRadius: 7, border: '1px solid rgba(249,87,56,0.25)',
+                background: 'rgba(249,87,56,0.06)',
+                cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                color: '#F95738',
+                fontFamily: 'inherit', textAlign: 'left', transition: 'all 120ms', gap: 7,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(249,87,56,0.12)'; e.currentTarget.style.borderColor = 'rgba(249,87,56,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(249,87,56,0.06)'; e.currentTarget.style.borderColor = 'rgba(249,87,56,0.25)'; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Administration
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -580,7 +604,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
         {/* ── Settings mode ── */}
         {expanded && settingsMode && (
-          <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} />
+          <SettingsSidebar navigate={nav} onBack={() => { setSettingsMode(false); nav('/app'); }} user={user} />
         )}
 
         {/* ── WOK AI history mode ── */}

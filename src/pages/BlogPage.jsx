@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, Clock, ChevronRight } from 'lucide-react';
+import { ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
 
-const F     = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-const BG    = '#F8F7F4';
-const INK   = '#1A1A1A';
-const INK2  = '#6B6660';
-const INK3  = '#A8A49F';
-const CORAL = '#FF5A1F';
-const CARD  = '#FFFFFF';
+const F      = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const BG     = '#F8F7F4';
+const INK    = '#1A1A1A';
+const INK2   = '#6B6660';
+const INK3   = '#A8A49F';
+const CORAL  = '#FF5A1F';
 const BORDER = 'rgba(21,19,15,0.10)';
+const DARK   = '#15130F';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ function Navbar() {
     }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', maxWidth: 900,
+        width: '100%', maxWidth: 1000,
         padding: '10px 18px',
         background: scrolled ? 'rgba(248,247,244,0.97)' : 'rgba(248,247,244,0.85)',
         backdropFilter: 'blur(20px)',
@@ -47,7 +47,7 @@ function Navbar() {
           <span style={{ fontSize: 14, fontWeight: 800, color: INK, letterSpacing: '-0.02em' }}>UseWok</span>
         </button>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <a href="/tarifs" style={{ fontSize: 13, color: INK2, textDecoration: 'none', padding: '6px 12px', borderRadius: 999 }}
+          <a href="/tarifs" style={{ fontSize: 13, color: INK2, textDecoration: 'none', padding: '6px 12px', borderRadius: 999, transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Tarifs</a>
           <span style={{ fontSize: 13, fontWeight: 700, color: CORAL, padding: '6px 12px', borderRadius: 999, background: `${CORAL}12` }}>Blog</span>
@@ -61,115 +61,117 @@ function Navbar() {
   );
 }
 
+// Article mis en avant — plein largueur, grand format sombre
 function FeaturedCard({ post }) {
   const navigate = useNavigate();
+  const [hov, setHov] = useState(false);
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       onClick={() => navigate(`/blog/${post.slug}`)}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        cursor: 'pointer', background: CARD,
-        border: `1px solid ${BORDER}`, borderRadius: 20, overflow: 'hidden',
+        cursor: 'pointer', background: DARK, borderRadius: 20, overflow: 'hidden',
         display: 'grid', gridTemplateColumns: post.cover_image ? '1fr 1fr' : '1fr',
-        transition: 'box-shadow 200ms, transform 200ms',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+        minHeight: 380,
+        boxShadow: hov ? '0 24px 60px rgba(0,0,0,0.22)' : '0 8px 32px rgba(0,0,0,0.12)',
+        transform: hov ? 'translateY(-3px)' : 'translateY(0)',
+        transition: 'all 280ms cubic-bezier(0.16,1,0.3,1)',
+      }}>
       {post.cover_image && (
-        <div style={{ overflow: 'hidden', minHeight: 320 }}>
-          <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 500ms' }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+        <div style={{ overflow: 'hidden', position: 'relative' }}>
+          <img src={post.cover_image} alt={post.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hov ? 'scale(1.04)' : 'scale(1)', transition: 'transform 600ms cubic-bezier(0.16,1,0.3,1)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent 60%, rgba(21,19,15,0.5) 100%)' }} />
         </div>
       )}
-      <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+      <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
           {post.category && (
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: CORAL, background: `${CORAL}12`, padding: '4px 10px', borderRadius: 999 }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: CORAL, background: `${CORAL}20`, padding: '4px 11px', borderRadius: 999 }}>
               {post.category}
             </span>
           )}
-          {post.reading_time && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: INK3 }}>
-              <Clock size={11} /> {post.reading_time} min
-            </span>
-          )}
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>À la une</span>
         </div>
-        <h2 style={{ fontSize: 26, fontWeight: 800, color: INK, margin: '0 0 14px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+        <h2 style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)', fontWeight: 800, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
           {post.title}
         </h2>
         {post.summary && (
-          <p style={{ fontSize: 14, color: INK2, lineHeight: 1.7, margin: '0 0 28px' }}>
+          <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.50)', lineHeight: 1.75, margin: '0 0 32px', maxWidth: 420 }}>
             {post.summary}
           </p>
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 11.5, color: INK3 }}>
+          <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)' }}>
             {new Date(post.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: CORAL, display: 'flex', alignItems: 'center', gap: 5 }}>
-            Lire l'article <ArrowRight size={14} />
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: CORAL, fontSize: 13, fontWeight: 700 }}>
+            Lire <ArrowUpRight size={15} />
+          </div>
         </div>
       </div>
     </motion.article>
   );
 }
 
+// Carte normale — fond crème/blanc, hover noir
 function PostCard({ post, index }) {
   const navigate = useNavigate();
+  const [hov, setHov] = useState(false);
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: index * 0.06, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
       onClick={() => navigate(`/blog/${post.slug}`)}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        cursor: 'pointer', background: CARD,
-        border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden',
-        display: 'flex', flexDirection: 'column',
-        transition: 'box-shadow 200ms, transform 200ms',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+        cursor: 'pointer', background: hov ? DARK : '#fff',
+        border: `1px solid ${hov ? 'transparent' : BORDER}`,
+        borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        transform: hov ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: hov ? '0 20px 48px rgba(0,0,0,0.18)' : '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'all 260ms cubic-bezier(0.16,1,0.3,1)',
+      }}>
       {post.cover_image && (
-        <div style={{ height: 180, overflow: 'hidden' }}>
-          <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 400ms' }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+        <div style={{ height: 200, overflow: 'hidden' }}>
+          <img src={post.cover_image} alt={post.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hov ? 'scale(1.06)' : 'scale(1)', transition: 'transform 500ms cubic-bezier(0.16,1,0.3,1)' }} />
         </div>
       )}
-      <div style={{ padding: '22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+      <div style={{ padding: '22px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           {post.category && (
-            <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: CORAL }}>
+            <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: hov ? CORAL : CORAL }}>
               {post.category}
             </span>
           )}
           {post.reading_time && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10.5, color: INK3 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10.5, color: hov ? 'rgba(255,255,255,0.35)' : INK3, transition: 'color 200ms' }}>
               <Clock size={10} /> {post.reading_time} min
             </span>
           )}
         </div>
-        <h2 style={{ fontSize: 15.5, fontWeight: 700, color: INK, margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.35 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: hov ? '#fff' : INK, margin: '0 0 10px', letterSpacing: '-0.02em', lineHeight: 1.35, transition: 'color 200ms' }}>
           {post.title}
         </h2>
         {post.summary && (
           <p style={{
-            fontSize: 12.5, color: INK2, lineHeight: 1.65, margin: '0 0 16px', flex: 1,
+            fontSize: 13, color: hov ? 'rgba(255,255,255,0.45)' : INK2, lineHeight: 1.65, margin: '0 0 18px', flex: 1,
             display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            transition: 'color 200ms',
           }}>
             {post.summary}
           </p>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: `1px solid ${BORDER}`, marginTop: 'auto' }}>
-          <span style={{ fontSize: 11, color: INK3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: `1px solid ${hov ? 'rgba(255,255,255,0.08)' : BORDER}`, marginTop: 'auto', transition: 'border-color 200ms' }}>
+          <span style={{ fontSize: 11, color: hov ? 'rgba(255,255,255,0.25)' : INK3, transition: 'color 200ms' }}>
             {new Date(post.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
           <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, display: 'flex', alignItems: 'center', gap: 3 }}>
-            Lire <ChevronRight size={13} />
+            Lire <ArrowRight size={12} />
           </span>
         </div>
       </div>
@@ -179,12 +181,12 @@ function PostCard({ post, index }) {
 
 function SkeletonCard() {
   return (
-    <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
-      <div style={{ height: 180, background: 'rgba(21,19,15,0.04)' }} />
-      <div style={{ padding: 22 }}>
-        <div style={{ height: 10, borderRadius: 5, background: 'rgba(21,19,15,0.06)', marginBottom: 12, width: '35%' }} />
-        <div style={{ height: 18, borderRadius: 5, background: 'rgba(21,19,15,0.07)', marginBottom: 8 }} />
-        <div style={{ height: 13, borderRadius: 5, background: 'rgba(21,19,15,0.05)', width: '75%' }} />
+    <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden' }}>
+      <div style={{ height: 200, background: 'rgba(21,19,15,0.04)' }} />
+      <div style={{ padding: '22px 24px' }}>
+        <div style={{ height: 10, borderRadius: 5, background: 'rgba(21,19,15,0.05)', marginBottom: 12, width: '30%' }} />
+        <div style={{ height: 20, borderRadius: 5, background: 'rgba(21,19,15,0.07)', marginBottom: 8 }} />
+        <div style={{ height: 13, borderRadius: 5, background: 'rgba(21,19,15,0.04)', width: '80%' }} />
       </div>
     </div>
   );
@@ -197,9 +199,7 @@ export default function BlogPage() {
   useEffect(() => {
     document.title = 'Blog — UseWok · Visibilité IA';
     base44.entities.BlogPost.filter({ published: true }, '-created_date', 50)
-      .then(setPosts)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then(setPosts).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const featured = posts[0];
@@ -209,70 +209,80 @@ export default function BlogPage() {
     <div style={{ fontFamily: F, background: BG, minHeight: '100vh' }}>
       <Navbar />
 
-      {/* Hero */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '120px 24px 48px', textAlign: 'center' }}>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `${CORAL}12`, border: `1px solid ${CORAL}30`, borderRadius: 999, padding: '5px 14px', marginBottom: 22 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL, display: 'inline-block' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: CORAL, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Le Blog UseWok</span>
-        </motion.div>
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ fontSize: 'clamp(2rem, 5vw, 3.4rem)', fontWeight: 800, color: INK, letterSpacing: '-0.04em', lineHeight: 1.05, margin: '0 0 16px' }}>
-          Visibilité IA :<br /><span style={{ color: CORAL }}>conseils, stratégies, études.</span>
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          style={{ fontSize: 15, color: INK2, maxWidth: 420, margin: '0 auto' }}>
-          Tout ce qu'il faut savoir pour apparaître dans les réponses de ChatGPT, Gemini et les autres IA.
-        </motion.p>
+      {/* ── Hero sombre, dans la continuité de la landing ── */}
+      <div style={{ background: DARK, paddingTop: 90 }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '72px 32px 80px', textAlign: 'center' }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `${CORAL}18`, border: `1px solid ${CORAL}35`, borderRadius: 999, padding: '5px 14px', marginBottom: 28 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: CORAL, display: 'inline-block', animation: 'blink 1.8s ease-in-out infinite' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Le Blog UseWok</span>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 800, color: '#fff', letterSpacing: '-0.05em', lineHeight: 1.0, margin: '0 0 20px' }}>
+            Tout savoir sur<br />
+            <span style={{ color: CORAL }}>la visibilité IA</span>
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+            style={{ fontSize: 16, color: 'rgba(255,255,255,0.42)', maxWidth: 460, margin: '0 auto', lineHeight: 1.65 }}>
+            Conseils, stratégies et études pour apparaître dans ChatGPT, Gemini et les autres IA.
+          </motion.p>
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 100px' }}>
+      {/* ── Contenu ── */}
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px 100px' }}>
+
+        {/* Article mis en avant — remonté sur la frontière dark/light */}
+        <div style={{ marginTop: -48, marginBottom: 32 }}>
+          {loading ? (
+            <div style={{ height: 380, background: DARK, borderRadius: 20, opacity: 0.5 }} />
+          ) : featured ? (
+            <FeaturedCard post={featured} />
+          ) : null}
+        </div>
+
+        {/* Grille articles */}
         {loading ? (
-          <div>
-            <div style={{ height: 320, background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20, marginBottom: 24 }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
-              {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+            {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
-        ) : posts.length === 0 ? (
+        ) : rest.length === 0 && !featured ? (
           <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-            <p style={{ fontSize: 40, marginBottom: 16 }}>✍️</p>
-            <p style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 8 }}>Bientôt disponible</p>
+            <p style={{ fontSize: 44, marginBottom: 16 }}>✍️</p>
+            <p style={{ fontSize: 22, fontWeight: 800, color: INK, marginBottom: 8, letterSpacing: '-0.03em' }}>Bientôt disponible</p>
             <p style={{ fontSize: 14, color: INK3 }}>Des articles sur la visibilité IA arrivent très vite.</p>
           </div>
-        ) : (
-          <div>
-            {featured && (
-              <div style={{ marginBottom: 24 }}>
-                <FeaturedCard post={featured} />
-              </div>
-            )}
-            {rest.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
-                {rest.map((post, i) => <PostCard key={post.id} post={post} index={i} />)}
-              </div>
-            )}
-          </div>
-        )}
+        ) : rest.length > 0 ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Tous les articles</p>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+              {rest.map((post, i) => <PostCard key={post.id} post={post} index={i} />)}
+            </div>
+          </>
+        ) : null}
       </div>
 
-      {/* Footer */}
-      <footer style={{ background: '#F0EDE6', borderTop: `1px solid ${BORDER}`, padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, fontFamily: F }}>
+      {/* ── Footer ── */}
+      <footer style={{ background: '#0D0C0A', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, fontFamily: F }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="UseWok" style={{ width: 26, height: 'auto' }} />
-          <span style={{ fontSize: 13, fontWeight: 800, color: INK }}>UseWok</span>
+          <img src="https://media.base44.com/images/public/6a1ef6c99350f042dbba5496/08d712033_image.png" alt="UseWok" style={{ width: 24, height: 'auto' }} />
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>UseWok</span>
         </a>
-        <div style={{ display: 'flex', gap: 20 }}>
+        <div style={{ display: 'flex', gap: 18 }}>
           {[['Accueil', '/'], ['Tarifs', '/tarifs'], ['CGU', '/terms'], ['Confidentialité', '/privacy']].map(([l, h]) => (
-            <a key={l} href={h} style={{ fontSize: 12, color: INK3, textDecoration: 'none', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = INK}
-              onMouseLeave={e => e.currentTarget.style.color = INK3}>{l}</a>
+            <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'none', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}>{l}</a>
           ))}
         </div>
-        <p style={{ fontSize: 11, color: INK3, margin: 0 }}>© 2026 UseWok</p>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', margin: 0 }}>© 2026 UseWok</p>
       </footer>
+
+      <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
     </div>
   );
 }
