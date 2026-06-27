@@ -77,15 +77,15 @@ const LogoLlama   = () => <AILogoImg id="llama" />;
 
 // ── AI Engines config ──────────────────────────────────────────────────────────
 const AI_ENGINES = [
-  { id: 'auto',       label: 'Automatic',  Logo: LogoAuto },
-  { id: 'chatgpt',    label: 'ChatGPT',    Logo: LogoChatGPT },
-  { id: 'gemini',     label: 'Gemini',     Logo: LogoGemini },
-  { id: 'claude',     label: 'Claude',     Logo: LogoClaude },
-  { id: 'perplexity', label: 'Perplexity', Logo: LogoPerplexity },
-  { id: 'mistral',    label: 'Mistral',    Logo: LogoMistral },
-  { id: 'grok',       label: 'Grok',       Logo: LogoGrok },
-  { id: 'copilot',    label: 'Copilot',    Logo: LogoCopilot },
-  { id: 'llama',      label: 'Meta Llama', Logo: LogoLlama },
+  { id: 'auto',       label: 'Automatique',  Logo: LogoAuto,       sub: 'Le meilleur modèle IA est sélectionné\npour chaque requête' },
+  { id: 'claude',     label: 'Claude',       Logo: LogoClaude },
+  { id: 'chatgpt',    label: 'ChatGPT',      Logo: LogoChatGPT },
+  { id: 'gemini',     label: 'Gemini',       Logo: LogoGemini },
+  { id: 'perplexity', label: 'Perplexity',   Logo: LogoPerplexity },
+  { id: 'grok',       label: 'Grok',         Logo: LogoGrok },
+  { id: 'llama',      label: 'Meta Llama',   Logo: LogoLlama },
+  { id: 'mistral',    label: 'Mistral',      Logo: LogoMistral },
+  { id: 'copilot',    label: 'Copilot',      Logo: LogoCopilot },
 ];
 
 // ── Vertical Engines Dropdown ─────────────────────────────────────────────────
@@ -97,72 +97,57 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  // Sort: selected first, then rest
-  const sortedEngines = [
-    ...AI_ENGINES.filter(e => selected.includes(e.id)),
-    ...AI_ENGINES.filter(e => !selected.includes(e.id)),
-  ];
+  const autoEngine = AI_ENGINES.find(e => e.id === 'auto');
+  const otherEngines = AI_ENGINES.filter(e => e.id !== 'auto');
+  const isAutoSelected = selected.includes('auto');
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, y: -6, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
-      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12,
-        padding: '6px', minWidth: 200,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14,
+        padding: '8px 0', minWidth: 260,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
       }}>
-      {/* Header: big Automatic button */}
-      <div style={{ padding: '6px 6px 8px', borderBottom: `1px solid ${BORDER}`, marginBottom: 4 }}>
-        <div
-          onClick={() => onToggle('auto')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 12px', borderRadius: 9, cursor: 'pointer',
-            background: selected.includes('auto') ? INK : '#EEE5D2',
-            transition: 'background 120ms',
-          }}
-          onMouseEnter={ev => { if (!selected.includes('auto')) ev.currentTarget.style.background = '#D9D0C2'; }}
-          onMouseLeave={ev => { ev.currentTarget.style.background = selected.includes('auto') ? INK : '#EEE5D2'; }}>
-          <LogoAuto />
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: selected.includes('auto') ? WHITE : INK, flex: 1 }}>Automatic</span>
-          {selected.includes('auto') && (
-            <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Check size={9} color={WHITE} strokeWidth={3} />
-            </div>
-          )}
+      {/* Automatique row */}
+      <div
+        onClick={() => onToggle('auto')}
+        style={{
+          display: 'flex', alignItems: 'flex-start', gap: 12,
+          padding: '10px 14px 12px', cursor: 'pointer',
+          background: isAutoSelected ? '#F0EEE9' : 'transparent',
+          borderBottom: `1px solid ${BORDER}`,
+        }}>
+        <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke={INK} strokeWidth="1.5" strokeLinejoin="round"/>
+          </svg>
         </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: INK, marginBottom: 2 }}>Automatique</div>
+          <div style={{ fontSize: 11.5, color: INK3, lineHeight: 1.4 }}>Le meilleur modèle IA est sélectionné<br/>pour chaque requête</div>
+        </div>
+        {isAutoSelected && <Check size={15} color={INK} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />}
       </div>
-      {sortedEngines.filter(e => e.id !== 'auto').map((e) => {
-        const isSelected = selected.includes(e.id);
-        return (
-          <div key={e.id}
-            onClick={() => onToggle(e.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
-              background: isSelected ? '#F2EFE9' : 'transparent',
-              transition: 'background 100ms',
-            }}
-            onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#EEE5D2'; }}
-            onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#EEE5D2' : 'transparent'; }}>
-            <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <e.Logo />
-            </div>
-            <span style={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: INK, flex: 1 }}>{e.label}</span>
-            {isSelected && (
-              <div style={{ width: 16, height: 16, borderRadius: '50%', background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Check size={9} color={WHITE} strokeWidth={3} />
-              </div>
-            )}
+      {/* Other engines */}
+      {otherEngines.map((e) => (
+        <div key={e.id}
+          onClick={() => onToggle(e.id)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '10px 14px', cursor: 'pointer',
+            background: 'transparent',
+          }}
+          onMouseEnter={ev => { ev.currentTarget.style.background = '#F5F2ED'; }}
+          onMouseLeave={ev => { ev.currentTarget.style.background = 'transparent'; }}>
+          <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <e.Logo />
           </div>
-        );
-      })}
-    </motion.div>
+          <span style={{ fontSize: 13.5, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -822,10 +807,20 @@ export default function Home() {
               <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
             </div>
           ) : hasData ? (
-            <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer' }}
+            <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', position: 'relative' }}
               onClick={e => { if (!e.target.closest('button')) navigate('/ai-report'); }}>
 
-              {/* ── Row 1: score + badge visibilité + chrono ── */}
+              {/* ── Pastille scan en haut à droite ── */}
+              <div style={{ position: 'absolute', top: 14, right: 14 }} onClick={e => e.stopPropagation()}>
+                <ScanStatusIndicator
+                  lastScan={activeProfile?.last_scan}
+                  planId={user?.subscription_plan || 'free'}
+                  onScan={() => startScan(activeProfile.site_url)}
+                  scanning={isScanningActive}
+                />
+              </div>
+
+              {/* ── Row 1: score + badge visibilité ── */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <BigDonut score={lrs} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -833,19 +828,9 @@ export default function Home() {
                     <span style={{ fontSize: 38, fontWeight: 300, color: WHITE, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}</span>
                     <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/100</span>
                   </div>
-                  {/* Badge visibilité + chrono sur la même ligne */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ padding: '2px 9px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20, flexShrink: 0 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>{lrsLabel}</span>
-                    </div>
-                    {/* Mini chrono inline */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
-                      <ScanStatusIndicator
-                        lastScan={activeProfile?.last_scan}
-                        planId={user?.subscription_plan || 'free'}
-                        onScan={() => startScan(activeProfile.site_url)}
-                        scanning={isScanningActive}
-                      />
                     </div>
                   </div>
                 </div>
