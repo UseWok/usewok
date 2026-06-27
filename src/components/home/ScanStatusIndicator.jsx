@@ -59,9 +59,9 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
   // Chrono label compact mais lisible
   let chronoLabel = '';
   if (!available) {
-    if (d > 0)      chronoLabel = `${d}j ${pad(h)}h`;
-    else if (h > 0) chronoLabel = `${h}h${pad(m)}m`;
-    else            chronoLabel = `${pad(m)}:${pad(s)}`;
+    if (d > 0)      chronoLabel = `${d}j ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    else if (h > 0) chronoLabel = `${h}h ${pad(m)}m ${pad(s)}s`;
+    else            chronoLabel = `${pad(m)}m ${pad(s)}s`;
   }
 
   if (scanning) {
