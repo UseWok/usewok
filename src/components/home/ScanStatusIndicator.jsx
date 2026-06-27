@@ -82,7 +82,7 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
         {!available && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{
-              fontSize: 5.5, fontWeight: 600, color: 'rgba(240,232,215,0.45)',
+              fontSize: 5.5, fontWeight: 700, color: 'rgba(248,240,220,0.75)',
               fontFamily: F, lineHeight: 1, textAlign: 'center',
               fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
             }}>

@@ -15,7 +15,7 @@ const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';
 const SURFACE = '#EEE5D2';
 const WHITE = '#FFFFFF';
-const BG = '#F7F2E9';
+const BG = '#F5F0E8';
 const CORAL = '#FF5A1F';
 
 // ── Typing dots ────────────────────────────────────────────────────
@@ -483,7 +483,7 @@ export default function WokAIPage({ user: userProp }) {
 
       {/* ── Input bar — flat, no shadow ── */}
       <div style={{ padding: '8px 16px 16px', flexShrink: 0 }}>
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* + button — grisé */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={() => setShowPlus(v => !v)}
@@ -519,10 +519,10 @@ export default function WokAIPage({ user: userProp }) {
             placeholder="Pose ta question…" rows={1}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
 
-          {/* Send — noir + flèche orange */}
-          <button onClick={() => sendMessage()} disabled={!canSend}
-            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: canSend ? INK : '#D0CBC2', cursor: canSend ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms', flexShrink: 0 }}>
-            <ArrowUp size={15} color={canSend ? CORAL : WHITE} strokeWidth={2.2} />
+          {/* Send — toujours noir + flèche orange, juste disabled si vide */}
+          <button onClick={canSend ? () => sendMessage() : undefined}
+            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: INK, cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0, opacity: canSend ? 1 : 0.45 }}>
+            <ArrowUp size={15} color={CORAL} strokeWidth={2.2} />
           </button>
         </div>
       </div>

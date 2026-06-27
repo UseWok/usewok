@@ -102,20 +102,22 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
 
   return (
     <div
-      ref={ref}
-      style={{
-        position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
-        padding: '4px 0', minWidth: 255,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-      }}>
+    ref={ref}
+    style={{
+      position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
+      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
+      padding: '4px 0', minWidth: 270,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+    }}>
       {/* Automatique row */}
       <div
         onClick={() => onToggle('auto')}
+        onMouseEnter={e => { if (!isAutoSelected) e.currentTarget.style.background = '#FAF6EF'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = isAutoSelected ? '#F0EBE0' : WHITE; }}
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 11,
           padding: '9px 14px 10px', cursor: 'pointer',
-          background: isAutoSelected ? '#F5F2ED' : WHITE,
+          background: isAutoSelected ? '#F0EBE0' : WHITE,
           borderBottom: `1px solid ${BORDER}`,
           transition: 'background 100ms',
         }}>
@@ -128,7 +130,10 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
           <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 1 }}>Automatique</div>
           <div style={{ fontSize: 11, color: INK3, lineHeight: 1.4 }}>Le meilleur modèle IA est sélectionné<br/>pour chaque requête</div>
         </div>
-        {isAutoSelected && <Check size={14} color={INK} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 3 }} />}
+        {/* Espace réservé fixe pour éviter le recadrage */}
+        <div style={{ width: 14, flexShrink: 0, marginTop: 3 }}>
+          {isAutoSelected && <Check size={14} color={INK} strokeWidth={2.5} />}
+        </div>
       </div>
       {/* Other engines */}
       {otherEngines.map((e) => {
@@ -388,10 +393,10 @@ async function extractUrlFromText(text) {
   const key = text.trim().toLowerCase().slice(0, 120);
   if (LLM_CACHE[key] !== undefined) return LLM_CACHE[key];
 
-  // 4. LLM extraction with gemini_3_1_pro (supports web search, handles vague queries)
+  // 4. LLM extraction with gemini_3_flash (fast, supports web search)
   try {
     const res = await base44.integrations.Core.InvokeLLM({
-      model: 'gemini_3_1_pro',
+      model: 'gemini_3_flash',
       add_context_from_internet: true,
       prompt: `Find the official website URL for: "${text.trim().slice(0, 200)}". Return JSON with url (string, e.g. "https://lamborghini.com") and name (brand/company name). If genuinely not found, url must be "null".`,
       response_json_schema: {
