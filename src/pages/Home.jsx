@@ -444,7 +444,7 @@ async function runScan(inputUrl, userId, features) {
 
 // ── Grand donut (carte score) ──────────────────────────────────────────────────
 function BigDonut({ score }) {
-  const size = 68, sw = 6, R = (size - sw) / 2;
+  const size = 72, sw = 5.5, R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -453,6 +453,14 @@ function BigDonut({ score }) {
         <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CORAL} strokeWidth={sw}
           strokeDasharray={circ} strokeDashoffset={circ * (1 - score/100)} strokeLinecap="round" />
       </svg>
+      {/* Score vertical dans le donut */}
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 0,
+      }}>
+        <span style={{ fontSize: 19, fontWeight: 700, color: WHITE, lineHeight: 1, letterSpacing: '-0.03em', fontFamily: F }}>{score}</span>
+        <span style={{ fontSize: 9, fontWeight: 500, color: 'rgba(255,255,255,0.35)', lineHeight: 1.2, fontFamily: F }}>/100</span>
+      </div>
     </div>
   );
 }
@@ -809,8 +817,8 @@ export default function Home() {
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', position: 'relative' }}
               onClick={e => { if (!e.target.closest('button')) navigate('/ai-report'); }}>
 
-              {/* ── Pastille scan en haut à droite ── */}
-              <div style={{ position: 'absolute', top: 14, right: 14 }} onClick={e => e.stopPropagation()}>
+              {/* ── Ring + pastille en haut à droite ── */}
+              <div style={{ position: 'absolute', top: 13, right: 14 }} onClick={e => e.stopPropagation()}>
                 <ScanStatusIndicator
                   lastScan={activeProfile?.last_scan}
                   planId={user?.subscription_plan || 'free'}
@@ -819,18 +827,12 @@ export default function Home() {
                 />
               </div>
 
-              {/* ── Row 1: score + badge visibilité ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              {/* ── Row 1: donut + badge visibilité ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
                 <BigDonut score={lrs} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 5 }}>
-                    <span style={{ fontSize: 38, fontWeight: 300, color: WHITE, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/100</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ padding: '2px 9px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20, flexShrink: 0 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>{lrsLabel}</span>
-                    </div>
+                  <div style={{ padding: '3px 10px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20, display: 'inline-block' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>{lrsLabel}</span>
                   </div>
                 </div>
               </div>
