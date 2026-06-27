@@ -260,31 +260,31 @@ function MicButton({ onTranscript }) {
       {/* Listening overlay */}
       {listening &&
       <AnimatePresence>
-          <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 4 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          style={{
-            position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
-            background: INK, borderRadius: 10, padding: '8px 12px',
-            display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
-            zIndex: 100
-          }} className="hidden">
-            {/* Animated wave bars */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 18 }}>
-              {Array.from({ length: 7 }).map((_, i) =>
-            <div key={i} style={{
-              width: 2, borderRadius: 2, background: CORAL,
-              animation: `micWave 0.8s ease-in-out ${i * 0.1}s infinite alternate`,
-              height: `${4 + Math.random() * 10}px`
-            }} />
-            )}
-            </div>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: WHITE, letterSpacing: '0.01em' }}>Écoute…</span>
-            <button onClick={stopAll} style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={8} color={WHITE} />
-            </button>
-          </motion.div>
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
         </AnimatePresence>
       }
       <style>{`
