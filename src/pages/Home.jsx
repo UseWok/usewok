@@ -135,7 +135,7 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
 }
 
 // ── Mic Button with Voice Recording ───────────────────────────────────────────
-function MicButton({ onTranscript }) {
+function MicButton({ onTranscript, setSearchQuery }) {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
   const animRef = useRef(null);
@@ -168,19 +168,24 @@ function MicButton({ onTranscript }) {
       src.connect(analyser);
       analyserRef.current = analyser;
       const data = new Uint8Array(analyser.frequencyBinCount);
+      const smoothed = new Array(BARS).fill(4);
 
       const tick = () => {
-        analyser.getByteFrequencyData(data);
-        // Use first few frequency bins (low-mid range, most responsive to voice)
-        const avg = (data[1] + data[2] + data[3] + data[4]) / 4;
-        barRefs.current.forEach((el, i) => {
-          if (!el) return;
-          const h = avg < 4
-            ? 3
-            : Math.max(3, Math.min(14, (avg / 255) * 14 * (0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 80 + i * 1.2)))));
-          el.style.height = `${h}px`;
-        });
-        animRef.current = requestAnimationFrame(tick);
+      analyser.getByteFrequencyData(data);
+      const avg = (data[1] + data[2] + data[3] + data[4] + data[5]) / 5;
+      const t = Date.now();
+      barRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const target = avg < 6
+          ? 4
+          : Math.max(4, Math.min(22, (avg / 255) * 22 * (0.55 + 0.45 * Math.abs(Math.sin(t / 60 + i * 1.5)))));
+        // Smooth: fast attack, slow release
+        smoothed[i] = target > smoothed[i]
+          ? smoothed[i] + (target - smoothed[i]) * 0.35
+          : smoothed[i] + (target - smoothed[i]) * 0.12;
+        el.style.height = `${smoothed[i].toFixed(1)}px`;
+      });
+      animRef.current = requestAnimationFrame(tick);
       };
       tick();
     } catch {}
@@ -190,7 +195,7 @@ function MicButton({ onTranscript }) {
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
-    rec.onresult = (e) => { onTranscript(e.results[0][0].transcript); stopAll(); };
+    rec.onresult = (e) => { const t = e.results[0][0].transcript; setSearchQuery(t); onTranscript(t); stopAll(); };
     rec.onerror = () => stopAll();
     rec.onend = () => stopAll();
     setListening(true);
@@ -207,7 +212,7 @@ function MicButton({ onTranscript }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
             {Array.from({ length: BARS }).map((_, i) => (
               <div key={i} ref={(el) => barRefs.current[i] = el}
-                style={{ width: 2.5, borderRadius: 2, background: CORAL, height: '3px' }} />
+                style={{ width: 3, borderRadius: 2, background: CORAL, height: '4px' }} />
             ))}
           </div>
         ) : (
@@ -531,7 +536,6 @@ export default function Home() {
   };
 
   const handleVoiceTranscript = async (transcript) => {
-    setSearchQuery(transcript);
     const direct = extractUrlDirect(transcript);
     if (direct) { startScan(direct); setSearchQuery(''); }
     else {
@@ -629,7 +633,7 @@ export default function Home() {
                 e.target.style.height = Math.min(e.target.scrollHeight, maxH) + 'px';
               }} />
             <EngineSelector selected={selectedEngines} showEngines={showEngines} onToggle={() => setShowEngines((v) => !v)} />
-            <MicButton onTranscript={handleVoiceTranscript} />
+            <MicButton onTranscript={handleVoiceTranscript} setSearchQuery={setSearchQuery} />
             <SubmitButton onClick={handleSubmitSearch} loading={extracting || Object.keys(scanningUrls).length > 0} />
           </div>
 
