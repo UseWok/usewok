@@ -509,8 +509,8 @@ export default function AIVisibilityReport() {
                     : isTop
                       ? CARD_DARK
                       : b.value === 0
-                        ? 'rgba(21,19,15,0.09)'
-                        : 'rgba(21,19,15,0.18)';
+                        ? 'rgba(21,19,15,0.05)'
+                        : 'rgba(21,19,15,0.09)';
                   return (
                     <div key={b.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
                       <motion.div
