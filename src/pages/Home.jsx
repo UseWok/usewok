@@ -137,60 +137,65 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
 // ── Mic Button with Voice Recording ───────────────────────────────────────────
 function MicButton({ onTranscript }) {
   const [listening, setListening] = useState(false);
-  const [volume, setVolume] = useState(0);
   const recognitionRef = useRef(null);
   const animRef = useRef(null);
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
+  const barRefs = useRef([]);
+  const BARS = 5;
 
   const stopAll = () => {
     recognitionRef.current?.stop();
     streamRef.current?.getTracks().forEach((t) => t.stop());
     cancelAnimationFrame(animRef.current);
+    // Reset bars to flat
+    barRefs.current.forEach((el) => { if (el) el.style.height = '3px'; });
     setListening(false);
-    setVolume(0);
   };
 
   const startListening = async () => {
     if (listening) { stopAll(); return; }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const ctx = new AudioContext();
       const src = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
+      analyser.fftSize = 64;
       src.connect(analyser);
       analyserRef.current = analyser;
       const data = new Uint8Array(analyser.frequencyBinCount);
+
       const tick = () => {
         analyser.getByteFrequencyData(data);
-        const avg = data.reduce((a, b) => a + b, 0) / data.length;
-        setVolume(avg);
+        // Use first few frequency bins (low-mid range, most responsive to voice)
+        const avg = (data[1] + data[2] + data[3] + data[4]) / 4;
+        barRefs.current.forEach((el, i) => {
+          if (!el) return;
+          const h = avg < 4
+            ? 3
+            : Math.max(3, Math.min(14, (avg / 255) * 14 * (0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 80 + i * 1.2)))));
+          el.style.height = `${h}px`;
+        });
         animRef.current = requestAnimationFrame(tick);
       };
       tick();
     } catch {}
+
     const rec = new SpeechRecognition();
     rec.lang = 'fr-FR';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
-    rec.onresult = (e) => { const transcript = e.results[0][0].transcript; onTranscript(transcript); stopAll(); };
+    rec.onresult = (e) => { onTranscript(e.results[0][0].transcript); stopAll(); };
     rec.onerror = () => stopAll();
     rec.onend = () => stopAll();
     setListening(true);
     rec.start();
   };
-
-  const bars = 5;
-  // Heights driven purely by volume: silence → flat 3px, loud → up to 14px
-  const barHeights = Array.from({ length: bars }).map((_, i) => {
-    if (!listening || volume < 2) return 3;
-    return Math.max(3, Math.min(14, (volume / 128) * 14 * (0.6 + 0.4 * Math.abs(Math.sin(i * 1.3)))));
-  });
 
   return (
     <div style={{ position: 'relative' }}>
@@ -200,8 +205,9 @@ function MicButton({ onTranscript }) {
         onMouseLeave={(e) => { if (!listening) e.currentTarget.style.background = 'transparent'; }}>
         {listening ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
-            {barHeights.map((h, i) => (
-              <div key={i} style={{ width: 2.5, borderRadius: 2, background: CORAL, height: `${h}px`, transition: 'height 60ms ease' }} />
+            {Array.from({ length: BARS }).map((_, i) => (
+              <div key={i} ref={(el) => barRefs.current[i] = el}
+                style={{ width: 2.5, borderRadius: 2, background: CORAL, height: '3px' }} />
             ))}
           </div>
         ) : (
