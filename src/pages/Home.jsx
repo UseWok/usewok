@@ -360,19 +360,60 @@ function SubmitButton({ onClick, loading }) {
 // ── Scan logic ─────────────────────────────────────────────────────────────────
 const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+(?:\.[a-zA-Z]{2,})+)(?:\/[^\s]*)?/i;
 
-function extractUrl(text) {
+function extractUrlDirect(text) {
   const match = text.match(URL_REGEX);
   if (!match) return null;
   const raw = match[0];
   return raw.startsWith('http') ? raw : `https://${raw}`;
 }
 
-function isLikelyTroll(text) {
-  // too short, no domain-like pattern, or clearly not a URL/site name
-  if (!text || text.trim().length < 3) return true;
-  const hasAlpha = /[a-zA-Z]/.test(text);
-  if (!hasAlpha) return true;
+// ── LLM-based URL extraction (gpt-4o-mini) — with anti-abuse ─────────────────
+const LLM_CACHE = {};
+const LLM_CALL_LOG = [];
+const MAX_LLM_PER_MIN = 5;
+
+function isRateLimited() {
+  const now = Date.now();
+  const recent = LLM_CALL_LOG.filter(t => now - t < 60000);
+  if (recent.length >= MAX_LLM_PER_MIN) return true;
+  LLM_CALL_LOG.splice(0, LLM_CALL_LOG.length, ...recent, now);
   return false;
+}
+
+async function extractUrlFromText(text) {
+  if (!text || text.trim().length < 2) return null;
+
+  // 1. Direct URL detection (instant, no LLM needed)
+  const direct = extractUrlDirect(text);
+  if (direct) return direct;
+
+  // 2. Anti-abuse: rate limit LLM calls
+  if (isRateLimited()) return null;
+
+  // 3. Cache identical queries
+  const key = text.trim().toLowerCase().slice(0, 120);
+  if (LLM_CACHE[key] !== undefined) return LLM_CACHE[key];
+
+  // 4. LLM extraction with gpt-4o-mini (automatic model)
+  try {
+    const res = await base44.integrations.Core.InvokeLLM({
+      prompt: `Extract the website URL from this text. The user wants to analyze a website. Return ONLY the URL (e.g. "https://example.com"), nothing else. If no website can be identified, return "null".\n\nText: "${text.trim().slice(0, 300)}"`,
+      response_json_schema: {
+        type: 'object',
+        properties: { url: { type: 'string' } }
+      }
+    });
+    const extracted = res?.url || null;
+    if (!extracted || extracted === 'null' || !extracted.includes('.')) {
+      LLM_CACHE[key] = null;
+      return null;
+    }
+    const clean = extracted.startsWith('http') ? extracted : `https://${extracted}`;
+    LLM_CACHE[key] = clean;
+    return clean;
+  } catch {
+    return null;
+  }
 }
 
 async function runScan(inputUrl, userId, features) {
@@ -523,6 +564,7 @@ export default function Home() {
   const [showEngines, setShowEngines] = useState(false);
   const [selectedEngines, setSelectedEngines] = useState(['auto']);
   const [trollError, setTrollError] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const scanningRef = useRef({});
 
   const loadAll = async () => {
@@ -574,29 +616,37 @@ export default function Home() {
     }
   };
 
-  const handleSubmitSearch = () => {
+  const handleSubmitSearch = async () => {
     const raw = searchQuery.trim();
-    if (!raw) return;
+    if (!raw || extracting) return;
 
-    // Try to extract URL from text (handles voice input like "analyse le site apple.com")
-    const extracted = extractUrl(raw);
-    if (!extracted || isLikelyTroll(raw)) {
+    setExtracting(true);
+    setTrollError(false);
+    const extracted = await extractUrlFromText(raw);
+    setExtracting(false);
+
+    if (!extracted) {
       setTrollError(true);
-      setTimeout(() => setTrollError(false), 3000);
+      setTimeout(() => setTrollError(false), 3500);
       return;
     }
-    setTrollError(false);
     startScan(extracted);
     setSearchQuery('');
   };
 
-  const handleVoiceTranscript = (transcript) => {
+  const handleVoiceTranscript = async (transcript) => {
     setSearchQuery(transcript);
-    // Auto-trigger scan from voice
-    const extracted = extractUrl(transcript);
-    if (extracted && !isLikelyTroll(transcript)) {
-      startScan(extracted);
+    // Try direct extraction first (fast), then LLM if needed
+    const direct = extractUrlDirect(transcript);
+    if (direct) {
+      startScan(direct);
       setSearchQuery('');
+    } else {
+      // Let user see transcript, then auto-submit
+      setTimeout(async () => {
+        const extracted = await extractUrlFromText(transcript);
+        if (extracted) { startScan(extracted); setSearchQuery(''); }
+      }, 600);
     }
   };
 
@@ -713,7 +763,7 @@ export default function Home() {
             {/* Submit with tooltip */}
             <SubmitButton
               onClick={handleSubmitSearch}
-              loading={Object.keys(scanningUrls).length > 0}
+              loading={extracting || Object.keys(scanningUrls).length > 0}
             />
           </div>
 
@@ -723,7 +773,7 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 style={{ padding: '5px 12px 0', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <AlertCircle size={12} color="#EF4444" />
-                <span style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500 }}>Entrez un nom de domaine valide.</span>
+                <span style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500 }}>Impossible d'identifier un site web. Essayez avec un lien direct ou un nom de domaine.</span>
               </motion.div>
             )}
           </AnimatePresence>
