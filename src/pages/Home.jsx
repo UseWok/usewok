@@ -186,6 +186,12 @@ function MicButton({ onTranscript }) {
   };
 
   const bars = 5;
+  // Heights driven purely by volume: silence → flat 3px, loud → up to 14px
+  const barHeights = Array.from({ length: bars }).map((_, i) => {
+    if (!listening || volume < 2) return 3;
+    return Math.max(3, Math.min(14, (volume / 128) * 14 * (0.6 + 0.4 * Math.abs(Math.sin(i * 1.3)))));
+  });
+
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={startListening}
@@ -194,10 +200,9 @@ function MicButton({ onTranscript }) {
         onMouseLeave={(e) => { if (!listening) e.currentTarget.style.background = 'transparent'; }}>
         {listening ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
-            {Array.from({ length: bars }).map((_, i) => {
-              const h = Math.max(3, Math.min(14, volume / 30 * 14 + Math.sin(Date.now() / 150 + i) * 4));
-              return <div key={i} style={{ width: 2.5, borderRadius: 2, background: CORAL, height: `${h}px`, transition: 'height 80ms ease' }} />;
-            })}
+            {barHeights.map((h, i) => (
+              <div key={i} style={{ width: 2.5, borderRadius: 2, background: CORAL, height: `${h}px`, transition: 'height 60ms ease' }} />
+            ))}
           </div>
         ) : (
           <Mic size={15} color={INK} strokeWidth={1.7} />
