@@ -390,13 +390,14 @@ export default function AIVisibilityReport() {
 
   const engineBars = ALL_ENGINES.map(e => ({
     key: e,
-    short: ENGINE_SHORT[e] || e,
     logo: AI_LOGOS[e],
     value: data[`${e}_score`] || 0,
     locked: isFree && !FREE_ENGINES.includes(e),
   }));
 
-  const maxEngineVal = Math.max(...engineBars.map(b => b.value), 1);
+  const maxEngineVal = Math.max(...engineBars.filter(b => !b.locked).map(b => b.value), 1);
+  // Moteur(s) avec le meilleur score → noir; les autres → gris clair
+  const topScore = maxEngineVal;
 
   const fakePlan = [
     { action_title: 'Publier du contenu expert structuré', engine: 'Perplexity', platform: 'LinkedIn Pulse', impact: 'high', effort: 'medium' },
@@ -504,38 +505,38 @@ export default function AIVisibilityReport() {
               </p>
             </div>
             <div style={{ padding: '20px 18px 16px' }}>
-              {/* Bar chart with logos */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginBottom: 10 }}>
+              {/* Bar chart — meilleur score en noir, autres en gris */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 10, height: 96 }}>
                 {engineBars.map((b) => {
-                  const barH = b.locked ? 18 : Math.max((b.value / 100) * 80, 4);
-                  const barBg = b.locked ? 'rgba(21,19,15,0.08)'
-                    : b.value >= 60 ? CARD_DARK
-                    : b.value >= 30 ? 'rgba(21,19,15,0.30)'
-                    : 'rgba(21,19,15,0.12)';
+                  const isTop = !b.locked && b.value > 0 && b.value === topScore;
+                  const barH = b.locked ? 16 : b.value === 0 ? 8 : Math.max((b.value / 100) * 88, 8);
+                  const barBg = b.locked
+                    ? 'rgba(21,19,15,0.07)'
+                    : isTop
+                      ? CARD_DARK
+                      : b.value === 0
+                        ? 'rgba(21,19,15,0.09)'
+                        : 'rgba(21,19,15,0.18)';
                   return (
-                    <div key={b.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                      {!b.locked && <span style={{ fontSize: 9, fontWeight: 700, color: b.value > 0 ? INK : INK3 }}>{b.value > 0 ? b.value : ''}</span>}
+                    <div key={b.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
                       <motion.div
                         initial={{ height: 0 }} animate={{ height: `${barH}px` }}
-                        transition={{ delay: 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                        style={{ width: '100%', background: barBg, borderRadius: '4px 4px 0 0', minHeight: 4 }}
+                        transition={{ delay: 0.08, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ width: '100%', background: barBg, borderRadius: '3px 3px 0 0' }}
                       />
                     </div>
                   );
                 })}
               </div>
-              {/* X axis with logos */}
-              <div style={{ display: 'flex', gap: 5, marginBottom: 4 }}>
+              {/* X axis — logos seulement, pas de noms */}
+              <div style={{ display: 'flex', gap: 6 }}>
                 {engineBars.map((b) => (
-                  <div key={b.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <div key={b.key} style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                     {b.logo ? (
-                      <img src={b.logo} alt={b.key} style={{ width: 16, height: 16, objectFit: 'contain', opacity: b.locked ? 0.3 : 1 }} />
+                      <img src={b.logo} alt={b.key} style={{ width: 14, height: 14, objectFit: 'contain', opacity: b.locked ? 0.25 : 1 }} />
                     ) : (
-                      <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(21,19,15,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 7, fontWeight: 700, color: INK3 }}>L</span>
-                      </div>
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'rgba(21,19,15,0.10)' }} />
                     )}
-                    <span style={{ fontSize: 8.5, color: INK3, textAlign: 'center' }}>{b.short}</span>
                   </div>
                 ))}
               </div>

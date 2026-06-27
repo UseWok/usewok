@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check } from 'lucide-react';
+import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe } from 'lucide-react';
 import { setActiveDomain } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
@@ -394,23 +394,29 @@ async function extractUrlFromText(text) {
   const key = text.trim().toLowerCase().slice(0, 120);
   if (LLM_CACHE[key] !== undefined) return LLM_CACHE[key];
 
-  // 4. LLM extraction with gpt-4o-mini (automatic model)
+  // 4. LLM extraction with gemini_3_1_pro (supports web search, handles vague queries)
   try {
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Extract the website URL from this text. The user wants to analyze a website. Return ONLY the URL (e.g. "https://example.com"), nothing else. If no website can be identified, return "null".\n\nText: "${text.trim().slice(0, 300)}"`,
+      model: 'gemini_3_1_pro',
+      add_context_from_internet: true,
+      prompt: `Find the official website URL for: "${text.trim().slice(0, 200)}". Return JSON with url (string, e.g. "https://lamborghini.com") and name (brand/company name). If genuinely not found, url must be "null".`,
       response_json_schema: {
         type: 'object',
-        properties: { url: { type: 'string' } }
+        properties: {
+          url: { type: 'string' },
+          name: { type: 'string' }
+        }
       }
     });
     const extracted = res?.url || null;
+    const name = res?.name || null;
     if (!extracted || extracted === 'null' || !extracted.includes('.')) {
       LLM_CACHE[key] = null;
       return null;
     }
     const clean = extracted.startsWith('http') ? extracted : `https://${extracted}`;
     LLM_CACHE[key] = clean;
-    return clean;
+    return { url: clean, name };
   } catch {
     return null;
   }
@@ -565,6 +571,7 @@ export default function Home() {
   const [selectedEngines, setSelectedEngines] = useState(['auto']);
   const [trollError, setTrollError] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [confirmSite, setConfirmSite] = useState(null); // { url, name }
   const scanningRef = useRef({});
 
   const loadAll = async () => {
@@ -616,36 +623,48 @@ export default function Home() {
     }
   };
 
+  const confirmAndScan = (url) => {
+    setConfirmSite(null);
+    startScan(url);
+    setSearchQuery('');
+  };
+
   const handleSubmitSearch = async () => {
     const raw = searchQuery.trim();
     if (!raw || extracting) return;
 
+    // Direct URL → scan immediately, no confirmation needed
+    const direct = extractUrlDirect(raw);
+    if (direct) {
+      startScan(direct);
+      setSearchQuery('');
+      return;
+    }
+
     setExtracting(true);
     setTrollError(false);
-    const extracted = await extractUrlFromText(raw);
+    const result = await extractUrlFromText(raw);
     setExtracting(false);
 
-    if (!extracted) {
+    if (!result) {
       setTrollError(true);
       setTimeout(() => setTrollError(false), 3500);
       return;
     }
-    startScan(extracted);
-    setSearchQuery('');
+    // Show confirmation modal for LLM-resolved URLs
+    setConfirmSite(result);
   };
 
   const handleVoiceTranscript = async (transcript) => {
     setSearchQuery(transcript);
-    // Try direct extraction first (fast), then LLM if needed
     const direct = extractUrlDirect(transcript);
     if (direct) {
       startScan(direct);
       setSearchQuery('');
     } else {
-      // Let user see transcript, then auto-submit
       setTimeout(async () => {
-        const extracted = await extractUrlFromText(transcript);
-        if (extracted) { startScan(extracted); setSearchQuery(''); }
+        const result = await extractUrlFromText(transcript);
+        if (result) { setConfirmSite(result); setSearchQuery(''); }
       }, 600);
     }
   };
@@ -942,6 +961,53 @@ export default function Home() {
       {onboardingData && (
         <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
       )}
+
+      {/* ── Confirmation modal ── */}
+      <AnimatePresence>
+        {confirmSite && (
+          <>
+            <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setConfirmSite(null)}
+              style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(21,19,15,0.35)', backdropFilter: 'blur(8px)' }} />
+            <motion.div key="modal" initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, width: '100%', maxWidth: 380, padding: '0 16px', fontFamily: F }}>
+              <div style={{ background: WHITE, borderRadius: 20, overflow: 'hidden' }}>
+                {/* Site preview header */}
+                <div style={{ background: CARD_BG, padding: '24px 24px 20px' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Site identifié</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Globe size={18} color="rgba(255,255,255,0.6)" />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontSize: 16, fontWeight: 800, color: WHITE, margin: 0, letterSpacing: '-0.03em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {confirmSite.name || confirmSite.url.replace(/https?:\/\//, '').split('/')[0]}
+                      </p>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {confirmSite.url}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* Actions */}
+                <div style={{ padding: '16px' }}>
+                  <button onClick={() => confirmAndScan(confirmSite.url)}
+                    style={{ width: '100%', padding: '13px', background: CARD_BG, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <Zap size={13} color={CORAL} />
+                    Analyser ce site
+                  </button>
+                  <button onClick={() => setConfirmSite(null)}
+                    style={{ width: '100%', padding: '11px', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 13, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
+                    Ce n'est pas le bon site
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
     </div>
   );
