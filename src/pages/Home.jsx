@@ -143,17 +143,19 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
             onClick={() => onToggle(e.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 11,
-              padding: '8px 14px', cursor: 'pointer',
-              background: isSelected ? '#F5F2ED' : 'transparent',
+              padding: '6px 14px', cursor: 'pointer',
+              background: 'transparent',
               transition: 'background 100ms',
             }}
-            onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#FAF8F5'; }}
-            onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#F5F2ED' : 'transparent'; }}>
+            onMouseEnter={ev => ev.currentTarget.style.background = '#FAF6EF'}
+            onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
             <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <e.Logo />
             </div>
-            <span style={{ fontSize: 13, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
-            {isSelected && <Check size={13} color={INK} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+            <span style={{ fontSize: 12.5, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
+            <div style={{ width: 14, flexShrink: 0 }}>
+              {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: INK, margin: '0 auto' }} />}
+            </div>
           </div>
         );
       })}

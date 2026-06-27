@@ -487,7 +487,7 @@ export default function WokAIPage({ user: userProp }) {
           {/* + button — grisé */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={() => setShowPlus(v => !v)}
-              style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${BORDER}`, background: SURFACE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${BORDER}`, background: '#E8E3DA', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Plus size={14} color={INK2} strokeWidth={1.8} />
             </button>
             <AnimatePresence>
@@ -521,7 +521,7 @@ export default function WokAIPage({ user: userProp }) {
 
           {/* Send — toujours noir + flèche orange, juste disabled si vide */}
           <button onClick={canSend ? () => sendMessage() : undefined}
-            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: INK, cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0, opacity: canSend ? 1 : 0.45 }}>
+            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: INK, cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0 }}>
             <ArrowUp size={15} color={CORAL} strokeWidth={2.2} />
           </button>
         </div>
