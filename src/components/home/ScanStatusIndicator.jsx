@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 
 const CORAL = '#FF5A1F';
-const WHITE = '#FFFFFF';
+const CREAM = 'rgba(248, 240, 220, 0.85)';
+const CREAM_TRACK = 'rgba(248, 240, 220, 0.18)';
 const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
 
 const PLAN_INTERVAL_DAYS = { free: 30, starter: 2, pro: 1 };
@@ -27,10 +28,9 @@ function formatCountdown(ms) {
   const s = total % 60;
   if (d > 0) return `${d}j ${String(h).padStart(2,'0')}h`;
   if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
-  return `${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-// Ring chrono à gauche + pastille rouge cliquable à droite
 export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan, scanning }) {
   const [now, setNow] = useState(Date.now());
 
@@ -47,20 +47,19 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
   const nextScan = lastScan ? getNextScanTime(lastScan, planId) : null;
   const remaining = nextScan ? Math.max(nextScan.getTime() - now, 0) : 0;
 
-  const size = 32;
-  const sw = 2.2;
+  const size = 40;
+  const sw = 2.5;
   const R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
   const dashOffset = circ * (1 - progress);
-  const ringColor = available ? CORAL : 'rgba(240,232,215,0.35)';
-  const trackColor = 'rgba(240,232,215,0.12)';
+  const ringColor = available ? CORAL : CREAM;
 
   if (scanning) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <svg width={size} height={size} style={{ animation: 'scanSpin 1s linear infinite', flexShrink: 0 }}>
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={trackColor} strokeWidth={sw} />
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={ringColor}  strokeWidth={sw}
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM_TRACK} strokeWidth={sw} />
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM} strokeWidth={sw}
             strokeDasharray={`${circ * 0.25} ${circ * 0.75}`} strokeLinecap="round" />
         </svg>
         <style>{`@keyframes scanSpin { to { transform: rotate(360deg); } }`}</style>
@@ -69,11 +68,11 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-      {/* Ring chrono avec countdown jusqu'aux secondes */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Ring chrono */}
       <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={trackColor} strokeWidth={sw} />
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM_TRACK} strokeWidth={sw} />
           <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={ringColor} strokeWidth={sw}
             strokeDasharray={circ} strokeDashoffset={dashOffset}
             strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s linear' }} />
@@ -82,9 +81,10 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
         {!available && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{
-              fontSize: 5.5, fontWeight: 700, color: 'rgba(248,240,220,0.75)',
+              fontSize: 6.5, fontWeight: 700, color: CREAM,
               fontFamily: F, lineHeight: 1, textAlign: 'center',
               fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
+              letterSpacing: '-0.02em',
             }}>
               {formatCountdown(remaining)}
             </span>

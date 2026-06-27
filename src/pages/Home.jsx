@@ -104,20 +104,20 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
     <div
     ref={ref}
     style={{
-      position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
-      padding: '4px 0', minWidth: 270,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+      position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 9000,
+      background: WHITE, border: `1px solid rgba(21,19,15,0.09)`, borderRadius: 14,
+      padding: '6px 0', minWidth: 280,
+      boxShadow: '0 4px 24px rgba(21,19,15,0.08), 0 1px 4px rgba(21,19,15,0.04)',
     }}>
       {/* Automatique row */}
       <div
         onClick={() => onToggle('auto')}
         onMouseEnter={e => { if (!isAutoSelected) e.currentTarget.style.background = '#FAF6EF'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = isAutoSelected ? '#F0EBE0' : WHITE; }}
+        onMouseLeave={e => { e.currentTarget.style.background = WHITE; }}
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 11,
           padding: '9px 14px 10px', cursor: 'pointer',
-          background: isAutoSelected ? '#F0EBE0' : WHITE,
+          background: WHITE,
           borderBottom: `1px solid ${BORDER}`,
           transition: 'background 100ms',
         }}>
