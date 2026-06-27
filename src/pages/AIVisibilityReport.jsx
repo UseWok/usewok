@@ -556,7 +556,7 @@ export default function AIVisibilityReport() {
             onMouseLeave={(e) => {e.currentTarget.style.background = WHITE;}}>
                 {t.ok ?
               <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke={CORAL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </div> :
               <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke={CORAL} strokeWidth="1.8" strokeLinecap="round" /></svg>
