@@ -60,7 +60,7 @@ function ScoreDonut({ value, size = 72 }) {
   const [disp, setDisp] = useState(0);
   const sw = 6, R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
-  const color = value >= 65 ? '#4ade80' : value >= 35 ? CORAL : '#EF4444';
+  const color = CORAL;
 
   useEffect(() => {
     let start = null;
@@ -94,21 +94,19 @@ function ScoreDonut({ value, size = 72 }) {
 }
 
 // ── Score bar (décomposition) — design maquette ───────────────────────────────
-function ScoreRow({ label, value, delay = 0 }) {
-  const isZero = !value || value === 0;
-  const barColor = isZero ? CORAL : INK;
+function ScoreRow({ label, value, delay = 0, isLast = false }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+    <div style={{ paddingBottom: isLast ? 0 : 18, marginBottom: isLast ? 0 : 18, borderBottom: isLast ? 'none' : '1px solid rgba(21,19,15,0.07)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
         <span style={{ fontSize: 13.5, color: INK, fontWeight: 400 }}>{label}</span>
-        <span style={{ fontSize: 13.5, fontWeight: 700, color: isZero ? CORAL : INK }}>{isZero ? 0 : value}</span>
+        <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{value || 0}</span>
       </div>
-      <div style={{ height: 7, background: 'rgba(21,19,15,0.08)', borderRadius: 4, overflow: 'hidden' }}>
+      <div style={{ height: 5, background: 'rgba(21,19,15,0.07)', borderRadius: 3, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.max(value || 0, 0)}%` }}
           transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay }}
-          style={{ height: '100%', background: barColor, borderRadius: 4 }}
+          style={{ height: '100%', background: INK, borderRadius: 3 }}
         />
       </div>
     </div>
@@ -213,32 +211,28 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
 
 // ── Status picker ─────────────────────────────────────────────────────────────
 const STATUS_CFG = {
-  todo:        { label: 'À faire',  color: INK3,     bg: SURFACE,   border: BORDER,    icon: Circle },
-  in_progress: { label: 'En cours', color: '#B45309', bg: '#FFFBEB', border: '#FDE68A', icon: Clock },
-  done:        { label: 'Terminé',  color: '#059669', bg: '#F0FDF4', border: '#BBF7D0', icon: CheckCircle },
+  todo:        { label: 'À faire',  color: INK2,  bg: WHITE,       border: BORDER },
+  in_progress: { label: 'En cours', color: CORAL, bg: `${CORAL}10`, border: `${CORAL}40` },
+  done:        { label: 'Terminé',  color: WHITE,  bg: INK,         border: INK },
 };
 function StatusPicker({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const cfg = STATUS_CFG[value] || STATUS_CFG.todo;
-  const Icon = cfg.icon;
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={e => { e.stopPropagation(); setOpen(!open); }}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: `1px solid ${cfg.border}`, background: cfg.bg, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: cfg.color, fontFamily: F, whiteSpace: 'nowrap' }}>
-        <Icon size={11} /> {cfg.label}
-        <ChevronDown size={10} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, border: `1px solid ${cfg.border}`, background: cfg.bg, cursor: 'pointer', fontSize: 11.5, fontWeight: 600, color: cfg.color, fontFamily: F, whiteSpace: 'nowrap' }}>
+        {cfg.label}
+        <ChevronDown size={10} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', opacity: 0.5 }} />
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden', zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.10)', minWidth: 130 }}>
-          {Object.entries(STATUS_CFG).map(([k, c]) => {
-            const I = c.icon;
-            return (
-              <button key={k} onClick={e => { e.stopPropagation(); onChange(k); setOpen(false); }}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: value === k ? SURFACE : WHITE, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: c.color, fontFamily: F, textAlign: 'left' }}>
-                <I size={12} /> {c.label}
-              </button>
-            );
-          })}
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 120 }}>
+          {Object.entries(STATUS_CFG).map(([k, c]) => (
+            <button key={k} onClick={e => { e.stopPropagation(); onChange(k); setOpen(false); }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '9px 12px', background: value === k ? SURFACE : WHITE, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: value === k ? 600 : 400, color: k === 'done' ? INK : k === 'in_progress' ? CORAL : INK2, fontFamily: F, textAlign: 'left' }}>
+              {c.label}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -374,9 +368,9 @@ export default function AIVisibilityReport() {
   const doneTasks = plan.filter((_, i) => tasks[i]?.status === 'done').length;
   const hasGsc = gscData?.connected && gscData?.data;
 
-  const scoreLabel = score >= 65 ? { text: 'Bonne visibilité', color: '#4ade80', bg: 'rgba(74,222,128,0.15)', border: 'rgba(74,222,128,0.3)' }
-    : score >= 35 ? { text: 'Visibilité partielle', color: CORAL, bg: `${CORAL}20`, border: `${CORAL}40` }
-    : { text: 'Faible visibilité', color: '#EF4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)' };
+  const scoreLabel = score >= 65 ? { text: 'Bonne visibilité', color: CORAL, bg: `${CORAL}18`, border: `${CORAL}35` }
+    : score >= 35 ? { text: 'Visibilité partielle', color: CORAL, bg: `${CORAL}18`, border: `${CORAL}35` }
+    : { text: 'Faible visibilité', color: CORAL, bg: `${CORAL}18`, border: `${CORAL}35` };
 
   const technical = [
     { id: 'schema', label: 'Données structurées (Schema.org)', desc: 'Les IA comprennent votre activité', ok: data.has_schema_markup, fix: 'Votre site ne transmet pas ses informations structurées aux IA.' },
@@ -487,10 +481,10 @@ export default function AIVisibilityReport() {
         {card(
           <>
             {sectionHeader('Décomposition du score')}
-            <div style={{ padding: '18px 18px 4px' }}>
+            <div style={{ padding: '18px 18px 18px' }}>
               <ScoreRow label="Présence chez les assistants IA" value={scoreVis} delay={0.08} />
               <ScoreRow label="Clarté du message et positionnement" value={scoreClarity} delay={0.13} />
-              <ScoreRow label="Signaux commerciaux détectés" value={scoreCommerce} delay={0.18} />
+              <ScoreRow label="Signaux commerciaux détectés" value={scoreCommerce} delay={0.18} isLast />
             </div>
           </>, 0.05
         )}
@@ -498,7 +492,7 @@ export default function AIVisibilityReport() {
         {/* ── 3. Score par moteur IA — LOGOS ── */}
         {card(
           <>
-            <div style={{ padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
+            <div style={{ padding: '16px 18px' }}>
               <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: 0, letterSpacing: '-0.01em' }}>Score par moteur IA</p>
               <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>
                 {isFree ? '1 moteur analysé sur 8' : '8 moteurs analysés en parallèle'}
@@ -564,14 +558,18 @@ export default function AIVisibilityReport() {
                 onMouseEnter={e => { if (!t.ok) e.currentTarget.style.background = SURFACE; }}
                 onMouseLeave={e => { e.currentTarget.style.background = WHITE; }}>
                 {t.ok
-                  ? <CheckCircle size={15} color="#22C55E" style={{ flexShrink: 0 }} />
-                  : <XCircle size={15} color={CORAL} style={{ flexShrink: 0 }} />
+                  ? <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke={CORAL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  : <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke={CORAL} strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    </div>
                 }
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13, color: t.ok ? INK2 : INK, fontWeight: t.ok ? 400 : 600, margin: 0, lineHeight: 1.3 }}>{t.label}</p>
-                  <p style={{ fontSize: 11, color: INK3, margin: '1px 0 0' }}>{t.desc}</p>
+                  <p style={{ fontSize: 13, color: t.ok ? INK2 : INK, fontWeight: t.ok ? 400 : 500, margin: 0, lineHeight: 1.3 }}>{t.label}</p>
+                  <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>{t.desc}</p>
                 </div>
-                {!t.ok && <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, flexShrink: 0 }}>Corriger</span>}
+                {!t.ok && <span style={{ fontSize: 12, fontWeight: 600, color: CORAL, flexShrink: 0 }}>Corriger</span>}
               </motion.div>
             ))}
           </>, 0.15
@@ -585,12 +583,12 @@ export default function AIVisibilityReport() {
               <motion.button key={i}
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 + i * 0.05 }}
                 onClick={() => setActiveDrawer({ id: `issue_${i}`, text: issue.problem })}
-                style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 18px', borderBottom: i < issues.length - 1 ? `1px solid ${BORDER}` : 'none', background: WHITE, border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F, transition: 'background 0.1s' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', borderBottom: i < issues.length - 1 ? `1px solid ${BORDER}` : 'none', background: WHITE, border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F, transition: 'background 0.1s' }}
                 onMouseEnter={e => e.currentTarget.style.background = SURFACE}
                 onMouseLeave={e => e.currentTarget.style.background = WHITE}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: issue.severity === 'error' ? CORAL : 'rgba(21,19,15,0.35)', flexShrink: 0, marginTop: 5 }} />
-                <span style={{ flex: 1, fontSize: 13, color: INK2, lineHeight: 1.55 }}>{issue.problem}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, flexShrink: 0, alignSelf: 'center' }}>Corriger</span>
+                <div style={{ width: 6, height: 6, borderRadius: 1.5, background: CORAL, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13, color: INK2, lineHeight: 1.5 }}>{issue.problem}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: CORAL, flexShrink: 0 }}>Corriger</span>
               </motion.button>
             ))}
           </>, 0.20
@@ -602,30 +600,65 @@ export default function AIVisibilityReport() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
               <span style={{ fontSize: 13.5, fontWeight: 700, color: INK, letterSpacing: '-0.01em' }}>Trafic et autorité web</span>
               {hasGsc
-                ? <span style={{ fontSize: 10, fontWeight: 700, color: '#22C55E' }}>● GSC connecté</span>
-                : <button onClick={() => navigate('/connections')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
+                ? <span style={{ fontSize: 10, fontWeight: 700, color: CORAL }}>● GSC connecté</span>
+                : <button onClick={() => navigate('/connections')} style={{ padding: '5px 11px', border: `1px solid ${BORDER}`, borderRadius: 6, background: WHITE, fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F }}>
                     Connecter Google
                   </button>
               }
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '18px 18px 8px' }}>
-              {(hasGsc ? [
-                { label: 'CLICS / MOIS', value: gscData.data.totalClicks?.toLocaleString('fr') || '—' },
-                { label: 'MOTS-CLÉS', value: '—' },
-                { label: 'IMPRESSIONS', value: gscData.data.totalImpressions?.toLocaleString('fr') || '—' },
-                { label: 'AUTORITÉ DE DOMAINE', value: '—' },
+            {(() => {
+              const metrics = hasGsc ? [
+                { label: 'Clics / mois', value: gscData.data.totalClicks?.toLocaleString('fr') || '—' },
+                { label: 'Impressions', value: gscData.data.totalImpressions?.toLocaleString('fr') || '—' },
+                { label: 'Mots-clés', value: '—' },
+                { label: 'Autorité domaine', value: '—' },
               ] : [
-                { label: 'VISITEURS / MOIS', value: fmt(data.organic_traffic) },
-                { label: 'MOTS-CLÉS', value: fmt(data.organic_keywords) },
-                { label: 'BACKLINKS', value: fmt(data.backlinks) },
-                { label: 'AUTORITÉ DE DOMAINE', value: data.authority_score ? String(data.authority_score) : '—' },
-              ]).map((m, i) => (
-                <div key={i} style={{ paddingBottom: 16 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>{m.label}</p>
-                  <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.04em' }}>{m.value}</p>
+                { label: 'Visiteurs / mois', value: fmt(data.organic_traffic) },
+                { label: 'Mots-clés', value: fmt(data.organic_keywords) },
+                { label: 'Backlinks', value: fmt(data.backlinks) },
+                { label: 'Autorité domaine', value: data.authority_score ? String(data.authority_score) : '—' },
+              ];
+              const maxVal = Math.max(...metrics.map(m => {
+                const n = parseInt((m.value || '').replace(/[^0-9]/g, ''));
+                return isNaN(n) ? 0 : n;
+              }), 1);
+              return (
+                <div style={{ padding: '16px 18px 18px' }}>
+                  {/* Metric numbers row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0, marginBottom: 20 }}>
+                    {metrics.map((m, i) => (
+                      <div key={i} style={{ paddingRight: 12 }}>
+                        <p style={{ fontSize: 9.5, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 3px' }}>{m.label}</p>
+                        <p style={{ fontSize: 18, fontWeight: 700, color: INK, margin: 0, letterSpacing: '-0.03em' }}>{m.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Minimalist bar chart */}
+                  <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 48 }}>
+                    {metrics.map((m, i) => {
+                      const n = parseInt((m.value || '').replace(/[^0-9]/g, ''));
+                      const pct = isNaN(n) || n === 0 ? 0.08 : Math.max(n / maxVal, 0.08);
+                      const isFirst = i === 0;
+                      return (
+                        <motion.div key={i}
+                          initial={{ height: 0 }} animate={{ height: `${Math.round(pct * 48)}px` }}
+                          transition={{ delay: 0.05 * i, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                          style={{ flex: 1, background: isFirst ? INK : 'rgba(21,19,15,0.12)', borderRadius: '2px 2px 0 0' }}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div style={{ height: 1, background: 'rgba(21,19,15,0.08)', marginBottom: 6 }} />
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    {metrics.map((m, i) => (
+                      <div key={i} style={{ flex: 1 }}>
+                        <p style={{ fontSize: 9, color: INK3, margin: 0, letterSpacing: '0.02em' }}>{m.label.split(' ')[0]}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </>, 0.24
         )}
 
@@ -669,16 +702,16 @@ export default function AIVisibilityReport() {
                   const isHigh = item.impact === 'high';
                   const engineLogo = AI_LOGOS[item.engine?.toLowerCase()];
                   return (
-                    <div key={i} style={{ background: WHITE, border: `1px solid ${status === 'done' ? '#BBF7D0' : BORDER}`, borderRadius: 14, overflow: 'hidden', opacity: status === 'done' ? 0.65 : 1 }}>
+                    <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', opacity: status === 'done' ? 0.55 : 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
-                        <div style={{ width: 26, height: 26, borderRadius: '50%', background: SURFACE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <span style={{ fontSize: 10, fontWeight: 800, color: INK3 }}>{i + 1}</span>
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: SURFACE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: INK2 }}>{i + 1}</span>
                         </div>
                         <button onClick={() => setExpandedAction(isOpen ? null : i)}
                           style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, fontFamily: F }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{item.action_title}</span>
-                            {isHigh && <span style={{ fontSize: 9, fontWeight: 700, color: CORAL, background: `${CORAL}15`, padding: '2px 7px', borderRadius: 20 }}>Impact fort</span>}
+                            <span style={{ fontSize: 13, fontWeight: 600, color: INK }}>{item.action_title}</span>
+                            {isHigh && <span style={{ fontSize: 9.5, fontWeight: 600, color: CORAL, background: `${CORAL}12`, padding: '2px 8px', borderRadius: 4 }}>Impact fort</span>}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             {engineLogo && <img src={engineLogo} alt={item.engine} style={{ width: 13, height: 13, objectFit: 'contain' }} />}
