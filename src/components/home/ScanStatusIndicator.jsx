@@ -48,17 +48,19 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
   const remaining = nextScan ? Math.max(nextScan.getTime() - now, 0) : 0;
 
   const size = 32;
-  const sw = 2.5;
+  const sw = 2.2;
   const R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
   const dashOffset = circ * (1 - progress);
+  const ringColor = available ? CORAL : 'rgba(240,232,215,0.35)';
+  const trackColor = 'rgba(240,232,215,0.12)';
 
   if (scanning) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <svg width={size} height={size} style={{ animation: 'scanSpin 1s linear infinite', flexShrink: 0 }}>
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={sw} />
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={sw}
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={trackColor} strokeWidth={sw} />
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={ringColor}  strokeWidth={sw}
             strokeDasharray={`${circ * 0.25} ${circ * 0.75}`} strokeLinecap="round" />
         </svg>
         <style>{`@keyframes scanSpin { to { transform: rotate(360deg); } }`}</style>
@@ -68,25 +70,21 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-      {/* Ring chrono avec countdown */}
+      {/* Ring chrono avec countdown jusqu'aux secondes */}
       <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={sw} />
-          <circle cx={size/2} cy={size/2} r={R} fill="none"
-            stroke={available ? CORAL : 'rgba(255,255,255,0.28)'} strokeWidth={sw}
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={trackColor} strokeWidth={sw} />
+          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={ringColor} strokeWidth={sw}
             strokeDasharray={circ} strokeDashoffset={dashOffset}
             strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s linear' }} />
         </svg>
-        {/* Countdown au centre */}
+        {/* Countdown au centre — blanc cassé */}
         {!available && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{
-              fontSize: 5.5, fontWeight: 700, color: 'rgba(255,255,255,0.4)',
+              fontSize: 5.5, fontWeight: 600, color: 'rgba(240,232,215,0.45)',
               fontFamily: F, lineHeight: 1, textAlign: 'center',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
             }}>
               {formatCountdown(remaining)}
             </span>
@@ -94,13 +92,13 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
         )}
       </div>
 
-      {/* Pastille rouge = bouton scan */}
+      {/* Pastille = bouton scan */}
       <button
         onClick={available ? onScan : undefined}
         title={available ? 'Lancer une analyse' : undefined}
         style={{
           width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-          background: available ? CORAL : 'rgba(255,255,255,0.18)',
+          background: available ? CORAL : 'rgba(240,232,215,0.22)',
           border: 'none', padding: 0,
           cursor: available ? 'pointer' : 'default',
           boxShadow: available ? `0 0 0 2.5px rgba(255,90,31,0.25)` : 'none',

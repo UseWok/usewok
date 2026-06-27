@@ -105,9 +105,9 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
       ref={ref}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16,
-        padding: '6px 0', minWidth: 255,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
+        padding: '4px 0', minWidth: 255,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
       }}>
       {/* Automatique row */}
       <div
@@ -115,8 +115,9 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
         style={{
           display: 'flex', alignItems: 'flex-start', gap: 11,
           padding: '9px 14px 10px', cursor: 'pointer',
-          background: WHITE,
+          background: isAutoSelected ? '#F5F2ED' : WHITE,
           borderBottom: `1px solid ${BORDER}`,
+          transition: 'background 100ms',
         }}>
         <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -130,22 +131,27 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
         {isAutoSelected && <Check size={14} color={INK} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 3 }} />}
       </div>
       {/* Other engines */}
-      {otherEngines.map((e) => (
-        <div key={e.id}
-          onClick={() => onToggle(e.id)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 11,
-            padding: '8px 14px', cursor: 'pointer',
-            background: 'transparent',
-          }}
-          onMouseEnter={ev => { ev.currentTarget.style.background = '#F5F2ED'; }}
-          onMouseLeave={ev => { ev.currentTarget.style.background = 'transparent'; }}>
-          <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <e.Logo />
+      {otherEngines.map((e) => {
+        const isSelected = selected.includes(e.id);
+        return (
+          <div key={e.id}
+            onClick={() => onToggle(e.id)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 11,
+              padding: '8px 14px', cursor: 'pointer',
+              background: isSelected ? '#F5F2ED' : 'transparent',
+              transition: 'background 100ms',
+            }}
+            onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = '#FAF8F5'; }}
+            onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? '#F5F2ED' : 'transparent'; }}>
+            <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <e.Logo />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
+            {isSelected && <Check size={13} color={INK} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
           </div>
-          <span style={{ fontSize: 13, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

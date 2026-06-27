@@ -136,29 +136,31 @@ function getSmartSuggestions(profile, domainLabel) {
 
 function EmptyState({ onSuggest, domain, profile }) {
   const suggestions = getSmartSuggestions(profile, domain);
+  const BG_PAGE = '#F2EDE3';
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', maxWidth: 560, margin: '0 auto', width: '100%' }}>
-      <div style={{ width: 44, height: 44, borderRadius: 13, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-        <Sparkles size={20} color={WHITE} />
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', maxWidth: 600, margin: '0 auto', width: '100%' }}>
+      {/* Icon */}
+      <div style={{ width: 56, height: 56, borderRadius: 16, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18, boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
+        <Sparkles size={24} color="#FF5A1F" fill="#FF5A1F" />
       </div>
-      <p style={{ fontSize: 18, fontWeight: 700, color: INK, margin: '0 0 6px', letterSpacing: '-0.03em' }}>WOK AI</p>
-      <p style={{ fontSize: 13, color: INK3, margin: '0 0 28px', lineHeight: 1.6, textAlign: 'center' }}>
+      <p style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.03em', fontFamily: F }}>WOK AI</p>
+      <p style={{ fontSize: 13, color: INK3, margin: '0 0 32px', lineHeight: 1.6, textAlign: 'center', fontFamily: F }}>
         {domain
           ? `Données de ${domain} disponibles. Pose ta question.`
-          : 'Lance un scan depuis l\'accueil pour des réponses basées sur tes données réelles.'}
+          : "Lance un scan depuis l'accueil pour des réponses basées sur tes données réelles."}
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%' }}>
         {suggestions.map((s, i) => {
           const Icon = s.icon;
           return (
             <button key={i} onClick={() => onSuggest(s.text)}
-              style={{ padding: '12px 14px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 12.5, color: INK2, cursor: 'pointer', textAlign: 'left', fontFamily: F, lineHeight: 1.45, transition: 'all 80ms', display: 'flex', flexDirection: 'column', gap: 8 }}
-              onMouseEnter={e => { e.currentTarget.style.background = SURFACE; e.currentTarget.style.borderColor = '#D5D5D5'; }}
+              style={{ padding: '14px 16px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, fontSize: 13, color: INK, cursor: 'pointer', textAlign: 'left', fontFamily: F, lineHeight: 1.5, transition: 'all 80ms', display: 'flex', flexDirection: 'column', gap: 10, fontWeight: 500 }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#FAFAF8'; e.currentTarget.style.borderColor = '#D8D8D8'; }}
               onMouseLeave={e => { e.currentTarget.style.background = WHITE; e.currentTarget.style.borderColor = BORDER; }}>
-              <div style={{ width: 24, height: 24, borderRadius: 7, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={12} color={s.color} />
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F0EDE8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={13} color={INK2} strokeWidth={1.8} />
               </div>
-              <span style={{ color: INK, fontWeight: 500 }}>{s.text}</span>
+              <span>{s.text}</span>
             </button>
           );
         })}
@@ -494,10 +496,10 @@ export default function WokAIPage({ user: userProp }) {
   const allFiles = [...files.map(f => ({ name: f.name, isLocal: true })), ...driveFiles.map(f => ({ name: f.name, isDrive: true }))];
 
   return (
-    <div style={{ display: 'flex', height: '100%', fontFamily: F, background: WHITE, flexDirection: 'column' }}>
+    <div style={{ display: 'flex', height: '100%', fontFamily: F, background: '#F2EDE3', flexDirection: 'column' }}>
 
       {/* ── Header bar ── */}
-      <div style={{ padding: '12px 20px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, background: WHITE }}>
+      <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, background: 'transparent' }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Sparkles size={13} color={WHITE} />
         </div>
@@ -518,9 +520,9 @@ export default function WokAIPage({ user: userProp }) {
       </div>
 
       {/* ── Messages ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 8px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 8px' }}>
         {messages.length === 0 ? (
-          <EmptyState onSuggest={s => sendMessage(s)} domain={domainLabel} profile={profile} />
+          <EmptyState onSuggest={s => setInput(s)} domain={domainLabel} profile={profile} />
         ) : (
           <>
             {messages.map((m, i) => <MessageBubble key={i} msg={m} userInitials={userInitials} />)}
@@ -556,48 +558,51 @@ export default function WokAIPage({ user: userProp }) {
         )}
       </AnimatePresence>
 
-      {/* ── Input bar ── */}
-      <div style={{ padding: '8px 16px 14px', background: WHITE, borderTop: allFiles.length > 0 ? 'none' : `1px solid ${BORDER}`, flexShrink: 0 }}>
-        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '10px 12px' }}>
+      {/* ── Input bar — no top border, flat design per maquette ── */}
+      <div style={{ padding: '8px 16px 16px', background: 'transparent', flexShrink: 0 }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '12px 12px 12px 16px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          {/* + button */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button onClick={() => setShowPlus(v => !v)}
+              style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              onMouseEnter={e => e.currentTarget.style.background = SURFACE}
+              onMouseLeave={e => e.currentTarget.style.background = WHITE}>
+              <Plus size={14} color={INK2} strokeWidth={1.8} />
+            </button>
+            <AnimatePresence>
+              {showPlus && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowPlus(false)} />
+                  <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.12 }}
+                    style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,0.10)', overflow: 'hidden', minWidth: 200, zIndex: 100 }}>
+                    {[
+                      { label: 'Joindre des fichiers', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
+                      { label: 'Google Drive', icon: <FileText size={13} color={INK2} />, action: () => { setShowDrive(true); setShowPlus(false); } },
+                    ].map((item, i) => (
+                      <button key={i} onClick={item.action}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: INK, fontFamily: F, textAlign: 'left', borderBottom: i === 0 ? `1px solid ${BORDER}` : 'none' }}
+                        onMouseEnter={e => e.currentTarget.style.background = SURFACE}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        {item.icon} {item.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Input */}
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
             placeholder="Pose ta question…" rows={1}
-            style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box' }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-            <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowPlus(v => !v)}
-                style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onMouseEnter={e => e.currentTarget.style.background = SURFACE}
-                onMouseLeave={e => e.currentTarget.style.background = WHITE}>
-                <Plus size={13} color={INK2} />
-              </button>
-              <AnimatePresence>
-                {showPlus && (
-                  <>
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowPlus(false)} />
-                    <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                      transition={{ duration: 0.12 }}
-                      style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, boxShadow: '0 8px 28px rgba(0,0,0,0.10)', overflow: 'hidden', minWidth: 200, zIndex: 100 }}>
-                      {[
-                        { label: 'Joindre des fichiers', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
-                        { label: 'Google Drive', icon: <FileText size={13} color={INK2} />, action: () => { setShowDrive(true); setShowPlus(false); } },
-                      ].map((item, i) => (
-                        <button key={i} onClick={item.action}
-                          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: INK, fontFamily: F, textAlign: 'left', borderBottom: i === 0 ? `1px solid ${BORDER}` : 'none' }}
-                          onMouseEnter={e => e.currentTarget.style.background = SURFACE}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          {item.icon} {item.label}
-                        </button>
-                      ))}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
-            <button onClick={() => sendMessage()} disabled={loading || (!input.trim() && allFiles.length === 0)}
-              style={{ width: 32, height: 32, borderRadius: 9, border: 'none', background: (loading || (!input.trim() && allFiles.length === 0)) ? '#E0E0E0' : INK, cursor: (loading || (!input.trim() && allFiles.length === 0)) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}>
-              <Send size={13} color={WHITE} />
-            </button>
-          </div>
+            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
+
+          {/* Send button — carré arrondi noir avec flèche */}
+          <button onClick={() => sendMessage()} disabled={loading || (!input.trim() && allFiles.length === 0)}
+            style={{ width: 38, height: 38, borderRadius: 12, border: 'none', background: (loading || (!input.trim() && allFiles.length === 0)) ? '#D8D3CB' : INK, cursor: (loading || (!input.trim() && allFiles.length === 0)) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms', flexShrink: 0 }}>
+            <ArrowUp size={15} color={WHITE} strokeWidth={2.2} />
+          </button>
         </div>
       </div>
 
