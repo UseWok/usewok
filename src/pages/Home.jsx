@@ -6,6 +6,7 @@ import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp,
 import { setActiveDomain } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
+import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
@@ -818,7 +819,8 @@ export default function Home() {
               <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
             </div>
           ) : hasData ? (
-            <div onClick={() => navigate('/ai-report')} style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
+            <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}
+              onClick={e => { if (!e.target.closest('button')) navigate('/ai-report'); }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <span style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.38)' }}>Score d'autorité</span>
                 <div style={{ padding: '3px 11px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20 }}>
@@ -854,6 +856,15 @@ export default function Home() {
                     </div>
                   );
                 })}
+              </div>
+              {/* ── Scan status indicator ── */}
+              <div style={{ marginBottom: 14 }} onClick={e => e.stopPropagation()}>
+                <ScanStatusIndicator
+                  lastScan={activeProfile?.last_scan}
+                  planId={user?.subscription_plan || 'free'}
+                  onScan={() => startScan(activeProfile.site_url)}
+                  scanning={isScanningActive}
+                />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ fontSize: 13, fontWeight: 400, color: CORAL }}>Voir le rapport complet</span>

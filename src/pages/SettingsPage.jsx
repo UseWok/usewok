@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Download, Check, Clock, Calendar } from 'lucide-react';
+import { X, Download, Check, Clock, Calendar, Zap } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -136,6 +136,45 @@ function CodeRedeemer({ user, setUser }) {
       {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 5 }}>{error}</p>}
       {success && <p style={{ fontSize: 11, color: '#16a34a', marginTop: 5, display: 'flex', alignItems: 'center', gap: 3 }}><Check style={{ width: 10, height: 10 }} />{success}</p>}
     </div>
+  );
+}
+
+// ── Auto-scan toggle ──────────────────────────────────────────────────────────
+function AutoScanToggle({ user }) {
+  const [enabled, setEnabled] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('wok_auto_scan') || 'false'); } catch { return false; }
+  });
+
+  const planId = user?.subscription_plan || 'free';
+  const planLabel = planId === 'pro' ? 'Pro (30/mois)' : planId === 'starter' ? 'Starter (12/mois)' : 'Free (1/mois)';
+
+  const toggle = () => {
+    const next = !enabled;
+    setEnabled(next);
+    localStorage.setItem('wok_auto_scan', JSON.stringify(next));
+  };
+
+  return (
+    <SettingRow
+      label="Lancement automatique des scans"
+      description={`Les scans seront planifiés automatiquement selon votre forfait · ${planLabel}`}
+      noBorder
+    >
+      <button
+        onClick={toggle}
+        style={{
+          width: 42, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 2,
+          background: enabled ? '#111' : 'rgba(0,0,0,0.12)',
+          transition: 'background 200ms', position: 'relative', flexShrink: 0,
+        }}
+      >
+        <div style={{
+          width: 18, height: 18, borderRadius: '50%', background: '#fff',
+          position: 'absolute', top: 3, left: enabled ? 21 : 3,
+          transition: 'left 200ms', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
+        }} />
+      </button>
+    </SettingRow>
   );
 }
 
@@ -367,6 +406,12 @@ export default function SettingsPage() {
                   <Bar dataKey="credits" fill="#111" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+
+            <div style={{ height: 28 }} />
+            <SectionTitle>Scans automatiques</SectionTitle>
+            <div style={{ marginTop: 8 }}>
+              <AutoScanToggle user={user} />
             </div>
 
             <div style={{ height: 28 }} />
