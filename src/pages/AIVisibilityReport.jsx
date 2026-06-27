@@ -98,7 +98,7 @@ function ScoreRow({ label, value, delay = 0, isLast = false, accent = false }) {
   const barColor = accent ? CORAL : INK;
   const numColor = accent ? CORAL : INK;
   return (
-    <div style={{ paddingBottom: isLast ? 0 : 18, marginBottom: isLast ? 0 : 18, borderBottom: isLast ? 'none' : '1px solid rgba(21,19,15,0.07)' }}>
+    <div style={{ paddingBottom: isLast ? 0 : 16, marginBottom: isLast ? 0 : 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
         <span style={{ fontSize: 13.5, color: INK, fontWeight: 400 }}>{label}</span>
         <span style={{ fontSize: 13.5, fontWeight: 700, color: numColor }}>{value || 0}</span>
@@ -479,8 +479,8 @@ export default function AIVisibilityReport() {
           <>
             {sectionHeader('Décomposition du score')}
             <div style={{ padding: '18px 18px 18px' }}>
-              <ScoreRow label="Présence chez les assistants IA" value={scoreVis} delay={0.08} accent />
-              <ScoreRow label="Clarté du message et positionnement" value={scoreClarity} delay={0.13} />
+              <ScoreRow label="Présence chez les assistants IA" value={scoreVis} delay={0.08} accent isLast={false} />
+              <ScoreRow label="Clarté du message et positionnement" value={scoreClarity} delay={0.13} isLast={false} />
               <ScoreRow label="Signaux commerciaux détectés" value={scoreCommerce} delay={0.18} isLast accent />
             </div>
           </>, 0.05
