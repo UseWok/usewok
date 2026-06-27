@@ -97,7 +97,6 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
     return () => document.removeEventListener('mousedown', h);
   }, [onClose]);
 
-  const autoEngine = AI_ENGINES.find(e => e.id === 'auto');
   const otherEngines = AI_ENGINES.filter(e => e.id !== 'auto');
   const isAutoSelected = selected.includes('auto');
 
@@ -106,45 +105,45 @@ function EnginesDropdown({ selected, onToggle, onClose }) {
       ref={ref}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 9000,
-        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14,
-        padding: '8px 0', minWidth: 260,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16,
+        padding: '6px 0', minWidth: 255,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
       }}>
       {/* Automatique row */}
       <div
         onClick={() => onToggle('auto')}
         style={{
-          display: 'flex', alignItems: 'flex-start', gap: 12,
-          padding: '10px 14px 12px', cursor: 'pointer',
-          background: isAutoSelected ? '#F0EEE9' : 'transparent',
+          display: 'flex', alignItems: 'flex-start', gap: 11,
+          padding: '9px 14px 10px', cursor: 'pointer',
+          background: WHITE,
           borderBottom: `1px solid ${BORDER}`,
         }}>
-        <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke={INK} strokeWidth="1.5" strokeLinejoin="round"/>
+        <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke={INK} strokeWidth="1.6" strokeLinejoin="round"/>
           </svg>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: INK, marginBottom: 2 }}>Automatique</div>
-          <div style={{ fontSize: 11.5, color: INK3, lineHeight: 1.4 }}>Le meilleur modèle IA est sélectionné<br/>pour chaque requête</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 1 }}>Automatique</div>
+          <div style={{ fontSize: 11, color: INK3, lineHeight: 1.4 }}>Le meilleur modèle IA est sélectionné<br/>pour chaque requête</div>
         </div>
-        {isAutoSelected && <Check size={15} color={INK} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />}
+        {isAutoSelected && <Check size={14} color={INK} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 3 }} />}
       </div>
       {/* Other engines */}
       {otherEngines.map((e) => (
         <div key={e.id}
           onClick={() => onToggle(e.id)}
           style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '10px 14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 11,
+            padding: '8px 14px', cursor: 'pointer',
             background: 'transparent',
           }}
           onMouseEnter={ev => { ev.currentTarget.style.background = '#F5F2ED'; }}
           onMouseLeave={ev => { ev.currentTarget.style.background = 'transparent'; }}>
-          <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <e.Logo />
           </div>
-          <span style={{ fontSize: 13.5, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
+          <span style={{ fontSize: 13, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
         </div>
       ))}
     </div>
