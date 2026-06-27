@@ -44,7 +44,8 @@ const AI_LOGO_URLS = {
   perplexity: 'https://media.base44.com/images/public/6a2edc91082e534601118582/8e9ccea01_image.png',
   mistral:    'https://media.base44.com/images/public/6a2edc91082e534601118582/3a3745646_image.png',
   grok:       'https://media.base44.com/images/public/6a2edc91082e534601118582/ddf7fe28b_image.png',
-  copilot:    'https://media.base44.com/images/public/6a2edc91082e534601118582/9dbcf1c53_image.png',
+  copilot:    'https://media.base44.com/images/public/6a2edc91082e534601118582/92bb51643_image.png',
+  llama:      'https://media.base44.com/images/public/6a2edc91082e534601118582/1bdc7666b_image.png',
 };
 
 const AILogoImg = ({ id, size = 18 }) => {
@@ -72,6 +73,7 @@ const LogoPerplexity = () => <AILogoImg id="perplexity" />;
 const LogoMistral = () => <AILogoImg id="mistral" />;
 const LogoGrok    = () => <AILogoImg id="grok" />;
 const LogoCopilot = () => <AILogoImg id="copilot" />;
+const LogoLlama   = () => <AILogoImg id="llama" />;
 
 // ── AI Engines config ──────────────────────────────────────────────────────────
 const AI_ENGINES = [
@@ -83,6 +85,7 @@ const AI_ENGINES = [
   { id: 'mistral',    label: 'Mistral',    Logo: LogoMistral },
   { id: 'grok',       label: 'Grok',       Logo: LogoGrok },
   { id: 'copilot',    label: 'Copilot',    Logo: LogoCopilot },
+  { id: 'llama',      label: 'Meta Llama', Logo: LogoLlama },
 ];
 
 // ── Vertical Engines Dropdown ─────────────────────────────────────────────────
@@ -819,56 +822,67 @@ export default function Home() {
               <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
             </div>
           ) : hasData ? (
-            <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}
+            <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer' }}
               onClick={e => { if (!e.target.closest('button')) navigate('/ai-report'); }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.38)' }}>Score d'autorité</span>
-                <div style={{ padding: '3px 11px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20 }}>
-                  <span style={{ fontSize: 12, fontWeight: 400, color: CORAL }}>{lrsLabel}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+
+              {/* ── Row 1: score + badge visibilité + chrono ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <BigDonut score={lrs} />
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                  <span style={{ fontSize: 44, fontWeight: 300, color: WHITE, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}</span>
-                  <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/100</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 5 }}>
+                    <span style={{ fontSize: 38, fontWeight: 300, color: WHITE, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}</span>
+                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/100</span>
+                  </div>
+                  {/* Badge visibilité + chrono sur la même ligne */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <div style={{ padding: '2px 9px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>{lrsLabel}</span>
+                    </div>
+                    {/* Mini chrono inline */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
+                      <ScanStatusIndicator
+                        lastScan={activeProfile?.last_scan}
+                        planId={user?.subscription_plan || 'free'}
+                        onScan={() => startScan(activeProfile.site_url)}
+                        scanning={isScanningActive}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.45)', margin: '0 0 16px', lineHeight: 1.7 }}>
+
+              {/* ── Insight ── */}
+              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.40)', margin: '0 0 12px', lineHeight: 1.65 }}>
                 {activeProfile?.shock_insight
-                  ? activeProfile.shock_insight.slice(0, 150) + (activeProfile.shock_insight.length > 150 ? '…' : '')
-                  : 'Tant que votre site reste sur une adresse de test, vos concurrents récupèrent vos clients potentiels sur Google et les IA.'}
+                  ? activeProfile.shock_insight.slice(0, 130) + (activeProfile.shock_insight.length > 130 ? '…' : '')
+                  : 'Analysez votre visibilité sur les 8 moteurs IA — ChatGPT, Gemini, Claude et plus.'}
               </p>
-              <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 16 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+
+              <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 12 }} />
+
+              {/* ── Engine bars ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 12 }}>
                 {ENGINES_BARS.map(e => {
                   const s = activeProfile[`${e.key}_score`] || 0;
                   return (
-                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <AILogoImg id={e.logoId} size={18} />
+                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                      <div style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <AILogoImg id={e.logoId} size={16} />
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: WHITE, width: 58, flexShrink: 0 }}>{e.label}</span>
-                      <div style={{ flex: 1, height: 7, background: 'rgba(255,255,255,0.10)', borderRadius: 999, overflow: 'hidden' }}>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: WHITE, width: 54, flexShrink: 0 }}>{e.label}</span>
+                      <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.10)', borderRadius: 999, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${Math.min(s, 100)}%`, background: CORAL, borderRadius: 999 }} />
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: WHITE, width: 22, textAlign: 'right' }}>{s}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: WHITE, width: 20, textAlign: 'right' }}>{s}</span>
                     </div>
                   );
                 })}
               </div>
-              {/* ── Scan status indicator ── */}
-              <div style={{ marginBottom: 14 }} onClick={e => e.stopPropagation()}>
-                <ScanStatusIndicator
-                  lastScan={activeProfile?.last_scan}
-                  planId={user?.subscription_plan || 'free'}
-                  onScan={() => startScan(activeProfile.site_url)}
-                  scanning={isScanningActive}
-                />
-              </div>
+
+              {/* ── Footer: voir rapport ── */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 13, fontWeight: 400, color: CORAL }}>Voir le rapport complet</span>
-                <ArrowRight size={13} color={CORAL} strokeWidth={1.8} />
+                <span style={{ fontSize: 12.5, fontWeight: 400, color: CORAL }}>Voir le rapport complet</span>
+                <ArrowRight size={12} color={CORAL} strokeWidth={1.8} />
               </div>
             </div>
           ) : (

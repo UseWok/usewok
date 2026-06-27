@@ -31,8 +31,8 @@ const AI_LOGOS = {
   perplexity: 'https://media.base44.com/images/public/6a2edc91082e534601118582/8e9ccea01_image.png',
   mistral: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3a3745646_image.png',
   grok: 'https://media.base44.com/images/public/6a2edc91082e534601118582/ddf7fe28b_image.png',
-  copilot: 'https://media.base44.com/images/public/6a2edc91082e534601118582/9dbcf1c53_image.png',
-  llama: null
+  copilot: 'https://media.base44.com/images/public/6a2edc91082e534601118582/92bb51643_image.png',
+  llama: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1bdc7666b_image.png'
 };
 const ALL_ENGINES = ['chatgpt', 'gemini', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'];
 const ENGINE_SHORT = { chatgpt: 'GPT', gemini: 'Gem', claude: 'Cla', mistral: 'Mist', llama: 'Lla', perplexity: 'Perp', grok: 'Gro', copilot: 'Cop' };
