@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight } from 'lucide-react';
+import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight, Mic } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
@@ -177,6 +177,76 @@ function EmptyState({ onSuggest, domain, profile }) {
         })}
       </div>
     </div>
+  );
+}
+
+// ── Mic Button ────────────────────────────────────────────────────
+function MicButton({ onTranscript }) {
+  const [listening, setListening] = useState(false);
+  const [volume, setVolume] = useState(0);
+  const recognitionRef = useRef(null);
+  const animRef = useRef(null);
+  const streamRef = useRef(null);
+  const analyserRef = useRef(null);
+
+  const stopAll = () => {
+    recognitionRef.current?.stop();
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    cancelAnimationFrame(animRef.current);
+    setListening(false);
+    setVolume(0);
+  };
+
+  const startListening = async () => {
+    if (listening) { stopAll(); return; }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const ctx = new AudioContext();
+      const src = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+      analyserRef.current = analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const tick = () => {
+        analyser.getByteFrequencyData(data);
+        setVolume(data.reduce((a, b) => a + b, 0) / data.length);
+        animRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {}
+    const rec = new SpeechRecognition();
+    rec.lang = 'fr-FR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    recognitionRef.current = rec;
+    rec.onresult = (e) => { onTranscript(e.results[0][0].transcript); stopAll(); };
+    rec.onerror = () => stopAll();
+    rec.onend = () => stopAll();
+    setListening(true);
+    rec.start();
+  };
+
+  const bars = 5;
+  return (
+    <button onClick={startListening}
+      style={{ width: 32, height: 32, border: 'none', background: listening ? `rgba(255,90,31,0.10)` : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, flexShrink: 0, outline: 'none' }}
+      onMouseEnter={e => { if (!listening) e.currentTarget.style.background = SURFACE; }}
+      onMouseLeave={e => { if (!listening) e.currentTarget.style.background = 'transparent'; }}>
+      {listening ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
+          {Array.from({ length: bars }).map((_, i) => {
+            const h = Math.max(3, Math.min(14, (volume / 30) * 14 + Math.sin(Date.now() / 150 + i) * 4));
+            return <div key={i} style={{ width: 2.5, borderRadius: 2, background: CORAL, height: `${h}px`, transition: 'height 80ms ease' }} />;
+          })}
+        </div>
+      ) : (
+        <Mic size={14} color={INK2} strokeWidth={1.7} />
+      )}
+    </button>
   );
 }
 
@@ -518,6 +588,9 @@ export default function WokAIPage({ user: userProp }) {
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
             placeholder="Pose ta question…" rows={1}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
+
+          {/* Mic */}
+          <MicButton onTranscript={(t) => setInput(prev => prev ? prev + ' ' + t : t)} />
 
           {/* Send — toujours noir + flèche orange, juste disabled si vide */}
           <button onClick={canSend ? () => sendMessage() : undefined}
