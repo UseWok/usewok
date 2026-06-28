@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, Zap, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Zap } from 'lucide-react';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { motion } from 'framer-motion';
 
@@ -46,48 +46,55 @@ const DEMO_PERF_DATA = {
 };
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#0A0A0B';
+const INK = '#1C1C1E';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#E8E8E6';
-const SURFACE = '#F8F7F5';
+const BORDER = '#EBEBEB';
+const SURFACE = '#F8F8F8';
 const WHITE = '#FFFFFF';
-const CORAL = '#F95738';
+const CORAL = '#E8622A';
 
-// ── Big stat row — ligne haute, lisible d'un coup d'oeil ─────────────────────
-function StatRow({ label, value, delta, sub }) {
+// ── KPI card (3 colonnes) ─────────────────────────────────────────────────────
+function KPICard({ label, value, delta, sub }) {
   const up = delta > 0;
   return (
-    <div style={{ padding: '16px 20px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div>
-        <div style={{ fontSize: 12, color: INK3, fontWeight: 600, marginBottom: 2 }}>{label}</div>
-        {sub && <div style={{ fontSize: 11, color: INK3 }}>{sub}</div>}
-      </div>
-      <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: 28, fontWeight: 900, color: INK, lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</div>
-        {delta != null && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: up ? '#059669' : '#DC2626', display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'flex-end', marginTop: 2 }}>
-            {up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}{up ? '+' : ''}{delta}%
-          </span>
-        )}
-      </div>
+    <div style={{
+      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12,
+      padding: '14px 14px', flex: 1,
+    }}>
+      <div style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
+      {delta != null && (
+        <div style={{ fontSize: 11, fontWeight: 700, color: up ? '#34C759' : CORAL, marginTop: 3 }}>
+          {up ? '↑' : '↓'} {up ? '+' : ''}{delta}% vs mois-1
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: INK3, marginTop: 4, fontWeight: 500 }}>{label}</div>
     </div>
   );
 }
 
-// ── Action card simple ───────────────────────────────────────────────────────
+// ── Action card ───────────────────────────────────────────────────────────────
 function LeverCard({ lever, index }) {
   const urgent = lever.priority === 'urgent';
-  const label = urgent ? 'Urgent' : lever.priority === 'short_term' ? 'Court terme' : 'Moyen terme';
-  const labelColor = urgent ? '#DC2626' : lever.priority === 'short_term' ? '#D97706' : INK3;
+  const isMedium = lever.priority === 'medium_term';
+  const label = urgent ? 'Urgent' : lever.priority === 'short_term' ? 'Cette semaine' : 'Moyen terme';
+  const labelBg = urgent ? CORAL : isMedium ? '#9B9BA8' : '#FF9500';
   return (
     <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}
-      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '16px', marginBottom: 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, lineHeight: 1.45, flex: 1 }}>{lever.title}</p>
-        <span style={{ fontSize: 10, fontWeight: 700, color: labelColor, background: SURFACE, borderRadius: 20, padding: '2px 8px', flexShrink: 0, border: `1px solid ${BORDER}` }}>{label}</span>
+      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: WHITE,
+            background: labelBg, borderRadius: 5, padding: '2px 8px', flexShrink: 0,
+          }}>{label}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.4 }}>{lever.title}</span>
+        </div>
+        {lever.body && <p style={{ fontSize: 11.5, color: INK3, margin: 0, lineHeight: 1.55 }}>{lever.body}</p>}
       </div>
-      {lever.body && <p style={{ fontSize: 12, color: INK2, margin: '8px 0 0', lineHeight: 1.65 }}>{lever.body}</p>}
+      <div style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, color: CORAL, whiteSpace: 'nowrap' }}>
+        Lancer →
+      </div>
     </motion.div>
   );
 }
@@ -208,51 +215,44 @@ export default function PerformancePage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
           style={{ maxWidth: 660, margin: '0 auto', padding: '16px 16px 100px' }}>
 
-          {/* LRS Hero */}
+          {/* Hero score + badges */}
           <LRSHero d={richData} />
 
-          {/* LRS Line Chart */}
+          {/* Line chart évolution */}
           <LRSLineChart score={richData.lrs_score || richData.score_overall || 0} domain={domain} />
 
-          {/* KPIs en lignes épaisses */}
-          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 14 }}>
-            <StatRow label="Part de voix IA" value={`${sov?.your_brand?.voice_share_pct || 0}%`} delta={sov?.your_brand?.voice_share_delta} sub="vs concurrents directs" />
-            <StatRow label="Perception positive" value={`${sov?.your_brand?.favorable_pct || 0}%`} delta={sov?.your_brand?.favorable_delta} sub="des réponses IA" />
-            <StatRow label="Mentions IA / mois" value={richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–'} sub="estimation multi-modèles" />
-            <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: 12, color: INK3, fontWeight: 600, marginBottom: 2 }}>Tendance LRS</div>
-                <div style={{ fontSize: 11, color: INK3 }}>{richData.lrs_vs_industry > 0 ? `+${richData.lrs_vs_industry}` : richData.lrs_vs_industry || '0'}pts vs secteur</div>
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.02em' }}>
-                {richData.lrs_trend === 'rising' ? '↗' : richData.lrs_trend === 'declining' ? '↘' : '→'}{' '}
-                <span style={{ fontSize: 14, fontWeight: 600, color: INK2 }}>
-                  {richData.lrs_trend === 'rising' ? 'En hausse' : richData.lrs_trend === 'declining' ? 'En baisse' : 'Stable'}
-                </span>
-              </div>
-            </div>
+          {/* KPIs 3 colonnes */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <KPICard
+              label="Part de voix IA"
+              value={`${sov?.your_brand?.voice_share_pct || 0}%`}
+              delta={sov?.your_brand?.voice_share_delta}
+            />
+            <KPICard
+              label="Perception positive"
+              value={`${sov?.your_brand?.favorable_pct || 0}%`}
+              delta={sov?.your_brand?.favorable_delta}
+            />
+            <KPICard
+              label="Mentions IA / mois"
+              value={richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–'}
+              delta={richData.ai_mentions_delta}
+            />
           </div>
 
           {/* Radar */}
-          <FeatureGate feature="performance_advanced">
-            <LRSRadarChart d={richData} />
-          </FeatureGate>
+          <LRSRadarChart d={richData} />
 
-          {/* Engine table */}
-          <FeatureGate feature="performance_advanced">
-            <EngineScoreGrid d={richData} />
-          </FeatureGate>
+          {/* Scores par assistant */}
+          <EngineScoreGrid d={richData} />
 
-          {/* Geo */}
-          <GeoScoreChart d={richData} />
-
-          {/* SOV vs concurrents */}
+          {/* SOV concurrents */}
           {sov && <SOVChart sov={sov} />}
 
-          {/* Actions */}
+          {/* Actions recommandées */}
           {levers.length > 0 && (
             <div style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 10px' }}>Actions recommandées</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.10em', margin: '0 0 10px' }}>Actions recommandées</p>
               {levers.slice(0, 5).map((lever, i) => <LeverCard key={i} lever={lever} index={i} />)}
             </div>
           )}
