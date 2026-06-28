@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Check, ChevronRight, X, AlertCircle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
@@ -26,9 +27,11 @@ function MiniDonut({ pct, size = 52 }) {
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={SURFACE} strokeWidth={6} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={INK} strokeWidth={6}
-          strokeDasharray={circ} strokeDashoffset={circ * (1 - Math.min(pct||0, 100) / 100)}
-          strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.9s ease' }} />
+        <motion.circle cx={size/2} cy={size/2} r={r} fill="none" stroke={INK} strokeWidth={6}
+          strokeLinecap="round"
+          initial={{ strokeDasharray: circ, strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ * (1 - Math.min(pct||0, 100) / 100) }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: INK }}>{Math.round(pct||0)}%</div>
     </div>
@@ -38,8 +41,14 @@ function StackedBar({ segments }) {
   const total = segments.reduce((s, x) => s + (x||0), 0) || 1;
   const SHADES = ['#1a1a1a', '#aaa', '#666', '#ddd'];
   return (
-    <div style={{ height: 6, borderRadius: 3, overflow: 'hidden', display: 'flex', background: SURFACE }}>
-      {segments.map((v, i) => v > 0 && <div key={i} style={{ width: `${(v/total)*100}%`, background: SHADES[i] }} />)}
+    <div style={{ height: 6, borderRadius: 999, overflow: 'hidden', display: 'flex', background: SURFACE }}>
+      {segments.map((v, i) => v > 0 && (
+        <motion.div key={i}
+          initial={{ width: 0 }}
+          animate={{ width: `${(v/total)*100}%` }}
+          transition={{ duration: 1.0, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          style={{ background: SHADES[i] }} />
+      ))}
     </div>
   );
 }
@@ -115,8 +124,12 @@ export default function AuditOverview({ data = {}, onNavigate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
             <span style={{ fontSize: 40, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1 }}>{data.site_health_score ?? '–'}%</span>
           </div>
-          <div style={{ height: 3, background: SURFACE, borderRadius: 2, marginBottom: 10, overflow: 'hidden' }}>
-            <div style={{ width: `${data.site_health_score || 0}%`, height: '100%', background: INK, borderRadius: 2 }} />
+          <div style={{ height: 5, background: SURFACE, borderRadius: 999, marginBottom: 10, overflow: 'hidden' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${data.site_health_score || 0}%` }}
+              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              style={{ height: '100%', background: INK, borderRadius: 999 }} />
           </div>
           <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{issues.length} problème{issues.length !== 1 ? 's' : ''} détecté{issues.length !== 1 ? 's' : ''}</p>
         </Card>

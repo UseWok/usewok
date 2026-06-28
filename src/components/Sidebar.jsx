@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
 import SearchModal from './SearchModal';
@@ -83,11 +83,11 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           width: '100%', padding: '6px 8px', borderRadius: 8,
-          border: 'none', background: open ? 'rgba(0,0,0,0.05)' : 'transparent',
+          border: 'none', background: open ? 'rgba(21,19,15,0.06)' : 'transparent',
           cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'background 120ms',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-        onMouseLeave={e => e.currentTarget.style.background = open ? 'rgba(0,0,0,0.05)' : 'transparent'}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
+        onMouseLeave={e => e.currentTarget.style.background = open ? 'rgba(21,19,15,0.06)' : 'transparent'}
       >
         <div style={{ width: 26, height: 26, borderRadius: 7, background: '#7C6AF4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0, letterSpacing: '-0.02em' }}>
           {initials}
@@ -288,12 +288,12 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
         padding: indent ? '0 10px 0 30px' : '0 10px',
         justifyContent: 'flex-start',
         borderRadius: 7, border: 'none', cursor: 'pointer',
-        background: active ? 'rgba(0,0,0,0.07)' : 'transparent',
+        background: active ? 'rgba(21,19,15,0.08)' : 'transparent',
         color: active ? '#111' : '#555',
         transition: 'background 100ms',
         fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
       {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: active ? 2 : 1.7, color: active ? '#111' : '#666' }} />}
@@ -324,15 +324,19 @@ function SidebarCreditsBar({ user, onUpgrade }) {
   const { used, limit, pct, barColor, isLow, isOverLimit } = useCredits(user);
   const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
   return (
-    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: '#EFEFED', borderRadius: 8, border: '1px solid #E5E5E3' }}>
+    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: 'rgba(21,19,15,0.05)', borderRadius: 8, border: '1px solid rgba(21,19,15,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Crédits</span>
         {(isLow || isOverLimit) && (
           <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Passer Pro</button>
         )}
       </div>
-      <div style={{ height: 5, background: '#DDDDD9', borderRadius: 999, marginBottom: 5 }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
+      <div style={{ height: 5, background: 'rgba(21,19,15,0.10)', borderRadius: 999, marginBottom: 5 }}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+          style={{ height: '100%', background: barColor, borderRadius: 999 }} />
       </div>
       <span style={{ fontSize: 10, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 400 }}>
         {formatK(used)} / {formatK(limit)}{isOverLimit ? ' ⚠' : ''}
@@ -565,7 +569,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          background: '#F8F7F4',
+          background: '#F5F0E8',
+          borderRight: '1px solid rgba(21,19,15,0.08)',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
@@ -579,7 +584,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 <button
                   onClick={() => setExpanded(true)} title="Expand"
                   style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EDEAE5'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.07)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -591,7 +596,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             {expanded && (
               <button onClick={() => setExpanded(false)} title="Collapse"
                 style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', flexShrink: 0, marginRight: 2 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#EDEAE5'; e.currentTarget.style.color = '#333'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.07)'; e.currentTarget.style.color = '#333'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888'; }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -645,11 +650,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                     style={{
                       display: 'flex', alignItems: 'center', width: '100%', height: 30,
                       padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                      background: isToolActive ? `${tool.color}12` : 'transparent',
+                      background:           isToolActive ? `${tool.color}18` : 'transparent',
                       fontFamily: 'inherit', transition: 'background 100ms', gap: 8,
                     }}
-                    onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-                    onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? `${tool.color}12` : 'transparent'; }}
+                    onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
+                    onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? `${tool.color}18` : 'transparent'; }}
                   >
                     <Icon style={{ width: 13, height: 13, flexShrink: 0, color: isToolActive ? tool.color : '#888', strokeWidth: 1.8 }} />
                     <span style={{ fontSize: 12.5, fontWeight: isToolActive ? 600 : 400, color: isToolActive ? tool.color : '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -676,14 +681,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               title="Support"
               style={{
                 width: 26, height: 26, borderRadius: '50%',
-                border: '1.5px solid rgba(0,0,0,0.18)',
+                border: '1.5px solid rgba(21,19,15,0.18)',
                 background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, transition: 'all 120ms',
                 marginLeft: expanded ? 10 : 0,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.07)'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.30)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.18)'; }}
             >
               <span style={{ fontSize: 12, fontWeight: 700, color: '#111', lineHeight: 1 }}>?</span>
             </button>

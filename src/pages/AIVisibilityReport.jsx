@@ -103,12 +103,12 @@ function ScoreRow({ label, value, delay = 0, isLast = false, accent = false }) {
         <span style={{ fontSize: 13.5, color: INK, fontWeight: 400 }}>{label}</span>
         <span style={{ fontSize: 13.5, fontWeight: 700, color: numColor }}>{value || 0}</span>
       </div>
-      <div style={{ height: 5, background: 'rgba(21,19,15,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+      <div style={{ height: 5, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.max(value || 0, 0)}%` }}
-          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay }}
-          style={{ height: '100%', background: barColor, borderRadius: 3 }} />
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay }}
+          style={{ height: '100%', background: barColor, borderRadius: 999 }} />
       </div>
     </div>
   );
