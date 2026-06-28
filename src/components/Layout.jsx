@@ -302,7 +302,7 @@ export default function Layout() {
             borderRadius: CORNER_R,
             overflow: 'hidden',
             boxSizing: 'border-box',
-            background: '#FFFFFF',
+            background: '#F5F0E8',
             boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
           }),
         }}
