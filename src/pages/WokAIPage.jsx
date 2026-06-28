@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight, Mic } from 'lucide-react';
+import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight, Mic, MessageSquare, ChevronDown, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
@@ -17,6 +17,61 @@ const SURFACE = '#EEE5D2';
 const WHITE = '#FFFFFF';
 const BG = '#F5F0E8';
 const CORAL = '#FF5A1F';
+
+// ── Modes config ───────────────────────────────────────────────────────────────
+const MODES = [
+  { id: 'scan', label: 'Scan', icon: Zap },
+  { id: 'chat', label: 'Chat', icon: MessageSquare }
+];
+
+function ModeSelector({ mode, onToggle }) {
+  const current = MODES.find(m => m.id === mode) || MODES[0];
+  return (
+    <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', cursor: 'pointer', flexShrink: 0, userSelect: 'none', borderRadius: 8, transition: 'background 120ms', border: `1px solid ${BORDER}`, background: WHITE }}
+      onMouseEnter={e => e.currentTarget.style.background = '#F2EBD9'}
+      onMouseLeave={e => e.currentTarget.style.background = WHITE}>
+      <current.icon size={13} color={INK} strokeWidth={2.2} />
+      <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>{current.label}</span>
+      <ChevronDown size={12} color={INK3} strokeWidth={2} />
+    </div>
+  );
+}
+
+function ModesDropdown({ mode, onChange, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  return (
+    <div ref={ref} style={{
+      position: 'absolute', bottom: 'calc(100% + 8px)', left: 16, zIndex: 9000,
+      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12,
+      padding: 6, minWidth: 160,
+      boxShadow: '0 8px 32px rgba(21,19,15,0.08)'
+    }}>
+      {MODES.map(m => (
+        <div key={m.id}
+          onClick={() => { onChange(m.id); onClose(); }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '8px 10px', cursor: 'pointer',
+            borderRadius: 8, background: 'transparent',
+            transition: 'background 100ms'
+          }}
+          onMouseEnter={ev => ev.currentTarget.style.background = '#F2EBD9'}
+          onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
+        >
+          <m.icon size={14} color={INK} strokeWidth={2} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: INK, flex: 1 }}>{m.label}</span>
+          {mode === m.id && <Check size={14} color={INK} strokeWidth={2.5} />}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // ── Typing dots ────────────────────────────────────────────────────
 function TypingDots() {
@@ -382,6 +437,8 @@ export default function WokAIPage({ user: userProp }) {
   const [driveFiles, setDriveFiles] = useState([]);
   const [showPlus, setShowPlus] = useState(false);
   const [showDrive, setShowDrive] = useState(false);
+  const [mode, setMode] = useState('chat');
+  const [showModes, setShowModes] = useState(false);
   const [profile, setProfile] = useState(null);
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const messagesEndRef = useRef(null);
@@ -392,6 +449,16 @@ export default function WokAIPage({ user: userProp }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const convId = params.get('conv');
+    const q = params.get('q');
+    
+    if (q) {
+      const newUrl = window.location.pathname + (convId ? `?conv=${convId}` : '');
+      window.history.replaceState({}, '', newUrl);
+      setTimeout(() => {
+        handleAction(q);
+      }, 300);
+    }
+    
     if (convId) {
       const c = loadConvs().find(cv => cv.id === convId);
       if (c) { setMessages(c.messages || []); setActiveConvId(c.id); }
@@ -417,6 +484,17 @@ export default function WokAIPage({ user: userProp }) {
 
   const persist = (c) => { saveConvs(c); setConvs(c); };
   const activeConv = convs.find(c => c.id === activeConvId);
+
+  const handleAction = (textOverride) => {
+    const raw = (textOverride || input).trim();
+    if (!raw && files.length === 0 && driveFiles.length === 0) return;
+    
+    if (mode === 'scan') {
+      navigate('/app?scan=' + encodeURIComponent(raw));
+      return;
+    }
+    sendMessage(raw);
+  };
 
   const sendMessage = async (text) => {
     const content = text || input.trim();
@@ -482,7 +560,7 @@ export default function WokAIPage({ user: userProp }) {
     } finally { setLoading(false); }
   };
 
-  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAction(); } };
   const handleFileSelect = (e) => { setFiles(f => [...f, ...Array.from(e.target.files || []).slice(0, 3 - f.length)]); e.target.value = ''; };
   const allFiles = [...files.map(f => ({ name: f.name, isLocal: true })), ...driveFiles.map(f => ({ name: f.name, isDrive: true }))];
   const canSend = !loading && (input.trim().length > 0 || allFiles.length > 0);
@@ -552,8 +630,11 @@ export default function WokAIPage({ user: userProp }) {
       </AnimatePresence>
 
       {/* ── Input bar — flat, no shadow ── */}
-      <div style={{ padding: '8px 16px 16px', flexShrink: 0 }}>
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ padding: '8px 16px 16px', flexShrink: 0, position: 'relative' }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '10px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          
+          <ModeSelector mode={mode} onToggle={() => setShowModes(v => !v)} />
+
           {/* + button — grisé */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={() => setShowPlus(v => !v)}
@@ -586,18 +667,24 @@ export default function WokAIPage({ user: userProp }) {
 
           {/* Textarea */}
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder="Pose ta question…" rows={1}
+            placeholder={mode === 'scan' ? "Rechercher un domaine, lancer une analyse…" : "Pose ta question…"} rows={1}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
 
           {/* Mic */}
           <MicButton onTranscript={(t) => setInput(prev => prev ? prev + ' ' + t : t)} />
 
           {/* Send — toujours noir + flèche orange, juste disabled si vide */}
-          <button onClick={canSend ? () => sendMessage() : undefined}
+          <button onClick={canSend ? () => handleAction() : undefined}
             style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: INK, cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0 }}>
             <ArrowUp size={15} color={CORAL} strokeWidth={2.2} />
           </button>
         </div>
+        
+        <AnimatePresence>
+          {showModes && (
+            <ModesDropdown mode={mode} onChange={setMode} onClose={() => setShowModes(false)} />
+          )}
+        </AnimatePresence>
       </div>
 
       <DrivePickerModal open={showDrive} onClose={() => setShowDrive(false)} onImport={picked => setDriveFiles(prev => [...prev, ...picked])} />
