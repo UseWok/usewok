@@ -49,7 +49,7 @@ const F = 'Inter, system-ui, sans-serif';
 const INK = '#1A1A1A';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#E8E4DC';
+const BORDER = '#D8D4CC';
 const SURFACE = '#F5F0E8';
 const WHITE = '#FFFFFF';
 const CORAL = '#E8622A';
@@ -59,7 +59,7 @@ const GREEN = '#3CC660';
 function KPICard({ label, value, delta }) {
   const up = delta == null ? null : delta > 0;
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '16px 16px 14px', flex: 1 }}>
+    <div style={{ background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 16, padding: '16px 16px 14px', flex: 1 }}>
       <p style={{ fontSize: 12, color: INK3, fontWeight: 400, margin: '0 0 8px' }}>{label}</p>
       <p style={{ fontSize: 28, fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</p>
       {delta != null && (
@@ -94,7 +94,7 @@ function LeverCard({ lever, index }) {
       initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06 }}
       style={{
-        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14,
+        background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 14,
         padding: '15px 18px', marginBottom: 8,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
       }}>

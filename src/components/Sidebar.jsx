@@ -288,17 +288,17 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
         padding: indent ? '0 10px 0 30px' : '0 10px',
         justifyContent: 'flex-start',
         borderRadius: 7, border: 'none', cursor: 'pointer',
-        background: active ? 'rgba(21,19,15,0.08)' : 'transparent',
-        color: active ? '#111' : '#555',
+        background: active ? 'rgba(0,0,0,0.06)' : 'transparent',
+        color: active ? '#111' : '#666',
         transition: 'background 100ms',
         fontFamily: 'inherit',
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      {Icon && <Icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: active ? 2 : 1.7, color: active ? '#111' : '#666' }} />}
+      {Icon && <Icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: active ? 2 : 1.7, color: active ? '#111' : '#777' }} />}
       <span style={{
-        fontSize: 13, fontWeight: active ? 600 : 450,
+        fontSize: 13.5, fontWeight: active ? 600 : 450,
         marginLeft: 9, flex: 1, textAlign: 'left',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         letterSpacing: '-0.01em', color: active ? '#111' : '#555',
@@ -324,7 +324,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
   const { used, limit, pct, barColor, isLow, isOverLimit } = useCredits(user);
   const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
   return (
-    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: 'rgba(21,19,15,0.05)', borderRadius: 8, border: '1px solid rgba(21,19,15,0.08)' }}>
+    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: 'rgba(0,0,0,0.04)', borderRadius: 8, border: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Crédits</span>
         {(isLow || isOverLimit) && (
@@ -357,7 +357,7 @@ function SectionLabel({ label, expanded }) {
 
 // ─── Divider ──────────────────────────────────────────────────────
 function Divider() {
-  return <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '5px 0' }} />;
+  return <div style={{ height: 1, background: 'transparent', margin: '3px 0' }} />;
 }
 
 // ─── WOK AI History Sidebar ───────────────────────────────────────
@@ -569,8 +569,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          background: '#F5F0E8',
-          borderRight: '1px solid rgba(21,19,15,0.08)',
+          background: '#FFFFFF',
+          borderRight: 'none',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
@@ -656,11 +656,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                     onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
                     onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? `${tool.color}18` : 'transparent'; }}
                   >
-                    <Icon style={{ width: 13, height: 13, flexShrink: 0, color: isToolActive ? tool.color : '#888', strokeWidth: 1.8 }} />
-                    <span style={{ fontSize: 12.5, fontWeight: isToolActive ? 600 : 400, color: isToolActive ? tool.color : '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <Icon style={{ width: 14, height: 14, flexShrink: 0, color: isToolActive ? '#111' : '#888', strokeWidth: 1.8 }} />
+                    <span style={{ fontSize: 13, fontWeight: isToolActive ? 600 : 400, color: isToolActive ? '#111' : '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {tool.label}
                     </span>
-                    {isToolActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: tool.color, marginLeft: 'auto', flexShrink: 0 }} />}
+                    {isToolActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#111', marginLeft: 'auto', flexShrink: 0 }} />}
                   </button>
                 );
               })}

@@ -4,7 +4,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceD
 const F = 'Inter, system-ui, sans-serif';
 const CORAL = '#E8622A';
 const WHITE = '#FFFFFF';
-const BORDER = '#E8E4DC';
+const BORDER = '#D8D4CC';
 const BG = '#F5F0E8'; // crème léger identique à l'image
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
@@ -48,7 +48,7 @@ export default function LRSLineChart({ score, domain }) {
 
   return (
     <div style={{
-      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14,
+      background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 14,
       padding: '16px 16px 12px', marginBottom: 12, fontFamily: F,
     }}>
       {/* Header */}

@@ -4,7 +4,7 @@ const F = 'Inter, system-ui, sans-serif';
 const INK = '#1A1A1A';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#E8E4DC';
+const BORDER = '#D8D4CC';
 const WHITE = '#FFFFFF';
 const SURFACE = '#F5F0E8'; // beige crème pour la piste de barre
 const CORAL = '#E8622A';
@@ -57,7 +57,7 @@ export default function EngineScoreGrid({ d }) {
         Scores par assistant IA
       </p>
 
-      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
         {/* Column headers */}
         <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 44px 80px 80px', alignItems: 'center', padding: '10px 18px 8px', gap: 8 }}>
           <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}>Assistant</span>
