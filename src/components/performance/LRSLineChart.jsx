@@ -80,6 +80,9 @@ export default function LRSLineChart({ score, domain }) {
             type="monotone" dataKey="score"
             stroke={CORAL} strokeWidth={2.5}
             dot={false}
+            isAnimationActive={true}
+            animationDuration={1200}
+            animationEasing="ease-out"
             activeDot={{ r: 5, fill: CORAL, stroke: WHITE, strokeWidth: 2 }}
           />
         </LineChart>

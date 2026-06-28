@@ -30,7 +30,7 @@ function SentimentBadge({ sentiment, score }) {
     text = 'Neutre'; color = INK3; bg = '#F0EDE8';
   }
   return (
-    <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 6, padding: '3px 9px' }}>
+    <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 999, padding: '4px 10px' }}>
       {text}
     </span>
   );
@@ -76,12 +76,12 @@ export default function EngineScoreGrid({ d }) {
           }}>
             <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{e.label}</span>
 
-            <div style={{ height: 7, background: SURFACE, borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 7, background: SURFACE, borderRadius: 999, overflow: 'hidden' }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${e.score}%` }}
-                transition={{ duration: 0.9, delay: i * 0.05, ease: 'easeOut' }}
-                style={{ height: '100%', background: CORAL, borderRadius: 4 }}
+                transition={{ duration: 1.1, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                style={{ height: '100%', background: CORAL, borderRadius: 999 }}
               />
             </div>
 

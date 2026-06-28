@@ -87,6 +87,7 @@ function LeverCard({ lever, index }) {
   const tagColor = isUrgent ? WHITE : isShort ? CORAL : '#6B6B6B';
   const tagBg = isUrgent ? CORAL : isShort ? 'rgba(232,98,42,0.10)' : '#EDE8DE';
   const tagBorder = isUrgent ? CORAL : isShort ? 'rgba(232,98,42,0.25)' : '#DDD8CE';
+  const tagRadius = 999;
 
   return (
     <motion.div
@@ -103,7 +104,7 @@ function LeverCard({ lever, index }) {
           <span style={{
             fontSize: 11, fontWeight: 700, color: tagColor,
             background: tagBg, border: `1px solid ${tagBorder}`,
-            borderRadius: 6, padding: '3px 9px', flexShrink: 0,
+            borderRadius: 999, padding: '3px 10px', flexShrink: 0,
           }}>{tagLabel}</span>
           <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{lever.title}</span>
         </div>
@@ -238,21 +239,15 @@ export default function PerformancePage() {
 
           {/* KPIs 3 colonnes */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <KPICard
-              label="Part de voix IA"
-              value={`${sov?.your_brand?.voice_share_pct || 0}%`}
-              delta={sov?.your_brand?.voice_share_delta}
-            />
-            <KPICard
-              label="Perception positive"
-              value={`${sov?.your_brand?.favorable_pct || 0}%`}
-              delta={sov?.your_brand?.favorable_delta}
-            />
-            <KPICard
-              label="Mentions IA / mois"
-              value={richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–'}
-              delta={richData.ai_mentions_delta}
-            />
+            {[
+              { label: 'Part de voix IA', value: `${sov?.your_brand?.voice_share_pct || 0}%`, delta: sov?.your_brand?.voice_share_delta },
+              { label: 'Perception positive', value: `${sov?.your_brand?.favorable_pct || 0}%`, delta: sov?.your_brand?.favorable_delta },
+              { label: 'Mentions IA / mois', value: richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–', delta: richData.ai_mentions_delta },
+            ].map((kpi, i) => (
+              <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }} style={{ flex: 1 }}>
+                <KPICard label={kpi.label} value={kpi.value} delta={kpi.delta} />
+              </motion.div>
+            ))}
           </div>
 
           {/* Radar */}
