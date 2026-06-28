@@ -1,7 +1,18 @@
 import { base44 } from '@/api/base44Client';
 
 export async function getProfileData(profile) {
-  if (!profile || !profile.brand_keywords) return {};
+  if (!profile) return {};
+  // Demo mode — data already on the object itself
+  if (profile._demo) return profile;
+  // Also check localStorage cache (demo mode sets this)
+  try {
+    const cached = localStorage.getItem(`profile_data_${profile.site_url}`);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed._demo) return parsed;
+    }
+  } catch {}
+  if (!profile.brand_keywords) return {};
   if (profile.brand_keywords.startsWith('http')) {
     try {
       const res = await fetch(profile.brand_keywords);

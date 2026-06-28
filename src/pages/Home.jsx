@@ -9,6 +9,7 @@ import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
+import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
 const F       = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -495,9 +496,36 @@ export default function Home() {
     setSearchQuery('');
   };
 
+  const loadDemoData = () => {
+    setSearchQuery('');
+    // Inject demo profile into state as if a real scan completed
+    const demoP = { ...DEMO_PROFILE, _demo: true };
+    setProfiles(prev => {
+      const without = prev.filter(p => p.site_url !== DEMO_SITE_URL);
+      return [demoP, ...without];
+    });
+    setActiveUrl(DEMO_SITE_URL);
+    setActiveDomain({ url: DEMO_SITE_URL, name: 'UseWok' });
+    // Also store in localStorage so sub-pages can read it
+    try {
+      localStorage.setItem('demo_profile_usewok', JSON.stringify(demoP));
+      localStorage.setItem('stensor_active_domain', JSON.stringify({ url: DEMO_SITE_URL, name: 'UseWok' }));
+    } catch {}
+    // Store profile data so getProfileData works on sub-pages
+    try {
+      localStorage.setItem(`profile_data_${DEMO_SITE_URL}`, JSON.stringify(demoP));
+    } catch {}
+  };
+
   const handleSubmitSearch = async () => {
     const raw = searchQuery.trim();
     if (!raw || extracting) return;
+
+    // Easter egg demo mode
+    if (raw.toLowerCase().replace(/\s/g, '') === 'antoinevalton12') {
+      loadDemoData();
+      return;
+    }
 
     if (mode === 'chat') {
         navigate('/wok-ai', { state: { autoSend: raw } });
