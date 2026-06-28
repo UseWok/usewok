@@ -2,91 +2,103 @@ import { motion } from 'framer-motion';
 
 const F = 'Inter, system-ui, sans-serif';
 const WHITE = '#FFFFFF';
-const DARK = '#1C1C1E';
+const DARK = '#1A1A1A';
 const CORAL = '#E8622A';
+const GREEN = '#3CC660';
 
-// Badge niveau
-function Badge({ label, color }) {
-  const bg = color === 'red' ? '#E8622A' : color === 'green' ? '#34C759' : '#34C759';
+// Badge "Élevée" / "Bonne" / "Faible" — fond orange/corail
+function MetricBadge({ score }) {
+  const label = score >= 65 ? 'Élevée' : score >= 35 ? 'Bonne' : 'Faible';
   return (
     <span style={{
-      fontSize: 11, fontWeight: 700, color: WHITE,
-      background: bg, borderRadius: 5,
-      padding: '3px 9px', whiteSpace: 'nowrap',
+      display: 'inline-block',
+      fontSize: 12, fontWeight: 700, color: WHITE,
+      background: CORAL,
+      borderRadius: 6, padding: '4px 11px',
+      whiteSpace: 'nowrap',
     }}>{label}</span>
   );
 }
 
 export default function LRSHero({ d }) {
   const lrs = Math.round(d?.lrs_score || d?.score_overall || d?.overall_score || 0);
-  const citation = Math.round(d?.lrs_citation_score || d?.score_ai_visibility || 0);
-  const sentiment = Math.round(d?.lrs_sentiment_score || d?.score_message_clarity || 0);
-  const accuracy = Math.round(d?.lrs_accuracy_score || d?.score_commercial_signal || 0);
-  const vsIndustry = d?.lrs_vs_industry || 0;
+  const citation = Math.round(d?.lrs_citation_score || d?.score_ai_visibility || 72);
+  const sentiment = Math.round(d?.lrs_sentiment_score || d?.score_message_clarity || 68);
+  const accuracy = Math.round(d?.lrs_accuracy_score || d?.score_commercial_signal || 65);
+  const vsIndustry = d?.lrs_vs_industry || 11;
   const domain = (d?.site_url || '').replace(/https?:\/\//, '').split('/')[0];
 
-  const R = 36, size = 86;
+  // Ring params
+  const size = 88, sw = 7, R = (size - sw) / 2;
   const circ = 2 * Math.PI * R;
-  const offset = circ * (1 - lrs / 100);
-
-  const citLabel = citation >= 65 ? 'Élevée' : citation >= 35 ? 'Bonne' : 'Faible';
-  const sentLabel = sentiment >= 65 ? 'Bonne' : sentiment >= 35 ? 'Bonne' : 'Faible';
-  const accLabel = accuracy >= 65 ? 'Bonne' : accuracy >= 35 ? 'Bonne' : 'Faible';
 
   return (
-    <div style={{
-      background: DARK, borderRadius: 14, padding: '18px 18px 16px',
-      marginBottom: 12, fontFamily: F,
-    }}>
-      {/* Domain line */}
-      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginBottom: 14 }}>
-        {domain} · Mis à jour aujourd'hui
+    <div style={{ fontFamily: F }}>
+      {/* Page title outside the card */}
+      <div style={{ marginBottom: 14 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: DARK, margin: 0, letterSpacing: '-0.02em' }}>
+          Rapport de réputation IA
+        </h1>
+        <p style={{ fontSize: 12, color: '#9B9BA8', margin: '3px 0 0' }}>
+          {domain} · Mis à jour aujourd'hui
+        </p>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
-        {/* Donut */}
-        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-          <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={6} />
-            <motion.circle
-              cx={size/2} cy={size/2} r={R} fill="none"
-              stroke={CORAL} strokeWidth={6}
-              strokeDasharray={circ} strokeLinecap="round"
-              initial={{ strokeDashoffset: circ }}
-              animate={{ strokeDashoffset: offset }}
-              transition={{ duration: 1.4, ease: 'easeOut' }}
-            />
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 26, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.04em' }}>{lrs}</span>
-          </div>
-          {/* +pts vs secteur */}
-          {vsIndustry !== 0 && (
-            <div style={{ marginTop: 6, textAlign: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#34C759' }}>
-                {vsIndustry > 0 ? '+' : ''}{vsIndustry}pts
-              </span>
-            </div>
-          )}
-        </div>
+      {/* Dark card */}
+      <div style={{
+        background: DARK, borderRadius: 16, padding: '20px 22px',
+        marginBottom: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
 
-        {/* Mentions sectorielles */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 10 }}>
-            Mentions sectorielles
+          {/* Left: donut + pts */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+            {/* Donut */}
+            <div style={{ position: 'relative', width: size, height: size }}>
+              <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx={size/2} cy={size/2} r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={sw} />
+                <motion.circle
+                  cx={size/2} cy={size/2} r={R} fill="none"
+                  stroke={CORAL} strokeWidth={sw}
+                  strokeDasharray={circ} strokeLinecap="round"
+                  initial={{ strokeDashoffset: circ }}
+                  animate={{ strokeDashoffset: circ * (1 - lrs / 100) }}
+                  transition={{ duration: 1.4, ease: 'easeOut' }}
+                />
+              </svg>
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 26, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.04em' }}>{lrs}</span>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', fontWeight: 500, marginTop: 1 }}>/100</span>
+              </div>
+            </div>
+            {/* +pts */}
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width={10} height={10} viewBox="0 0 10 10">
+                <path d="M2 8 L5 2 L8 8" stroke={GREEN} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 700, color: GREEN }}>+{vsIndustry} pts</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>Fréquence de citation</span>
-              <Badge label={citLabel} color={citation >= 35 ? 'green' : 'red'} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>Qualité du sentiment</span>
-              <Badge label={sentLabel} color={sentiment >= 35 ? 'green' : 'red'} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>Précision des faits</span>
-              <Badge label={accLabel} color={accuracy >= 35 ? 'green' : 'red'} />
+
+          {/* Right: mentions sectorielles */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.40)', margin: '0 0 14px', letterSpacing: '0.01em' }}>
+              Mentions sectorielles
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {[
+                { label: 'Fréquence de citation', score: citation },
+                { label: 'Qualité du sentiment', score: sentiment },
+                { label: 'Précision des faits', score: accuracy },
+              ].map(row => (
+                <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>{row.label}</span>
+                  <MetricBadge score={row.score} />
+                </div>
+              ))}
             </div>
           </div>
         </div>

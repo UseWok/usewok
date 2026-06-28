@@ -46,55 +46,74 @@ const DEMO_PERF_DATA = {
 };
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#1C1C1E';
+const INK = '#1A1A1A';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#EBEBEB';
-const SURFACE = '#F8F8F8';
+const BORDER = '#E8E4DC';
+const SURFACE = '#F5F0E8';
 const WHITE = '#FFFFFF';
 const CORAL = '#E8622A';
+const GREEN = '#3CC660';
 
-// ── KPI card (3 colonnes) ─────────────────────────────────────────────────────
-function KPICard({ label, value, delta, sub }) {
-  const up = delta > 0;
+// ── KPI card ─────────────────────────────────────────────────────────────────
+function KPICard({ label, value, delta }) {
+  const up = delta == null ? null : delta > 0;
   return (
-    <div style={{
-      background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12,
-      padding: '14px 14px', flex: 1,
-    }}>
-      <div style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 14px', flex: 1 }}>
+      <p style={{ fontSize: 11, color: INK3, fontWeight: 500, margin: '0 0 6px' }}>{label}</p>
+      <p style={{ fontSize: 26, fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</p>
       {delta != null && (
-        <div style={{ fontSize: 11, fontWeight: 700, color: up ? '#34C759' : CORAL, marginTop: 3 }}>
-          {up ? '↑' : '↓'} {up ? '+' : ''}{delta}% vs mois-1
+        <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
+          <svg width={10} height={10} viewBox="0 0 10 10">
+            <path d={up ? 'M2 8 L5 2 L8 8' : 'M2 2 L5 8 L8 2'} stroke={up ? GREEN : CORAL} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 700, color: up ? GREEN : CORAL }}>
+            {up ? '+' : ''}{delta}% vs mois-1
+          </span>
         </div>
       )}
-      <div style={{ fontSize: 11, color: INK3, marginTop: 4, fontWeight: 500 }}>{label}</div>
     </div>
   );
 }
 
 // ── Action card ───────────────────────────────────────────────────────────────
 function LeverCard({ lever, index }) {
-  const urgent = lever.priority === 'urgent';
-  const isMedium = lever.priority === 'medium_term';
-  const label = urgent ? 'Urgent' : lever.priority === 'short_term' ? 'Cette semaine' : 'Moyen terme';
-  const labelBg = urgent ? CORAL : isMedium ? '#9B9BA8' : '#FF9500';
+  const p = lever.priority;
+  const isUrgent = p === 'urgent';
+  const isShort = p === 'short_term';
+  const isMedium = p === 'medium_term';
+  const tagLabel = isUrgent ? 'Urgent' : isShort ? 'Cette semaine' : 'Moyen terme';
+  // Colors: Urgent=orange solid, Cette semaine=light orange outline, Moyen terme=beige/grey
+  const tagColor = isUrgent ? WHITE : isShort ? CORAL : '#6B6B6B';
+  const tagBg = isUrgent ? CORAL : isShort ? 'rgba(232,98,42,0.10)' : '#EDE8DE';
+  const tagBorder = isUrgent ? CORAL : isShort ? 'rgba(232,98,42,0.25)' : '#DDD8CE';
+
   return (
-    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}
-      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06 }}
+      style={{
+        background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14,
+        padding: '15px 18px', marginBottom: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+      }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+        {/* Tag + Title on same line */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
           <span style={{
-            fontSize: 10, fontWeight: 700, color: WHITE,
-            background: labelBg, borderRadius: 5, padding: '2px 8px', flexShrink: 0,
-          }}>{label}</span>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.4 }}>{lever.title}</span>
+            fontSize: 11, fontWeight: 700, color: tagColor,
+            background: tagBg, border: `1px solid ${tagBorder}`,
+            borderRadius: 6, padding: '3px 9px', flexShrink: 0,
+          }}>{tagLabel}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{lever.title}</span>
         </div>
-        {lever.body && <p style={{ fontSize: 11.5, color: INK3, margin: 0, lineHeight: 1.55 }}>{lever.body}</p>}
+        {lever.body && (
+          <p style={{ fontSize: 12, color: INK3, margin: 0, lineHeight: 1.55 }}>{lever.body}</p>
+        )}
       </div>
-      <div style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, color: CORAL, whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: CORAL, flexShrink: 0, whiteSpace: 'nowrap' }}>
         Lancer →
-      </div>
+      </span>
     </motion.div>
   );
 }
@@ -156,15 +175,11 @@ export default function PerformancePage() {
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, overscrollBehavior: 'none' }}>
       {/* Header */}
-      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, padding: '12px 18px', paddingTop: 'max(12px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}`, padding: '12px 18px', paddingTop: 'max(12px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ArrowLeft size={14} color={INK2} />
           </button>
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0 }}>Performance & LRS</p>
-            {domain && <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{domain}</p>}
-          </div>
         </div>
         {phase === 'done' && (
           <button onClick={() => loadPerf(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
@@ -252,7 +267,7 @@ export default function PerformancePage() {
           {/* Actions recommandées */}
           {levers.length > 0 && (
             <div style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.10em', margin: '0 0 10px' }}>Actions recommandées</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>Actions recommandées</p>
               {levers.slice(0, 5).map((lever, i) => <LeverCard key={i} lever={lever} index={i} />)}
             </div>
           )}

@@ -1,95 +1,107 @@
 import { motion } from 'framer-motion';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#1C1C1E';
+const INK = '#1A1A1A';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
-const BORDER = '#EBEBEB';
+const BORDER = '#E8E4DC';
 const WHITE = '#FFFFFF';
-const SURFACE = '#F8F8F8';
+const SURFACE = '#F5F0E8'; // beige crème pour la piste de barre
 const CORAL = '#E8622A';
+const GREEN = '#3CC660';
 
-const ENGINE_CFG = [
-  { key: 'mistral',    label: 'Mistral' },
-  { key: 'gemini',     label: 'Gemini' },
-  { key: 'chatgpt',    label: 'ChatGPT' },
-  { key: 'claude',     label: 'Claude' },
-  { key: 'copilot',    label: 'Copilot' },
-  { key: 'perplexity', label: 'Perplexity' },
-  { key: 'llama',      label: 'Llama' },
-  { key: 'grok',       label: 'Grok' },
-];
+// Engines in order matching the image (sorted by score desc)
+const ENGINE_ORDER = ['mistral', 'gemini', 'chatgpt', 'claude', 'copilot', 'perplexity', 'llama', 'grok'];
+const ENGINE_LABELS = {
+  mistral: 'Mistral', gemini: 'Gemini', chatgpt: 'ChatGPT',
+  claude: 'Claude', copilot: 'Copilot', perplexity: 'Perplexity',
+  llama: 'Llama', grok: 'Grok',
+};
+// Demo evolutions matching the image
+const DEMO_EVO = { mistral: 4, gemini: 2, chatgpt: 1, claude: 3, copilot: -1, perplexity: 0, llama: -2, grok: -3 };
 
-function sentimentBadge(sentiment, score) {
-  if (sentiment === 'positive' || score >= 65) return { text: 'Positif', color: '#34C759', bg: 'rgba(52,199,89,0.10)' };
-  if (sentiment === 'negative' || score < 35) return { text: 'Mixte', color: '#E8622A', bg: 'rgba(232,98,42,0.10)' };
-  return { text: 'Neutre', color: '#9B9BA8', bg: '#F5F5F5' };
+function SentimentBadge({ sentiment, score }) {
+  let text, color, bg;
+  if (sentiment === 'positive' || (!sentiment && score >= 65)) {
+    text = 'Positif'; color = GREEN; bg = 'rgba(60,198,96,0.12)';
+  } else if (sentiment === 'mixed' || (!sentiment && score < 40)) {
+    text = 'Mixte'; color = CORAL; bg = 'rgba(232,98,42,0.12)';
+  } else {
+    text = 'Neutre'; color = INK3; bg = '#F0EDE8';
+  }
+  return (
+    <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 6, padding: '3px 9px' }}>
+      {text}
+    </span>
+  );
 }
 
-function evolutionSign(val) {
-  if (val > 0) return { text: `↑ +${val}`, color: '#34C759' };
-  if (val < 0) return { text: `↓ ${val}`, color: '#E8622A' };
-  return { text: '0', color: INK3 };
+function EvoLabel({ val }) {
+  if (val > 0) return <span style={{ fontSize: 11, fontWeight: 600, color: GREEN }}>↗ +{val}</span>;
+  if (val < 0) return <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>↘ {val}</span>;
+  return <span style={{ fontSize: 11, fontWeight: 600, color: INK3 }}>— 0</span>;
 }
 
 export default function EngineScoreGrid({ d }) {
-  const engines = ENGINE_CFG.map((e, idx) => ({
-    ...e,
-    score: d[`${e.key}_score`] || 0,
-    evolution: d[`${e.key}_evolution`] || (idx === 0 ? 4 : idx === 1 ? 2 : idx === 2 ? 1 : idx === 3 ? 3 : idx === 4 ? -1 : 0),
-    sentiment: d[`${e.key}_sentiment`] || (e.score >= 65 ? 'positive' : e.score < 35 ? 'mixed' : 'neutral'),
+  const engines = ENGINE_ORDER.map(key => ({
+    key, label: ENGINE_LABELS[key],
+    score: d[`${key}_score`] || 0,
+    evolution: d[`${key}_evolution`] ?? DEMO_EVO[key] ?? 0,
+    sentiment: d[`${key}_sentiment`] || null,
   })).sort((a, b) => b.score - a.score);
 
   return (
     <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12, fontFamily: F }}>
-      {/* Header row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 60px 80px', padding: '10px 16px', background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: INK3 }}>Assistant</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: INK3 }}>Score</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: INK3, textAlign: 'center' }}>Évolution</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: INK3, textAlign: 'right' }}>Sentiment</span>
+      {/* Section label */}
+      <div style={{ padding: '12px 18px 0' }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: 0 }}>
+          Scores par assistant IA
+        </p>
       </div>
 
-      {engines.map((e, i) => {
-        const sent = sentimentBadge(e.sentiment, e.score);
-        const evo = evolutionSign(e.evolution);
-        return (
-          <div key={e.key} style={{
-            display: 'grid', gridTemplateColumns: '1fr 120px 60px 80px',
-            alignItems: 'center',
-            padding: '11px 16px',
-            borderBottom: i < engines.length - 1 ? `1px solid ${BORDER}` : 'none',
-          }}>
-            {/* Name */}
-            <span style={{ fontSize: 13, fontWeight: 600, color: INK }}>{e.label}</span>
+      {/* Column headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 48px 68px 76px', alignItems: 'center', padding: '10px 18px 8px', gap: 8 }}>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>Assistant</span>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>Score</span>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'right' }}></span>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'center' }}>Évolution</span>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'right' }}>Sentiment</span>
+      </div>
 
-            {/* Score + bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <div style={{ flex: 1, height: 5, background: '#F0F0EE', borderRadius: 3, overflow: 'hidden', minWidth: 50 }}>
-                <motion.div
-                  initial={{ width: 0 }} animate={{ width: `${e.score}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.04, ease: 'easeOut' }}
-                  style={{ height: '100%', background: CORAL, borderRadius: 3 }}
-                />
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 800, color: INK, width: 22, textAlign: 'right', flexShrink: 0 }}>{e.score}</span>
-            </div>
+      {engines.map((e, i) => (
+        <div key={e.key} style={{
+          display: 'grid', gridTemplateColumns: '120px 1fr 48px 68px 76px',
+          alignItems: 'center', gap: 8,
+          padding: '12px 18px',
+          borderTop: `1px solid ${BORDER}`,
+        }}>
+          {/* Name */}
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{e.label}</span>
 
-            {/* Evolution */}
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: evo.color }}>{evo.text}</span>
-            </div>
-
-            {/* Sentiment badge */}
-            <div style={{ textAlign: 'right' }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700, color: sent.color,
-                background: sent.bg, borderRadius: 5, padding: '3px 8px',
-              }}>{sent.text}</span>
-            </div>
+          {/* Progress bar */}
+          <div style={{ height: 7, background: SURFACE, borderRadius: 4, overflow: 'hidden' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${e.score}%` }}
+              transition={{ duration: 0.9, delay: i * 0.05, ease: 'easeOut' }}
+              style={{ height: '100%', background: CORAL, borderRadius: 4 }}
+            />
           </div>
-        );
-      })}
+
+          {/* Score number */}
+          <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, textAlign: 'right' }}>{e.score}</span>
+
+          {/* Evolution */}
+          <div style={{ textAlign: 'center' }}>
+            <EvoLabel val={e.evolution} />
+          </div>
+
+          {/* Sentiment */}
+          <div style={{ textAlign: 'right' }}>
+            <SentimentBadge sentiment={e.sentiment} score={e.score} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

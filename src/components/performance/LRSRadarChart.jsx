@@ -1,16 +1,20 @@
 import { motion } from 'framer-motion';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#1C1C1E';
+const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
-const BORDER = '#EBEBEB';
+const BORDER = '#E8E4DC';
 const WHITE = '#FFFFFF';
 const CORAL = '#E8622A';
+// Grid color: same beige/cream as the image background
+const GRID_COLOR = '#DDD8CE';
+const GRID_FILL = '#EEE9E0';
 
+// Axes as shown in the image (clockwise from top)
 const AXES = [
   { key: 'mistral',    label: 'Mistral' },
   { key: 'gemini',     label: 'Gemini' },
-  { key: 'chatgpt',    label: 'ChatGPT' },
+  { key: 'chatgpt',    label: 'ChatGf' },
   { key: 'claude',     label: 'Claude' },
   { key: 'copilot',    label: 'Copilot' },
   { key: 'perplexity', label: 'Perplexity' },
@@ -33,50 +37,64 @@ function buildPath(values, maxVal, cx, cy, radius) {
 }
 
 export default function LRSRadarChart({ d }) {
-  const cx = 120, cy = 120, R = 82, maxVal = 100;
+  const cx = 130, cy = 130, R = 88, maxVal = 100;
   const scores = AXES.map(a => d[`${a.key}_score`] || 0);
-  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.filter(s => s > 0).length || 1);
+
+  // Background polygon rings (25, 50, 75, 100)
   const gridLevels = [25, 50, 75, 100];
+  const gridPaths = gridLevels.map(level => buildPath(AXES.map(() => level), maxVal, cx, cy, R));
+
   const yourPath = buildPath(scores, maxVal, cx, cy, R);
 
   return (
     <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px', marginBottom: 12, fontFamily: F }}>
-      <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 12px' }}>RADAR DES ASSISTANTS IA</p>
+      {/* Section label */}
+      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>
+        Radar des assistants IA
+      </p>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <svg width={240} height={240} viewBox="0 0 240 240">
-          {/* Grid */}
-          {gridLevels.map(level => (
-            <circle key={level} cx={cx} cy={cy} r={(level / 100) * R} fill="none" stroke="#EBEBEB" strokeWidth={1} />
+        <svg width={260} height={260} viewBox="0 0 260 260">
+          {/* Grid polygons */}
+          {gridPaths.map((path, i) => (
+            <path key={i} d={path} fill={GRID_FILL} fillOpacity={gridLevels[i] === 100 ? 0 : 0.4} stroke={GRID_COLOR} strokeWidth={1} />
           ))}
+
           {/* Axis lines */}
           {AXES.map((_, i) => {
             const angle = (360 / AXES.length) * i;
             const end = polarToCart(angle, R, cx, cy);
-            return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke="#EBEBEB" strokeWidth={1} />;
+            return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={GRID_COLOR} strokeWidth={1} />;
           })}
-          {/* Your area */}
-          <motion.path d={yourPath} fill={CORAL} fillOpacity={0.12} stroke={CORAL} strokeWidth={1.5}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} />
-          {/* Data points */}
-          {scores.map((v, i) => {
-            const angle = (360 / scores.length) * i;
-            const r = (v / maxVal) * R;
-            const pt = polarToCart(angle, r, cx, cy);
-            return <circle key={i} cx={pt.x} cy={pt.y} r={3} fill={CORAL} stroke={WHITE} strokeWidth={1.5} />;
-          })}
+
+          {/* Your data area */}
+          <motion.path
+            d={yourPath}
+            fill={CORAL} fillOpacity={0.18}
+            stroke={CORAL} strokeWidth={2}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ duration: 0.9 }}
+          />
+
           {/* Labels */}
           {AXES.map((axis, i) => {
             const angle = (360 / AXES.length) * i;
-            const pt = polarToCart(angle, R + 16, cx, cy);
+            const pt = polarToCart(angle, R + 17, cx, cy);
             return (
-              <text key={i} x={pt.x} y={pt.y + 4} textAnchor="middle" fontSize={9} fill={INK3} fontFamily={F} fontWeight={600}>
+              <text key={i} x={pt.x} y={pt.y + 4}
+                textAnchor="middle" fontSize={10} fill={INK3}
+                fontFamily={F} fontWeight={500}>
                 {axis.label}
               </text>
             );
           })}
-          {/* Center avg */}
-          <text x={cx} y={cy + 5} textAnchor="middle" fontSize={17} fill={INK} fontFamily={F} fontWeight={900}>{avg}</text>
+
+          {/* Center score */}
+          <circle cx={cx} cy={cy} r={24} fill={WHITE} stroke={GRID_COLOR} strokeWidth={1} />
+          <text x={cx} y={cy + 6} textAnchor="middle" fontSize={19} fill={INK} fontFamily={F} fontWeight={900}>
+            {avg}
+          </text>
         </svg>
       </div>
     </div>
