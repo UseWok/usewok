@@ -18,6 +18,10 @@ import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import ManagePlanPage from './pages/ManagePlanPage';
 import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import LandingPricingPage from './pages/LandingPricingPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -54,7 +58,7 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Not authenticated → show public landing routes
+  // Not authenticated → show public landing routes + auth pages
   if (!isAuthenticated && (!authError || authError.type === 'auth_required')) {
     return (
       <>
@@ -62,6 +66,10 @@ const AuthenticatedApp = () => {
         <SEOHead />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/tarifs" element={<LandingPricingPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
