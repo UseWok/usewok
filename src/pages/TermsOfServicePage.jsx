@@ -1,167 +1,344 @@
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { ArrowLeft } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
 
-const FG = '#0A0A0A';
-const YELLOW = '#DDFF00';
+const CORAL = '#F95738';
 
-const TERMS_TEXT = `Last updated: April 22, 2026
+function Section({ number, title, children }) {
+  return (
+    <section style={{ marginBottom: 64 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 24 }}>
+        <span style={{
+          fontSize: 12, fontWeight: 700, color: CORAL,
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+          background: 'rgba(249,87,56,0.10)', border: '1px solid rgba(249,87,56,0.2)',
+          borderRadius: 6, padding: '3px 9px', flexShrink: 0,
+        }}>{number}</span>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0, lineHeight: 1.3 }}>{title}</h2>
+      </div>
+      {children}
+    </section>
+  );
+}
 
-Introduction & Updates
-These Terms of Service, as amended from time to time, (these "Terms") constitute a legally binding agreement between Stensor Inc. (the "Company") and the customer executing or otherwise accepting an order form which refers to these Terms (respectively, the "Customer" and the "Order Form"). These Terms govern the manner in which the Customer and its Users (as defined below) may use and access the Company's AI-powered personal finance and wealth management platform available via the Company's website at https://dub.sh/stensor (the "Platform" and "Website" respectively), which is provided on a Software-as-a-Service subscription based model.
-The Order Form may be completed and entered-into in various ways, including online form, in-product screen or an offline form delivered by Customer to the Company, including via email or any other electronic or physical delivery mechanism. Execution of the Order Form or use of the Platform by the Customer will conclusively indicate Customer's acceptance of these Terms, and such Order Form shall constitute an integral part hereof. If a User accepts the Terms on behalf of another entity, it must have the authority to accept these Terms on its behalf.
-The Website or Customer's use of the Platform may be subject to additional guidelines, terms, or rules, which will be posted on the Website or may be viewed via the Platform, including, without limitation, Company's Pricing page setting its different subscription plans, and our Privacy Policy available at https://dub.sh/stensor/privacy-policy ("Privacy Policy"), as the Company may amend from time to time. All such additional terms, guidelines, and rules are incorporated by reference into these Terms.
+function P({ children, style = {} }) {
+  return (
+    <p style={{ fontSize: 15, lineHeight: 1.85, color: '#374151', marginBottom: 16, ...style }}>
+      {children}
+    </p>
+  );
+}
 
-The Platform; Right to Access and Use
-Right to Use. Subject to Customer's compliance these Terms and the Order Form (including any use limitations and User numbers thereunder), Company hereby grants Customer a limited, non-transferable, non-exclusive, non-assignable and non-sub-licensable, revocable right to (i) use and access the Platform for Customer's lawful personal and commercial purposes, during the applicable Subscription Term (as defined below); and (ii) to the extent Company provides Customer with any technical documentation and specifications in connection with the Platform ("Company Documents"), to use and make a reasonable number of copies solely to the extent necessary for Customer's use of the Platform during the Subscription Term. The foregoing right is subject to the restrictions set forth in Section 5.3 below, which restrictions are in addition to, and without derogating from, any other restrictions and limitations set forth in these Terms. The services hereunder are licensed, not sold.
-Modification or Discontinuation of the Platform. The Company may change or update the Platform and Website at any time, including, without limitation, the availability of any feature, content or database, and may impose limitations or restrictions on certain features and services or discontinue any or all parts of the Platform or Website. In case of a material change to the Platform, the Company will notify Customer by posting an announcement on the Company's Website, through the Platform or by email.
-Use and Credit Limits. Customer's use of the Platform may be subject to usage limits, including a maximum number of Users (as defined below) and maximum number of messages and Tensors, depending on Customer's selected Subscription plan on the Pricing page or Order Form. Company may change such limitations from time to time by notification or an update to the Pricing page. Exceeding the limitations may incur excess charges which will be added to Customer's Fees, provided that Customer may also elect to pre-purchase additional Tensors from the Company at the rates determined by Company from time to time.
+function SubSection({ title, children }) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 12 }}>{title}</h3>
+      {children}
+    </div>
+  );
+}
 
-Trial Service; Pre-Released Services
-Trial Services and Pre-Release Services. The Company may offer, from time to time, some or all of its services on free trial versions ("Trial Service"). The Company reserves the right to modify, cancel and/or limit each Trial Service at any time and without liability. In addition, the Company may offer, from time to time, certain services in an alpha or beta versions (the "Pre-Released Services") and will use best endeavors to identify the Pre-Released Services as such. Pre-Released Services are services that are still under development, and as such they may be incomplete, may contain bugs, suffer disruptions and not operate as intended and designated more than usual.
-Governing Terms of Trial Services and Pre-released Services. The Trial Services and Pre-Released Services are governed by these Terms, provided that notwithstanding anything in these Terms or elsewhere to the contrary, in respect of Trial Services and Pre-Released Services (i) Trial Services and Pre-Released Services are made available hereunder on as "As-Is" and "As Available" basis, with no warranties, express or implied, of any kind; and (ii) IN NO EVENT SHALL THE TOTAL AGGREGATE LIABILITY OF COMPANY OR ITS THIRD-PARTY SERVICE PROVIDERS, UNDER, OR OTHERWISE IN CONNECTION WITH, THESE TERMS, EXCEED US $100. The Company makes no promises that any Trial Service and/or Pre-Released Services will be made available to the Customer and/or generally available.
+function InfoBox({ icon, children }) {
+  return (
+    <div style={{
+      background: 'rgba(59,139,235,0.05)', border: '1px solid rgba(59,139,235,0.2)',
+      borderRadius: 10, padding: '16px 20px', marginBottom: 16, marginTop: 8,
+      display: 'flex', gap: 12, alignItems: 'flex-start',
+    }}>
+      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.75, color: '#374151' }}>{children}</div>
+    </div>
+  );
+}
 
-Users, Accounts and Customer Obligations
-Users and Accounts. In order to use the Platform, Customer must register and create an account ( an "Account), for Customer the users authorized and designated by the Customer (each, a "User"). Users must be at least 15 years old to use or consent to use the Platform. Customer is responsible that each User shall provide the Company with accurate, complete, and updated registration information. Customer shall: (a) not allow anyone other than Users to access and use the Account; (b) not register an Account via automated means; (c) keep, and ensure that Users keep all Account credentials and access measures secure at all times; (d) ensure that the login details for each User may only be used by that User, and that multiple individuals may not share the same login details; and (e) promptly notify the Company in writing if Customer becomes aware of any unauthorized access or use of Customer's Account.
-Cooperation. Customer shall provide Company with all reasonable cooperation in relation to these Terms, and shall comply in a timely and efficient manner, and be responsible and liable for the Users' compliance with these Terms, each Order Form and all applicable laws and regulations.
-Customer Infrastructure. Customer is solely responsible for obtaining, maintaining and operating Customer's and its Users' devices (including, without limitation, smartphones, tablets and computers), and any related equipment, hardware, software (including cloud environment), security systems and measures and ancillary services, and internet connection necessary in order to access and use the Platform and the Generated Output.
-Responsibility for Users and Accounts. Customer is responsible for all acts or omissions of Users, their use of the Platform, Website and Generated Output and their compliance with these Terms. The Company shall not have any liability towards Users, and the Customer is solely responsible for responding to any claims, requests and demands by the Users or any other third party related to the Customer.
-SSO Registration. Customer may register an Account by logging into its account with certain third-party service accounts ("SSO") including, but not limited to Google (each such account, an "SSO Account"), by either: (i) providing Customer's SSO Account login information to the Company through the Platform; or (ii) allowing the Company to access the SSO Account, as permitted under the applicable terms and conditions that govern Customer's use of the SSO Account. By registering an Account through an SSO, Customer represent that it is entitled to disclose Customer's SSO Account login information to the Company and/or grant the Company access to the SSO Account, without breach by Customer of any of the terms and conditions governing Customer's use of the SSO Account and without obligating the Company to pay any fees or making the Company subject to any usage limitations imposed by the SSO service provider.
+function WarningBox({ icon, children }) {
+  return (
+    <div style={{
+      background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)',
+      borderRadius: 10, padding: '16px 20px', marginBottom: 16, marginTop: 8,
+      display: 'flex', gap: 12, alignItems: 'flex-start',
+    }}>
+      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.75, color: '#374151' }}>{children}</div>
+    </div>
+  );
+}
 
-Customer Data
-Customer Data. While using the Platform, certain data may be uploaded or transferred to the Platform to be processed by the Platform on the Customer's behalf, including Input Data (the "Customer Data"). As between the Customer and the Company, all rights in the Customer Data shall remain with Customer.
-License to Customer Data. Customer hereby grants the Company and Third-Party Service Providers involved in the provision of the Platform hereunder an irrevocable, non-exclusive, worldwide, royalty-free, fully paid, sub-licensable right and license to access, use, modify, translate, process, copy, download, store, distribute, display, publish and prepare derivative works of the Customer Data during the Subscription Term, solely for the purpose of maintaining and providing the Platform and the services pursuant to the Terms and Order Form (including the creation of Generated Output), to enforce Company's rights and obligations under these Terms and Order Form(s) and to satisfy any requirement under applicable law, regulation, legal process, subpoena or governmental request.
-Responsibility for Customer Data. Customer represents and warrants that (i) it owns or has all the necessary licenses, rights, consents, approvals, permissions, power and authority, necessary to grant the Company the right and license under Section 4.2 and share the Customer Data and Input Data with the Platform, without infringing or violating any copyrights, privacy rights, publicity rights, trademarks or any other contractual, intellectual property or proprietary of any third party; (ii) any Customer Data and Customer's use of the Platform do not and will not violate any applicable laws, including those related to data privacy or data transfer and export or any policies and terms governing such Customer Data; and (iii) no sensitive data that is protected under a special legislation and requires unique treatment (such as protected health information or credit, debit or other payment card data) will be shared with the Platform, other than if expressly agreed by the Company in prior writing and the appropriate agreement in place. It is hereby clarified that the Company is not obliged to monitor and/or moderate the Customer Data, but may elect to do so in its sole discretion.
+function BulletList({ items }) {
+  return (
+    <ul style={{ paddingLeft: 0, listStyle: 'none', marginBottom: 16 }}>
+      {items.map((item, i) => (
+        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, fontSize: 15, lineHeight: 1.75, color: '#374151' }}>
+          <span style={{ color: CORAL, marginTop: 4, flexShrink: 0, fontSize: 10 }}>▶</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-Intellectual Property and Right to Use
-Company Intellectual Property. As between the Company and the Customer, all right, title and interest in the Platform, Website and Company Documents, including without limitation, any content, materials, software, know-how, data files, documentation, code, SDK, API, design, text, media, methodologies, artwork, names, logos, trademarks and services marks (excluding Customer Data), any and all related or underlying technology and any updates, new versions, modifications, improvements, developments or derivatives thereof (other than Generated Output), are the sole property of the Company and its licensors.
-Generated Output & Input Data. As between the Company and the Customer, to the extent such rights exist under applicable law, the Customer owns all rights, title and interest in the financial analysis, insights, and recommendations generated by the Platform ("Generated Output") resulting from prompts or Customer Data which Customer shares with the Platform for the purposes of generating the Generated Output ("Input Data"). Company relinquishes all rights, title and interests it might have in the Generated Output, without making any representation or warranty as to the nature of such rights. Customer acknowledges and agrees that due to the nature of machine learning and artificial intelligence, Generated Output may not be unique and other users of the Platform may receive the same or similar output. The aforementioned assignment does not extend to other customers' and their users' output.
-Restricted Use. Customer and its Users may not, and may not permit or aid others to: (i) use the Platform, Website, Generated Output or Company Documents in any manner that is unlawful or harms the Company; (ii) other than as set forth in Section 5.2 above (Generated Output & Input Data) and Section 1.1(ii) (solely with regard to Company Documents), copy, modify, alter, translate, emulate, create derivative works based on, or reproduce the Platform, Website and Company Documents; (iii) other than as set forth in Section 5.2 above (Generated Output & Input Data), give, publish, sell, distribute, assign, pledge or transfer (by any means), display, sublicense, rent, lease or otherwise share the rights granted under these Terms to any third party, or use the Platform in any service bureau arrangement; (iv) reverse engineer, de-compile, decrypt, revise or disassemble the Platform, or any part thereof, or extract source code from the object code of the Platform; (v) access or use the Platform, Generated Output and Company Documents in order to build, train or improve a competing product or service; (vi) use the Platform for benchmarking purposes without Company's express prior written approval; (vii) bypass any measures the Company may use to prevent or restrict access to the Platform or Website, including the creation of multiple free accounts, and/or take any action intended to circumvent or disable the operation of any security feature or measure of the Platform and Website; (viii) access the Platform or Company's systems or environment via any means other than through the interface provided by the Company, or via automated means, including by crawling, scraping, caching or otherwise; (ix) use the Platform, Website or Company Documents in any manner that infringes, misappropriates or violates anyone's rights or in a manner that is not authorized by these Terms; (x) take any action that imposes or may impose an unreasonable or disproportionately large load on Company's (or Company's Third-Party Service) infrastructure; (xi) interfere or attempt to interfere with the integrity or proper working of the Platform, including, without limitation, uploading malicious code or content or knowingly imposing large load on the Platform; (xii) remove, deface, obscure, or alter Company's or any third party's identification, attribution or copyright notices, trademarks, or other proprietary rights affixed to or provided as part of the Platform; (xiii) use the Platform, Website or Generated Output to send unsolicited or unauthorized communications; (xiv) use the Platform or Generated Output in connection with any high-risk, hazardous environments requiring fail-safe performance or other safety component, including, without limitation (a) aviation, (b) vehicles, (c) marine equipment, (d) rail systems, (e) motor vehicles, (f) security, (g) critical infrastructure, (h) health services, (i) nuclear facilities, (j) weapon systems, or any other application in which the failure of the Platform or Generated Output could lead to severe damage to a person's body, property or to severe financial or economic damage; or (xv) use the Platform and Generated Content to provide any service or product requiring a license or permit (such as providing formal legal or financial advice), without such license, permit or a valid exemption.
-Anonymous Information. The Company may collect, monitor and freely use Anonymous Information (as defined below), inter alia to provide, develop, maintain, improve, demonstrate and market the Platform, Website and other products and services. "Anonymous Information" means information about the use of the Platform which does not enable identification of an individual, such as aggregated data, metadata and analytic information.
-Feedback. Customer may notify the Company of any and all design or functional errors, anomalies, and problems associated with the Platform discovered or brought to its attention by its Users, and may provide the Company suggestions, comments or any other feedback regarding the Platform (the "Feedback"). The Company may use the Feedback at its sole discretion and for any purpose, and Customer hereby assigns to Company all right, title, and interest worldwide in the Feedback and any intellectual property rights related thereto. To the extent provided, Feedback is not considered Customer Data or Confidential Information.
-
-Privacy
-Customer acknowledges and agrees that the use of the Website and Platform by the Customer and its Users is governed by the Company's Privacy Policy as amended from time to time. If Company processes personal data (as defined under applicable law), to the extent required by law or agreed upon between Customer and the Company, the parties will enter into a Data Processing Agreement (DPA) regarding such personal data.
-
-Third-Party Software and Services
-Third-Party Products and Services. The Platform, Website and any Generated Output may integrate with, and contain or link to, third-party software, products, "open source" or "Free Software" components or other services, and may enable Customer and its Users to access, engage and procure certain software, components, source code, services and products provided by third parties, including by way of API or SDK (the "Third-Party Services"). Customer acknowledges and agrees that regardless of the manner in which such Third-Party Services may be presented or offered to Customer or its Users, each such Third-Party Service shall be subject to their own licenses, policies and terms and conditions (the "Third-Party Terms") and the Company does not endorse any such Third-Party Services, nor shall it be in any way responsible or liable with respect to any such Third-Party Services (including AI Models) or Third-Party Terms, as amended or replaced from time to time. The Company's inclusion of a Third-Party Service or website or linking to such does not in any way imply, suggest, or constitute any sponsorship, endorsement, or approval by the Company, or by such Third-Party Service provider of the Company, and nor any affiliation between them. The Company may replace Third-Party Services at its discretion.
-Generative AI. Without detracting from the foregoing Section 7.1, the Platform enables your receipt of services powered by third-party generative artificial intelligence and large language models ("AI Services"). Customer acknowledge that the AI Services and their respective Third-Party Terms are outside the Company's control, but their operation may impact the use, quality and reliability of the Platform and Generated Output.
-
-Subscription; Payments
-Fees. In consideration of the Subscription, Customer's rights and Company's obligations hereunder, Customer shall pay the Company the applicable fees set forth in the Order Form(s) (the "Fees"). Unless expressly indicated otherwise, Fees are stated in US dollars. Customer hereby authorizes the Company, either directly or through the Company's payment processing services or applicable reseller or marketplace, to charge the Fees via Customer's selected payment method, upon the due date.
-Right of Withdrawal and Refunds. If you are a consumer residing in the European Union, you have a legal right to cancel this contract within 14 days without giving any reason. To exercise this right of withdrawal, you must inform us of your decision to cancel. Beyond this 14-day cancellation period, and unless expressly set forth herein or in an Order Form, the Fees are non-cancelable and non-refundable.
-Taxes. The Fees are exclusive of any and all taxes (including without limitation, value added tax, sales tax, use tax, excise, goods and services tax, etc.), levies, or duties, except for income tax imposed on the Company. Company will charge tax on top of the Fees if Company is legally required to do so.
-Payment Terms. Subject to any pay-per-use provisions or anything to the contrary in an Order Form, the Fees set forth in each Order Form are final. Unless otherwise set forth in the Order Form, the Fees shall be paid annually or monthly (as set forth in the Order Form), in advance, upon receipt of an invoice by charging Customer's approved payment means at the beginning of each Subscription Term. Customer will be responsible for all reasonable expenses (including reasonable attorneys' fees) incurred by the Company in collecting any payment.
-
-Confidentiality
-Confidential Information. For purposes of these Terms, the term "Confidential Information" shall mean any and all non-public business, product, technology and marketing data and information, whether written, oral or in any other medium disclosed or otherwise provided by either party (the "Disclosing Party") to the other party (the "Receiving Party"), that is either identified as such or should reasonably be understood to be confidential given the nature of the information and the circumstances of disclosure. Confidential Information shall not include any information which the Receiving Party can prove: (a) is publicly available at the time of disclosure or subsequently becomes publicly available through no act or omission of the Receiving Party in breach of these Terms; (b) is already known to the Receiving Party at the time of disclosure; (c) is disclosed to the Receiving Party free from confidentiality obligations by a third party who is not, to the knowledge of the Receiving Party, in breach of an obligation of confidentiality; or (d) was or is independently developed by the Receiving Party without use of or reliance upon the Confidential Information.
-Confidentiality Obligations. The Receiving Party undertakes and warrants that: (i) it shall hold the Confidential Information of Disclosing Party in confidence and shall take all reasonable steps to safeguard and protect the Confidential Information including, without limitation, those steps that it takes to protect its own Confidential Information of a similar nature; (ii) it shall not disclose or otherwise provide any Confidential Information to any third party without the prior written consent of the Disclosing Party, except to those of its employees who have a need to know such Confidential Information for the purpose of fulfilling these Terms and provided that such employees are bound by written confidentiality obligations which are at least as restrictive as those contained herein; (iii) it shall not copy or use the Confidential Information for any purpose except to the extent required to perform its obligations, or exercise its rights, hereunder, whilst maintaining the Disclosing Party's interests; and (iv) if the Receiving Party is requested or legally compelled to disclose any Confidential Information pursuant to the order or requirement of a court, administrative agency, or other governmental body, the Receiving Party shall make best efforts to provide the Disclosing Party prompt notice thereof, and, at the request and expense of the Disclosing Party, uses reasonable efforts to limit such disclosure to the extent requested.
-Confidentiality Survival. Receiving Party's obligations with respect to Confidential Information shall expire five (5) years from the date of termination or expiration of the last Subscription Term, unless otherwise agreed by the parties in a nondisclosure agreement between them or required under applicable law.
-
-Term & Termination
-Subscription Term. The Platform is provided on a subscription basis for the term specified in the Order Form (the "Subscription" and the "Subscription Term").
-Auto-Renewal. Subject to any express provisions to the contrary in the Order Form (which will supersede this Section 10.2), Customer's Subscription shall automatically renew by default without prior notice of the renewal to Customer (unless such notice is required by mandatory local law), unless canceled by either the Company or the Customer at least 30 days prior to its expiration by written notice to the other party, for a renewal period equal in time to the original Subscription Term (excluding any renewal period).
-Termination for Cause. A breach of obligations by either party hereto which is not cured within 30 days from receiving notice thereof (to the extent curable), shall entitle the non-breaching party to immediately terminate these Terms and Order Form by written notice. Notwithstanding, if a party files for petition or action for relief under any bankruptcy, reorganization, insolvency or moratorium law or any other law for the relief of, or relating to, debtors, now or hereafter in effect, or makes any assignment for the benefit of creditors or takes or becomes subject to any action in furtherance of any of the foregoing, the other party will be entitled to terminate these Terms and Order Form immediately by written notice.
-Termination or Suspension by Company. Company may terminate or suspend Customer's use of and access to the Platform (or any part thereof) immediately, without prior notice or liability, in each of the following events: (i) the Company believes, in its sole discretion, that Customer or any third party is using the Platform in a manner that may impose a security risk, may cause harm to the Company or any third party, and/or may create any liability to the Company or any third party; (ii) if the Company believes, in its sole discretion, that Customer or any third party is using the Platform in breach of Section 5.3 (Restricted Use); or (iii) if the Company is unable to charge the Fees through Customer's approved payment means or if any payment is or is likely to become overdue, including due to Customer exceeding any usage limits. The aforementioned rights are in addition to any rights and remedies that may be available to the Company in accordance with these Terms or under any applicable law.
-Termination by Customer. Subject to any express provisions to the contrary in the Order Form (which will supersede this Section 10.5) Customer may terminate its Subscription to the Platform by cancelling its Subscription via written notice to the Company, whereby termination will take effect at the end of the then-current Subscription Term and shall not derogate from Customer's obligation to pay the applicable Fees for the Subscription Term.
-Effect of Termination. The termination or expiration of these Terms shall not relieve Customer from its obligation to pay due Fees. Except as explicitly set forth herein, upon termination, all licenses and rights granted hereunder shall immediately expire and any and all use by the Customer or the Users of the Platform shall immediately cease and expire. Customer shall immediately delete and shall not maintain any copy of any component of the Platform or Company Documents installed or saved on the Customer's systems or environment.
-Right to Receive Customer Data. If requested by the Customer in writing, provided that Customer may exercise such right within no later than 15 days following termination, Company shall provide the Customer with the Customer Data then held by the Company, if any, in a standard format and media or delete all Customer Data in its possession. The Company may retain copies of Customer Data which are automatically created for back-up purposes and other Customer Data which is required to be maintained by Company pursuant to the Company's data retention policies, and provided that the provisions of Section 9 (Confidentiality) shall continue to apply to such data. The Customer acknowledges that following the aforesaid 15-day term following termination of these Terms, the Company may delete all Customer Data without retaining any copy.
-Survival. All the provisions of these Terms which by their nature should survive termination, including, without limitation, Sections 5 (Intellectual Property and Right of Use), 9 (Confidentiality), 11 (Warranty and Disclaimers), 12 (Limitations of Liability) 13 (Indemnification) and 14 (Miscellaneous), shall remain in full force and effect following termination thereof, for any reason whatsoever. Termination of these Terms or the Order Form shall not relieve Customer from any obligation arising or accruing prior to such termination or limit any liability which Customer otherwise may have to the Company.
-
-WARRANTY AND DISCLAIMER
-THE COMPANY DOES NOT WARRANT, UNDERTAKE OR GUARANTEE THAT THE PLATFORM WILL SATISFY CUSTOMER'S NEEDS OR WILL BE OPTIMAL UNDER THE CIRCUMSTANCES. NO DATA OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED BY CUSTOMER THROUGH OR FROM THE PLATFORM SHALL CREATE ANY WARRANTY OR IMPOSE ANY LIABILITY NOT EXPRESSLY STATED IN THESE TERMS. IN ADDITION, THE COMPANY DOES NOT ASSUME ANY LIABILITY WITH RESPECT TO THE PLATFORM AND/OR THE GENERATED OUTPUT AND THE USE OF PLATFORM AND/OR THE GENERATED OUTPUT BY CUSTOMER, USERS OR CUSTOMER'S OWN END CUSTOMERS. THE PLATFORM, WEBSITE, COMPANY DOCUMENTS, ANY GUIDES PROVIDED ON THE COMPANY WEBSITE AND ANY GENERATED OUTPUT ARE SUPPLIED ON AN "AS IS" AND "AS AVAILABLE" BASIS AND WITHOUT WARRANTIES, GUARANTEES OR REPRESENTATIONS OF ANY KIND, WHETHER EXPRESS OR IMPLIED, STATUTORY, COMMON LAW OR OTHERWISE, REGARDING THE PLATFORM AND CUSTOMER'S, ITS USERS AND END CUSTOMERS' USE THEREOF, INCLUDING, BUT NOT LIMITED TO, ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, AVAILABILITY, SECURITY (INCLUDING THE SECURITY OF CUSTOMER'S END CLIENTS USING THE GENERATED OUTPUT), COMPATIBILITY OR NON-INFRINGEMENT. CUSTOMER FURTHER ACKNOWLEDGES AND AGREES THAT ITS, ITS USERS AND END CUSTOMERS' ACCESS AND USE OF THE PLATFORM AND/OR ANY GENERATED OUTPUT ARE AT ITS AND THEIR SOLE RESPONSIBILITY AND RISK. COMPANY DOES NOT WARRANT THAT THE USE OF THE PLATFORM WILL BE UNINTERRUPTED, ERROR-FREE OR WILL MEET CUSTOMER'S SPECIFIC REQUIREMENTS OR EXPECTATIONS, OR THAT ANY GENERATED OUTPUT, PROCESS, ACTION, OR INFORMATION OBTAINED BY CUSTOMER AS A RESULT OF THE USE OF THE PLATFORM WILL BE ACCURATE, RELIABLE, EFFECTIVE, PROPER, LAWFUL, OR OTHERWISE IN ACCORDANCE WITH THE CUSTOMER'S EXPECTATIONS. THE COMPANY FURTHER DISCLAIMS ALL WARRANTIES IN CONNECTION WITH THIRD-PARTY SERVICES AND AI SERVICES. CUSTOMER WILL BE SOLELY AND FULLY LIABLE FOR ANY LOSSES, DAMAGES, LIABILITY AND EXPENSES INCURRED BY COMPANY OR A THIRD PARTY DUE TO ANY UNAUTHORIZED USE OF THE PLATFORM BY THE CUSTOMER OR THE GENERATED OUTPUT BY ANY OF ITS USERS OR THIRD PARTY ON BEHALF OF THE CUSTOMER.
-WITHOUT DEROGATING FROM THE FOREGOING, COMPANY ASSUMES NO LIABILITY OR RESPONSIBILITY FOR: (I) ANY ERRORS, MISTAKES, OR INACCURACIES OF THE PLATFORM, WEBSITE, COMPANY DOCUMENTS OR GENERATED OUTPUT, (II) ANY CODE OR SOFTWARE INCLUDED IN THE GENERATED OUTPUT, THE ORIGIN THEREOF AND THE RIGHTS THEREIN, INCLUDING THIRD PARTY LICENSES APPLYING TO SUCH CODE OR SOFTWARE (IF ANY) (III) ANY INTERRUPTION OR CESSATION OF TRANSMISSION, LOSS OR LEAK OF DATA (INCLUDING END CLIENT DATA) OR OTHER COMMUNICATIONS, AND/OR (IV) ANY DELAYS, DELIVERY FAILURES, OR ANY OTHER LOSS OR DAMAGE RESULTING FROM THE HOSTING, STORAGE OR TRANSFER OF SOFTWARE OR CUSTOMER DATA OVER COMMUNICATIONS NETWORKS AND FACILITIES, INCLUDING THE INTERNET. CUSTOMER IS SOLELY RESPONSIBLE FOR THE CUSTOMER DATA, INPUT DATA AND ANY DATA ITS END CLIENTS SHARE WITH THE GENERATED OUTPUT, AND SHOULD EVALUATE THE ACCURACY AND SECURITY OF THE GENERATED OUTPUT IN EACH CASE, INCLUDING BY CONDUCTING HUMAN REVIEW AS NECESSARY.
-
-LIMITATION OF LIABILITY
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, AND OTHER THAN IN CASE OF A PARTY'S FRAUD, GROSS NEGLIGENCE, WILLFUL MISCONDUCT, INFRINGEMENT OR MISAPPROPRIATION OF THE OTHER PARTY'S INTELLECTUAL PROPERTY RIGHTS, CUSTOMER'S BREACH OF SECTION 5.3 OR CUSTOMER'S PAYMENT OBLIGATIONS
-IN NO EVENT SHALL EITHER PARTY BE LIABLE TO THE OTHER PARTY FOR ANY: (I) SPECIAL, INCIDENTAL, PUNITIVE, CONSEQUENTIAL OR INDIRECT DAMAGES; (II) LOSS OF OR DAMAGE TO DATA (INCLUDING END-USER INFORMATION), GOODWILL, PROFITS, SAVINGS, OR PURE ECONOMIC LOSS; AND/OR (III) THE COST OF PROCURING ANY SUBSTITUTE GOODS OR SERVICES; REGARDLESS OF (A) WHETHER SUCH PARTY HAD BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES OR SUCH DAMAGES WERE REASONABLY FORESEEABLE; OR (B) THE THEORY OR BASIS OF LIABILITY (SUCH AS, BUT NOT LIMITED TO, BREACH OF CONTRACT OR TORT); AND
-EITHER PARTY'S AGGREGATE AND CUMULATIVE LIABILITY FOR ALL DIRECT CLAIMS, DAMAGES AND LOSSES (WHETHER IN CONTRACT, TORT OR OTHERWISE), IS LIMITED TO THE FEES PAID OR PAYABLE TO THE COMPANY BY THE CUSTOMER FOR ITS SUBSCRIPTION IN THE TWELVE (12) MONTHS PRECEDING THE LAST EVENT GIVING RISE TO THE CLAIM.
-
-Indemnification
-Without derogating from Company's rights under these Terms and under applicable law, Customer hereby agrees to defend and indemnify Company and its employees and agents against any and all liabilities, damages, and costs (including reasonable attorneys' fees) arising out of any claim, demand, suit or proceeding by a third party (i) arising out of or alleging that the Customer Data, the Input Data or Generated Output and/or the use of the Platform or Generated Output by the Customer, its Users and end customers infringes on the any intellectual property rights of a third party; (ii) arising out of or alleging that the Customer Data, Input data or use of the Platform violates applicable law or the privacy rights of a third party, or (iii) arising out of the misuse of the Platform or Account by Customer, the Users or any third party; or (iv) who is an end client of the Generated Output against the Company, in relation to the Generated Output.
-
-Miscellaneous
-General. The headings used in these Terms are for convenience only and shall in no case be considered in construing these Terms. The policies, agreements, notices and other documents linked hereto are incorporated herein by this reference.
-Amendments. Company may change the Terms from time to time, and such change will become effective upon the date on which it is posted on the Website or shared with Customer by an in-Platform notification. Customer is responsible for checking the Website and Platform regularly for such changes. By continuing to access or use the Platform, Customer agrees to be bound by the revised Terms. In addition, the Company has the right to change the Fees at any time, upon notice to Customer, provided that any increase shall only become effective upon the end of the then-applicable Subscription Term.
-Export Control. The Platform may be subject to U.S., EU or foreign export controls, laws and regulations (the "Export Controls"), and Customer agrees and confirms that: (i) Customer is not located or uses, exports, re-exports or imports the Platform (or any portion thereof) in or to, any person, entity, organization, jurisdiction or otherwise, in violation of the Export Controls; (ii) Customer is solely responsible for complying with applicable Export Controls which may impose additional restrictions, prohibitions or requirements on the use of the Platform.
-Customer's Reference. Customer acknowledges and agrees that for the duration of the Subscription Term, the Company has the right to use Customer's name and logo to identify Customer as a customer of Company or user of the Platform, on Company's Website, marketing materials or otherwise by public announcements. The publication of any additional content related to the Customer's use of the Platform (other than mere reference to the Customer as set forth above), such as case studies, shall require the Customer's prior written approval (which may not be unreasonably withheld or delayed).
-Force Majeure. Neither Company nor Customer will be liable by reason of any failure or delay in the performance of its obligations on account of events beyond the reasonable control of a party, which may include denial-of-service attacks, interruption or failure of the Internet or any utility service, failures in third-party hosting services, strikes, shortages, riots, fires, acts of God, war, pandemic, terrorism, and governmental action, provided that the foregoing will not relive Customer of its payment obligations hereunder.
-Relationship of the Parties; No Third-Party Beneficiaries. The parties are independent contractors. These Terms do not create a partnership, franchise, joint venture, agency, fiduciary or employment relationship between the parties. Users or Customer's end customers are not, and there are no third-party beneficiaries to these Terms.
-Entire Agreement. These Terms and Order Form(s) (and the other terms, agreements and policies referenced or linked herein) constitutes the entire agreement between the parties hereto with respect to the subject matter hereof and supersedes all prior understandings of such parties with regard thereto.
-Order of Precedence. Any Order Form entered into between the parties simultaneously with these Terms shall be deemed to incorporate these Terms. If there is any conflict or inconsistency between these Terms and the Order Form, these Terms shall prevail unless the Order Form specifically states otherwise.
-Assignment. Company may assign at any time these Terms, Order Form(s) and any of its rights and/or obligations thereunder to any third party without Customer's consent or notice to Customer. Customer may not assign any of its rights or delegate any obligations hereunder, in whole or in part without the prior written consent of Company. Any assignment attempt in contravention of this Section shall be null and void.
-Notice. All notices in connection with these Terms and any Order Form shall be made by personal delivery, by express courier service (such as FedEx or UPS) that requires proof of delivery, certified or by registered mail, return receipt requested, or by electronic mail, and shall be deemed effective (a) if mailed, 5 business days after mailing; (b) if made by personal delivery or sent by messenger or express courier service, upon delivery; and (c) if sent via electronic mail, upon transmission and electronic confirmation of receipt or (if transmitted and received on a non-business day) on the first business day following transmission and electronic confirmation of receipt.
-Enforceability. If any provision of these Terms is found to be unlawful, void, or for any reason unenforceable, then that provision will be deemed severable from these Terms and will not affect the validity and enforceability of any remaining provision.
-No Waiver. The failure of either party to enforce any right or provision in these Terms will not constitute a waiver of such right or provision unless acknowledged and agreed by such party in writing.
-Governing Law; Jurisdiction. These Terms and its performance shall be governed by the laws of France, without regard to conflict of laws' provisions that would result in the application of the laws of any other jurisdiction. The parties hereto submit to the exclusive personal jurisdiction and venue of the competent courts of Bordeaux, France. The Customer and Company agree that the United Nations Convention on Contracts for the International Sale of Goods will not apply.
-Class Action Waiver. WHERE PERMITTED UNDER APPLICABLE LAWS, CUSTOMER AND COMPANY AGREE THAT EACH PARTY MAY BRING CLAIMS AGAINST THE OTHER PARTY ONLY IN ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE ACTION. Unless both Customer and the Company agree, no arbitrator or judge may consolidate more than one person's claims or otherwise preside over any form of a representative or class proceeding.
-
-For any questions or queries about these Terms or the Platform in general, please do not hesitate to contact us at the following e-mail address: contact.stensor@proton.me.`;
+const TOC = [
+  [1, "Définitions"],
+  [2, "Objet du Service"],
+  [3, "Création de compte et accès"],
+  [4, "Abonnements et conditions financières"],
+  [5, "Propriété intellectuelle"],
+  [6, "Règles d'usage acceptable"],
+  [7, "Suspension et résiliation par UseWok"],
+  [8, "Résiliation par l'Utilisateur"],
+  [9, "Garanties et exclusion de responsabilité"],
+  [10, "Limitation de responsabilité"],
+  [11, "Données personnelles"],
+  [12, "Modification des Conditions"],
+  [13, "Droit applicable et juridiction"],
+  [14, "Médiation à la consommation"],
+  [15, "Dispositions diverses"],
+  [16, "Contact"],
+];
 
 export default function TermsOfServicePage() {
-  const navigate = useNavigate();
-
-  const handleCta = async () => {
-    try {
-      const auth = await base44.auth.isAuthenticated();
-      if (auth) navigate('/app'); else base44.auth.redirectToLogin('/app');
-    } catch { base44.auth.redirectToLogin('/app'); }
-  };
-
   return (
-    <div className="min-h-screen font-inter" style={{ background: '#fafaf8' }}>
+    <div style={{ background: '#F8F9FA', fontFamily: "'Inter', -apple-system, system-ui, sans-serif", minHeight: '100vh' }}>
       {/* Navbar */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-5">
-        <nav className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5"
-          style={{
-            background: 'rgba(255,255,255,0.97)',
-            border: '1px solid rgba(0,0,0,0.08)',
-            borderRadius: '10px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-            backdropFilter: 'blur(12px)',
-          }}>
-          <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-            <img src="https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png"
-              alt="Stensor" className="w-6 h-6 object-contain" />
-            <span className="font-black text-sm tracking-tight" style={{ color: FG }}>Stensor</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <button onClick={() => base44.auth.redirectToLogin('/app')}
-              className="hidden md:block text-xs font-semibold text-gray-500 hover:text-black transition-colors px-3 py-2">
-              Sign In
-            </button>
-            <button onClick={handleCta}
-              className="text-xs font-black px-4 py-2.5 transition-all hover:scale-105"
-              style={{ background: YELLOW, color: FG, borderRadius: '8px' }}>
-              Get Started
-            </button>
+      <nav style={{
+        background: 'white', borderBottom: '1px solid #E5E7EB',
+        height: 58, display: 'flex', alignItems: 'center',
+        padding: '0 clamp(20px, 5vw, 60px)', position: 'sticky', top: 0, zIndex: 100,
+      }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
+            </svg>
           </div>
-        </nav>
-      </div>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>UseWok</span>
+        </Link>
+        <div style={{ flex: 1 }} />
+        <Link to="/" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>← Retour au site</Link>
+      </nav>
 
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-6 pt-40 pb-24">
-        <button onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-sm mb-8 hover:opacity-70 transition-opacity"
-          style={{ color: 'rgba(0,0,0,0.4)' }}>
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-
-        <h1 className="text-4xl font-black tracking-tight mb-10" style={{ color: FG }}>Terms of Service</h1>
-
-        <div className="prose prose-sm max-w-none">
-          {TERMS_TEXT.split('\n\n').map((paragraph, i) => (
-            <p key={i} className="mb-5 leading-relaxed text-sm" style={{ color: 'rgba(0,0,0,0.65)' }}>
-              {paragraph}
-            </p>
-          ))}
+      {/* Hero */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        padding: 'clamp(48px, 8vw, 80px) clamp(20px, 5vw, 60px)',
+        textAlign: 'center',
+      }}>
+        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.3)',
+            borderRadius: 20, padding: '4px 14px', marginBottom: 20,
+          }}>
+            <span style={{ fontSize: 11, color: CORAL, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Contrat d'utilisation</span>
+          </div>
+          <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 800, color: 'white', margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+            Conditions Générales d'Utilisation
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
+            Dernière mise à jour : <strong style={{ color: 'rgba(255,255,255,0.8)' }}>28 juin 2026</strong>
+          </p>
         </div>
       </div>
 
+      {/* Intro block */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px clamp(20px, 3vw, 40px) 0' }}>
+        <div style={{
+          background: 'white', border: '1px solid #E5E7EB', borderRadius: 12,
+          padding: '28px 32px',
+        }}>
+          <P>Les présentes Conditions Générales d'Utilisation (les « CGU » ou les « Conditions ») constituent un contrat entre <strong>UseWok</strong> [forme juridique à compléter dès l'immatriculation], dont le siège social est situé [adresse complète à compléter — Gironde, France] (« nous », « UseWok », « la Société »), et toute personne utilisant le service accessible à l'adresse <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a> (le « Service », l'« Utilisateur », « vous »).</P>
+          <P style={{ marginBottom: 0 }}>En créant un compte ou en utilisant le Service, vous acceptez pleinement et sans réserve les présentes Conditions ainsi que notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>. Si vous n'acceptez pas ces Conditions, vous ne devez pas utiliser le Service.</P>
+        </div>
+      </div>
+
+      {/* Main layout */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(32px, 5vw, 48px) clamp(20px, 3vw, 40px)', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 48, alignItems: 'start' }}>
+        <main>
+          <Section number="1" title="Définitions">
+            <BulletList items={[
+              <><strong>« Service »</strong> : la plateforme UseWok accessible via le site usewok.com et toute application associée.</>,
+              <><strong>« Compte »</strong> : l'espace personnel créé par l'Utilisateur pour accéder au Service.</>,
+              <><strong>« Abonnement »</strong> : la formule payante souscrite par l'Utilisateur pour accéder à des fonctionnalités étendues du Service.</>,
+              <><strong>« Contenu »</strong> : tout texte, donnée, fichier ou élément transmis ou généré par l'Utilisateur via le Service.</>,
+            ]} />
+          </Section>
+
+          <Section number="2" title="Objet du Service">
+            <P>UseWok est une plateforme accessible en ligne, proposée selon un modèle freemium avec abonnements payants. La Société se réserve le droit de modifier, faire évoluer ou retirer tout ou partie des fonctionnalités du Service à tout moment, avec ou sans préavis, notamment pour des raisons techniques, légales ou commerciales.</P>
+          </Section>
+
+          <Section number="3" title="Création de compte et accès">
+            <SubSection title="3.1 Modalités d'inscription">
+              <P>L'accès au Service nécessite la création d'un Compte, soit par inscription via email, soit via connexion avec un compte tiers (Google ou Facebook — « SSO »). En vous inscrivant via Google ou Facebook, vous autorisez UseWok à accéder à votre nom, votre adresse email et votre photo de profil, conformément à notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>.</P>
+            </SubSection>
+            <SubSection title="3.2 Âge minimum">
+              <P>L'utilisation du Service est réservée aux personnes âgées d'au moins <strong>16 ans</strong>, ou disposant du consentement de leur représentant légal si la loi applicable l'exige.</P>
+            </SubSection>
+            <SubSection title="3.3 Exactitude des informations">
+              <P>Vous vous engagez à fournir des informations exactes, complètes et à jour lors de votre inscription, et à les maintenir à jour.</P>
+            </SubSection>
+            <SubSection title="3.4 Sécurité du compte">
+              <P>Vous êtes seul responsable de la confidentialité de vos identifiants de connexion et de toute activité réalisée depuis votre Compte. Vous devez nous informer immédiatement à <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a> en cas d'accès non autorisé suspecté.</P>
+            </SubSection>
+          </Section>
+
+          <Section number="4" title="Abonnements et conditions financières">
+            <SubSection title="4.1 Formules">
+              <P>Le Service est proposé selon un modèle freemium : une offre gratuite avec fonctionnalités limitées, et des offres d'abonnement payant donnant accès à des fonctionnalités étendues.</P>
+            </SubSection>
+            <SubSection title="4.2 Essai gratuit">
+              <InfoBox icon="🎁">
+                L'offre d'abonnement <strong>« Starter »</strong> bénéficie d'un essai gratuit de <strong>7 jours</strong>. À l'expiration de cette période d'essai, l'abonnement est automatiquement facturé selon le moyen de paiement enregistré, sauf annulation préalable par l'Utilisateur depuis les paramètres de son Compte.
+              </InfoBox>
+            </SubSection>
+            <SubSection title="4.3 Paiement">
+              <P>Les paiements sont traités par notre prestataire tiers <strong>Stripe</strong>. UseWok n'a accès à aucune donnée de carte bancaire, celle-ci étant directement gérée par Stripe selon ses propres conditions et standards de sécurité (PCI-DSS).</P>
+            </SubSection>
+            <SubSection title="4.4 Absence de remboursement">
+              <P>Sauf disposition légale impérative contraire, les sommes versées au titre d'un abonnement ne sont ni remboursables ni annulables, y compris en cas de non-utilisation du Service pendant la période d'abonnement.</P>
+              <WarningBox icon="⚖️">
+                <strong>Précision légale importante :</strong> conformément au droit français de la consommation (article L221-18 du Code de la consommation), tout consommateur bénéficie en principe d'un délai de rétractation de 14 jours pour un achat en ligne. Si l'Utilisateur est un consommateur (et non un professionnel), il peut exercer ce droit de rétractation dans les 14 jours suivant la souscription, sauf s'il a expressément renoncé à ce droit avant la fin du délai en demandant un accès immédiat au Service.
+              </WarningBox>
+            </SubSection>
+            <SubSection title="4.5 Renouvellement automatique">
+              <P>Les abonnements payants se renouvellent automatiquement à l'échéance de leur période, sauf annulation par l'Utilisateur avant la date de renouvellement, depuis les paramètres de son Compte.</P>
+            </SubSection>
+            <SubSection title="4.6 Modification des tarifs">
+              <P>UseWok peut modifier ses tarifs à tout moment. Toute modification de tarif sera notifiée à l'Utilisateur avant son entrée en vigueur et ne s'appliquera qu'au renouvellement suivant de l'Abonnement en cours.</P>
+            </SubSection>
+          </Section>
+
+          <Section number="5" title="Propriété intellectuelle">
+            <SubSection title="5.1 Propriété de UseWok">
+              <P>L'ensemble des éléments du Service — code source, design, interface, logos, marques, textes, base de données — est la propriété exclusive de UseWok ou de ses concédants de licence, et est protégé par le droit de la propriété intellectuelle. Aucune disposition des présentes Conditions ne confère à l'Utilisateur un quelconque droit de propriété sur ces éléments.</P>
+            </SubSection>
+            <SubSection title="5.2 Licence d'utilisation">
+              <P>UseWok vous accorde un droit d'usage personnel, non exclusif, non transférable et révocable sur le Service, pour la durée de votre Compte, exclusivement pour vos besoins personnels conformes à l'objet du Service.</P>
+            </SubSection>
+            <SubSection title="5.3 Interdictions">
+              <P>Il est strictement interdit de copier, reproduire, décompiler, désassembler, procéder à de l'ingénierie inverse, extraire le code source, ou tenter d'extraire la base de données du Service par des moyens automatisés (scraping, crawling ou autre).</P>
+            </SubSection>
+          </Section>
+
+          <Section number="6" title="Règles d'usage acceptable">
+            <P>En utilisant le Service, vous vous engagez à ne pas :</P>
+            <BulletList items={[
+              "Publier ou transmettre du contenu illicite, haineux, diffamatoire, ou portant atteinte aux droits d'un tiers",
+              "Utiliser le Service à des fins de spam, fraude, hameçonnage (phishing) ou usurpation d'identité",
+              "Tenter d'accéder de manière non autorisée aux systèmes, comptes ou données d'autres utilisateurs",
+              "Utiliser des bots, scripts automatisés ou tout autre moyen non autorisé pour interagir avec le Service",
+              "Perturber ou surcharger intentionnellement l'infrastructure du Service",
+              "Contourner toute mesure de sécurité ou de limitation mise en place par UseWok",
+            ]} />
+          </Section>
+
+          <Section number="7" title="Suspension et résiliation par UseWok">
+            <P>UseWok se réserve le droit de suspendre, restreindre ou supprimer, à tout moment et sans préavis, l'accès de tout Utilisateur au Service, notamment en cas de violation des présentes Conditions, de comportement frauduleux, ou de risque pour la sécurité du Service ou d'autres utilisateurs. Cette résiliation ne donne droit à aucun remboursement des sommes déjà versées, sauf disposition légale contraire.</P>
+          </Section>
+
+          <Section number="8" title="Résiliation par l'Utilisateur">
+            <P>Vous pouvez supprimer votre Compte à tout moment depuis les paramètres du Service. La suppression de votre Compte entraîne la suppression de vos données personnelles conformément à notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>, sous réserve des données que nous sommes légalement tenus de conserver (notamment les données de facturation, conservées 10 ans).</P>
+          </Section>
+
+          <Section number="9" title="Garanties et exclusion de responsabilité">
+            <div style={{
+              background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10,
+              padding: '20px 24px', marginBottom: 16,
+            }}>
+              <P style={{ fontSize: 13, fontFamily: 'monospace', color: '#374151', marginBottom: 0, lineHeight: 1.7, letterSpacing: '0.01em' }}>
+                LE SERVICE EST FOURNI « EN L'ÉTAT » ET « SELON DISPONIBILITÉ ». USEWOK NE GARANTIT PAS QUE LE SERVICE SERA EXEMPT D'ERREURS, ININTERROMPU, OU PARFAITEMENT SÉCURISÉ. DANS LA MESURE PERMISE PAR LA LOI, USEWOK DÉCLINE TOUTE GARANTIE IMPLICITE DE QUALITÉ MARCHANDE OU D'ADÉQUATION À UN USAGE PARTICULIER.
+              </P>
+            </div>
+          </Section>
+
+          <Section number="10" title="Limitation de responsabilité">
+            <div style={{
+              background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10,
+              padding: '20px 24px', marginBottom: 16,
+            }}>
+              <P style={{ fontSize: 13, fontFamily: 'monospace', color: '#374151', marginBottom: 0, lineHeight: 1.7, letterSpacing: '0.01em' }}>
+                DANS LA MESURE MAXIMALE PERMISE PAR LA LOI APPLICABLE, USEWOK NE POURRA ÊTRE TENU RESPONSABLE DE TOUT DOMMAGE INDIRECT, PERTE DE DONNÉES, PERTE DE CHIFFRE D'AFFAIRES OU PRÉJUDICE FINANCIER SUBI PAR L'UTILISATEUR DU FAIT DE L'UTILISATION OU DE L'IMPOSSIBILITÉ D'UTILISER LE SERVICE. LA RESPONSABILITÉ TOTALE DE USEWOK, TOUTES CAUSES CONFONDUES, EST LIMITÉE AU MONTANT TOTAL VERSÉ PAR L'UTILISATEUR AU TITRE DE SON ABONNEMENT AU COURS DES DOUZE (12) MOIS PRÉCÉDANT LE FAIT GÉNÉRATEUR DU DOMMAGE.
+              </P>
+            </div>
+            <P>Cette limitation ne s'applique pas en cas de faute lourde, de faute intentionnelle, ou de dommage corporel, conformément aux dispositions impératives du droit français.</P>
+          </Section>
+
+          <Section number="11" title="Données personnelles">
+            <P>Le traitement de vos données personnelles est régi par notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>, qui fait partie intégrante des présentes Conditions.</P>
+          </Section>
+
+          <Section number="12" title="Modification des présentes Conditions">
+            <P>UseWok peut modifier les présentes Conditions à tout moment. Toute modification substantielle vous sera notifiée par email ou via une notification sur le Service, avant son entrée en vigueur. La poursuite de l'utilisation du Service après notification vaut acceptation des Conditions modifiées.</P>
+          </Section>
+
+          <Section number="13" title="Droit applicable et juridiction compétente">
+            <P>Les présentes Conditions sont régies par le <strong>droit français</strong>.</P>
+            <InfoBox icon="⚖️">
+              <strong>Précision juridique :</strong> si vous êtes un consommateur résidant en France, vous bénéficiez du droit impératif de saisir, en cas de litige, soit le tribunal de votre lieu de résidence, soit celui du siège social de UseWok, conformément à l'article 46 du Code de procédure civile et aux dispositions protectrices du droit de la consommation. Aucune clause des présentes Conditions ne saurait limiter ce droit.<br /><br />
+              Si vous agissez en tant que professionnel, les tribunaux du ressort du siège social de UseWok sont seuls compétents.
+            </InfoBox>
+          </Section>
+
+          <Section number="14" title="Médiation à la consommation">
+            <P>Conformément aux articles L611-1 et suivants du Code de la consommation, en cas de litige non résolu directement avec notre service support, tout consommateur a le droit de recourir gratuitement à un médiateur de la consommation. [Nom et coordonnées du médiateur à désigner avant le lancement officiel — obligation légale française pour tout site B2C].</P>
+            <P>Vous pouvez également utiliser la plateforme européenne de résolution des litiges en ligne : <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>ec.europa.eu/consumers/odr</a>.</P>
+          </Section>
+
+          <Section number="15" title="Dispositions diverses">
+            <BulletList items={[
+              <><strong>Intégralité de l'accord :</strong> les présentes Conditions et la Politique de Confidentialité constituent l'intégralité de l'accord entre vous et UseWok concernant l'utilisation du Service.</>,
+              <><strong>Divisibilité :</strong> si une clause des présentes Conditions est jugée invalide ou inapplicable, les autres clauses demeurent pleinement en vigueur.</>,
+              <><strong>Absence de renonciation :</strong> le fait pour UseWok de ne pas faire valoir un droit prévu par les présentes Conditions ne constitue pas une renonciation à ce droit.</>,
+              <><strong>Cession :</strong> UseWok peut céder les présentes Conditions à tout tiers dans le cadre d'une cession de son activité. L'Utilisateur ne peut céder ses droits sans accord écrit préalable de UseWok.</>,
+            ]} />
+          </Section>
+
+          <Section number="16" title="Contact">
+            <P>Pour toute question relative aux présentes Conditions, contactez-nous à :</P>
+            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px' }}>
+              <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
+                <div>📧 <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a></div>
+                <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
+              </div>
+            </div>
+          </Section>
+        </main>
+
+        {/* Sidebar TOC */}
+        <aside style={{ position: 'sticky', top: 80 }}>
+          <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Sommaire</div>
+            <nav>
+              {TOC.map(([num, label]) => (
+                <div key={num} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: CORAL, flexShrink: 0, marginTop: 2 }}>{num}.</span>
+                  <span style={{ fontSize: 12, color: '#374151', lineHeight: 1.4 }}>{label}</span>
+                </div>
+              ))}
+            </nav>
+          </div>
+          <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
+            <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Questions ?</div>
+            <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL, fontWeight: 500 }}>antoinevalton954@gmail.com</a>
+          </div>
+        </aside>
+      </div>
+
       {/* Footer */}
-      <footer className="border-t py-8 px-6 text-center" style={{ borderColor: 'rgba(0,0,0,0.07)', background: 'white' }}>
-        <p className="text-xs" style={{ color: 'rgba(0,0,0,0.3)' }}>© 2026 Stensor Inc. All rights reserved.</p>
+      <footer style={{ background: 'white', borderTop: '1px solid #E5E7EB', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+          © 2026 UseWok — L'outil français de visibilité IA ·{' '}
+          <Link to="/privacy" style={{ color: '#6B7280', textDecoration: 'none' }}>Politique de confidentialité</Link>
+          {' '}·{' '}
+          <Link to="/" style={{ color: '#6B7280', textDecoration: 'none' }}>Accueil</Link>
+        </p>
       </footer>
+
+      <style>{`
+        @media (max-width: 768px) {
+          aside { display: none !important; }
+          main { grid-column: 1 / -1 !important; }
+        }
+      `}</style>
     </div>
   );
 }

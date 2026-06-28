@@ -297,7 +297,7 @@ export default function PrivacyPolicyPage() {
             <P>UseWok traite vos données personnelles pour les finalités suivantes, chacune justifiée par une base juridique appropriée (voir article 4) :</P>
             <BulletList items={[
               <><strong>Fourniture du service :</strong> Créer et gérer votre compte, vous authentifier, vous donner accès aux fonctionnalités de la Plateforme auxquelles vous avez souscrit.</>,
-              <><strong>Gestion des abonnements et facturation :</strong> Traiter vos paiements, gérer vos abonnements mensuels ou annuels, émettre les justificatifs de paiement, via notre prestataire Stripe, Inc.</>,
+              <><strong>Gestion des abonnements et facturation :</strong> Traiter vos paiements, gérer vos abonnements mensuels ou annuels (l'abonnement Starter bénéficie d'un essai gratuit de 7 jours), émettre les justificatifs de paiement, via notre prestataire Stripe, Inc.</>,
               <><strong>Support client :</strong> Répondre à vos demandes d'assistance via notre système de tickets, résoudre les problèmes techniques et traiter les litiges liés à l'utilisation du service.</>,
               <><strong>Sécurité et prévention des fraudes :</strong> Détecter, prévenir et traiter les tentatives d'accès non autorisé, les comportements frauduleux, les attaques informatiques et toute activité susceptible de compromettre l'intégrité de la Plateforme ou la sécurité des utilisateurs.</>,
               <><strong>Amélioration du service :</strong> Analyser l'utilisation de la Plateforme afin d'identifier les axes d'amélioration, corriger les dysfonctionnements et développer de nouvelles fonctionnalités.</>,
