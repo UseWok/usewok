@@ -89,7 +89,7 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
         onMouseLeave={e => e.currentTarget.style.background = open ? 'rgba(21,19,15,0.06)' : 'transparent'}
       >
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: '#7C6AF4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0, letterSpacing: '-0.02em' }}>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: '#15130F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#F7F2E9', flexShrink: 0, letterSpacing: '-0.02em' }}>
           {initials}
         </div>
         {expanded && (
@@ -680,8 +680,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               onClick={() => navigate('/support')}
               title="Support"
               style={{
-                width: 26, height: 26, borderRadius: '50%',
-                border: '1.5px solid rgba(21,19,15,0.18)',
+                width: 26, height: 26, borderRadius: 7,
+                border: '1px solid rgba(0,0,0,0.10)',
                 background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, transition: 'all 120ms',

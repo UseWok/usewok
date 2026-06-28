@@ -750,7 +750,7 @@ export default function Home() {
                   const s = activeProfile[`${e.key}_score`] || 0;
                   return (
                     <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                      <div style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.65, filter: 'grayscale(1) brightness(10)' }}>
                         <AILogoImg id={e.logoId} size={16} />
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 500, color: WHITE, width: 54, flexShrink: 0 }}>{e.label}</span>

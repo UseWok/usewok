@@ -64,56 +64,44 @@ export default function ScanStatusIndicator({ lastScan, planId = 'free', onScan,
     else            chronoLabel = `${pad(m)}m ${pad(s)}s`;
   }
 
-  if (scanning) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <svg width={size} height={size} style={{ animation: 'scanSpin 1s linear infinite', flexShrink: 0 }}>
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM_DIM} strokeWidth={sw} />
-          <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM} strokeWidth={sw}
-            strokeDasharray={`${circ * 0.25} ${circ * 0.75}`} strokeLinecap="round" />
-        </svg>
-        <style>{`@keyframes scanSpin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  if (scanning) return null;
 
+  // Pastille discrète orange si cooldown, bouton scan si disponible
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-
-      {/* ── Ring seul, sans texte dedans ── */}
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-        <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={CREAM_DIM} strokeWidth={sw} />
-        <circle cx={size/2} cy={size/2} r={R} fill="none" stroke={ringColor} strokeWidth={sw}
-          strokeDasharray={circ} strokeDashoffset={dashOffset}
-          strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s linear' }} />
-      </svg>
-
-      {/* ── Chrono texte à côté du cercle ── */}
-      {!available && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      {!available && chronoLabel ? (
         <span style={{
-          fontSize: 10.5, fontWeight: 600, color: CREAM,
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 11, fontWeight: 600, color: CORAL,
+          background: 'rgba(255,90,31,0.15)',
+          border: '1px solid rgba(255,90,31,0.28)',
+          borderRadius: 20, padding: '4px 10px',
           fontFamily: F, lineHeight: 1, whiteSpace: 'nowrap',
-          fontVariantNumeric: 'tabular-nums', letterSpacing: '0.01em',
+          fontVariantNumeric: 'tabular-nums',
         }}>
+          <svg width="9" height="9" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+            <circle cx="6" cy="6" r="5" stroke={CORAL} strokeWidth="1.5"/>
+            <path d="M6 3.5V6l1.5 1.5" stroke={CORAL} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           {chronoLabel}
         </span>
+      ) : (
+        <button
+          onClick={available ? onScan : undefined}
+          title={available ? 'Lancer une analyse' : undefined}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 11, fontWeight: 600, color: CORAL,
+            background: 'rgba(255,90,31,0.15)',
+            border: '1px solid rgba(255,90,31,0.28)',
+            borderRadius: 20, padding: '4px 10px',
+            fontFamily: F, lineHeight: 1, whiteSpace: 'nowrap',
+            cursor: 'pointer',
+          }}
+        >
+          Analyser
+        </button>
       )}
-
-      {/* ── Pastille bouton scan ── */}
-      <button
-        onClick={available ? onScan : undefined}
-        title={available ? 'Lancer une analyse' : undefined}
-        style={{
-          width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-          background: available ? CORAL : 'rgba(240,232,215,0.20)',
-          border: 'none', padding: 0,
-          cursor: available ? 'pointer' : 'default',
-          boxShadow: available ? `0 0 0 2.5px rgba(255,90,31,0.22)` : 'none',
-          transition: 'background 300ms',
-        }}
-      />
-
-      <style>{`@keyframes scanSpin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

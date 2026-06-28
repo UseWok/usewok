@@ -4,8 +4,6 @@ const F = 'Inter, system-ui, sans-serif';
 const WHITE = '#FFFFFF';
 const DARK = '#1A1A1A';
 const CORAL = '#E8622A';
-const GREEN = '#3CC660';
-
 // Badge "Élevée" / "Bonne" / "Faible" — fond brun sombre comme l'image
 function MetricBadge({ score }) {
   const label = score >= 65 ? 'Élevée' : score >= 35 ? 'Bonne' : 'Faible';
@@ -77,9 +75,9 @@ export default function LRSHero({ d }) {
             {/* +pts */}
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
               <svg width={10} height={10} viewBox="0 0 10 10">
-                <path d="M2 8 L5 2 L8 8" stroke={GREEN} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 8 L5 2 L8 8" stroke={CORAL} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span style={{ fontSize: 12, fontWeight: 700, color: GREEN }}>+{vsIndustry} pts</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: CORAL }}>+{vsIndustry} pts</span>
             </div>
           </div>
 

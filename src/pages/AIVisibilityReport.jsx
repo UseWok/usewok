@@ -597,7 +597,7 @@ export default function AIVisibilityReport() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
               <span style={{ fontSize: 13.5, fontWeight: 700, color: INK, letterSpacing: '-0.01em' }}>Trafic et autorité web</span>
               {hasGsc ?
-              <span style={{ fontSize: 10, fontWeight: 700, color: CORAL }}>● GSC connecté</span> :
+              <span style={{ fontSize: 10, fontWeight: 700, color: INK2 }}>● GSC connecté</span> :
               <button onClick={() => navigate('/connections')} style={{ padding: '5px 11px', border: `1px solid ${BORDER}`, borderRadius: 6, background: WHITE, fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F }}>
                     Connecter Google
                   </button>
