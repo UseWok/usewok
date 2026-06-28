@@ -13,6 +13,37 @@ import GeoScoreChart from '@/components/performance/GeoScoreChart';
 import SOVChart from '@/components/performance/SOVChart';
 import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
+
+const DEMO_PERF_DATA = {
+  share_of_voice: {
+    your_brand: { voice_share_pct: 18, voice_share_delta: 4, favorable_pct: 72, favorable_delta: 6 },
+    competitors: [
+      { name: 'Semrush AI', voice_share_pct: 34 },
+      { name: 'BrightEdge', voice_share_pct: 27 },
+      { name: 'Conductor', voice_share_pct: 21 },
+      { name: 'UseWok', voice_share_pct: 18 },
+    ],
+  },
+  strategy: {
+    strategic_levers: [
+      { title: 'Créer une page FAQ structurée', body: 'Perplexity et ChatGPT favorisent les contenus en Q&R bien balisés.', priority: 'urgent' },
+      { title: 'Compléter Schema.org SoftwareApplication', body: 'Augmente la précision de catégorisation chez Claude et Gemini.', priority: 'urgent' },
+      { title: 'Publier 2 études de cas clients avec chiffres clés', body: 'Les LLM citent davantage les contenus factuels vérifiables.', priority: 'short_term' },
+      { title: 'Obtenir des mentions sur G2 et Capterra', body: 'Perplexity utilise ces plateformes comme sources de confiance.', priority: 'short_term' },
+      { title: 'Lancer une newsletter mensuelle avec insights IA', body: 'Renforce la fréquence de citation sur Mistral et Claude.', priority: 'medium_term' },
+    ],
+  },
+  lrs_trend: 'rising',
+  lrs_vs_industry: 8,
+  ai_mentions_count: 420,
+  geo_scores: [
+    { country: 'France', score: 74 },
+    { country: 'Belgique', score: 61 },
+    { country: 'Suisse', score: 58 },
+    { country: 'Canada', score: 44 },
+  ],
+};
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
@@ -68,6 +99,15 @@ export default function PerformancePage() {
   const [phase, setPhase] = useState('loading');
 
   const loadPerf = async (forceRefresh = false) => {
+    // Demo mode
+    const activeDomain = getActiveDomain();
+    if (activeDomain?.url === DEMO_SITE_URL) {
+      setProfile({ ...DEMO_PROFILE });
+      setPerfData(DEMO_PERF_DATA);
+      setPhase('done');
+      return;
+    }
+
     setPhase('loading');
     try {
       const u = await base44.auth.me();
