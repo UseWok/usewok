@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe } from 'lucide-react';
 import { setActiveDomain } from '@/lib/active-domain';
@@ -59,109 +60,7 @@ const AILogoImg = ({ id, size = 18 }) => {
   return <img src={url} width={size} height={size} style={{ objectFit: 'contain', display: 'block', flexShrink: 0 }} alt={id} />;
 };
 
-const LogoAuto = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10" stroke={INK} strokeWidth="1.5"/>
-    <path d="M8 12h8M12 8l4 4-4 4" stroke={INK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
 
-const LogoChatGPT = () => <AILogoImg id="chatgpt" />;
-const LogoGemini  = () => <AILogoImg id="gemini" />;
-const LogoClaude  = () => <AILogoImg id="claude" />;
-const LogoPerplexity = () => <AILogoImg id="perplexity" />;
-const LogoMistral = () => <AILogoImg id="mistral" />;
-const LogoGrok    = () => <AILogoImg id="grok" />;
-const LogoCopilot = () => <AILogoImg id="copilot" />;
-const LogoLlama   = () => <AILogoImg id="llama" />;
-
-// ── AI Engines config ──────────────────────────────────────────────────────────
-const AI_ENGINES = [
-  { id: 'auto',       label: 'Automatique',  Logo: LogoAuto,       sub: 'Le meilleur modèle IA est sélectionné\npour chaque requête' },
-  { id: 'claude',     label: 'Claude',       Logo: LogoClaude },
-  { id: 'chatgpt',    label: 'ChatGPT',      Logo: LogoChatGPT },
-  { id: 'gemini',     label: 'Gemini',       Logo: LogoGemini },
-  { id: 'perplexity', label: 'Perplexity',   Logo: LogoPerplexity },
-  { id: 'grok',       label: 'Grok',         Logo: LogoGrok },
-  { id: 'llama',      label: 'Meta Llama',   Logo: LogoLlama },
-  { id: 'mistral',    label: 'Mistral',      Logo: LogoMistral },
-  { id: 'copilot',    label: 'Copilot',      Logo: LogoCopilot },
-];
-
-// ── Vertical Engines Dropdown ─────────────────────────────────────────────────
-function EnginesDropdown({ selected, onToggle, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [onClose]);
-
-  const otherEngines = AI_ENGINES.filter(e => e.id !== 'auto');
-  const isAutoSelected = selected.includes('auto');
-
-  return (
-    <div
-    ref={ref}
-    style={{
-      position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 9000,
-      background: WHITE, border: `1px solid rgba(21,19,15,0.09)`, borderRadius: 14,
-      padding: '6px 0', minWidth: 280,
-      boxShadow: '0 4px 24px rgba(21,19,15,0.08), 0 1px 4px rgba(21,19,15,0.04)',
-    }}>
-      {/* Automatique row */}
-      <div
-        onClick={() => onToggle('auto')}
-        onMouseEnter={e => { if (!isAutoSelected) e.currentTarget.style.background = '#FAF6EF'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = WHITE; }}
-        style={{
-          display: 'flex', alignItems: 'flex-start', gap: 11,
-          padding: '9px 14px 10px', cursor: 'pointer',
-          background: WHITE,
-          borderBottom: `1px solid ${BORDER}`,
-          transition: 'background 100ms',
-        }}>
-        <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke={INK} strokeWidth="1.6" strokeLinejoin="round"/>
-          </svg>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 1 }}>Automatique</div>
-          <div style={{ fontSize: 11, color: INK3, lineHeight: 1.4 }}>Le meilleur modèle IA est sélectionné<br/>pour chaque requête</div>
-        </div>
-        {/* Espace réservé fixe pour éviter le recadrage */}
-        <div style={{ width: 14, flexShrink: 0, marginTop: 3 }}>
-          {isAutoSelected && <Check size={14} color={INK} strokeWidth={2.5} />}
-        </div>
-      </div>
-      {/* Other engines */}
-      {otherEngines.map((e) => {
-        const isSelected = selected.includes(e.id);
-        return (
-          <div key={e.id}
-            onClick={() => onToggle(e.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 11,
-              padding: '6px 14px', cursor: 'pointer',
-              background: 'transparent',
-              transition: 'background 100ms',
-            }}
-            onMouseEnter={ev => ev.currentTarget.style.background = '#FAF6EF'}
-            onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
-            <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <e.Logo />
-            </div>
-            <span style={{ fontSize: 12.5, fontWeight: 400, color: INK, flex: 1 }}>{e.label}</span>
-            <div style={{ width: 14, flexShrink: 0 }}>
-              {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: INK, margin: '0 auto' }} />}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // ── Mic Button with Voice Recording ───────────────────────────────────────────
 function MicButton({ onTranscript }) {
@@ -262,36 +161,7 @@ function MicButton({ onTranscript }) {
   );
 }
 
-// ── Engine selector in search bar (shows logos when selected) ─────────────────
-function EngineSelector({ selected, showEngines, onToggle }) {
-  const nonAuto = selected.filter(id => id !== 'auto');
-  const displayEngines = nonAuto.slice(0, 2).map(id => AI_ENGINES.find(e => e.id === id)).filter(Boolean);
 
-  if (selected.includes('auto') || selected.length === 0) {
-    return (
-      <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', cursor: 'pointer', flexShrink: 0, userSelect: 'none', borderRadius: 6, transition: 'background 120ms' }}
-        onMouseEnter={e => e.currentTarget.style.background = '#EEE5D2'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-        <span style={{ fontSize: 12.5, color: INK2, whiteSpace: 'nowrap' }}>Automatic</span>
-        <ChevronDown size={12} color={INK} strokeWidth={1.8} />
-      </div>
-    );
-  }
-
-  return (
-    <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', cursor: 'pointer', flexShrink: 0, userSelect: 'none', borderRadius: 6, transition: 'background 120ms', border: `1px solid ${BORDER}` }}
-      onMouseEnter={e => e.currentTarget.style.background = '#EEE5D2'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-      {displayEngines.map(e => (
-        <div key={e.id} style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <e.Logo />
-        </div>
-      ))}
-      {nonAuto.length > 2 && <span style={{ fontSize: 11, color: INK3, marginLeft: 2 }}>+{nonAuto.length - 2}</span>}
-      <ChevronDown size={11} color={INK} strokeWidth={1.8} style={{ marginLeft: 2 }} />
-    </div>
-  );
-}
 
 // ── Submit button with tooltip ────────────────────────────────────────────────
 function SubmitButton({ onClick, loading }) {
@@ -532,6 +402,7 @@ function ScanHero({ onScan }) {
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [activeUrl, setActiveUrl] = useState(() => {
@@ -541,12 +412,33 @@ export default function Home() {
   const [onboardingData, setOnboardingData] = useState(null);
   const [scanningUrls, setScanningUrls] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [showEngines, setShowEngines] = useState(false);
-  const [selectedEngines, setSelectedEngines] = useState(['auto']);
+  const [showModes, setShowModes] = useState(false);
+  const [mode, setMode] = useState('scan');
   const [trollError, setTrollError] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confirmSite, setConfirmSite] = useState(null); // { url, name }
   const scanningRef = useRef({});
+
+  useEffect(() => {
+    if (location.state?.autoScan) {
+      const text = location.state.autoScan;
+      setSearchQuery(text);
+      navigate(location.pathname, { replace: true, state: {} });
+      // execute search directly
+      (async () => {
+        const raw = text.trim();
+        if (!raw) return;
+        const direct = extractUrlDirect(raw);
+        if (direct) { startScan(direct); return; }
+        setExtracting(true);
+        setTrollError(false);
+        const result = await extractUrlFromText(raw);
+        setExtracting(false);
+        if (!result) { setTrollError(true); setTimeout(() => setTrollError(false), 3500); return; }
+        setConfirmSite(result);
+      })();
+    }
+  }, [location.state]);
 
   const loadAll = async () => {
     try {
@@ -607,6 +499,11 @@ export default function Home() {
     const raw = searchQuery.trim();
     if (!raw || extracting) return;
 
+    if (mode === 'chat') {
+        navigate('/wok-ai', { state: { autoSend: raw } });
+        return;
+    }
+
     // Direct URL → scan immediately, no confirmation needed
     const direct = extractUrlDirect(raw);
     if (direct) {
@@ -631,6 +528,10 @@ export default function Home() {
 
   const handleVoiceTranscript = async (transcript) => {
     setSearchQuery(transcript);
+    if (mode === 'chat') {
+        navigate('/wok-ai', { state: { autoSend: transcript } });
+        return;
+    }
     const direct = extractUrlDirect(transcript);
     if (direct) {
       startScan(direct);
@@ -655,15 +556,7 @@ export default function Home() {
     } catch {}
   };
 
-  const toggleEngine = (id) => {
-    setSelectedEngines(prev => {
-      if (id === 'auto') return ['auto'];
-      const without = prev.filter(x => x !== 'auto');
-      return without.includes(id)
-        ? (without.filter(x => x !== id).length === 0 ? ['auto'] : without.filter(x => x !== id))
-        : [...without, id];
-    });
-  };
+
 
   const firstScanUrl = profiles.length === 0 && Object.keys(scanningUrls)[0];
   if (firstScanUrl) return <ScanLoader url={firstScanUrl} />;
@@ -726,7 +619,7 @@ export default function Home() {
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setTrollError(false); }}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmitSearch(); } }}
-              placeholder="Rechercher un domaine, lancer une analyse…"
+              placeholder={mode === 'scan' ? "Rechercher un domaine, lancer une analyse…" : "Poser une question, demander de l'aide..."}
               rows={1}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
@@ -743,11 +636,10 @@ export default function Home() {
               }}
             />
 
-            {/* Engine selector */}
-            <EngineSelector
-              selected={selectedEngines}
-              showEngines={showEngines}
-              onToggle={() => setShowEngines(v => !v)}
+            {/* Mode selector */}
+            <ModeSelector
+              mode={mode}
+              onToggle={() => setShowModes(v => !v)}
             />
 
             {/* Mic */}
@@ -771,13 +663,13 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* Engine Dropdown */}
+          {/* Mode Dropdown */}
           <AnimatePresence>
-            {showEngines && (
-              <EnginesDropdown
-                selected={selectedEngines}
-                onToggle={toggleEngine}
-                onClose={() => setShowEngines(false)}
+            {showModes && (
+              <ModeDropdown
+                mode={mode}
+                onSelect={setMode}
+                onClose={() => setShowModes(false)}
               />
             )}
           </AnimatePresence>

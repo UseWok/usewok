@@ -6,7 +6,8 @@ import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { getProfileData } from '@/lib/profile-storage';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 
 const F = '"Anthropic Sans","Anthropic Sans Variable",Inter,system-ui,sans-serif';
 const INK = '#111110';
@@ -372,6 +373,7 @@ const DEMO_MESSAGES = [
 export default function WokAIPage({ user: userProp }) {
   const { user: authUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = userProp || authUser;
   const [convs, setConvs] = useState(() => pruneConvs(loadConvs()));
   const [activeConvId, setActiveConvId] = useState(null);
@@ -382,10 +384,21 @@ export default function WokAIPage({ user: userProp }) {
   const [driveFiles, setDriveFiles] = useState([]);
   const [showPlus, setShowPlus] = useState(false);
   const [showDrive, setShowDrive] = useState(false);
+  const [mode, setMode] = useState('chat');
+  const [showModes, setShowModes] = useState(false);
   const [profile, setProfile] = useState(null);
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (location.state?.autoSend) {
+      const msg = location.state.autoSend;
+      navigate(location.pathname, { replace: true, state: {} });
+      setInput(msg);
+      setTimeout(() => sendMessage(msg), 50);
+    }
+  }, [location.state]);
 
   const domainLabel = activeDomain?.url?.replace(/https?:\/\//, '').split('/')[0] || '';
 
@@ -421,6 +434,12 @@ export default function WokAIPage({ user: userProp }) {
   const sendMessage = async (text) => {
     const content = text || input.trim();
     if (!content && files.length === 0 && driveFiles.length === 0) return;
+
+    if (mode === 'scan') {
+        navigate('/app', { state: { autoScan: content } });
+        return;
+    }
+
     setInput('');
 
     // Easter egg
@@ -553,50 +572,70 @@ export default function WokAIPage({ user: userProp }) {
 
       {/* ── Input bar — flat, no shadow ── */}
       <div style={{ padding: '8px 16px 16px', flexShrink: 0 }}>
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* + button — grisé */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button onClick={() => setShowPlus(v => !v)}
-              style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${BORDER}`, background: '#E8E3DA', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Plus size={14} color={INK2} strokeWidth={1.8} />
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            background: WHITE, border: `1px solid ${BORDER}`,
+            borderRadius: 10, padding: '9px 9px 9px 14px',
+            display: 'flex', alignItems: 'center', gap: 8,
+            transition: 'border-color 200ms',
+          }}>
+            {/* + button — transparent, looks like Home.jsx */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button onClick={() => setShowPlus(v => !v)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, outline: 'none' }}>
+                <Plus size={14} color={INK} strokeWidth={1.8} />
+              </button>
+              <AnimatePresence>
+                {showPlus && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowPlus(false)} />
+                    <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                      transition={{ duration: 0.12 }}
+                      style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden', minWidth: 200, zIndex: 100, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                      {[
+                        { label: 'Joindre des fichiers', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
+                        { label: 'Google Drive', icon: <FileText size={13} color={INK2} />, action: () => { setShowDrive(true); setShowPlus(false); } },
+                      ].map((item, i) => (
+                        <button key={i} onClick={item.action}
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: INK, fontFamily: F, textAlign: 'left', borderBottom: i === 0 ? `1px solid ${BORDER}` : 'none' }}
+                          onMouseEnter={e => e.currentTarget.style.background = SURFACE}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                          {item.icon} {item.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Textarea */}
+            <textarea value={input} onChange={e => {
+                setInput(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 4 * 1.5 * 13.5) + 'px';
+              }} onKeyDown={handleKeyDown}
+              placeholder={mode === 'scan' ? "Rechercher un domaine, lancer une analyse…" : "Poser une question, demander de l'aide..."} rows={1}
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
+
+            {/* Mode selector */}
+            <ModeSelector mode={mode} onToggle={() => setShowModes(v => !v)} />
+
+            {/* Mic */}
+            <MicButton onTranscript={(t) => setInput(prev => prev ? prev + ' ' + t : t)} />
+
+            {/* Send */}
+            <button onClick={canSend ? () => sendMessage() : undefined}
+              style={{ width: 34, height: 34, borderRadius: '50%', background: CORAL, border: 'none', cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0, opacity: canSend ? 1 : 0.6 }}>
+              {loading ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, animation: 'spin 0.7s linear infinite' }} /> : <ArrowUp size={14} color={WHITE} strokeWidth={2.2} />}
             </button>
-            <AnimatePresence>
-              {showPlus && (
-                <>
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowPlus(false)} />
-                  <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.12 }}
-                    style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden', minWidth: 200, zIndex: 100 }}>
-                    {[
-                      { label: 'Joindre des fichiers', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
-                      { label: 'Google Drive', icon: <FileText size={13} color={INK2} />, action: () => { setShowDrive(true); setShowPlus(false); } },
-                    ].map((item, i) => (
-                      <button key={i} onClick={item.action}
-                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: INK, fontFamily: F, textAlign: 'left', borderBottom: i === 0 ? `1px solid ${BORDER}` : 'none' }}
-                        onMouseEnter={e => e.currentTarget.style.background = SURFACE}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        {item.icon} {item.label}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
           </div>
 
-          {/* Textarea */}
-          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder="Pose ta question…" rows={1}
-            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
-
-          {/* Mic */}
-          <MicButton onTranscript={(t) => setInput(prev => prev ? prev + ' ' + t : t)} />
-
-          {/* Send — toujours noir + flèche orange, juste disabled si vide */}
-          <button onClick={canSend ? () => sendMessage() : undefined}
-            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: INK, cursor: canSend ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'none', flexShrink: 0 }}>
-            <ArrowUp size={15} color={CORAL} strokeWidth={2.2} />
-          </button>
+          <AnimatePresence>
+            {showModes && (
+              <ModeDropdown mode={mode} onSelect={setMode} onClose={() => setShowModes(false)} anchor="top" />
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
