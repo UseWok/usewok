@@ -51,57 +51,52 @@ export default function EngineScoreGrid({ d }) {
   })).sort((a, b) => b.score - a.score);
 
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 12, fontFamily: F }}>
-      {/* Section label */}
-      <div style={{ padding: '12px 18px 0' }}>
-        <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: 0 }}>
-          Scores par assistant IA
-        </p>
-      </div>
+    <div style={{ marginBottom: 12, fontFamily: F }}>
+      {/* Section label on beige bg */}
+      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>
+        Scores par assistant IA
+      </p>
 
-      {/* Column headers */}
-      <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 48px 68px 76px', alignItems: 'center', padding: '10px 18px 8px', gap: 8 }}>
-        <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>Assistant</span>
-        <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>Score</span>
-        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'right' }}></span>
-        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'center' }}>Évolution</span>
-        <span style={{ fontSize: 11, color: INK3, fontWeight: 500, textAlign: 'right' }}>Sentiment</span>
-      </div>
-
-      {engines.map((e, i) => (
-        <div key={e.key} style={{
-          display: 'grid', gridTemplateColumns: '120px 1fr 48px 68px 76px',
-          alignItems: 'center', gap: 8,
-          padding: '12px 18px',
-          borderTop: `1px solid ${BORDER}`,
-        }}>
-          {/* Name */}
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{e.label}</span>
-
-          {/* Progress bar */}
-          <div style={{ height: 7, background: SURFACE, borderRadius: 4, overflow: 'hidden' }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${e.score}%` }}
-              transition={{ duration: 0.9, delay: i * 0.05, ease: 'easeOut' }}
-              style={{ height: '100%', background: CORAL, borderRadius: 4 }}
-            />
-          </div>
-
-          {/* Score number */}
-          <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, textAlign: 'right' }}>{e.score}</span>
-
-          {/* Evolution */}
-          <div style={{ textAlign: 'center' }}>
-            <EvoLabel val={e.evolution} />
-          </div>
-
-          {/* Sentiment */}
-          <div style={{ textAlign: 'right' }}>
-            <SentimentBadge sentiment={e.sentiment} score={e.score} />
-          </div>
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
+        {/* Column headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 44px 80px 80px', alignItems: 'center', padding: '10px 18px 8px', gap: 8 }}>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}>Assistant</span>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}>Score</span>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}></span>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400, textAlign: 'right' }}>Évolution</span>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400, textAlign: 'right' }}>Sentiment</span>
         </div>
-      ))}
+
+        {engines.map((e, i) => (
+          <div key={e.key} style={{
+            display: 'grid', gridTemplateColumns: '110px 1fr 44px 80px 80px',
+            alignItems: 'center', gap: 8,
+            padding: '14px 18px',
+            borderTop: `1px solid ${BORDER}`,
+          }}>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{e.label}</span>
+
+            <div style={{ height: 7, background: SURFACE, borderRadius: 4, overflow: 'hidden' }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${e.score}%` }}
+                transition={{ duration: 0.9, delay: i * 0.05, ease: 'easeOut' }}
+                style={{ height: '100%', background: CORAL, borderRadius: 4 }}
+              />
+            </div>
+
+            <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, textAlign: 'right' }}>{e.score}</span>
+
+            <div style={{ textAlign: 'right' }}>
+              <EvoLabel val={e.evolution} />
+            </div>
+
+            <div style={{ textAlign: 'right' }}>
+              <SentimentBadge sentiment={e.sentiment} score={e.score} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

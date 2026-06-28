@@ -48,12 +48,13 @@ export default function LRSRadarChart({ d }) {
   const yourPath = buildPath(scores, maxVal, cx, cy, R);
 
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px', marginBottom: 12, fontFamily: F }}>
-      {/* Section label */}
-      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>
+    <div style={{ marginBottom: 12, fontFamily: F }}>
+      {/* Section label on beige bg */}
+      <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>
         Radar des assistants IA
       </p>
 
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <svg width={260} height={260} viewBox="0 0 260 260">
           {/* Grid polygons */}
@@ -96,6 +97,7 @@ export default function LRSRadarChart({ d }) {
             {avg}
           </text>
         </svg>
+      </div>
       </div>
     </div>
   );

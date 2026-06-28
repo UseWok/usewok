@@ -6,15 +6,15 @@ const DARK = '#1A1A1A';
 const CORAL = '#E8622A';
 const GREEN = '#3CC660';
 
-// Badge "Élevée" / "Bonne" / "Faible" — fond orange/corail
+// Badge "Élevée" / "Bonne" / "Faible" — fond brun sombre comme l'image
 function MetricBadge({ score }) {
   const label = score >= 65 ? 'Élevée' : score >= 35 ? 'Bonne' : 'Faible';
   return (
     <span style={{
       display: 'inline-block',
-      fontSize: 12, fontWeight: 700, color: WHITE,
-      background: CORAL,
-      borderRadius: 6, padding: '4px 11px',
+      fontSize: 12, fontWeight: 700, color: '#F4866A',
+      background: '#3A1A0E',
+      borderRadius: 7, padding: '5px 13px',
       whiteSpace: 'nowrap',
     }}>{label}</span>
   );

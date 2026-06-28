@@ -59,15 +59,15 @@ const GREEN = '#3CC660';
 function KPICard({ label, value, delta }) {
   const up = delta == null ? null : delta > 0;
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 14px', flex: 1 }}>
-      <p style={{ fontSize: 11, color: INK3, fontWeight: 500, margin: '0 0 6px' }}>{label}</p>
-      <p style={{ fontSize: 26, fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</p>
+    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '16px 16px 14px', flex: 1 }}>
+      <p style={{ fontSize: 12, color: INK3, fontWeight: 400, margin: '0 0 8px' }}>{label}</p>
+      <p style={{ fontSize: 28, fontWeight: 900, color: INK, margin: 0, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</p>
       {delta != null && (
-        <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 3 }}>
           <svg width={10} height={10} viewBox="0 0 10 10">
             <path d={up ? 'M2 8 L5 2 L8 8' : 'M2 2 L5 8 L8 2'} stroke={up ? GREEN : CORAL} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: 11, fontWeight: 700, color: up ? GREEN : CORAL }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: up ? GREEN : CORAL }}>
             {up ? '+' : ''}{delta}% vs mois-1
           </span>
         </div>
@@ -175,7 +175,7 @@ export default function PerformancePage() {
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, overscrollBehavior: 'none' }}>
       {/* Header */}
-      <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}`, padding: '12px 18px', paddingTop: 'max(12px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+      <div style={{ background: SURFACE, padding: '12px 18px', paddingTop: 'max(12px, env(safe-area-inset-top))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ArrowLeft size={14} color={INK2} />
