@@ -1,220 +1,411 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { toast } from 'sonner';
-import { Mail, ShieldCheck, ExternalLink, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
+import { ArrowLeft, ShieldCheck, Lock, CreditCard, Building2, Wallet } from 'lucide-react';
 
 export function saveCart(data) { localStorage.setItem('wok_cart', JSON.stringify(data)); }
 export function clearCart() { localStorage.removeItem('wok_cart'); }
 export function getCart() { try { return JSON.parse(localStorage.getItem('wok_cart')); } catch { return null; } }
 
-const REDIRECT_TIMEOUT = 30; // seconds before showing "check your email" screen
+const F = "'Inter', system-ui, sans-serif";
+const INK = '#0A0A0B';
+const INK2 = '#4B4B52';
+const INK3 = '#9B9BA8';
+const BORDER = '#E2E2DF';
+const SURFACE = '#F7F6F4';
+const WHITE = '#FFFFFF';
+const CORAL = '#F95738';
+const BLUE_BG = '#3C4B6B';
+
+// Payment method icons as SVG
+const VisaIcon = () => (
+  <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+    <rect width="32" height="20" rx="3" fill="#1A1F71"/>
+    <text x="4" y="14" fill="white" fontSize="9" fontWeight="bold" fontFamily="Arial">VISA</text>
+  </svg>
+);
+const McIcon = () => (
+  <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+    <rect width="28" height="20" rx="3" fill="#252525"/>
+    <circle cx="10" cy="10" r="7" fill="#EB001B"/>
+    <circle cx="18" cy="10" r="7" fill="#F79E1B"/>
+    <path d="M14 4.8a7 7 0 010 10.4A7 7 0 0114 4.8z" fill="#FF5F00"/>
+  </svg>
+);
+const AmexIcon = () => (
+  <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+    <rect width="28" height="20" rx="3" fill="#2E77BC"/>
+    <text x="3" y="14" fill="white" fontSize="7.5" fontWeight="bold" fontFamily="Arial">AMEX</text>
+  </svg>
+);
+const PaypalIcon = () => (
+  <svg width="64" height="18" viewBox="0 0 64 18" fill="none">
+    <text x="0" y="13" fill="#003087" fontSize="13" fontWeight="bold" fontFamily="Arial">Pay</text>
+    <text x="22" y="13" fill="#009CDE" fontSize="13" fontWeight="bold" fontFamily="Arial">Pal</text>
+  </svg>
+);
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
-  const checkoutUrl = urlParams.get('url');
-  const planName = urlParams.get('plan') || 'Plan';
+  const planIdParam = urlParams.get('plan') || 'starter';
+  const billingParam = urlParams.get('billing') || 'monthly';
 
-  const [phase, setPhase] = useState('redirecting'); // 'redirecting' | 'waiting' | 'code'
-  const [countdown, setCountdown] = useState(REDIRECT_TIMEOUT);
-  const [code, setCode] = useState('');
-  const [redeeming, setRedeeming] = useState(false);
-  const [redeemed, setRedeemed] = useState(false);
-  const intervalRef = useRef(null);
+  const [billing, setBilling] = useState(billingParam);
+  const [plans, setPlans] = useState([]);
+  const [plan, setPlan] = useState(null);
+  const [email, setEmail] = useState('');
+  const [payMethod, setPayMethod] = useState('card'); // 'card' | 'bank' | 'paypal'
+  const [loading, setLoading] = useState(false);
+  const [inIframe, setInIframe] = useState(false);
 
+  // Detect iframe
   useEffect(() => {
-    if (!checkoutUrl) { navigate('/pricing', { replace: true }); return; }
-
-    // Open checkout URL in new tab
-    window.open(checkoutUrl, '_blank');
-
-    // Start countdown
-    intervalRef.current = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current);
-          setPhase('waiting');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(intervalRef.current);
+    try { setInIframe(window.self !== window.top); } catch { setInIframe(true); }
   }, []);
 
-  const handleRedeemCode = async () => {
-    if (!code.trim()) return;
-    setRedeeming(true);
-    try {
-      const results = await base44.entities.ActivationCode.filter({ code: code.trim() });
-      if (results.length === 0) {
-        toast.error('Code invalide. Vérifiez votre e-mail ou vos spams.');
-        setRedeeming(false);
-        return;
-      }
-      const rec = results[0];
-      if (rec.used) {
-        toast.error('Ce code a déjà été utilisé.');
-        setRedeeming(false);
-        return;
-      }
-      // Mark used
-      const me = await base44.auth.me();
-      await base44.entities.ActivationCode.update(rec.id, { used: true, used_by: me?.email || '' });
-      // Update user plan
-      if (me?.id) {
-        await base44.entities.User.update(me.id, { subscription_plan: rec.plan_id });
-      }
-      setRedeemed(true);
-      toast.success('Accès activé ! Bienvenue 🎉');
-      setTimeout(() => navigate('/app', { replace: true }), 2000);
-    } catch {
-      toast.error('Erreur lors de la vérification. Réessayez.');
+  // Load plans
+  useEffect(() => {
+    loadPlansFromDB()
+      .then(db => setPlans(db || getPlansConfig()))
+      .catch(() => setPlans(getPlansConfig()));
+  }, []);
+
+  // Set current plan from plans
+  useEffect(() => {
+    if (plans.length > 0) {
+      const found = plans.find(p => p.id === planIdParam);
+      setPlan(found || plans[1]);
     }
-    setRedeeming(false);
+  }, [plans, planIdParam]);
+
+  // Pre-fill email from current user
+  useEffect(() => {
+    base44.auth.me().then(u => { if (u?.email) setEmail(u.email); }).catch(() => {});
+  }, []);
+
+  const monthlyPrice = plan?.price_monthly || 0;
+  const yearlyPrice = plan?.price_yearly || 0;
+  const displayPrice = billing === 'yearly' ? Math.round(yearlyPrice / 12) : monthlyPrice;
+  const yearlyTotal = billing === 'yearly' ? yearlyPrice : null;
+  const discount = plan?.price_monthly && plan?.price_yearly
+    ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
+    : 0;
+
+  const handleCheckout = () => {
+    if (inIframe) {
+      alert('Le paiement est disponible uniquement depuis l\'application publiée.');
+      return;
+    }
+    const url = billing === 'yearly' ? plan?.checkout_url_yearly : plan?.checkout_url_monthly;
+    if (url?.startsWith('http')) {
+      setLoading(true);
+      window.location.href = url;
+    }
   };
 
-  if (redeemed) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-          </div>
-          <h2 className="text-xl font-bold text-white">Accès activé !</h2>
-          <p className="text-sm text-white/40">Redirection en cours…</p>
-        </div>
-      </div>
-    );
-  }
+  const handlePaypal = () => {
+    if (inIframe) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; }
+    alert('PayPal — redirection vers PayPal.');
+  };
+
+  if (!plan) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: SURFACE }}>
+      <div style={{ width: 24, height: 24, border: `2px solid ${BORDER}`, borderTopColor: INK, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 font-be">
-      <div className="w-full max-w-md space-y-6">
+    <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 900, display: 'flex', minHeight: '100vh', flexWrap: 'wrap' }}>
 
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-1">Abonnement {planName}</h1>
-          <p className="text-sm text-white/40">Votre paiement est en cours de traitement</p>
-        </div>
+        {/* ── LEFT PANEL (bleu grisé, comme Stripe) ── */}
+        <div style={{ flex: '0 0 340px', background: BLUE_BG, color: WHITE, padding: '40px 36px', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-        {phase === 'redirecting' && (
-          <div className="bg-[#111] border border-white/[0.07] rounded-2xl p-7 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
-                <ExternalLink className="w-5 h-5 text-white/60" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">Page de paiement ouverte</p>
-                <p className="text-xs text-white/40 mt-0.5">Completez votre paiement dans l'onglet ouvert</p>
-              </div>
+          {/* Back */}
+          <button onClick={() => navigate('/pricing')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: 13, padding: 0, marginBottom: 32, fontFamily: F }}>
+            <ArrowLeft size={14} />
+            Retour
+          </button>
+
+          {/* Logo */}
+          <div style={{ fontSize: 16, fontWeight: 800, color: WHITE, marginBottom: 28, letterSpacing: '-0.02em' }}>UseWok</div>
+
+          {/* Plan title */}
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>
+            S'abonner à UseWok {plan.name}
+          </div>
+
+          {/* Price big */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 38, fontWeight: 800, color: WHITE, letterSpacing: '-0.03em' }}>
+              {billing === 'yearly' ? yearlyPrice : monthlyPrice}€
+            </span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
+              {billing === 'yearly' ? '/an' : '/mois'}
+            </span>
+          </div>
+
+          {billing === 'yearly' && (
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+              soit {displayPrice}€/mois
             </div>
+          )}
 
-            {/* Timer */}
-            <div className="text-center space-y-2">
-              <div
-                className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-3xl font-bold text-white"
+          {/* Billing toggle */}
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 3, gap: 2, marginTop: 20, marginBottom: 28 }}>
+            {['monthly', 'yearly'].map(b => (
+              <button key={b} onClick={() => setBilling(b)}
                 style={{
-                  background: `conic-gradient(#eab308 ${(countdown / REDIRECT_TIMEOUT) * 360}deg, rgba(255,255,255,0.05) 0deg)`,
-                  padding: '3px',
-                }}
-              >
-                <div className="w-full h-full rounded-full bg-[#111] flex items-center justify-center text-2xl font-bold text-white">
-                  {countdown}
-                </div>
-              </div>
-              <p className="text-xs text-white/30">secondes restantes…</p>
-            </div>
-
-            <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-4 flex items-start gap-3">
-              <Mail className="w-4 h-4 text-white/30 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-white/40 leading-relaxed">
-                Une fois le paiement effectué, vous recevrez votre <strong className="text-white/60">code d'activation</strong> par e-mail. Pensez à vérifier vos spams.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setPhase('waiting')}
-              className="w-full py-3 text-sm font-semibold text-white/40 hover:text-white transition-colors text-center"
-            >
-              J'ai déjà payé →
-            </button>
-          </div>
-        )}
-
-        {phase === 'waiting' && (
-          <div className="bg-[#111] border border-white/[0.07] rounded-2xl p-7 space-y-6">
-            <div className="text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto">
-                <Mail className="w-7 h-7 text-amber-400" />
-              </div>
-              <h2 className="text-lg font-bold text-white">Vérifiez votre e-mail</h2>
-              <p className="text-sm text-white/40 leading-relaxed">
-                Votre code d'accès a été envoyé à votre adresse e-mail.<br />
-                <span className="text-amber-400/80">⚠ Pensez à vérifier vos spams / courriers indésirables.</span>
-              </p>
-            </div>
-
-            <div className="h-px bg-white/[0.06]" />
-
-            <button
-              onClick={() => setPhase('code')}
-              className="w-full py-3 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all"
-            >
-              <Key className="w-4 h-4" />
-              J'ai reçu mon code
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {phase === 'code' && (
-          <div className="bg-[#111] border border-white/[0.07] rounded-2xl p-7 space-y-6">
-            <div className="text-center space-y-2">
-              <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto">
-                <Key className="w-7 h-7 text-violet-400" />
-              </div>
-              <h2 className="text-lg font-bold text-white">Entrez votre code</h2>
-              <p className="text-xs text-white/40">Copiez le code reçu par e-mail et collez-le ici</p>
-            </div>
-
-            <div className="space-y-3">
-              <input
-                value={code}
-                onChange={e => setCode(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleRedeemCode()}
-                placeholder="Votre code d'activation…"
-                className="w-full bg-white/[0.04] border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-violet-500/50 transition-colors font-mono tracking-wider text-center"
-                autoFocus
-              />
-
-              <button
-                onClick={handleRedeemCode}
-                disabled={!code.trim() || redeeming}
-                className="w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all"
-              >
-                {redeeming ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4" />
-                    Activer mon accès
-                  </>
+                  flex: 1, padding: '7px 0', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 600, fontFamily: F,
+                  background: billing === b ? WHITE : 'transparent',
+                  color: billing === b ? INK : 'rgba(255,255,255,0.55)',
+                  transition: 'all 150ms',
+                  position: 'relative',
+                }}>
+                {b === 'monthly' ? 'Mensuel' : 'Annuel'}
+                {b === 'yearly' && discount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -8, right: -2,
+                    background: '#10B981', color: WHITE, fontSize: 9, fontWeight: 700,
+                    borderRadius: 20, padding: '2px 5px',
+                  }}>-{discount}%</span>
                 )}
               </button>
-            </div>
-
-            <button onClick={() => setPhase('waiting')} className="w-full text-xs text-white/25 hover:text-white/50 transition-colors text-center">
-              ← Je n'ai pas encore reçu mon code
-            </button>
+            ))}
           </div>
-        )}
 
-        <button onClick={() => navigate('/pricing')} className="w-full text-xs text-white/20 hover:text-white/40 text-center transition-colors">
-          Retour aux forfaits
-        </button>
+          {/* Line item */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div>
+                <div style={{ fontSize: 13, color: WHITE, fontWeight: 500 }}>UseWok {plan.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>
+                  Facturation {billing === 'yearly' ? 'annuelle' : 'mensuelle'}
+                </div>
+              </div>
+              <span style={{ fontSize: 13, color: WHITE }}>
+                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+              </span>
+            </div>
+          </div>
+
+          {/* Sous-total & Total */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Sous-total</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
+                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total dû aujourd'hui</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
+                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          {/* Security badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 32 }}>
+            <Lock size={12} color="rgba(255,255,255,0.35)" />
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+              Paiement sécurisé via Stripe
+            </span>
+          </div>
+        </div>
+
+        {/* ── RIGHT PANEL ── */}
+        <div style={{ flex: 1, padding: '40px 40px 60px', background: WHITE, minWidth: 0 }}>
+
+          {/* Coordonnées */}
+          <div style={{ marginBottom: 28 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Coordonnées</h2>
+            <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden', background: SURFACE }}>
+              <span style={{ padding: '11px 14px', fontSize: 13, color: INK3, borderRight: `1px solid ${BORDER}`, background: SURFACE, flexShrink: 0 }}>E-mail</span>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="votre@email.com"
+                style={{ flex: 1, padding: '11px 14px', border: 'none', background: 'transparent', fontSize: 13, color: INK, outline: 'none', fontFamily: F }}
+              />
+            </div>
+          </div>
+
+          {/* Moyen de paiement */}
+          <div>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Moyen de paiement</h2>
+
+            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
+
+              {/* Carte */}
+              <div
+                onClick={() => setPayMethod('card')}
+                style={{
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  background: payMethod === 'card' ? WHITE : SURFACE,
+                  borderBottom: `1px solid ${BORDER}`,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%', border: `2px solid ${payMethod === 'card' ? INK : BORDER}`,
+                  background: payMethod === 'card' ? INK : WHITE,
+                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {payMethod === 'card' && <div style={{ width: 7, height: 7, borderRadius: '50%', background: WHITE }} />}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <CreditCard size={15} color={INK2} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Carte</span>
+                </div>
+                <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                  <VisaIcon /><McIcon /><AmexIcon />
+                </div>
+              </div>
+
+              {/* Card fields */}
+              {payMethod === 'card' && (
+                <div style={{ padding: '16px 16px 20px', background: WHITE, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Informations de la carte</label>
+                    <div style={{ border: `1px solid ${BORDER}`, borderRadius: 7, overflow: 'hidden' }}>
+                      <input placeholder="1234 1234 1234 1234" style={{ width: '100%', padding: '10px 12px', border: 'none', fontSize: 13, color: INK, outline: 'none', fontFamily: F, boxSizing: 'border-box' }} />
+                      <div style={{ borderTop: `1px solid ${BORDER}`, display: 'flex' }}>
+                        <input placeholder="MM / AA" style={{ flex: 1, padding: '10px 12px', border: 'none', fontSize: 13, color: INK, outline: 'none', fontFamily: F }} />
+                        <div style={{ width: 1, background: BORDER }} />
+                        <input placeholder="CVC" style={{ flex: 1, padding: '10px 12px', border: 'none', fontSize: 13, color: INK, outline: 'none', fontFamily: F }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Nom du titulaire de la carte</label>
+                    <input placeholder="Nom complet" style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 13, color: INK, outline: 'none', fontFamily: F, boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Pays ou région</label>
+                    <select style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 13, color: INK, outline: 'none', fontFamily: F, background: WHITE, boxSizing: 'border-box' }}>
+                      <option>France</option>
+                      <option>Belgique</option>
+                      <option>Suisse</option>
+                      <option>Canada</option>
+                      <option>États-Unis</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Banque / Virement — avec badge 5$ remboursés */}
+              <div
+                onClick={() => setPayMethod('bank')}
+                style={{
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  background: payMethod === 'bank' ? WHITE : SURFACE,
+                  borderBottom: `1px solid ${BORDER}`,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%', border: `2px solid ${payMethod === 'bank' ? INK : BORDER}`,
+                  background: payMethod === 'bank' ? INK : WHITE,
+                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {payMethod === 'bank' && <div style={{ width: 7, height: 7, borderRadius: '50%', background: WHITE }} />}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Building2 size={15} color={INK2} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Banque</span>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: WHITE, background: '#10B981', borderRadius: 20, padding: '3px 9px' }}>
+                  5€ remboursés
+                </span>
+              </div>
+
+              {/* PayPal */}
+              <div
+                onClick={() => setPayMethod('paypal')}
+                style={{
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  background: payMethod === 'paypal' ? WHITE : SURFACE,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%', border: `2px solid ${payMethod === 'paypal' ? INK : BORDER}`,
+                  background: payMethod === 'paypal' ? INK : WHITE,
+                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {payMethod === 'paypal' && <div style={{ width: 7, height: 7, borderRadius: '50%', background: WHITE }} />}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Wallet size={15} color={INK2} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>PayPal</span>
+                </div>
+                <PaypalIcon />
+              </div>
+            </div>
+          </div>
+
+          {/* PayPal details */}
+          {payMethod === 'paypal' && (
+            <div style={{ marginTop: 16, padding: '14px 16px', background: '#FFF8E1', border: '1px solid #FFD54F', borderRadius: 8 }}>
+              <p style={{ fontSize: 12, color: '#7B6200', margin: 0, lineHeight: 1.6 }}>
+                Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité.
+              </p>
+            </div>
+          )}
+
+          {/* Bank details */}
+          {payMethod === 'bank' && (
+            <div style={{ marginTop: 16, padding: '14px 16px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8 }}>
+              <p style={{ fontSize: 12, color: '#166534', margin: 0, lineHeight: 1.6 }}>
+                🎁 <strong>5€ remboursés</strong> sur votre premier mois lors du paiement par virement bancaire. Vous recevrez un lien de connexion sécurisé à votre banque.
+              </p>
+            </div>
+          )}
+
+          {/* Save info checkbox */}
+          <div style={{ marginTop: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <input type="checkbox" id="save-info" style={{ marginTop: 2, cursor: 'pointer' }} />
+            <label htmlFor="save-info" style={{ fontSize: 12, color: INK2, lineHeight: 1.6, cursor: 'pointer' }}>
+              Enregistrer mes informations pour régler plus rapidement la prochaine fois
+            </label>
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={payMethod === 'paypal' ? handlePaypal : handleCheckout}
+            disabled={loading}
+            style={{
+              width: '100%', marginTop: 20, padding: '13px 0',
+              background: '#4F8EF7', color: WHITE, border: 'none',
+              borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: loading ? 'default' : 'pointer',
+              fontFamily: F, opacity: loading ? 0.7 : 1, transition: 'opacity 150ms',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}>
+            {loading ? (
+              <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+            ) : (
+              <>
+                <ShieldCheck size={15} />
+                {payMethod === 'paypal' ? 'Continuer avec PayPal' : 'Payer et s\'abonner'}
+              </>
+            )}
+          </button>
+
+          <p style={{ fontSize: 11, color: INK3, textAlign: 'center', marginTop: 10, lineHeight: 1.6 }}>
+            En vous abonnant, vous autorisez UseWok à débiter votre moyen de paiement conformément aux conditions jusqu'à résiliation.
+          </p>
+
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
       </div>
     </div>
   );
