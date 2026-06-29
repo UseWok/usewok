@@ -11,38 +11,7 @@ import AuditPerformance from '../components/audit/AuditPerformance';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { usePlanFeatures } from '@/lib/usePlanFeatures';
 import UpgradeModal from '@/components/upsell/UpgradeModal';
-import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
 
-const DEMO_AUDIT_DATA = {
-  analyzed_at: new Date().toISOString(),
-  crawl_score: 74, issues_count: 9, pages_crawled: 47, performance_score: 68,
-  critical_issues: [
-    { title: 'Google My Business manquant', severity: 'critical', impact: 'Invisible sur les recherches locales et geolocalisées.' },
-    { title: 'Schema.org incomplet — SoftwareApplication absent', severity: 'critical', impact: 'Les LLM ne peuvent pas catégoriser votre produit.' },
-  ],
-  warnings: [
-    { title: 'Balise meta description trop courte (48 chars)', severity: 'warning' },
-    { title: 'Pas de FAQ structurée détectée', severity: 'warning' },
-    { title: 'Temps de chargement > 2.8s sur mobile', severity: 'warning' },
-    { title: "H1 unique mais trop générique : 'AI Visibility Platform'", severity: 'warning' },
-  ],
-  passed: [
-    { title: 'SSL actif et HTTPS forcé' },
-    { title: 'Sitemap.xml détecté et valide' },
-    { title: 'Robots.txt correctement configuré' },
-    { title: 'Site responsive (mobile-friendly)' },
-    { title: 'Pas de pages 404 détectées' },
-    { title: 'Redirections 301 propres' },
-  ],
-  pages: [
-    { url: 'https://usewok.com/', title: 'UseWok — AI Visibility Platform', status: 200, indexed: true, score: 78 },
-    { url: 'https://usewok.com/pricing', title: 'Tarifs UseWok', status: 200, indexed: true, score: 71 },
-    { url: 'https://usewok.com/blog', title: 'Blog UseWok', status: 200, indexed: true, score: 65 },
-    { url: 'https://usewok.com/about', title: 'À propos', status: 200, indexed: false, score: 44 },
-  ],
-  performance: { fcp: 1.4, lcp: 2.8, cls: 0.08, ttfb: 310, score: 68 },
-  crawlability: { robots_ok: true, sitemap_ok: true, canonical_ok: true, noindex_pages: 2, blocked_resources: 1 },
-};
 
 const TABS = [
   { id: 'overview',      label: 'Vue d\'ensemble' },
@@ -172,15 +141,6 @@ export default function AuditPage() {
   const hasAuditAccess = can('audit_access');
 
   const loadAudit = async (forceRefresh = false) => {
-    // Demo mode
-    const activeDomain = getActiveDomain();
-    if (activeDomain?.url === DEMO_SITE_URL) {
-      setProfile({ ...DEMO_PROFILE });
-      setAuditData(DEMO_AUDIT_DATA);
-      setPhase('done');
-      return;
-    }
-
     if (!hasAuditAccess) { setPhase('locked'); return; }
 
     try {
