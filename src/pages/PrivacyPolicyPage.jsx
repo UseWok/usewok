@@ -220,7 +220,7 @@ export default function PrivacyPolicyPage() {
               <div style={{ fontWeight: 700, fontSize: 16, color: '#111827', marginBottom: 12 }}>UseWok, Inc.</div>
               <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
                 <div>📍 Libourne, Gironde, France</div>
-                <div>📧 <a href="mailto:privacy@usewok.com" style={{ color: CORAL }}>privacy@usewok.com</a></div>
+                <div>📧 <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a></div>
                 <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
               </div>
             </div>
@@ -330,7 +330,7 @@ export default function PrivacyPolicyPage() {
             <P>Ces transferts sont encadrés par les garanties appropriées prévues par le RGPD, et notamment par les Clauses Contractuelles Types (CCT) issues de la décision d'exécution de la Commission européenne du 4 juin 2021, qui imposent contractuellement à ces prestataires un niveau de protection des données équivalent à celui exigé au sein de l'EEE.</P>
             <InfoBox icon="ℹ️">
               <strong>Votre droit à l'information</strong><br />
-              Vous pouvez obtenir des informations supplémentaires sur les garanties encadrant ces transferts en nous contactant à <a href="mailto:privacy@usewok.com" style={{ color: CORAL }}>privacy@usewok.com</a>.
+              Vous pouvez obtenir des informations supplémentaires sur les garanties encadrant ces transferts en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>.
             </InfoBox>
           </Section>
 
@@ -399,7 +399,7 @@ export default function PrivacyPolicyPage() {
                 { icon: '📦', title: 'Droit à la portabilité', desc: 'Recevoir vos données dans un format structuré, couramment utilisé et lisible par machine, ou les faire transmettre directement à un autre responsable de traitement. (Art. 20 RGPD)' },
               ].map((r, i) => <RightCard key={i} {...r} />)}
             </div>
-            <P>Pour exercer l'un de ces droits, veuillez nous adresser votre demande par e-mail à <a href="mailto:privacy@usewok.com" style={{ color: CORAL }}>privacy@usewok.com</a>, en précisant clairement le droit que vous souhaitez exercer. Nous pourrons vous demander de justifier de votre identité pour traiter votre demande. Nous nous engageons à répondre dans un délai d'un (1) mois à compter de la réception de votre demande. Ce délai peut être prolongé de deux mois supplémentaires en cas de demande complexe ou de nombre élevé de demandes, auquel cas nous vous en informerons.</P>
+            <P>Pour exercer l'un de ces droits, veuillez nous adresser votre demande par e-mail à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>, en précisant clairement le droit que vous souhaitez exercer. Nous pourrons vous demander de justifier de votre identité pour traiter votre demande. Nous nous engageons à répondre dans un délai d'un (1) mois à compter de la réception de votre demande. Ce délai peut être prolongé de deux mois supplémentaires en cas de demande complexe ou de nombre élevé de demandes, auquel cas nous vous en informerons.</P>
             <P>Ces droits ne sont pas absolus et peuvent être soumis aux conditions et limitations prévues par la réglementation applicable, notamment pour respecter nos obligations légales ou protéger les droits et intérêts légitimes de UseWok ou de tiers.</P>
           </Section>
 
@@ -408,7 +408,7 @@ export default function PrivacyPolicyPage() {
             <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px', marginBottom: 24 }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', marginBottom: 12 }}>UseWok, Inc. — Protection des données personnelles</div>
               <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
-                <div>📧 <a href="mailto:privacy@usewok.com" style={{ color: CORAL }}>privacy@usewok.com</a></div>
+                <div>📧 <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a></div>
                 <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
                 <div>📍 Libourne, Gironde, France</div>
               </div>
@@ -440,7 +440,7 @@ export default function PrivacyPolicyPage() {
           </div>
           <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
             <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Questions ?</div>
-            <a href="mailto:privacy@usewok.com" style={{ color: CORAL, fontWeight: 500 }}>privacy@usewok.com</a>
+            <a href="mailto:compliance@usewok.com" style={{ color: CORAL, fontWeight: 500 }}>compliance@usewok.com</a>
           </div>
         </aside>
       </div>
