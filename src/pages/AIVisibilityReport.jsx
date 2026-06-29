@@ -140,14 +140,15 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
             </button>
           </div>
           {timeEstimate && (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20 }}>
-                <Clock size={11} color={INK3} />
-                <span style={{ fontSize: 11, color: INK2, fontWeight: 600 }}>{timeEstimate}</span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20 }}>
+                <Clock size={12} color={INK3} />
+                <span style={{ fontSize: 12, color: INK2, fontWeight: 500 }}>{timeEstimate}</span>
               </div>
               {fixType && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: fixType === 'seul' ? `${GREEN}12` : `${CORAL}10`, border: `1px solid ${fixType === 'seul' ? `${GREEN}30` : `${CORAL}25`}`, borderRadius: 20 }}>
-                  <span style={{ fontSize: 11, color: fixType === 'seul' ? GREEN : CORAL, fontWeight: 600 }}>{fixType === 'seul' ? '✓ Faisable seul' : '↗ Avec aide'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 13px', background: fixType === 'seul' ? '#F0FDF4' : `${CORAL}10`, border: `1px solid ${fixType === 'seul' ? '#BBF7D0' : `${CORAL}25`}`, borderRadius: 20 }}>
+                  <span style={{ fontSize: 13 }}>{fixType === 'seul' ? '✓' : '↗'}</span>
+                  <span style={{ fontSize: 12, color: fixType === 'seul' ? '#16A34A' : CORAL, fontWeight: 600 }}>{fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}</span>
                 </div>
               )}
             </div>
@@ -209,32 +210,44 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
               ))}
             </div>
           ) : content ? (
-            <div style={{ padding: '20px', background: WHITE }}>
-              {/* Impact box — pourquoi ça compte */}
+            <div style={{ background: WHITE }}>
+              {/* Séparateur fin sous les badges */}
+              <div style={{ height: 1, background: BORDER, margin: '0 20px' }} />
+
+              {/* Impact box — fond orange clair, icône ampoule */}
               {summary && (
-                <div style={{ padding: '16px 18px', background: `${CORAL}08`, border: `1px solid ${CORAL}20`, borderRadius: 14, marginBottom: 20 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: CORAL, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>💡 Pourquoi c'est important</p>
-                  <p style={{ fontSize: 13.5, color: INK, margin: 0, lineHeight: 1.7, fontWeight: 500 }}>{summary}</p>
+                <div style={{ margin: '16px 20px', padding: '14px 16px', background: '#FEF3EC', border: 'none', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                    <span style={{ fontSize: 14 }}>💡</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 800, color: '#C2540A', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Pourquoi c'est important</span>
+                  </div>
+                  <p style={{ fontSize: 13.5, color: '#7C3A10', margin: 0, lineHeight: 1.65, fontWeight: 400 }}>{summary}</p>
                 </div>
               )}
 
               {/* Steps */}
               {steps.length > 0 && (
-                <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
+                <div style={{ padding: '4px 20px 24px' }}>
+                  <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {steps.map((step, i) => {
                       const stepText = typeof step === 'string' ? step : step.description || step.text || '';
                       const [action, result] = stepText.includes('→') ? stepText.split('→') : [stepText, null];
                       return (
-                        <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 16px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 13 }}>
-                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: i === 0 ? CORAL : CARD_DARK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                            <span style={{ fontSize: 10, fontWeight: 800, color: WHITE }}>{i + 1}</span>
+                        <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 16px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14 }}>
+                          {/* Numéro — coral pour 1, noir pour les autres */}
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: i === 0 ? CORAL : '#1A1A1A',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0, marginTop: 1
+                          }}>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: WHITE }}>{i + 1}</span>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 13.5, color: INK, margin: '0 0 4px', lineHeight: 1.55, fontWeight: 500 }}>{action.trim()}</p>
+                            <p style={{ fontSize: 14, color: INK, margin: '0 0 6px', lineHeight: 1.55, fontWeight: 500 }}>{action.trim()}</p>
                             {result && (
-                              <p style={{ fontSize: 11.5, color: GREEN, margin: 0, fontWeight: 600 }}>→ {result.trim()}</p>
+                              <p style={{ fontSize: 12.5, color: CORAL, margin: 0, fontWeight: 500 }}>→ {result.trim()}</p>
                             )}
                           </div>
                         </div>
