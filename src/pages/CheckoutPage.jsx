@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
-import { ArrowLeft, ShieldCheck, Lock, CreditCard, Building2, Wallet } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Lock, CreditCard, Wallet } from 'lucide-react';
 
 export function saveCart(data) { localStorage.setItem('wok_cart', JSON.stringify(data)); }
 export function clearCart() { localStorage.removeItem('wok_cart'); }
@@ -56,7 +56,7 @@ export default function CheckoutPage() {
   const [plans, setPlans] = useState([]);
   const [plan, setPlan] = useState(null);
   const [email, setEmail] = useState('');
-  const [payMethod, setPayMethod] = useState('card'); // 'card' | 'bank' | 'paypal'
+  const [payMethod, setPayMethod] = useState('card'); // 'card' | 'paypal'
   const [loading, setLoading] = useState(false);
   const [inIframe, setInIframe] = useState(false);
 
@@ -243,6 +243,32 @@ export default function CheckoutPage() {
           <div>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Moyen de paiement</h2>
 
+            {/* ── Apple Pay / Google Pay (express, en haut) ── */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {/* Apple Pay */}
+                <button
+                  onClick={() => { if (inIframe) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; } alert('Apple Pay — disponible sur Safari/iOS.'); }}
+                  style={{ padding: '11px 0', background: '#000', color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 14, fontWeight: 600, fontFamily: F }}>
+                  <svg width="16" height="20" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-167.2-37.5c-62.2 0-127.2-43-167.2-102.8C45.6 680.6 0 595.3 0 514.1 0 356.8 98 278.5 192.4 278.5c68.7 0 121.7 44.5 166.9 44.5 43.5 0 106.1-47.1 183.3-47.1 29.4 0 108.2 2.6 168.3 87.3zm-90-218.2c-34.3 40.8-92.6 71.9-146.6 71.9-5.8 0-11.6-.6-17.4-1.3 0-61.6 34.9-128.2 80.4-169.2C670 6.5 725 0 770.9 0c4.5 51.7-12.9 104.7-72.8 122.7z"/></svg>
+                  Apple Pay
+                </button>
+                {/* Google Pay */}
+                <button
+                  onClick={() => { if (inIframe) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; } alert('Google Pay — disponible sur Chrome/Android.'); }}
+                  style={{ padding: '11px 0', background: WHITE, color: INK, border: `1.5px solid ${BORDER}`, borderRadius: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 14, fontWeight: 600, fontFamily: F }}>
+                  <svg width="20" height="20" viewBox="0 0 48 48"><text y="36" fontSize="36">G</text></svg>
+                  Google Pay
+                </button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, marginBottom: 14 }}>
+                <div style={{ flex: 1, height: 1, background: BORDER }} />
+                <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>ou payer avec</span>
+                <div style={{ flex: 1, height: 1, background: BORDER }} />
+              </div>
+            </div>
+
+            {/* ── Carte + PayPal (en bas) ── */}
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
 
               {/* Carte */}
@@ -264,7 +290,7 @@ export default function CheckoutPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                   <CreditCard size={15} color={INK2} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Carte</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Carte bancaire</span>
                 </div>
                 <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                   <VisaIcon /><McIcon /><AmexIcon />
@@ -302,32 +328,6 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Banque / Virement — avec badge 5$ remboursés */}
-              <div
-                onClick={() => setPayMethod('bank')}
-                style={{
-                  padding: '14px 16px',
-                  cursor: 'pointer',
-                  background: payMethod === 'bank' ? WHITE : SURFACE,
-                  borderBottom: `1px solid ${BORDER}`,
-                  display: 'flex', alignItems: 'center', gap: 12,
-                }}>
-                <div style={{
-                  width: 18, height: 18, borderRadius: '50%', border: `2px solid ${payMethod === 'bank' ? INK : BORDER}`,
-                  background: payMethod === 'bank' ? INK : WHITE,
-                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {payMethod === 'bank' && <div style={{ width: 7, height: 7, borderRadius: '50%', background: WHITE }} />}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                  <Building2 size={15} color={INK2} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Banque</span>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: WHITE, background: '#10B981', borderRadius: 20, padding: '3px 9px' }}>
-                  5€ remboursés
-                </span>
-              </div>
-
               {/* PayPal */}
               <div
                 onClick={() => setPayMethod('paypal')}
@@ -358,15 +358,6 @@ export default function CheckoutPage() {
             <div style={{ marginTop: 16, padding: '14px 16px', background: '#FFF8E1', border: '1px solid #FFD54F', borderRadius: 8 }}>
               <p style={{ fontSize: 12, color: '#7B6200', margin: 0, lineHeight: 1.6 }}>
                 Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité.
-              </p>
-            </div>
-          )}
-
-          {/* Bank details */}
-          {payMethod === 'bank' && (
-            <div style={{ marginTop: 16, padding: '14px 16px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8 }}>
-              <p style={{ fontSize: 12, color: '#166534', margin: 0, lineHeight: 1.6 }}>
-                🎁 <strong>5€ remboursés</strong> sur votre premier mois lors du paiement par virement bancaire. Vous recevrez un lien de connexion sécurisé à votre banque.
               </p>
             </div>
           )}
