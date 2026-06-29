@@ -83,6 +83,8 @@ export default function PricingPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userPlanId, setUserPlanId] = useState('free');
+  const [userEmail, setUserEmail] = useState('');
+  const [loadingPlanId, setLoadingPlanId] = useState(null);
   // billing toggle: 'monthly' | 'yearly' — one global toggle
   const [billing, setBilling] = useState('monthly');
 
@@ -90,18 +92,38 @@ export default function PricingPage() {
     loadPlansFromDB()
       .then(db => { setPlans((db || getPlansConfig()).filter(p => p.visible !== false)); setLoading(false); })
       .catch(() => { setPlans(getPlansConfig().filter(p => p.visible !== false)); setLoading(false); });
+    base44.auth.me().then(u => {
+      if (u) { setUserPlanId(getUserPlan(u)?.id || 'free'); setUserEmail(u.email || ''); }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
     const u = authUser;
-    if (u) setUserPlanId(getUserPlan(u)?.id || 'free');
-    else base44.auth.me().then(u => setUserPlanId(getUserPlan(u)?.id || 'free')).catch(() => {});
+    if (u) { setUserPlanId(getUserPlan(u)?.id || 'free'); setUserEmail(u.email || ''); }
   }, [authUser]);
 
-  const handleUpgrade = (plan) => {
-    const url = billing === 'yearly' ? plan.checkout_url_yearly : plan.checkout_url_monthly;
-    if (url?.startsWith('http')) { window.location.href = url; return; }
-    navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
+  const handleUpgrade = async (plan) => {
+    // Check iframe
+    try { if (window.self !== window.top) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; } } catch {}
+
+    const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
+
+    // If plan has direct checkout URLs, use them
+    const directUrl = billing === 'yearly' ? plan.checkout_url_yearly : plan.checkout_url_monthly;
+    if (directUrl?.startsWith('http')) { window.location.href = directUrl; return; }
+
+    // Otherwise create a Stripe checkout session via backend
+    if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
+
+    setLoadingPlanId(plan.id);
+    try {
+      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail });
+      if (res.data?.url) { window.location.href = res.data.url; }
+      else { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); }
+    } catch {
+      navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
+    }
+    setLoadingPlanId(null);
   };
 
   const isCurrent = (plan) => plan.id === userPlanId;
@@ -128,6 +150,7 @@ export default function PricingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, color: INK }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <AnimatePresence>{showContact && <ContactModal onClose={() => setShowContact(false)} />}</AnimatePresence>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '56px 24px 100px' }}>
@@ -233,10 +256,9 @@ export default function PricingPage() {
                           Commencer gratuitement
                         </button>
                       ) : (
-                        <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
-                          onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                        <button onClick={() => handleUpgrade(plan)} disabled={!!loadingPlanId}
+                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: loadingPlanId ? 'default' : 'pointer', fontFamily: F, transition: 'opacity 150ms', opacity: loadingPlanId === plan.id ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          {loadingPlanId === plan.id ? <div style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: isHL ? WHITE : INK, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> : null}
                           Passer à {plan.name}
                         </button>
                       )}
@@ -286,10 +308,9 @@ export default function PricingPage() {
                           Commencer gratuitement
                         </button>
                       ) : (
-                        <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
-                          onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                        <button onClick={() => handleUpgrade(plan)} disabled={!!loadingPlanId}
+                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: loadingPlanId ? 'default' : 'pointer', fontFamily: F, transition: 'opacity 150ms', opacity: loadingPlanId === plan.id ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          {loadingPlanId === plan.id ? <div style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: isHL ? WHITE : INK, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> : null}
                           Passer à {plan.name}
                         </button>
                       )}
