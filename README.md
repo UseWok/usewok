@@ -1,39 +1,78 @@
-**Welcome to your Base44 project** 
+# UseWok — Êtes-vous recommandé par les IA ?
 
-**About**
+> **Analysez votre visibilité sur ChatGPT, Gemini, Claude et 5 autres moteurs IA en 60 secondes.**
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+🔗 **[→ Accéder à l'application](https://usewok.com)**
 
-This project contains everything you need to run your app locally.
+---
 
-**Edit the code in your local development environment**
+## C'est quoi UseWok ?
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+UseWok calcule votre **LRS (LLM Resonance Score)** — un score de 0 à 100 qui mesure à quel point les intelligences artificielles comme ChatGPT, Gemini ou Claude vous recommandent quand un client pose une question dans votre secteur.
 
-**Prerequisites:** 
+**Concrètement :** quand quelqu'un demande à une IA *"recommande-moi un consultant marketing à Paris"*, est-ce que vous apparaissez dans la réponse ? UseWok vous le dit.
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+---
 
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+## Ce que vous obtenez
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
-```
+- 📊 **Score LRS personnalisé** — votre note sur 8 moteurs IA en parallèle
+- 🔍 **Problèmes identifiés** — ce qui bloque votre recommandation par les IA
+- 🎯 **Plan d'action concret** — étapes simples, sans jargon technique
+- 💾 **Guides sauvegardés** — vos corrections générées ne disparaissent jamais
+- 📈 **Suivi de progression** — voyez votre score évoluer dans le temps
 
-Run the app: `npm run dev`
+---
 
-**Publish your changes**
+## Pourquoi c'est important en 2025
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+Les moteurs de recherche traditionnels perdent des parts face aux IA conversationnelles. Aujourd'hui :
 
-**Docs & Support**
+- **40%** des recherches d'information passent par ChatGPT, Gemini ou Perplexity
+- Les IA recommandent des marques **sans que celles-ci le sachent**
+- La visibilité IA n'est **pas corrélée** au référencement Google classique
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+UseWok est le premier outil francophone qui mesure et améliore cette nouvelle forme de visibilité.
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+---
+
+## Fonctionnalités
+
+| Fonctionnalité | Free | Starter | Pro |
+|---|---|---|---|
+| Score LRS (1 moteur) | ✅ | ✅ | ✅ |
+| 8 moteurs IA analysés | ❌ | ✅ | ✅ |
+| Plan d'action personnalisé | ❌ | ✅ | ✅ |
+| Guides de correction (sauvegardés) | ❌ | ✅ | ✅ |
+| Suivi multi-domaines | ❌ | ✅ (3) | ✅ (10) |
+| Audit technique complet | ❌ | ❌ | ✅ |
+
+---
+
+## Stack technique
+
+- **Frontend** : React + Tailwind CSS + Framer Motion
+- **Backend** : Base44 BaaS (fonctions serverless Deno)
+- **IA** : GPT-4o, Gemini 2.0, Claude 3.5 via API
+- **Paiements** : Stripe
+- **Auth** : Base44 Auth
+
+---
+
+## Lancer une analyse
+
+1. Rendez-vous sur **[usewok.com](https://usewok.com)**
+2. Entrez votre nom de domaine ou le nom de votre entreprise
+3. Recevez votre score LRS en moins de 60 secondes
+4. Consultez les actions prioritaires pour progresser
+
+---
+
+## Contact
+
+- 🌐 Site : [usewok.com](https://usewok.com)
+- 📧 Support : via l'application
+
+---
+
+*UseWok — Votre visibilité IA, mesurée et améliorée.*
