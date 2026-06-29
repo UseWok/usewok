@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Tag, FileText, MessageSquare, BarChart2, Inbox, BookOpen, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Tag, FileText, MessageSquare, BarChart2, Inbox, BookOpen, LogOut, Package } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
 
@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Inbox',           path: '/admin/inbox',         icon: Inbox,   badge: true },
   { label: 'Utilisateurs',    path: '/admin/users',         icon: Users },
   { label: 'Abonnements',     path: '/admin/subscriptions', icon: CreditCard },
+  { label: 'Forfaits',        path: '/admin/subscriptions/plans', icon: Package },
   { label: 'Codes d\'accès',  path: '/admin/codes',         icon: Tag },
   { label: 'Messagerie',      path: '/admin/messaging',     icon: MessageSquare, badge: true },
   { label: 'Blog',            path: '/admin/blog',          icon: BookOpen },
