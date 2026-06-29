@@ -53,7 +53,7 @@ UseWok est le premier outil francophone qui mesure et améliore cette nouvelle f
 
 - **Frontend** : React + Tailwind CSS + Framer Motion
 - **Backend** : Base44 BaaS (fonctions serverless Deno)
-- **IA** : GPT-4o, Gemini 2.0, Claude 3.5 via API
+- **IA** : GPT-5, Gemini 3.1 Pro, Claude 4.5 via API
 - **Paiements** : Stripe
 - **Auth** : Base44 Auth
 
