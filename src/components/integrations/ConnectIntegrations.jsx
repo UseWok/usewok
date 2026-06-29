@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, ExternalLink, RefreshCw, AlertCircle, Wifi, WifiOff, Info } from 'lucide-react';
+import { CheckCircle, ExternalLink, RefreshCw, AlertCircle, Info, ChevronDown } from 'lucide-react';
 
 const GSC_ID = '6a3a4933e8ecc1e44aaaaf23';
 const GA_ID = '6a3a493a526e86829e5c5a79';
@@ -13,18 +13,17 @@ const BORDER = '#E8E8E8';
 const SURFACE = '#F7F7F5';
 const WHITE = '#FFFFFF';
 
-// Why the data might be missing — contextual help messages
 const ERROR_CONTEXT = {
   not_connected: {
-    why: 'Vous n\'avez pas encore autorisé l\'accès à ce compte Google.',
+    why: "Vous n'avez pas encore autorisé l'accès à ce compte Google.",
     fix: 'Cliquez sur "Connecter" et autorisez l\'accès dans la fenêtre Google.',
   },
   no_sites: {
-    why: 'Votre compte Google Search Console n\'a aucune propriété vérifiée.',
+    why: "Votre compte Google Search Console n'a aucune propriété vérifiée.",
     fix: 'Ajoutez votre site sur search.google.com/search-console et vérifiez-le d\'abord.',
   },
   no_data: {
-    why: 'Votre site est connecté mais n\'a pas encore généré de données (site trop récent ou trafic insuffisant).',
+    why: "Votre site est connecté mais n'a pas encore généré de données (site trop récent ou trafic insuffisant).",
     fix: 'Les données apparaissent après 48–72h d\'indexation. Vérifiez que votre sitemap est soumis.',
   },
   default: {
@@ -54,23 +53,80 @@ function ContextualHelp({ errorType }) {
   );
 }
 
-function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, showMetrics = false }) {
+// Site/property selector dropdown
+function SiteSelector({ sites, selectedSite, onSelect, label = 'Site' }) {
+  const [open, setOpen] = useState(false);
+  if (!sites || sites.length <= 1) return null;
+
+  const display = selectedSite
+    ? selectedSite.replace(/https?:\/\//, '').replace(/\/$/, '')
+    : 'Sélectionner…';
+
+  return (
+    <div style={{ marginTop: 10, position: 'relative' }}>
+      <div style={{ fontSize: 10, fontWeight: 600, color: INK3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        {label} sélectionné
+      </div>
+      <button onClick={() => setOpen(!open)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', padding: '7px 10px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 8, cursor: 'pointer', fontFamily: F, fontSize: 12, color: INK }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{display}</span>
+        <ChevronDown size={12} color={INK3} style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)', marginTop: 4, overflow: 'hidden',
+        }}>
+          {sites.map((site, i) => {
+            const url = site.siteUrl || site.id || site;
+            const name = (site.displayName || url).replace(/https?:\/\//, '').replace(/\/$/, '');
+            const active = url === selectedSite;
+            return (
+              <button key={i} onClick={() => { onSelect(url); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 12px',
+                  background: active ? SURFACE : WHITE, border: 'none', cursor: 'pointer', fontFamily: F,
+                  fontSize: 12, color: active ? INK : INK2, textAlign: 'left',
+                  borderBottom: i < sites.length - 1 ? `1px solid ${BORDER}` : 'none',
+                }}>
+                {active && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />}
+                {!active && <span style={{ width: 6 }} />}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntegrationCard({ name, desc, logo, connectorId, fetchFn, siteLabel, onConnected, showMetrics = false }) {
   const [status, setStatus] = useState('checking');
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState(null);
   const [errorType, setErrorType] = useState(null);
+  const [sites, setSites] = useState([]);
+  const [selectedSite, setSelectedSite] = useState(null);
 
-  const check = async () => {
+  const check = async (siteOverride) => {
     setStatus('checking');
     setErrorType(null);
+    const payload = siteOverride ? { siteUrl: siteOverride } : (selectedSite ? { siteUrl: selectedSite } : {});
     try {
-      const res = await base44.functions.invoke(fetchFn, {});
+      const res = await base44.functions.invoke(fetchFn, payload);
       if (res?.data?.connected) {
+        // Store available sites/properties
+        const availableSites = res.data.sites || res.data.properties || [];
+        setSites(availableSites);
         if (!res.data.data) {
           setStatus('connected_no_data');
-          setErrorType(res.data.sites?.length === 0 ? 'no_sites' : 'no_data');
+          setErrorType(availableSites.length === 0 ? 'no_sites' : 'no_data');
         } else {
           setStatus('connected');
+          const active = res.data.activeSite || res.data.activeProperty;
+          if (active) setSelectedSite(active);
           setInfo(res.data);
           onConnected?.(fetchFn, res.data);
         }
@@ -85,6 +141,11 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
   };
 
   useEffect(() => { check(); }, []);
+
+  const handleSiteChange = (newSite) => {
+    setSelectedSite(newSite);
+    check(newSite);
+  };
 
   const handleConnect = async () => {
     setLoading(true);
@@ -108,6 +169,8 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
     await base44.connectors.disconnectAppUser(connectorId).catch(() => {});
     setStatus('disconnected');
     setInfo(null);
+    setSites([]);
+    setSelectedSite(null);
     setErrorType('not_connected');
     setLoading(false);
     onConnected?.(fetchFn, null);
@@ -129,8 +192,8 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
           {status === 'checking' && (
             <div style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', border: '2px solid #E8E8E8', borderTopColor: INK3, animation: 'spin 0.8s linear infinite', background: WHITE }} />
           )}
-          {connected && <div style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#10B981', border: '2px solid WHITE', boxShadow: '0 0 0 1px #BBF7D0' }} />}
-          {connectedNoData && <div style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#F59E0B', border: '2px solid WHITE' }} />}
+          {connected && <div style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#10B981', border: '2px solid white', boxShadow: '0 0 0 1px #BBF7D0' }} />}
+          {connectedNoData && <div style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: '#F59E0B', border: '2px solid white' }} />}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -140,19 +203,14 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
             {connectedNoData && <span style={{ fontSize: 9, fontWeight: 700, color: '#B45309', background: '#FEF3C7', padding: '2px 6px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Données manquantes</span>}
           </div>
           <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{desc}</p>
-          {connected && info?.activeSite && (
-            <p style={{ fontSize: 10, color: '#059669', margin: '3px 0 0', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              ✓ {info.activeSite.replace(/https?:\/\//, '')}
-            </p>
-          )}
         </div>
 
-        {/* Action button */}
+        {/* Action buttons */}
         {status !== 'checking' && (
           <div style={{ flexShrink: 0 }}>
             {connected || connectedNoData ? (
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={check} disabled={loading}
+                <button onClick={() => check()} disabled={loading}
                   style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <RefreshCw size={12} color={INK3} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
                 </button>
@@ -172,7 +230,17 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
         )}
       </div>
 
-      {/* Contextual help when data is missing */}
+      {/* Site selector — shown when connected and multiple sites available */}
+      {(connected || connectedNoData) && sites.length > 1 && (
+        <SiteSelector
+          sites={sites}
+          selectedSite={selectedSite}
+          onSelect={handleSiteChange}
+          label={siteLabel || 'Site'}
+        />
+      )}
+
+      {/* Contextual help */}
       {errorType && status !== 'checking' && !connected && (
         <ContextualHelp errorType={errorType} />
       )}
@@ -180,7 +248,7 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, onConnected, 
         <ContextualHelp errorType={errorType} />
       )}
 
-      {/* Live metrics preview (when connected + data) */}
+      {/* Live metrics preview */}
       {connected && showMetrics && info?.data && (
         <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {[
@@ -218,6 +286,7 @@ export default function ConnectIntegrations({ onDataLoaded, compact = false, sho
       logo: 'https://www.gstatic.com/images/branding/product/2x/search_console_512dp.png',
       connectorId: GSC_ID,
       fetchFn: 'getSearchConsoleData',
+      siteLabel: 'Site',
     },
     {
       name: 'Google Analytics',
@@ -225,6 +294,7 @@ export default function ConnectIntegrations({ onDataLoaded, compact = false, sho
       logo: 'https://www.gstatic.com/analytics-suite/header/suite/v2/ic_analytics.svg',
       connectorId: GA_ID,
       fetchFn: 'getAnalyticsData',
+      siteLabel: 'Propriété',
     },
   ];
 

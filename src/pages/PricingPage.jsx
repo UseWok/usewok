@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig, getUserPlan, COMPARISON_FEATURES } from '@/lib/plans-config';
-import { Check, X, Minus, Zap, Star, ArrowRight, Shield, TrendingUp, Eye } from 'lucide-react';
+import { Check, X, Minus, Star, ArrowRight, Shield, TrendingUp, Eye } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 const F = "'Inter', -apple-system, system-ui, sans-serif";
@@ -14,7 +14,6 @@ const BORDER = '#E8E8E6';
 const SURFACE = '#F8F7F5';
 const WHITE = '#FFFFFF';
 const CORAL = '#F95738';
-const CREAM = '#FDF8F0';
 
 // ── Contact Modal ──────────────────────────────────────────────────────────────
 const ContactModal = ({ onClose }) => {
@@ -71,11 +70,10 @@ function Cell({ value }) {
   return <span style={{ fontSize: 12, color: INK2 }}>{value}</span>;
 }
 
-// ── Value props strip ──────────────────────────────────────────────────────────
 const VALUE_PROPS = [
   { icon: Eye, label: '8 moteurs IA analysés', sub: 'ChatGPT, Claude, Gemini, Perplexity…' },
   { icon: TrendingUp, label: 'Analyse concurrents', sub: 'Part de voix & positionnement' },
-  { icon: Shield, label: 'Plan d\'action détaillé', sub: 'Corrections guidées, étape par étape' },
+  { icon: Shield, label: "Plan d'action détaillé", sub: 'Corrections guidées, étape par étape' },
 ];
 
 export default function PricingPage() {
@@ -85,7 +83,8 @@ export default function PricingPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userPlanId, setUserPlanId] = useState('free');
-  const [yearlyPerPlan, setYearlyPerPlan] = useState({});
+  // billing toggle: 'monthly' | 'yearly' — one global toggle
+  const [billing, setBilling] = useState('monthly');
 
   useEffect(() => {
     loadPlansFromDB()
@@ -99,14 +98,10 @@ export default function PricingPage() {
     else base44.auth.me().then(u => setUserPlanId(getUserPlan(u)?.id || 'free')).catch(() => {});
   }, [authUser]);
 
-  const isYearly = (planId) => !!yearlyPerPlan[planId];
-  const toggleYearly = (planId) => setYearlyPerPlan(prev => ({ ...prev, [planId]: !prev[planId] }));
-
   const handleUpgrade = (plan) => {
-    const y = isYearly(plan.id);
-    const url = y ? plan.checkout_url_yearly : plan.checkout_url_monthly;
+    const url = billing === 'yearly' ? plan.checkout_url_yearly : plan.checkout_url_monthly;
     if (url?.startsWith('http')) { window.location.href = url; return; }
-    navigate(`/checkout?plan=${plan.id}&billing=${y ? 'yearly' : 'monthly'}`);
+    navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
 
   const isCurrent = (plan) => plan.id === userPlanId;
@@ -125,17 +120,23 @@ export default function PricingPage() {
   const COL_W = 148;
   const LABEL_W = 220;
 
+  // Compute discount for display
+  const samplePaidPlan = sortedPlans.find(p => !isFree(p) && p.price_yearly && p.price_monthly);
+  const globalDiscount = samplePaidPlan
+    ? Math.round((1 - (samplePaidPlan.price_yearly / (samplePaidPlan.price_monthly * 12))) * 100)
+    : 0;
+
   return (
     <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, color: INK }}>
       <AnimatePresence>{showContact && <ContactModal onClose={() => setShowContact(false)} />}</AnimatePresence>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '56px 24px 100px' }}>
 
         {/* ── Header ── */}
-        <div style={{ marginBottom: 36 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: INK, margin: '0 0 6px', letterSpacing: '-0.04em' }}>Choisir votre plan</h1>
+        <div style={{ marginBottom: 40 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 8px', letterSpacing: '-0.03em' }}>Choisir votre plan</h1>
           <p style={{ fontSize: 13, color: INK3, margin: 0, lineHeight: 1.6 }}>
-            Vous êtes sur le plan <strong style={{ color: INK }}>{userPlanId}</strong>.{' '}
+            Vous êtes sur le plan <strong style={{ color: INK, fontWeight: 600 }}>{userPlanId}</strong>.{' '}
             <button onClick={() => setShowContact(true)} style={{ background: 'none', border: 'none', color: CORAL, textDecoration: 'underline', cursor: 'pointer', fontSize: 13, fontFamily: F, padding: 0 }}>
               Des questions ? Contactez-nous →
             </button>
@@ -143,18 +144,41 @@ export default function PricingPage() {
         </div>
 
         {/* ── Value props ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 36 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 40 }}>
           {VALUE_PROPS.map((vp, i) => (
-            <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 9, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <vp.icon size={14} color={CORAL} />
+            <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <vp.icon size={15} color={CORAL} />
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: INK, lineHeight: 1.3 }}>{vp.label}</div>
-                <div style={{ fontSize: 11, color: INK3, marginTop: 1 }}>{vp.sub}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: INK, lineHeight: 1.3 }}>{vp.label}</div>
+                <div style={{ fontSize: 11, color: INK3, marginTop: 2 }}>{vp.sub}</div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── Billing toggle (global) ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
+          <div style={{ display: 'flex', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 3, gap: 2 }}>
+            {['monthly', 'yearly'].map(b => (
+              <button key={b} onClick={() => setBilling(b)}
+                style={{
+                  padding: '7px 18px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 600, fontFamily: F,
+                  background: billing === b ? INK : 'transparent',
+                  color: billing === b ? WHITE : INK3,
+                  transition: 'all 150ms',
+                }}>
+                {b === 'monthly' ? 'Mensuel' : 'Annuel'}
+              </button>
+            ))}
+          </div>
+          {billing === 'yearly' && globalDiscount > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#059669', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 20, padding: '3px 10px' }}>
+              −{globalDiscount}% par rapport au mensuel
+            </span>
+          )}
         </div>
 
         {/* ── Comparison table ── */}
@@ -162,66 +186,57 @@ export default function PricingPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: F, minWidth: LABEL_W + sortedPlans.length * COL_W }}>
             <thead>
               <tr>
-                <th style={{ width: LABEL_W, padding: '0 0 24px', textAlign: 'left', verticalAlign: 'bottom' }} />
+                <th style={{ width: LABEL_W, padding: '0 0 28px', textAlign: 'left', verticalAlign: 'bottom' }} />
                 {sortedPlans.map((plan) => {
                   const isHL = plan.id === highlightId;
                   const curr = isCurrent(plan);
                   const free = isFree(plan);
-                  const y = isYearly(plan.id);
-                  const monthlyPrice = y && plan.price_yearly ? Math.round(plan.price_yearly / 12) : plan.price_monthly;
-                  const discount = plan.price_yearly && plan.price_monthly
-                    ? Math.round((1 - (plan.price_yearly / (plan.price_monthly * 12))) * 100) : 0;
+                  const monthlyPrice = billing === 'yearly' && plan.price_yearly
+                    ? Math.round(plan.price_yearly / 12)
+                    : plan.price_monthly;
+
                   return (
-                    <th key={plan.id} style={{ width: COL_W, padding: '0 12px 24px', textAlign: 'left', verticalAlign: 'bottom', fontWeight: 400, position: 'relative' }}>
+                    <th key={plan.id} style={{ width: COL_W, padding: '0 16px 28px', textAlign: 'left', verticalAlign: 'bottom', fontWeight: 400, position: 'relative' }}>
                       {isHL && !curr && (
-                        <div style={{ position: 'absolute', top: -8, left: 12, right: 12, height: 3, background: CORAL, borderRadius: 3 }} />
+                        <div style={{ position: 'absolute', top: -8, left: 16, right: 16, height: 2, background: CORAL, borderRadius: 2 }} />
                       )}
-                      <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 6, letterSpacing: '-0.01em' }}>{plan.name}</div>
-                      <div style={{ marginBottom: 10 }}>
+
+                      <div style={{ fontSize: 12, fontWeight: 600, color: INK3, marginBottom: 10, letterSpacing: '0.02em', textTransform: 'uppercase' }}>{plan.name}</div>
+
+                      <div style={{ marginBottom: 18 }}>
                         {free ? (
-                          <span style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.04em' }}>Gratuit</span>
+                          <span style={{ fontSize: 26, color: INK }}>Gratuit</span>
                         ) : (
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                              <span style={{ fontSize: 22, fontWeight: 900, color: INK, letterSpacing: '-0.04em' }}>{monthlyPrice}€</span>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                              <span style={{ fontSize: 26, color: INK }}>{monthlyPrice}€</span>
                               <span style={{ fontSize: 11, color: INK3 }}>/mois</span>
                             </div>
-                            {y && discount > 0 && (
-                              <div style={{ fontSize: 10, fontWeight: 700, color: '#059669', marginTop: 2 }}>−{discount}% · facturé annuellement</div>
+                            {billing === 'yearly' && (
+                              <div style={{ fontSize: 11, color: INK3, marginTop: 4 }}>
+                                soit {plan.price_yearly}€ facturé annuellement
+                              </div>
                             )}
                           </div>
                         )}
                       </div>
-                      {!free && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                          <button onClick={() => toggleYearly(plan.id)} style={{
-                            width: 28, height: 16, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 2,
-                            background: y ? INK : '#D0D0CE',
-                            display: 'flex', alignItems: 'center', justifyContent: y ? 'flex-end' : 'flex-start',
-                            transition: 'background 180ms', flexShrink: 0,
-                          }}>
-                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: WHITE }} />
-                          </button>
-                          <span style={{ fontSize: 11, color: INK3 }}>Annuel{discount > 0 ? ` (−${discount}%)` : ''}</span>
-                        </div>
-                      )}
+
                       {curr ? (
-                        <div style={{ padding: '7px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 12, color: INK3, textAlign: 'center', background: WHITE }}>
+                        <div style={{ padding: '8px 12px', border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, color: INK3, textAlign: 'center', background: WHITE }}>
                           Plan actuel
                         </div>
                       ) : free ? (
                         <button onClick={() => navigate('/app')}
-                          style={{ width: '100%', padding: '8px 0', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 12, fontWeight: 600, color: INK, background: WHITE, cursor: 'pointer', fontFamily: F }}
+                          style={{ width: '100%', padding: '9px 0', border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontWeight: 500, color: INK2, background: WHITE, cursor: 'pointer', fontFamily: F }}
                           onMouseEnter={e => e.currentTarget.style.background = SURFACE}
                           onMouseLeave={e => e.currentTarget.style.background = WHITE}>
                           Commencer gratuitement
                         </button>
                       ) : (
                         <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '8px 0', border: isHL ? 'none' : `1.5px solid ${INK}`, borderRadius: 7, fontSize: 12, fontWeight: 700, color: isHL ? WHITE : INK, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                          {isHL && <Zap size={11} fill={WHITE} stroke="none" />}
                           Passer à {plan.name}
                         </button>
                       )}
@@ -234,7 +249,7 @@ export default function PricingPage() {
               {COMPARISON_FEATURES.map((group, gi) => (
                 <React.Fragment key={group.category}>
                   <tr>
-                    <td colSpan={sortedPlans.length + 1} style={{ padding: gi === 0 ? '20px 0 8px' : '26px 0 8px', fontSize: 10, fontWeight: 700, color: INK3, borderTop: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    <td colSpan={sortedPlans.length + 1} style={{ padding: gi === 0 ? '20px 0 10px' : '30px 0 10px', fontSize: 10, fontWeight: 600, color: INK3, borderTop: `1px solid ${BORDER}`, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                       {group.category}
                     </td>
                   </tr>
@@ -243,9 +258,9 @@ export default function PricingPage() {
                       style={{ transition: 'background 100ms' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.016)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{ padding: '8px 0', fontSize: 13, color: INK2, borderTop: `1px solid rgba(0,0,0,0.04)`, paddingRight: 16 }}>{item.name}</td>
+                      <td style={{ padding: '10px 0', fontSize: 13, color: INK2, borderTop: `1px solid rgba(0,0,0,0.04)`, paddingRight: 16 }}>{item.name}</td>
                       {sortedPlans.map(plan => (
-                        <td key={plan.id} style={{ padding: '8px 12px', borderTop: `1px solid rgba(0,0,0,0.04)` }}>
+                        <td key={plan.id} style={{ padding: '10px 16px', borderTop: `1px solid rgba(0,0,0,0.04)` }}>
                           <Cell value={item[plan.id]} />
                         </td>
                       ))}
@@ -254,25 +269,25 @@ export default function PricingPage() {
                 </React.Fragment>
               ))}
               <tr style={{ borderTop: `1px solid ${BORDER}` }}>
-                <td style={{ padding: '24px 0 0' }} />
+                <td style={{ padding: '28px 0 0' }} />
                 {sortedPlans.map(plan => {
                   const curr = isCurrent(plan);
                   const free = isFree(plan);
                   const isHL = plan.id === highlightId;
                   return (
-                    <td key={plan.id} style={{ padding: '24px 12px 0', verticalAlign: 'top' }}>
+                    <td key={plan.id} style={{ padding: '28px 16px 0', verticalAlign: 'top' }}>
                       {curr ? (
-                        <div style={{ padding: '8px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 12, color: INK3, textAlign: 'center', background: WHITE }}>Plan actuel</div>
+                        <div style={{ padding: '8px 12px', border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, color: INK3, textAlign: 'center', background: WHITE }}>Plan actuel</div>
                       ) : free ? (
                         <button onClick={() => navigate('/app')}
-                          style={{ width: '100%', padding: '8px 0', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 12, fontWeight: 600, color: INK, background: WHITE, cursor: 'pointer', fontFamily: F }}
+                          style={{ width: '100%', padding: '9px 0', border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontWeight: 500, color: INK2, background: WHITE, cursor: 'pointer', fontFamily: F }}
                           onMouseEnter={e => e.currentTarget.style.background = SURFACE}
                           onMouseLeave={e => e.currentTarget.style.background = WHITE}>
                           Commencer gratuitement
                         </button>
                       ) : (
                         <button onClick={() => handleUpgrade(plan)}
-                          style={{ width: '100%', padding: '8px 0', border: isHL ? 'none' : `1.5px solid ${INK}`, borderRadius: 7, fontSize: 12, fontWeight: 700, color: isHL ? WHITE : INK, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
+                          style={{ width: '100%', padding: '9px 0', border: isHL ? 'none' : `1px solid #D0D0CE`, borderRadius: 8, fontSize: 12, fontWeight: 600, color: isHL ? WHITE : INK2, background: isHL ? CORAL : WHITE, cursor: 'pointer', fontFamily: F, transition: 'opacity 150ms' }}
                           onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                           Passer à {plan.name}
@@ -287,23 +302,23 @@ export default function PricingPage() {
         </div>
 
         {/* ── Reassurance strip ── */}
-        <div style={{ marginTop: 48, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ marginTop: 56, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           {['Annulation en 1 clic', 'Sans engagement', 'Support 24h', 'Données sécurisées'].map((t, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20 }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20 }}>
               <Check size={11} color="#10B981" strokeWidth={2.5} />
-              <span style={{ fontSize: 12, color: INK2, fontWeight: 500 }}>{t}</span>
+              <span style={{ fontSize: 12, color: INK2 }}>{t}</span>
             </div>
           ))}
         </div>
 
         {/* ── Enterprise strip ── */}
-        <div style={{ marginTop: 32, padding: '24px 28px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+        <div style={{ marginTop: 24, padding: '26px 30px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 2 }}>Besoin d'un plan sur mesure ?</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 4 }}>Besoin d'un plan sur mesure ?</div>
             <div style={{ fontSize: 13, color: INK3 }}>Pour les agences, grandes équipes ou contrats personnalisés.</div>
           </div>
           <button onClick={() => setShowContact(true)}
-            style={{ padding: '9px 20px', border: `1px solid ${BORDER}`, borderRadius: 9, background: WHITE, color: INK, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ padding: '9px 20px', border: `1px solid ${BORDER}`, borderRadius: 9, background: WHITE, color: INK, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 6 }}
             onMouseEnter={e => e.currentTarget.style.background = SURFACE}
             onMouseLeave={e => e.currentTarget.style.background = WHITE}>
             Contacter l'équipe <ArrowRight size={13} />
