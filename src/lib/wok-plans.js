@@ -9,11 +9,13 @@ export const PLAN_RANK = { free: 0, starter: 1, pro: 2 };
 export const WOK_PLAN_FEATURES = {
   free: {
     // Scans
-    scan_type: 'lite',           // scan lite seulement
+    scan_type: 'lite',
     scans_per_period: 1,
     scan_period: 'month',
-    // Moteurs IA
+    // Moteurs IA — FREE : gemini seulement, tous les autres floutés (pas de cadenas, données fake)
     engines: ['gemini'],
+    engines_locked: [],          // cadenas (données calculées mais cachées)
+    engines_blurred: ['chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'], // floutés + fake
     engines_count: 1,
     // Sites
     max_sites: 1,
@@ -30,14 +32,16 @@ export const WOK_PLAN_FEATURES = {
     audit_access: false,
     integrations: false,
     auto_scan: false,
-    // Questions
     monitored_questions: 3,
   },
   starter: {
     scan_type: 'full',
-    scans_per_period: 3,
-    scan_period: 'week',
-    engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama'],
+    scans_per_period: 12,       // 12 fois par mois (intervalle régulier)
+    scan_period: 'month',
+    // STARTER : gemini, chatgpt, claude, llama, perplexity actifs — mistral, copilot, grok = cadenas
+    engines: ['gemini', 'chatgpt', 'claude', 'llama', 'perplexity'],
+    engines_locked: ['mistral', 'copilot', 'grok'], // cadenas — données non calculées
+    engines_blurred: [],
     engines_count: 5,
     max_sites: 5,
     history_days: 180,
@@ -50,13 +54,16 @@ export const WOK_PLAN_FEATURES = {
     audit_access: true,
     integrations: true,
     auto_scan: true,
-    monitored_questions: null, // unlimited
+    monitored_questions: null,
   },
   pro: {
     scan_type: 'full',
     scans_per_period: 1,
     scan_period: 'day',
+    // PRO : tous les moteurs actifs, aucun cadenas
     engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'],
+    engines_locked: [],
+    engines_blurred: [],
     engines_count: 8,
     max_sites: 10,
     history_days: 365,
@@ -89,6 +96,16 @@ export function getWokFeatures(user) {
   if (user?.role === 'admin') return WOK_PLAN_FEATURES.pro;
   const planId = user?.subscription_plan || 'free';
   return WOK_PLAN_FEATURES[planId] || WOK_PLAN_FEATURES.free;
+}
+
+/** Retourne la config d'affichage des moteurs pour un user */
+export function getEngineConfig(user) {
+  const features = getWokFeatures(user);
+  return {
+    active: features.engines || ['gemini'],
+    locked: features.engines_locked || [],
+    blurred: features.engines_blurred || [],
+  };
 }
 
 export function getWokPlanId(user) {

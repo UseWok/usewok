@@ -454,8 +454,27 @@ export default function AIVisibilityReport() {
   const [expandedAction, setExpandedAction] = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [planId, setPlanId] = useState('free');
+  const [fakeLoading, setFakeLoading] = useState(false);
 
   const isFree = planId === 'free';
+  const isStarter = planId === 'starter';
+
+  // Fake load 2s puis modale upgrade (plan free)
+  const handleLockedAction = () => {
+    setFakeLoading(true);
+    setTimeout(() => { setFakeLoading(false); setShowUpgrade(true); }, 2000);
+  };
+  const isPro = planId === 'pro';
+
+  // Engines par plan
+  const PLAN_ENGINES_ACTIVE = isFree
+    ? ['gemini']
+    : isStarter
+    ? ['gemini', 'chatgpt', 'claude', 'llama', 'perplexity']
+    : ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'];
+
+  const PLAN_ENGINES_LOCKED = isStarter ? ['mistral', 'copilot', 'grok'] : [];
+  const PLAN_ENGINES_BLURRED = isFree ? ['chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'] : [];
 
   useEffect(() => {
     const unsub = onActiveDomainChange(() => loadData());
@@ -505,7 +524,9 @@ export default function AIVisibilityReport() {
           if (matched) {
             const brand_keywords = await uploadProfileData(res.data);
             await base44.entities.BusinessProfile.update(matched.id, {
-              brand_keywords, score_overall: res.data.overall_score || 0,
+              brand_keywords,
+              score_previous: matched.score_overall || 0, // sauvegarder le score précédent
+              score_overall: res.data.overall_score || 0,
               score_ai_visibility: res.data.ai_visibility_score || 0,
               score_message_clarity: res.data.message_clarity_score || 0,
               score_commercial_signal: res.data.commercial_presence_score || 0,
@@ -603,9 +624,11 @@ export default function AIVisibilityReport() {
     key: e, name: ENGINE_NAMES[e],
     logo: AI_LOGOS[e],
     value: data[`${e}_score`] || 0,
-    locked: isFree && !FREE_ENGINES.includes(e)
+    active: PLAN_ENGINES_ACTIVE.includes(e),
+    locked: PLAN_ENGINES_LOCKED.includes(e),   // cadenas (starter)
+    blurred: PLAN_ENGINES_BLURRED.includes(e), // flouté fake (free)
   }));
-  const topScore = Math.max(...engineBars.filter(b => !b.locked).map(b => b.value), 1);
+  const topScore = Math.max(...engineBars.filter(b => b.active && !b.locked).map(b => b.value), 1);
 
   const fakePlan = [
     { action_title: 'Publier du contenu expert sur votre domaine', engine: 'Perplexity', platform: 'Votre site + LinkedIn', impact: 'high', effort: 'medium' },
@@ -698,33 +721,63 @@ export default function AIVisibilityReport() {
             <div style={{ padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
               <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Qui vous recommande</p>
               <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>
-                {isFree ? 'Gemini analysé · 7 moteurs verrouillés' : '8 moteurs IA testés en parallèle'}
+                {isFree
+                  ? 'Gemini analysé · 7 moteurs floutés'
+                  : isStarter
+                  ? '5 moteurs actifs · Mistral, Copilot, Grok verrouillés Pro'
+                  : '8 moteurs IA testés en parallèle'}
               </p>
             </div>
             <div style={{ padding: '18px 18px 14px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {engineBars.map((b) => {
-                  const isTop = !b.locked && b.value > 0 && b.value === topScore;
+                  const isTop = b.active && !b.locked && b.value > 0 && b.value === topScore;
+                  // Fake value pour les moteurs floutés (free)
+                  const fakeVal = { chatgpt: 42, claude: 38, mistral: 29, llama: 35, perplexity: 51, grok: 22, copilot: 31 }[b.key] || 30;
+
+                  if (b.blurred) {
+                    // FREE : afficher avec filtre blur, valeur fake, aucune donnée réelle
+                    return (
+                      <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
+                        {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                          : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
+                        <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
+                        <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
+                          <div style={{ width: `${fakeVal}%`, height: '100%', background: 'rgba(21,19,15,0.2)', borderRadius: 999 }} />
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: INK2, width: 24, textAlign: 'right' }}>{fakeVal}</span>
+                      </div>
+                    );
+                  }
+
+                  if (b.locked) {
+                    // STARTER : cadenas, aucune donnée affichée
+                    return (
+                      <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: 0.4 }}>
+                        {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                          : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
+                        <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
+                        <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
+                          <div style={{ width: '25%', height: '100%', background: 'rgba(21,19,15,0.12)', borderRadius: 999 }} />
+                        </div>
+                        <Lock size={11} color={INK3} style={{ flexShrink: 0 }} />
+                      </div>
+                    );
+                  }
+
+                  // Moteur actif normal
                   return (
-                    <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: b.locked ? 0.35 : 1 }}>
-                      {b.logo
-                        ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
-                        : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />
-                      }
+                    <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                        : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
                       <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
                       <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                        {!b.locked && (
-                          <motion.div
-                            initial={{ width: 0 }} animate={{ width: `${b.value}%` }}
-                            transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                            style={{ height: '100%', background: isTop ? CORAL : 'rgba(21,19,15,0.2)', borderRadius: 999 }} />
-                        )}
-                        {b.locked && <div style={{ width: '30%', height: '100%', background: 'rgba(21,19,15,0.12)', borderRadius: 999 }} />}
+                        <motion.div
+                          initial={{ width: 0 }} animate={{ width: `${b.value}%` }}
+                          transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                          style={{ height: '100%', background: isTop ? CORAL : 'rgba(21,19,15,0.2)', borderRadius: 999 }} />
                       </div>
-                      {b.locked
-                        ? <Lock size={10} color={INK3} style={{ flexShrink: 0 }} />
-                        : <span style={{ fontSize: 12, fontWeight: 700, color: isTop ? CORAL : INK2, width: 24, textAlign: 'right' }}>{b.value}</span>
-                      }
+                      <span style={{ fontSize: 12, fontWeight: 700, color: isTop ? CORAL : INK2, width: 24, textAlign: 'right' }}>{b.value}</span>
                     </div>
                   );
                 })}
@@ -732,7 +785,13 @@ export default function AIVisibilityReport() {
               {isFree && (
                 <button onClick={() => setShowUpgrade(true)}
                   style={{ width: '100%', marginTop: 14, padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Lock size={11} /> Voir les 7 autres moteurs — Starter
+                  <Lock size={11} /> Débloquer les 7 autres moteurs — Starter
+                </button>
+              )}
+              {isStarter && (
+                <button onClick={() => setShowUpgrade(true)}
+                  style={{ width: '100%', marginTop: 14, padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Lock size={11} /> Débloquer Mistral, Copilot, Grok — Pro
                 </button>
               )}
             </div>
@@ -742,7 +801,7 @@ export default function AIVisibilityReport() {
         {/* ── 3. Points bloquants (signaux techniques) ── */}
         {technicalBad.length > 0 && (
           <FadeUp delay={0.12}>
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
+            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
                 <div>
                   <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Ce qui bloque votre visibilité</p>
@@ -754,7 +813,7 @@ export default function AIVisibilityReport() {
               </div>
               <div style={{ padding: '10px 14px 14px' }}>
                 {technicalBad.map((t, i) => (
-                  <button key={i} onClick={() => setActiveDrawer({ id: `tech_${t.id}`, text: t.fix, type: 'fix' })}
+                  <button key={i} onClick={() => isFree ? handleLockedAction() : setActiveDrawer({ id: `tech_${t.id}`, text: t.fix, type: 'fix' })}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'none', border: `1px solid ${BORDER}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left', fontFamily: F, marginBottom: i < technicalBad.length - 1 ? 8 : 0, transition: 'background 0.1s' }}
                     onMouseEnter={e => e.currentTarget.style.background = SURFACE}
                     onMouseLeave={e => e.currentTarget.style.background = 'none'}>
@@ -780,6 +839,16 @@ export default function AIVisibilityReport() {
                   ))}
                 </div>
               )}
+
+              {/* FREE : overlay flouté sur "Ce qui bloque" */}
+              {isFree && (
+                <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(5px)', background: 'rgba(248,247,244,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 16 }}>
+                  <button onClick={handleLockedAction}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+                    <Lock size={12} color={CORAL} /> Débloquer — Starter
+                  </button>
+                </div>
+              )}
             </div>
           </FadeUp>
         )}
@@ -797,7 +866,7 @@ export default function AIVisibilityReport() {
               {issues.map((issue, i) => (
                 <IssueCard
                   key={i} issue={issue} index={i}
-                  onClick={() => setActiveDrawer({ id: `issue_${i}`, text: issue.problem || issue.text, type: 'fix' })}
+                  onClick={() => isFree ? handleLockedAction() : setActiveDrawer({ id: `issue_${i}`, text: issue.problem || issue.text, type: 'fix' })}
                   status={tasks[`issue_${i}`]?.status || 'todo'}
                   saving={false}
                 />
@@ -908,6 +977,17 @@ export default function AIVisibilityReport() {
       </div>
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* Fake loading overlay — plan free */}
+      {fakeLoading && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}>
+          <div style={{ background: WHITE, borderRadius: 18, padding: '28px 32px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', minWidth: 240 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', border: `3px solid rgba(0,0,0,0.08)`, borderTopColor: CORAL, animation: 'spin 0.8s linear infinite', margin: '0 auto 14px' }} />
+            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Chargement…</p>
+            <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Vérification de votre abonnement</p>
+          </div>
+        </div>
+      )}
 
       {activeDrawer && (
         <FixDrawer issue={activeDrawer} profile={data} user={user} isFree={isFree}
