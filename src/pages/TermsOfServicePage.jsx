@@ -177,7 +177,7 @@ export default function TermsOfServicePage() {
               <P>Vous vous engagez à fournir des informations exactes, complètes et à jour lors de votre inscription, et à les maintenir à jour.</P>
             </SubSection>
             <SubSection title="3.4 Sécurité du compte">
-              <P>Vous êtes seul responsable de la confidentialité de vos identifiants de connexion et de toute activité réalisée depuis votre Compte. Vous devez nous informer immédiatement à <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a> en cas d'accès non autorisé suspecté.</P>
+              <P>Vous êtes seul responsable de la confidentialité de vos identifiants de connexion et de toute activité réalisée depuis votre Compte. Vous devez nous informer immédiatement à <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a> en cas d'accès non autorisé suspecté.</P>
             </SubSection>
           </Section>
 
@@ -296,7 +296,7 @@ export default function TermsOfServicePage() {
             <P>Pour toute question relative aux présentes Conditions, contactez-nous à :</P>
             <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px' }}>
               <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
-                <div>📧 <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a></div>
+                <div>📧 <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a></div>
                 <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
               </div>
             </div>
@@ -318,7 +318,7 @@ export default function TermsOfServicePage() {
           </div>
           <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
             <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Questions ?</div>
-            <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL, fontWeight: 500 }}>antoinevalton954@gmail.com</a>
+            <a href="mailto:support@usewok.com" style={{ color: CORAL, fontWeight: 500 }}>support@usewok.com</a>
           </div>
         </aside>
       </div>

@@ -118,7 +118,7 @@ export default function LegalNoticePage() {
               <div>👤 <strong>Nom :</strong> Antoine Valton</div>
               <div>📋 <strong>Statut :</strong> En cours d'immatriculation</div>
               <div>📍 <strong>Adresse :</strong> Gironde, France</div>
-              <div>📧 <strong>Email :</strong> <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a></div>
+              <div>📧 <strong>Email :</strong> <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a></div>
               <div>📞 <strong>Téléphone :</strong> 07.49.80.07.74</div>
             </InfoCard>
           </Section>
@@ -148,7 +148,7 @@ export default function LegalNoticePage() {
           </Section>
 
           <Section number="6" title="Données personnelles">
-            <P>Le traitement des données personnelles collectées sur le site est décrit dans notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>. Vous pouvez exercer vos droits (accès, rectification, suppression, etc.) en nous contactant à <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a>, et introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.cnil.fr</a>).</P>
+            <P>Le traitement des données personnelles collectées sur le site est décrit dans notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>. Vous pouvez exercer vos droits (accès, rectification, suppression, etc.) en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>, et introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.cnil.fr</a>).</P>
           </Section>
 
           <Section number="7" title="Cookies">
@@ -170,7 +170,7 @@ export default function LegalNoticePage() {
           <Section number="11" title="Contact">
             <P>Pour toute question relative au site ou aux présentes mentions légales :</P>
             <InfoCard>
-              <div>📧 <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL }}>antoinevalton954@gmail.com</a></div>
+              <div>📧 <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a></div>
             </InfoCard>
           </Section>
         </main>
@@ -190,7 +190,7 @@ export default function LegalNoticePage() {
           </div>
           <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
             <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Contact</div>
-            <a href="mailto:antoinevalton954@gmail.com" style={{ color: CORAL, fontWeight: 500, wordBreak: 'break-all' }}>antoinevalton954@gmail.com</a>
+            <a href="mailto:support@usewok.com" style={{ color: CORAL, fontWeight: 500, wordBreak: 'break-all' }}>support@usewok.com</a>
           </div>
         </aside>
       </div>
