@@ -165,15 +165,41 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
             </div>
           ) : loading ? (
             <div style={{ padding: '24px 20px' }}>
-              <div style={{ padding: '16px 18px', background: SURFACE, borderRadius: 14, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2.5px solid ${BORDER}`, borderTopColor: CORAL, animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+              {/* Spinner card — fidèle à la maquette */}
+              <div style={{
+                padding: '18px 20px',
+                background: '#F5F0E8',
+                borderRadius: 16,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+              }}>
+                {/* Spinner coral avec arc partiel */}
+                <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+                  <svg width="40" height="40" viewBox="0 0 40 40" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#E8DDD0" strokeWidth="3" />
+                    <circle cx="20" cy="20" r="16" fill="none" stroke={CORAL} strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeDasharray="40 60"
+                      strokeDashoffset="0"
+                    />
+                  </svg>
+                </div>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: '0 0 2px' }}>L'IA prépare votre guide personnalisé…</p>
-                  <p style={{ fontSize: 11, color: INK3, margin: 0 }}>Adapté à votre secteur et votre site</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 3px', lineHeight: 1.3 }}>L'IA prépare votre guide<br/>personnalisé…</p>
+                  <p style={{ fontSize: 12, color: INK3, margin: 0, fontWeight: 400 }}>Adapté à votre secteur et votre site</p>
                 </div>
               </div>
-              {[90, 70, 80, 60].map((w, i) => (
-                <div key={i} style={{ height: 10, borderRadius: 5, background: `rgba(21,19,15,0.06)`, width: `${w}%`, marginBottom: 10 }} />
+              {/* Skeleton lines */}
+              {[85, 65, 75, 50].map((w, i) => (
+                <div key={i} style={{
+                  height: 11,
+                  borderRadius: 6,
+                  background: 'rgba(21,19,15,0.07)',
+                  width: `${w}%`,
+                  marginBottom: 12,
+                }} />
               ))}
             </div>
           ) : content ? (
