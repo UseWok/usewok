@@ -17,11 +17,11 @@ export const SEO_CONFIG = {
   },
   '/privacy': {
     title: 'Politique de confidentialité | UseWok',
-    description: "Découvrez comment UseWok protège vos données personnelles. Conformité RGPD, hébergement européen, droit à l'effacement — une politique transparente pour les indépendants et PME.",
+    description: 'Découvrez comment UseWok protège vos données et respecte votre vie privée.',
   },
   '/terms': {
-    title: "Conditions Générales d'Utilisation | UseWok",
-    description: "Lisez les CGU de UseWok, l'outil français de visibilité IA. Abonnements, données personnelles, résiliation — tout ce que vous devez savoir avant d'utiliser le service.",
+    title: "Conditions d'utilisation | UseWok",
+    description: "Découvrez les règles d'utilisation de UseWok. Consultez nos conditions d'utilisation transparentes pour comprendre comment nous opérons.",
   },
   '/legal': {
     title: 'Mentions légales | UseWok',
