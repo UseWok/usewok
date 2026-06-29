@@ -521,12 +521,6 @@ export default function Home() {
     const raw = searchQuery.trim();
     if (!raw || extracting) return;
 
-    // Easter egg demo mode
-    if (raw.toLowerCase().replace(/\s/g, '') === 'antoinevalton12') {
-      loadDemoData();
-      return;
-    }
-
     if (mode === 'chat') {
         navigate('/wok-ai', { state: { autoSend: raw } });
         return;
