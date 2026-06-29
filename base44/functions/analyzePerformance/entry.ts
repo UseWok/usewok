@@ -130,6 +130,33 @@ Return JSON:
       strategy: strategicRecs,
     };
 
+    // ── Persist performance data to BusinessProfile ──
+    try {
+      const profiles = await base44.asServiceRole.entities.BusinessProfile.filter({ created_by_id: user.id });
+      const existing = profiles.find(p => p.site_url === cleanUrl);
+      if (existing) {
+        let cached = {};
+        try {
+          if (existing.brand_keywords?.startsWith('http')) {
+            const fileRes = await fetch(existing.brand_keywords);
+            cached = await fileRes.json();
+          } else {
+            cached = JSON.parse(existing.brand_keywords || '{}');
+          }
+        } catch {}
+        const merged = { ...cached, perf_data: result, perf_analyzed_at: result.analyzed_at };
+        let brand_keywords = JSON.stringify(merged);
+        try {
+          const fileObj = new File([brand_keywords], 'data.json', { type: 'application/json' });
+          const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({ file: fileObj });
+          if (uploadRes?.file_url) brand_keywords = uploadRes.file_url;
+        } catch {}
+        await base44.asServiceRole.entities.BusinessProfile.update(existing.id, { brand_keywords });
+      }
+    } catch (e) {
+      console.error('[analyzePerformance] persist error:', e);
+    }
+
     return Response.json(result);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
