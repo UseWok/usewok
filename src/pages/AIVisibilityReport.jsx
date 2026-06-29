@@ -130,53 +130,63 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
   const timeEstimate = content?.time_estimate || '';
   const fixType = content?.type || '';
 
+  // Badge "Faisable seul" : fond beige #F5F0E6, bordure #E8DFD0, coche verte, texte vert foncé
+  // Badge horloge : fond blanc, bordure gris clair, icône horloge gris, texte gris foncé
+
   return (
     <AnimatePresence>
       <motion.div key="bd" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+        style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)' }} />
       <motion.div key="dr" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
         transition={{ type: 'spring', stiffness: 340, damping: 36 }}
-        style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101, width: '100%', maxWidth: 460, background: WHITE, boxShadow: '-12px 0 48px rgba(0,0,0,0.14)', display: 'flex', flexDirection: 'column', fontFamily: F }}>
+        style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101, width: '100%', maxWidth: 420, background: '#FFFFFF', boxShadow: '-8px 0 40px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', fontFamily: F }}>
 
-        {/* Header */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${BORDER}`, background: WHITE, flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+        {/* ── Header ── */}
+        <div style={{ padding: '20px 18px 14px', borderBottom: '1px solid #EBEBEB', background: '#FFFFFF', flexShrink: 0 }}>
+          {/* Label CORRECTION + X */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                <div style={{ width: 6, height: 6, borderRadius: 2, background: CORAL, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: CORAL, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                {/* Point coral */}
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, textTransform: 'uppercase', letterSpacing: '0.10em' }}>
                   {issue.type === 'plan' ? 'Plan d\'action' : 'Correction'}
                 </span>
-                {fromCache && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 600, color: GREEN, background: `${GREEN}15`, padding: '2px 7px', borderRadius: 20 }}>
-                    <Bookmark size={8} /> Sauvegardé
-                  </span>
-                )}
               </div>
-              <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: 0, lineHeight: 1.4, letterSpacing: '-0.02em' }}>{issue.text}</h2>
+              {/* Titre gras, grand */}
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#1A1A1A', margin: 0, lineHeight: 1.35, letterSpacing: '-0.025em' }}>{issue.text}</h2>
             </div>
-            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <X size={14} color={INK3} />
+            {/* Bouton X rond */}
+            <button onClick={onClose}
+              style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E0E0E0', background: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+              <X size={13} color="#888" />
             </button>
           </div>
+
+          {/* Badges horloge + faisable */}
           {timeEstimate && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 20 }}>
-                <Clock size={12} color={INK3} />
-                <span style={{ fontSize: 12, color: INK2, fontWeight: 500 }}>{timeEstimate}</span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
+              {/* Badge horloge — fond blanc, bordure grise fine, pill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#FFFFFF', border: '1px solid #D8D8D8', borderRadius: 999 }}>
+                <Clock size={12} color="#888" />
+                <span style={{ fontSize: 12, color: '#555', fontWeight: 500 }}>{timeEstimate}</span>
               </div>
+              {/* Badge faisable seul — fond beige, coche verte, texte vert */}
               {fixType && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 13px', background: fixType === 'seul' ? '#F0FDF4' : `${CORAL}10`, border: `1px solid ${fixType === 'seul' ? '#BBF7D0' : `${CORAL}25`}`, borderRadius: 20 }}>
-                  <span style={{ fontSize: 13 }}>{fixType === 'seul' ? '✓' : '↗'}</span>
-                  <span style={{ fontSize: 12, color: fixType === 'seul' ? '#16A34A' : CORAL, fontWeight: 600 }}>{fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#F5F0E6', border: '1px solid #E8DFD0', borderRadius: 999 }}>
+                  <span style={{ fontSize: 12, color: '#2D7A3A', fontWeight: 400 }}>✓</span>
+                  <span style={{ fontSize: 12, color: '#2D7A3A', fontWeight: 600 }}>
+                    {fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}
+                  </span>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* ── Body ── */}
+        <div style={{ flex: 1, overflowY: 'auto', background: '#FFFFFF' }}>
           {isFree ? (
             <div style={{ textAlign: 'center', padding: '48px 24px' }}>
               <div style={{ width: 56, height: 56, borderRadius: 16, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -192,83 +202,72 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
               </button>
             </div>
           ) : loading ? (
-            <div style={{ padding: '24px 20px' }}>
-              {/* Spinner card — fidèle à la maquette */}
-              <div style={{
-                padding: '18px 20px',
-                background: '#F5F0E8',
-                borderRadius: 16,
-                marginBottom: 20,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-              }}>
-                {/* Spinner coral avec arc partiel */}
-                <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
-                  <svg width="40" height="40" viewBox="0 0 40 40" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
-                    <circle cx="20" cy="20" r="16" fill="none" stroke="#E8DDD0" strokeWidth="3" />
-                    <circle cx="20" cy="20" r="16" fill="none" stroke={CORAL} strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeDasharray="40 60"
-                      strokeDashoffset="0"
-                    />
+            <div style={{ padding: '20px 18px' }}>
+              <div style={{ padding: '16px 18px', background: '#F5F0E8', borderRadius: 14, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ position: 'relative', width: 38, height: 38, flexShrink: 0 }}>
+                  <svg width="38" height="38" viewBox="0 0 38 38" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
+                    <circle cx="19" cy="19" r="15" fill="none" stroke="#E8DDD0" strokeWidth="3" />
+                    <circle cx="19" cy="19" r="15" fill="none" stroke={CORAL} strokeWidth="3" strokeLinecap="round" strokeDasharray="38 57" />
                   </svg>
                 </div>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 3px', lineHeight: 1.3 }}>L'IA prépare votre guide<br/>personnalisé…</p>
-                  <p style={{ fontSize: 12, color: INK3, margin: 0, fontWeight: 400 }}>Adapté à votre secteur et votre site</p>
+                  <p style={{ fontSize: 13.5, fontWeight: 700, color: '#1A1A1A', margin: '0 0 3px', lineHeight: 1.3 }}>L'IA prépare votre guide personnalisé…</p>
+                  <p style={{ fontSize: 12, color: '#A8A49F', margin: 0 }}>Adapté à votre secteur et votre site</p>
                 </div>
               </div>
-              {/* Skeleton lines */}
-              {[85, 65, 75, 50].map((w, i) => (
-                <div key={i} style={{
-                  height: 11,
-                  borderRadius: 6,
-                  background: 'rgba(21,19,15,0.07)',
-                  width: `${w}%`,
-                  marginBottom: 12,
-                }} />
+              {[88, 68, 78, 52].map((w, i) => (
+                <div key={i} style={{ height: 10, borderRadius: 5, background: 'rgba(0,0,0,0.07)', width: `${w}%`, marginBottom: 10 }} />
               ))}
             </div>
           ) : content ? (
-            <div style={{ background: WHITE }}>
-              {/* Séparateur fin sous les badges */}
-              <div style={{ height: 1, background: BORDER, margin: '0 20px' }} />
+            <div>
+              {/* Séparateur */}
+              <div style={{ height: 1, background: '#EBEBEB' }} />
 
-              {/* Impact box — fond orange clair, icône ampoule */}
+              {/* Box "Pourquoi c'est important" — fond orange très clair */}
               {summary && (
-                <div style={{ margin: '16px 20px', padding: '14px 16px', background: '#FEF3EC', border: 'none', borderRadius: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                <div style={{ margin: '14px 18px', padding: '14px 16px', background: '#FEF3EC', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
                     <span style={{ fontSize: 14 }}>💡</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 800, color: '#C2540A', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Pourquoi c'est important</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#B84A0A', textTransform: 'uppercase', letterSpacing: '0.10em' }}>Pourquoi c'est important</span>
                   </div>
-                  <p style={{ fontSize: 13.5, color: '#7C3A10', margin: 0, lineHeight: 1.65, fontWeight: 400 }}>{summary}</p>
+                  <p style={{ fontSize: 13, color: '#7C3A10', margin: 0, lineHeight: 1.65 }}>{summary}</p>
                 </div>
               )}
 
-              {/* Steps */}
+              {/* Label "CE QUE VOUS FAITES MAINTENANT" */}
               {steps.length > 0 && (
-                <div style={{ padding: '4px 20px 24px' }}>
-                  <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
+                <div style={{ padding: '6px 18px 18px' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#A8A49F', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Ce que vous faites maintenant</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {steps.map((step, i) => {
                       const stepText = typeof step === 'string' ? step : step.description || step.text || '';
-                      const [action, result] = stepText.includes('→') ? stepText.split('→') : [stepText, null];
+                      // Séparer action et résultat attendu sur "→"
+                      const arrowIdx = stepText.indexOf('→');
+                      const action = arrowIdx >= 0 ? stepText.slice(0, arrowIdx).trim() : stepText.trim();
+                      const result = arrowIdx >= 0 ? stepText.slice(arrowIdx + 1).trim() : (step.result || step.expected_result || null);
+
                       return (
-                        <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 16px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14 }}>
-                          {/* Numéro — coral pour 1, noir pour les autres */}
+                        <div key={i} style={{
+                          display: 'flex', gap: 13,
+                          padding: '14px 15px',
+                          background: '#FFFFFF',
+                          border: '1px solid #EBEBEB',
+                          borderRadius: 14,
+                        }}>
+                          {/* Numéro : coral pour 1, noir pour les autres */}
                           <div style={{
-                            width: 28, height: 28, borderRadius: '50%',
+                            width: 26, height: 26, borderRadius: '50%',
                             background: i === 0 ? CORAL : '#1A1A1A',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0, marginTop: 1
+                            flexShrink: 0, marginTop: 1,
                           }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: WHITE }}>{i + 1}</span>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>{i + 1}</span>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 14, color: INK, margin: '0 0 6px', lineHeight: 1.55, fontWeight: 500 }}>{action.trim()}</p>
+                            <p style={{ fontSize: 13.5, color: '#1A1A1A', margin: result ? '0 0 6px' : 0, lineHeight: 1.5, fontWeight: 500 }}>{action}</p>
                             {result && (
-                              <p style={{ fontSize: 12.5, color: CORAL, margin: 0, fontWeight: 500 }}>→ {result.trim()}</p>
+                              <p style={{ fontSize: 12.5, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.45 }}>→ {result}</p>
                             )}
                           </div>
                         </div>
@@ -279,8 +278,8 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
               )}
             </div>
           ) : (
-            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-              <p style={{ fontSize: 13, color: INK3 }}>Une erreur est survenue. Réessayez dans quelques secondes.</p>
+            <div style={{ padding: '40px 18px', textAlign: 'center' }}>
+              <p style={{ fontSize: 13, color: '#A8A49F' }}>Une erreur est survenue. Réessayez dans quelques secondes.</p>
             </div>
           )}
         </div>
