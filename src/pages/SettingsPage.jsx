@@ -369,6 +369,32 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ height: 28 }} />
+            <SectionTitle>Notifications</SectionTitle>
+            <div style={{ marginTop: 8 }}>
+              <SettingRow label="Emails marketing" description="Rapports, conseils et séquences d'onboarding par email." noBorder>
+                <button
+                  onClick={async () => {
+                    const next = !user?.email_unsubscribed;
+                    await base44.auth.updateMe({ email_unsubscribed: next });
+                    setUser(u => ({ ...u, email_unsubscribed: next }));
+                    toast.success(next ? 'Emails désactivés' : 'Emails réactivés');
+                  }}
+                  style={{
+                    width: 42, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 2,
+                    background: user?.email_unsubscribed ? 'rgba(0,0,0,0.12)' : '#111',
+                    transition: 'background 200ms', position: 'relative', flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                    position: 'absolute', top: 3, left: user?.email_unsubscribed ? 3 : 21,
+                    transition: 'left 200ms', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
+                  }} />
+                </button>
+              </SettingRow>
+            </div>
+
+            <div style={{ height: 28 }} />
             <SectionTitle>Zone dangereuse</SectionTitle>
             <div style={{ marginTop: 8 }}>
               <SettingRow label="Supprimer le compte" description="Supprime définitivement votre compte et toutes les données associées. Irréversible." noBorder>

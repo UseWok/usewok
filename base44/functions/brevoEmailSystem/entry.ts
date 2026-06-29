@@ -97,16 +97,31 @@ async function updateContactAttributes(email, attributes) {
   return { success: true };
 }
 
+// ── Pied de page avec lien de désabonnement ──────────────────────────────────
+
+function emailFooter(email) {
+  const unsubUrl = `https://app.usewok.com/unsubscribe?email=${encodeURIComponent(email)}`;
+  return `<div style="margin-top:40px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#bbb;text-align:center;line-height:1.8">
+UseWok · <a href="${unsubUrl}" style="color:#bbb;text-decoration:underline">Se désabonner</a>
+</div>`;
+}
+
 // ── Envoyer un email transactionnel ─────────────────────────────────────────
 
 async function sendTransactionalEmail({ to, subject, htmlContent, textContent, tags = [] }) {
+  // Append unsubscribe footer to every email
+  const htmlWithFooter = htmlContent + emailFooter(to);
+
   const payload = {
     sender: { name: 'UseWok', email: 'hello@usewok.com' },
     to: [{ email: to }],
     subject,
-    htmlContent,
+    htmlContent: htmlWithFooter,
     textContent: textContent || htmlContent.replace(/<[^>]+>/g, ''),
     tags,
+    headers: {
+      'List-Unsubscribe': `<https://app.usewok.com/unsubscribe?email=${encodeURIComponent(to)}>`,
+    },
   };
 
   const result = await brevoRequest('/smtp/email', 'POST', payload);

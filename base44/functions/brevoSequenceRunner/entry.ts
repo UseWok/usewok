@@ -63,6 +63,11 @@ Deno.serve(async (req) => {
 
     for (const user of users) {
       if (!user.email) continue;
+      // Skip unsubscribed users
+      if (user.email_unsubscribed) {
+        results.push({ userId: user.id, email: user.email, skipped: true, reason: 'unsubscribed' });
+        continue;
+      }
 
       const uid = user.id;
       const profile = profileMap[uid];

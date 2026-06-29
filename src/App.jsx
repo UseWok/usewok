@@ -28,6 +28,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import LegalNoticePage from './pages/LegalNoticePage';
 import PublicFiche from './pages/PublicFiche';
 import BlogPage from './pages/BlogPage.jsx';
+import UnsubscribePage from './pages/UnsubscribePage.jsx';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminBlog from './pages/admin/AdminBlog.jsx';
 import AIVisibilityReport from './pages/AIVisibilityReport.jsx';
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
       </>
