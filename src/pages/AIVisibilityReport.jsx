@@ -223,53 +223,51 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
             </div>
           ) : content ? (
             <div>
-              {/* Séparateur */}
               <div style={{ height: 1, background: '#EBEBEB' }} />
 
-              {/* Box "Pourquoi c'est important" — fond orange très clair */}
+              {/* Box "Pourquoi c'est important" */}
               {summary && (
-                <div style={{ margin: '14px 18px', padding: '14px 16px', background: '#FEF3EC', borderRadius: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-                    <span style={{ fontSize: 14 }}>💡</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#B84A0A', textTransform: 'uppercase', letterSpacing: '0.10em' }}>Pourquoi c'est important</span>
+                <div style={{ margin: '16px 18px', padding: '16px 18px', background: '#FEF3EC', borderRadius: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                    <span style={{ fontSize: 15 }}>💡</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#C45000', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Pourquoi c'est important</span>
                   </div>
-                  <p style={{ fontSize: 13, color: '#7C3A10', margin: 0, lineHeight: 1.65 }}>{summary}</p>
+                  <p style={{ fontSize: 14, color: '#7C3A10', margin: 0, lineHeight: 1.7, fontWeight: 400 }}>{summary}</p>
                 </div>
               )}
 
-              {/* Label "CE QUE VOUS FAITES MAINTENANT" */}
+              {/* Label section */}
               {steps.length > 0 && (
-                <div style={{ padding: '6px 18px 18px' }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#A8A49F', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Ce que vous faites maintenant</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ padding: '4px 18px 20px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#B0AAA4', textTransform: 'uppercase', letterSpacing: '0.13em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {steps.map((step, i) => {
                       const stepText = typeof step === 'string' ? step : step.description || step.text || '';
-                      // Séparer action et résultat attendu sur "→"
                       const arrowIdx = stepText.indexOf('→');
                       const action = arrowIdx >= 0 ? stepText.slice(0, arrowIdx).trim() : stepText.trim();
                       const result = arrowIdx >= 0 ? stepText.slice(arrowIdx + 1).trim() : (step.result || step.expected_result || null);
 
                       return (
                         <div key={i} style={{
-                          display: 'flex', gap: 13,
-                          padding: '14px 15px',
+                          display: 'flex', gap: 14,
+                          padding: '16px 16px',
                           background: '#FFFFFF',
-                          border: '1px solid #EBEBEB',
-                          borderRadius: 14,
+                          border: '1px solid #EAEAEA',
+                          borderRadius: 16,
                         }}>
                           {/* Numéro : coral pour 1, noir pour les autres */}
                           <div style={{
-                            width: 26, height: 26, borderRadius: '50%',
+                            width: 28, height: 28, borderRadius: '50%',
                             background: i === 0 ? CORAL : '#1A1A1A',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0, marginTop: 1,
+                            flexShrink: 0, marginTop: 2,
                           }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>{i + 1}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>{i + 1}</span>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 13.5, color: '#1A1A1A', margin: result ? '0 0 6px' : 0, lineHeight: 1.5, fontWeight: 500 }}>{action}</p>
+                            <p style={{ fontSize: 14.5, color: '#1A1A1A', margin: result ? '0 0 8px' : 0, lineHeight: 1.55, fontWeight: 500 }}>{action}</p>
                             {result && (
-                              <p style={{ fontSize: 12.5, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.45 }}>→ {result}</p>
+                              <p style={{ fontSize: 13, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.5 }}>→ {result}</p>
                             )}
                           </div>
                         </div>
