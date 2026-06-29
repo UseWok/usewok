@@ -15,6 +15,7 @@ import AdminAnalyticsPage from '@/pages/admin/AdminAnalyticsPage';
 import AdminFeatureFlagsPage from '@/pages/admin/AdminFeatureFlagsPage';
 import AdminInboxPage from '@/pages/admin/AdminInboxPage';
 import AdminBlog from '@/pages/admin/AdminBlog.jsx';
+import AdminPlanSettingsPage from '@/pages/admin/AdminPlanSettingsPage.jsx';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ export default function AdminPanel() {
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/blog" element={<AdminBlog />} />
+          <Route path="/plan-settings" element={<AdminPlanSettingsPage />} />
         </Routes>
       </main>
     </div>

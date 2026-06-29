@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { loadPlanSettings } from '@/lib/wok-plans';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
@@ -95,6 +96,8 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
+      // Charger les overrides Admin des plans (en background, sans bloquer l'UI)
+      loadPlanSettings().catch(() => {});
     } catch (error) {
       setIsLoadingAuth(false);
       setIsAuthenticated(false);

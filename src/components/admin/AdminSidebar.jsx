@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Tag, FileText, MessageSquare, BarChart2, Inbox, BookOpen, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Tag, FileText, MessageSquare, BarChart2, Inbox, BookOpen, LogOut, Package, Settings2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserColor } from '@/lib/user-color';
 
@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Blog',            path: '/admin/blog',          icon: BookOpen },
   { label: 'Analytics',       path: '/admin/analytics',     icon: BarChart2 },
   { label: 'Logs',            path: '/admin/logs',          icon: FileText },
+  { label: 'Paramètres plans', path: '/admin/plan-settings', icon: Settings2 },
 ];
 
 export default function AdminSidebar({ user, unreadCount = 0 }) {
