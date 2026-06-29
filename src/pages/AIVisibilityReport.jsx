@@ -203,20 +203,22 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
             </div>
           ) : loading ? (
             <div style={{ padding: '20px 18px' }}>
-              <div style={{ padding: '16px 18px', background: '#F5F0E8', borderRadius: 14, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ position: 'relative', width: 38, height: 38, flexShrink: 0 }}>
-                  <svg width="38" height="38" viewBox="0 0 38 38" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
-                    <circle cx="19" cy="19" r="15" fill="none" stroke="#E8DDD0" strokeWidth="3" />
-                    <circle cx="19" cy="19" r="15" fill="none" stroke={CORAL} strokeWidth="3" strokeLinecap="round" strokeDasharray="38 57" />
+              {/* Loading card — fond beige, spinner coral, texte bold */}
+              <div style={{ padding: '18px 20px', background: '#F5F0E8', borderRadius: 16, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+                  <svg width="40" height="40" viewBox="0 0 40 40" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#E2D9CF" strokeWidth="3.5" />
+                    <circle cx="20" cy="20" r="16" fill="none" stroke={CORAL} strokeWidth="3.5" strokeLinecap="round" strokeDasharray="40 60" />
                   </svg>
                 </div>
                 <div>
-                  <p style={{ fontSize: 13.5, fontWeight: 700, color: '#1A1A1A', margin: '0 0 3px', lineHeight: 1.3 }}>L'IA prépare votre guide personnalisé…</p>
-                  <p style={{ fontSize: 12, color: '#A8A49F', margin: 0 }}>Adapté à votre secteur et votre site</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A', margin: '0 0 4px', lineHeight: 1.3, letterSpacing: '-0.01em' }}>L'IA prépare votre guide personnalisé…</p>
+                  <p style={{ fontSize: 13, color: '#A8A49F', margin: 0, fontWeight: 400 }}>Adapté à votre secteur et votre site</p>
                 </div>
               </div>
+              {/* Skeleton lines */}
               {[88, 68, 78, 52].map((w, i) => (
-                <div key={i} style={{ height: 10, borderRadius: 5, background: 'rgba(0,0,0,0.07)', width: `${w}%`, marginBottom: 10 }} />
+                <div key={i} style={{ height: 11, borderRadius: 6, background: 'rgba(0,0,0,0.08)', width: `${w}%`, marginBottom: 13 }} />
               ))}
             </div>
           ) : content ? (
