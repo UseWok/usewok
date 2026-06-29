@@ -1,0 +1,90 @@
+{
+  "name": "UserFixCache",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "issue_key": {
+      "type": "string",
+      "title": "Issue key (normalized)"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "summary": {
+      "type": "string",
+      "title": "Summary",
+      "maxLength": 2000
+    },
+    "steps": {
+      "type": "string",
+      "title": "Steps JSON",
+      "format": "textarea"
+    },
+    "time_estimate": {
+      "type": "string",
+      "title": "Time estimate"
+    },
+    "fix_type": {
+      "type": "string",
+      "title": "Type (autonome/developpeur)"
+    }
+  },
+  "required": [
+    "user_id",
+    "issue_key"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

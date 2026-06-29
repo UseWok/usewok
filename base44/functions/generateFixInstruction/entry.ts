@@ -1,13 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Normalise un texte de problème en clé de cache (lowercase, sans ponctuation, 60 chars max)
 function normalizeKey(text) {
-  return (text || '').toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç\s]/g, '').replace(/\s+/g, '_').slice(0, 60);
-}
-
-// Délai aléatoire pour simuler un temps de génération (1.5s à 4s)
-function randomDelay() {
-  return new Promise(r => setTimeout(r, 1500 + Math.random() * 2500));
+  return (text || '').toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
 }
 
 Deno.serve(async (req) => {
@@ -19,50 +13,75 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const issueProblem = body.issue || body.issueProblem || '';
     const businessProfile = body.profile || body.businessProfile || {};
+    const siteUrl = businessProfile.site_url || '';
     const industry = businessProfile.business_type || businessProfile.identity_industry || '';
+    const businessName = businessProfile.business_name || businessProfile.identity_name || '';
 
     const issueKey = normalizeKey(issueProblem);
 
-    // ── 1. Chercher dans la bibliothèque (match exact ou même secteur) ──
-    const existing = await base44.asServiceRole.entities.FixLibrary.filter({ issue_key: issueKey });
-    if (existing && existing.length > 0) {
-      const match = existing[0];
-      // Incrémenter le compteur d'usage en arrière-plan
-      base44.asServiceRole.entities.FixLibrary.update(match.id, { use_count: (match.use_count || 1) + 1 }).catch(() => {});
-      // Délai pour ne pas éveiller les soupçons
-      await randomDelay();
+    // ── 1. Cache cloud par user+issue_key (ne jamais régénérer si déjà fait) ──
+    const userCache = await base44.entities.UserFixCache.filter({
+      user_id: user.id,
+      issue_key: issueKey,
+    }).catch(() => []);
+
+    if (userCache && userCache.length > 0) {
+      const cached = userCache[0];
       let steps = [];
-      try { steps = JSON.parse(match.steps || '[]'); } catch {}
+      try { steps = JSON.parse(cached.steps || '[]'); } catch {}
+      console.log(`[cache_hit] user=${user.id} key=${issueKey}`);
       return Response.json({
-        summary: match.summary,
+        summary: cached.summary,
         steps,
-        time_estimate: match.time_estimate,
-        type: match.type || 'autonome',
+        time_estimate: cached.time_estimate,
+        type: cached.fix_type || 'autonome',
+        from_cache: true,
       });
     }
 
-    // ── 2. Générer via LLM ──
-    const brandContext = businessProfile
-      ? `Site: ${businessProfile.site_url || ''}, Nom: ${businessProfile.business_name || businessProfile.identity_name || ''}, Secteur: ${industry}`
-      : '';
+    // ── 2. Cache global (FixLibrary) — même clé, n'importe quel utilisateur ──
+    const globalCache = await base44.asServiceRole.entities.FixLibrary.filter({ issue_key: issueKey }).catch(() => []);
+    if (globalCache && globalCache.length > 0) {
+      const match = globalCache[0];
+      let steps = [];
+      try { steps = JSON.parse(match.steps || '[]'); } catch {}
 
-    const prompt = `Tu es un consultant web qui aide des propriétaires de petites entreprises à améliorer leur visibilité sur les moteurs IA. Tu parles simplement, sans jargon technique. Réponds UNIQUEMENT en français.
+      // Sauvegarder dans le cache user pour la prochaine fois
+      base44.entities.UserFixCache.create({
+        user_id: user.id,
+        issue_key: issueKey,
+        site_url: siteUrl,
+        summary: match.summary,
+        steps: match.steps,
+        time_estimate: match.time_estimate,
+        fix_type: match.type || 'autonome',
+      }).catch(() => {});
 
-Contexte :
+      base44.asServiceRole.entities.FixLibrary.update(match.id, { use_count: (match.use_count || 1) + 1 }).catch(() => {});
+
+      return Response.json({ summary: match.summary, steps, time_estimate: match.time_estimate, type: match.type || 'autonome', from_cache: true });
+    }
+
+    // ── 3. Générer via LLM (uniquement si aucun cache) ──
+    const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
+
+    const prompt = `Tu es un expert en visibilité IA (LLM Search Optimization) qui aide des entrepreneurs à être recommandés par ChatGPT, Gemini, Claude et les autres IA. Tu parles comme un ami expert, sans jargon, avec des actions concrètes qui créent des résultats rapides.
+
+Contexte de l'entreprise :
 ${brandContext}
 
-Problème identifié :
+Problème détecté :
 "${issueProblem}"
 
-Génère un guide pratique pour corriger ce problème. Le guide doit être compréhensible par quelqu'un sans connaissance technique.
+Génère un guide pratique, percutant et sans jargon. Pense "comment cette entreprise perd des clients à cause de ce problème" et "comment régler ça simplement".
 
 Retourne un JSON avec :
-- summary: une explication simple en 1-2 phrases de pourquoi c'est important à corriger (pas de jargon, en français)
-- steps: tableau de 3 à 5 étapes claires et concrètes pour corriger le problème (chaque étape = une action simple, rédigée à l'impératif, en français)
-- time_estimate: le temps approximatif pour corriger ce point (ex: "5 minutes", "30 minutes avec votre développeur")
-- type: "autonome" si le propriétaire peut le faire seul, "developpeur" si il faut un développeur
+- summary: une phrase d'impact qui explique POURQUOI ce problème fait perdre des clients ou de la visibilité (ex: "Quand quelqu'un demande à ChatGPT de recommander un X dans votre ville, vous n'apparaissez pas car..."). Max 2 phrases, ton direct, pas de jargon.
+- steps: 3 à 5 étapes très concrètes, rédigées à l'impératif, que le propriétaire peut faire aujourd'hui. Chaque étape = 1 action précise avec un résultat attendu. Format: "[Action] → [Résultat attendu]"
+- time_estimate: durée réaliste (ex: "20 minutes ce soir", "1h avec votre webmaster")
+- type: "seul" si faisable sans développeur, "avec aide" si besoin d'un pro
 
-IMPORTANT: N'utilise jamais les mots: balise, meta, schema, JSON-LD, robots.txt, SSL, certificat, DNS, HTTP. Utilise des formulations simples comme "votre site", "votre page", "votre fiche Google", "votre hébergeur". Toujours en français.`;
+RÈGLES : Zéro jargon technique (pas de: balise, meta, schema, JSON-LD, SSL, DNS, robots, crawl, indexation). Utilise : "votre page", "votre fiche Google", "votre site", "les IA". Toujours en français. Ton direct et encourageant.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -79,20 +98,33 @@ IMPORTANT: N'utilise jamais les mots: balise, meta, schema, JSON-LD, robots.txt,
       },
     });
 
-    // ── 3. Sauvegarder dans la bibliothèque en arrière-plan ──
+    // ── 4. Sauvegarder dans cache user ET bibliothèque globale ──
+    const stepsJson = JSON.stringify(result.steps || []);
+
+    base44.entities.UserFixCache.create({
+      user_id: user.id,
+      issue_key: issueKey,
+      site_url: siteUrl,
+      summary: result.summary || '',
+      steps: stepsJson,
+      time_estimate: result.time_estimate || '',
+      fix_type: result.type || 'seul',
+    }).catch((e) => console.error('[cache_save_user]', e));
+
     base44.asServiceRole.entities.FixLibrary.create({
       issue_key: issueKey,
       issue_text: issueProblem,
       industry,
       summary: result.summary || '',
-      steps: JSON.stringify(result.steps || []),
+      steps: stepsJson,
       time_estimate: result.time_estimate || '',
-      type: result.type || 'autonome',
+      type: result.type || 'seul',
       use_count: 1,
     }).catch(() => {});
 
     return Response.json(result);
   } catch (error) {
+    console.error('[generateFixInstruction]', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
