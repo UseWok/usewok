@@ -25,6 +25,7 @@ import ResetPassword from './pages/ResetPassword';
 import LandingPricingPage from './pages/LandingPricingPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import LegalNoticePage from './pages/LegalNoticePage';
 import PublicFiche from './pages/PublicFiche';
 import BlogPage from './pages/BlogPage.jsx';
 import BlogPostPage from './pages/BlogPostPage';
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
           <Route path="/tarifs" element={<LandingPricingPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/legal" element={<LegalNoticePage />} />
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
