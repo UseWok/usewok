@@ -75,21 +75,27 @@ function AnimatedScore({ value, size = 56 }) {
 // ── FixDrawer — persistance cloud via UserFixCache ───────────────────────────
 const FIX_MEM = {}; // cache mémoire session pour éviter double-appel
 
+// Normalize issue text to issue_key — must match backend logic exactly
+function normalizeIssueKey(text) {
+  return (text || '').toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
+}
+
 function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
-  const cacheKey = issue?.id || '';
-  const [content, setContent] = useState(() => FIX_MEM[cacheKey] || null);
-  const [loading, setLoading] = useState(!FIX_MEM[cacheKey] && !isFree);
+  // Use normalized text as cache key — matches backend UserFixCache issue_key
+  const issueKey = normalizeIssueKey(issue?.text || '');
+  const memKey = issue?.id || issueKey; // in-memory key (session only)
+  const [content, setContent] = useState(() => FIX_MEM[memKey] || null);
+  const [loading, setLoading] = useState(!FIX_MEM[memKey] && !isFree);
   const [fromCache, setFromCache] = useState(false);
 
   useEffect(() => {
     if (!issue) return;
     if (isFree) { setLoading(false); return; }
     // Déjà en mémoire session → instantané
-    if (FIX_MEM[cacheKey]) { setContent(FIX_MEM[cacheKey]); setLoading(false); return; }
+    if (FIX_MEM[memKey]) { setContent(FIX_MEM[memKey]); setLoading(false); return; }
     setLoading(true); setContent(null); setFromCache(false);
 
-    // 1. Vérifier d'abord le cache cloud (UserFixCache)
-    const issueKey = cacheKey;
+    // 1. Vérifier d'abord le cache cloud (UserFixCache) avec la vraie issue_key normalisée
     const checkCloud = user?.id
       ? base44.entities.UserFixCache.filter({ user_id: user.id, issue_key: issueKey }).catch(() => [])
       : Promise.resolve([]);
@@ -100,7 +106,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
         let steps = [];
         try { steps = JSON.parse(c.steps || '[]'); } catch {}
         const data = { summary: c.summary, steps, time_estimate: c.time_estimate, type: c.fix_type, from_cache: true };
-        FIX_MEM[cacheKey] = data;
+        FIX_MEM[memKey] = data;
         setContent(data);
         setFromCache(true);
         setLoading(false);
@@ -116,13 +122,13 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
         }
       }).catch(() => null);
       if (res?.data && !res.data.error) {
-        FIX_MEM[cacheKey] = res.data;
+        FIX_MEM[memKey] = res.data;
         setContent(res.data);
         setFromCache(!!res.data.from_cache);
       }
       setLoading(false);
     });
-  }, [cacheKey, isFree]);
+  }, [memKey, isFree]);
 
   if (!issue) return null;
   const steps = content?.steps || [];
