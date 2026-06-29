@@ -38,16 +38,63 @@ UseWok est le premier outil francophone qui mesure et améliore cette nouvelle f
 
 ## Fonctionnalités
 
-| Fonctionnalité | Free | Starter | Pro |
-|---|---|---|---|
-| Score LRS (1 moteur) | ✅ | ✅ | ✅ |
-| 8 moteurs IA analysés | ❌ | ✅ | ✅ |
-| Plan d'action personnalisé | ❌ | ✅ | ✅ |
-| Guides de correction (sauvegardés) | ❌ | ✅ | ✅ |
-| Suivi multi-domaines | ❌ | ✅ (3) | ✅ (10) |
-| Audit technique complet | ❌ | ❌ | ✅ |
-
----
+{
+  "plans": {
+    "gratuit": {
+      "tarif_mensuel_euro": 0,
+      "frequence_scan": "ponctuel",
+      "niveau_scan": "lite",
+      "correction_automatique": false,
+      "guides_inclus": false,
+      "moteurs_ia_analyses": 1,
+      "liste_moteurs_ia": ["Gemini"],
+      "domaines_geres": 1,
+      "historique_score_jours": 30,
+      "analyse_concurrents": false,
+      "limite_messages_chatbot_mensuel": 5,
+      "reporting_export_pdf": false,
+      "integration_gsc_analytics": false,
+      "marque_blanche": false,
+      "automatisations": false,
+      "scan_automatique_si_inactif": false
+    },
+    "starter": {
+      "tarif_mensuel_euro": 49,
+      "frequence_scan": "3 par semaine",
+      "niveau_scan": "complet",
+      "correction_automatique": true,
+      "guides_inclus": true,
+      "moteurs_ia_analyses": 5,
+      "domaines_geres": 5,
+      "historique_score_jours": 180,
+      "analyse_concurrents": true,
+      "limite_messages_chatbot_mensuel": 50,
+      "reporting_export_pdf": true,
+      "integration_gsc_analytics": true,
+      "marque_blanche": false,
+      "automatisations": true,
+      "scan_automatique_si_inactif": true
+    },
+    "pro": {
+      "tarif_mensuel_euro": 99,
+      "frequence_scan": "1 par jour",
+      "niveau_scan": "complet",
+      "correction_automatique": true,
+      "guides_inclus": true,
+      "moteurs_ia_analyses": 8,
+      "domaines_geres": 10,
+      "historique_score_jours": 365,
+      "analyse_concurrents": true,
+      "limite_messages_chatbot_mensuel": 200,
+      "reporting_export_pdf": true,
+      "integration_gsc_analytics": true,
+      "marque_blanche": true,
+      "automatisations": true,
+      "scan_automatique_si_inactif": true
+    }
+  }
+}
+    ---
 
 ## Stack technique
 
