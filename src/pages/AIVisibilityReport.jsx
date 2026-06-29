@@ -423,6 +423,13 @@ export default function AIVisibilityReport() {
     if (!data?.site_url) return;
     setScanning(true);
     try {
+      // Supprimer le cache des corrections pour ce site (se régénèreront au prochain clic)
+      const u = await base44.auth.me().catch(() => null);
+      if (u) {
+        const caches = await base44.entities.UserFixCache.filter({ user_id: u.id, site_url: data.site_url }).catch(() => []);
+        await Promise.all(caches.map(c => base44.entities.UserFixCache.delete(c.id).catch(() => {})));
+      }
+
       const fnName = isFree ? 'analyzeWebsiteLite' : 'analyzeWebsite';
       const res = await base44.functions.invoke(fnName, { url: data.site_url });
       if (res?.data && !res.data.error) {

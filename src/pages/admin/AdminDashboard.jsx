@@ -6,6 +6,7 @@ import {
   TrendingUp, Shield, Zap, CreditCard, Inbox, Ticket
 } from 'lucide-react';
 import AdminOverview from '@/components/admin/AdminOverview';
+import AdminRevenueOverview from '@/components/admin/AdminRevenueOverview';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminActivity from '@/components/admin/AdminActivity';
 import AdminPlans from '@/components/admin/AdminPlans';
@@ -15,6 +16,7 @@ import SupportPage from '@/pages/SupportPage';
 
 const NAV = [
   { label: 'Overview',     path: '/admin',           icon: LayoutDashboard },
+  { label: 'Revenue',      path: '/admin/revenue',    icon: TrendingUp      },
   { label: 'Users',        path: '/admin/users',      icon: Users           },
   { label: 'Activity',     path: '/admin/activity',   icon: Activity        },
   { label: 'Plans',        path: '/admin/plans',      icon: CreditCard      },
@@ -135,6 +137,7 @@ export default function AdminDashboard() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/"         element={<AdminOverview />} />
+            <Route path="/revenue"  element={<AdminRevenueOverview />} />
             <Route path="/users"    element={<AdminUsers />} />
             <Route path="/activity" element={<AdminActivity />} />
             <Route path="/plans"    element={<AdminPlans />} />

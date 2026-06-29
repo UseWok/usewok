@@ -20,7 +20,7 @@ export const WOK_PLAN_FEATURES = {
     // Historique
     history_days: 30,
     // Chatbot
-    chatbot_messages: 3,
+    chatbot_messages: 5,
     // Features
     auto_fix: false,
     fix_instructions: false,
@@ -46,7 +46,7 @@ export const WOK_PLAN_FEATURES = {
     fix_instructions: true,
     see_competitors: true,
     pdf_export: true,
-    white_label: true,
+    white_label: false,
     audit_access: true,
     integrations: true,
     auto_scan: true,
@@ -81,8 +81,8 @@ export const PLAN_LABELS = {
 
 export const PLAN_PRICES = {
   free: { monthly: 0, yearly: 0 },
-  starter: { monthly: 49, yearly: 39 },
-  pro: { monthly: 99, yearly: 79 },
+  starter: { monthly: 49, yearly: 432 },
+  pro: { monthly: 99, yearly: 816 },
 };
 
 export function getWokFeatures(user) {
