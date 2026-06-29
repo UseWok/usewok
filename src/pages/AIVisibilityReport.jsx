@@ -523,23 +523,18 @@ export default function AIVisibilityReport() {
       const fnName = isFree ? 'analyzeWebsiteLite' : 'analyzeWebsite';
       const res = await base44.functions.invoke(fnName, { url: data.site_url });
       if (res?.data && !res.data.error) {
+        // Backend already persisted everything to BusinessProfile (brand_keywords + scores)
+        // Just reload from DB to get the freshly saved data
         const u = await base44.auth.me();
         if (u) {
           const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
           const matched = profiles.find((p) => p.site_url === data.site_url);
           if (matched) {
-            const brand_keywords = await uploadProfileData(res.data);
-            await base44.entities.BusinessProfile.update(matched.id, {
-              brand_keywords,
-              score_previous: matched.score_overall || 0, // sauvegarder le score précédent
-              score_overall: res.data.overall_score || 0,
-              score_ai_visibility: res.data.ai_visibility_score || 0,
-              score_message_clarity: res.data.message_clarity_score || 0,
-              score_commercial_signal: res.data.commercial_presence_score || 0,
-              last_scan: new Date().toISOString()
-            });
+            const extra = await getProfileData(matched);
+            setData({ ...matched, ...extra });
+          } else {
+            setData(res.data);
           }
-          setData({ ...(matched || {}), ...res.data });
         }
       }
     } catch {}
