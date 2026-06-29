@@ -59,7 +59,7 @@ UseWok est le premier outil francophone qui mesure et améliore cette nouvelle f
       "scan_automatique_si_inactif": false
     },
     "starter": {
-      "tarif_mensuel_euro": 49,
+      "tarif_mensuel_euro": 45,
       "frequence_scan": "3 par semaine",
       "niveau_scan": "complet",
       "correction_automatique": true,
@@ -76,7 +76,7 @@ UseWok est le premier outil francophone qui mesure et améliore cette nouvelle f
       "scan_automatique_si_inactif": true
     },
     "pro": {
-      "tarif_mensuel_euro": 99,
+      "tarif_mensuel_euro": 85,
       "frequence_scan": "1 par jour",
       "niveau_scan": "complet",
       "correction_automatique": true,
