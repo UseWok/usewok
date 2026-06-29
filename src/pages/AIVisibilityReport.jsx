@@ -72,15 +72,20 @@ function AnimatedScore({ value, size = 56 }) {
   return <span style={{ fontSize: size, fontWeight: 900, color: WHITE, letterSpacing: '-0.05em', lineHeight: 1 }}>{disp}</span>;
 }
 
-// ── FixDrawer — avec cache cloud ──────────────────────────────────────────────
+// ── FixDrawer — cache mémoire locale pour éviter re-fetch ────────────────────
+const FIX_CACHE = {};
+
 function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
-  const [content, setContent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [fromCache, setFromCache] = useState(false);
+  const cacheKey = issue?.id || '';
+  const [content, setContent] = useState(() => FIX_CACHE[cacheKey] || null);
+  const [loading, setLoading] = useState(!FIX_CACHE[cacheKey] && !isFree);
+  const [fromCache, setFromCache] = useState(!!FIX_CACHE[cacheKey]);
 
   useEffect(() => {
     if (!issue) return;
     if (isFree) { setLoading(false); return; }
+    // Si déjà en mémoire, ne pas refaire l'appel
+    if (FIX_CACHE[cacheKey]) { setContent(FIX_CACHE[cacheKey]); setLoading(false); return; }
     setLoading(true); setContent(null); setFromCache(false);
     base44.functions.invoke('generateFixInstruction', {
       issue: issue.text,
@@ -91,11 +96,12 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
       }
     }).then((res) => {
       if (res?.data && !res.data.error) {
+        FIX_CACHE[cacheKey] = res.data;
         setContent(res.data);
         setFromCache(!!res.data.from_cache);
       }
     }).catch(() => {}).finally(() => setLoading(false));
-  }, [issue?.id, isFree]);
+  }, [cacheKey, isFree]);
 
   if (!issue) return null;
   const steps = content?.steps || [];
@@ -113,7 +119,7 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
         style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101, width: '100%', maxWidth: 460, background: WHITE, boxShadow: '-12px 0 48px rgba(0,0,0,0.14)', display: 'flex', flexDirection: 'column', fontFamily: F }}>
 
         {/* Header */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${BORDER}`, background: SURFACE, flexShrink: 0 }}>
+        <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${BORDER}`, background: WHITE, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
@@ -203,7 +209,7 @@ function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
               ))}
             </div>
           ) : content ? (
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', background: WHITE }}>
               {/* Impact box — pourquoi ça compte */}
               {summary && (
                 <div style={{ padding: '16px 18px', background: `${CORAL}08`, border: `1px solid ${CORAL}20`, borderRadius: 14, marginBottom: 20 }}>
