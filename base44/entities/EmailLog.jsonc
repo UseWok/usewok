@@ -1,0 +1,76 @@
+{
+  "name": "EmailLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "Email destinataire"
+    },
+    "email_type": {
+      "type": "string",
+      "title": "Type d'email",
+      "enum": [
+        "welcome",
+        "post_scan",
+        "no_scan_j3",
+        "pricing_no_buy",
+        "chatbot_no_convert",
+        "inactive_j14",
+        "last_j30",
+        "post_paid",
+        "paid_j7",
+        "paid_monthly"
+      ]
+    },
+    "segment": {
+      "type": "string",
+      "title": "Segment utilisateur",
+      "enum": [
+        "free_active",
+        "free_inactive",
+        "paid",
+        "pricing_viewed",
+        "chatbot_used"
+      ]
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL au moment de l'envoi"
+    },
+    "score_at_send": {
+      "type": "number",
+      "title": "Score IA au moment de l'envoi"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_email",
+    "email_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
