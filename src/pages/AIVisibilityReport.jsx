@@ -72,35 +72,56 @@ function AnimatedScore({ value, size = 56 }) {
   return <span style={{ fontSize: size, fontWeight: 900, color: WHITE, letterSpacing: '-0.05em', lineHeight: 1 }}>{disp}</span>;
 }
 
-// ── FixDrawer — cache mémoire locale pour éviter re-fetch ────────────────────
-const FIX_CACHE = {};
+// ── FixDrawer — persistance cloud via UserFixCache ───────────────────────────
+const FIX_MEM = {}; // cache mémoire session pour éviter double-appel
 
-function FixDrawer({ issue, profile, isFree, onClose, onUpgrade }) {
+function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
   const cacheKey = issue?.id || '';
-  const [content, setContent] = useState(() => FIX_CACHE[cacheKey] || null);
-  const [loading, setLoading] = useState(!FIX_CACHE[cacheKey] && !isFree);
-  const [fromCache, setFromCache] = useState(!!FIX_CACHE[cacheKey]);
+  const [content, setContent] = useState(() => FIX_MEM[cacheKey] || null);
+  const [loading, setLoading] = useState(!FIX_MEM[cacheKey] && !isFree);
+  const [fromCache, setFromCache] = useState(false);
 
   useEffect(() => {
     if (!issue) return;
     if (isFree) { setLoading(false); return; }
-    // Si déjà en mémoire, ne pas refaire l'appel
-    if (FIX_CACHE[cacheKey]) { setContent(FIX_CACHE[cacheKey]); setLoading(false); return; }
+    // Déjà en mémoire session → instantané
+    if (FIX_MEM[cacheKey]) { setContent(FIX_MEM[cacheKey]); setLoading(false); return; }
     setLoading(true); setContent(null); setFromCache(false);
-    base44.functions.invoke('generateFixInstruction', {
-      issue: issue.text,
-      profile: {
-        site_url: profile?.site_url,
-        business_name: profile?.identity_name,
-        business_type: profile?.identity_industry
+
+    // 1. Vérifier d'abord le cache cloud (UserFixCache)
+    const issueKey = cacheKey;
+    const checkCloud = user?.id
+      ? base44.entities.UserFixCache.filter({ user_id: user.id, issue_key: issueKey }).catch(() => [])
+      : Promise.resolve([]);
+
+    checkCloud.then(async (cached) => {
+      if (cached.length > 0) {
+        const c = cached[0];
+        let steps = [];
+        try { steps = JSON.parse(c.steps || '[]'); } catch {}
+        const data = { summary: c.summary, steps, time_estimate: c.time_estimate, type: c.fix_type, from_cache: true };
+        FIX_MEM[cacheKey] = data;
+        setContent(data);
+        setFromCache(true);
+        setLoading(false);
+        return;
       }
-    }).then((res) => {
+      // 2. Sinon appel LLM (qui gère lui-même le cache cloud côté backend)
+      const res = await base44.functions.invoke('generateFixInstruction', {
+        issue: issue.text,
+        profile: {
+          site_url: profile?.site_url,
+          business_name: profile?.identity_name,
+          business_type: profile?.identity_industry
+        }
+      }).catch(() => null);
       if (res?.data && !res.data.error) {
-        FIX_CACHE[cacheKey] = res.data;
+        FIX_MEM[cacheKey] = res.data;
         setContent(res.data);
         setFromCache(!!res.data.from_cache);
       }
-    }).catch(() => {}).finally(() => setLoading(false));
+      setLoading(false);
+    });
   }, [cacheKey, isFree]);
 
   if (!issue) return null;
@@ -890,7 +911,7 @@ export default function AIVisibilityReport() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {activeDrawer && (
-        <FixDrawer issue={activeDrawer} profile={data} isFree={isFree}
+        <FixDrawer issue={activeDrawer} profile={data} user={user} isFree={isFree}
           onClose={() => setActiveDrawer(null)} onUpgrade={() => setShowUpgrade(true)} />
       )}
 
