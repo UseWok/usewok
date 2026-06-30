@@ -50,7 +50,7 @@ RÈGLES :
 - shock_insight : 1 phrase percutante en français sur ce que l'entreprise perd concrètement
 - Retourne UNIQUEMENT le JSON, rien d'autre`,
       add_context_from_internet: true,
-      model: 'gemini_3_flash',
+      model: 'gemini_3_1_pro',
     });
 
     // Parse la réponse string en JSON
