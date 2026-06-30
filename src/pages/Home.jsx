@@ -14,7 +14,7 @@ import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
 const F       = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-const BG      = '#F7F2E9';
+const BG      = '#FFFFFF';
 const CARD_BG = '#15130F';
 const WHITE   = '#FFFFFF';
 const INK     = '#1A1814';

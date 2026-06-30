@@ -11,7 +11,7 @@ const INK = '#0A0A0B';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';
 const BORDER = '#E8E8E6';
-const SURFACE = '#F8F7F5';
+const SURFACE = '#FFFFFF';
 const WHITE = '#FFFFFF';
 const CORAL = '#F95738';
 

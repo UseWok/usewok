@@ -674,41 +674,42 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => { setExpanded(true); setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
-          {/* ── Support + Upgrade buttons ── */}
-          <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', alignItems: 'center', gap: 6, paddingLeft: expanded ? 10 : 0 }}>
+          {/* ── Support + Upgrade ── */}
+          <div style={{ padding: '4px 8px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <button
               onClick={() => navigate('/support')}
               title="Support"
               style={{
-                width: 26, height: 26, borderRadius: 7,
-                border: '1px solid rgba(0,0,0,0.10)',
+                width: '100%', height: 28, borderRadius: 7,
+                border: '1px solid rgba(0,0,0,0.08)',
                 background: 'transparent',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, transition: 'all 120ms',
+                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                justifyContent: expanded ? 'flex-start' : 'center', gap: 7,
+                padding: expanded ? '0 10px' : 0, fontFamily: 'inherit', flexShrink: 0,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.07)'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.30)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.18)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.04)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#111', lineHeight: 1 }}>?</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#666', lineHeight: 1 }}>?</span>
+              {expanded && <span style={{ fontSize: 12, fontWeight: 500, color: '#666', whiteSpace: 'nowrap' }}>Support</span>}
             </button>
             <button
               onClick={() => navigate('/pricing')}
-              title="Améliorer mon forfait"
+              title="Mettre à niveau"
               style={{
-                height: 26, borderRadius: 7,
+                width: '100%', height: 32, borderRadius: 8,
                 border: 'none',
                 background: '#F95738',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, transition: 'all 120ms',
-                padding: expanded ? '0 12px' : 0,
-                width: expanded ? 'auto' : 26,
-                gap: 5,
+                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                justifyContent: expanded ? 'flex-start' : 'center', gap: 7,
+                padding: expanded ? '0 10px' : 0,
+                flexShrink: 0, transition: 'opacity 120ms', fontFamily: 'inherit',
               }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
             >
-              <Zap size={12} color="#fff" strokeWidth={2.2} fill="#fff" />
-              {expanded && <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>Améliorer</span>}
+              <Zap size={13} color="#fff" strokeWidth={2.2} fill="#fff" style={{ flexShrink: 0 }} />
+              {expanded && <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>Mettre à niveau</span>}
             </button>
           </div>
         </div>
