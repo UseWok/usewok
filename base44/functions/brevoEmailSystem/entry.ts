@@ -407,19 +407,167 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
   };
 }
 
-function emailNoScanJ3({ firstName }) {
+function emailNoScanJ3({ firstName, siteUrl, score, criticalErrors, issues }) {
   const name = firstName || 'toi';
+  const site = (siteUrl || 'ton site').replace(/^https?:\/\//, '').split('/')[0];
+  const scoreVal = score || 0;
+  const errors = criticalErrors || 0;
+  const issuesList = issues || [];
+  const topIssue = issuesList.find(i => i.urgency === 'high') || issuesList[0];
+  const topIssueText = topIssue?.problem || '';
+  const insightLine = scoreVal > 0
+    ? `Ton score actuel est <strong style="color:#0F0F0F;">${scoreVal}/100</strong>${errors > 0 ? ` avec <strong>${errors} erreur${errors > 1 ? 's' : ''} critique${errors > 1 ? 's' : ''}</strong>` : ''} — voici exactement pourquoi.`
+    : `Voici exactement pourquoi les IA ignorent la majorité des sites comme ${site}.`;
+
   return {
-    subject: `Tu as créé un compte et... c'est tout ?`,
-    html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a;line-height:1.7">
-<p>Salut ${name},</p>
-<p>Pas de jugement.</p>
-<p>Mais pendant ce temps, les IA crawlent le web tous les jours. Elles décident <strong>qui recommander</strong>.</p>
-<p>Sans données structurées, tu n'existes pas pour elles. C'est pas une opinion, c'est le fonctionnement de ChatGPT, Gemini, Perplexity.</p>
-<p>30 secondes. Un URL. C'est tout.</p>
-<p><a href="https://app.usewok.com" style="display:inline-block;background:#1a1a1a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">Lancer mon scan →</a></p>
-<p style="color:#888;font-size:13px">Problème technique ? Réponds directement à cet email, c'est moi qui lis.</p>
-</div>`,
+    subject: `Pourquoi ChatGPT ne te recommande pas (et comment y remédier)`,
+    html: `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <style>
+    body{margin:0;padding:0;background-color:#EDECEA;font-family:Arial,sans-serif;-webkit-text-size-adjust:100%;}
+    table{border-collapse:collapse;}img{border:0;max-width:100%;height:auto;}
+    @media only screen and (max-width:600px){.card{width:100%!important;border-radius:0!important;}.content{padding:32px 24px 40px 24px!important;}}
+  </style>
+</head>
+<body>
+  <div style="display:none;font-size:1px;color:#EDECEA;line-height:1px;max-height:0;overflow:hidden;opacity:0;">La vraie raison pour laquelle ChatGPT, Gemini et Perplexity ignorent ton site — et ce que tu peux faire dès aujourd'hui.</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#EDECEA">
+    <tr><td align="center" style="padding:28px 16px 0 16px;">
+      <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
+
+        <!-- BANNER -->
+        <tr><td style="padding:0;line-height:0;font-size:0;border-radius:12px 12px 0 0;">
+          <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/1893e96a2_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;">
+          </a>
+        </td></tr>
+
+        <!-- CONTENU -->
+        <tr><td class="content" style="padding:40px 48px 50px 48px;">
+
+          <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">Salut ${name},</p>
+
+          <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">${insightLine}</p>
+
+          <p style="margin:0 0 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:26px;color:#555555;">
+            Ce n'est pas une question de budget pub, ni d'abonnés Instagram. C'est une question de <strong style="color:#0F0F0F;">langage</strong> — et les IA parlent un langage que 95&nbsp;% des sites ne comprennent pas.
+          </p>
+
+          <!-- SECTION TITRE -->
+          <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Les 3 vraies raisons</p>
+
+          <!-- RAISON 1 -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:14px;">
+            <tr><td style="background:#F6F6F5;border-left:3px solid #0F0F0F;border-radius:0 8px 8px 0;padding:20px 24px;">
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#999999;">Raison 01</p>
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;line-height:22px;color:#0F0F0F;">Ton site parle aux humains, pas aux machines</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#444444;">
+                ChatGPT ne "lit" pas une page comme toi. Il cherche des <strong>données structurées</strong> — des balises JSON-LD qui lui disent : "Cette entreprise s'appelle X, fait Y, est basée à Z." Sans ça, il ne peut pas te citer avec confiance. Il préfère ne pas te mentionner du tout plutôt que de risquer de se tromper.
+              </p>
+            </td></tr>
+          </table>
+
+          <!-- RAISON 2 -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:14px;">
+            <tr><td style="background:#F6F6F5;border-left:3px solid #0F0F0F;border-radius:0 8px 8px 0;padding:20px 24px;">
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#999999;">Raison 02</p>
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;line-height:22px;color:#0F0F0F;">Tu n'as pas de "références" — les IA ont peur de toi</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#444444;">
+                Les moteurs IA fonctionnent comme un recruteur : avant de te recommander, ils vérifient si d'autres sources fiables parlent de toi. Presse, annuaires, avis Google, mentions LinkedIn… Si personne ne valide ton existence, l'IA ne prend pas de risque. Elle cite celui qui a des preuves sociales numériques, pas nécessairement le meilleur.
+              </p>
+            </td></tr>
+          </table>
+
+          <!-- RAISON 3 -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr><td style="background:#F6F6F5;border-left:3px solid #0F0F0F;border-radius:0 8px 8px 0;padding:20px 24px;">
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#999999;">Raison 03</p>
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;line-height:22px;color:#0F0F0F;">Ton message est flou — même pour une IA</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#444444;">
+                Si ta page d'accueil n'explique pas en une phrase <strong>qui tu aides, comment, et pourquoi maintenant</strong> — l'IA ne peut pas te catégoriser. Elle ne sait pas si tu es consultant, agence, logiciel ou artisan. Résultat : case "ambigu", jamais cité.
+              </p>
+            </td></tr>
+          </table>
+
+          ${topIssueText ? `<!-- PROBLÈME PERSONNALISÉ -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr><td style="background:#FEF3EC;border:1px solid #FDDCBF;border-radius:8px;padding:20px 24px;">
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#C45000;">🎯 Ce qu'on a détecté sur ${site}</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#7C3A10;">${topIssueText}</p>
+            </td></tr>
+          </table>` : ''}
+
+          <!-- CITATION DARK -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr><td style="background:#0F0F0F;border-radius:10px;padding:28px 32px;">
+              <p style="margin:0 0 16px 0;font-family:Georgia,serif;font-size:17px;line-height:28px;color:#FFFFFF;font-style:italic;">
+                "Les moteurs IA ne cherchent pas le meilleur produit. Ils cherchent le produit dont ils sont <em>sûrs</em>. Sois compréhensible, et ils te recommanderont."
+              </p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#666666;">— Principe fondamental de l'Answer Engine Optimization</p>
+            </td></tr>
+          </table>
+
+          <!-- CE QUE TU PEUX FAIRE -->
+          <p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que tu peux faire dès aujourd'hui</p>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr><td style="background:#F6F6F5;border-radius:10px;padding:20px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr><td style="padding:0 0 14px 0;border-bottom:1px solid #E5E5E5;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">1</div></td>
+                    <td><p style="margin:0 0 4px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Ajoute un bloc JSON-LD Organization</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Sur ta page d'accueil. Nom, activité, ville, téléphone, réseaux. 15 minutes. Impact immédiat sur ChatGPT.</p></td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 0;border-bottom:1px solid #E5E5E5;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">2</div></td>
+                    <td><p style="margin:0 0 4px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Réclame ta fiche Google Business</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Gratuit. Obligatoire. Gemini et Google AI s'en servent en priorité pour les recherches locales.</p></td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 0 0 0;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">3</div></td>
+                    <td><p style="margin:0 0 4px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Ajoute une FAQ structurée à ton site</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Perplexity et Google AI affichent directement les FAQs en schéma FAQPage. 6 questions suffisent pour apparaître dans leurs réponses.</p></td>
+                  </tr></table>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr><td align="center" style="padding:0 0 12px 0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr><td align="center" bgcolor="#0F0F0F" style="border-radius:300px;">
+                  <a href="https://app.usewok.com/ai-report" style="display:inline-block;padding:14px 36px;background:#0F0F0F;color:#FFFFFF !important;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none !important;border-radius:300px;letter-spacing:0.1px;">
+                    Voir mes corrections personnalisées →
+                  </a>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <p style="margin:12px 0 0 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#AAAAAA;text-align:center;">UseWok génère le code exact à copier-coller — sans développeur.</p>
+
+          <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
+
+          <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
+            L'équipe UseWok<br><span style="color:#AAAAAA;font-size:13px;">hello@usewok.com</span>
+          </p>
+
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <!-- FOOTER -->
+    <tr><td align="center" style="padding:24px 16px 40px 16px;">${emailFooter('')}</td></tr>
+  </table>
+</body>
+</html>`,
   };
 }
 
@@ -635,7 +783,7 @@ Deno.serve(async (req) => {
           template = emailPostScan({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, totalIssues: data.totalIssues, issues: data.issues, scanDate: data.scanDate });
           break;
         case 'no_scan_j3':
-          template = emailNoScanJ3({ firstName });
+          template = emailNoScanJ3({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues });
           break;
         case 'pricing_no_buy':
           template = emailPricingNoBuy({ firstName, siteUrl, criticalErrors: data.criticalErrors });
@@ -698,7 +846,7 @@ Deno.serve(async (req) => {
       switch (emailType) {
         case 'welcome': template = emailWelcome({ firstName, siteUrl }); break;
         case 'post_scan': template = emailPostScan({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, totalIssues: data.totalIssues, issues: data.issues, scanDate: data.scanDate }); break;
-        case 'no_scan_j3': template = emailNoScanJ3({ firstName }); break;
+        case 'no_scan_j3': template = emailNoScanJ3({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues }); break;
         case 'pricing_no_buy': template = emailPricingNoBuy({ firstName, siteUrl, criticalErrors: data.criticalErrors }); break;
         case 'chatbot_no_convert': template = emailChatbotNoConvert({ firstName, siteUrl, chatbotQuestions: data.chatbotQuestions, score: data.score }); break;
         case 'inactive_j14': template = emailInactiveJ14({ firstName, siteUrl, lastScanDate: data.lastScanDate }); break;
