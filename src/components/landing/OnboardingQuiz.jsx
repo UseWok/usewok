@@ -29,15 +29,19 @@ const MATURITY = [
   { id: 'scaling', label: 'Scaling', desc: 'Optimizing an established business' },
 ];
 
-// ── Q3: Marketing focus (multi-select) — updated labels
-const OBJECTIVES = [
-  { id: 'paid_ads', label: 'Paid Ads Management' },
-  { id: 'local', label: 'Local Marketing' },
-  { id: 'ai_visibility', label: 'AI Visibility' },
-  { id: 'competitor', label: 'Competitor & Market Analysis' },
-  { id: 'seo', label: 'SEO Optimization' },
-  { id: 'content', label: 'Content Creation' },
-  { id: 'not_sure', label: 'Not Sure' },
+// ── Q3: Tech level
+const TECH_LEVELS = [
+  { id: 'no_code', label: 'No-code (Wix, WordPress, Squarespace)', desc: 'I manage my site through interfaces, no coding' },
+  { id: 'ai_nocode', label: 'AI + No-code (ChatGPT, Claude)', desc: 'I use AI tools to handle technical tasks' },
+  { id: 'developer', label: 'Developer (Code)', desc: 'I write code, can handle technical implementations' },
+];
+
+// ── Q4: Main goal
+const MAIN_GOALS = [
+  { id: 'more_clients', label: 'Attract more clients', desc: 'Maximize AI recommendations for growth' },
+  { id: 'local_visibility', label: 'Local visibility', desc: 'Appear in local & geographic AI searches' },
+  { id: 'brand_authority', label: 'Build brand authority', desc: 'Be recognized as an expert in my field' },
+  { id: 'competitor_beat', label: 'Outrank competitors', desc: 'Win against competitors in AI results' },
 ];
 
 // ── Smooth analysis loader (60s, post-quiz)
@@ -421,33 +425,37 @@ const listV = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 export default function OnboardingQuiz({ onComplete }) {
   const [phase, setPhase] = useState('quiz'); // quiz | loading | plans
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({ trade: '', maturity: '', objectives: [] });
+  const [answers, setAnswers] = useState({ 
+    trade: '', 
+    maturity: '', 
+    tech_level: '', 
+    main_goal: '' 
+  });
 
   const set = (key, val) => setAnswers(p => ({ ...p, [key]: val }));
 
-  const toggleObj = (id) => {
-    setAnswers(p => ({
-      ...p,
-      objectives: p.objectives.includes(id) ? p.objectives.filter(x => x !== id) : [...p.objectives, id],
-    }));
-  };
-
   const next = () => setStep(s => s + 1);
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    // Sauvegarder dans ContactLead pour tracking
     base44.entities.ContactLead.create({
       role: answers.trade,
       status: 'new',
-      message: `maturity:${answers.maturity} obj:${answers.objectives.join(',')}`,
+      message: `maturity:${answers.maturity} tech:${answers.tech_level} goal:${answers.main_goal}`,
     }).catch(() => {});
-    // Pas de loader — aller directement aux plans
+    
+    // Aller directement aux plans
     setPhase('plans');
   };
 
   // AnalysisLoader supprimé — le scan se fait en arrière-plan silencieusement
-  if (phase === 'plans') return <PlanScreen answers={answers} onFree={() => base44.auth.redirectToLogin('/app')} />;
+  if (phase === 'plans') return <PlanScreen answers={answers} onFree={() => {
+    // Save preferences to localStorage for post-login
+    localStorage.setItem('onboarding_answers', JSON.stringify(answers));
+    base44.auth.redirectToLogin('/app');
+  }} />;
 
-  const TOTAL = 3;
+  const TOTAL = 4;
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
@@ -457,7 +465,7 @@ export default function OnboardingQuiz({ onComplete }) {
         <div style={{ marginBottom: 32 }}>
           <ProgressBar step={step} total={TOTAL} />
           <p style={{ fontSize: 12, color: T3, margin: '8px 0 0', fontWeight: 500 }}>
-            Let's customize your experience
+            Personnalisons votre expérience
           </p>
         </div>
 
@@ -510,40 +518,51 @@ export default function OnboardingQuiz({ onComplete }) {
             </motion.div>
           )}
 
-          {/* ── Step 2: Objectives (multi) */}
+          {/* ── Step 2: Tech level */}
           {step === 2 && (
-            <motion.div key="objectives"
+            <motion.div key="tech_level"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}>
-              <h2 style={{ fontSize: 26, fontWeight: 700, color: T1, margin: '0 0 6px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
-                What are your main<br />marketing priorities?
+              <h2 style={{ fontSize: 26, fontWeight: 700, color: T1, margin: '0 0 24px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+                What's your<br />technical level?
               </h2>
-              <p style={{ fontSize: 13, color: T2, margin: '0 0 24px' }}>Select all that apply.</p>
               <motion.div variants={listV} initial="hidden" animate="show"
-                style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-                {OBJECTIVES.map(obj => (
-                  <motion.div key={obj.id} variants={itemV}>
-                    <CheckOption
-                      label={obj.label}
-                      selected={answers.objectives.includes(obj.id)}
-                      onClick={() => toggleObj(obj.id)}
+                style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {TECH_LEVELS.map(t => (
+                  <motion.div key={t.id} variants={itemV}>
+                    <RadioOption
+                      label={t.label}
+                      desc={t.desc}
+                      selected={answers.tech_level === t.id}
+                      onClick={() => { set('tech_level', t.id); setTimeout(next, 250); }}
                     />
                   </motion.div>
                 ))}
               </motion.div>
-              <button
-                onClick={handleFinish}
-                disabled={answers.objectives.length === 0}
-                style={{
-                  width: '100%', padding: '15px',
-                  background: answers.objectives.length > 0 ? T1 : '#E5E5E5',
-                  color: answers.objectives.length > 0 ? '#fff' : T3,
-                  border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600,
-                  cursor: answers.objectives.length > 0 ? 'pointer' : 'default',
-                  fontFamily: F, transition: 'all 200ms',
-                }}>
-                Continue →
-              </button>
+            </motion.div>
+          )}
+
+          {/* ── Step 3: Main goal */}
+          {step === 3 && (
+            <motion.div key="main_goal"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}>
+              <h2 style={{ fontSize: 26, fontWeight: 700, color: T1, margin: '0 0 24px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+                What's your main<br />priority?
+              </h2>
+              <motion.div variants={listV} initial="hidden" animate="show"
+                style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+                {MAIN_GOALS.map(goal => (
+                  <motion.div key={goal.id} variants={itemV}>
+                    <RadioOption
+                      label={goal.label}
+                      desc={goal.desc}
+                      selected={answers.main_goal === goal.id}
+                      onClick={() => { set('main_goal', goal.id); setTimeout(handleFinish, 250); }}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
             </motion.div>
           )}
 

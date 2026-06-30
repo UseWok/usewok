@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
@@ -457,7 +458,8 @@ function PlanLimitModal({ onClose, onUpgrade, maxSites, planName }) {
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null);
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState(authUser || null);
   const [profiles, setProfiles] = useState([]);
   const [activeUrl, setActiveUrl] = useState(() => getActiveDomain()?.url || null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -493,6 +495,32 @@ export default function Home() {
       })();
     }
   }, [location.state]);
+
+  // Save onboarding preferences after login
+  useEffect(() => {
+    if (!user?.id) return;
+    const saved = localStorage.getItem('onboarding_answers');
+    if (!saved) return;
+    try {
+      const answers = JSON.parse(saved);
+      localStorage.removeItem('onboarding_answers');
+      
+      base44.entities.BusinessProfile.filter({ created_by_id: user.id })
+        .then(res => {
+          if (res && res.length > 0) {
+            const primary = res[0];
+            base44.entities.BusinessProfile.update(primary.id, {
+              user_preferences: JSON.stringify({
+                tech_level: answers.tech_level || 'no_code',
+                main_goal: answers.main_goal || 'more_clients',
+                trade: answers.trade || '',
+                maturity: answers.maturity || '',
+              }),
+            }).catch(() => {});
+          }
+        });
+    } catch {}
+  }, [user?.id]);
 
   const loadAll = async () => {
     try {

@@ -20,8 +20,21 @@ Deno.serve(async (req) => {
     const issueKey = normalizeKey(issueProblem);
 
     // ── Profil utilisateur (niveau technique, objectif, taille) ──
-    const userProfile = body.user_profile || {};
-    const techLevel = userProfile.tech_level || 'no_code'; // no_code | ai_nocode | claude_code | developer
+    // Peut venir de body.user_profile OU de BusinessProfile.user_preferences (JSON)
+    let userProfile = body.user_profile || {};
+    
+    // Si pas passé en body, essayer de charger depuis BusinessProfile
+    if (!userProfile.tech_level && siteUrl) {
+      const profile = await base44.entities.BusinessProfile.filter({ site_url: siteUrl }).catch(() => []);
+      if (profile && profile.length > 0 && profile[0].user_preferences) {
+        try {
+          const prefs = JSON.parse(profile[0].user_preferences);
+          userProfile = { ...userProfile, ...prefs };
+        } catch {}
+      }
+    }
+    
+    const techLevel = userProfile.tech_level || 'no_code';
     const mainGoal = userProfile.main_goal || 'more_clients';
     const businessSize = userProfile.business_size || 'solo';
 
@@ -78,10 +91,9 @@ Deno.serve(async (req) => {
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
     const techContextMap = {
-      no_code: `L'utilisateur gère son site seul (Wix, Squarespace, WordPress sans code). Donne des chemins d'interface cliquables précis. Zéro code, zéro jargon.`,
-      ai_nocode: `L'utilisateur utilise ChatGPT ou Claude pour l'aider. Pour chaque étape technique, inclure un prompt prêt à copier-coller entre guillemets, ex: "Demande à ChatGPT : Écris-moi un texte de description pour mon site qui présente [X]..."`,
-      claude_code: `L'utilisateur code avec Claude Code ou Cursor. Donne des prompts Claude Code directs et précis entre backticks pour les étapes techniques.`,
-      developer: `L'utilisateur est développeur. Sois précis : nomme les fichiers, balises, attributs JSON-LD, configs serveur. Donne le code exact quand pertinent.`,
+      no_code: `L'utilisateur gère son site seul (Wix, Squarespace, WordPress). Donne UNIQUEMENT des chemins d'interface cliquables (ex: "Allez dans Paramètres > Pages > [page]"). Zéro code, zéro HTML, zéro jargon technique. Inclure des screenshots URLs de tutoriels officiels si possible.`,
+      ai_nocode: `L'utilisateur utilise ChatGPT/Claude/Make.com pour automiser. Pour CHAQUE étape technique, inclure un prompt PRÊT À COPIER-COLLER entre guillemets, avec des placeholders [ENTRE CROCHETS]. Exemple: "Copie ceci dans ChatGPT : Tu es expert en [SECTEUR]. Écris une description de 160 caractères pour le service [NOM_SERVICE]..."`,
+      developer: `L'utilisateur est développeur. Sois précis et technique : nomme les fichiers, attributs JSON-LD, endpoints API, commandes CLI. Donne le code exact prêt à copier dans l'éditeur ou terminal.`,
     };
 
     const goalContextMap = {
