@@ -23,6 +23,16 @@
       "title": "\u00c9tapes JSON",
       "format": "textarea"
     },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt (for ai_nocode profile)",
+      "format": "textarea"
+    },
+    "explanation": {
+      "type": "string",
+      "title": "Explanation (for developer profile)",
+      "format": "textarea"
+    },
     "time_estimate": {
       "type": "string",
       "title": "Temps estim\u00e9"
@@ -30,6 +40,10 @@
     "type": {
       "type": "string",
       "title": "Type (autonome/developpeur)"
+    },
+    "profile_type": {
+      "type": "string",
+      "title": "Profile type (no_code/ai_nocode/developer)"
     },
     "use_count": {
       "type": "number",
