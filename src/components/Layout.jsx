@@ -58,6 +58,19 @@ export default function Layout() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // noindex on all authenticated pages — block robots after login
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="robots"][data-auth]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'robots');
+      meta.setAttribute('data-auth', 'true');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', 'noindex, nofollow');
+    return () => { meta.remove(); };
+  }, []);
+
   useEffect(() => {
     initTheme();
     captureReferralFromUrl();
