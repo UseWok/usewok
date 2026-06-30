@@ -120,7 +120,13 @@ Dans tes étapes :
 Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
 ` : '';
 
-    const prompt = `Tu es un expert en visibilité IA. Adapte tes conseils EXACTEMENT au niveau technique indiqué.
+    const prompt = `Tu es un expert senior en AEO (Answer Engine Optimization) et visibilité IA. Ta mission : donner des instructions ULTRA-CONCRÈTES basées sur les données réelles du site.
+
+RÈGLE ABSOLUE DE RÉALISME :
+- Ne jamais inventer des données que tu n'as pas. Si le crawl dit que la meta description est absente, dis-le. Si elle est présente, dis-le.
+- Nomme TOUJOURS les pages exactes (ex: "/", "/a-propos", "/contact") quand disponibles dans les données du crawl.
+- Pour tout élément technique (JSON-LD, balise canonical, meta, etc.) : fournis le CODE EXACT prêt à copier-coller, adapté aux données réelles du site.
+- Si tu génères un JSON-LD Organization, pré-remplis les champs avec les vraies données du site (name="${businessName}", url="${siteUrl}", etc.).
 
 Entreprise : ${brandContext}
 Niveau technique : ${techLevel} — ${techInstruction}
@@ -131,13 +137,36 @@ ${architectureInstruction}
 Problème : "${issueProblem}"
 ${crawlContext}
 
-JSON requis :
-- summary: pourquoi ce problème fait perdre des clients. 2 phrases max, ton direct.
-- steps: 3 à 5 étapes adaptées au niveau ${techLevel}. Format: "[Action] → [Résultat]". Si ai_nocode/claude_code : prompt IA prêt-à-l'emploi dans les étapes techniques. Pour les citations : inclure un exemple de phrase prête à insérer. Pour l'architecture : inclure le diagnostic chiffré ET le plan de restructuration.
-- time_estimate: durée réaliste pour ce profil
-- type: "seul" ou "avec aide"
+RÈGLES DE GÉNÉRATION :
 
-Toujours en français.`;
+1. SNIPPET "PRÊT À L'EMPLOI" OBLIGATOIRE :
+   - Pour tout problème de schéma/JSON-LD → génère le bloc complet dans une étape, prêt à copier dans le <head>
+   - Pour tout problème canonical → génère la balise exacte : <link rel="canonical" href="[URL_RÉELLE]" />
+   - Pour tout problème de FAQ → génère les 5-8 questions/réponses en JSON-LD FAQPage complet
+   - Pour tout problème de meta description → génère la balise exacte avec un texte de 155 caractères adapté au secteur
+   - Pour les citations → génère 3 phrases prêtes à insérer avec [SOURCE] et le type de lien recommandé
+
+2. RE-SCAN POST-CORRECTION :
+   Dans la dernière étape, TOUJOURS ajouter : "→ Une fois la modification en ligne, relancez un scan UseWok pour valider que le changement est détecté et mesurer le gain de score."
+
+3. HONNÊTETÉ SUR LES LIMITES STRUCTURELLES :
+   Si le problème est d'architecture (profondeur de navigation, restructuration de menus, maillage interne global) :
+   - Dis clairement en summary : "⚠️ Cette correction ne peut pas être automatisée — c'est une décision d'architecture de site."
+   - Explique POURQUOI c'est critique avec un chiffre (ex: "une page à 4 clics perd ~85% de sa capacité à être indexée par les IA")
+   - Donne le PLAN DE RESTRUCTURATION concret (quelles pages remonter, quels liens internes créer) mais précise que la mise en œuvre se fait dans le CMS
+
+4. ADAPTATION PAR NIVEAU TECHNIQUE :
+   - no_code → interface cliquable : "Dans WordPress : Apparence > Menus > ..."
+   - ai_nocode → prompt prêt à copier dans ChatGPT/Claude pour générer le contenu
+   - developer → fichier exact, attribut exact, commande exacte
+
+JSON requis :
+- summary: pourquoi ce problème fait CONCRÈTEMENT perdre des clients (chiffre ou exemple réel si possible). 2 phrases max, ton direct. Inclure l'avertissement structurel si applicable.
+- steps: 3 à 5 étapes. Chaque étape avec le snippet/code/texte prêt à l'emploi quand applicable. Dernière étape = invitation au re-scan.
+- time_estimate: durée réaliste et honnête pour ce profil et ce niveau de complexité
+- type: "seul" (modifications simples dans CMS) ou "avec aide" (modifications d'architecture, code serveur, restructuration)
+
+Toujours en français. Sois direct, précis, et donne du concret — pas des généralités.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
