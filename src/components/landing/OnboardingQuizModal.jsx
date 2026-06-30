@@ -65,8 +65,14 @@ export default function OnboardingQuizModal({ onComplete, onSkip }) {
 
     setTimeout(() => {
       if (isLast) {
-        // Save to localStorage for use in fix generation
+        // Save to localStorage for fix generation (immediate use)
         localStorage.setItem('wok_user_profile', JSON.stringify(newAnswers));
+        // Save to cloud if user already logged in
+        import('@/api/base44Client').then(({ base44 }) => {
+          base44.auth.me().then(u => {
+            if (u) base44.auth.updateMe({ quiz_profile: JSON.stringify(newAnswers) }).catch(() => {});
+          }).catch(() => {});
+        });
         onComplete(newAnswers);
       } else {
         setStep(s => s + 1);

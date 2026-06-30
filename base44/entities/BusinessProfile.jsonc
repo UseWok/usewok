@@ -74,6 +74,11 @@
       "format": "date-time",
       "title": "Last Scan Date"
     },
+    "scan_in_progress": {
+      "type": "boolean",
+      "title": "Scan In Progress",
+      "default": false
+    },
     "active": {
       "type": "boolean",
       "title": "Active",

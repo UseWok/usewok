@@ -419,6 +419,7 @@ export default function Home() {
   const [extracting, setExtracting] = useState(false);
   const [confirmSite, setConfirmSite] = useState(null); // { url, name }
   const scanningRef = useRef({});
+  const pendingScanUrlsRef = useRef([]);
 
   useEffect(() => {
     if (location.state?.autoScan) {
@@ -444,7 +445,7 @@ export default function Home() {
   const loadAll = async () => {
     try {
       const u = await base44.auth.me();
-      if (!u) return;
+      if (!u) return null;
       setUser(u);
       const list = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const enriched = await Promise.all(list.map(async p => {
@@ -457,10 +458,53 @@ export default function Home() {
         setActiveUrl(first.site_url);
         setActiveDomain({ url: first.site_url, name: first.identity_name || getDomain(first.site_url) });
       }
+      // Restore quiz answers from cloud if available and not in localStorage
+      try {
+        if (u.quiz_profile && !localStorage.getItem('wok_user_profile')) {
+          localStorage.setItem('wok_user_profile', u.quiz_profile);
+        }
+      } catch {}
+      // Restore in-progress scans visually (after page refresh)
+      const inProgress = enriched.filter(p => p.scan_in_progress);
+      if (inProgress.length > 0) {
+        const inProgressMap = {};
+        inProgress.forEach(p => { inProgressMap[p.site_url] = true; });
+        setScanningUrls(prev => ({ ...prev, ...inProgressMap }));
+        // Store for deferred startScan calls (after function is defined)
+        pendingScanUrlsRef.current = inProgress.map(p => p.site_url);
+      }
     } catch {}
+    return null;
   };
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    loadAll().then(async () => {
+      // Resume in-progress scans after refresh
+      const toResume = pendingScanUrlsRef.current || [];
+      pendingScanUrlsRef.current = [];
+      toResume.forEach(url => { if (!scanningRef.current[url]) startScan(url); });
+
+      // ── Auto-scan from landing page ──
+      const pendingUrl = sessionStorage.getItem('wok_post_login_url');
+      const pendingQuiz = sessionStorage.getItem('wok_post_login_quiz');
+      if (pendingUrl) {
+        sessionStorage.removeItem('wok_post_login_url');
+        localStorage.removeItem('wok_pending_url');
+        const cleanUrl = pendingUrl.startsWith('http') ? pendingUrl : `https://${pendingUrl}`;
+        // Save quiz answers to cloud if present
+        if (pendingQuiz) {
+          sessionStorage.removeItem('wok_post_login_quiz');
+          try {
+            const quizData = JSON.parse(pendingQuiz);
+            localStorage.setItem('wok_user_profile', pendingQuiz);
+            base44.auth.updateMe({ quiz_profile: pendingQuiz }).catch(() => {});
+          } catch {}
+        }
+        // Start scan automatically
+        setTimeout(() => startScan(cleanUrl), 500);
+      }
+    });
+  }, []);
 
   const switchDomain = (p) => {
     setActiveUrl(p.site_url);
@@ -480,7 +524,19 @@ export default function Home() {
     try {
       const u = await base44.auth.me();
       if (!u) return;
+      // Mark scan_in_progress in DB so refresh shows loader
+      const existingProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const existingP = existingProfiles.find(p => p.site_url === cleanUrl);
+      if (existingP) {
+        base44.entities.BusinessProfile.update(existingP.id, { scan_in_progress: true }).catch(() => {});
+      } else {
+        base44.entities.BusinessProfile.create({ site_url: cleanUrl, identity_name: getDomain(cleanUrl), score_overall: 0, scan_in_progress: true, created_by_id: u.id }).catch(() => {});
+      }
       const result = await runScan(cleanUrl, u.id, getWokFeatures(u));
+      // Clear scan_in_progress flag
+      const updatedProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const updatedP = updatedProfiles.find(p => p.site_url === cleanUrl);
+      if (updatedP) base44.entities.BusinessProfile.update(updatedP.id, { scan_in_progress: false }).catch(() => {});
       await loadAll();
       setOnboardingData(result);
     } catch (err) { console.error(err); }

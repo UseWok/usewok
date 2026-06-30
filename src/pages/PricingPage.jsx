@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { loadPlansFromDB, getPlansConfig, getUserPlan, COMPARISON_FEATURES } from '@/lib/plans-config';
+import { loadPlansFromDB, getPlansConfig, getUserPlan, getNormalizedPlanId, COMPARISON_FEATURES } from '@/lib/plans-config';
 import { Check, X, Minus, Star, ArrowRight, Shield, TrendingUp, Eye } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -92,14 +92,18 @@ export default function PricingPage() {
     loadPlansFromDB()
       .then(db => { setPlans((db || getPlansConfig()).filter(p => p.visible !== false)); setLoading(false); })
       .catch(() => { setPlans(getPlansConfig().filter(p => p.visible !== false)); setLoading(false); });
-    base44.auth.me().then(u => {
-      if (u) { setUserPlanId(getUserPlan(u)?.id || 'free'); setUserEmail(u.email || ''); }
+    base44.auth.me().then(async u => {
+      if (!u) return;
+      setUserEmail(u.email || '');
+      // Load DB plans first so getNormalizedPlanId has the correct plan list
+      await loadPlansFromDB().catch(() => {});
+      setUserPlanId(getNormalizedPlanId(u));
     }).catch(() => {});
   }, []);
 
   useEffect(() => {
     const u = authUser;
-    if (u) { setUserPlanId(getUserPlan(u)?.id || 'free'); setUserEmail(u.email || ''); }
+    if (u) { setUserPlanId(getNormalizedPlanId(u)); setUserEmail(u.email || ''); }
   }, [authUser]);
 
   const handleUpgrade = async (plan) => {

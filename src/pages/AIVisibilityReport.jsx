@@ -583,6 +583,16 @@ export default function AIVisibilityReport() {
     </div>
   );
 
+  // Show persistent scan loader if scan is still in progress (survives refresh)
+  if (data?.scan_in_progress && !data?.score_overall) return (
+    <div style={{ minHeight: '100vh', background: '#15130F', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: F }}>
+      <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', marginBottom: 18 }} />
+      <div style={{ fontSize: 19, fontWeight: 700, color: '#FFFFFF', marginBottom: 5 }}>Analyse en cours…</div>
+      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>8 moteurs IA · Résultat dans ~60 secondes</div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
   if (!data) return (
     <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', fontFamily: F }}>
       <BarChart2 size={36} color={INK3} />

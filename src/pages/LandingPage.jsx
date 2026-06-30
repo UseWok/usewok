@@ -624,8 +624,20 @@ export default function LandingPage() {
 
   const onSignup = () => base44.auth.redirectToLogin('/app');
   const onStartQuiz = () => setShowQuiz(true);
-  const onQuizComplete = () => { setShowQuiz(false); base44.auth.redirectToLogin('/app'); };
-  const onQuizSkip = () => { setShowQuiz(false); base44.auth.redirectToLogin('/app'); };
+  const onQuizComplete = (answers) => {
+    setShowQuiz(false);
+    // Pass pending URL and quiz answers via sessionStorage for Home to pick up after login
+    const pendingUrl = localStorage.getItem('wok_pending_url');
+    if (pendingUrl) sessionStorage.setItem('wok_post_login_url', pendingUrl);
+    if (answers) sessionStorage.setItem('wok_post_login_quiz', JSON.stringify(answers));
+    base44.auth.redirectToLogin('/app');
+  };
+  const onQuizSkip = () => {
+    setShowQuiz(false);
+    const pendingUrl = localStorage.getItem('wok_pending_url');
+    if (pendingUrl) sessionStorage.setItem('wok_post_login_url', pendingUrl);
+    base44.auth.redirectToLogin('/app');
+  };
 
   return (
     <div style={{ background: BG, fontFamily: F }}>
