@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import ParticleField from '@/components/landing/ParticleField';
+import OnboardingQuizModal from '@/components/landing/OnboardingQuizModal';
 
 // ── Design tokens ──
 const F = "'Inter', -apple-system, system-ui, sans-serif";
@@ -99,10 +100,13 @@ function Navbar({ onSignup }) {
 }
 
 // ── HERO SCAN INPUT ────────────────────────────────────────────────────────────
-function HeroScanInput({ onSignup }) {
+function HeroScanInput({ onStartQuiz }) {
   const [url, setUrl] = useState('');
   const handleScan = () => {
-    if (url.trim()) onSignup();
+    if (url.trim()) {
+      localStorage.setItem('wok_pending_url', url.trim());
+      onStartQuiz();
+    }
   };
 
   return (
@@ -145,14 +149,14 @@ function HeroScanInput({ onSignup }) {
         </button>
       </div>
       <p style={{ fontSize: 11, color: T3, marginTop: 10, textAlign: 'center' }}>
-        Résultat en 2 minutes · Sans carte bancaire · Sans engagement
+        3 questions · 20 secondes · Corrections 10× plus précises
       </p>
     </div>
   );
 }
 
 // ── HERO ───────────────────────────────────────────────────────────────────────
-function Hero({ onSignup }) {
+function Hero({ onSignup, onStartQuiz }) {
   return (
     <section style={{ background: BG, paddingTop: 58, fontFamily: F, position: 'relative', overflow: 'hidden', minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
       {/* Background ambiance */}
@@ -206,7 +210,7 @@ function Hero({ onSignup }) {
         {/* CTA */}
         <FadeIn delay={0.22}>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <HeroScanInput onSignup={onSignup} />
+            <HeroScanInput onStartQuiz={onStartQuiz} />
           </div>
         </FadeIn>
 
@@ -536,7 +540,7 @@ function Testimonials() {
 }
 
 // ── FINAL CTA ─────────────────────────────────────────────────────────────────
-function FinalCta({ onSignup }) {
+function FinalCta({ onStartQuiz }) {
   return (
     <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: 'clamp(80px, 10vw, 140px) clamp(20px, 5vw, 120px)', textAlign: 'center', fontFamily: F, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(249,87,56,0.10) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -549,7 +553,7 @@ function FinalCta({ onSignup }) {
             Résultat en 2 minutes. Sans carte bancaire. Sans engagement.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <HeroScanInput onSignup={onSignup} />
+            <HeroScanInput onStartQuiz={onStartQuiz} />
           </div>
         </FadeIn>
       </div>
@@ -603,6 +607,7 @@ export default function LandingPage() {
 
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated()
@@ -618,9 +623,16 @@ export default function LandingPage() {
   );
 
   const onSignup = () => base44.auth.redirectToLogin('/app');
+  const onStartQuiz = () => setShowQuiz(true);
+  const onQuizComplete = () => { setShowQuiz(false); base44.auth.redirectToLogin('/app'); };
+  const onQuizSkip = () => { setShowQuiz(false); base44.auth.redirectToLogin('/app'); };
 
   return (
     <div style={{ background: BG, fontFamily: F }}>
+      <AnimatePresence>
+        {showQuiz && <OnboardingQuizModal onComplete={onQuizComplete} onSkip={onQuizSkip} />}
+      </AnimatePresence>
+
       {/* ── Liseré tricolore — sous la navbar, bien visible, qualité Retina ── */}
       <div style={{
         position: 'fixed', top: 58, left: 0, right: 0, zIndex: 299, height: 3,
@@ -629,7 +641,7 @@ export default function LandingPage() {
       }} />
 
       <Navbar onSignup={onSignup} />
-      <Hero onSignup={onSignup} />
+      <Hero onSignup={onSignup} onStartQuiz={onStartQuiz} />
       <ProblemSection />
       <FeaturesSection onSignup={onSignup} />
 
@@ -735,7 +747,7 @@ export default function LandingPage() {
 
       <ForWhoSection onSignup={onSignup} />
       <Testimonials />
-      <FinalCta onSignup={onSignup} />
+      <FinalCta onStartQuiz={onStartQuiz} />
       <Footer />
     </div>
   );

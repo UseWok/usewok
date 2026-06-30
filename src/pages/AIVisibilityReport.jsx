@@ -114,13 +114,17 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
       }
 
       // Not in DB — call backend (backend handles LLM + DB write atomically)
+      let userProfile = {};
+      try { userProfile = JSON.parse(localStorage.getItem('wok_user_profile') || '{}'); } catch {}
+
       const res = await base44.functions.invoke('generateFixInstruction', {
         issue: issue.text,
         profile: {
           site_url: profile?.site_url,
           business_name: profile?.identity_name,
           business_type: profile?.identity_industry
-        }
+        },
+        user_profile: userProfile,
       }).catch(() => null);
 
       if (res?.data && !res.data.error) {

@@ -19,6 +19,12 @@ Deno.serve(async (req) => {
 
     const issueKey = normalizeKey(issueProblem);
 
+    // ── Profil utilisateur (niveau technique, objectif, taille) ──
+    const userProfile = body.user_profile || {};
+    const techLevel = userProfile.tech_level || 'no_code'; // no_code | ai_nocode | claude_code | developer
+    const mainGoal = userProfile.main_goal || 'more_clients';
+    const businessSize = userProfile.business_size || 'solo';
+
     // ── 1. Cache cloud par user+issue_key (ne jamais régénérer si déjà fait) ──
     const userCache = await base44.entities.UserFixCache.filter({
       user_id: user.id,
@@ -65,23 +71,38 @@ Deno.serve(async (req) => {
     // ── 3. Générer via LLM (uniquement si aucun cache) ──
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
-    const prompt = `Tu es un expert en visibilité IA (LLM Search Optimization) qui aide des entrepreneurs à être recommandés par ChatGPT, Gemini, Claude et les autres IA. Tu parles comme un ami expert, sans jargon, avec des actions concrètes qui créent des résultats rapides.
+    const techContextMap = {
+      no_code: `L'utilisateur gère son site seul (Wix, Squarespace, WordPress sans code). Donne des chemins d'interface cliquables précis. Zéro code, zéro jargon.`,
+      ai_nocode: `L'utilisateur utilise ChatGPT ou Claude pour l'aider. Pour chaque étape technique, inclure un prompt prêt à copier-coller entre guillemets, ex: "Demande à ChatGPT : Écris-moi un texte de description pour mon site qui présente [X]..."`,
+      claude_code: `L'utilisateur code avec Claude Code ou Cursor. Donne des prompts Claude Code directs et précis entre backticks pour les étapes techniques.`,
+      developer: `L'utilisateur est développeur. Sois précis : nomme les fichiers, balises, attributs JSON-LD, configs serveur. Donne le code exact quand pertinent.`,
+    };
 
-Contexte de l'entreprise :
-${brandContext}
+    const goalContextMap = {
+      more_clients: 'Priorité : maximiser les recommandations IA pour attirer plus de clients.',
+      local_visibility: 'Priorité : apparaître dans les recherches locales et géographiques IA.',
+      brand_authority: 'Priorité : être perçu comme expert référent du secteur par les IA.',
+      competitor_beat: 'Priorité : dépasser les concurrents dans les recommandations IA.',
+    };
 
-Problème détecté :
-"${issueProblem}"
+    const techInstruction = techContextMap[techLevel] || techContextMap.no_code;
+    const goalInstruction = goalContextMap[mainGoal] || goalContextMap.more_clients;
 
-Génère un guide pratique, percutant et sans jargon. Pense "comment cette entreprise perd des clients à cause de ce problème" et "comment régler ça simplement".
+    const prompt = `Tu es un expert en visibilité IA. Adapte tes conseils EXACTEMENT au niveau technique indiqué.
 
-Retourne un JSON avec :
-- summary: une phrase d'impact qui explique POURQUOI ce problème fait perdre des clients ou de la visibilité (ex: "Quand quelqu'un demande à ChatGPT de recommander un X dans votre ville, vous n'apparaissez pas car..."). Max 2 phrases, ton direct, pas de jargon.
-- steps: 3 à 5 étapes très concrètes, rédigées à l'impératif, que le propriétaire peut faire aujourd'hui. Chaque étape = 1 action précise avec un résultat attendu. Format: "[Action] → [Résultat attendu]"
-- time_estimate: durée réaliste (ex: "20 minutes ce soir", "1h avec votre webmaster")
-- type: "seul" si faisable sans développeur, "avec aide" si besoin d'un pro
+Entreprise : ${brandContext}
+Niveau technique : ${techLevel} — ${techInstruction}
+${goalInstruction}
 
-RÈGLES : Zéro jargon technique (pas de: balise, meta, schema, JSON-LD, SSL, DNS, robots, crawl, indexation). Utilise : "votre page", "votre fiche Google", "votre site", "les IA". Toujours en français. Ton direct et encourageant.`;
+Problème : "${issueProblem}"
+
+JSON requis :
+- summary: pourquoi ce problème fait perdre des clients. 2 phrases max, ton direct.
+- steps: 3 à 5 étapes adaptées au niveau ${techLevel}. Format: "[Action] → [Résultat]". Si ai_nocode/claude_code : prompt IA prêt-à-l'emploi dans les étapes techniques.
+- time_estimate: durée réaliste pour ce profil
+- type: "seul" ou "avec aide"
+
+Toujours en français.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
