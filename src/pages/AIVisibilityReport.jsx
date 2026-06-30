@@ -125,6 +125,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
           business_type: profile?.identity_industry
         },
         user_profile: userProfile,
+        crawl_data: profile?._crawl || {},
       }).catch(() => null);
 
       if (res?.data && !res.data.error) {

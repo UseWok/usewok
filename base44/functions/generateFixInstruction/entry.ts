@@ -69,6 +69,12 @@ Deno.serve(async (req) => {
     }
 
     // ── 3. Générer via LLM (uniquement si aucun cache) ──
+    // Crawl data passed from the scan result (anchors fix steps to real page structure)
+    const crawlData = body.crawl_data || {};
+    const crawlContext = Object.keys(crawlData).length > 0
+      ? `\nDONNÉES RÉELLES DU CRAWL (à utiliser pour nommer les pages et éléments exacts) :\n${JSON.stringify(crawlData, null, 2)}`
+      : '';
+
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
     const techContextMap = {
@@ -95,6 +101,7 @@ Niveau technique : ${techLevel} — ${techInstruction}
 ${goalInstruction}
 
 Problème : "${issueProblem}"
+${crawlContext}
 
 JSON requis :
 - summary: pourquoi ce problème fait perdre des clients. 2 phrases max, ton direct.

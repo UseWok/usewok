@@ -1,5 +1,163 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+// ── Real HTML crawler ─────────────────────────────────────────────────────────
+async function crawlPage(url, timeoutMs = 8000) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UseWokBot/1.0; +https://usewok.com/bot)' }
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const html = await res.text();
+    return html;
+  } catch {
+    return null;
+  }
+}
+
+// ── Extract key technical signals from raw HTML ───────────────────────────────
+function extractSignals(html, url) {
+  if (!html) return {};
+
+  const lower = html.toLowerCase();
+
+  // Schema.org JSON-LD blocks
+  const jsonLdBlocks = [];
+  const jsonLdRe = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = jsonLdRe.exec(html)) !== null) {
+    try { jsonLdBlocks.push(JSON.parse(m[1])); } catch {}
+  }
+
+  const schemaTypes = jsonLdBlocks.map(b => (b['@type'] || '')).flat().map(t => String(t).toLowerCase());
+  const hasOrganization = schemaTypes.some(t => t === 'organization' || t === 'localbusiness');
+  const hasFaqPage = schemaTypes.some(t => t === 'faqpage');
+  const hasProduct = schemaTypes.some(t => t === 'product');
+  const hasBreadcrumb = schemaTypes.some(t => t === 'breadcrumblist');
+  const hasWebSite = schemaTypes.some(t => t === 'website');
+  const hasPerson = schemaTypes.some(t => t === 'person');
+  const allSchemaTypes = [...new Set(schemaTypes.filter(Boolean))];
+
+  // Meta tags
+  const metaDesc = (html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{0,300})["']/i) || [])[1] || '';
+  const ogTitle = (html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']{0,200})["']/i) || [])[1] || '';
+  const ogDesc = (html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']{0,300})["']/i) || [])[1] || '';
+  const canonical = (html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) || [])[1] || '';
+  const h1Tags = [...html.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)].map(x => x[1].replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+  const h2Tags = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map(x => x[1].replace(/<[^>]+>/g, '').trim()).filter(Boolean).slice(0, 10);
+  const allLinks = [...html.matchAll(/href=["']([^"'#?]+)["']/gi)].map(x => x[1]).filter(Boolean);
+
+  // Internal links analysis
+  let baseOrigin = '';
+  try { baseOrigin = new URL(url).origin; } catch {}
+  const internalLinks = allLinks.filter(l => {
+    if (l.startsWith('/')) return true;
+    if (baseOrigin && l.startsWith(baseOrigin)) return true;
+    return false;
+  });
+  const uniqueInternalPaths = [...new Set(internalLinks.map(l => {
+    try { return new URL(l, url).pathname; } catch { return l; }
+  }))];
+
+  // Hreflang
+  const hreflang = [...html.matchAll(/<link[^>]+hreflang=["']([^"']+)["']/gi)].map(x => x[1]);
+
+  // FAQ detection (real questions in HTML, not schema)
+  const faqPatterns = html.match(/<(details|summary|dt|[^>]+class=["'][^"']*faq[^"']*["'])[^>]*>/gi) || [];
+  const questionMarks = (html.match(/\?<\//g) || []).length;
+
+  // Viewport / mobile
+  const hasMobileViewport = /<meta[^>]+name=["']viewport["']/i.test(html);
+
+  // Open Graph image
+  const ogImage = (html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || [])[1] || '';
+
+  // Page word count (rough)
+  const textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = textContent.split(' ').filter(w => w.length > 2).length;
+
+  // Navigation depth hint — count nav links
+  const navLinks = [...html.matchAll(/<nav[^>]*>([\s\S]*?)<\/nav>/gi)].map(x => x[1]);
+  const navLinkCount = navLinks.reduce((acc, nav) => acc + (nav.match(/href=/gi) || []).length, 0);
+
+  // Author signals
+  const hasAuthorMeta = /<meta[^>]+name=["']author["']/i.test(html);
+  const hasAuthorInText = /auteur|author|rédigé par|written by|par [A-Z]/i.test(html);
+
+  // Structured contact info
+  const hasPhone = /(\+33|0[1-9])[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/.test(html);
+  const hasAddress = /\b\d{5}\b/.test(html); // French postal code
+  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(html);
+
+  return {
+    schemaTypes: allSchemaTypes,
+    hasOrganization, hasFaqPage, hasProduct, hasBreadcrumb, hasWebSite, hasPerson,
+    metaDesc, metaDescLength: metaDesc.length,
+    ogTitle, ogDesc, ogImage,
+    canonical,
+    h1Tags, h1Count: h1Tags.length,
+    h2Tags, h2Count: h2Tags.length,
+    internalLinkCount: uniqueInternalPaths.length,
+    uniqueInternalPaths: uniqueInternalPaths.slice(0, 20),
+    hreflang,
+    hasMobileViewport,
+    faqIndicators: faqPatterns.length,
+    questionMarksInText: questionMarks,
+    wordCount,
+    navLinkCount,
+    hasAuthorMeta, hasAuthorInText,
+    hasPhone, hasAddress, hasEmail,
+    isSSL: url.startsWith('https://'),
+    htmlLength: html.length,
+  };
+}
+
+// ── Discover key internal URLs to crawl ──────────────────────────────────────
+function discoverKeyUrls(homeHtml, baseUrl) {
+  const origin = (() => { try { return new URL(baseUrl).origin; } catch { return ''; } })();
+  const allHrefs = [...(homeHtml || '').matchAll(/href=["']([^"'#?]+)["']/gi)].map(x => x[1]);
+
+  const keyPaths = ['/about', '/a-propos', '/apropos', '/qui-sommes-nous', '/contact', '/blog', '/services', '/produits', '/products', '/faq'];
+  const found = new Set([baseUrl]);
+
+  for (const href of allHrefs) {
+    try {
+      const abs = new URL(href, baseUrl).href;
+      if (!abs.startsWith(origin)) continue;
+      const path = new URL(abs).pathname.toLowerCase();
+      if (keyPaths.some(k => path.includes(k))) found.add(abs);
+    } catch {}
+  }
+
+  // Also add canonical key paths directly
+  for (const p of keyPaths.slice(0, 4)) {
+    found.add(origin + p);
+  }
+
+  return [...found].slice(0, 5); // max 5 pages to crawl
+}
+
+// ── Check sitemap & robots ────────────────────────────────────────────────────
+async function checkSitemapAndRobots(origin) {
+  const [sitemapRes, robotsRes] = await Promise.all([
+    fetch(`${origin}/sitemap.xml`, { signal: AbortSignal.timeout(4000) }).catch(() => null),
+    fetch(`${origin}/robots.txt`, { signal: AbortSignal.timeout(4000) }).catch(() => null),
+  ]);
+  const hasSitemap = sitemapRes?.ok && (sitemapRes.headers.get('content-type') || '').includes('xml');
+  const sitemapHtml = hasSitemap ? await sitemapRes.text().catch(() => '') : '';
+  const urlCountInSitemap = (sitemapHtml.match(/<url>/g) || []).length;
+
+  const hasRobots = robotsRes?.ok;
+  const robotsTxt = hasRobots ? await robotsRes.text().catch(() => '') : '';
+  const robotsBlocksAll = /disallow:\s*\//i.test(robotsTxt) && !/disallow:\s*$/m.test(robotsTxt);
+
+  return { hasSitemap, urlCountInSitemap, hasRobots, robotsBlocksAll };
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -11,45 +169,152 @@ Deno.serve(async (req) => {
     }
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+    let origin = '';
+    try { origin = new URL(cleanUrl).origin; } catch {}
 
-    const [seoResult, aiEnginesResult, technicalResult, lrsResult] = await Promise.all([
+    // ── Step 1: Real crawl ────────────────────────────────────────────────────
+    console.log(`[analyzeWebsite] Crawling: ${cleanUrl}`);
+    const homeHtml = await crawlPage(cleanUrl);
+    const homeSignals = extractSignals(homeHtml || '', cleanUrl);
 
-      // 1. SEO + geo traffic
+    // Discover & crawl key sub-pages in parallel
+    const keyUrls = discoverKeyUrls(homeHtml || '', cleanUrl);
+    const [sitemapData, ...subPageHtmls] = await Promise.all([
+      checkSitemapAndRobots(origin),
+      ...keyUrls.slice(1, 4).map(u => crawlPage(u, 5000)),
+    ]);
+
+    // Extract signals from sub-pages
+    const subSignals = subPageHtmls.map((html, i) => ({
+      url: keyUrls[i + 1] || '',
+      signals: extractSignals(html || '', keyUrls[i + 1] || cleanUrl),
+      crawled: !!html,
+    }));
+
+    // Merge: check if about/blog/faq pages were found and crawled
+    const aboutPage = subSignals.find(s => /about|propos|qui-sommes/i.test(s.url));
+    const blogPage = subSignals.find(s => /blog|article|news/i.test(s.url));
+    const faqPage = subSignals.find(s => /faq/i.test(s.url));
+    const contactPage = subSignals.find(s => /contact/i.test(s.url));
+
+    // Aggregate author signal across all pages
+    const hasAnyAuthor = homeSignals.hasAuthorMeta || homeSignals.hasAuthorInText
+      || subSignals.some(s => s.signals.hasAuthorMeta || s.signals.hasAuthorInText);
+
+    // Canonical check — detect mismatches
+    const canonicalMatchesUrl = homeSignals.canonical
+      ? homeSignals.canonical.replace(/\/$/, '') === cleanUrl.replace(/\/$/, '')
+      : true; // can't verify = neutral
+
+    // Collect ALL schema types found across pages
+    const allSchemaTypesFound = [...new Set([
+      ...homeSignals.schemaTypes,
+      ...subSignals.flatMap(s => s.signals.schemaTypes)
+    ])];
+
+    // Build a rich technical audit object to pass to LLM
+    const technicalAudit = {
+      url: cleanUrl,
+      ssl: homeSignals.isSSL,
+      crawlable: !!homeHtml,
+      homePage: {
+        h1: homeSignals.h1Tags,
+        h2Count: homeSignals.h2Count,
+        h2Sample: homeSignals.h2Tags.slice(0, 5),
+        metaDesc: homeSignals.metaDesc || '(absente)',
+        metaDescLength: homeSignals.metaDescLength,
+        canonical: homeSignals.canonical || '(absent)',
+        canonicalMatchesUrl,
+        wordCount: homeSignals.wordCount,
+        ogImage: homeSignals.ogImage ? 'présente' : 'absente',
+        hasMobileViewport: homeSignals.hasMobileViewport,
+        hasPhone: homeSignals.hasPhone,
+        hasEmail: homeSignals.hasEmail,
+        hasAddress: homeSignals.hasAddress,
+        internalLinks: homeSignals.internalLinkCount,
+        navLinkCount: homeSignals.navLinkCount,
+      },
+      schemaMarkup: {
+        typesDetected: allSchemaTypesFound,
+        hasOrganization: homeSignals.hasOrganization,
+        hasFaqSchema: homeSignals.hasFaqPage || subSignals.some(s => s.signals.hasFaqPage),
+        hasProduct: homeSignals.hasProduct || subSignals.some(s => s.signals.hasProduct),
+        hasBreadcrumb: homeSignals.hasBreadcrumb || subSignals.some(s => s.signals.hasBreadcrumb),
+        hasPerson: hasPerson(homeSignals, subSignals),
+      },
+      pages: {
+        aboutPageFound: !!aboutPage?.crawled,
+        aboutPageUrl: aboutPage?.url || null,
+        aboutHasAuthor: aboutPage?.signals?.hasAuthorMeta || aboutPage?.signals?.hasAuthorInText || false,
+        blogPageFound: !!blogPage?.crawled,
+        faqPageFound: !!faqPage?.crawled,
+        faqFaqSchemaOnFaqPage: faqPage?.signals?.hasFaqPage || false,
+        contactPageFound: !!contactPage?.crawled,
+        contactHasPhone: contactPage?.signals?.hasPhone || homeSignals.hasPhone,
+        contactHasEmail: contactPage?.signals?.hasEmail || homeSignals.hasEmail,
+      },
+      sitemap: {
+        present: sitemapData.hasSitemap,
+        urlCount: sitemapData.urlCountInSitemap,
+        robotsPresent: sitemapData.hasRobots,
+        robotsBlocksAll: sitemapData.robotsBlocksAll,
+      },
+      author: {
+        anyAuthorSignal: hasAnyAuthor,
+        aboutHasAuthor: aboutPage?.signals?.hasAuthorMeta || aboutPage?.signals?.hasAuthorInText || false,
+      },
+      hreflang: homeSignals.hreflang,
+    };
+
+    function hasPerson(home, subs) {
+      return home.hasPerson || subs.some(s => s.signals.hasPerson);
+    }
+
+    console.log(`[analyzeWebsite] Technical audit built. Schemas found: ${allSchemaTypesFound.join(', ') || 'none'}`);
+
+    // ── Step 2: LLM analysis on REAL crawled data ─────────────────────────────
+    const [seoResult, aiEnginesResult, lrsResult] = await Promise.all([
+
+      // SEO + AI scores — give LLM the REAL technical audit
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are a senior SEO and AI visibility expert. Deeply analyze this website using real web data: ${cleanUrl}
+        prompt: `Tu es un expert SEO et visibilité IA (AEO). Tu as reçu un audit technique RÉEL du site ${cleanUrl} — toutes les données ci-dessous proviennent d'un vrai crawl HTML du site, pas d'estimations.
 
-        Return a JSON with ALL these fields (use real estimates based on what you know or can find):
-        - ai_visibility_score: number 0-100
-        - message_clarity_score: number 0-100
-        - commercial_presence_score: number 0-100
-        - overall_score: number 0-100
-        - business_name: string
-        - business_type: string
-        - city: string
-        - country: string (ISO 2-letter code, e.g. "FR")
-        - language: string (e.g. "fr", "en")
-        - organic_traffic: number (estimated monthly visits)
-        - organic_traffic_delta_pct: number (% change last 30d)
-        - organic_keywords: number
-        - organic_keywords_delta_pct: number
-        - backlinks: number
-        - backlinks_delta_pct: number
-        - referring_domains: number
-        - authority_score: number 0-100
-        - site_health: number 0-100
-        - site_health_issues: number
-        - visibility_pct: number 0-100
-        - visibility_delta: number
-        - issues: array of 4 objects { problem: string (in simple non-technical French, explain what it means for the business owner — no jargon), category: string, severity: "error"|"warning" }
-        - strengths: array of 3 strings (in French)
-        - shock_insight: string (one powerful simple sentence in French about what they're losing)
-        - top_keywords: array of 5 objects { keyword: string, position: number, volume: number }
-        - competitors: array of 3 objects { domain: string, authority_score: number, organic_traffic: number } — CRITICAL: list ONLY TRUE direct competitors that operate in the SAME sector/niche as this business. If the site is a SaaS, list SaaS competitors. If it is a bakery, list bakeries. NEVER list unrelated domains. If you cannot identify real competitors from the actual business type, return an empty array rather than guessing.
-        - geo_traffic: array of max 4 objects sorted by traffic desc: first 3 top countries each { country: string (ISO 2-letter), country_name: string, pct: number (% of total traffic, integer) }, then one entry { country: "OTHER", country_name: "Autres pays", pct: number } if there are more. All pct must sum to 100.
-        
-        IMPORTANT for issues: Write each issue text in simple French that a non-technical business owner can understand. Avoid all technical jargon like "Schema Markup", "meta tag", "JSON-LD", "robots.txt", "SSL certificate". Use plain language like "Votre site n'est pas reconnu par les IA", "Votre fiche Google est absente", "Votre site n'est pas sécurisé".
-        
-        CRITICAL: Read the actual page content of the website to determine business_type. Do NOT infer the business type from the domain name or brand name alone (e.g. brand "Wok" could be a SaaS, not a restaurant). Return ONLY valid JSON.`,
+DONNÉES RÉELLES CRAWLÉES :
+${JSON.stringify(technicalAudit, null, 2)}
+
+Sur la base de ces données RÉELLES, calcule :
+- ai_visibility_score: 0-100 (présence IA — schémas, mentions, citations)
+- message_clarity_score: 0-100 (clarté du message — H1, meta desc, mots)  
+- commercial_presence_score: 0-100 (signaux business — téléphone, adresse, fiche Google probable)
+- overall_score: 0-100 (moyenne pondérée)
+
+Et fournis aussi (depuis tes connaissances + web) :
+- business_name: string
+- business_type: string (secteur réel de l'entreprise)
+- city: string
+- country: string (code ISO 2 lettres)
+- organic_traffic: number (estimation mensuelle)
+- organic_keywords: number
+- backlinks: number
+- authority_score: number 0-100
+- shock_insight: string (une phrase courte et percutante en français sur ce que ce site perd concrètement)
+
+PUIS génère des ISSUES ultra-concrètes basées UNIQUEMENT sur ce que le crawl a révélé.
+Chaque issue doit :
+- citer la page exacte concernée si possible (ex: "sur votre page d'accueil", "sur /contact", "sur votre page /blog")
+- être formulée en français simple pour un non-technicien
+- avoir un urgency : "high" | "medium" | "low"
+- avoir un impact: string (ce que ça fait perdre concrètement)
+
+Exemples de BONS issues basés sur les données réelles :
+- Si hasOrganization=false → "Votre page d'accueil ne contient aucune information structurée sur votre entreprise — ChatGPT et Gemini ne savent pas qui vous êtes quand un client les interroge sur votre secteur."
+- Si aboutPageFound=false → "Aucune page 'À propos' détectée — les IA ne peuvent pas identifier qui dirige cette entreprise ni établir la confiance nécessaire pour vous recommander."
+- Si metaDescLength=0 → "Votre page d'accueil n'a aucune description — Google et les IA voient une page sans contexte, ce qui réduit vos chances d'apparaître en réponse à une question."
+- Si hasFaqSchema=false et questionMarksInText>0 → "Votre site contient des questions mais sans balisage FAQ structuré — Perplexity et Google affichent vos concurrents en featured snippet à votre place."
+
+Ne génère que des issues basées sur ce que le crawl a RÉELLEMENT trouvé ou pas trouvé. Maximum 5 issues, classées par urgency décroissante.
+
+Retourne JSON valide uniquement.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
@@ -63,170 +328,74 @@ Deno.serve(async (req) => {
             business_type: { type: 'string' },
             city: { type: 'string' },
             country: { type: 'string' },
-            language: { type: 'string' },
             organic_traffic: { type: 'number' },
-            organic_traffic_delta_pct: { type: 'number' },
             organic_keywords: { type: 'number' },
-            organic_keywords_delta_pct: { type: 'number' },
             backlinks: { type: 'number' },
-            backlinks_delta_pct: { type: 'number' },
-            referring_domains: { type: 'number' },
             authority_score: { type: 'number' },
-            site_health: { type: 'number' },
-            site_health_issues: { type: 'number' },
-            visibility_pct: { type: 'number' },
-            visibility_delta: { type: 'number' },
-            issues: { type: 'array', items: { type: 'object', properties: { problem: { type: 'string' }, category: { type: 'string' }, severity: { type: 'string' } } } },
-            strengths: { type: 'array', items: { type: 'string' } },
             shock_insight: { type: 'string' },
-            top_keywords: { type: 'array', items: { type: 'object', properties: { keyword: { type: 'string' }, position: { type: 'number' }, volume: { type: 'number' } } } },
-            competitors: { type: 'array', items: { type: 'object', properties: { domain: { type: 'string' }, authority_score: { type: 'number' }, organic_traffic: { type: 'number' } } } },
-            geo_traffic: { type: 'array', items: { type: 'object', properties: { country: { type: 'string' }, country_name: { type: 'string' }, pct: { type: 'number' } } } },
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  problem: { type: 'string' },
+                  impact: { type: 'string' },
+                  urgency: { type: 'string' },
+                  page: { type: 'string' },
+                }
+              }
+            },
           }
         }
       }),
 
-      // 2. Extended AI engines scores (8 engines)
+      // AI engines scores
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Analyze AI search engine visibility for this website: ${cleanUrl}
-        Search the web to understand this business, then estimate realistic scores for each AI engine based on the site's content quality, authority, and online presence.
-        
-        Return scores 0-100 for each engine. A well-known brand scores 60-90. A small local business with no online presence scores 5-20.
-        
-        For each engine, also estimate:
-        - citation_frequency: how often this brand is cited per 1000 relevant queries (0-100 scale)
-        - sentiment: "positive" | "neutral" | "negative" (how the AI tends to present this brand)
-        - accuracy: number 0-100 (how accurately the AI describes this brand's offer)
-        
-        Return:
-        - chatgpt_score: number 0-100
-        - chatgpt_citation_freq: number 0-100
-        - chatgpt_sentiment: string
-        - chatgpt_accuracy: number 0-100
-        - gemini_score: number 0-100
-        - gemini_citation_freq: number 0-100
-        - gemini_sentiment: string
-        - gemini_accuracy: number 0-100
-        - claude_score: number 0-100
-        - claude_citation_freq: number 0-100
-        - claude_sentiment: string
-        - claude_accuracy: number 0-100
-        - mistral_score: number 0-100
-        - mistral_citation_freq: number 0-100
-        - mistral_sentiment: string
-        - mistral_accuracy: number 0-100
-        - llama_score: number 0-100
-        - llama_citation_freq: number 0-100
-        - llama_sentiment: string
-        - llama_accuracy: number 0-100
-        - perplexity_score: number 0-100
-        - perplexity_citation_freq: number 0-100
-        - perplexity_sentiment: string
-        - perplexity_accuracy: number 0-100
-        - grok_score: number 0-100
-        - grok_citation_freq: number 0-100
-        - grok_sentiment: string
-        - grok_accuracy: number 0-100
-        - copilot_score: number 0-100
-        - copilot_citation_freq: number 0-100
-        - copilot_sentiment: string
-        - copilot_accuracy: number 0-100
-        - ai_mentions_count: number (estimated total AI mentions/month)
-        - chatgpt_reason: string (one sentence why in French)
-        - perplexity_reason: string (one sentence why in French)
-        
-        CRITICAL: Read the actual website content. Do NOT guess the business type from the domain name or brand name alone. Return ONLY valid JSON.`,
+        prompt: `Estime les scores de visibilité IA pour ${cleanUrl} sur chaque moteur (0-100).
+Un site bien connu = 60-90. Une PME locale sans présence en ligne = 5-20.
+Retourne uniquement du JSON valide.`,
         add_context_from_internet: true,
-        model: 'gemini_3_1_pro',
+        model: 'gemini_3_flash',
         response_json_schema: {
           type: 'object',
           properties: {
-            chatgpt_score: { type: 'number' }, chatgpt_citation_freq: { type: 'number' }, chatgpt_sentiment: { type: 'string' }, chatgpt_accuracy: { type: 'number' },
-            gemini_score: { type: 'number' }, gemini_citation_freq: { type: 'number' }, gemini_sentiment: { type: 'string' }, gemini_accuracy: { type: 'number' },
-            claude_score: { type: 'number' }, claude_citation_freq: { type: 'number' }, claude_sentiment: { type: 'string' }, claude_accuracy: { type: 'number' },
-            mistral_score: { type: 'number' }, mistral_citation_freq: { type: 'number' }, mistral_sentiment: { type: 'string' }, mistral_accuracy: { type: 'number' },
-            llama_score: { type: 'number' }, llama_citation_freq: { type: 'number' }, llama_sentiment: { type: 'string' }, llama_accuracy: { type: 'number' },
-            perplexity_score: { type: 'number' }, perplexity_citation_freq: { type: 'number' }, perplexity_sentiment: { type: 'string' }, perplexity_accuracy: { type: 'number' },
-            grok_score: { type: 'number' }, grok_citation_freq: { type: 'number' }, grok_sentiment: { type: 'string' }, grok_accuracy: { type: 'number' },
-            copilot_score: { type: 'number' }, copilot_citation_freq: { type: 'number' }, copilot_sentiment: { type: 'string' }, copilot_accuracy: { type: 'number' },
+            chatgpt_score: { type: 'number' },
+            gemini_score: { type: 'number' },
+            claude_score: { type: 'number' },
+            mistral_score: { type: 'number' },
+            llama_score: { type: 'number' },
+            perplexity_score: { type: 'number' },
+            grok_score: { type: 'number' },
+            copilot_score: { type: 'number' },
             ai_mentions_count: { type: 'number' },
-            chatgpt_reason: { type: 'string' },
-            perplexity_reason: { type: 'string' },
           }
         }
       }),
 
-      // 3. Technical signals
+      // LRS + Action plan — ANCHORED in real crawl data
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Check technical signals for: ${cleanUrl}
-        - has_schema_markup: boolean
-        - has_google_business: boolean
-        - has_ssl: boolean
-        - has_mobile_friendly: boolean
-        - has_sitemap: boolean
-        - has_robots_txt: boolean
-        - page_speed_score: number 0-100`,
-        add_context_from_internet: true,
-        model: 'gemini_3_1_pro',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            has_schema_markup: { type: 'boolean' },
-            has_google_business: { type: 'boolean' },
-            has_ssl: { type: 'boolean' },
-            has_mobile_friendly: { type: 'boolean' },
-            has_sitemap: { type: 'boolean' },
-            has_robots_txt: { type: 'boolean' },
-            page_speed_score: { type: 'number' },
-          }
-        }
-      }),
+        prompt: `Tu es expert en AEO (Answer Engine Optimization). Voici le crawl RÉEL de ${cleanUrl} :
 
-      // 4. LLM Resonance Score + Entity Injection Plan
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an expert in AI search engine optimization (AEO — Answer Engine Optimization). Analyze this website: ${cleanUrl}
+${JSON.stringify(technicalAudit, null, 2)}
 
-        Your mission: compute the LLM Resonance Score (LRS) and generate a concrete entity injection action plan.
+Calcule le LLM Resonance Score (LRS) basé sur ces données réelles.
 
-        THE LLM RESONANCE SCORE (LRS):
-        This is the new standard metric for the AI era — like Domain Authority for SEO, but for LLM visibility.
-        It aggregates 3 signals across 8 AI engines (ChatGPT, Gemini, Claude, Mistral, Llama, Perplexity, Grok, Copilot):
-        - Citation frequency (40% weight): how often the brand appears in AI answers on relevant queries
-        - Sentiment quality (30% weight): % of positive/neutral citations vs negative ones
-        - Information accuracy (30% weight): how accurately AI engines describe this brand's offer, pricing, USP
+Puis génère UN PLAN D'ACTION en 3 à 5 actions CONCRÈTES et SPÉCIFIQUES.
+Chaque action doit :
+- Nommer la page EXACTE à modifier (ex: "/", "/a-propos", "/blog/mon-article")
+- Nommer l'élément EXACT à ajouter/modifier (ex: "bloc JSON-LD de type Organization", "balise <meta name='description'>", "section FAQ avec 6 questions en schema FAQPage")
+- Expliquer en 1 phrase POURQUOI ça va changer les recommandations IA
+- Estimer l'effort réel (low = < 1h, medium = 2-4h, high = 1 jour+)
 
-        Compute lrs_score (0-100) based on these signals.
-        Also provide:
-        - lrs_citation_score: number 0-100 (citation frequency component)
-        - lrs_sentiment_score: number 0-100 (sentiment quality component)
-        - lrs_accuracy_score: number 0-100 (information accuracy component)
-        - lrs_trend: "rising" | "stable" | "declining" (estimated trend)
-        - lrs_vs_industry: number (how many points above/below industry average, e.g. +12 or -8)
+EXEMPLES D'ACTIONS CONCRÈTES :
+- Si hasOrganization=false : "Ajouter un bloc JSON-LD Organization sur la page d'accueil (/) avec name, url, description, sameAs (réseaux sociaux)"
+- Si aboutPageFound=false : "Créer une page /a-propos avec le nom et la photo du fondateur + schéma Person"
+- Si hasFaqSchema=false : "Transformer les questions existantes en bloc FAQPage JSON-LD sur /faq — Perplexity cite directement les FAQs structurées"
+- Si metaDescLength < 50 : "Rédiger une meta description de 155 caractères sur / incluant votre activité, ville, et bénéfice principal"
+- Si canonicalMatchesUrl=false : "Corriger la balise canonical sur / qui pointe vers ${homeSignals.canonical} au lieu de ${cleanUrl}"
 
-        ENTITY INJECTION ACTION PLAN:
-        Generate 3 specific, highly actionable injection recommendations. Each must be a concrete "ordonnance" — not generic advice.
-        
-        For each action, return ALL text fields in French (action_title, action_detail, gap, competitor_advantage):
-        - engine: target AI engine name (e.g. "Perplexity")
-        - gap: exact query or topic where competitors appear but this brand does not — write in French (e.g. "meilleur logiciel de facturation PME")
-        - competitor_advantage: why competitors are cited there — write in French
-        - action_title: short action title in French
-        - action_detail: concrete 2-3 sentence instruction in French, naming specific platforms or formats
-        - platform: specific platform or channel (e.g. "Reddit", "Wikipedia", "LinkedIn Pulse")
-        - impact: "high" | "medium"
-        - effort: "low" | "medium" | "high"
-
-        CRITICAL: Read the actual website content. Do NOT assume the business type from the domain name. Return ONLY valid JSON.
-        
-        Return:
-        - lrs_score: number 0-100
-        - lrs_citation_score: number 0-100
-        - lrs_sentiment_score: number 0-100
-        - lrs_accuracy_score: number 0-100
-        - lrs_trend: string
-        - lrs_vs_industry: number
-        - injection_plan: array of 3 objects with fields: engine, gap, competitor_advantage, action_title, action_detail, platform, impact, effort`,
-        add_context_from_internet: true,
+Toutes les actions en français. Retourne JSON valide uniquement.`,
+        add_context_from_internet: false,
         model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
@@ -243,10 +412,11 @@ Deno.serve(async (req) => {
                 type: 'object',
                 properties: {
                   engine: { type: 'string' },
-                  gap: { type: 'string' },
-                  competitor_advantage: { type: 'string' },
                   action_title: { type: 'string' },
                   action_detail: { type: 'string' },
+                  page_url: { type: 'string' },
+                  element: { type: 'string' },
+                  gap: { type: 'string' },
                   platform: { type: 'string' },
                   impact: { type: 'string' },
                   effort: { type: 'string' },
@@ -261,9 +431,19 @@ Deno.serve(async (req) => {
     const result = {
       ...seoResult,
       ...aiEnginesResult,
-      ...technicalResult,
       ...lrsResult,
-      google_ai_score: aiEnginesResult.gemini_score || 0,
+      // Technical signals from real crawl (used by UI)
+      has_schema_markup: allSchemaTypesFound.length > 0,
+      has_ssl: homeSignals.isSSL,
+      has_mobile_friendly: homeSignals.hasMobileViewport,
+      has_sitemap: sitemapData.hasSitemap,
+      has_robots_txt: sitemapData.hasRobots,
+      has_google_business: homeSignals.hasAddress || homeSignals.hasPhone,
+      // Raw crawl data for debugging / fix instructions
+      _crawl: {
+        ...technicalAudit,
+        schemaTypesFound: allSchemaTypesFound,
+      },
       url: cleanUrl,
       analyzed_at: new Date().toISOString(),
     };
@@ -273,11 +453,11 @@ Deno.serve(async (req) => {
       website: cleanUrl,
       first_name: result.business_name || '',
       role: result.business_type || '',
-      message: `AI scan: LRS ${result.lrs_score}/100 | score ${result.overall_score}/100 | traffic: ${result.organic_traffic}`,
+      message: `AI scan: LRS ${result.lrs_score}/100 | score ${result.overall_score}/100 | schemas: ${allSchemaTypesFound.join(', ') || 'none'}`,
       status: 'new',
     }).catch(() => {});
 
-    // Save to BusinessProfile — find by site_url so each domain is isolated
+    // Save to BusinessProfile
     try {
       const user = await base44.auth.me().catch(() => null);
       if (user) {
@@ -285,12 +465,10 @@ Deno.serve(async (req) => {
         const existing = profiles.find(p => p.site_url === cleanUrl);
         let brand_keywords = JSON.stringify(result);
         try {
-          const fileObj = new File([brand_keywords], "data.json", { type: "application/json" });
+          const fileObj = new File([brand_keywords], 'data.json', { type: 'application/json' });
           const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({ file: fileObj });
-          if (uploadRes && uploadRes.file_url) brand_keywords = uploadRes.file_url;
-        } catch (e) {
-          console.error("Upload failed, fallback to string", e);
-        }
+          if (uploadRes?.file_url) brand_keywords = uploadRes.file_url;
+        } catch {}
 
         const profileFields = {
           site_url: cleanUrl,
@@ -302,6 +480,7 @@ Deno.serve(async (req) => {
           score_commercial_signal: result.commercial_presence_score || 0,
           score_overall: result.overall_score || 0,
           last_scan: new Date().toISOString(),
+          scan_in_progress: false,
           brand_keywords,
         };
         if (existing) {
@@ -316,7 +495,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('analyzeWebsite error:', error);
     const status = error?.response?.status === 429 || error?.message?.includes('quota') ? 429 : 500;
-    const message = status === 429 ? 'Insufficient credits or rate limited' : error?.message || 'Analysis failed';
-    return Response.json({ error: message }, { status });
+    return Response.json({ error: error?.message || 'Analysis failed' }, { status });
   }
 });
