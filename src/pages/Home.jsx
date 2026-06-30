@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
-import { setActiveDomain } from '@/lib/active-domain';
+import { setActiveDomain, getActiveDomain, initActiveDomainFromUser } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
@@ -458,9 +458,7 @@ export default function Home() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [profiles, setProfiles] = useState([]);
-  const [activeUrl, setActiveUrl] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('stensor_active_domain') || 'null')?.url || null; } catch { return null; }
-  });
+  const [activeUrl, setActiveUrl] = useState(() => getActiveDomain()?.url || null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [onboardingData, setOnboardingData] = useState(null);
   const [scanningUrls, setScanningUrls] = useState({});
@@ -500,6 +498,7 @@ export default function Home() {
       const u = await base44.auth.me();
       if (!u) return null;
       setUser(u);
+      await initActiveDomainFromUser();
       const list = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const enriched = await Promise.all(list.map(async p => {
         const extra = await getProfileData(p).catch(() => ({}));
@@ -511,12 +510,8 @@ export default function Home() {
         setActiveUrl(first.site_url);
         setActiveDomain({ url: first.site_url, name: first.identity_name || getDomain(first.site_url) });
       }
-      // Restore quiz answers from cloud if available and not in localStorage
-      try {
-        if (u.quiz_profile && !localStorage.getItem('wok_user_profile')) {
-          localStorage.setItem('wok_user_profile', u.quiz_profile);
-        }
-      } catch {}
+      // Quiz profile is stored on User entity in cloud — no localStorage
+
       // Restore in-progress scans visually (after page refresh)
       const inProgress = enriched.filter(p => p.scan_in_progress);
       if (inProgress.length > 0) {
@@ -542,16 +537,11 @@ export default function Home() {
       const pendingQuiz = sessionStorage.getItem('wok_post_login_quiz');
       if (pendingUrl) {
         sessionStorage.removeItem('wok_post_login_url');
-        localStorage.removeItem('wok_pending_url');
         const cleanUrl = pendingUrl.startsWith('http') ? pendingUrl : `https://${pendingUrl}`;
         // Save quiz answers to cloud if present
         if (pendingQuiz) {
           sessionStorage.removeItem('wok_post_login_quiz');
-          try {
-            const quizData = JSON.parse(pendingQuiz);
-            localStorage.setItem('wok_user_profile', pendingQuiz);
-            base44.auth.updateMe({ quiz_profile: pendingQuiz }).catch(() => {});
-          } catch {}
+          base44.auth.updateMe({ quiz_profile: pendingQuiz }).catch(() => {});
         }
         // Start scan automatically
         setTimeout(() => startScan(cleanUrl), 500);
@@ -626,15 +616,7 @@ export default function Home() {
     });
     setActiveUrl(DEMO_SITE_URL);
     setActiveDomain({ url: DEMO_SITE_URL, name: 'UseWok' });
-    // Also store in localStorage so sub-pages can read it
-    try {
-      localStorage.setItem('demo_profile_usewok', JSON.stringify(demoP));
-      localStorage.setItem('stensor_active_domain', JSON.stringify({ url: DEMO_SITE_URL, name: 'UseWok' }));
-    } catch {}
-    // Store profile data so getProfileData works on sub-pages
-    try {
-      localStorage.setItem(`profile_data_${DEMO_SITE_URL}`, JSON.stringify(demoP));
-    } catch {}
+    // Demo profile is in-memory only — profile._demo flag handles sub-page reads
   };
 
   const handleSubmitSearch = async () => {

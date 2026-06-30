@@ -142,17 +142,19 @@ function CodeRedeemer({ user, setUser }) {
 
 // ── Auto-scan toggle ──────────────────────────────────────────────────────────
 function AutoScanToggle({ user }) {
-  const [enabled, setEnabled] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('wok_auto_scan') || 'false'); } catch { return false; }
-  });
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    if (user?.auto_scan_enabled !== undefined) setEnabled(!!user.auto_scan_enabled);
+  }, [user?.auto_scan_enabled]);
 
   const planId = user?.subscription_plan || 'free';
   const planLabel = planId === 'pro' ? 'Pro (30/mois)' : planId === 'starter' ? 'Starter (12/mois)' : 'Free (1/mois)';
 
-  const toggle = () => {
+  const toggle = async () => {
     const next = !enabled;
     setEnabled(next);
-    localStorage.setItem('wok_auto_scan', JSON.stringify(next));
+    try { await base44.auth.updateMe({ auto_scan_enabled: next }); } catch {}
   };
 
   return (
@@ -257,22 +259,7 @@ export default function SettingsPage() {
         if (ts.length > 0) setCancelTicket(ts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0]);
       }).catch(() => {});
     }
-    if (u?.id) {
-      // Count chatbot messages used this month from localStorage (wok_ai_v3)
-      try {
-        const convs = JSON.parse(localStorage.getItem('wok_ai_v3') || '[]');
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-        const used = convs.reduce((acc, conv) => {
-          const msgs = (conv.messages || []).filter(m => m.role === 'user' && m.ts >= monthStart);
-          return acc + msgs.length;
-        }, 0);
-        setChatMsgsUsed(used);
-        // Scans utilisés ce mois
-        const scanHistory = JSON.parse(localStorage.getItem(`wok_scan_history_${u?.id}`) || '[]');
-        setScansUsed(scanHistory.filter(s => s.ts >= monthStart).length);
-      } catch { setChatMsgsUsed(0); setScansUsed(0); }
-    }
+    // Usage counts loaded from cloud in separate useEffect
   };
 
   const handleSetUser = async (u) => {
@@ -285,6 +272,29 @@ export default function SettingsPage() {
     else base44.auth.me().then(loadUser).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load usage counts from cloud (replaces localStorage)
+  useEffect(() => {
+    if (!user?.id) return;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    (async () => {
+      try {
+        const convs = await base44.entities.Conversation.list('-updated_at', 100);
+        const used = convs.reduce((acc, conv) => {
+          let msgs = [];
+          try { msgs = JSON.parse(conv.messages_json || '[]'); } catch {}
+          return acc + msgs.filter(m => m.role === 'user' && m.ts >= monthStart).length;
+        }, 0);
+        setChatMsgsUsed(used);
+      } catch { setChatMsgsUsed(0); }
+      try {
+        const ledger = await base44.entities.CreditLedger.filter({ user_id: user.id, action: 'SCAN' });
+        setScansUsed(ledger.filter(l => new Date(l.timestamp).getTime() >= monthStart).length);
+      } catch { setScansUsed(0); }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const isYearly = user?.billing_cycle === 'yearly';
   const planFeatures = getWokFeatures(user);

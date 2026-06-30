@@ -180,16 +180,6 @@ export function getWokPlanId(user) {
   if (user?.role === 'admin') return 'pro';
   const raw = user?.subscription_plan || 'free';
   if (raw === 'free' || raw === 'starter' || raw === 'pro') return raw;
-  // Legacy/custom plan id — resolve by looking up the plan price in localStorage cache
-  try {
-    const cached = JSON.parse(localStorage.getItem('stensor_plans_v6') || '[]');
-    const matched = cached.find(p => p.id === raw);
-    if (matched) {
-      if (!matched.price_monthly || matched.price_monthly === 0) return 'free';
-      if (matched.price_monthly <= 55) return 'starter';
-      return 'pro';
-    }
-  } catch {}
   return 'free';
 }
 

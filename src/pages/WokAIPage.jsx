@@ -120,16 +120,15 @@ function MessageBubble({ msg, onPlanLink }) {
 }
 
 // ── Smart suggestions ──────────────────────────────────────────────
-function getSmartSuggestions(profile, domainLabel) {
+function getSmartSuggestions(profile, domainLabel, actionTasks) {
   let nextPendingTask = null;
   let doneCount = 0;
-  try {
-    const tasks = JSON.parse(localStorage.getItem('wok_action_tasks') || '{}');
-    const entries = Object.entries(tasks);
-    doneCount = entries.filter(([, t]) => t.status === 'done').length;
-    const pending = entries.find(([, t]) => !t.status || t.status === 'todo');
-    if (pending) nextPendingTask = pending[1].action_title;
-  } catch {}
+  const tasks = actionTasks || [];
+  doneCount = tasks.filter(t => t.status === 'done').length;
+  const pending = tasks.find(t => !t.status || t.status === 'todo');
+  if (pending) nextPendingTask = pending.action_title;
+  // suppress lint
+  void nextPendingTask;
 
   if (!profile) return [
     { icon: Zap, text: 'Lance un scan pour analyser mon site' },
@@ -150,8 +149,8 @@ function getSmartSuggestions(profile, domainLabel) {
   ];
 }
 
-function EmptyState({ onSuggest, domain, profile }) {
-  const suggestions = getSmartSuggestions(profile, domain);
+function EmptyState({ onSuggest, domain, profile, actionTasks }) {
+  const suggestions = getSmartSuggestions(profile, domain, actionTasks);
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', maxWidth: 600, margin: '0 auto', width: '100%' }}>
       <div style={{ width: 56, height: 56, borderRadius: 16, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
@@ -409,6 +408,7 @@ export default function WokAIPage({ user: userProp }) {
   const [profile, setProfile] = useState(null);
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const [sendingTest, setSendingTest] = useState(false);
+  const [actionTasks, setActionTasks] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -453,6 +453,14 @@ export default function WokAIPage({ user: userProp }) {
   }, [user?.id]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
+
+  // Load action tasks from cloud (ActionTask entity)
+  useEffect(() => {
+    if (!user?.id) return;
+    base44.entities.ActionTask.filter({ user_id: user.id }).then(tasks => {
+      setActionTasks(tasks || []);
+    }).catch(() => {});
+  }, [user?.id]);
 
   const activeConv = convs.find(c => c.id === activeConvId);
 
@@ -650,7 +658,7 @@ export default function WokAIPage({ user: userProp }) {
       {/* ── Messages ── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 8px' }}>
         {messages.length === 0 ? (
-          <EmptyState onSuggest={s => setInput(s)} domain={domainLabel} profile={profile} />
+          <EmptyState onSuggest={s => setInput(s)} domain={domainLabel} profile={profile} actionTasks={actionTasks} />
         ) : (
           <>
             {messages.map((m, i) => (
