@@ -92,7 +92,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
   }, []);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(fix?.content || '');
+    navigator.clipboard.writeText(fix?.prompt || fix?.explanation || fix?.steps?.join('\n') || fix?.summary || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
