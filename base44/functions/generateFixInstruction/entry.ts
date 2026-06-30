@@ -109,59 +109,131 @@ Deno.serve(async (req) => {
     const isAiNoCode = techLevel === 'ai_nocode';
     const isDeveloper = techLevel === 'developer';
 
-    const profileLabel = isNoCode ? '🖱️ NO-CODE' : isAiNoCode ? '🤖 IA HELPER' : '💻 DEVELOPER';
+    const profileLabel = isNoCode ? 'NO-CODE' : isAiNoCode ? 'IA HELPER' : 'DEVELOPER';
 
-    let promptSection = '';
-    let jsonFieldSpec = '';
+    let profileInstructions = '';
     let requiredFields = ['summary', 'time_estimate'];
 
-    if (isNoCode) {
-      promptSection = `RÉPONDS POUR UN NO-CODE (Wix/WordPress/Squarespace — zéro code):
-- summary: 1 phrase courte + 1 chiffre clé. Pourquoi ça bloque.
-- prompt: LE PROMPT EXACT à copier-coller dans ChatGPT ou Claude pour résoudre ce problème.
-  Format: "Copie ceci dans ChatGPT ou Claude:\n\n[prompt sur 2-4 lignes, 100% prêt, avec placeholders en [CROCHETS]]\n\nPuis copie la réponse dans [endroit exact du site]"
-  Le prompt doit générer un résultat que l'utilisateur colle DIRECTEMENT dans son site.
-- time_estimate: "10 min" / "30 min" / "1h"
-- type: "seul"`;
-      jsonFieldSpec = `"prompt" (string)`;
-      requiredFields = ['summary', 'prompt', 'time_estimate'];
-    } else if (isAiNoCode) {
-      promptSection = `RÉPONDS POUR UN UTILISATEUR QUI UTILISE CHATGPT/CLAUDE:
-- summary: 1 phrase simple. Pourquoi ça bloque.
-- prompt: LE PROMPT EXACT à copier-coller dans ChatGPT ou Claude.
-  Format: "Copie ceci dans ChatGPT ou Claude:\n\n[prompt sur 2-4 lignes, 100% prêt, avec placeholders en [CROCHETS]]\n\nPuis copie la réponse dans [endroit exact du site]"
-  Le prompt doit générer un résultat que l'utilisateur colle DIRECTEMENT dans son site.
-- time_estimate: "5 min" / "15 min" / "30 min"
-- type: "seul"`;
-      jsonFieldSpec = `"prompt" (string)`;
+    if (isNoCode || isAiNoCode) {
+      const platformHint = isNoCode
+        ? "L'utilisateur est sur Wix/WordPress/Squarespace. Il CLIQUE, il ne code JAMAIS. Le résultat du prompt doit etre du contenu pret a coller dans un éditeur visuel."
+        : "L'utilisateur utilise ChatGPT/Claude comme assistant. Il copie-colle le prompt, puis colle la réponse dans son site.";
+
+      profileInstructions = `
+INSTRUCTIONS - GÉNÉRATION DU "prompt" (CHAMP CRITIQUE)
+=======================================================
+Tu génères le champ "prompt": un prompt EXPERT prêt à copier-coller dans ChatGPT ou Claude.
+
+${platformHint}
+
+Le prompt DOIT suivre le pattern RTCEF (Role, Task, Context, Examples, Format):
+
+1. ROLE - Assigne un rôle expert à l'IA (ex: "Tu es un expert en SEO local et AEO pour ${industry}...")
+2. TASK - Une instruction claire et unique (ex: "Génère 3 paragraphes de 40-60 mots chacun...")
+3. CONTEXT - Injecte TOUTES les infos: nom du business "${businessName}", site "${siteUrl}", secteur "${industry}", problème: "${issueProblem}"
+4. EXAMPLES - Si pertinent, donne 1 exemple de format attendu
+5. FORMAT - Spécifie EXACTEMENT le format de sortie: HTML prêt à coller? Texte brut? JSON-LD? Nombre de mots?
+
+RÈGLES ABSOLUES (zéro erreur, qualité luxe):
+- Le prompt COMMENCE par "Copie ceci dans ChatGPT ou Claude:\\n\\n" puis le prompt lui-même
+- Le prompt SE TERMINE par "\\n\\nPuis copie la réponse dans [endroit EXACT du site, ex: la section À propos de ${siteUrl}]"
+- TOUS les placeholders variables sont en [CROCHETS MAJUSCULES]: [NOM_DU_BUSINESS], [VOTRE_VILLE], [NUMÉRO_TÉLÉPHONE]...
+- MAIS les infos CONNUES (${businessName}, ${siteUrl}, ${industry}) sont PRÉ-REMPLIES — pas de placeholders pour ce qu'on sait déjà
+- Le prompt fait 8-20 lignes — ni trop court (superficiel), ni trop long (illisible)
+- Le langage est FRANÇAIS, professionnel, direct
+- ZÉRO jargon technique inutile — l'utilisateur n'est pas développeur
+- Le prompt doit générer un résultat que l'utilisateur colle DIRECTEMENT — pas de "voici quelques idées..."
+- Si le problème concerne des données structurées/JSON-LD: le prompt demande du code JSON-LD prêt à coller
+- Si le problème concerne du contenu: le prompt demande du HTML ou texte formaté prêt à coller
+- Si le problème concerne Google Business: le prompt guide exactement quoi remplir et où
+
+EXEMPLE DE STRUCTURE (adapte au problème, ne copie pas mot pour mot):
+
+Copie ceci dans ChatGPT ou Claude:
+
+Tu es un expert en référencement local pour les entreprises de ${industry}.
+Mon entreprise s'appelle "${businessName}" et mon site est ${siteUrl}.
+
+CONTEXTE: ${issueProblem}
+
+TÂCHE:
+1. Génère [NOMBRE] [TYPE DE CONTENU] optimisés pour que les IA (ChatGPT, Gemini) comprennent mon business
+2. Chaque [TYPE] doit faire [LONGUEUR] mots
+3. Inclus naturellement: ${businessName}, ${siteUrl}, et les mots-clés de mon secteur
+
+FORMAT DE SORTIE:
+- HTML prêt à coller (balises <p>, <h2>, <ul>)
+- Un bloc par [TYPE], séparé par ---
+- Aucun commentaire, aucune explication — juste le contenu prêt à coller
+
+Puis copie la réponse dans [section précise de ${siteUrl}]
+=======================================================
+`;
       requiredFields = ['summary', 'prompt', 'time_estimate'];
     } else {
-      promptSection = `RÉPONDS POUR UN DÉVELOPPEUR:
-- summary: 1 phrase + contexte du site.
-- explanation: 2-3 phrases sur la solution (fichiers concernés, pourquoi c'est important pour les IA — JSON-LD? Données structurées? Trust?).
-- time_estimate: "30 min" / "1-2h" / "1 jour"
-- type: "seul" ou "avec aide"`;
-      jsonFieldSpec = `"explanation" (string)`;
+      profileInstructions = `
+INSTRUCTIONS - GÉNÉRATION DU "explanation" (CHAMP CRITIQUE)
+===========================================================
+Tu génères le champ "explanation": une réponse technique experte pour un développeur.
+
+L'explication DOIT contenir:
+1. CAUSE - Pourquoi ce problème existe (1-2 phrases techniques)
+2. IMPACT IA - Comment ça affecte les LLMs (ChatGPT, Gemini, Claude) — sois spécifique: crawling? parsing? entity recognition? trust signals?
+3. SOLUTION - Les fichiers/technos concernés (ex: schema.org/LocalBusiness, robots.txt, sitemap.xml, meta tags, JSON-LD)
+4. CODE OU SNIPPET - Si applicable, donne le code exact (JSON-LD, meta tag, etc.) avec ${businessName} et ${siteUrl} pré-remplis
+
+RÈGLES:
+- FRANÇAIS, ton expert mais accessible
+- 150-300 mots — dense en information, zéro blabla
+- Inclure ${businessName} et ${siteUrl} dans l'explication
+- Si JSON-LD: donner le code complet, pas une référence
+- Citer les spec standards (schema.org, W3C) si pertinent
+===========================================================
+`;
       requiredFields = ['summary', 'explanation', 'time_estimate'];
     }
 
-    const prompt = `Tu es un expert AEO. Tu aides ${businessName} (${industry}) à corriger ce problème:
+    const devOrPromptLine = (isNoCode || isAiNoCode)
+      ? '4. "prompt" - Le prompt expert RTCEF généré selon les instructions ci-dessus.'
+      : "4. \"explanation\" - L'explication technique experte générée selon les instructions ci-dessus.";
 
-PROBLÈME: "${issueProblem}"
-PROFIL: ${profileLabel}
-SITE: ${siteUrl}
+    const prompt = `Tu es un Consultant AEO (AI Engine Optimization) de classe mondiale — service premium, zéro erreur, qualité luxe.
 
-${promptSection}
+MISSION
+=======
+Tu crées un guide de correction SUR-MESURE pour "${businessName}", une entreprise du secteur "${industry}" dont le site est ${siteUrl}.
 
-Réponds UNIQUEMENT avec ce JSON:
-{
-  ${jsonFieldSpec},
-  "summary": "...",
-  "time_estimate": "...",
-  "type": "seul" ou "avec aide"
-}
+L'utilisateur a le profil technique: ${profileLabel}
+Le problème à corriger: "${issueProblem}"
 
-Français. Simple. Clair. Actionnable. Pas de blabla.`;
+${profileInstructions}
+
+CHAMPS OBLIGATOIRES DU JSON
+===========================
+
+1. "summary" - 1 phrase percutante + 1 chiffre clé.
+   Structure: [POURQUOI CA BLOQUE] + [IMPACT CHIFFRÉ].
+   Exemple: "Les IA ne trouvent pas vos coordonnées — vous perdez 40% des recherches locales 'près de moi'."
+   Interdiction: "Il est important de...", "Vous devriez...", tout blabla générique.
+
+2. "time_estimate" - Temps réaliste pour exécuter la correction.
+   no_code: "10 min" / "20 min" / "30 min"
+   ai_nocode: "5 min" / "15 min" / "30 min"
+   developer: "30 min" / "1-2h" / "1 jour"
+
+3. "type" - "seul" (faisable sans aide) ou "avec aide" (requiert un pro).
+
+${devOrPromptLine}
+
+QUALITÉ LUXE — CHECKLIST AVANT RÉPONSE
+======================================
+- Le prompt/explication inclut "${businessName}" et "${siteUrl}" pré-remplis
+- Zéro placeholder pour les infos connues — seulement pour ce que l'utilisateur doit personnaliser
+- Le résultat est COPIABLE-COLLABLE immédiatement — zéro préparation nécessaire
+- Le ton est professionnel, direct, confiant — pas de "peut-être", "il faudrait peut-être"
+- Français impeccable — zéro faute
+
+Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
