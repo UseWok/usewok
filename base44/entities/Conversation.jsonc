@@ -2,54 +2,31 @@
   "name": "Conversation",
   "type": "object",
   "properties": {
-    "conv_id": {
-      "type": "string",
-      "title": "Conversation ID"
-    },
     "title": {
       "type": "string",
-      "title": "Title"
+      "title": "Titre"
     },
-    "raw_content": {
+    "site_url": {
       "type": "string",
-      "title": "Generated Code",
-      "format": "textarea"
-    },
-    "raw_content_url": {
-      "type": "string",
-      "title": "Content File URL"
-    },
-    "thumbnail_url": {
-      "type": "string",
-      "title": "Thumbnail Image URL"
-    },
-    "is_public": {
-      "type": "boolean",
-      "title": "Is Public",
-      "default": false
+      "title": "Site URL"
     },
     "messages_json": {
       "type": "string",
-      "title": "Messages",
+      "title": "Messages (JSON)",
       "format": "textarea"
+    },
+    "updated_at": {
+      "type": "number",
+      "title": "Updated At (timestamp)"
     }
   },
-  "required": [
-    "conv_id"
-  ],
+  "required": [],
   "rls": {
     "create": {
       "created_by_id": "{{user.id}}"
     },
     "read": {
-      "$or": [
-        {
-          "data.is_public": true
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        }
-      ]
+      "created_by_id": "{{user.id}}"
     },
     "update": {
       "created_by_id": "{{user.id}}"
