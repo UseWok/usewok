@@ -1,27 +1,37 @@
 User-agent: *
 Allow: /
-Disallow: /workspace-settings
-Disallow: /StensorScore
-Disallow: /PublicFiche
-Disallow: /Parcours
-Disallow: /Community
-Disallow: /projects
-Disallow: /AboutPage
-Disallow: /reset-password
-Disallow: /register
-Disallow: /LegalPage
 Disallow: /app
 Disallow: /admin
 Disallow: /settings
 Disallow: /checkout
 Disallow: /support
 Disallow: /manage-plan
-Disallow: /ai-report
-Disallow: /wok-ai
-Disallow: /performance
-Disallow: /audit
 Disallow: /connections
-Disallow: /pricing
 Disallow: /chat
+Disallow: /reset-password
+Disallow: /register
+Disallow: /wok-ai
 
-Sitemap: https://usewok.app/sitemap.xml
+# Allow AI crawlers explicitly
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://usewok.com/sitemap.xml
