@@ -1,37 +1,4 @@
 User-agent: *
-Allow: /
-Disallow: /app
-Disallow: /admin
-Disallow: /settings
-Disallow: /checkout
-Disallow: /support
-Disallow: /manage-plan
-Disallow: /connections
-Disallow: /chat
-Disallow: /reset-password
-Disallow: /register
-Disallow: /wok-ai
-
-# Allow AI crawlers explicitly
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: Googlebot
-Allow: /
+Disallow:
 
 Sitemap: https://usewok.com/sitemap.xml

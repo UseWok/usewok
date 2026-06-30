@@ -5,7 +5,7 @@
 export const SEO_CONFIG = {
   '/': {
     title: 'Apparaître dans les réponses de ChatGPT, Gemini & co — même sans budget marketing | UseWok',
-    description: "Vous n'apparaissez nulle part quand un client demande à une IA de recommander un pro ? UseWok vous montre exactement quoi corriger, étape par étape, sur 8 intelligences artificielles. Score, audit, plan d'action concret. Zéro jargon, zéro équipe marketing nécessaire.",
+    description: "UseWok — Agence SEO & Visibilité IA : apparaissez dans les réponses des assistants (ChatGPT, Gemini) grâce à l'AEO, JSON-LD optimisé, contenus stratégiques.",
   },
   '/tarifs': {
     title: 'Pricing | UseWok - AI Visibility & GEO Platform',
@@ -32,5 +32,5 @@ export const SEO_CONFIG = {
 /** Fallback pour les routes non listées (ex: /p/:id) */
 export const SEO_DEFAULT = {
   title: 'Apparaître dans les réponses de ChatGPT, Gemini & co — même sans budget marketing | UseWok',
-  description: "Vous n'apparaissez nulle part quand un client demande à une IA de recommander un pro ? UseWok vous montre exactement quoi corriger, étape par étape, sur 8 intelligences artificielles. Score, audit, plan d'action concret. Zéro jargon, zéro équipe marketing nécessaire.",
+  description: "UseWok — Agence SEO & Visibilité IA : apparaissez dans les réponses des assistants (ChatGPT, Gemini) grâce à l'AEO, JSON-LD optimisé, contenus stratégiques.",
 };
