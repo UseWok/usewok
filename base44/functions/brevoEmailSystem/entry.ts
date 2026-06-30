@@ -277,11 +277,12 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
 
           <!-- BANNER IMAGE -->
           <tr>
-            <td style="padding:0;line-height:0;font-size:0;">
+            <td style="padding:0;line-height:0;font-size:0;background:#0F0F0F;border-radius:12px 12px 0 0;">
               <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-                <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/9749d4822_image.png"
-                  alt="UseWok" width="600"
-                  style="width:100%;max-width:600px;height:auto;display:block;border-radius:12px 12px 0 0;">
+                <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/a6e37136b_generated_image.png"
+                  alt="UseWok — Visibilité IA" width="600" height="200"
+                  style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;outline:none;text-decoration:none;"
+                  border="0">
               </a>
             </td>
           </tr>
