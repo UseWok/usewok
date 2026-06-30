@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight, Mic } from 'lucide-react';
+import { Plus, X, Paperclip, Sparkles, FileText, ArrowUp, Zap, AlertTriangle, TrendingUp, Target, RefreshCw, ArrowRight, Mic, Clock, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
@@ -378,6 +378,7 @@ export default function WokAIPage({ user: userProp }) {
   const [convs, setConvs] = useState(() => pruneConvs(loadConvs()));
   const [activeConvId, setActiveConvId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState([]);
@@ -537,7 +538,47 @@ export default function WokAIPage({ user: userProp }) {
   const canSend = !loading && (input.trim().length > 0 || allFiles.length > 0);
 
   return (
-    <div style={{ display: 'flex', height: '100%', fontFamily: F, background: BG, flexDirection: 'column' }}>
+    <div style={{ display: 'flex', height: '100%', fontFamily: F, background: BG, flexDirection: 'column', position: 'relative' }}>
+
+      {/* ── Panneau historique ── */}
+      <AnimatePresence>
+        {showHistory && (
+          <>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.15)' }} onClick={() => setShowHistory(false)} />
+            <motion.div initial={{ x: -300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }} transition={{ duration: 0.2 }}
+              style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 280, background: WHITE, borderRight: `1px solid ${BORDER}`, zIndex: 50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Conversations récentes</span>
+                <button onClick={() => setShowHistory(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3, padding: 2 }}><X size={14} /></button>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
+                {/* Bouton Nouvelle conversation */}
+                <button onClick={() => { setMessages([]); setActiveConvId(null); window.history.replaceState({}, '', '/wok-ai'); setShowHistory(false); }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: SURFACE, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, color: INK, fontFamily: F, marginBottom: 6, fontWeight: 600 }}>
+                  <Plus size={12} color={INK} /> Nouvelle conversation
+                </button>
+                {convs.length === 0 && (
+                  <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucune conversation</p>
+                )}
+                {convs.sort((a, b) => b.updatedAt - a.updatedAt).map(conv => (
+                  <button key={conv.id} onClick={() => {
+                    setMessages(conv.messages || []);
+                    setActiveConvId(conv.id);
+                    window.history.replaceState({}, '', `/wok-ai?conv=${conv.id}`);
+                    setShowHistory(false);
+                  }}
+                    style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '9px 10px', background: activeConvId === conv.id ? SURFACE : 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', marginBottom: 2, textAlign: 'left', fontFamily: F }}
+                    onMouseEnter={e => { if (activeConvId !== conv.id) e.currentTarget.style.background = SURFACE; }}
+                    onMouseLeave={e => { if (activeConvId !== conv.id) e.currentTarget.style.background = 'transparent'; }}>
+                    <span style={{ fontSize: 12.5, color: INK, fontWeight: activeConvId === conv.id ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{conv.title || 'Sans titre'}</span>
+                    <span style={{ fontSize: 10, color: INK3, marginTop: 2 }}>{new Date(conv.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── Overlay envoi test emails ── */}
       {sendingTest && (
@@ -551,17 +592,25 @@ export default function WokAIPage({ user: userProp }) {
       )}
 
       {/* ── Header ── */}
-      <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <button onClick={() => setShowHistory(v => !v)}
+          style={{ width: 28, height: 28, borderRadius: 8, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer' }}
+          title="Historique des conversations">
           <Sparkles size={13} color={CORAL} fill={CORAL} />
-        </div>
+        </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 13.5, fontWeight: 700, color: INK, letterSpacing: '-0.01em' }}>{activeConv?.title || 'WOK AI'}</span>
           {domainLabel && <span style={{ fontSize: 11, color: INK3, marginLeft: 8 }}>{domainLabel}</span>}
         </div>
+        <button onClick={() => setShowHistory(v => !v)}
+          style={{ padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
+          onMouseEnter={e => e.currentTarget.style.background = SURFACE}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <Clock size={10} /> Historique {convs.length > 0 && <span style={{ fontSize: 10, background: INK, color: '#fff', borderRadius: 10, padding: '1px 5px' }}>{convs.length}</span>}
+        </button>
         {activeConvId && (
           <button onClick={() => { setMessages([]); setActiveConvId(null); window.history.replaceState({}, '', '/wok-ai'); }}
-            style={{ padding: '5px 11px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => e.currentTarget.style.background = SURFACE}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Plus size={10} /> Nouvelle

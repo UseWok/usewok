@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Download, Check, Clock, Calendar, MessageCircle } from 'lucide-react';
+import { X, Download, Check, Clock, Calendar, MessageCircle, Scan } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -246,6 +246,7 @@ export default function SettingsPage() {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
   const [chatMsgsUsed, setChatMsgsUsed] = useState(0);
+  const [scansUsed, setScansUsed] = useState(0);
 
   const loadUser = (u) => {
     if (!u) return;
@@ -267,7 +268,10 @@ export default function SettingsPage() {
           return acc + msgs.length;
         }, 0);
         setChatMsgsUsed(used);
-      } catch { setChatMsgsUsed(0); }
+        // Scans utilisés ce mois
+        const scanHistory = JSON.parse(localStorage.getItem(`wok_scan_history_${u?.id}`) || '[]');
+        setScansUsed(scanHistory.filter(s => s.ts >= monthStart).length);
+      } catch { setChatMsgsUsed(0); setScansUsed(0); }
     }
   };
 
@@ -285,6 +289,9 @@ export default function SettingsPage() {
   const isYearly = user?.billing_cycle === 'yearly';
   const planFeatures = getWokFeatures(user);
   const chatLimit = planFeatures?.chatbot_messages || 5;
+  const scanLimit = planFeatures?.scans_per_period || 1;
+  const scansRemaining = Math.max(0, scanLimit - scansUsed);
+  const scanPct = scanLimit > 0 ? Math.min(100, Math.round((scansUsed / scanLimit) * 100)) : 0;
   const chatRemaining = Math.max(0, chatLimit - chatMsgsUsed);
   const chatPct = chatLimit > 0 ? Math.min(100, Math.round((chatMsgsUsed / chatLimit) * 100)) : 0;
 
@@ -417,6 +424,28 @@ export default function SettingsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
               <StatCard label="Plan actuel" value={userPlan?.name || 'Free'} sub={isYearly ? 'Annuel' : 'Mensuel'} accent />
               <StatCard label="Sites surveillés" value={`${planFeatures?.max_sites || 1}`} sub="max simultanément" />
+            </div>
+
+            <SectionTitle>Analyses de site ce mois</SectionTitle>
+            <div style={{ marginTop: 8, background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Scan style={{ width: 16, height: 16, color: '#555' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>{scansUsed} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>/ {scanLimit} {planFeatures?.scan_period === 'day' ? 'analyses par jour' : 'analyses ce mois'}</span></p>
+                  <p style={{ fontSize: 12, color: scansRemaining === 0 ? '#ef4444' : '#888', margin: '2px 0 0' }}>
+                    {scansRemaining === 0 ? 'Quota atteint — passez à un plan supérieur' : `${scansRemaining} restante${scansRemaining > 1 ? 's' : ''}`}
+                  </p>
+                </div>
+              </div>
+              <div style={{ height: 8, background: '#EBEBEA', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${scanPct}%`, background: scanPct >= 90 ? '#ef4444' : scanPct >= 70 ? '#f97316' : '#111', borderRadius: 999, transition: 'width 0.4s ease' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{scanPct}% utilisé</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{planFeatures?.scan_type === 'lite' ? 'Analyse rapide' : 'Analyse complète'} · {planFeatures?.engines_count || 1} moteur{(planFeatures?.engines_count || 1) > 1 ? 's' : ''}</span>
+              </div>
             </div>
 
             <SectionTitle>Messages WOK AI ce mois</SectionTitle>
