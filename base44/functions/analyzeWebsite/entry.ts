@@ -1,21 +1,111 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// ── Real HTML crawler ─────────────────────────────────────────────────────────
-async function crawlPage(url, timeoutMs = 8000) {
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UseWokBot/1.0; +https://usewok.com/bot)' }
-    });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    const html = await res.text();
-    return html;
-  } catch {
-    return null;
+// ── User-Agent pool — rotate to avoid blocks ──────────────────────────────────
+const USER_AGENTS = [
+  // Googlebot — most sites whitelist it explicitly
+  'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+  // Chrome on Windows — looks like a real user
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+  // Chrome on Mac
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  // Firefox on Windows
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0',
+  // Safari on Mac
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15',
+  // SemrushBot — whitelisted by most SEO-savvy sites
+  'Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)',
+  // AhrefsBot — also widely whitelisted
+  'Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)',
+];
+
+function pickUserAgent(attempt = 0) {
+  return USER_AGENTS[attempt % USER_AGENTS.length];
+}
+
+// Realistic browser headers that bypass most WAFs
+function buildHeaders(ua, referer = '') {
+  const isGooglebot = ua.includes('Googlebot');
+  const isSeoBot = ua.includes('SemrushBot') || ua.includes('AhrefsBot');
+
+  if (isGooglebot || isSeoBot) {
+    // Bots are identified clearly — no fake browser headers needed
+    return { 'User-Agent': ua, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' };
   }
+
+  return {
+    'User-Agent': ua,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
+    ...(referer ? { 'Referer': referer } : {}),
+  };
+}
+
+// Small random delay to look less like a bot
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// ── Real HTML crawler with retry + UA rotation ────────────────────────────────
+async function crawlPage(url, timeoutMs = 10000) {
+  const strategies = [
+    // 1. Googlebot — most sites whitelist this
+    { ua: USER_AGENTS[0], referer: '' },
+    // 2. Chrome user — looks human
+    { ua: USER_AGENTS[1], referer: 'https://www.google.com/' },
+    // 3. SemrushBot — SEO-savvy sites allow it
+    { ua: USER_AGENTS[5], referer: '' },
+    // 4. Firefox user — different fingerprint
+    { ua: USER_AGENTS[3], referer: 'https://www.google.fr/' },
+  ];
+
+  for (let i = 0; i < strategies.length; i++) {
+    const { ua, referer } = strategies[i];
+    try {
+      if (i > 0) await sleep(300 + Math.random() * 400); // small delay between retries
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: buildHeaders(ua, referer),
+        redirect: 'follow',
+      });
+      clearTimeout(timer);
+
+      // 403/429/503 = blocked, try next UA
+      if (res.status === 403 || res.status === 429 || res.status === 503) {
+        console.log(`[crawlPage] Blocked (${res.status}) with UA[${i}] on ${url}, trying next...`);
+        continue;
+      }
+
+      if (!res.ok) return null;
+
+      const html = await res.text();
+
+      // Detect Cloudflare / bot challenge pages
+      if (html.includes('cf-browser-verification') || html.includes('__cf_chl') || html.includes('Enable JavaScript') && html.length < 5000) {
+        console.log(`[crawlPage] Cloudflare challenge detected with UA[${i}] on ${url}, trying next...`);
+        continue;
+      }
+
+      console.log(`[crawlPage] Success with UA[${i}] (${ua.slice(0, 40)}...) on ${url}`);
+      return html;
+    } catch (e) {
+      console.log(`[crawlPage] Error with UA[${i}] on ${url}: ${e.message}`);
+    }
+  }
+
+  console.log(`[crawlPage] All strategies failed for ${url}`);
+  return null;
 }
 
 // ── Extract key technical signals from raw HTML ───────────────────────────────
