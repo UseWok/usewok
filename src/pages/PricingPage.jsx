@@ -137,7 +137,7 @@ export default function PricingPage() {
   const highlightId = sortedPlans.find(p => !isFree(p) && p.id !== sortedPlans[0]?.id)?.id || sortedPlans[Math.min(1, sortedPlans.length - 1)]?.id;
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100%', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${BORDER}`, borderTopColor: INK, animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -153,7 +153,7 @@ export default function PricingPage() {
     : 0;
 
   return (
-    <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F, color: INK }}>
+    <div style={{ minHeight: '100%', background: SURFACE, fontFamily: F, color: INK }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <AnimatePresence>{showContact && <ContactModal onClose={() => setShowContact(false)} />}</AnimatePresence>
 

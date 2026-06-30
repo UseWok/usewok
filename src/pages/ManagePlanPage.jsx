@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, TrendingUp, X, ChevronRight, Zap, Crown, Clock, Star, AlertTriangle, MessageSquare, BarChart2, Scan, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Check, TrendingUp, X, ChevronRight, Zap, Crown, Clock, Star, AlertTriangle, MessageSquare, BarChart2, Scan, ExternalLink, Globe, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUserPlan } from '@/lib/plans-config';
 import { getWokFeatures, PLAN_PRICES } from '@/lib/wok-plans';
@@ -180,14 +180,20 @@ export default function ManagePlanPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [scansUsed, setScansUsed] = useState(0);
   const [chatsUsed, setChatsUsed] = useState(0);
+  const [sitesUsed, setSitesUsed] = useState(0);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
       setUserPlan(getUserPlan(u));
       setPlanFeatures(getWokFeatures(u));
       setScansUsed(getScansUsedThisMonth(u));
       setChatsUsed(getChatsUsedThisMonth());
+      // Count sites from cloud
+      try {
+        const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
+        setSitesUsed((profiles || []).length);
+      } catch { setSitesUsed(0); }
     }).catch(() => {});
   }, []);
 
@@ -196,6 +202,7 @@ export default function ManagePlanPage() {
   const isPaid = userPlan?.price_monthly > 0;
   const scanLimit = planFeatures?.scans_per_period || 1;
   const chatLimit = planFeatures?.chatbot_messages || 5;
+  const siteLimit = planFeatures?.max_sites || 1;
 
   const openStripePortal = async () => {
     setPortalLoading(true);
@@ -263,10 +270,17 @@ export default function ManagePlanPage() {
         </div>
 
         {/* Utilisation ce mois */}
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '20px 0 10px' }}>Ce mois-ci</p>
+        <div style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 14, padding: '18px 20px', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>Utilisation ce mois</p>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#999' }}>{new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+          </div>
+          <p style={{ fontSize: 12, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>Votre consommation par rapport aux limites de votre plan.</p>
 
-        <UsageBar label="Analyses de site" used={scansUsed} limit={scanLimit} icon={Scan} color="#111" />
-        <UsageBar label="Messages WOK AI" used={chatsUsed} limit={chatLimit} icon={MessageSquare} color="#111" />
+          <UsageBar label="Analyses de site" used={scansUsed} limit={scanLimit} icon={Scan} color="#111" />
+          <UsageBar label="Messages WOK AI" used={chatsUsed} limit={chatLimit} icon={MessageSquare} color="#111" />
+          <UsageBar label="Sites surveillés" used={sitesUsed} limit={siteLimit} icon={Globe} color="#111" />
+        </div>
 
         {/* Actions */}
         <p style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '20px 0 10px' }}>Actions</p>

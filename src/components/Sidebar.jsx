@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
@@ -623,7 +623,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <NavItem icon={Home} label="Accueil" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={BarChart2} label="Tableau de bord" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
-            <NavItem icon={Clock} label="Historique" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
             <NavItem icon={Search} label="Rechercher" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
           </div>
 
@@ -675,8 +674,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => { setExpanded(true); setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
-          {/* ── Support button — circle with ? ── */}
-          <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', paddingLeft: expanded ? 0 : 0 }}>
+          {/* ── Support + Upgrade buttons ── */}
+          <div style={{ padding: '4px 0 8px', display: 'flex', justifyContent: expanded ? 'flex-start' : 'center', alignItems: 'center', gap: 6, paddingLeft: expanded ? 10 : 0 }}>
             <button
               onClick={() => navigate('/support')}
               title="Support"
@@ -686,12 +685,30 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, transition: 'all 120ms',
-                marginLeft: expanded ? 10 : 0,
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.07)'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.30)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.18)'; }}
             >
               <span style={{ fontSize: 12, fontWeight: 700, color: '#111', lineHeight: 1 }}>?</span>
+            </button>
+            <button
+              onClick={() => navigate('/pricing')}
+              title="Améliorer mon forfait"
+              style={{
+                height: 26, borderRadius: 7,
+                border: 'none',
+                background: '#F95738',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, transition: 'all 120ms',
+                padding: expanded ? '0 12px' : 0,
+                width: expanded ? 'auto' : 26,
+                gap: 5,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+            >
+              <Zap size={12} color="#fff" strokeWidth={2.2} fill="#fff" />
+              {expanded && <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>Améliorer</span>}
             </button>
           </div>
         </div>

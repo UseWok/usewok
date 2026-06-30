@@ -36,7 +36,6 @@ import WokAIPage from './pages/WokAIPage.jsx';
 import PerformancePage from './pages/PerformancePage.jsx';
 import AuditPage from './pages/AuditPage.jsx';
 import ConnectionsPage from './pages/ConnectionsPage';
-import HistoryPage from './pages/HistoryPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPanel from './pages/admin/AdminPanel';
 import UIShowcase from './pages/UIShowcase';
@@ -117,7 +116,6 @@ const AuthenticatedApp = () => {
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/audit" element={<AuditPage />} />
           <Route path="/connections" element={<ConnectionsPage />} />
-          <Route path="/history" element={<HistoryPage />} />
           <Route path="/admin/blog" element={<AdminBlog />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
