@@ -164,18 +164,20 @@ export function getPlanById(planId) {
 
 export function getUserPlan(user) {
   const planId = user?.subscription_plan || 'free';
-  // Try exact match first
   const plans = getPlansConfig();
+  // Try exact match first
   const exact = plans.find(p => p.id === planId);
   if (exact) return exact;
-  // If not found by id, it might be a legacy/unknown plan id — treat as free
-  return plans.find(p => p.id === 'free') || plans[0];
+  // If not found by id — always fall back to the free plan
+  return plans.find(p => p.id === 'free') || DEFAULT_PLANS.find(p => p.id === 'free') || plans[0];
 }
 
 /** Normalise un subscription_plan id vers free/starter/pro */
 export function getNormalizedPlanId(user) {
   const raw = user?.subscription_plan || 'free';
   if (raw === 'free' || raw === 'starter' || raw === 'pro') return raw;
+  // No subscription set → always free
+  if (!raw || raw === '') return 'free';
   // Legacy ids: check price of matched plan
   const plans = getPlansConfig();
   const matched = plans.find(p => p.id === raw);

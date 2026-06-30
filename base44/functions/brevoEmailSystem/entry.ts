@@ -254,9 +254,9 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
       <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
 
         <!-- BANNER -->
-        <tr><td style="padding:0;line-height:0;font-size:0;">
+        <tr><td style="padding:16px 16px 0 16px;background:#ffffff;">
           <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png" alt="UseWok" width="568" style="width:100%;max-width:568px;height:auto;display:block;border-radius:12px;border:0;">
           </a>
         </td></tr>
 
@@ -390,9 +390,9 @@ function emailNoScanJ3({ firstName, siteUrl, score, criticalErrors, issues }) {
       <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
 
         <!-- BANNER -->
-        <tr><td style="padding:0;line-height:0;font-size:0;border-radius:12px 12px 0 0;">
+        <tr><td style="padding:16px 16px 0 16px;background:#ffffff;">
           <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/1893e96a2_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/1893e96a2_image.png" alt="UseWok" width="568" style="width:100%;max-width:568px;height:auto;display:block;border-radius:12px;border:0;">
           </a>
         </td></tr>
 
