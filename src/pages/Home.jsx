@@ -9,6 +9,7 @@ import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
+import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
 import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
@@ -560,11 +561,20 @@ export default function Home() {
   const planLabel = planId === 'pro' ? 'Pro' : planId === 'starter' ? 'Starter' : 'Gratuit';
 
   const startScan = async (cleanUrl) => {
-    // Check domain limit before scanning a NEW domain
-    const isNew = !profiles.find(p => p.site_url === cleanUrl);
-    if (isNew && profiles.length >= maxDomains) {
+    // ── HARD QUOTA: scan limit per period ──
+    const scanQuota = await checkScanQuota(user || await base44.auth.me().catch(() => null));
+    if (!scanQuota.allowed) {
       setShowLimitModal(true);
       return;
+    }
+    // ── HARD QUOTA: site limit ──
+    const isNew = !profiles.find(p => p.site_url === cleanUrl);
+    if (isNew) {
+      const siteQuota = await checkSiteQuota(user || await base44.auth.me().catch(() => null));
+      if (!siteQuota.allowed) {
+        setShowLimitModal(true);
+        return;
+      }
     }
     if (scanningRef.current[cleanUrl]) return;
     scanningRef.current[cleanUrl] = true;

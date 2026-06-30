@@ -6,6 +6,7 @@ import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { getProfileData } from '@/lib/profile-storage';
+import { checkChatQuota } from '@/lib/quota-enforcement';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 
@@ -467,6 +468,18 @@ export default function WokAIPage({ user: userProp }) {
   const sendMessage = async (text) => {
     const content = text || input.trim();
     if (!content && files.length === 0 && driveFiles.length === 0) return;
+
+    // ── HARD QUOTA: chatbot message limit per month ──
+    const chatQuota = await checkChatQuota(user);
+    if (!chatQuota.allowed) {
+      setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, {
+        role: 'assistant',
+        content: `⛔ **Quota de messages atteint** (${chatQuota.used}/${chatQuota.limit} ce mois).\n\nVotre abonnement limite le nombre de messages WOK AI. Passez à un plan supérieur pour continuer.`,
+        ts: Date.now() + 1, isError: true,
+      }]);
+      setInput('');
+      return;
+    }
 
     if (mode === 'scan') {
         navigate('/app', { state: { autoScan: content } });
