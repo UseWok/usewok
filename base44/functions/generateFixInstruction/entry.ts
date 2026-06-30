@@ -91,9 +91,34 @@ Deno.serve(async (req) => {
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
     const techContextMap = {
-      no_code: `L'utilisateur gère son site seul (Wix, Squarespace, WordPress). Donne UNIQUEMENT des chemins d'interface cliquables (ex: "Allez dans Paramètres > Pages > [page]"). Zéro code, zéro HTML, zéro jargon technique. Inclure des screenshots URLs de tutoriels officiels si possible.`,
-      ai_nocode: `L'utilisateur utilise ChatGPT/Claude/Make.com pour automiser. Pour CHAQUE étape technique, inclure un prompt PRÊT À COPIER-COLLER entre guillemets, avec des placeholders [ENTRE CROCHETS]. Exemple: "Copie ceci dans ChatGPT : Tu es expert en [SECTEUR]. Écris une description de 160 caractères pour le service [NOM_SERVICE]..."`,
-      developer: `L'utilisateur est développeur. Sois précis et technique : nomme les fichiers, attributs JSON-LD, endpoints API, commandes CLI. Donne le code exact prêt à copier dans l'éditeur ou terminal.`,
+      no_code: `PROFIL NO-CODE: L'utilisateur NE CODE PAS (Wix, Squarespace, WordPress standard). 
+🎯 RÈGLES STRICTES:
+- ZÉRO code, zéro HTML, zéro JSON, zéro terminal
+- UNIQUEMENT: "Allez dans Paramètres > [section] > [bouton]"
+- Chaque étape = 1 chemin interface clair + 1 screenshot/tutoriel officiel URL si dispo
+- Parle comme un ami : "clique ici, puis cherche... appuie sur"
+- Si c'est impossible sans code → "Contactez un développeur pour [raison précise]"
+- 3-5 étapes MAXIMUM, 2 phrases par étape`,
+
+      ai_nocode: `PROFIL AI-HELPER: L'utilisateur utilise ChatGPT/Claude/Make.com pour l'aider.
+🎯 RÈGLES STRICTES:
+- CHAQUE étape technique = 1 PROMPT PRÊT À COPIER entre guillemets
+- Format: "Copie ceci dans ChatGPT:\n[PROMPT EXACT ENTRE GUILLEMETS]"
+- Placeholders en [CROCHETS]: [SECTEUR], [NOM_SERVICE], [URL], [EMAIL]
+- Le prompt doit générer un résultat à copier-coller DIRECT dans le site/email/etc
+- Pas de "sois créatif" — demande output exact (texte 160 chars, JSON, HTML, etc)
+- 4-6 étapes: d'abord extraire/générer content, puis l'insérer dans le site
+- Dernière étape = re-scan UseWok pour valider`,
+
+      developer: `PROFIL DEVELOPER: Code, terminal, architecture, performances.
+🎯 RÈGLES STRICTES:
+- DIRECT ET PRÉCIS: nomme les fichiers exactes, chemins, attributs, endpoints
+- Code prêt à copier-coller: JS, JSON-LD, CLI commands, config serveur
+- Explique POURQUOI c'est critique pour les IA (e-e-a-t, depth, structure)
+- Si JSON-LD: pré-remplis avec les vraies données du site (baseURL, name, etc)
+- Si architecture: montre la structure avant/après et l'impact sur le crawl
+- 3-5 étapes techniques: dépannage → correction → validation
+- Dernière étape = re-scan UseWok pour mesurer le gain LRS`,
     };
 
     const goalContextMap = {
@@ -132,53 +157,53 @@ Dans tes étapes :
 Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
 ` : '';
 
-    const prompt = `Tu es un expert senior en AEO (Answer Engine Optimization) et visibilité IA. Ta mission : donner des instructions ULTRA-CONCRÈTES basées sur les données réelles du site.
+    const prompt = `Tu es un expert AEO ultra-pragmatique. ZÉRO blablabla. Mission: donner la solution EXACTE et DIRECTE.
 
-RÈGLE ABSOLUE DE RÉALISME :
-- Ne jamais inventer des données que tu n'as pas. Si le crawl dit que la meta description est absente, dis-le. Si elle est présente, dis-le.
-- Nomme TOUJOURS les pages exactes (ex: "/", "/a-propos", "/contact") quand disponibles dans les données du crawl.
-- Pour tout élément technique (JSON-LD, balise canonical, meta, etc.) : fournis le CODE EXACT prêt à copier-coller, adapté aux données réelles du site.
-- Si tu génères un JSON-LD Organization, pré-remplis les champs avec les vraies données du site (name="${businessName}", url="${siteUrl}", etc.).
-
-Entreprise : ${brandContext}
-Niveau technique : ${techLevel} — ${techInstruction}
-${goalInstruction}
-${citationInstruction}
-${architectureInstruction}
-
-Problème : "${issueProblem}"
+CONTEXTE RÉEL:
+- Entreprise: ${businessName} (${industry})
+- Site: ${siteUrl}
+- Problème: "${issueProblem}"
+- Profil: ${techLevel} (${techInstruction})
 ${crawlContext}
 
-RÈGLES DE GÉNÉRATION :
+RÈGLES DE GÉNÉRATION (NON-NÉGOCIABLE):
 
-1. SNIPPET "PRÊT À L'EMPLOI" OBLIGATOIRE :
-   - Pour tout problème de schéma/JSON-LD → génère le bloc complet dans une étape, prêt à copier dans le <head>
-   - Pour tout problème canonical → génère la balise exacte : <link rel="canonical" href="[URL_RÉELLE]" />
-   - Pour tout problème de FAQ → génère les 5-8 questions/réponses en JSON-LD FAQPage complet
-   - Pour tout problème de meta description → génère la balise exacte avec un texte de 155 caractères adapté au secteur
-   - Pour les citations → génère 3 phrases prêtes à insérer avec [SOURCE] et le type de lien recommandé
+1. **NO-CODE** → Interface cliquable UNIQUEMENT
+   "Allez dans Settings > Pages > [nom_page_exacte] > Edit > Add > SEO > [champ] > Entrez: [texte]"
+   Si c'est impossible sans code: "Contactez un dev car ça demande [raison technique]"
+   MAX 4 étapes, 1 screenshot URL par étape
 
-2. RE-SCAN POST-CORRECTION :
-   Dans la dernière étape, TOUJOURS ajouter : "→ Une fois la modification en ligne, relancez un scan UseWok pour valider que le changement est détecté et mesurer le gain de score."
+2. **AI-NOCODE** → Prompts PRÊTS À COPIER-COLLER
+   Chaque step: Copie CECI dans ChatGPT:
+   """
+   [PROMPT EXACT, 100% prêt à copier]
+   Placeholders: [SECTEUR], [NOM_ENTREPRISE], [SERVICE]
+   Output attendu: [format exact: 160 chars, JSON, etc]
+   """
+   Puis: "Copie la réponse ChatGPT dans [endroit exact du site]"
 
-3. HONNÊTETÉ SUR LES LIMITES STRUCTURELLES :
-   Si le problème est d'architecture (profondeur de navigation, restructuration de menus, maillage interne global) :
-   - Dis clairement en summary : "⚠️ Cette correction ne peut pas être automatisée — c'est une décision d'architecture de site."
-   - Explique POURQUOI c'est critique avec un chiffre (ex: "une page à 4 clics perd ~85% de sa capacité à être indexée par les IA")
-   - Donne le PLAN DE RESTRUCTURATION concret (quelles pages remonter, quels liens internes créer) mais précise que la mise en œuvre se fait dans le CMS
+3. **DEVELOPER** → Code + Architecture
+   Fichier exact, code exact, commande exacte
+   Pré-remplit JSON-LD avec vraies données du site
+   Explique l'impact sur les crawlers IA
+   MAX 5 étapes, dernière = validation
 
-4. ADAPTATION PAR NIVEAU TECHNIQUE :
-   - no_code → interface cliquable : "Dans WordPress : Apparence > Menus > ..."
-   - ai_nocode → prompt prêt à copier dans ChatGPT/Claude pour générer le contenu
-   - developer → fichier exact, attribut exact, commande exacte
+STRUCTURE JSON:
+{
+  "summary": "Pourquoi ça bloque les clients? (1 chiffre clé + ton direct). 2 phrases max.",
+  "steps": ["Étape 1 CONCRÈTE", "Étape 2 CODE/PROMPT/CLIC", ...],
+  "time_estimate": "15 min" | "1 heure" | "1 jour",
+  "type": "seul" | "avec aide"
+}
 
-JSON requis :
-- summary: pourquoi ce problème fait CONCRÈTEMENT perdre des clients (chiffre ou exemple réel si possible). 2 phrases max, ton direct. Inclure l'avertissement structurel si applicable.
-- steps: 3 à 5 étapes. Chaque étape avec le snippet/code/texte prêt à l'emploi quand applicable. Dernière étape = invitation au re-scan.
-- time_estimate: durée réaliste et honnête pour ce profil et ce niveau de complexité
-- type: "seul" (modifications simples dans CMS) ou "avec aide" (modifications d'architecture, code serveur, restructuration)
+IMPÉRATIFS:
+- ZÉRO généralités
+- Nomme TOUJOURS les pages réelles du site quand dispo
+- Donne le TEXTE EXACT à copier (pas "écris un truc...")
+- Si archive/structure: "Contactez un dev" + raison précise
+- DERNIÈRE ÉTAPE = "Relancez scan UseWok pour mesurer le gain LRS"
 
-Toujours en français. Sois direct, précis, et donne du concret — pas des généralités.`;
+Français, direct, concis. Go!`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Download, Check, Clock, Calendar, MessageCircle, Scan } from 'lucide-react';
+import { X, Download, Check, Clock, Calendar, MessageCircle, Scan, Settings } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
@@ -60,6 +60,126 @@ function Badge({ color = 'green', children }) {
     <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: c.bg, color: c.text, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
       {children}
     </span>
+  );
+}
+
+function PreferencesPanel({ user, profile }) {
+  const [prefs, setPrefs] = useState(() => {
+    if (!profile?.user_preferences) return { tech_level: 'no_code', main_goal: 'more_clients', trade: '', maturity: '' };
+    try {
+      return JSON.parse(profile.user_preferences);
+    } catch {
+      return { tech_level: 'no_code', main_goal: 'more_clients', trade: '', maturity: '' };
+    }
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!profile?.id) return;
+    setSaving(true);
+    try {
+      await base44.entities.BusinessProfile.update(profile.id, {
+        user_preferences: JSON.stringify(prefs),
+      });
+      toast.success('Préférences sauvegardées');
+    } catch (err) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const techLevels = [
+    { key: 'no_code', label: 'Sans code (Wix, WordPress, Squarespace)', desc: 'Interface cliquable simple' },
+    { key: 'ai_nocode', label: 'Avec ChatGPT/Claude', desc: 'Prompts prêts à copier-coller' },
+    { key: 'developer', label: 'Développeur', desc: 'Code exact, JSON-LD, API' },
+  ];
+
+  const goals = [
+    { key: 'more_clients', label: 'Plus de clients' },
+    { key: 'local_visibility', label: 'Visibilité locale' },
+    { key: 'brand_authority', label: 'Autorité secteur' },
+  ];
+
+  if (!profile) return null;
+
+  return (
+    <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+      <SectionTitle>Préférences Personnalisées</SectionTitle>
+      <p style={{ fontSize: 12, color: '#666', margin: '0 0 12px', lineHeight: 1.5 }}>
+        Ces préférences personnalisent les corrections UseWok et les prompts IA pour s'adapter à votre profil.
+      </p>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Profil technique</label>
+        <select
+          value={prefs.tech_level}
+          onChange={(e) => setPrefs({ ...prefs, tech_level: e.target.value })}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          {techLevels.map(t => (
+            <option key={t.key} value={t.key}>{t.label} • {t.desc}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Objectif principal</label>
+        <select
+          value={prefs.main_goal}
+          onChange={(e) => setPrefs({ ...prefs, main_goal: e.target.value })}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          {goals.map(g => (
+            <option key={g.key} value={g.key}>{g.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Secteur d'activité</label>
+        <input
+          type="text"
+          placeholder="Ex: Plomberie, Graphisme, Fitness..."
+          value={prefs.trade || ''}
+          onChange={(e) => setPrefs({ ...prefs, trade: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Maturité business</label>
+        <select
+          value={prefs.maturity || ''}
+          onChange={(e) => setPrefs({ ...prefs, maturity: e.target.value })}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          <option value="">--</option>
+          <option value="solo">Solo/Freelance</option>
+          <option value="startup">Startup (1-5 personnes)</option>
+          <option value="pme">PME (5-50 personnes)</option>
+          <option value="enterprise">Entreprise (50+)</option>
+        </select>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        style={{
+          padding: '8px 14px',
+          background: saving ? '#ccc' : '#111',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 6,
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: saving ? 'default' : 'pointer',
+          opacity: saving ? 0.6 : 1,
+        }}
+      >
+        {saving ? 'Sauvegarde...' : 'Sauvegarder les préférences'}
+      </button>
+    </div>
   );
 }
 
@@ -249,6 +369,7 @@ export default function SettingsPage() {
   const [cancelTicket, setCancelTicket] = useState(null);
   const [chatMsgsUsed, setChatMsgsUsed] = useState(0);
   const [scansUsed, setScansUsed] = useState(0);
+  const [profiles, setProfiles] = useState([]);
 
   const loadUser = (u) => {
     if (!u) return;
@@ -272,6 +393,12 @@ export default function SettingsPage() {
     else base44.auth.me().then(loadUser).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load BusinessProfiles for preferences panel
+  useEffect(() => {
+    if (!user?.id) return;
+    base44.entities.BusinessProfile.filter({ created_by_id: user.id }).then(setProfiles).catch(() => setProfiles([]));
+  }, [user?.id]);
 
   // Load usage counts from cloud (replaces localStorage)
   useEffect(() => {
@@ -356,6 +483,11 @@ export default function SettingsPage() {
         {/* ── PROFILE ── */}
         {activeSection === 'profile' && (
           <div>
+            {/* Primary domain preferences */}
+            {profiles && profiles.length > 0 && (
+              <PreferencesPanel user={user} profile={profiles[0]} />
+            )}
+
             <SectionTitle>Général</SectionTitle>
             <div style={{ marginTop: 8 }}>
               <SettingRow label="Email" description="Votre adresse email de connexion — non modifiable.">
