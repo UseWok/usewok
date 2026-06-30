@@ -97,31 +97,75 @@ async function updateContactAttributes(email, attributes) {
   return { success: true };
 }
 
-// ── Pied de page avec lien de désabonnement ──────────────────────────────────
+// ── Pied de page ─────────────────────────────────────────────────────────────
 
 function emailFooter(email) {
-  const unsubUrl = `https://app.usewok.com/unsubscribe?email=${encodeURIComponent(email)}`;
-  return `<div style="margin-top:40px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#bbb;text-align:center;line-height:1.8">
-UseWok · <a href="${unsubUrl}" style="color:#bbb;text-decoration:underline">Se désabonner</a>
-</div>`;
+  return `
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;margin:0 auto;">
+    <tr>
+      <td align="center" style="padding:28px 16px 12px 16px;">
+        <!-- Réseaux sociaux -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td style="padding:0 6px;">
+              <a href="https://tiktok.com/@usewok" style="display:inline-block;width:36px;height:36px;background:#ffffff;border:1px solid #E5E5E5;border-radius:8px;text-align:center;line-height:36px;text-decoration:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046120.png" width="16" height="16" alt="TikTok" style="vertical-align:middle;margin-top:9px;">
+              </a>
+            </td>
+            <td style="padding:0 6px;">
+              <a href="https://x.com/usewok" style="display:inline-block;width:36px;height:36px;background:#ffffff;border:1px solid #E5E5E5;border-radius:8px;text-align:center;line-height:36px;text-decoration:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968830.png" width="16" height="16" alt="X" style="vertical-align:middle;margin-top:9px;">
+              </a>
+            </td>
+            <td style="padding:0 6px;">
+              <a href="https://facebook.com/usewok" style="display:inline-block;width:36px;height:36px;background:#ffffff;border:1px solid #E5E5E5;border-radius:8px;text-align:center;line-height:36px;text-decoration:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="16" height="16" alt="Facebook" style="vertical-align:middle;margin-top:9px;">
+              </a>
+            </td>
+            <td style="padding:0 6px;">
+              <a href="https://instagram.com/usewok" style="display:inline-block;width:36px;height:36px;background:#ffffff;border:1px solid #E5E5E5;border-radius:8px;text-align:center;line-height:36px;text-decoration:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="16" height="16" alt="Instagram" style="vertical-align:middle;margin-top:9px;">
+              </a>
+            </td>
+            <td style="padding:0 6px;">
+              <a href="https://linkedin.com/company/usewok" style="display:inline-block;width:36px;height:36px;background:#ffffff;border:1px solid #E5E5E5;border-radius:8px;text-align:center;line-height:36px;text-decoration:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3536/3536505.png" width="16" height="16" alt="LinkedIn" style="vertical-align:middle;margin-top:9px;">
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:10px 16px 4px 16px;">
+        <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:12px;color:#BBBBBB;line-height:18px;text-align:center;">
+          Tu reçois cet email car tu as lancé un scan sur UseWok.
+        </p>
+        <p style="margin:0 0 4px 0;font-family:Arial,sans-serif;font-size:12px;color:#BBBBBB;line-height:18px;text-align:center;">
+          <a href="https://usewok.com/privacy" style="color:#BBBBBB;text-decoration:underline;">Politique de confidentialité</a>
+          &nbsp;&middot;&nbsp;
+          <a href="https://usewok.com/terms" style="color:#BBBBBB;text-decoration:underline;">Conditions d'utilisation</a>
+          &nbsp;&middot;&nbsp;
+          <a href="mailto:support@usewok.com" style="color:#BBBBBB;text-decoration:underline;">Assistance</a>
+        </p>
+        <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#CCCCCC;line-height:18px;text-align:center;">
+          UseWok · Libourne, Gironde, France
+        </p>
+      </td>
+    </tr>
+  </table>`;
 }
 
 // ── Envoyer un email transactionnel ─────────────────────────────────────────
 
 async function sendTransactionalEmail({ to, subject, htmlContent, textContent, tags = [] }) {
-  // Append unsubscribe footer to every email
-  const htmlWithFooter = htmlContent + emailFooter(to);
-
   const payload = {
     sender: { name: 'UseWok', email: 'hello@usewok.com' },
     to: [{ email: to }],
     subject,
-    htmlContent: htmlWithFooter,
+    htmlContent,
     textContent: textContent || htmlContent.replace(/<[^>]+>/g, ''),
     tags,
-    headers: {
-      'List-Unsubscribe': `<https://app.usewok.com/unsubscribe?email=${encodeURIComponent(to)}>`,
-    },
   };
 
   const result = await brevoRequest('/smtp/email', 'POST', payload);
@@ -154,17 +198,53 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
   const scoreVal = score || 0;
   const dateStr = scanDate ? new Date(scanDate).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
   const issuesList = issues || [];
-
-  // Séparer issues critiques (error) et importantes (warning)
-  const critical = issuesList.filter(i => i.severity === 'error' || i.urgency === 'high');
-  const important = issuesList.filter(i => i.severity === 'warning' || i.urgency === 'medium' || i.urgency === 'low');
-  const criticalText = critical.map(i => i.problem || i.text || '').filter(Boolean).join(', ') || '—';
-  const importantText = important.map(i => i.problem || i.text || '').filter(Boolean).join(', ') || '—';
-
   const scoreBarWidth = Math.min(100, Math.max(0, scoreVal));
+  const isGoodScore = scoreVal >= 60;
+
+  // Build issues rows HTML — show each issue individually
+  const criticalIssues = issuesList.filter(i => i.severity === 'error' || i.urgency === 'high');
+  const importantIssues = issuesList.filter(i => i.severity === 'warning' || i.urgency === 'medium' || i.urgency === 'low');
+
+  const buildIssueRows = (list, color, label) => {
+    if (!list.length) return '';
+    const rows = list.map(i => {
+      const text = i.problem || i.text || i.title || '';
+      if (!text) return '';
+      return `<tr>
+        <td style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#0F0F0F;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:10px;vertical-align:middle;"></span>${text}
+        </td>
+      </tr>`;
+    }).join('');
+    if (!rows.trim()) return '';
+    return `<tr>
+      <td style="padding:16px 0 6px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.3px;text-transform:uppercase;color:${color};">${label}</td>
+    </tr>${rows}`;
+  };
+
+  const criticalRows = buildIssueRows(criticalIssues, '#D93025', 'Critique');
+  const importantRows = buildIssueRows(importantIssues, '#C46000', 'Important');
+  const hasIssues = criticalRows || importantRows;
+
+  // Score context text — positive variant if >= 60
+  const scoreContextHtml = isGoodScore
+    ? `<p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
+        Ton site a un bon niveau de visibilité IA — <strong style="color:#0F0F0F;">${scoreVal}/100</strong>. 
+        ChatGPT, Perplexity et Google AI commencent à te référencer. Voici ce qu'il reste à optimiser pour aller encore plus loin.
+      </p>`
+    : `<p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
+        Un score de <strong style="color:#0F0F0F;">${scoreVal}/100</strong> 
+        signifie que les moteurs IA — ChatGPT, Perplexity, Google AI — 
+        ont du mal à lire et citer ton site. Voici les points qui pèsent le plus sur ce résultat.
+      </p>`;
+
+  // Subject line adapts to score
+  const subject = isGoodScore
+    ? `Ton score IA : ${scoreVal}/100 — voici comment aller plus loin`
+    : `${errors > 0 ? errors + ' erreur' + (errors > 1 ? 's' : '') + ' détectée' + (errors > 1 ? 's' : '') : 'Rapport prêt'} sur ${site}`;
 
   return {
-    subject: `${errors} erreurs détectées sur ${site}`,
+    subject,
     html: `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -186,21 +266,22 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
 </head>
 <body>
   <div style="display:none;font-size:1px;color:#EDECEA;line-height:1px;max-height:0;overflow:hidden;opacity:0;">
-    Ton scan est terminé — score ${scoreVal}/100, ${errors} erreurs sur ${site}. Voici l'état exact de ton site.
+    Ton scan est terminé — score ${scoreVal}/100${errors > 0 ? ', ' + errors + ' erreurs sur ' + site : ' — bonne base, des opportunités à saisir'}.
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#EDECEA">
     <tr>
       <td align="center" style="padding:28px 16px 0 16px;">
         <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0"
-          style="max-width:600px;background:#ffffff;border-radius:6px;overflow:hidden;">
+          style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
 
-          <!-- BANNER -->
+          <!-- BANNER IMAGE -->
           <tr>
-            <td style="padding:20px 20px 0 20px;background:#ffffff;">
+            <td style="padding:0;line-height:0;font-size:0;">
               <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-                <img src="https://app.usewok.com/logo.png" alt="UseWok" width="120"
-                  style="width:120px;height:auto;display:block;">
+                <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/9749d4822_image.png"
+                  alt="UseWok" width="600"
+                  style="width:100%;max-width:600px;height:auto;display:block;border-radius:12px 12px 0 0;">
               </a>
             </td>
           </tr>
@@ -214,13 +295,13 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
               </p>
 
               <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">
-                Ton scan est terminé. On a analysé <strong>${site}</strong> et voici ce qu'on a trouvé — sans rien arrondir.
+                Ton scan est terminé. On a analysé <strong>${site}</strong> et voici ce qu'on a trouvé.
               </p>
 
               <!-- SCORE CARD -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#0F0F0F;border-radius:8px;padding:36px 36px 30px 36px;">
+                  <td style="background:#0F0F0F;border-radius:10px;padding:36px 36px 30px 36px;">
                     <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;
                       letter-spacing:1.5px;text-transform:uppercase;color:#666666;">
                       Score IA · ${site}
@@ -241,40 +322,30 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:14px 0 18px 0;">
                       <tr>
                         <td style="background:#2A2A2A;border-radius:2px;height:4px;overflow:hidden;line-height:4px;font-size:0;">
-                          <div style="width:${scoreBarWidth}%;height:4px;background:linear-gradient(90deg,#9B87D8 0%,#E0707A 100%);border-radius:2px;"></div>
+                          <div style="width:${scoreBarWidth}%;height:4px;background:${isGoodScore ? 'linear-gradient(90deg,#34D399 0%,#10B981 100%)' : 'linear-gradient(90deg,#9B87D8 0%,#E0707A 100%)'};border-radius:2px;"></div>
                         </td>
                       </tr>
                     </table>
                     <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#555555;line-height:19px;">
-                      <strong style="color:#FFFFFF;">${errors} erreurs</strong> détectées &nbsp;·&nbsp; analysé le ${dateStr}
+                      ${errors > 0 ? `<strong style="color:#FFFFFF;">${errors} erreur${errors > 1 ? 's' : ''}</strong> détectée${errors > 1 ? 's' : ''} &nbsp;·&nbsp;` : ''} analysé le ${dateStr}
                     </p>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
-                Un score de <strong style="color:#0F0F0F;">${scoreVal}/100</strong>
-                signifie que les moteurs IA — ChatGPT, Perplexity, Google AI —
-                ont du mal à lire et citer ton site. Voici les points qui pèsent le plus sur ce résultat.
-              </p>
+              ${scoreContextHtml}
 
-              <!-- ERREURS -->
+              ${hasIssues ? `<!-- ERREURS -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#F6F6F5;border:1px solid #EBEBEB;border-radius:8px;padding:24px 26px;">
-                    <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;
-                      letter-spacing:1.3px;text-transform:uppercase;color:#D93025;">Critique</p>
-                    <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
-                      ${criticalText}
-                    </p>
-                    <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;
-                      letter-spacing:1.3px;text-transform:uppercase;color:#C46000;">Important</p>
-                    <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
-                      ${importantText}
-                    </p>
+                  <td style="background:#F6F6F5;border:1px solid #EBEBEB;border-radius:10px;padding:20px 24px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      ${criticalRows}
+                      ${importantRows}
+                    </table>
                   </td>
                 </tr>
-              </table>
+              </table>` : ''}
 
               <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
                 Chaque point est documenté dans ton rapport : cause exacte, impact sur ta visibilité IA, et correction étape par étape.
@@ -307,8 +378,9 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
 
               <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
 
-              <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
-                Si quelque chose n'est pas clair dans le rapport, réponds directement à cet email — je lis tout.
+              <!-- CITATION -->
+              <p style="margin:0 0 24px 0;font-family:Georgia,serif;font-size:16px;line-height:26px;color:#555555;font-style:italic;text-align:center;padding:0 16px;">
+                « Ce qui ne se mesure pas ne s'améliore pas. »
               </p>
 
               <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
@@ -325,20 +397,7 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
     <!-- FOOTER -->
     <tr>
       <td align="center" style="padding:24px 16px 40px 16px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
-          <tr>
-            <td align="center">
-              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:12px;color:#BBBBBB;line-height:18px;text-align:center;">
-                Tu reçois cet email car tu as lancé un scan sur UseWok.
-              </p>
-              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#BBBBBB;line-height:18px;text-align:center;">
-                <a href="https://usewok.com/privacy" style="color:#BBBBBB;text-decoration:underline;">Confidentialité</a>
-                &nbsp;&middot;&nbsp;
-                <a href="https://usewok.com/terms" style="color:#BBBBBB;text-decoration:underline;">CGU</a>
-              </p>
-            </td>
-          </tr>
-        </table>
+        ${emailFooter('')}
       </td>
     </tr>
   </table>
