@@ -388,6 +388,7 @@ export default function WokAIPage({ user: userProp }) {
   const [showModes, setShowModes] = useState(false);
   const [profile, setProfile] = useState(null);
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
+  const [sendingTest, setSendingTest] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -450,34 +451,30 @@ export default function WokAIPage({ user: userProp }) {
 
     // Dev email test — envoie les 3 mails de la séquence, sans aucun appel IA
     if (content.trim().toLowerCase() === 'aaaaa') {
+      setInput('');
       const u = await base44.auth.me().catch(() => null);
       const email = u?.email;
+      if (!email) {
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: '❌ Email non trouvé — connecte-toi d\'abord.', ts: Date.now() + 1, isError: true }]);
+        return;
+      }
       const firstName = u?.full_name?.split(' ')[0] || '';
       const siteUrl = profile?.site_url || '';
       const score = profile?.score_overall || 42;
       const criticalErrors = 3;
       const issues = [{ problem: 'Aucun schéma Organization détecté sur votre page d\'accueil', urgency: 'high' }];
 
-      const userMsg = { role: 'user', content, ts: Date.now() };
-      setMessages(m => [...m, userMsg]);
-      setInput('');
-
-      if (!email) {
-        setMessages(m => [...m, { role: 'assistant', content: '❌ Email non trouvé — connecte-toi d\'abord.', ts: Date.now(), isError: true }]);
-        return;
-      }
-
-      setLoading(true);
+      setSendingTest(true);
       try {
         await Promise.all([
           base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'post_scan', score, criticalErrors, issues, scanDate: new Date().toISOString() } }),
           base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'no_scan_j3', score, criticalErrors, issues } }),
           base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'final_offer', score, criticalErrors, issues } }),
         ]);
-        setMessages(m => [...m, { role: 'assistant', content: `✅ 3 mails envoyés à **${email}** :\n- Mail 1 : Résultats du scan\n- Mail 2 : Pourquoi les IA t'ignorent\n- Mail 3 : Tes concurrents captent ces clients`, ts: Date.now() }]);
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `✅ 3 mails envoyés à **${email}** :\n- Mail 1 : Résultats du scan\n- Mail 2 : Pourquoi les IA t'ignorent\n- Mail 3 : Tes concurrents captent ces clients`, ts: Date.now() + 1 }]);
       } catch (e) {
-        setMessages(m => [...m, { role: 'assistant', content: `❌ Erreur : ${e.message}`, ts: Date.now(), isError: true }]);
-      } finally { setLoading(false); }
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `❌ Erreur : ${e.message}`, ts: Date.now() + 1, isError: true }]);
+      } finally { setSendingTest(false); }
       return;
     }
 
@@ -541,6 +538,17 @@ export default function WokAIPage({ user: userProp }) {
 
   return (
     <div style={{ display: 'flex', height: '100%', fontFamily: F, background: BG, flexDirection: 'column' }}>
+
+      {/* ── Overlay envoi test emails ── */}
+      {sendingTest && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(10,10,11,0.75)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, fontFamily: F }}>
+          <div style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.15)', borderTopColor: '#FF5A1F', animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em' }}>Envoi des 3 emails en cours…</p>
+            <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Mail 1 · Mail 2 · Mail 3</p>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -676,6 +684,7 @@ export default function WokAIPage({ user: userProp }) {
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg" style={{ display: 'none' }} onChange={handleFileSelect} />
 
       <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes wokdot{0%,80%,100%{transform:scale(0.5);opacity:0.3}40%{transform:scale(1);opacity:1}}
         .wok-prose p{margin:0 0 8px;font-size:13.5px;line-height:1.65;color:#111110;font-family:${F}}
         .wok-prose p:last-child{margin:0}
