@@ -133,22 +133,18 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
               </button>
             </div>
 
-            {/* Credits section */}
+            {/* Upgrade CTA */}
             <div style={{ padding: '8px 12px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Crédits</span>
-                  {renewalDate && (
-                    <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.4)', margin: '1px 0 0' }}>Renouvellement {renewalDate}</p>
-                  )}
-                </div>
-                <span style={{ fontSize: 12, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 500 }}>
-                  {formatK(used)}/{formatK(limit)}{isOverLimit ? ' ⚠' : ''}
-                </span>
-              </div>
-              <div style={{ height: 5, background: '#E8E8E4', borderRadius: 999 }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
-              </div>
+              <button
+                onClick={() => { navigate('/pricing'); setOpen(false); }}
+                style={{ width: '100%', padding: '9px 12px', border: '1px solid rgba(0,0,0,0.10)', background: '#fff', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#111', textAlign: 'left', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7, transition: 'background 120ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+              >
+                <Zap size={14} color="#111" strokeWidth={2} style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>Mettre à niveau</span>
+                <ChevronRight size={12} color="#999" style={{ flexShrink: 0 }} />
+              </button>
             </div>
 
             {/* Get help + Logout */}
@@ -674,42 +670,27 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={Sparkles} label="Ask AI de WOK" onClick={() => { setExpanded(true); setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
-          {/* ── Support + Upgrade ── */}
-          <div style={{ padding: '4px 8px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* ── Support ── */}
+          <div style={{ padding: '4px 8px 8px' }}>
             <button
               onClick={() => navigate('/support')}
               title="Support"
               style={{
-                width: '100%', height: 28, borderRadius: 7,
-                border: '1px solid rgba(0,0,0,0.08)',
+                width: expanded ? '100%' : 28,
+                height: 28,
+                borderRadius: 5,
+                border: '1px solid rgba(0,0,0,0.10)',
                 background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center',
                 justifyContent: expanded ? 'flex-start' : 'center', gap: 7,
                 padding: expanded ? '0 10px' : 0, fontFamily: 'inherit', flexShrink: 0,
+                margin: expanded ? '0 auto 0 0' : '0 auto',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.04)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               <span style={{ fontSize: 12, fontWeight: 700, color: '#666', lineHeight: 1 }}>?</span>
               {expanded && <span style={{ fontSize: 12, fontWeight: 500, color: '#666', whiteSpace: 'nowrap' }}>Support</span>}
-            </button>
-            <button
-              onClick={() => navigate('/pricing')}
-              title="Mettre à niveau"
-              style={{
-                width: '100%', height: 32, borderRadius: 8,
-                border: 'none',
-                background: '#F95738',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                justifyContent: expanded ? 'flex-start' : 'center', gap: 7,
-                padding: expanded ? '0 10px' : 0,
-                flexShrink: 0, transition: 'opacity 120ms', fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-            >
-              <Zap size={13} color="#fff" strokeWidth={2.2} fill="#fff" style={{ flexShrink: 0 }} />
-              {expanded && <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>Mettre à niveau</span>}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Flame } from 'lucide-react';
 import BottomTabs from './BottomTabs';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,6 +109,7 @@ export default function Layout() {
     return unsub;
   }, []);
 
+  const navigate = useNavigate();
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
@@ -115,14 +117,14 @@ export default function Layout() {
   const [feedbackSending, setFeedbackSending] = useState(false);
 
   const RATINGS = [
-    { key: 'mauvais',  emoji: '👎', label: 'Mauvais' },
-    { key: 'mediocre', emoji: '😞', label: 'Médiocre' },
-    { key: 'correct',  emoji: '😐', label: 'Correct' },
-    { key: 'bien',     emoji: '😊', label: 'Bien' },
-    { key: 'jadore',   emoji: '🤩', label: "J'adore" },
+    { key: 'mauvais',  emoji: '👎', label: 'Mauvais',  color: '#EF4444' },
+    { key: 'mediocre', emoji: '😞', label: 'Médiocre', color: '#EF4444' },
+    { key: 'correct',  emoji: '😐', label: 'Correct',  color: '#F59E0B' },
+    { key: 'bien',     emoji: '😊', label: 'Bien',     color: '#10B981' },
+    { key: 'jadore',   emoji: '🤩', label: "J'adore", color: '#10B981' },
   ];
 
-  const isGood = (r) => r === 'bien' || r === 'jadore';
+  const isGood = (r) => r === 'bien' || r === 'jadore' || r === 'correct';
 
   const handleRatingClick = (key) => {
     if (feedbackSending) return;
@@ -136,12 +138,18 @@ export default function Layout() {
     try {
       if (!isGood(feedbackRating)) {
         await base44.entities.SupportTicket.create({
-          description: `Feedback automatique — Note : ${feedbackRating}`,
+          description: `Feedback automatique — Note : ${feedbackRating}${feedbackText ? `\n\nMessage: ${feedbackText}` : ''}`,
           category: 'other',
           status: 'open',
           user_email: user?.email || '',
           user_name: user?.full_name || '',
         });
+        setFeedbackSending(false);
+        setShowFeedback(false);
+        setFeedbackRating(null);
+        setFeedbackText('');
+        navigate('/support');
+        return;
       } else {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: 'support@wok.so',
@@ -177,11 +185,11 @@ export default function Layout() {
         </button>
       )}
 
-      {/* Bottom bar: heart + active domain */}
+      {/* Bottom bar: fire + active domain */}
       {!isMobile && (
         <div style={{ position: 'fixed', bottom: 10, right: 16, zIndex: 60, display: 'flex', alignItems: 'center', gap: 8 }}>
           {activeDomain && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, background: 'rgba(0,0,0,0.06)', maxWidth: 180 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 10px', borderRadius: 8, background: 'rgba(0,0,0,0.05)', maxWidth: 180 }}>
               <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
               <span style={{ fontSize: 10, fontWeight: 600, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {activeDomain.url.replace(/https?:\/\//, '').split('/')[0]}
@@ -190,19 +198,17 @@ export default function Layout() {
           )}
           <button
             onClick={() => setShowFeedback(true)}
-            title="Feedback"
+            title="Donner un feedback"
             style={{
-              width: 26, height: 26,
-              background: 'transparent', border: 'none',
+              width: 28, height: 28, borderRadius: 8,
+              background: 'rgba(0,0,0,0.05)', border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              opacity: 0.55, transition: 'opacity 120ms',
+              flexShrink: 0, transition: 'background 120ms',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.10)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
+            <Flame size={14} color="#F95738" strokeWidth={2} />
           </button>
         </div>
       )}
@@ -236,16 +242,19 @@ export default function Layout() {
                     <p style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Comment est votre expérience ?</p>
                     <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.5 }}>Vos retours façonnent ce que nous construisons ensuite.</p>
 
-                    {/* 5 rating squares */}
+                    {/* 5 rating squares — color coded */}
                     <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                      {RATINGS.map(r => (
-                        <button key={r.key} onClick={() => handleRatingClick(r.key)}
-                          disabled={feedbackSending}
-                          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 4px 12px', borderRadius: 14, border: feedbackRating === r.key ? '2px solid #F95738' : '1.5px solid #E8E8E6', background: feedbackRating === r.key ? 'rgba(249,87,56,0.06)' : '#FAFAF9', cursor: 'pointer', transition: 'all 130ms' }}>
-                          <span style={{ fontSize: 24, lineHeight: 1 }}>{r.emoji}</span>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: feedbackRating === r.key ? '#F95738' : '#999', whiteSpace: 'nowrap' }}>{r.label}</span>
-                        </button>
-                      ))}
+                      {RATINGS.map(r => {
+                        const selected = feedbackRating === r.key;
+                        return (
+                          <button key={r.key} onClick={() => handleRatingClick(r.key)}
+                            disabled={feedbackSending}
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 4px 12px', borderRadius: 14, border: selected ? `2px solid ${r.color}` : '1.5px solid #E8E8E6', background: selected ? `${r.color}12` : '#FAFAF9', cursor: 'pointer', transition: 'all 130ms' }}>
+                            <span style={{ fontSize: 24, lineHeight: 1 }}>{r.emoji}</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: selected ? r.color : '#999', whiteSpace: 'nowrap' }}>{r.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Textarea always visible */}
@@ -264,9 +273,9 @@ export default function Layout() {
                     {/* Send / Support button */}
                     {feedbackRating && !isGood(feedbackRating) ? (
                       <button onClick={handleFeedbackSend} disabled={feedbackSending}
-                        style={{ width: '100%', padding: '13px 0', background: '#0A0A0B', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: feedbackSending ? 0.6 : 1 }}>
+                        style={{ width: '100%', padding: '13px 0', background: '#EF4444', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: feedbackSending ? 0.6 : 1 }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        {feedbackSending ? 'Envoi…' : 'Contacter le support'}
+                        {feedbackSending ? 'Envoi…' : 'Aller au support'}
                       </button>
                     ) : (
                       <button onClick={handleFeedbackSend} disabled={feedbackSending || !feedbackRating}
