@@ -73,46 +73,47 @@ function AnimatedScore({ value, size = 56 }) {
 }
 
 // ── FixDrawer — persistance cloud via UserFixCache ───────────────────────────
-const FIX_MEM = {}; // cache mémoire session pour éviter double-appel
 
 // Normalize issue text to issue_key — must match backend logic exactly
 function normalizeIssueKey(text) {
   return (text || '').toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
 }
 
+// In-memory cache to avoid redundant DB calls within the same session
+const FIX_MEM = {};
+
 function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
-  // Use normalized text as cache key — matches backend UserFixCache issue_key
   const issueKey = normalizeIssueKey(issue?.text || '');
-  const memKey = issue?.id || issueKey; // in-memory key (session only)
-  const [content, setContent] = useState(() => FIX_MEM[memKey] || null);
-  const [loading, setLoading] = useState(!FIX_MEM[memKey] && !isFree);
-  const [fromCache, setFromCache] = useState(false);
+  const [content, setContent] = useState(() => FIX_MEM[issueKey] || null);
+  const [loading, setLoading] = useState(!FIX_MEM[issueKey] && !isFree);
 
   useEffect(() => {
     if (!issue) return;
     if (isFree) { setLoading(false); return; }
-    // Déjà en mémoire session → instantané
-    if (FIX_MEM[memKey]) { setContent(FIX_MEM[memKey]); setLoading(false); return; }
-    setLoading(true); setContent(null); setFromCache(false);
+    // Already in session memory → instant
+    if (FIX_MEM[issueKey]) { setContent(FIX_MEM[issueKey]); setLoading(false); return; }
 
-    // 1. Vérifier d'abord le cache cloud (UserFixCache) avec la vraie issue_key normalisée
-    const checkCloud = user?.id
+    setLoading(true);
+    setContent(null);
+
+    // Always check DB first (persists across refreshes & devices)
+    const checkDB = user?.id
       ? base44.entities.UserFixCache.filter({ user_id: user.id, issue_key: issueKey }).catch(() => [])
       : Promise.resolve([]);
 
-    checkCloud.then(async (cached) => {
+    checkDB.then(async (cached) => {
       if (cached.length > 0) {
         const c = cached[0];
         let steps = [];
         try { steps = JSON.parse(c.steps || '[]'); } catch {}
         const data = { summary: c.summary, steps, time_estimate: c.time_estimate, type: c.fix_type, from_cache: true };
-        FIX_MEM[memKey] = data;
+        FIX_MEM[issueKey] = data;
         setContent(data);
-        setFromCache(true);
         setLoading(false);
         return;
       }
-      // 2. Sinon appel LLM (qui gère lui-même le cache cloud côté backend)
+
+      // Not in DB — call backend (backend handles LLM + DB write atomically)
       const res = await base44.functions.invoke('generateFixInstruction', {
         issue: issue.text,
         profile: {
@@ -121,14 +122,14 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
           business_type: profile?.identity_industry
         }
       }).catch(() => null);
+
       if (res?.data && !res.data.error) {
-        FIX_MEM[memKey] = res.data;
+        FIX_MEM[issueKey] = res.data;
         setContent(res.data);
-        setFromCache(!!res.data.from_cache);
       }
       setLoading(false);
     });
-  }, [memKey, isFree]);
+  }, [issueKey, isFree]);
 
   if (!issue) return null;
   const steps = content?.steps || [];

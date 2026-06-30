@@ -353,18 +353,15 @@ export default function WebsiteScanner({ firstName, autoUrl, cachedData }) {
         setData(d);
         setPhase('dashboard');
 
+        // Backend (analyzeWebsite) already persists everything to DB.
+        // Only merge supplementary audit/perf data that backend doesn't cover.
         if (res?.data?.overall_score !== undefined) {
-          // Save main data first, then merge audit + perf results as they arrive
-          await saveToProfile(inputUrl, res.data);
-
-          // Merge audit result when it arrives
           auditScan.then(auditRes => {
             if (auditRes?.data && !auditRes.data.error) {
               mergeCacheFields(inputUrl, { audit_data: auditRes.data, audit_analyzed_at: new Date().toISOString() });
             }
           }).catch(() => {});
 
-          // Merge perf result when it arrives
           perfScan.then(perfRes => {
             if (perfRes?.data && !perfRes.data.error) {
               mergeCacheFields(inputUrl, { perf_data: perfRes.data, perf_analyzed_at: new Date().toISOString() });

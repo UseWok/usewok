@@ -98,29 +98,31 @@ RÈGLES : Zéro jargon technique (pas de: balise, meta, schema, JSON-LD, SSL, DN
       },
     });
 
-    // ── 4. Sauvegarder dans cache user ET bibliothèque globale ──
+    // ── 4. Sauvegarder dans cache user ET bibliothèque globale (await pour garantir la persistance) ──
     const stepsJson = JSON.stringify(result.steps || []);
 
-    base44.entities.UserFixCache.create({
-      user_id: user.id,
-      issue_key: issueKey,
-      site_url: siteUrl,
-      summary: result.summary || '',
-      steps: stepsJson,
-      time_estimate: result.time_estimate || '',
-      fix_type: result.type || 'seul',
-    }).catch((e) => console.error('[cache_save_user]', e));
+    await Promise.all([
+      base44.entities.UserFixCache.create({
+        user_id: user.id,
+        issue_key: issueKey,
+        site_url: siteUrl,
+        summary: result.summary || '',
+        steps: stepsJson,
+        time_estimate: result.time_estimate || '',
+        fix_type: result.type || 'seul',
+      }).catch((e) => console.error('[cache_save_user]', e)),
 
-    base44.asServiceRole.entities.FixLibrary.create({
-      issue_key: issueKey,
-      issue_text: issueProblem,
-      industry,
-      summary: result.summary || '',
-      steps: stepsJson,
-      time_estimate: result.time_estimate || '',
-      type: result.type || 'seul',
-      use_count: 1,
-    }).catch(() => {});
+      base44.asServiceRole.entities.FixLibrary.create({
+        issue_key: issueKey,
+        issue_text: issueProblem,
+        industry,
+        summary: result.summary || '',
+        steps: stepsJson,
+        time_estimate: result.time_estimate || '',
+        type: result.type || 'seul',
+        use_count: 1,
+      }).catch((e) => console.error('[cache_save_library]', e)),
+    ]);
 
     return Response.json(result);
   } catch (error) {
