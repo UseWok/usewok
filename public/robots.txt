@@ -1,16 +1,116 @@
-# ════════════════════════════════════════════════════════
-# UseWok — robots.txt — Optimisé GEO + SEO (2024)
-# Tous les bots légitimes sont les bienvenus.
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
+# UseWok — robots.txt — ULTRA-PERMISSIF GEO / AEO / SEO (2026)
+# TOUS les bots IA sont explicitement autorisés.
+# Pas de blocage, pas de restrictions, pas de Crawl-Delay.
+# ════════════════════════════════════════════════════════════════
 
-# ── MOTEURS DE RECHERCHE ──────────────────────────────
+# ──────────────────────────────────────────────────────────────────
+# SECTION 1 : BOTS IA — OUVERTURE TOTALE
+# ──────────────────────────────────────────────────────────────────
+
+# OpenAI / ChatGPT (GPT-4o, GPT-4, GPT-3.5, etc.)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude (Claude 3.5 Sonnet, Opus, Haiku, etc.)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+# Google / Gemini / AI Overviews
+User-agent: Google-Extended
+Allow: /
+
 User-agent: Googlebot
 Allow: /
 
-User-agent: Googlebot-Image
+User-agent: Googlebot-AI
 Allow: /
 
 User-agent: Bingbot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# xAI / Grok
+User-agent: Grok
+Allow: /
+
+User-agent: xAI
+Allow: /
+
+# Mistral AI
+User-agent: MistralBot
+Allow: /
+
+User-agent: Mistral
+Allow: /
+
+# Meta / Llama AI
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Apple / Siri
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Amazon / Alexa
+User-agent: Amazonbot
+Allow: /
+
+# You.com AI
+User-agent: YouBot
+Allow: /
+
+# Brave Search AI
+User-agent: BraveBot
+Allow: /
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+
+# Common Crawl (source d'entraînement LLMs)
+User-agent: CCBot
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+# Diffbot (extraction sémantique intelligente)
+User-agent: Diffbot
+Allow: /
+
+# ──────────────────────────────────────────────────────────────────
+# SECTION 2 : MOTEURS DE RECHERCHE CLASSIQUES
+# ──────────────────────────────────────────────────────────────────
+
+User-agent: Googlebot-Image
 Allow: /
 
 User-agent: Slurp
@@ -25,106 +125,26 @@ Allow: /
 User-agent: YandexBot
 Allow: /
 
-# ── BOTS IA — INDEXATION EXPLICITEMENT AUTORISÉE ──────
-
-# OpenAI / ChatGPT
-User-agent: GPTBot
+User-agent: Sosospider
 Allow: /
 
-User-agent: ChatGPT-User
+User-agent: Exabot
 Allow: /
 
-User-agent: OAI-SearchBot
+User-agent: Googlebot-Mobile
 Allow: /
 
-# Anthropic / Claude
-User-agent: ClaudeBot
-Allow: /
+# ──────────────────────────────────────────────────────────────────
+# SECTION 3 : BOTS SEO & MONITORING (de confiance)
+# ──────────────────────────────────────────────────────────────────
 
-User-agent: Claude-Web
-Allow: /
-
-User-agent: Anthropic-AI
-Allow: /
-
-# Google Gemini / AI Overviews
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Googlebot-AI
-Allow: /
-
-# Perplexity
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Perplexity-User
-Allow: /
-
-# Microsoft Copilot / Bing AI
-User-agent: Bingbot
-Allow: /
-
-User-agent: bingbot
-Allow: /
-
-# xAI / Grok
-User-agent: Grok
-Allow: /
-
-User-agent: xAI
-Allow: /
-
-# Mistral AI
-User-agent: MistralBot
-Allow: /
-
-# Meta / Llama
-User-agent: Meta-ExternalAgent
-Allow: /
-
-User-agent: Meta-ExternalFetcher
-Allow: /
-
-User-agent: FacebookBot
-Allow: /
-
-# Common Crawl (source d'entraînement LLMs)
-User-agent: CCBot
-Allow: /
-
-# Cohere AI
-User-agent: cohere-ai
-Allow: /
-
-# Apple / Siri
-User-agent: Applebot
-Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
-
-# Amazon Alexa
-User-agent: Amazonbot
-Allow: /
-
-# You.com
-User-agent: YouBot
-Allow: /
-
-# Brave AI
-User-agent: BraveBot
-Allow: /
-
-# Diffbot (extraction sémantique)
-User-agent: Diffbot
-Allow: /
-
-# ── BOTS DE MONITORING / SEO ──────────────────────────
 User-agent: Screaming Frog SEO Spider
 Allow: /
 
 User-agent: SemrushBot
+Allow: /
+
+User-agent: SemrushBot-BA
 Allow: /
 
 User-agent: AhrefsBot
@@ -133,14 +153,57 @@ Allow: /
 User-agent: MJ12bot
 Allow: /
 
-# ── RÈGLE GÉNÉRALE : TOUT LE MONDE EST AUTORISÉ ───────
+User-agent: SEOkicks
+Allow: /
+
+User-agent: SEOlytics
+Allow: /
+
+User-agent: Majestic
+Allow: /
+
+# ──────────────────────────────────────────────────────────────────
+# SECTION 4 : RÈGLE GÉNÉRALE — AUTORISATION COMPLÈTE
+# ──────────────────────────────────────────────────────────────────
+
 User-agent: *
 Allow: /
 
-# ── EXCLUSIONS PRIVÉES (backoffice uniquement) ─────────
-Disallow: /admin/
-Disallow: /api/
-Disallow: /checkout
+# ──────────────────────────────────────────────────────────────────
+# SECTION 5 : EXCLUSIONS MINIMALES (backoffice + checkout sécurisé)
+# ──────────────────────────────────────────────────────────────────
 
-# ── SITEMAP ───────────────────────────────────────────
+# Backoffice admin - INTERDIT À TOUS
+User-agent: *
+Disallow: /admin/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /backoffice
+
+# Checkout sécurisé - INTERDIT À TOUS (paiement, données sensibles)
+User-agent: *
+Disallow: /checkout
+Disallow: /payment
+Disallow: /order
+Disallow: /invoice
+
+# Sessions utilisateur - INTERDIT À TOUS
+User-agent: *
+Disallow: /app/
+Disallow: /user/
+Disallow: /account/
+
+# ──────────────────────────────────────────────────────────────────
+# SECTION 6 : PARAMÈTRES GLOBAUX
+# ──────────────────────────────────────────────────────────────────
+
+# Sitemap pour tous les moteurs (Google, Bing, IA)
 Sitemap: https://usewok.com/sitemap.xml
+
+# Pas de Crawl-Delay - les bots peuvent crawler aussi vite qu'ils veulent
+# (nous n'avons pas de limitations de serveur)
+
+# ════════════════════════════════════════════════════════════════
+# FIN — Tous les bots IA et moteurs de recherche sont bienvenus.
+# Seul /admin, /checkout et les sections utilisateur sont fermées.
+# ════════════════════════════════════════════════════════════════
