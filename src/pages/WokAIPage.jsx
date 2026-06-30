@@ -448,53 +448,36 @@ export default function WokAIPage({ user: userProp }) {
       return;
     }
 
-    // Dev email test trigger
+    // Dev email test — envoie les 3 mails de la séquence, sans aucun appel IA
     if (content.trim().toLowerCase() === 'aaaaa') {
+      const u = await base44.auth.me().catch(() => null);
+      const email = u?.email;
+      const firstName = u?.full_name?.split(' ')[0] || '';
+      const siteUrl = profile?.site_url || '';
+      const score = profile?.score_overall || 42;
+      const criticalErrors = 3;
+      const issues = [{ problem: 'Aucun schéma Organization détecté sur votre page d\'accueil', urgency: 'high' }];
+
+      const userMsg = { role: 'user', content, ts: Date.now() };
+      setMessages(m => [...m, userMsg]);
+      setInput('');
+
+      if (!email) {
+        setMessages(m => [...m, { role: 'assistant', content: '❌ Email non trouvé — connecte-toi d\'abord.', ts: Date.now(), isError: true }]);
+        return;
+      }
+
       setLoading(true);
       try {
-        const u = await base44.auth.me().catch(() => null);
-        const email = u?.email;
-        if (!email) throw new Error('no email');
-        const profile_ = profile;
         await Promise.all([
-          base44.functions.invoke('brevoEmailSystem', {
-            action: 'sendEmail',
-            email,
-            firstName: u?.full_name?.split(' ')[0] || '',
-            siteUrl: profile_?.site_url || '',
-            data: {
-              emailType: 'post_scan',
-              score: profile_?.score_overall || 42,
-              criticalErrors: 3,
-              totalIssues: 7,
-              issues: profile_?.issues || [{ problem: 'Aucun schéma Organization détecté sur votre page d\'accueil', urgency: 'high' }],
-              scanDate: new Date().toISOString(),
-            },
-          }),
-          base44.functions.invoke('brevoEmailSystem', {
-            action: 'sendEmail',
-            email,
-            firstName: u?.full_name?.split(' ')[0] || '',
-            siteUrl: profile_?.site_url || '',
-            data: {
-              emailType: 'no_scan_j3',
-              score: profile_?.score_overall || 42,
-              criticalErrors: 3,
-              issues: profile_?.issues || [{ problem: 'Aucun schéma Organization détecté sur votre page d\'accueil', urgency: 'high' }],
-            },
-          }),
+          base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'post_scan', score, criticalErrors, issues, scanDate: new Date().toISOString() } }),
+          base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'no_scan_j3', score, criticalErrors, issues } }),
+          base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'final_offer', score, criticalErrors, issues } }),
         ]);
-        setMessages(m => [...m,
-          { role: 'user', content, ts: Date.now() },
-          { role: 'assistant', content: `✅ Mail 1 (post_scan) + Mail 2 (expertise) envoyés à **${email}**`, ts: Date.now() + 1 },
-        ]);
+        setMessages(m => [...m, { role: 'assistant', content: `✅ 3 mails envoyés à **${email}** :\n- Mail 1 : Résultats du scan\n- Mail 2 : Pourquoi les IA t'ignorent\n- Mail 3 : Tes concurrents captent ces clients`, ts: Date.now() }]);
       } catch (e) {
-        setMessages(m => [...m,
-          { role: 'user', content, ts: Date.now() },
-          { role: 'assistant', content: `❌ Erreur envoi test : ${e.message}`, ts: Date.now() + 1, isError: true },
-        ]);
+        setMessages(m => [...m, { role: 'assistant', content: `❌ Erreur : ${e.message}`, ts: Date.now(), isError: true }]);
       } finally { setLoading(false); }
-      setInput('');
       return;
     }
 

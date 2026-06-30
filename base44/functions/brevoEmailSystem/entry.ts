@@ -571,6 +571,202 @@ function emailNoScanJ3({ firstName, siteUrl, score, criticalErrors, issues }) {
   };
 }
 
+function emailFinalOffer({ firstName, siteUrl, score, criticalErrors, issues }) {
+  const name = firstName || 'toi';
+  const site = (siteUrl || 'ton site').replace(/^https?:\/\//, '').split('/')[0];
+  const scoreVal = score || 0;
+  const errors = criticalErrors || 0;
+  const issuesList = issues || [];
+  const topIssue = issuesList.find(i => i.urgency === 'high') || issuesList[0];
+  const topIssueText = topIssue?.problem || '';
+
+  return {
+    subject: `Tes concurrents captent ces clients — voici la preuve`,
+    html: `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <style>
+    body{margin:0;padding:0;background-color:#EDECEA;font-family:Arial,sans-serif;-webkit-text-size-adjust:100%;}
+    table{border-collapse:collapse;}img{border:0;max-width:100%;height:auto;}
+    @media only screen and (max-width:600px){.card{width:100%!important;border-radius:0!important;}.content{padding:32px 24px 40px 24px!important;}}
+  </style>
+</head>
+<body>
+  <div style="display:none;font-size:1px;color:#EDECEA;line-height:1px;max-height:0;overflow:hidden;opacity:0;">Pendant que tu lis cet email, quelqu'un cherche sur ChatGPT ce que tu fais — et ton concurrent répond à sa place.</div>
+
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#EDECEA">
+    <tr><td align="center" style="padding:28px 16px 0 16px;">
+      <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
+
+        <!-- BANNER -->
+        <tr><td style="padding:0;line-height:0;font-size:0;border-radius:12px 12px 0 0;">
+          <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;">
+          </a>
+        </td></tr>
+
+        <!-- CONTENU -->
+        <tr><td class="content" style="padding:40px 48px 50px 48px;">
+
+          <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">Salut ${name},</p>
+
+          <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:17px;font-weight:900;line-height:26px;color:#0F0F0F;letter-spacing:-0.02em;">
+            Pendant que tu lis cet email, quelqu'un cherche exactement ce que tu fais sur ChatGPT.
+          </p>
+
+          <p style="margin:0 0 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:26px;color:#555555;">
+            Ce n'est pas une métaphore. C'est ce qui se passe en ce moment — et ton concurrent, lui, <strong style="color:#0F0F0F;">a déjà répondu à sa place</strong>.
+          </p>
+
+          <!-- PROOF BLOCK — Comparatif fictif réaliste -->
+          <p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que voit un client quand il demande à ChatGPT</p>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr>
+              <!-- TON SITE (rouge) -->
+              <td width="48%" valign="top" style="background:#FFF5F5;border:1px solid #FFDDDD;border-radius:10px;padding:20px 18px;">
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#D93025;">
+                  ❌ Ton site aujourd'hui
+                </p>
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#7A0000;font-style:italic;">
+                  "Je ne trouve pas d'informations structurées sur cette entreprise. Je ne peux pas confirmer son expertise."
+                </p>
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#AAAAAA;">— Ce que dit ChatGPT à tes clients potentiels</p>
+              </td>
+              <td width="4%"></td>
+              <!-- CONCURRENT (vert) -->
+              <td width="48%" valign="top" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:20px 18px;">
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#059669;">
+                  ✓ Ton concurrent optimisé
+                </p>
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#064E3B;font-style:italic;">
+                  "Je recommande [Concurrent] — ils sont spécialisés, bien référencés, et leurs clients témoignent de résultats concrets."
+                </p>
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#6EE7B7;">— Ce que dit ChatGPT à ces mêmes clients</p>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:26px;color:#555555;">
+            La différence entre les deux ? <strong style="color:#0F0F0F;">Pas le budget. Pas l'ancienneté.</strong> Juste 3 corrections techniques que les IA lisent — et que ton site n'a pas encore.
+          </p>
+
+          ${topIssueText ? `<!-- PROBLÈME PERSONNALISÉ -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr><td style="background:#0F0F0F;border-radius:10px;padding:24px 28px;">
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#666666;">Ce qu'on a détecté sur ${site}</p>
+              <p style="margin:0 0 14px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#FFFFFF;">${topIssueText}</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#555555;">C'est corrigeable en moins d'une heure. Le guide étape par étape est dans ton rapport.</p>
+            </td></tr>
+          </table>` : `
+          <!-- SCORE BLOCK -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr><td style="background:#0F0F0F;border-radius:10px;padding:24px 28px;">
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#666666;">Ton score actuel</p>
+              <p style="margin:0 0 14px 0;">
+                <span style="font-family:Arial,sans-serif;font-size:56px;font-weight:900;color:#FFFFFF;line-height:1;letter-spacing:-2px;">${scoreVal}</span>
+                <span style="font-family:Arial,sans-serif;font-size:20px;font-weight:300;color:#555555;">/100</span>
+              </p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#555555;">Chaque point en dessous de 70 = un concurrent qui capte ce client à ta place.</p>
+            </td></tr>
+          </table>`}
+
+          <!-- CE QUE USEWOK FAIT CONCRÈTEMENT -->
+          <p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que UseWok corrige pour toi</p>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr><td style="background:#F6F6F5;border-radius:10px;padding:20px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr><td style="padding:0 0 14px 0;border-bottom:1px solid #E5E5E5;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
+                    </td>
+                    <td>
+                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Génère le code exact à copier-coller</p>
+                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">JSON-LD Organization, FAQPage, BreadcrumbList — adapté à ton site, prêt en 30 secondes. Même sans développeur.</p>
+                    </td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 0;border-bottom:1px solid #E5E5E5;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
+                    </td>
+                    <td>
+                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Mesure ton évolution en temps réel</p>
+                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Score avant/après pour chaque correction. Tu vois exactement si ChatGPT commence à te citer.</p>
+                    </td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 0 0 0;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
+                    </td>
+                    <td>
+                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Surveille tes 5 concurrents directs</p>
+                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Tu sais qui gagne du terrain sur les IA avant même que tes clients ne le remarquent.</p>
+                    </td>
+                  </tr></table>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- SOCIAL PROOF -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+            <tr>
+              <td width="48%" valign="top" style="background:#F6F6F5;border-radius:10px;padding:18px 20px;">
+                <p style="margin:0 0 10px 0;font-family:Georgia,serif;font-size:14px;line-height:22px;color:#333333;font-style:italic;">"En 2 semaines, j'apparais dans les réponses de Perplexity pour mes requêtes cibles. Je n'avais jamais réussi ça avec 6 mois de SEO classique."</p>
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;color:#0F0F0F;">Marie L. — Consultante RH</p>
+              </td>
+              <td width="4%"></td>
+              <td width="48%" valign="top" style="background:#F6F6F5;border-radius:10px;padding:18px 20px;">
+                <p style="margin:0 0 10px 0;font-family:Georgia,serif;font-size:14px;line-height:22px;color:#333333;font-style:italic;">"Mon score est passé de 28 à 71/100 en 3 semaines. ChatGPT me recommande maintenant quand quelqu'un cherche un expert en droit social."</p>
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;color:#0F0F0F;">Thomas D. — Avocat</p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA FINAL -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr><td align="center" style="padding:0 0 8px 0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr><td align="center" bgcolor="#0F0F0F" style="border-radius:300px;">
+                  <a href="https://app.usewok.com/pricing" style="display:inline-block;padding:16px 40px;background:#0F0F0F;color:#FFFFFF !important;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none !important;border-radius:300px;letter-spacing:0.1px;">
+                    Commencer à apparaître sur les IA →
+                  </a>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <p style="margin:14px 0 0 0;font-family:Arial,sans-serif;font-size:12px;line-height:19px;color:#AAAAAA;text-align:center;">
+            Essai gratuit inclus. Ton rapport complet est déjà prêt.<br>
+            <a href="https://app.usewok.com/ai-report" style="color:#AAAAAA;text-decoration:underline;">Voir mon rapport d'abord</a>
+          </p>
+
+          <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
+
+          <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
+            L'équipe UseWok<br><span style="color:#AAAAAA;font-size:13px;">hello@usewok.com</span>
+          </p>
+
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <!-- FOOTER -->
+    <tr><td align="center" style="padding:24px 16px 40px 16px;">${emailFooter('')}</td></tr>
+  </table>
+</body>
+</html>`,
+  };
+}
+
 function emailPricingNoBuy({ firstName, siteUrl, criticalErrors }) {
   const name = firstName || 'toi';
   const site = siteUrl || 'ton site';
@@ -785,6 +981,9 @@ Deno.serve(async (req) => {
         case 'no_scan_j3':
           template = emailNoScanJ3({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues });
           break;
+        case 'final_offer':
+          template = emailFinalOffer({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues });
+          break;
         case 'pricing_no_buy':
           template = emailPricingNoBuy({ firstName, siteUrl, criticalErrors: data.criticalErrors });
           break;
@@ -847,6 +1046,7 @@ Deno.serve(async (req) => {
         case 'welcome': template = emailWelcome({ firstName, siteUrl }); break;
         case 'post_scan': template = emailPostScan({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, totalIssues: data.totalIssues, issues: data.issues, scanDate: data.scanDate }); break;
         case 'no_scan_j3': template = emailNoScanJ3({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues }); break;
+        case 'final_offer': template = emailFinalOffer({ firstName, siteUrl, score: data.score, criticalErrors: data.criticalErrors, issues: data.issues }); break;
         case 'pricing_no_buy': template = emailPricingNoBuy({ firstName, siteUrl, criticalErrors: data.criticalErrors }); break;
         case 'chatbot_no_convert': template = emailChatbotNoConvert({ firstName, siteUrl, chatbotQuestions: data.chatbotQuestions, score: data.score }); break;
         case 'inactive_j14': template = emailInactiveJ14({ firstName, siteUrl, lastScanDate: data.lastScanDate }); break;
