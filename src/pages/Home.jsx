@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe } from 'lucide-react';
+import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
 import { setActiveDomain } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
@@ -21,7 +21,6 @@ const INK2    = '#857E6E';
 const INK3    = '#A8A49F';
 const BORDER  = 'rgba(21,19,15,0.12)';
 const CORAL   = '#FF5A1F';
-const MAX_DOMAINS = 10;
 
 const getDomain    = (url) => (url || '').replace(/https?:\/\//, '').split('/')[0];
 const getFirstName = (n)   => (n || '').split(' ')[0] || 'vous';
@@ -400,6 +399,59 @@ function ScanHero({ onScan }) {
   );
 }
 
+// ── Plan Limit Modal — modern startup style ───────────────────────────────────
+function PlanLimitModal({ onClose, onUpgrade, maxSites, planName }) {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,13,10,0.7)', backdropFilter: 'blur(12px)', padding: 20 }}
+      onClick={onClose}>
+      <motion.div initial={{ opacity: 0, y: 24, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 400, background: WHITE, borderRadius: 24, overflow: 'hidden', fontFamily: F }}>
+        <div style={{ background: CARD_BG, padding: '32px 28px 28px' }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: `${CORAL}20`, border: `1px solid ${CORAL}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <Lock size={22} color={CORAL} strokeWidth={1.8} />
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: WHITE, margin: '0 0 8px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+            Limite de sites atteinte
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>
+            Votre forfait <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{planName}</strong> permet de surveiller <strong style={{ color: CORAL }}>{maxSites} site{maxSites > 1 ? 's' : ''}</strong> simultanément.
+          </p>
+        </div>
+        <div style={{ padding: '24px 28px' }}>
+          <div style={{ background: BG, borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: INK2, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ce que vous débloquez</p>
+            {[
+              { plan: 'Starter', sites: '5 sites', extra: '5 moteurs IA actifs + export PDF' },
+              { plan: 'Pro', sites: '10 sites', extra: 'Tous les moteurs IA + scan quotidien' },
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: i > 0 ? `1px solid ${BORDER}` : 'none' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Check size={12} color={WHITE} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{item.plan} — {item.sites} </span>
+                  <span style={{ fontSize: 12, color: INK3 }}>{item.extra}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={onUpgrade}
+            style={{ width: '100%', padding: '14px', background: CORAL, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Zap size={14} color={WHITE} /> Passer à un plan supérieur
+          </button>
+          <button onClick={onClose}
+            style={{ width: '100%', padding: '12px', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 13, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F }}>
+            Supprimer un site existant
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
@@ -418,6 +470,7 @@ export default function Home() {
   const [trollError, setTrollError] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confirmSite, setConfirmSite] = useState(null); // { url, name }
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
 
@@ -511,7 +564,18 @@ export default function Home() {
     setActiveDomain({ url: p.site_url, name: p.identity_name || getDomain(p.site_url) });
   };
 
+  const planFeatures = user ? getWokFeatures(user) : getWokFeatures(null);
+  const maxDomains = planFeatures?.max_sites || 1;
+  const planId = user ? getWokPlanId(user) : 'free';
+  const planLabel = planId === 'pro' ? 'Pro' : planId === 'starter' ? 'Starter' : 'Gratuit';
+
   const startScan = async (cleanUrl) => {
+    // Check domain limit before scanning a NEW domain
+    const isNew = !profiles.find(p => p.site_url === cleanUrl);
+    if (isNew && profiles.length >= maxDomains) {
+      setShowLimitModal(true);
+      return;
+    }
     if (scanningRef.current[cleanUrl]) return;
     scanningRef.current[cleanUrl] = true;
     setScanningUrls(prev => ({ ...prev, [cleanUrl]: true }));
@@ -844,7 +908,7 @@ export default function Home() {
         {/* ── Mes domaines ── */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>Mes domaines · {profiles.length}/{MAX_DOMAINS}</span>
+            <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>Mes domaines · {profiles.length}/{maxDomains}</span>
             <button onClick={() => setShowAddModal(true)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#272522', fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.82)', cursor: 'pointer', fontFamily: F }}>
               <Zap size={12} color={WHITE} strokeWidth={2} />
@@ -920,6 +984,18 @@ export default function Home() {
       {onboardingData && (
         <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
       )}
+
+      {/* ── Plan limit modal ── */}
+      <AnimatePresence>
+        {showLimitModal && (
+          <PlanLimitModal
+            maxSites={maxDomains}
+            planName={planLabel}
+            onClose={() => setShowLimitModal(false)}
+            onUpgrade={() => { setShowLimitModal(false); navigate('/pricing'); }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Confirmation modal ── */}
       <AnimatePresence>

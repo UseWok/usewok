@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Download, Check, Clock, Calendar, Zap } from 'lucide-react';
+import { X, Download, Check, Clock, Calendar, MessageCircle } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { getWokFeatures } from '@/lib/wok-plans';
+
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -244,7 +245,7 @@ export default function SettingsPage() {
   const [invoiceEmail, setInvoiceEmail] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [cancelTicket, setCancelTicket] = useState(null);
-  const [genCount, setGenCount] = useState(null);
+  const [chatMsgsUsed, setChatMsgsUsed] = useState(0);
 
   const loadUser = (u) => {
     if (!u) return;
@@ -256,7 +257,17 @@ export default function SettingsPage() {
       }).catch(() => {});
     }
     if (u?.id) {
-      base44.entities.Generation.filter({ created_by_id: u.id }).then(gens => setGenCount(gens.length)).catch(() => setGenCount(0));
+      // Count chatbot messages used this month from localStorage (wok_ai_v3)
+      try {
+        const convs = JSON.parse(localStorage.getItem('wok_ai_v3') || '[]');
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const used = convs.reduce((acc, conv) => {
+          const msgs = (conv.messages || []).filter(m => m.role === 'user' && m.ts >= monthStart);
+          return acc + msgs.length;
+        }, 0);
+        setChatMsgsUsed(used);
+      } catch { setChatMsgsUsed(0); }
     }
   };
 
@@ -272,19 +283,10 @@ export default function SettingsPage() {
   }, []);
 
   const isYearly = user?.billing_cycle === 'yearly';
-  const creditsUsed = user?.credits_used || 0;
-  const creditsLimit = userPlan?.credits_limit || 0;
-
-  const getDailyUsage = () => {
-    try {
-      const data = JSON.parse(localStorage.getItem('stensor_daily_usage') || '{}');
-      return Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(); d.setDate(d.getDate() - (6 - i));
-        const key = d.toISOString().slice(0, 10);
-        return { date: d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }), credits: data[key] || 0 };
-      });
-    } catch { return []; }
-  };
+  const planFeatures = getWokFeatures(user);
+  const chatLimit = planFeatures?.chatbot_messages || 5;
+  const chatRemaining = Math.max(0, chatLimit - chatMsgsUsed);
+  const chatPct = chatLimit > 0 ? Math.min(100, Math.round((chatMsgsUsed / chatLimit) * 100)) : 0;
 
   const saveProfile = async () => {
     setProfileError('');
@@ -412,26 +414,31 @@ export default function SettingsPage() {
         {/* ── USAGE ── */}
         {activeSection === 'usage' && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
-              <StatCard label="Crédits utilisés" value={formatK(creditsUsed)} sub={`sur ${formatK(creditsLimit)}`} accent />
-              <StatCard label="Générations" value={genCount === null ? '—' : genCount} sub="ce cycle" />
-              <StatCard label="Plan actuel" value={userPlan?.name || 'Free'} sub={isYearly ? 'Annuel' : 'Mensuel'} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+              <StatCard label="Plan actuel" value={userPlan?.name || 'Free'} sub={isYearly ? 'Annuel' : 'Mensuel'} accent />
+              <StatCard label="Sites surveillés" value={`${planFeatures?.max_sites || 1}`} sub="max simultanément" />
             </div>
 
-            <SectionTitle>Consommation</SectionTitle>
-            <CreditsGauge used={creditsUsed} limit={creditsLimit} />
-
-            <div style={{ height: 28 }} />
-            <SectionTitle>Activité — 7 derniers jours</SectionTitle>
-            <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 14px' }}>Crédits consommés par jour.</p>
-            <div style={{ background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 16px 10px' }}>
-              <ResponsiveContainer width="100%" height={100}>
-                <BarChart data={getDailyUsage()} barSize={14}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#999' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ fontSize: 11, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6, color: '#111' }} />
-                  <Bar dataKey="credits" fill="#111" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <SectionTitle>Messages WOK AI ce mois</SectionTitle>
+            <div style={{ marginTop: 8, background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <MessageCircle style={{ width: 16, height: 16, color: '#555' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>{chatMsgsUsed} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>/ {chatLimit} messages</span></p>
+                  <p style={{ fontSize: 12, color: chatRemaining === 0 ? '#ef4444' : '#888', margin: '2px 0 0' }}>
+                    {chatRemaining === 0 ? 'Quota épuisé — passez à un plan supérieur' : `${chatRemaining} restants ce mois`}
+                  </p>
+                </div>
+              </div>
+              <div style={{ height: 8, background: '#EBEBEA', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${chatPct}%`, background: chatPct >= 90 ? '#ef4444' : chatPct >= 70 ? '#f97316' : '#111', borderRadius: 999, transition: 'width 0.4s ease' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{chatPct}% utilisé</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>Reset le 1er du mois</span>
+              </div>
             </div>
 
             <div style={{ height: 28 }} />
@@ -444,7 +451,7 @@ export default function SettingsPage() {
             <SectionTitle>Cycle de facturation</SectionTitle>
             <div style={{ marginTop: 8 }}>
               {getRenewalDate(user) && (
-                <SettingRow label="Prochain renouvellement" description="Vos crédits se réinitialisent à cette date.">
+                <SettingRow label="Prochain renouvellement" description="Le quota de messages se réinitialise à cette date.">
                   <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Calendar style={{ width: 12, height: 12, color: '#999' }} />
                     {formatDate(getRenewalDate(user))}
@@ -497,11 +504,7 @@ export default function SettingsPage() {
                   {!isYearly && userPlan?.price_monthly > 0 && <Badge color="blue">Monthly</Badge>}
                 </div>
               </SettingRow>
-              <SettingRow label="Crédits" description="Crédits disponibles par cycle de facturation.">
-                <span style={{ fontSize: 13, color: '#444' }}>
-                  {userPlan?.credits_limit ? `${userPlan.credits_limit.toLocaleString('fr-FR')} / mois` : 'Gratuit'}
-                </span>
-              </SettingRow>
+
               {getRenewalDate(user) && userPlan?.price_monthly > 0 && (
                 <SettingRow label="Prochain renouvellement" description="Votre plan se renouvelle automatiquement à cette date.">
                   <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
