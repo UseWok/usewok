@@ -18,9 +18,6 @@ Deno.serve(async (req) => {
     const businessName = businessProfile.business_name || businessProfile.identity_name || '';
 
     // ── Profil utilisateur ──
-    // 1. body.user_profile (direct)
-    // 2. businessProfile.user_preferences (JSON string passed from frontend)
-    // 3. DB lookup by site_url
     let userProfile = body.user_profile || {};
     if (!userProfile.tech_level && businessProfile.user_preferences) {
       try {
@@ -41,14 +38,11 @@ Deno.serve(async (req) => {
     }
 
     const techLevel = userProfile.tech_level || 'no_code';
-    const mainGoal = userProfile.main_goal || 'more_clients';
-    const businessSize = userProfile.business_size || 'solo';
 
-    // Cache key INCLUDES tech level so switching profile regenerates fresh
     const issueKey = normalizeKey(issueProblem);
     const cacheKey = `${issueKey}__${techLevel}`;
 
-    // ── 1. Cache user (clé = issue + tech_level) ──
+    // ── 1. Cache user ──
     const userCache = await base44.entities.UserFixCache.filter({
       user_id: user.id,
       issue_key: cacheKey,
@@ -70,7 +64,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── 2. Cache global (FixLibrary) — clé incluant tech_level ──
+    // ── 2. Cache global (FixLibrary) ──
     const globalCache = await base44.asServiceRole.entities.FixLibrary.filter({ issue_key: cacheKey }).catch(() => []);
     if (globalCache && globalCache.length > 0) {
       const match = globalCache[0];
@@ -120,75 +114,116 @@ Deno.serve(async (req) => {
         : "L'utilisateur utilise ChatGPT/Claude comme assistant. Il copie-colle le prompt, puis colle la réponse dans son site.";
 
       profileInstructions = `
-INSTRUCTIONS - GÉNÉRATION DU "prompt" (CHAMP CRITIQUE)
-=======================================================
+INSTRUCTIONS - GÉNÉRATION DU "prompt" (CHAMP CRITIQUE - 10X)
+=============================================================
 Tu génères le champ "prompt": un prompt EXPERT prêt à copier-coller dans ChatGPT ou Claude.
 
 ${platformHint}
 
+PHILOSOPHIE: ZERO CHARGE MENTALE.
+L'utilisateur copie le prompt, le colle dans ChatGPT/Claude, copie la réponse, la colle dans son site. POINT FINAL.
+Il ne doit JAMAIS avoir à reflechir, choisir, remplir, deviner, ou adapter quoi que ce soit.
+
 Le prompt DOIT suivre le pattern RTCEF (Role, Task, Context, Examples, Format):
 
-1. ROLE - Assigne un rôle expert à l'IA (ex: "Tu es un expert en SEO local et AEO pour ${industry}...")
-2. TASK - Une instruction claire et unique (ex: "Génère 3 paragraphes de 40-60 mots chacun...")
-3. CONTEXT - Injecte TOUTES les infos: nom du business "${businessName}", site "${siteUrl}", secteur "${industry}", problème: "${issueProblem}"
-4. EXAMPLES - Si pertinent, donne 1 exemple de format attendu
-5. FORMAT - Spécifie EXACTEMENT le format de sortie: HTML prêt à coller? Texte brut? JSON-LD? Nombre de mots?
+1. ROLE - Assigne un rôle expert hyper-spécifique à l'IA (ex: "Tu es un expert en SEO local, AEO et rédaction web pour ${industry}...")
+2. TASK - Une instruction claire, unique, avec un VERBE d'action fort (Génère, Écris, Crée, Produis...)
+3. CONTEXT - Injecte TOUTES les infos: "${businessName}", "${siteUrl}", "${industry}", problème: "${issueProblem}"
+4. EXAMPLES - Donne 1 exemple concret du format et du ton attendus
+5. FORMAT - Spécifie EXACTEMENT le format de sortie: HTML, texte, JSON-LD? Nombre de mots exact?
 
-RÈGLES ABSOLUES (zéro erreur, qualité luxe):
-- Le prompt COMMENCE par "Copie ceci dans ChatGPT ou Claude:\\n\\n" puis le prompt lui-même
-- Le prompt SE TERMINE par "\\n\\nPuis copie la réponse dans [endroit EXACT du site, ex: la section À propos de ${siteUrl}]"
-- TOUS les placeholders variables sont en [CROCHETS MAJUSCULES]: [NOM_DU_BUSINESS], [VOTRE_VILLE], [NUMÉRO_TÉLÉPHONE]...
-- MAIS les infos CONNUES (${businessName}, ${siteUrl}, ${industry}) sont PRÉ-REMPLIES — pas de placeholders pour ce qu'on sait déjà
-- Le prompt fait 8-20 lignes — ni trop court (superficiel), ni trop long (illisible)
-- Le langage est FRANÇAIS, professionnel, direct
-- ZÉRO jargon technique inutile — l'utilisateur n'est pas développeur
-- Le prompt doit générer un résultat que l'utilisateur colle DIRECTEMENT — pas de "voici quelques idées..."
-- Si le problème concerne des données structurées/JSON-LD: le prompt demande du code JSON-LD prêt à coller
-- Si le problème concerne du contenu: le prompt demande du HTML ou texte formaté prêt à coller
-- Si le problème concerne Google Business: le prompt guide exactement quoi remplir et où
+RÈGLES ABSOLUES (ZÉRO ERREUR, QUALITÉ LUXE, EFFET WOW):
 
-EXEMPLE DE STRUCTURE (adapte au problème, ne copie pas mot pour mot):
+A. INTERDICTION ABSOLUE DE PLACEHOLDERS À TROUS:
+   - JAMAIS de [LISTE_FEATURES], [VOS_AVANTAGES], [NOMBRE], [TYPE], [LONGUEUR]...
+   - L'IA qui recevra le prompt DOIT tout inventer elle-même: le nombre, les features, les avantages, le contenu...
+   - Le seul moment ou un [CROCHET] est acceptable: une info strictement personnelle que l'IA ne peut pas deviner (numéro de téléphone, adresse physique précise, horaires réels)
+   - Pour TOUT le reste: laisse l'IA être créative et autonome. Elle a carte blanche.
+
+B. AUTONOMIE TOTALE DE L'IA:
+   - Ne dis pas "Génère [NOMBRE] paragraphes" → dis "Génère 3 paragraphes"
+   - Ne dis pas "Inclus [VOS_AVANTAGES]" → dis "Inclus 4 avantages concurrentiels pertinents pour ce secteur"
+   - Ne dis pas "Ajoute [LISTE_FEATURES]" → dis "Ajoute une liste de 5 fonctionnalités clés que toute entreprise de ${industry} devrait mettre en avant"
+   - L'IA doit pouvoir produire un résultat COMPLET sans aucune intervention humaine.
+
+C. FORMAT DE SORTIE IMPLACABLE:
+   - Le résultat généré par l'IA doit être 100% COPABLE-COLLABLE dans le site
+   - HTML prêt à coller (balises <p>, <h2>, <h3>, <ul>, <li>) OU texte formaté selon le besoin
+   - ZÉRO commentaire, zéro "Voici le contenu demandé:", zéro explication
+   - Juste le contenu final, propre, nickel.
+
+D. EFFET WOW:
+   - Le prompt doit demander un contenu de niveau premium — pas du remplissage générique
+   - Inclus des consignes de ton: "professionnel mais chaleureux", "expert mais accessible", etc.
+   - Demande des chiffres, des bénéfices concrets, des mots déclencheurs d'action
+   - Le résultat doit impressionner l'utilisateur quand il le lit
+
+E. STRUCTURE OBLIGATOIRE DU "prompt":
+   - Commence par "Copie ceci dans ChatGPT ou Claude:\\n\\n"
+   - Puis le prompt complet (8-25 lignes selon la complexité)
+   - Termine par "\\n\\nPuis colle la réponse dans [endroit EXACT, ex: la section Services de ${siteUrl}]"
+
+F. INFOS PRÉ-REMPLIES (JAMAIS de placeholder):
+   - "${businessName}" → toujours pré-rempli dans le prompt
+   - "${siteUrl}" → toujours pré-rempli dans le prompt
+   - "${industry}" → toujours pré-rempli dans le prompt
+   - "${issueProblem}" → toujours pré-rempli comme contexte
+   - Seuls [NUMÉRO_TÉLÉPHONE], [ADRESSE_POSTALE], [HORAIRES] sont acceptés comme placeholders (infos strictement privées)
+
+EXEMPLE CONCRET DE BON "prompt" (adapte au problème, ne copie pas):
 
 Copie ceci dans ChatGPT ou Claude:
 
-Tu es un expert en référencement local pour les entreprises de ${industry}.
+Tu es un expert en SEO local, AEO et rédaction web pour les entreprises de ${industry}.
 Mon entreprise s'appelle "${businessName}" et mon site est ${siteUrl}.
 
 CONTEXTE: ${issueProblem}
 
 TÂCHE:
-1. Génère [NOMBRE] [TYPE DE CONTENU] optimisés pour que les IA (ChatGPT, Gemini) comprennent mon business
-2. Chaque [TYPE] doit faire [LONGUEUR] mots
-3. Inclus naturellement: ${businessName}, ${siteUrl}, et les mots-clés de mon secteur
+Génère 3 paragraphes de présentation de mon entreprise (50-70 mots chacun) optimisés pour que les IA comme ChatGPT et Gemini comprennent et recommandent "${businessName}".
+
+Chaque paragraphe doit:
+- Commencer par un angle différent (qui nous sommes / ce qu'on fait / pourquoi nous choisir)
+- Inclure naturellement "${businessName}" et "${siteUrl}"
+- Contenir 2-3 mots-clés du secteur ${industry}
+- Se terminer par un bénéfice client concret (chiffré si possible)
+
+TON: Professionnel, chaleureux, confiant. Pas de jargon. Pas de superlatifs creux.
 
 FORMAT DE SORTIE:
-- HTML prêt à coller (balises <p>, <h2>, <ul>)
-- Un bloc par [TYPE], séparé par ---
-- Aucun commentaire, aucune explication — juste le contenu prêt à coller
+- HTML prêt à coller (balises <p>)
+- Un paragraphe par balise <p>
+- Zéro commentaire, zéro explication — juste les 3 paragraphes
 
-Puis copie la réponse dans [section précise de ${siteUrl}]
-=======================================================
+Puis colle la réponse dans la section "À propos" de ${siteUrl}
+
+FIN DE L'EXEMPLE.
+=============================================================
 `;
       requiredFields = ['summary', 'prompt', 'time_estimate'];
     } else {
       profileInstructions = `
-INSTRUCTIONS - GÉNÉRATION DU "explanation" (CHAMP CRITIQUE)
-===========================================================
+INSTRUCTIONS - GÉNÉRATION DU "explanation" (CHAMP CRITIQUE - 10X)
+==================================================================
 Tu génères le champ "explanation": une réponse technique experte pour un développeur.
+
+PHILOSOPHIE: ZERO CHARGE MENTALE.
+Le développeur lit l'explication, copie le code s'il y en a, et l'implémente. Il ne doit rien chercher.
 
 L'explication DOIT contenir:
 1. CAUSE - Pourquoi ce problème existe (1-2 phrases techniques)
 2. IMPACT IA - Comment ça affecte les LLMs (ChatGPT, Gemini, Claude) — sois spécifique: crawling? parsing? entity recognition? trust signals?
 3. SOLUTION - Les fichiers/technos concernés (ex: schema.org/LocalBusiness, robots.txt, sitemap.xml, meta tags, JSON-LD)
-4. CODE OU SNIPPET - Si applicable, donne le code exact (JSON-LD, meta tag, etc.) avec ${businessName} et ${siteUrl} pré-remplis
+4. CODE COMPLET - Si applicable, donne le code EXACT (JSON-LD, meta tag, etc.) avec "${businessName}" et "${siteUrl}" pré-remplis — pas de "adaptez ce template", le code prêt à coller
 
 RÈGLES:
 - FRANÇAIS, ton expert mais accessible
 - 150-300 mots — dense en information, zéro blabla
-- Inclure ${businessName} et ${siteUrl} dans l'explication
-- Si JSON-LD: donner le code complet, pas une référence
+- Inclure "${businessName}" et "${siteUrl}" dans l'explication et le code
+- Si JSON-LD: donner le code COMPLET et VALIDÉ, pas une référence ou un squelette
 - Citer les spec standards (schema.org, W3C) si pertinent
-===========================================================
+- ZÉRO placeholder à trous — tout est concret et pré-rempli
+==================================================================
 `;
       requiredFields = ['summary', 'explanation', 'time_estimate'];
     }
@@ -197,7 +232,7 @@ RÈGLES:
       ? '4. "prompt" - Le prompt expert RTCEF généré selon les instructions ci-dessus.'
       : "4. \"explanation\" - L'explication technique experte générée selon les instructions ci-dessus.";
 
-    const prompt = `Tu es un Consultant AEO (AI Engine Optimization) de classe mondiale — service premium, zéro erreur, qualité luxe.
+    const prompt = `Tu es un Consultant AEO (AI Engine Optimization) de classe mondiale — service premium, zéro erreur, qualité luxe, effet wow.
 
 MISSION
 =======
@@ -226,12 +261,15 @@ CHAMPS OBLIGATOIRES DU JSON
 ${devOrPromptLine}
 
 QUALITÉ LUXE — CHECKLIST AVANT RÉPONSE
-======================================
+=====================================
 - Le prompt/explication inclut "${businessName}" et "${siteUrl}" pré-remplis
-- Zéro placeholder pour les infos connues — seulement pour ce que l'utilisateur doit personnaliser
-- Le résultat est COPIABLE-COLLABLE immédiatement — zéro préparation nécessaire
+- ZÉRO placeholder à trous du type [LISTE_FEATURES], [NOMBRE], [TYPE], [VOS_AVANTAGES]
+- Les seuls [CROCHETS] acceptés: infos strictement privées (téléphone, adresse, horaires)
+- L'IA a une AUTONOMIE TOTALE pour inventer le contenu, le nombre, les angles
+- Le résultat est COPIABLE-COLLABLE immédiatement — zéro préparation, zéro charge mentale
 - Le ton est professionnel, direct, confiant — pas de "peut-être", "il faudrait peut-être"
 - Français impeccable — zéro faute
+- EFFET WOW: le résultat doit impressionner l'utilisateur par sa qualité et sa pertinence
 
 Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
 
