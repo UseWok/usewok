@@ -310,11 +310,28 @@ function DrivePickerModal({ open, onClose, onImport }) {
   );
 }
 
-// ── Storage ────────────────────────────────────────────────────────
-const SK = 'wok_ai_v3';
-function loadConvs() { try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch { return []; } }
-function saveConvs(c) { try { localStorage.setItem(SK, JSON.stringify(c)); } catch {} }
-function pruneConvs(c) { const cut = Date.now() - 60 * 864e5; return c.filter(x => x.updatedAt > cut); }
+// ── Cloud storage helpers ──────────────────────────────────────────
+async function loadCloudConvs() {
+  try {
+    const recs = await base44.entities.Conversation.list('-updated_at', 50);
+    return recs.map(r => {
+      let messages = [];
+      try { messages = JSON.parse(r.messages_json || '[]'); } catch {}
+      return { id: r.id, title: r.title || 'Sans titre', messages, site_url: r.site_url, updatedAt: r.updated_at || new Date(r.updated_date).getTime() };
+    });
+  } catch { return []; }
+}
+
+async function saveCloudConv(conv) {
+  const payload = { title: conv.title, site_url: conv.site_url || '', messages_json: JSON.stringify(conv.messages), updated_at: Date.now() };
+  if (conv._dbId) {
+    await base44.entities.Conversation.update(conv._dbId, payload);
+    return conv._dbId;
+  } else {
+    const created = await base44.entities.Conversation.create(payload);
+    return created.id;
+  }
+}
 
 // ── Context builder ────────────────────────────────────────────────
 function buildContext(user, profile, activeDomain) {
@@ -375,9 +392,11 @@ export default function WokAIPage({ user: userProp }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = userProp || authUser;
-  const [convs, setConvs] = useState(() => pruneConvs(loadConvs()));
+  const [convs, setConvs] = useState([]);
   const [activeConvId, setActiveConvId] = useState(null);
+  const [activeDbId, setActiveDbId] = useState(null); // DB record id (may differ from logical id)
   const [messages, setMessages] = useState([]);
+  const [convLoading, setConvLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -404,16 +423,21 @@ export default function WokAIPage({ user: userProp }) {
 
   const domainLabel = activeDomain?.url?.replace(/https?:\/\//, '').split('/')[0] || '';
 
+  // Load conversations from cloud on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const convId = params.get('conv');
-    if (convId) {
-      const c = loadConvs().find(cv => cv.id === convId);
-      if (c) { setMessages(c.messages || []); setActiveConvId(c.id); }
-    } else {
-      setMessages([]); setActiveConvId(null);
-    }
-  }, [window.location.search]);
+    if (!user?.id) return;
+    setConvLoading(true);
+    loadCloudConvs().then(loaded => {
+      setConvs(loaded);
+      const params = new URLSearchParams(window.location.search);
+      const convId = params.get('conv');
+      if (convId) {
+        const c = loaded.find(cv => cv.id === convId);
+        if (c) { setMessages(c.messages || []); setActiveConvId(c.id); setActiveDbId(c.id); }
+      }
+      setConvLoading(false);
+    });
+  }, [user?.id]);
 
   useEffect(() => {
     const domain = getActiveDomain();
@@ -430,7 +454,6 @@ export default function WokAIPage({ user: userProp }) {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
 
-  const persist = (c) => { saveConvs(c); setConvs(c); };
   const activeConv = convs.find(c => c.id === activeConvId);
 
   const sendMessage = async (text) => {
@@ -515,17 +538,21 @@ export default function WokAIPage({ user: userProp }) {
       const final = [...nextMessages, aiMsg];
       setMessages(final);
 
-      const currentConvs = loadConvs();
-      if (activeConvId) {
-        persist(currentConvs.map(c => c.id === activeConvId ? { ...c, messages: final, updatedAt: Date.now() } : c));
+      if (activeDbId) {
+        // Update existing cloud conversation
+        await base44.entities.Conversation.update(activeDbId, { messages_json: JSON.stringify(final), updated_at: Date.now() });
+        setConvs(prev => prev.map(c => c.id === activeDbId ? { ...c, messages: final, updatedAt: Date.now() } : c));
       } else {
+        // Generate title + create new cloud conversation
         const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Titre court 3-5 mots français sans ponctuation pour: "${content.slice(0,100)}". UNIQUEMENT le titre.` }).catch(() => null);
         const titleRaw = typeof titleRes === 'string' ? titleRes : (titleRes?.data || titleRes?.response || content);
         const title = String(titleRaw).replace(/["']/g, '').trim().slice(0, 48) || content.slice(0, 40);
-        const nc = { id: `c_${Date.now()}`, title, messages: final, createdAt: Date.now(), updatedAt: Date.now() };
-        setActiveConvId(nc.id);
-        persist([nc, ...currentConvs]);
-        window.history.replaceState({}, '', `/wok-ai?conv=${nc.id}`);
+        const created = await base44.entities.Conversation.create({ title, site_url: activeDomain?.url || '', messages_json: JSON.stringify(final), updated_at: Date.now() });
+        const newConv = { id: created.id, title, messages: final, site_url: activeDomain?.url || '', updatedAt: Date.now() };
+        setActiveConvId(created.id);
+        setActiveDbId(created.id);
+        setConvs(prev => [newConv, ...prev]);
+        window.history.replaceState({}, '', `/wok-ai?conv=${created.id}`);
       }
     } catch {
       setMessages(m => [...m, { role: 'assistant', content: "Je n'ai pas pu répondre — vérifie ta connexion et réessaie.", ts: Date.now(), isError: true }]);
@@ -553,17 +580,19 @@ export default function WokAIPage({ user: userProp }) {
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
                 {/* Bouton Nouvelle conversation */}
-                <button onClick={() => { setMessages([]); setActiveConvId(null); window.history.replaceState({}, '', '/wok-ai'); setShowHistory(false); }}
+                <button onClick={() => { setMessages([]); setActiveConvId(null); setActiveDbId(null); window.history.replaceState({}, '', '/wok-ai'); setShowHistory(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: SURFACE, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, color: INK, fontFamily: F, marginBottom: 6, fontWeight: 600 }}>
                   <Plus size={12} color={INK} /> Nouvelle conversation
                 </button>
-                {convs.length === 0 && (
+                {convLoading && <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '16px 0' }}>Chargement…</p>}
+                {!convLoading && convs.length === 0 && (
                   <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucune conversation</p>
                 )}
                 {convs.sort((a, b) => b.updatedAt - a.updatedAt).map(conv => (
                   <button key={conv.id} onClick={() => {
                     setMessages(conv.messages || []);
                     setActiveConvId(conv.id);
+                    setActiveDbId(conv.id);
                     window.history.replaceState({}, '', `/wok-ai?conv=${conv.id}`);
                     setShowHistory(false);
                   }}
@@ -609,7 +638,7 @@ export default function WokAIPage({ user: userProp }) {
           <Clock size={10} /> Historique {convs.length > 0 && <span style={{ fontSize: 10, background: INK, color: '#fff', borderRadius: 10, padding: '1px 5px' }}>{convs.length}</span>}
         </button>
         {activeConvId && (
-          <button onClick={() => { setMessages([]); setActiveConvId(null); window.history.replaceState({}, '', '/wok-ai'); }}
+          <button onClick={() => { setMessages([]); setActiveConvId(null); setActiveDbId(null); window.history.replaceState({}, '', '/wok-ai'); }}
             style={{ padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => e.currentTarget.style.background = SURFACE}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
