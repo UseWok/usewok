@@ -94,18 +94,46 @@ Deno.serve(async (req) => {
     const techInstruction = techContextMap[techLevel] || techContextMap.no_code;
     const goalInstruction = goalContextMap[mainGoal] || goalContextMap.more_clients;
 
+    // Detect issue type to adapt the response strategy
+    const issueText = issueProblem.toLowerCase();
+    const isCitationIssue = /citation|source|fiable|référence|lien externe|autorité|e-e-a-t/i.test(issueProblem);
+    const isArchitectureIssue = /profondeur|clic|navigation|menu|architecture|lien interne|maillage|arborescence/i.test(issueProblem);
+
+    const citationInstruction = isCitationIssue ? `
+CONTEXTE SPÉCIAL — Citations de sources :
+UseWok peut faire de la recherche IA pour trouver les meilleures sources dans le secteur "${industry}".
+Dans tes étapes, inclure :
+1. Une liste de 3-5 types de sources fiables spécifiques au secteur (ex: études INSEE, rapports ADEME, publications INPI...) avec le format exact pour les citer
+2. Un exemple de phrase d'insertion prête à copier avec placeholder : "Selon [Source], [fait clé]..."
+3. L'instruction pour trouver ces sources (requête Google Scholar, PubMed, etc. selon le secteur)
+Précise que UseWok génère les suggestions de sources mais que l'utilisateur doit insérer le lien manuellement dans son CMS.
+` : '';
+
+    const architectureInstruction = isArchitectureIssue ? `
+CONTEXTE SPÉCIAL — Architecture / profondeur de clic :
+UseWok peut DIAGNOSTIQUER mais pas restructurer le site automatiquement. C'est une décision d'architecture.
+Dans tes étapes :
+1. Explique le diagnostic concret trouvé (ex: "votre page [X] est à N clics de la page d'accueil")
+2. Donne le plan de restructuration STRATÉGIQUE : quelles pages remonter dans la navigation, quels liens internes ajouter
+3. Fournis un exemple de structure de menu ou de liens internes suggérés
+4. Précise clairement : "UseWok identifie le problème — la mise en œuvre se fait dans votre CMS (WordPress/Wix) par vous ou votre développeur"
+Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
+` : '';
+
     const prompt = `Tu es un expert en visibilité IA. Adapte tes conseils EXACTEMENT au niveau technique indiqué.
 
 Entreprise : ${brandContext}
 Niveau technique : ${techLevel} — ${techInstruction}
 ${goalInstruction}
+${citationInstruction}
+${architectureInstruction}
 
 Problème : "${issueProblem}"
 ${crawlContext}
 
 JSON requis :
 - summary: pourquoi ce problème fait perdre des clients. 2 phrases max, ton direct.
-- steps: 3 à 5 étapes adaptées au niveau ${techLevel}. Format: "[Action] → [Résultat]". Si ai_nocode/claude_code : prompt IA prêt-à-l'emploi dans les étapes techniques.
+- steps: 3 à 5 étapes adaptées au niveau ${techLevel}. Format: "[Action] → [Résultat]". Si ai_nocode/claude_code : prompt IA prêt-à-l'emploi dans les étapes techniques. Pour les citations : inclure un exemple de phrase prête à insérer. Pour l'architecture : inclure le diagnostic chiffré ET le plan de restructuration.
 - time_estimate: durée réaliste pour ce profil
 - type: "seul" ou "avec aide"
 
