@@ -1,4 +1,146 @@
+# ════════════════════════════════════════════════════════
+# UseWok — robots.txt — Optimisé GEO + SEO (2024)
+# Tous les bots légitimes sont les bienvenus.
+# ════════════════════════════════════════════════════════
+
+# ── MOTEURS DE RECHERCHE ──────────────────────────────
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# ── BOTS IA — INDEXATION EXPLICITEMENT AUTORISÉE ──────
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+# Google Gemini / AI Overviews
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot-AI
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Microsoft Copilot / Bing AI
+User-agent: Bingbot
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+# xAI / Grok
+User-agent: Grok
+Allow: /
+
+User-agent: xAI
+Allow: /
+
+# Mistral AI
+User-agent: MistralBot
+Allow: /
+
+# Meta / Llama
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Common Crawl (source d'entraînement LLMs)
+User-agent: CCBot
+Allow: /
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+
+# Apple / Siri
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Amazon Alexa
+User-agent: Amazonbot
+Allow: /
+
+# You.com
+User-agent: YouBot
+Allow: /
+
+# Brave AI
+User-agent: BraveBot
+Allow: /
+
+# Diffbot (extraction sémantique)
+User-agent: Diffbot
+Allow: /
+
+# ── BOTS DE MONITORING / SEO ──────────────────────────
+User-agent: Screaming Frog SEO Spider
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
+
+User-agent: AhrefsBot
+Allow: /
+
+User-agent: MJ12bot
+Allow: /
+
+# ── RÈGLE GÉNÉRALE : TOUT LE MONDE EST AUTORISÉ ───────
 User-agent: *
 Allow: /
 
+# ── EXCLUSIONS PRIVÉES (backoffice uniquement) ─────────
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout
+
+# ── SITEMAP ───────────────────────────────────────────
 Sitemap: https://usewok.com/sitemap.xml
