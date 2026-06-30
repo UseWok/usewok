@@ -43,7 +43,7 @@
     "read": {
       "$or": [
         {
-          "data.created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -55,7 +55,7 @@
     "update": {
       "$or": [
         {
-          "data.created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -67,7 +67,7 @@
     "delete": {
       "$or": [
         {
-          "data.created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
