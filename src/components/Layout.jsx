@@ -97,8 +97,8 @@ export default function Layout() {
   // Frame bg — EXACTLY matches index.css body background so there's no seam
   // #F8F7F4 = exact sidebar bg (--sidebar-background) — all borders same color
   const FRAME_BG = '#FFFFFF';
-  const BORDER_TOP = 8;
-  const BORDER_SIDE = 8;
+  const BORDER_TOP = 11;
+  const BORDER_SIDE = 11;
   const BORDER_BOTTOM = 36;
   const CORNER_R = 14;
 
