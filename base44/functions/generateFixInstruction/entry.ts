@@ -91,34 +91,9 @@ Deno.serve(async (req) => {
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
     const techContextMap = {
-      no_code: `PROFIL NO-CODE: L'utilisateur NE CODE PAS (Wix, Squarespace, WordPress standard). 
-🎯 RÈGLES STRICTES:
-- ZÉRO code, zéro HTML, zéro JSON, zéro terminal
-- UNIQUEMENT: "Allez dans Paramètres > [section] > [bouton]"
-- Chaque étape = 1 chemin interface clair + 1 screenshot/tutoriel officiel URL si dispo
-- Parle comme un ami : "clique ici, puis cherche... appuie sur"
-- Si c'est impossible sans code → "Contactez un développeur pour [raison précise]"
-- 3-5 étapes MAXIMUM, 2 phrases par étape`,
-
-      ai_nocode: `PROFIL AI-HELPER: L'utilisateur utilise ChatGPT/Claude/Make.com pour l'aider.
-🎯 RÈGLES STRICTES:
-- CHAQUE étape technique = 1 PROMPT PRÊT À COPIER entre guillemets
-- Format: "Copie ceci dans ChatGPT:\n[PROMPT EXACT ENTRE GUILLEMETS]"
-- Placeholders en [CROCHETS]: [SECTEUR], [NOM_SERVICE], [URL], [EMAIL]
-- Le prompt doit générer un résultat à copier-coller DIRECT dans le site/email/etc
-- Pas de "sois créatif" — demande output exact (texte 160 chars, JSON, HTML, etc)
-- 4-6 étapes: d'abord extraire/générer content, puis l'insérer dans le site
-- Dernière étape = re-scan UseWok pour valider`,
-
-      developer: `PROFIL DEVELOPER: Code, terminal, architecture, performances.
-🎯 RÈGLES STRICTES:
-- DIRECT ET PRÉCIS: nomme les fichiers exactes, chemins, attributs, endpoints
-- Code prêt à copier-coller: JS, JSON-LD, CLI commands, config serveur
-- Explique POURQUOI c'est critique pour les IA (e-e-a-t, depth, structure)
-- Si JSON-LD: pré-remplis avec les vraies données du site (baseURL, name, etc)
-- Si architecture: montre la structure avant/après et l'impact sur le crawl
-- 3-5 étapes techniques: dépannage → correction → validation
-- Dernière étape = re-scan UseWok pour mesurer le gain LRS`,
+      no_code: `PROFIL NO-CODE: Donne UNIQUEMENT des chemins interface (Wix/WordPress/Squarespace). Zéro code. 2-3 étapes MAX.`,
+      ai_nocode: `PROFIL AI-HELPER: Donne UN seul PROMPT prêt à copier-coller pour ChatGPT/Claude. Rien d'autre. Prompt direct, pas de blablabla.`,
+      developer: `PROFIL DEVELOPER: Explique la solution en 2-3 phrases. C'EST TOUT. Pas de code, juste pourquoi ça bloque.`,
     };
 
     const goalContextMap = {
@@ -157,53 +132,43 @@ Dans tes étapes :
 Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
 ` : '';
 
-    const prompt = `Tu es un expert AEO ultra-pragmatique. ZÉRO blablabla. Mission: donner la solution EXACTE et DIRECTE.
+    const prompt = `Tu es un expert AEO qui NE DONNE QUE L'ESSENTIEL. Mission ultra-rapide.
 
-CONTEXTE RÉEL:
-- Entreprise: ${businessName} (${industry})
-- Site: ${siteUrl}
-- Problème: "${issueProblem}"
-- Profil: ${techLevel} (${techInstruction})
-${crawlContext}
+Profil: ${techLevel} | Problème: "${issueProblem}" | Site: ${siteUrl}
 
-RÈGLES DE GÉNÉRATION (NON-NÉGOCIABLE):
-
-1. **NO-CODE** → Interface cliquable UNIQUEMENT
-   "Allez dans Settings > Pages > [nom_page_exacte] > Edit > Add > SEO > [champ] > Entrez: [texte]"
-   Si c'est impossible sans code: "Contactez un dev car ça demande [raison technique]"
-   MAX 4 étapes, 1 screenshot URL par étape
-
-2. **AI-NOCODE** → Prompts PRÊTS À COPIER-COLLER
-   Chaque step: Copie CECI dans ChatGPT:
-   """
-   [PROMPT EXACT, 100% prêt à copier]
-   Placeholders: [SECTEUR], [NOM_ENTREPRISE], [SERVICE]
-   Output attendu: [format exact: 160 chars, JSON, etc]
-   """
-   Puis: "Copie la réponse ChatGPT dans [endroit exact du site]"
-
-3. **DEVELOPER** → Code + Architecture
-   Fichier exact, code exact, commande exacte
-   Pré-remplit JSON-LD avec vraies données du site
-   Explique l'impact sur les crawlers IA
-   MAX 5 étapes, dernière = validation
-
-STRUCTURE JSON:
-{
-  "summary": "Pourquoi ça bloque les clients? (1 chiffre clé + ton direct). 2 phrases max.",
-  "steps": ["Étape 1 CONCRÈTE", "Étape 2 CODE/PROMPT/CLIC", ...],
-  "time_estimate": "15 min" | "1 heure" | "1 jour",
-  "type": "seul" | "avec aide"
+${
+  techLevel === 'no_code' ? `
+RÉPONSE POUR NO-CODE:
+- summary: Pourquoi ça bloque en 1 phrase. Chiffre clé.
+- steps: 2-3 ÉTAPES UNIQUEMENT. Chemin interface clair (ex: "Paramètres > Pages > [page] > SEO")
+  Si impossible sans code → dire "Contactez un dev pour [raison]"
+- time_estimate: 10 min / 30 min / 1h (c'est tout)
+- type: "seul" ou "avec aide"
+` : techLevel === 'ai_nocode' ? `
+RÉPONSE POUR AI-NOCODE:
+- summary: 1 phrase pourquoi ça bloque. C'EST TOUT.
+- prompt: LE PROMPT EXACT à copier-coller dans ChatGPT/Claude. Prêt 100%. Placeholders [EN CROCHETS].
+  Format: "Copie dans ChatGPT: [PROMPT TEXTE EXACT]"
+- time_estimate: 5 min / 15 min / 30 min
+- type: "seul"
+` : `
+RÉPONSE POUR DEVELOPER:
+- summary: Pourquoi ça bloque en 1 phrase.
+- explanation: 2-3 phrases sur la solution (PAS DE CODE). Juste l'approche.
+- time_estimate: 30 min / 1h / 1 jour
+- type: "seul" ou "avec aide"
+`
 }
 
-IMPÉRATIFS:
-- ZÉRO généralités
-- Nomme TOUJOURS les pages réelles du site quand dispo
-- Donne le TEXTE EXACT à copier (pas "écris un truc...")
-- Si archive/structure: "Contactez un dev" + raison précise
-- DERNIÈRE ÉTAPE = "Relancez scan UseWok pour mesurer le gain LRS"
+JSON requis (STRICT):
+{
+  "summary": "...",
+  ${techLevel === 'ai_nocode' ? `"prompt": "Copie dans ChatGPT: ..."` : `"steps": [...] ou "explanation": "..."`},
+  "time_estimate": "...",
+  "type": "seul" ou "avec aide"
+}
 
-Français, direct, concis. Go!`;
+Français direct concis.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,

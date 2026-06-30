@@ -63,7 +63,7 @@ function Badge({ color = 'green', children }) {
   );
 }
 
-function PreferencesPanel({ user, profile }) {
+function PreferencesPanel({ user, profile, onSave }) {
   const [prefs, setPrefs] = useState(() => {
     if (!profile?.user_preferences) return { tech_level: 'no_code', main_goal: 'more_clients', trade: '', maturity: '' };
     try {
@@ -82,6 +82,7 @@ function PreferencesPanel({ user, profile }) {
         user_preferences: JSON.stringify(prefs),
       });
       toast.success('Préférences sauvegardées');
+      if (onSave) onSave(); // Trigger reload in parent
     } catch (err) {
       toast.error('Erreur lors de la sauvegarde');
     } finally {
@@ -485,7 +486,11 @@ export default function SettingsPage() {
           <div>
             {/* Primary domain preferences */}
             {profiles && profiles.length > 0 && (
-              <PreferencesPanel user={user} profile={profiles[0]} />
+              <PreferencesPanel 
+                user={user} 
+                profile={profiles[0]} 
+                onSave={() => base44.entities.BusinessProfile.filter({ created_by_id: user.id }).then(setProfiles).catch(() => {})}
+              />
             )}
 
             <SectionTitle>Général</SectionTitle>
