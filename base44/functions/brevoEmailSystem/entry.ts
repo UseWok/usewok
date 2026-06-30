@@ -201,7 +201,6 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
   const scoreBarWidth = Math.min(100, Math.max(0, scoreVal));
   const isGoodScore = scoreVal >= 60;
 
-  // Build issues rows HTML — show each issue individually
   const criticalIssues = issuesList.filter(i => i.severity === 'error' || i.urgency === 'high');
   const importantIssues = issuesList.filter(i => i.severity === 'warning' || i.urgency === 'medium' || i.urgency === 'low');
 
@@ -210,35 +209,16 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
     const rows = list.map(i => {
       const text = i.problem || i.text || i.title || '';
       if (!text) return '';
-      return `<tr>
-        <td style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#0F0F0F;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:10px;vertical-align:middle;"></span>${text}
-        </td>
-      </tr>`;
+      return `<tr><td style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#0F0F0F;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:10px;vertical-align:middle;"></span>${text}</td></tr>`;
     }).join('');
     if (!rows.trim()) return '';
-    return `<tr>
-      <td style="padding:16px 0 6px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.3px;text-transform:uppercase;color:${color};">${label}</td>
-    </tr>${rows}`;
+    return `<tr><td style="padding:16px 0 6px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.3px;text-transform:uppercase;color:${color};">${label}</td></tr>${rows}`;
   };
 
   const criticalRows = buildIssueRows(criticalIssues, '#D93025', 'Critique');
   const importantRows = buildIssueRows(importantIssues, '#C46000', 'Important');
   const hasIssues = criticalRows || importantRows;
 
-  // Score context text — positive variant if >= 60
-  const scoreContextHtml = isGoodScore
-    ? `<p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
-        Ton site a un bon niveau de visibilité IA — <strong style="color:#0F0F0F;">${scoreVal}/100</strong>. 
-        ChatGPT, Perplexity et Google AI commencent à te référencer. Voici ce qu'il reste à optimiser pour aller encore plus loin.
-      </p>`
-    : `<p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
-        Un score de <strong style="color:#0F0F0F;">${scoreVal}/100</strong> 
-        signifie que les moteurs IA — ChatGPT, Perplexity, Google AI — 
-        ont du mal à lire et citer ton site. Voici les points qui pèsent le plus sur ce résultat.
-      </p>`;
-
-  // Subject line adapts to score
   const subject = isGoodScore
     ? `Ton score IA : ${scoreVal}/100 — voici comment aller plus loin`
     : `${errors > 0 ? errors + ' erreur' + (errors > 1 ? 's' : '') + ' détectée' + (errors > 1 ? 's' : '') : 'Rapport prêt'} sur ${site}`;
@@ -254,13 +234,13 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
   <meta name="color-scheme" content="light">
   <title>Ton rapport UseWok est prêt</title>
   <style>
-    body { margin:0; padding:0; background-color:#EDECEA; font-family:Arial,sans-serif; -webkit-text-size-adjust:100%; }
-    table { border-collapse:collapse; }
-    img { border:0; outline:none; text-decoration:none; max-width:100%; height:auto; }
+    body{margin:0;padding:0;background-color:#EDECEA;font-family:Arial,sans-serif;-webkit-text-size-adjust:100%;}
+    table{border-collapse:collapse;}
+    img{border:0;outline:none;text-decoration:none;max-width:100%;height:auto;}
     @media only screen and (max-width:600px){
-      .card { width:100% !important; border-radius:0 !important; }
-      .content { padding:32px 24px 40px 24px !important; }
-      .score-n { font-size:64px !important; line-height:64px !important; }
+      .card{width:100%!important;border-radius:0!important;}
+      .content{padding:32px 24px 40px 24px!important;}
+      .score-n{font-size:64px!important;line-height:64px!important;}
     }
   </style>
 </head>
@@ -270,137 +250,108 @@ function emailPostScan({ firstName, siteUrl, score, criticalErrors, totalIssues,
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#EDECEA">
-    <tr>
-      <td align="center" style="padding:28px 16px 0 16px;">
-        <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0"
-          style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
+    <tr><td align="center" style="padding:28px 16px 0 16px;">
+      <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
 
-          <!-- BANNER IMAGE -->
-          <tr>
-            <td style="padding:0;line-height:0;font-size:0;border-radius:12px 12px 0 0;">
-              <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-                <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png"
-                  alt="UseWok — Visibilité IA" width="600"
-                  style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;outline:none;text-decoration:none;"
-                  border="0">
-              </a>
-            </td>
-          </tr>
+        <!-- BANNER -->
+        <tr><td style="padding:0;line-height:0;font-size:0;">
+          <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border:0;">
+          </a>
+        </td></tr>
 
-          <!-- CONTENU -->
-          <tr>
-            <td class="content" style="padding:40px 48px 50px 48px;">
+        <!-- CONTENU -->
+        <tr><td class="content" style="padding:40px 48px 50px 48px;">
 
-              <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">
-                Salut ${name},
-              </p>
+          <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#AAAAAA;">Rapport d'analyse IA</p>
 
-              <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">
-                Ton scan est terminé. On a analysé <strong>${site}</strong> et voici ce qu'on a trouvé.
-              </p>
+          <h1 style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:26px;font-weight:900;line-height:32px;color:#0F0F0F;letter-spacing:-0.03em;">
+            Ton score de visibilité IA est prêt
+          </h1>
 
-              <!-- SCORE CARD -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#555555;">
+            Salut ${name},<br><br>
+            On a analysé <strong style="color:#0F0F0F;">${site}</strong>. Voici ce que les moteurs IA voient — et ce qu'ils ne voient pas encore.
+          </p>
+
+          <!-- SCORE CARD -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr><td style="background:#0F0F0F;border-radius:12px;padding:32px 36px 28px 36px;">
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#555555;">Score IA · ${site}</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="background:#0F0F0F;border-radius:10px;padding:36px 36px 30px 36px;">
-                    <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;
-                      letter-spacing:1.5px;text-transform:uppercase;color:#666666;">
-                      Score IA · ${site}
-                    </p>
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                      <tr>
-                        <td valign="baseline">
-                          <span class="score-n" style="font-family:Arial,sans-serif;font-size:80px;font-weight:900;
-                            color:#FFFFFF;line-height:80px;letter-spacing:-3px;display:inline-block;">
-                            ${scoreVal}
-                          </span>
-                        </td>
-                        <td valign="baseline" style="padding-left:5px;padding-bottom:10px;">
-                          <span style="font-family:Arial,sans-serif;font-size:26px;font-weight:300;color:#555555;line-height:1;">/100</span>
-                        </td>
-                      </tr>
-                    </table>
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:14px 0 18px 0;">
-                      <tr>
-                        <td style="background:#2A2A2A;border-radius:2px;height:4px;overflow:hidden;line-height:4px;font-size:0;">
-                          <div style="width:${scoreBarWidth}%;height:4px;background:${isGoodScore ? 'linear-gradient(90deg,#34D399 0%,#10B981 100%)' : 'linear-gradient(90deg,#9B87D8 0%,#E0707A 100%)'};border-radius:2px;"></div>
-                        </td>
-                      </tr>
-                    </table>
-                    <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#555555;line-height:19px;">
-                      ${errors > 0 ? `<strong style="color:#FFFFFF;">${errors} erreur${errors > 1 ? 's' : ''}</strong> détectée${errors > 1 ? 's' : ''} &nbsp;·&nbsp;` : ''} analysé le ${dateStr}
-                    </p>
+                  <td valign="baseline">
+                    <span class="score-n" style="font-family:Arial,sans-serif;font-size:80px;font-weight:900;color:#FFFFFF;line-height:80px;letter-spacing:-3px;display:inline-block;">${scoreVal}</span>
+                  </td>
+                  <td valign="baseline" style="padding-left:4px;padding-bottom:8px;">
+                    <span style="font-family:Arial,sans-serif;font-size:24px;font-weight:300;color:#444444;line-height:1;">/100</span>
                   </td>
                 </tr>
               </table>
-
-              ${scoreContextHtml}
-
-              ${hasIssues ? `<!-- ERREURS -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
-                <tr>
-                  <td style="background:#F6F6F5;border:1px solid #EBEBEB;border-radius:10px;padding:20px 24px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                      ${criticalRows}
-                      ${importantRows}
-                    </table>
-                  </td>
-                </tr>
-              </table>` : ''}
-
-              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
-                Chaque point est documenté dans ton rapport : cause exacte, impact sur ta visibilité IA, et correction étape par étape.
-              </p>
-
-              <!-- CTA -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <td align="center" style="padding:24px 0 8px 0;">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                      <tr>
-                        <td align="center" bgcolor="#0F0F0F" style="border-radius:300px;">
-                          <a href="https://app.usewok.com/ai-report"
-                            style="display:inline-block;padding:14px 36px;background:#0F0F0F;color:#FFFFFF !important;
-                              font-family:Arial,sans-serif;font-size:15px;font-weight:bold;
-                              text-decoration:none !important;border-radius:300px;letter-spacing:0.1px;">
-                            Voir mon rapport complet →
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:14px 0 16px 0;">
+                <tr><td style="background:#2A2A2A;border-radius:2px;height:4px;overflow:hidden;line-height:4px;font-size:0;">
+                  <div style="width:${scoreBarWidth}%;height:4px;background:${isGoodScore ? 'linear-gradient(90deg,#34D399,#10B981)' : 'linear-gradient(90deg,#9B87D8,#E0707A)'};border-radius:2px;"></div>
+                </td></tr>
               </table>
-
-              <p style="margin:16px 0 0 0;font-family:Arial,sans-serif;font-size:14px;line-height:21px;
-                color:#999999;text-align:center;">
-                La plupart des corrections prennent moins d'une heure.
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#555555;line-height:18px;">
+                ${errors > 0 ? `<strong style="color:#FFFFFF;">${errors} erreur${errors > 1 ? 's' : ''} critique${errors > 1 ? 's' : ''}</strong> &nbsp;·&nbsp;` : ''}Analysé le ${dateStr}
               </p>
+            </td></tr>
+          </table>
 
-              <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#444444;">
+            ${isGoodScore
+              ? `Ton site a un bon niveau de visibilité IA — <strong style="color:#0F0F0F;">${scoreVal}/100</strong>. ChatGPT, Perplexity et Google AI commencent à te référencer. Voici ce qu'il reste à optimiser pour aller encore plus loin.`
+              : `Un score de <strong style="color:#0F0F0F;">${scoreVal}/100</strong> signifie que les moteurs IA — ChatGPT, Perplexity, Google AI — ont du mal à lire et citer ton site. Voici les points qui pèsent le plus sur ce résultat.`}
+          </p>
 
-              <!-- CITATION -->
-              <p style="margin:0 0 24px 0;font-family:Georgia,serif;font-size:16px;line-height:26px;color:#555555;font-style:italic;text-align:center;padding:0 16px;">
-                « Ce qui ne se mesure pas ne s'améliore pas. »
-              </p>
+          ${hasIssues ? `<!-- ERREURS -->
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
+            <tr><td style="background:#F6F6F5;border:1px solid #EBEBEB;border-radius:10px;padding:20px 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                ${criticalRows}${importantRows}
+              </table>
+            </td></tr>
+          </table>` : ''}
 
-              <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
-                L'équipe UseWok<br>
-                <span style="color:#AAAAAA;font-size:13px;">hello@usewok.com</span>
-              </p>
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
+            Chaque point est documenté dans ton rapport : cause exacte, impact sur ta visibilité IA, et correction étape par étape.
+          </p>
 
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr><td align="center" style="padding:8px 0 16px 0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr><td align="center" bgcolor="#0F0F0F" style="border-radius:300px;">
+                  <a href="https://app.usewok.com/ai-report" style="display:inline-block;padding:14px 36px;background:#0F0F0F;color:#FFFFFF!important;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none!important;border-radius:300px;">
+                    Voir mon rapport complet →
+                  </a>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <p style="margin:4px 0 0 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#AAAAAA;text-align:center;">
+            La plupart des corrections prennent moins d'une heure.
+          </p>
+
+          <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
+
+          <p style="margin:0 0 24px 0;font-family:Georgia,serif;font-size:15px;line-height:25px;color:#666666;font-style:italic;text-align:center;padding:0 16px;">
+            « Ce qui ne se mesure pas ne s'améliore pas. »
+          </p>
+
+          <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#0F0F0F;">
+            L'équipe UseWok<br>
+            <span style="color:#AAAAAA;font-size:12px;">hello@usewok.com</span>
+          </p>
+
+        </td></tr>
+      </table>
+    </td></tr>
 
     <!-- FOOTER -->
-    <tr>
-      <td align="center" style="padding:24px 16px 40px 16px;">
-        ${emailFooter('')}
-      </td>
-    </tr>
+    <tr><td align="center" style="padding:24px 16px 40px 16px;">${emailFooter('')}</td></tr>
   </table>
 </body>
 </html>`,
@@ -416,7 +367,7 @@ function emailNoScanJ3({ firstName, siteUrl, score, criticalErrors, issues }) {
   const topIssue = issuesList.find(i => i.urgency === 'high') || issuesList[0];
   const topIssueText = topIssue?.problem || '';
   const insightLine = scoreVal > 0
-    ? `Ton score actuel est <strong style="color:#0F0F0F;">${scoreVal}/100</strong>${errors > 0 ? ` avec <strong>${errors} erreur${errors > 1 ? 's' : ''} critique${errors > 1 ? 's' : ''}</strong>` : ''} — voici exactement pourquoi.`
+    ? `Ton score actuel est <strong style="color:#0F0F0F;">${scoreVal}/100</strong>${errors > 0 ? ` avec <strong>${errors} erreur${errors > 1 ? 's' : ''} critique${errors > 1 ? 's' : ''}</strong>` : ''} — voici exactement pourquoi les IA t'ignorent.`
     : `Voici exactement pourquoi les IA ignorent la majorité des sites comme ${site}.`;
 
   return {
@@ -575,7 +526,6 @@ function emailFinalOffer({ firstName, siteUrl, score, criticalErrors, issues }) 
   const name = firstName || 'toi';
   const site = (siteUrl || 'ton site').replace(/^https?:\/\//, '').split('/')[0];
   const scoreVal = score || 0;
-  const errors = criticalErrors || 0;
   const issuesList = issues || [];
   const topIssue = issuesList.find(i => i.urgency === 'high') || issuesList[0];
   const topIssueText = topIssue?.problem || '';
@@ -601,115 +551,89 @@ function emailFinalOffer({ firstName, siteUrl, score, criticalErrors, issues }) 
       <table class="card" role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
 
         <!-- BANNER -->
-        <tr><td style="padding:0;line-height:0;font-size:0;border-radius:12px 12px 0 0;">
+        <tr><td style="padding:0;line-height:0;font-size:0;">
           <a href="https://usewok.com" style="display:block;text-decoration:none;line-height:0;">
-            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/d8f786b6f_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border-radius:12px 12px 0 0;border:0;">
+            <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/1893e96a2_image.png" alt="UseWok" width="600" style="width:600px;max-width:100%;height:auto;display:block;border:0;">
           </a>
         </td></tr>
 
         <!-- CONTENU -->
         <tr><td class="content" style="padding:40px 48px 50px 48px;">
 
-          <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#0F0F0F;">Salut ${name},</p>
+          <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#AAAAAA;">Dernière chance</p>
 
-          <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:17px;font-weight:900;line-height:26px;color:#0F0F0F;letter-spacing:-0.02em;">
-            Pendant que tu lis cet email, quelqu'un cherche exactement ce que tu fais sur ChatGPT.
+          <h1 style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:26px;font-weight:900;line-height:32px;color:#0F0F0F;letter-spacing:-0.03em;">
+            Tes concurrents captent ces clients — voici la preuve
+          </h1>
+
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#555555;">
+            Salut ${name},<br><br>
+            Pendant que tu lis cet email, quelqu'un cherche exactement ce que tu fais sur ChatGPT. Ce n'est pas une métaphore — et ton concurrent, lui, <strong style="color:#0F0F0F;">a déjà répondu à sa place</strong>.
           </p>
 
-          <p style="margin:0 0 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:26px;color:#555555;">
-            Ce n'est pas une métaphore. C'est ce qui se passe en ce moment — et ton concurrent, lui, <strong style="color:#0F0F0F;">a déjà répondu à sa place</strong>.
-          </p>
-
-          <!-- PROOF BLOCK — Comparatif fictif réaliste -->
-          <p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que voit un client quand il demande à ChatGPT</p>
+          <!-- COMPARATIF -->
+          <p style="margin:0 0 14px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que voit un client quand il demande à ChatGPT</p>
 
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
             <tr>
-              <!-- TON SITE (rouge) -->
               <td width="48%" valign="top" style="background:#FFF5F5;border:1px solid #FFDDDD;border-radius:10px;padding:20px 18px;">
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#D93025;">
-                  ❌ Ton site aujourd'hui
-                </p>
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#7A0000;font-style:italic;">
-                  "Je ne trouve pas d'informations structurées sur cette entreprise. Je ne peux pas confirmer son expertise."
-                </p>
+                <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#D93025;">❌ Ton site aujourd'hui</p>
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#7A0000;font-style:italic;">"Je ne trouve pas d'informations structurées sur cette entreprise. Je ne peux pas confirmer son expertise."</p>
                 <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#AAAAAA;">— Ce que dit ChatGPT à tes clients potentiels</p>
               </td>
               <td width="4%"></td>
-              <!-- CONCURRENT (vert) -->
               <td width="48%" valign="top" style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:20px 18px;">
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#059669;">
-                  ✓ Ton concurrent optimisé
-                </p>
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#064E3B;font-style:italic;">
-                  "Je recommande [Concurrent] — ils sont spécialisés, bien référencés, et leurs clients témoignent de résultats concrets."
-                </p>
+                <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#059669;">✓ Ton concurrent optimisé</p>
+                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:13px;line-height:20px;color:#064E3B;font-style:italic;">"Je recommande [Concurrent] — ils sont spécialisés, bien référencés, et leurs clients témoignent de résultats concrets."</p>
                 <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#6EE7B7;">— Ce que dit ChatGPT à ces mêmes clients</p>
               </td>
             </tr>
           </table>
 
-          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:26px;color:#555555;">
-            La différence entre les deux ? <strong style="color:#0F0F0F;">Pas le budget. Pas l'ancienneté.</strong> Juste 3 corrections techniques que les IA lisent — et que ton site n'a pas encore.
+          <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#555555;">
+            La différence ? <strong style="color:#0F0F0F;">Pas le budget. Pas l'ancienneté.</strong> Juste 3 corrections techniques que les IA lisent — et que ton site n'a pas encore.
           </p>
 
           ${topIssueText ? `<!-- PROBLÈME PERSONNALISÉ -->
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
             <tr><td style="background:#0F0F0F;border-radius:10px;padding:24px 28px;">
-              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#666666;">Ce qu'on a détecté sur ${site}</p>
-              <p style="margin:0 0 14px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#FFFFFF;">${topIssueText}</p>
-              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#555555;">C'est corrigeable en moins d'une heure. Le guide étape par étape est dans ton rapport.</p>
+              <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#555555;">Ce qu'on a détecté sur ${site}</p>
+              <p style="margin:0 0 12px 0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#FFFFFF;">${topIssueText}</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#555555;">Corrigeable en moins d'une heure. Le guide est dans ton rapport.</p>
             </td></tr>
-          </table>` : `
-          <!-- SCORE BLOCK -->
+          </table>` : `<!-- SCORE BLOCK -->
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
             <tr><td style="background:#0F0F0F;border-radius:10px;padding:24px 28px;">
-              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#666666;">Ton score actuel</p>
-              <p style="margin:0 0 14px 0;">
-                <span style="font-family:Arial,sans-serif;font-size:56px;font-weight:900;color:#FFFFFF;line-height:1;letter-spacing:-2px;">${scoreVal}</span>
-                <span style="font-family:Arial,sans-serif;font-size:20px;font-weight:300;color:#555555;">/100</span>
+              <p style="margin:0 0 6px 0;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#555555;">Ton score actuel</p>
+              <p style="margin:0 0 12px 0;">
+                <span style="font-family:Arial,sans-serif;font-size:56px;font-weight:900;color:#FFFFFF;line-height:1;letter-spacing:-2px;">${scoreVal}</span><span style="font-family:Arial,sans-serif;font-size:20px;font-weight:300;color:#555555;">/100</span>
               </p>
-              <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#555555;">Chaque point en dessous de 70 = un concurrent qui capte ce client à ta place.</p>
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#555555;">Chaque point en dessous de 70 = un concurrent qui capte ce client à ta place.</p>
             </td></tr>
           </table>`}
 
-          <!-- CE QUE USEWOK FAIT CONCRÈTEMENT -->
-          <p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que UseWok corrige pour toi</p>
+          <!-- CE QUE USEWOK FAIT -->
+          <p style="margin:0 0 14px 0;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#AAAAAA;">Ce que UseWok corrige pour toi</p>
 
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
             <tr><td style="background:#F6F6F5;border-radius:10px;padding:20px 24px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr><td style="padding:0 0 14px 0;border-bottom:1px solid #E5E5E5;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
-                    <td valign="top" style="padding-right:14px;padding-top:2px;">
-                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
-                    </td>
-                    <td>
-                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Génère le code exact à copier-coller</p>
-                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">JSON-LD Organization, FAQPage, BreadcrumbList — adapté à ton site, prêt en 30 secondes. Même sans développeur.</p>
-                    </td>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">1</div></td>
+                    <td><p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Génère le code exact à copier-coller</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">JSON-LD Organization, FAQPage, BreadcrumbList — adapté à ton site, prêt en 30 secondes. Même sans développeur.</p></td>
                   </tr></table>
                 </td></tr>
                 <tr><td style="padding:14px 0;border-bottom:1px solid #E5E5E5;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
-                    <td valign="top" style="padding-right:14px;padding-top:2px;">
-                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
-                    </td>
-                    <td>
-                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Mesure ton évolution en temps réel</p>
-                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Score avant/après pour chaque correction. Tu vois exactement si ChatGPT commence à te citer.</p>
-                    </td>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">2</div></td>
+                    <td><p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Mesure ton évolution en temps réel</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Score avant/après pour chaque correction. Tu vois exactement si ChatGPT commence à te citer.</p></td>
                   </tr></table>
                 </td></tr>
                 <tr><td style="padding:14px 0 0 0;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
-                    <td valign="top" style="padding-right:14px;padding-top:2px;">
-                      <div style="width:8px;height:8px;border-radius:50%;background:#0F0F0F;margin-top:6px;"></div>
-                    </td>
-                    <td>
-                      <p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Surveille tes 5 concurrents directs</p>
-                      <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Tu sais qui gagne du terrain sur les IA avant même que tes clients ne le remarquent.</p>
-                    </td>
+                    <td valign="top" style="padding-right:14px;padding-top:2px;"><div style="width:28px;height:28px;background:#0F0F0F;border-radius:50%;text-align:center;line-height:28px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#FFFFFF;">3</div></td>
+                    <td><p style="margin:0 0 3px 0;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0F0F0F;">Surveille tes 5 concurrents directs</p><p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#666666;line-height:19px;">Tu sais qui gagne du terrain sur les IA avant même que tes clients ne le remarquent.</p></td>
                   </tr></table>
                 </td></tr>
               </table>
@@ -731,12 +655,12 @@ function emailFinalOffer({ firstName, siteUrl, score, criticalErrors, issues }) 
             </tr>
           </table>
 
-          <!-- CTA FINAL -->
+          <!-- CTA -->
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr><td align="center" style="padding:0 0 8px 0;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr><td align="center" bgcolor="#0F0F0F" style="border-radius:300px;">
-                  <a href="https://app.usewok.com/pricing" style="display:inline-block;padding:16px 40px;background:#0F0F0F;color:#FFFFFF !important;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none !important;border-radius:300px;letter-spacing:0.1px;">
+                  <a href="https://app.usewok.com/pricing" style="display:inline-block;padding:16px 40px;background:#0F0F0F;color:#FFFFFF!important;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none!important;border-radius:300px;">
                     Commencer à apparaître sur les IA →
                   </a>
                 </td></tr>
@@ -744,15 +668,15 @@ function emailFinalOffer({ firstName, siteUrl, score, criticalErrors, issues }) 
             </td></tr>
           </table>
 
-          <p style="margin:14px 0 0 0;font-family:Arial,sans-serif;font-size:12px;line-height:19px;color:#AAAAAA;text-align:center;">
+          <p style="margin:12px 0 0 0;font-family:Arial,sans-serif;font-size:12px;line-height:19px;color:#AAAAAA;text-align:center;">
             Essai gratuit inclus. Ton rapport complet est déjà prêt.<br>
             <a href="https://app.usewok.com/ai-report" style="color:#AAAAAA;text-decoration:underline;">Voir mon rapport d'abord</a>
           </p>
 
           <div style="height:1px;background:#EBEBEB;margin:36px 0 30px 0;"></div>
 
-          <p style="margin:0;font-family:Arial,sans-serif;font-size:15px;line-height:24px;color:#0F0F0F;">
-            L'équipe UseWok<br><span style="color:#AAAAAA;font-size:13px;">hello@usewok.com</span>
+          <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#0F0F0F;">
+            L'équipe UseWok<br><span style="color:#AAAAAA;font-size:12px;">hello@usewok.com</span>
           </p>
 
         </td></tr>
