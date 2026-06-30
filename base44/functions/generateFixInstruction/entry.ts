@@ -117,16 +117,14 @@ Deno.serve(async (req) => {
 
     if (isNoCode) {
       promptSection = `RÉPONDS POUR UN NO-CODE (Wix/WordPress/Squarespace — zéro code):
-- summary: 1 phrase simple + 1 chiffre clé. Pourquoi ça bloque.
-- steps: 2 à 3 étapes MAX. Chaque étape = un chemin de clics concret.
-  Ex: "1. Dans WordPress, va dans Pages > [nom de ta page] > Modifier"
-      "2. Clique sur l'onglet 'SEO' puis remplis le champ 'Meta description' avec: [texte suggéré]"
-      "3. Clique sur 'Mettre à jour' en haut à droite"
-  Si impossible sans dev: steps = ["⚠️ Cette correction nécessite un développeur car [raison simple, ex: il faut modifier le JSON-LD]"]
+- summary: 1 phrase courte + 1 chiffre clé. Pourquoi ça bloque.
+- prompt: LE PROMPT EXACT à copier-coller dans ChatGPT ou Claude pour résoudre ce problème.
+  Format: "Copie ceci dans ChatGPT ou Claude:\n\n[prompt sur 2-4 lignes, 100% prêt, avec placeholders en [CROCHETS]]\n\nPuis copie la réponse dans [endroit exact du site]"
+  Le prompt doit générer un résultat que l'utilisateur colle DIRECTEMENT dans son site.
 - time_estimate: "10 min" / "30 min" / "1h"
-- type: "seul" ou "avec aide"`;
-      jsonFieldSpec = `"steps" (array de strings)`;
-      requiredFields = ['summary', 'steps', 'time_estimate'];
+- type: "seul"`;
+      jsonFieldSpec = `"prompt" (string)`;
+      requiredFields = ['summary', 'prompt', 'time_estimate'];
     } else if (isAiNoCode) {
       promptSection = `RÉPONDS POUR UN UTILISATEUR QUI UTILISE CHATGPT/CLAUDE:
 - summary: 1 phrase simple. Pourquoi ça bloque.

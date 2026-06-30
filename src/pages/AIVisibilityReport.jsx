@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, RefreshCw, X, Zap, Clock, Lock,
   AlertTriangle, BarChart2, TrendingUp, CheckCircle2,
-  ChevronDown, Sparkles, Target, ArrowRight, Bookmark
+  ChevronDown, Sparkles, Target, ArrowRight, Bookmark, Copy, Check
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
@@ -83,22 +83,33 @@ function normalizeIssueKey(text) {
 const FIX_MEM = {};
 
 function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
+  const [copied, setCopied] = useState(false);
+
+  // Determine tech_level from profile.user_preferences (JSON string)
+  const techLevel = (() => {
+    try {
+      const prefs = typeof profile?.user_preferences === 'string'
+        ? JSON.parse(profile.user_preferences)
+        : profile?.user_preferences || {};
+      return prefs.tech_level || 'no_code';
+    } catch { return 'no_code'; }
+  })();
+
   const issueKey = normalizeIssueKey(issue?.text || '');
-  const [content, setContent] = useState(() => FIX_MEM[issueKey] || null);
-  const [loading, setLoading] = useState(!FIX_MEM[issueKey] && !isFree);
+  const cacheKey = `${issueKey}__${techLevel}`;
+  const [content, setContent] = useState(() => FIX_MEM[cacheKey] || null);
+  const [loading, setLoading] = useState(!FIX_MEM[cacheKey] && !isFree);
 
   useEffect(() => {
     if (!issue) return;
     if (isFree) { setLoading(false); return; }
-    // Already in session memory → instant
-    if (FIX_MEM[issueKey]) { setContent(FIX_MEM[issueKey]); setLoading(false); return; }
+    if (FIX_MEM[cacheKey]) { setContent(FIX_MEM[cacheKey]); setLoading(false); return; }
 
     setLoading(true);
     setContent(null);
 
-    // Always check DB first (persists across refreshes & devices)
     const checkDB = user?.id
-      ? base44.entities.UserFixCache.filter({ user_id: user.id, issue_key: issueKey }).catch(() => [])
+      ? base44.entities.UserFixCache.filter({ user_id: user.id, issue_key: cacheKey }).catch(() => [])
       : Promise.resolve([]);
 
     checkDB.then(async (cached) => {
@@ -106,41 +117,52 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
         const c = cached[0];
         let steps = [];
         try { steps = JSON.parse(c.steps || '[]'); } catch {}
-        const data = { summary: c.summary, steps, time_estimate: c.time_estimate, type: c.fix_type, from_cache: true };
-        FIX_MEM[issueKey] = data;
+        const data = {
+          summary: c.summary, steps,
+          prompt: c.prompt || null,
+          explanation: c.explanation || null,
+          time_estimate: c.time_estimate, type: c.fix_type,
+          profile_type: c.profile_type || techLevel,
+          from_cache: true
+        };
+        FIX_MEM[cacheKey] = data;
         setContent(data);
         setLoading(false);
         return;
       }
 
-      // Not in DB — call backend (backend handles LLM + DB write atomically)
-      let userProfile = {};
-      try { userProfile = JSON.parse(localStorage.getItem('wok_user_profile') || '{}'); } catch {}
-
       const res = await base44.functions.invoke('generateFixInstruction', {
         issue: issue.text,
-        profile: {
+        businessProfile: {
           site_url: profile?.site_url,
-          business_name: profile?.identity_name,
-          business_type: profile?.identity_industry
+          identity_name: profile?.identity_name,
+          identity_industry: profile?.identity_industry,
+          user_preferences: profile?.user_preferences,
         },
-        user_profile: userProfile,
-        crawl_data: profile?._crawl || {},
       }).catch(() => null);
 
       if (res?.data && !res.data.error) {
-        FIX_MEM[issueKey] = res.data;
+        FIX_MEM[cacheKey] = res.data;
         setContent(res.data);
       }
       setLoading(false);
     });
-  }, [issueKey, isFree]);
+  }, [cacheKey, isFree]);
 
   if (!issue) return null;
   const steps = content?.steps || [];
   const summary = content?.summary || '';
+  const prompt = content?.prompt || '';
+  const explanation = content?.explanation || '';
   const timeEstimate = content?.time_estimate || '';
   const fixType = content?.type || '';
+  const profileType = content?.profile_type || techLevel;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt || explanation || summary);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Badge "Faisable seul" : fond beige #F5F0E6, bordure #E8DFD0, coche verte, texte vert foncé
   // Badge horloge : fond blanc, bordure gris clair, icône horloge gris, texte gris foncé
@@ -158,7 +180,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
         <div style={{ padding: '20px 18px 14px', borderBottom: '1px solid #EBEBEB', background: '#FFFFFF', flexShrink: 0 }}>
           {/* Label CORRECTION + X */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 {/* Point coral */}
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
@@ -167,7 +189,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
                 </span>
               </div>
               {/* Titre gras, grand */}
-              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#1A1A1A', margin: 0, lineHeight: 1.35, letterSpacing: '-0.025em' }}>{issue.text}</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#1A1A1A', margin: 0, lineHeight: 1.35, letterSpacing: '-0.025em', overflowWrap: 'anywhere' }}>{issue.text}</h2>
             </div>
             {/* Bouton X rond */}
             <button onClick={onClose}
@@ -248,6 +270,44 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
                 </div>
               )}
 
+              {/* Prompt à copier-coller (no_code + ai_nocode) */}
+              {prompt && (
+                <div style={{ margin: '0 18px 16px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    ➡️ Copie ceci dans ChatGPT ou Claude:
+                  </p>
+                  <div style={{
+                    background: '#F8F7F4', border: '1px solid #E8E6E1',
+                    borderRadius: 12, padding: '14px 16px',
+                    fontSize: 12.5, color: '#1A1A1A', lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap', fontFamily: 'monospace',
+                    maxHeight: 240, overflowY: 'auto',
+                  }}>
+                    {prompt}
+                  </div>
+                  <button
+                    onClick={handleCopy}
+                    style={{
+                      marginTop: 10, width: '100%', padding: '12px',
+                      background: copied ? '#059669' : '#7C3AED',
+                      color: '#fff', border: 'none', borderRadius: 10,
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      transition: 'background 0.2s',
+                    }}
+                  >
+                    {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
+                  </button>
+                </div>
+              )}
+
+              {/* Explication (developer) */}
+              {explanation && !prompt && (
+                <div style={{ margin: '0 18px 16px', padding: '14px 16px', background: '#F3E8FF', borderRadius: 12 }}>
+                  <p style={{ fontSize: 13, color: '#4B2A8C', margin: 0, lineHeight: 1.65 }}>{explanation}</p>
+                </div>
+              )}
+
               {/* Label section */}
               {steps.length > 0 && (
                 <div style={{ padding: '4px 18px 20px' }}>
@@ -276,10 +336,10 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
                           }}>
                             <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>{i + 1}</span>
                           </div>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 14.5, color: '#1A1A1A', margin: result ? '0 0 8px' : 0, lineHeight: 1.55, fontWeight: 500 }}>{action}</p>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 14.5, color: '#1A1A1A', margin: result ? '0 0 8px' : 0, lineHeight: 1.55, fontWeight: 500, overflowWrap: 'anywhere' }}>{action}</p>
                             {result && (
-                              <p style={{ fontSize: 13, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.5 }}>→ {result}</p>
+                              <p style={{ fontSize: 13, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.5, overflowWrap: 'anywhere' }}>→ {result}</p>
                             )}
                           </div>
                         </div>

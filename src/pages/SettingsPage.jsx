@@ -65,25 +65,28 @@ function Badge({ color = 'green', children }) {
 
 function PreferencesPanel({ user, profile, onSave }) {
   const [prefs, setPrefs] = useState(() => {
-    if (!profile?.user_preferences) return { tech_level: 'no_code', main_goal: 'more_clients', trade: '', maturity: '' };
+    if (!profile?.user_preferences) return { tech_level: 'no_code' };
     try {
-      return JSON.parse(profile.user_preferences);
+      const p = JSON.parse(profile.user_preferences);
+      return { tech_level: p.tech_level || 'no_code' };
     } catch {
-      return { tech_level: 'no_code', main_goal: 'more_clients', trade: '', maturity: '' };
+      return { tech_level: 'no_code' };
     }
   });
   const [saving, setSaving] = useState(false);
 
-  const handleSave = async () => {
+  const handleSelect = async (techLevel) => {
+    const newPrefs = { ...prefs, tech_level: techLevel };
+    setPrefs(newPrefs);
     if (!profile?.id) return;
     setSaving(true);
     try {
       await base44.entities.BusinessProfile.update(profile.id, {
-        user_preferences: JSON.stringify(prefs),
+        user_preferences: JSON.stringify(newPrefs),
       });
-      toast.success('Préférences sauvegardées');
-      if (onSave) onSave(); // Trigger reload in parent
-    } catch (err) {
+      toast.success('Profil mis à jour');
+      if (onSave) onSave();
+    } catch {
       toast.error('Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
@@ -91,95 +94,48 @@ function PreferencesPanel({ user, profile, onSave }) {
   };
 
   const techLevels = [
-    { key: 'no_code', label: 'Sans code (Wix, WordPress, Squarespace)', desc: 'Interface cliquable simple' },
-    { key: 'ai_nocode', label: 'Avec ChatGPT/Claude', desc: 'Prompts prêts à copier-coller' },
-    { key: 'developer', label: 'Développeur', desc: 'Code exact, JSON-LD, API' },
-  ];
-
-  const goals = [
-    { key: 'more_clients', label: 'Plus de clients' },
-    { key: 'local_visibility', label: 'Visibilité locale' },
-    { key: 'brand_authority', label: 'Autorité secteur' },
+    { key: 'no_code', icon: '🖱️', label: 'Sans code', desc: 'Wix, WordPress, Squarespace — je clique, je ne code pas', recommended: true },
+    { key: 'ai_nocode', icon: '🤖', label: 'Avec ChatGPT/Claude', desc: 'Je copie-colle un prompt dans une IA, puis le résultat dans mon site' },
+    { key: 'developer', icon: '💻', label: 'Développeur', desc: 'Code exact, JSON-LD, API' },
   ];
 
   if (!profile) return null;
 
   return (
     <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-      <SectionTitle>Préférences Personnalisées</SectionTitle>
-      <p style={{ fontSize: 12, color: '#666', margin: '0 0 12px', lineHeight: 1.5 }}>
-        Ces préférences personnalisent les corrections UseWok et les prompts IA pour s'adapter à votre profil.
+      <SectionTitle>Comment je corrige mon site</SectionTitle>
+      <p style={{ fontSize: 12, color: '#666', margin: '0 0 14px', lineHeight: 1.5 }}>
+        Choisissez votre niveau. Chaque correction s'adaptera automatiquement.
       </p>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Profil technique</label>
-        <select
-          value={prefs.tech_level}
-          onChange={(e) => setPrefs({ ...prefs, tech_level: e.target.value })}
-          style={{ ...inputStyle, cursor: 'pointer' }}
-        >
-          {techLevels.map(t => (
-            <option key={t.key} value={t.key}>{t.label} • {t.desc}</option>
-          ))}
-        </select>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {techLevels.map(t => {
+          const selected = prefs.tech_level === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => handleSelect(t.key)}
+              disabled={saving}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                border: `1.5px solid ${selected ? '#111' : 'rgba(0,0,0,0.10)'}`,
+                borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                background: selected ? '#F5F5F3' : '#fff',
+                opacity: saving ? 0.6 : 1, transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{t.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{t.label}</span>
+                  {t.recommended && <span style={{ fontSize: 9, fontWeight: 700, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>Recommandé</span>}
+                </div>
+                <p style={{ fontSize: 11, color: '#888', margin: '2px 0 0', lineHeight: 1.4 }}>{t.desc}</p>
+              </div>
+              {selected && (<Check style={{ width: 16, height: 16, color: '#111', flexShrink: 0 }} />)}
+            </button>
+          );
+        })}
       </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Objectif principal</label>
-        <select
-          value={prefs.main_goal}
-          onChange={(e) => setPrefs({ ...prefs, main_goal: e.target.value })}
-          style={{ ...inputStyle, cursor: 'pointer' }}
-        >
-          {goals.map(g => (
-            <option key={g.key} value={g.key}>{g.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Secteur d'activité</label>
-        <input
-          type="text"
-          placeholder="Ex: Plomberie, Graphisme, Fitness..."
-          value={prefs.trade || ''}
-          onChange={(e) => setPrefs({ ...prefs, trade: e.target.value })}
-          style={inputStyle}
-        />
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: '#111' }}>Maturité business</label>
-        <select
-          value={prefs.maturity || ''}
-          onChange={(e) => setPrefs({ ...prefs, maturity: e.target.value })}
-          style={{ ...inputStyle, cursor: 'pointer' }}
-        >
-          <option value="">--</option>
-          <option value="solo">Solo/Freelance</option>
-          <option value="startup">Startup (1-5 personnes)</option>
-          <option value="pme">PME (5-50 personnes)</option>
-          <option value="enterprise">Entreprise (50+)</option>
-        </select>
-      </div>
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{
-          padding: '8px 14px',
-          background: saving ? '#ccc' : '#111',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 6,
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: saving ? 'default' : 'pointer',
-          opacity: saving ? 0.6 : 1,
-        }}
-      >
-        {saving ? 'Sauvegarde...' : 'Sauvegarder les préférences'}
-      </button>
     </div>
   );
 }
