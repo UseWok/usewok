@@ -67,7 +67,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
 
   useEffect(() => {
     if (cachedFix) { setFix(cachedFix); setLoading(false); return; }
-    // Call backend
+    // Call backend — pass full profile with preferences
     base44.functions.invoke('generateFixInstruction', {
       issueId,
       issueProblem: issue,
@@ -77,14 +77,16 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
         identity_city: profile?.identity_city,
         site_url: profile?.site_url,
         identity_target: profile?.identity_target,
+        user_preferences: profile?.user_preferences, // Pass preferences to detect tech_level
       },
     }).then(res => {
       const data = res?.data;
       setFix(data);
       setLoading(false);
       if (data && onFixSaved) onFixSaved(issueId, data);
-    }).catch(() => {
-      setFix({ type: 'TEXTE', content: 'Impossible de générer les instructions.', instruction: '' });
+    }).catch(err => {
+      console.error('Error generating fix:', err);
+      setFix({ summary: 'Impossible de générer les instructions.', steps: [] });
       setLoading(false);
     });
   }, []);
@@ -133,49 +135,89 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
               <ThinkingAnimation />
             ) : fix ? (
               <div>
-                {/* Type badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                {/* Profile badge */}
+                <div style={{ marginBottom: 16 }}>
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px',
-                    borderRadius: 20, fontSize: 11, fontWeight: 700,
-                    background: isText ? '#ECFDF5' : '#EFF6FF',
-                    color: isText ? '#059669' : '#2563EB',
+                    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px',
+                    borderRadius: 6, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    background: fix.profile_type === 'no_code' ? '#FEF3C7' : fix.profile_type === 'ai_nocode' ? '#DDD6FE' : '#F3E8FF',
+                    color: fix.profile_type === 'no_code' ? '#B45309' : fix.profile_type === 'ai_nocode' ? '#5B21B6' : '#6B21A8',
                   }}>
-                    {isText ? <FileText size={12} /> : <Wrench size={12} />}
-                    {isText ? 'Modification de texte' : 'Action technique'}
+                    {fix.profile_type === 'no_code' && '🖱️ No-Code'}
+                    {fix.profile_type === 'ai_nocode' && '🤖 IA Helper'}
+                    {fix.profile_type === 'developer' && '💻 Developer'}
                   </div>
                 </div>
 
-                {/* Instruction */}
-                <p style={{ fontSize: 13, color: '#444', marginBottom: 14, lineHeight: 1.5 }}>
-                  <strong>{fix.instruction}</strong>
+                {/* Summary (the key info) */}
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 12, lineHeight: 1.5 }}>
+                  {fix.summary}
                 </p>
 
-                {/* Content box */}
-                <div style={{
-                  background: '#F8F7F4', border: '1px solid #E8E6E1',
-                  borderRadius: 12, padding: '14px 16px',
-                  fontSize: 13, color: '#1a1a1a', lineHeight: 1.65,
-                  whiteSpace: 'pre-wrap', fontFamily: isText ? 'inherit' : 'monospace',
-                  maxHeight: 220, overflowY: 'auto',
-                }}>
-                  {fix.content}
-                </div>
+                {/* Steps or Prompt */}
+                {fix.prompt ? (
+                  // AI-NOCODE: show the prompt
+                  <div>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      ➡️ Copie ceci dans ChatGPT ou Claude:
+                    </p>
+                    <div style={{
+                      background: '#F8F7F4', border: '1px solid #E8E6E1',
+                      borderRadius: 12, padding: '14px 16px',
+                      fontSize: 12, color: '#1a1a1a', lineHeight: 1.6,
+                      whiteSpace: 'pre-wrap', fontFamily: 'monospace',
+                      maxHeight: 240, overflowY: 'auto',
+                    }}>
+                      {fix.prompt}
+                    </div>
+                  </div>
+                ) : fix.steps && fix.steps.length > 0 ? (
+                  // NO-CODE or DEVELOPER: show steps
+                  <div>
+                    {fix.steps.map((step, i) => (
+                      <div key={i} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: i < fix.steps.length - 1 ? '1px solid #E8E6E1' : 'none' }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Étape {i + 1}
+                        </p>
+                        <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6 }}>
+                          {step}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : fix.explanation ? (
+                  // DEVELOPER: explanation
+                  <div>
+                    <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6 }}>
+                      {fix.explanation}
+                    </p>
+                  </div>
+                ) : null}
 
-                {/* Copy button */}
-                <button
-                  onClick={handleCopy}
-                  style={{
-                    marginTop: 14, width: '100%', padding: '12px',
-                    background: copied ? '#059669' : '#7C3AED',
-                    color: '#fff', border: 'none', borderRadius: 10,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le contenu</>}
-                </button>
+                {/* Time estimate */}
+                {fix.time_estimate && (
+                  <p style={{ fontSize: 11, color: '#888', marginTop: 12, paddingTop: 12, borderTop: '1px solid #E8E6E1' }}>
+                    ⏱️ Temps estimé: <strong>{fix.time_estimate}</strong>
+                  </p>
+                )}
+
+                {/* Copy prompt button (only for ai_nocode) */}
+                {fix.prompt && (
+                  <button
+                    onClick={handleCopy}
+                    style={{
+                      marginTop: 14, width: '100%', padding: '12px',
+                      background: copied ? '#059669' : '#7C3AED',
+                      color: '#fff', border: 'none', borderRadius: 10,
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      transition: 'background 0.2s',
+                    }}
+                  >
+                    {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
+                  </button>
+                )}
               </div>
             ) : null}
           </div>

@@ -78,7 +78,14 @@ Deno.serve(async (req) => {
 
       base44.asServiceRole.entities.FixLibrary.update(match.id, { use_count: (match.use_count || 1) + 1 }).catch(() => {});
 
-      return Response.json({ summary: match.summary, steps, time_estimate: match.time_estimate, type: match.type || 'autonome', from_cache: true });
+      return Response.json({ 
+        summary: match.summary, 
+        steps, 
+        time_estimate: match.time_estimate, 
+        type: match.type || 'autonome',
+        profile_type: techLevel,
+        from_cache: true 
+      });
     }
 
     // ── 3. Générer via LLM (uniquement si aucun cache) ──
@@ -132,51 +139,43 @@ Dans tes étapes :
 Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
 ` : '';
 
-    const prompt = `Tu es un expert AEO AUTHENTIQUE qui connais ${businessName} (${industry}). CONTEXTE RÉEL:
-- Site: ${siteUrl}
-- Secteur: ${industry}
-- Niveau: ${userProfile.business_size || 'solo'}
-- Objectif principal: ${mainGoal === 'more_clients' ? 'Attirer plus de clients' : mainGoal === 'local_visibility' ? 'Visibilité locale/géographique' : mainGoal === 'brand_authority' ? 'Être expert référent du secteur' : 'Dépasser les concurrents'}
-- Profil: ${techLevel === 'no_code' ? 'NO-CODE (Wix/WordPress standard, pas de dev)' : techLevel === 'ai_nocode' ? 'AI-HELPER (utilise ChatGPT/Claude/Make)' : 'DEVELOPER (a accès au code)'}
+    const profileTypeLabel = techLevel === 'no_code' ? 'no_code' : techLevel === 'ai_nocode' ? 'ai_nocode' : 'developer';
+    
+    const prompt = `Tu aides ${businessName} (${industry}) à corriger: "${issueProblem}"
 
-PROBLÈME À CORRIGER: "${issueProblem}"
+PROFIL: ${profileTypeLabel === 'no_code' ? '🖱️ NO-CODE (pas de dev, juste des clics)' : profileTypeLabel === 'ai_nocode' ? '🤖 IA HELPER (utilise ChatGPT/Claude)' : '💻 DEVELOPER (code + terminal)'}
 
-${techLevel === 'no_code' ? `
-INSTRUCTIONS POUR NO-CODE:
-Donne 2-3 étapes CONCRETS ET AUTHENTIQUES pour un ${businessSize} qui gère tout seul:
-- Chaque étape = 1 CHEMIN EXACT dans Wix/WordPress/Squarespace ("Tableau de bord > Pages > [nom réel] > Paramètres > [champ]")
-- Utilise les vrais noms de sections qu'on voit dans ces outils
-- Si c'est impossible sans code: "Tu dois contacter un développeur car ça demande [raison précise]"
-- Sois BREF et CLAIR comme si tu parlais à un artisan qui veut comprendre sans jargon
-- Donne des chiffres réalistes de temps ("15 min", pas "quelques jours")
-- Donne la raison CONCRÈTE pourquoi ça améliore la visibilité IA (ex: "les IA voient mieux ton secteur d'activité")
-` : techLevel === 'ai_nocode' ? `
-INSTRUCTIONS POUR AI-NOCODE:
-Donne LE PROMPT EXACT à copier-coller dans ChatGPT/Claude (rien d'autre):
-- Format: "Copie EXACTEMENT ceci dans ChatGPT:"
-- Puis: [PROMPT EN GUILLEMETS, 100% prêt à copier]
-- Placeholders en [CROCHETS]: [SECTEUR], [NOM_ENTREPRISE], [EMAIL], [URL]
-- Le prompt DOIT générer un résultat à copier-coller direct dans le site (texte, JSON, HTML)
-- Puis: "Prends la réponse et copie-la dans [endroit exact du site]"
-- Sois ULTRA CLAIR et sans blablabla - l'utilisateur veut juste un prompt et un endroit où le coller
-` : `
-INSTRUCTIONS POUR DEVELOPER:
-Explique la solution AUTHENTIQUE en contexte du site:
-- Pourquoi ça bloque les IA exactement? (manque JSON-LD? Pas de données structurées? Coherence des infos?)
-- Donne le CONTEXTE exact (quels fichiers? Quels attributs HTML?)
-- Pourquoi c'est critique pour les IA (e-e-a-t, Entity Authority, Trust signals)
-- Sois CONCIS (2-3 phrases max) et PERTINENT pour un dev qui veut comprendre le "pourquoi"
+${profileTypeLabel === 'no_code' ? `RÉPONDS AVEC:
+- summary: "Pourquoi ça bloque? (1 phrase simple + 1 chiffre clé)"
+- steps: ["Clique sur Paramètres > Pages > [nom] > ...", "Cherche [champ] et remplis avec: [texte]", ...] (2-3 étapes MAX, zéro jargon)
+- time_estimate: "10 min" ou "30 min" ou "1h"
+- profile_type: "no_code"
+
+SI C'EST IMPOSSIBLE SANS DEV: steps: ["Contactez un développeur pour [raison précise, ex: 'cela demande du JSON-LD custom']"]
+` : profileTypeLabel === 'ai_nocode' ? `RÉPONDS AVEC:
+- summary: "Pourquoi ça bloque en 1 phrase simple"
+- prompt: "Copie EXACTEMENT ceci dans ChatGPT ou Claude:\n[PROMPT SUR 2-3 LIGNES PRÊT À COPIER]" (avec placeholders [EN CROCHETS])
+- time_estimate: "5 min" ou "15 min"
+- profile_type: "ai_nocode"
+
+Le prompt doit générer un résultat que l'utilisateur copiera DIRECTEMENT dans son site.
+` : `RÉPONDS AVEC:
+- summary: "Pourquoi ça bloque? (1 phrase + contexte du site)"
+- explanation: "2-3 phrases: fichiers concernés, pourquoi c'est important pour les IA (JSON-LD? Données structurées? Trust?)"
+- time_estimate: "30 min" ou "1-2h"
+- profile_type: "developer"
 `}
 
-JSON STRICT:
+JSON:
 {
-  "summary": "Pourquoi ça bloque ${businessName}? (1-2 phrases authentiques + 1 chiffre clé)",
-  ${techLevel === 'ai_nocode' ? `"prompt": "Copie EXACTEMENT ceci dans ChatGPT: [PROMPT TEXTE EXACT]"` : `"steps": ["Étape 1 concrète", "Étape 2 concrète", ...] ou "explanation": "Explication développeur"`},
-  "time_estimate": "10-15 min" ou "30 min" ou "1-2h",
+  "summary": "...",
+  ${profileTypeLabel === 'ai_nocode' ? `"prompt": "Copie EXACTEMENT..."` : `"steps": [...] ou "explanation": "..."`},
+  "time_estimate": "...",
+  "profile_type": "${profileTypeLabel}",
   "type": "seul" ou "avec aide"
 }
 
-Français authentique, concis, ZÉRO blablabla.`;
+Simple. Clair. Actionnable.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -219,7 +218,7 @@ Français authentique, concis, ZÉRO blablabla.`;
       }).catch((e) => console.error('[cache_save_library]', e)),
     ]);
 
-    return Response.json(result);
+    return Response.json({ ...result, profile_type: techLevel });
   } catch (error) {
     console.error('[generateFixInstruction]', error);
     return Response.json({ error: error.message }, { status: 500 });
