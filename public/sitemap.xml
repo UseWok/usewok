@@ -1,40 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Page d'accueil : priorité maximale -->
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
   <url>
-    <loc>https://usewok.base44.app/</loc>
-    <lastmod>2026-06-25</lastmod>
+    <loc>https://usewok.com/</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <priority>1.00</priority>
   </url>
 
-  <!-- Page tarifs : importance élevée -->
   <url>
-    <loc>https://usewok.base44.app/tarifs</loc>
-    <lastmod>2026-06-25</lastmod>
+    <loc>https://usewok.com/tarifs</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.90</priority>
   </url>
 
-  <!-- Blog : importance élevée -->
   <url>
-    <loc>https://usewok.base44.app/blog</loc>
-    <lastmod>2026-06-25</lastmod>
+    <loc>https://usewok.com/blog</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.80</priority>
   </url>
 
-  <!-- Pages légales : importance faible -->
   <url>
-    <loc>https://usewok.base44.app/privacy</loc>
-    <lastmod>2026-06-25</lastmod>
+    <loc>https://usewok.com/terms</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.40</priority>
   </url>
+
   <url>
-    <loc>https://usewok.base44.app/terms</loc>
-    <lastmod>2026-06-25</lastmod>
+    <loc>https://usewok.com/privacy</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.40</priority>
   </url>
+
+  <url>
+    <loc>https://usewok.com/legal</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.40</priority>
+  </url>
+
 </urlset>
